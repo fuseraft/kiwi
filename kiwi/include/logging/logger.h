@@ -119,7 +119,8 @@ class Logger {
         break;
       case LogMode::FILE:
         if (!logFilePath.empty()) {
-          File::writeToFile(token, logFilePath, logEntry, true, false);
+          const auto& logContent = KValue::createString(logEntry);
+          File::writeToFile(token, logFilePath, logContent, true, false);
         }
         break;
     }

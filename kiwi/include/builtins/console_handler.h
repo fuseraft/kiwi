@@ -10,8 +10,8 @@
 
 class ConsoleBuiltinHandler {
  public:
-  static k_value execute(const Token& token, const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args) {
     switch (builtin) {
       case KName::Builtin_Console_Input:
         return executeInput(token, args);
@@ -24,8 +24,8 @@ class ConsoleBuiltinHandler {
   }
 
  private:
-  static k_value executeInput(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeInput(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, ConsoleBuiltins.Input);
     }
@@ -36,7 +36,7 @@ class ConsoleBuiltinHandler {
     }
     std::getline(std::cin, userInput);
 
-    return userInput;
+    return KValue::createString(userInput);
   }
 };
 

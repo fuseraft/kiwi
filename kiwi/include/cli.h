@@ -138,7 +138,7 @@ bool KiwiCLI::createMinified(Host& host, const k_string& path) {
 
   std::cout << "Creating " << minFilePath << std::endl;
   if (File::createFile(cliToken, minFilePath)) {
-    auto minified = host.minify(filePath);
+    auto minified = KValue::createString(host.minify(filePath));
     File::writeToFile(cliToken, minFilePath, minified, false, false);
     return true;
   }

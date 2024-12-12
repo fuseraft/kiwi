@@ -12,177 +12,144 @@
 #include "rng.h"
 
 static k_string get_string(
-    const Token& token, const k_value& arg,
+    const Token& token, const KValue& arg,
     const k_string& message = "Expected a string value.") {
-  if (!std::holds_alternative<k_string>(arg)) {
+  if (!arg.isString()) {
     throw ConversionError(token, message);
   }
-  return std::get<k_string>(arg);
+  return arg.getString();
 }
 
 static k_int get_integer(
-    const Token& token, const k_value& arg,
+    const Token& token, const KValue& arg,
     const k_string& message = "Expected an integer value.") {
-  if (std::holds_alternative<double>(arg)) {
-    return static_cast<k_int>(std::get<double>(arg));
+  if (arg.isFloat()) {
+    return static_cast<k_int>(arg.getFloat());
   }
-  if (!std::holds_alternative<k_int>(arg)) {
+  if (!arg.isInteger()) {
     throw ConversionError(token, message);
   }
-  return std::get<k_int>(arg);
+  return arg.getInteger();
 }
 
-static double get_double(
-    const Token& token, const k_value& arg,
-    const k_string& message = "Expected an integer or double value.") {
-  if (std::holds_alternative<k_int>(arg)) {
-    return static_cast<double>(std::get<k_int>(arg));
-  } else if (std::holds_alternative<double>(arg)) {
-    return std::get<double>(arg);
+static double get_float(
+    const Token& token, const KValue& arg,
+    const k_string& message = "Expected an integer or float value.") {
+  if (arg.isInteger()) {
+    return static_cast<double>(arg.getInteger());
+  } else if (arg.isFloat()) {
+    return arg.getFloat();
   }
 
   throw ConversionError(token, message);
 }
 
-static k_string to_string_value(const k_value& val) {
-  return std::visit(
-      [](auto&& arg) -> k_string {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, k_int>) {
-          return std::to_string(arg);
-        } else if constexpr (std::is_same_v<T, double>) {
-          // std::to_string(double) is fine, but consider formatting if precision matters
-          return std::to_string(arg);
-        } else if constexpr (std::is_same_v<T, bool>) {
-          return arg ? "true" : "false";
-        } else if constexpr (std::is_same_v<T, k_list>) {
-          // If you want a string representation of a list, implement it here.
-          // Just returning something simple:
-          return "[list]";
-        } else {
-          // Unknown type, possibly throw or return an error string
-          return "";
-        }
-      },
-      val);
+/*static double get_double(
+    const Token& token, const KValue& arg,
+    const k_string& message = "Expected an integer or double value.") {
+  if (arg.isInteger()) {
+    return static_cast<double>(arg.getInteger());
+  } else if (arg.isFloat()) {
+    return arg.getFloat();
+  }
+
+  throw ConversionError(token, message);
+}*/
+
+static k_string to_string_value(const KValue& val) {
+  return Serializer::serialize(val);
 }
 
 struct {
-  bool is_zero(const Token& token, const k_value& v) {
-    if (std::holds_alternative<double>(v)) {
-      return std::get<double>(v) == 0.0;
-    } else if (std::holds_alternative<k_int>(v)) {
-      return std::get<k_int>(v) == 0;
+  bool is_zero(const Token& token, const KValue& v) {
+    if (v.isFloat()) {
+      return v.getFloat() == 0.0;
+    } else if (v.isInteger()) {
+      return v.getInteger() == 0;
     }
 
     throw ConversionError(token,
                           "Cannot check non-numeric value for zero value.");
   }
 
-  k_value do_addition(const Token& token, const k_value& left,
-                      const k_value& right) {
-    return std::visit(
-        [&](auto&& lhs, auto&& rhs) -> k_value {
-          using L = std::decay_t<decltype(lhs)>;
-          using R = std::decay_t<decltype(rhs)>;
+  KValue do_addition(const Token& token, const KValue& left,
+                     const KValue& right) {
+    const auto& leftIsInt = left.isInteger();
+    const auto& rightIsInt = right.isInteger();
+    const auto& leftIsFloat = left.isFloat();
+    const auto& rightIsFloat = right.isFloat();
+    const auto& leftIsString = left.isString();
+    const auto& rightIsString = right.isString();
 
-          // int + int
-          if constexpr (std::is_same_v<L, k_int> && std::is_same_v<R, k_int>) {
-            return lhs + rhs;
-          }
-          // double + double
-          else if constexpr (std::is_same_v<L, double> &&
-                             std::is_same_v<R, double>) {
-            return lhs + rhs;
-          }
-          // int + double or double + int
-          else if constexpr ((std::is_same_v<L, k_int> &&
-                              std::is_same_v<R, double>) ||
-                             (std::is_same_v<L, double> &&
-                              std::is_same_v<R, k_int>)) {
-            double l =
-                std::is_same_v<L, k_int> ? static_cast<double>(lhs) : lhs;
-            double r =
-                std::is_same_v<R, k_int> ? static_cast<double>(rhs) : rhs;
-            return l + r;
-          }
-          // string + string
-          else if constexpr (std::is_same_v<L, k_string> &&
-                             std::is_same_v<R, k_string>) {
-            return lhs + rhs;
-          }
-          // string + anything
-          else if constexpr (std::is_same_v<L, k_string>) {
-            return lhs + to_string_value(rhs);
-          }
-          // list + list or list + any
-          else if constexpr (std::is_same_v<L, k_list>) {
-            auto listCopy = lhs;  // Copy or clone the list
-            if constexpr (std::is_same_v<R, k_list>) {
-              listCopy->elements.insert(listCopy->elements.end(),
-                                        rhs->elements.begin(),
-                                        rhs->elements.end());
-            } else {
-              listCopy->elements.emplace_back(rhs);
-            }
-            return listCopy;
-          }
-          // anything + string
-          else if constexpr (std::is_same_v<R, k_string>) {
-            return to_string_value(lhs) + rhs;
-          }
-          // If none of the above matched, it's a conversion error
-          else {
-            throw ConversionError(token, "Conversion error in addition.");
-          }
-        },
-        left, right);
+    if (leftIsInt && rightIsInt) {
+      return KValue::createInteger(left.getInteger() + right.getInteger());
+    } else if (leftIsFloat && rightIsFloat) {
+      return KValue::createFloat(left.getFloat() + right.getFloat());
+    } else if ((leftIsInt && rightIsFloat) || (leftIsFloat && rightIsInt)) {
+      double l =
+          leftIsInt ? static_cast<double>(left.getInteger()) : left.getFloat();
+      double r = rightIsInt ? static_cast<double>(right.getInteger())
+                            : right.getFloat();
+      return KValue::createFloat(l + r);
+    } else if (leftIsString && rightIsString) {
+      return KValue::createString(left.getString() + right.getString());
+    } else if (leftIsString) {
+      return KValue::createString(left.getString() + to_string_value(right));
+    } else if (left.isList()) {
+      auto listCopy = left.getList();
+
+      if (right.isList()) {
+        const auto& rhs = right.getList()->elements;
+        listCopy->elements.insert(listCopy->elements.end(), rhs.begin(),
+                                  rhs.end());
+      } else {
+        listCopy->elements.emplace_back(right);
+      }
+
+      return KValue::createList(listCopy);
+    } else if (rightIsString) {
+      return KValue::createString(to_string_value(left) + right.getString());
+    }
+
+    throw ConversionError(token, "Conversion error in addition.");
   }
 
-  k_value do_subtraction(const Token& token, const k_value& left,
-                         const k_value& right) {
-    k_value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = std::get<k_int>(left) - std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = std::get<double>(left) - std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result =
-          static_cast<double>(std::get<k_int>(left)) - std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result =
-          std::get<double>(left) - static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<k_list>(left) &&
-               !std::holds_alternative<k_list>(right)) {
-      std::vector<k_value> listValues;
-      const auto& leftList = std::get<k_list>(left)->elements;
+  KValue do_subtraction(const Token& token, const KValue& left,
+                        const KValue& right) {
+    if (left.isInteger() && right.isInteger()) {
+      return KValue::createInteger(left.getInteger() - right.getInteger());
+    } else if (left.isFloat() && right.isFloat()) {
+      return KValue::createFloat(left.getFloat() - right.getFloat());
+    } else if (left.isInteger() && right.isFloat()) {
+      return KValue::createFloat(static_cast<double>(left.getInteger()) -
+                                 right.getFloat());
+    } else if (left.isFloat() && right.isInteger()) {
+      return KValue::createFloat(left.getFloat() -
+                                 static_cast<double>(right.getInteger()));
+    } else if (left.isList() && !right.isList()) {
+      std::vector<KValue> listValues;
+      const auto& leftList = left.getList()->elements;
       bool found = false;
 
       for (const auto& item : leftList) {
-        if (!found && same_value(item, right)) {
+        if (!found && same_value(item.getValue(), right.getValue())) {
           found = true;
           continue;
         }
         listValues.emplace_back(item);
       }
 
-      return std::make_shared<List>(listValues);
-    } else if (std::holds_alternative<k_list>(left) &&
-               std::holds_alternative<k_list>(right)) {
-      std::vector<k_value> listValues;
-      const auto& leftList = std::get<k_list>(left)->elements;
-      const auto& rightList = std::get<k_list>(right)->elements;
+      return KValue::createList(std::make_shared<List>(listValues));
+    } else if (left.isList() && right.isList()) {
+      std::vector<KValue> listValues;
+      const auto& leftList = left.getList()->elements;
+      const auto& rightList = right.getList()->elements;
 
       for (const auto& item : leftList) {
         bool found = false;
 
         for (const auto& ritem : rightList) {
-          if (same_value(item, ritem)) {
+          if (same_value(item.getValue(), ritem.getValue())) {
             found = true;
             break;
           }
@@ -192,149 +159,117 @@ struct {
           listValues.emplace_back(item);
         }
       }
-      return std::make_shared<List>(listValues);
-    } else {
-      throw ConversionError(token, "Conversion error in subtraction.");
+      return KValue::createList(std::make_shared<List>(listValues));
     }
 
-    return result;
+    throw ConversionError(token, "Conversion error in subtraction.");
   }
 
-  k_value do_exponentiation(const Token& token, const k_value& left,
-                            const k_value& right) {
-    k_value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      result = static_cast<k_int>(
-          pow(std::get<k_int>(left), std::get<k_int>(right)));
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = pow(std::get<double>(left), std::get<double>(right));
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      result = pow(static_cast<double>(std::get<k_int>(left)),
-                   std::get<double>(right));
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      result = pow(std::get<double>(left),
-                   static_cast<double>(std::get<k_int>(right)));
-    } else {
-      throw ConversionError(token, "Conversion error in exponentiation.");
+  KValue do_exponentiation(const Token& token, const KValue& left,
+                           const KValue& right) {
+    if (left.isInteger() && right.isInteger()) {
+      return KValue::createInteger(
+          static_cast<k_int>(pow(left.getInteger(), right.getInteger())));
+    } else if (left.isFloat() && right.isFloat()) {
+      return KValue::createFloat(pow(left.getFloat(), right.getFloat()));
+    } else if (left.isInteger() && right.isFloat()) {
+      return KValue::createFloat(
+          pow(static_cast<double>(left.getInteger()), right.getFloat()));
+    } else if (left.isFloat() && right.isInteger()) {
+      return KValue::createFloat(
+          pow(left.getFloat(), static_cast<double>(right.getInteger())));
     }
 
-    return result;
+    throw ConversionError(token, "Conversion error in exponentiation.");
   }
 
-  k_value do_modulus(const Token& token, const k_value& left,
-                     const k_value& right) {
-    k_value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      auto rhs = std::get<k_int>(right);
+  KValue do_modulus(const Token& token, const KValue& left,
+                    const KValue& right) {
+    if (left.isInteger() && right.isInteger()) {
+      auto rhs = right.getInteger();
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
-      result = std::get<k_int>(left) % std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      double rhs = std::get<double>(right);
+      return KValue::createInteger(left.getInteger() % right.getInteger());
+    } else if (left.isFloat() && right.isFloat()) {
+      double rhs = right.getFloat();
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
-      result = fmod(std::get<double>(left), rhs);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      double rhs = std::get<double>(right);
+      return KValue::createFloat(fmod(left.getFloat(), rhs));
+    } else if (left.isInteger() && right.isFloat()) {
+      double rhs = right.getFloat();
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
-      result = fmod(std::get<k_int>(left), rhs);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      double rhs = static_cast<double>(std::get<k_int>(right));
+      return KValue::createFloat(fmod(left.getInteger(), rhs));
+    } else if (left.isFloat() && right.isInteger()) {
+      double rhs = static_cast<double>(right.getInteger());
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
-      result = fmod(std::get<double>(left), rhs);
-    } else {
-      throw ConversionError(token, "Conversion error in modulus.");
+      return KValue::createFloat(fmod(left.getFloat(), rhs));
     }
 
-    return result;
+    throw ConversionError(token, "Conversion error in modulus.");
   }
 
-  k_value do_division(const Token& token, const k_value& left,
-                      const k_value& right) {
-    k_value result;
-
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      auto rhs = std::get<k_int>(right);
+  KValue do_division(const Token& token, const KValue& left,
+                     const KValue& right) {
+    if (left.isInteger() && right.isInteger()) {
+      auto rhs = right.getInteger();
       if (rhs == 0) {
         throw DivideByZeroError(token);
       }
-      result = std::get<k_int>(left) / rhs;
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      double rhs = std::get<double>(right);
+      return KValue::createInteger(left.getInteger() / rhs);
+    } else if (left.isFloat() && right.isFloat()) {
+      double rhs = right.getFloat();
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
-      result = std::get<double>(left) / rhs;
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      double rhs = std::get<double>(right);
+      return KValue::createFloat(left.getFloat() / rhs);
+    } else if (left.isInteger() && right.isFloat()) {
+      double rhs = right.getFloat();
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
-      result = static_cast<double>(std::get<k_int>(left)) / rhs;
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      double rhs = static_cast<double>(std::get<k_int>(right));
+      return KValue::createFloat(static_cast<double>(left.getInteger()) / rhs);
+    } else if (left.isFloat() && right.isInteger()) {
+      double rhs = static_cast<double>(right.getInteger());
       if (rhs == 0.0) {
         throw DivideByZeroError(token);
       }
-      result = std::get<double>(left) / rhs;
-    } else {
-      throw ConversionError(token, "Conversion error in division.");
+      return KValue::createFloat(left.getFloat() / rhs);
     }
 
-    return result;
+    throw ConversionError(token, "Conversion error in division.");
   }
 
-  k_value do_multiplication(const Token& token, const k_value& left,
-                            const k_value& right) {
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      return std::get<k_int>(left) * std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<double>(right)) {
-      return std::get<double>(left) * std::get<double>(right);
-    } else if (std::holds_alternative<k_int>(left) &&
-               std::holds_alternative<double>(right)) {
-      return static_cast<double>(std::get<k_int>(left)) *
-             std::get<double>(right);
-    } else if (std::holds_alternative<double>(left) &&
-               std::holds_alternative<k_int>(right)) {
-      return std::get<double>(left) *
-             static_cast<double>(std::get<k_int>(right));
-    } else if (std::holds_alternative<k_string>(left) &&
-               std::holds_alternative<k_int>(right)) {
+  KValue do_multiplication(const Token& token, const KValue& left,
+                           const KValue& right) {
+    if (left.isInteger() && right.isInteger()) {
+      return KValue::createInteger(left.getInteger() * right.getInteger());
+    } else if (left.isFloat() && right.isFloat()) {
+      return KValue::createFloat(left.getFloat() * right.getFloat());
+    } else if (left.isInteger() && right.isFloat()) {
+      return KValue::createFloat(static_cast<double>(left.getInteger()) *
+                                 right.getFloat());
+    } else if (left.isFloat() && right.isInteger()) {
+      return KValue::createFloat(left.getFloat() *
+                                 static_cast<double>(right.getInteger()));
+    } else if (left.isString() && right.isInteger()) {
       return do_string_multiplication(left, right);
-    } else if (std::holds_alternative<k_list>(left) &&
-               std::holds_alternative<k_int>(right)) {
+    } else if (left.isList() && right.isInteger()) {
       return do_list_multiplication(token, left, right);
     }
 
     throw ConversionError(token, "Conversion error in multiplication.");
   }
 
-  k_value do_list_multiplication(const Token& token, const k_value& left,
-                                 const k_value& right) {
-    auto list = std::get<k_list>(left);
-    auto multiplier = std::get<k_int>(right);
+  KValue do_list_multiplication(const Token& token, const KValue& left,
+                                const KValue& right) {
+    const auto& list = left.getList();
+    auto multiplier = right.getInteger();
 
     if (multiplier < 1) {
       throw SyntaxError(token,
@@ -355,15 +290,15 @@ struct {
       }
     }
 
-    return newList;
+    return KValue::createList(newList);
   }
 
-  k_value do_string_multiplication(const k_value& left, const k_value& right) {
-    auto string = std::get<k_string>(left);
-    auto multiplier = std::get<k_int>(right);
+  KValue do_string_multiplication(const KValue& left, const KValue& right) {
+    auto string = left.getString();
+    auto multiplier = right.getInteger();
 
     if (multiplier <= 0) {
-      return k_string();
+      return KValue::createString(k_string());
     }
 
     k_string build;
@@ -373,28 +308,28 @@ struct {
       build.append(string);
     }
 
-    return build;
+    return KValue::createString(build);
   }
 
-  bool is_truthy(const k_value& value) {
-    switch (value.index()) {
+  bool is_truthy(const KValue& value) {
+    switch (value.getType()) {
       case KValueType::_INTEGER:
-        return std::get<k_int>(value) != static_cast<k_int>(0);
+        return value.getInteger() != static_cast<k_int>(0);
 
       case KValueType::_FLOAT:
-        return std::get<double>(value) != static_cast<double>(0);
+        return value.getFloat() != static_cast<double>(0);
 
       case KValueType::_BOOLEAN:
-        return std::get<bool>(value);
+        return value.getBoolean();
 
       case KValueType::_STRING:
-        return !std::get<k_string>(value).empty();
+        return !value.getString().empty();
 
       case KValueType::_LIST:
-        return !std::get<k_list>(value)->elements.empty();
+        return !value.getList()->elements.empty();
 
       case KValueType::_HASHMAP:
-        return std::get<k_hashmap>(value)->size() > 0;
+        return value.getHashmap()->size() > 0;
 
       case KValueType::_OBJECT:
         return true;
@@ -410,168 +345,176 @@ struct {
     }
   }
 
-  k_value do_eq_comparison(const k_value& left, const k_value& right) {
-    return same_value(left, right);
+  bool do_eq_comparison(const KValue& left, const KValue& right) {
+    return same_value(left.getValue(), right.getValue());
   }
 
-  k_value do_neq_comparison(const k_value& left, const k_value& right) {
-    return !same_value(left, right);
+  KValue do_neq_comparison(const KValue& left, const KValue& right) {
+    return KValue::createBoolean(
+        !same_value(left.getValue(), right.getValue()));
   }
 
-  k_value do_lt_comparison(const k_value& left, const k_value& right) {
-    return lt_value(left, right);
+  KValue do_lt_comparison(const KValue& left, const KValue& right) {
+    return KValue::createBoolean(lt_value(left.getValue(), right.getValue()));
   }
 
-  k_value do_lte_comparison(const k_value& left, const k_value& right) {
-    return lt_value(left, right) || same_value(left, right);
+  KValue do_lte_comparison(const KValue& left, const KValue& right) {
+    const auto& leftValue = left.getValue();
+    const auto& rightValue = right.getValue();
+    return KValue::createBoolean(lt_value(leftValue, rightValue) ||
+                                 same_value(leftValue, rightValue));
   }
 
-  k_value do_gt_comparison(const k_value& left, const k_value& right) {
-    return gt_value(left, right);
+  KValue do_gt_comparison(const KValue& left, const KValue& right) {
+    return KValue::createBoolean(gt_value(left.getValue(), right.getValue()));
   }
 
-  k_value do_gte_comparison(const k_value& left, const k_value& right) {
-    return gt_value(left, right) || same_value(left, right);
+  KValue do_gte_comparison(const KValue& left, const KValue& right) {
+    const auto& leftValue = left.getValue();
+    const auto& rightValue = right.getValue();
+    return KValue::createBoolean(gt_value(leftValue, rightValue) ||
+                                 same_value(leftValue, rightValue));
   }
 
-  k_value do_bitwise_and(const Token& token, const k_value& left,
-                         const k_value& right) {
-    if (std::holds_alternative<k_int>(left)) {
-      auto lhs = std::get<k_int>(left);
-      if (std::holds_alternative<k_int>(right)) {
-        return lhs & std::get<k_int>(right);
-      } else if (std::holds_alternative<double>(right)) {
-        return lhs & static_cast<k_int>(std::get<double>(right));
-      } else if (std::holds_alternative<bool>(right)) {
-        k_int rhs = std::get<bool>(right) ? 1 : 0;
-        return lhs & rhs;
+  KValue do_bitwise_and(const Token& token, const KValue& left,
+                        const KValue& right) {
+    if (left.isInteger()) {
+      auto lhs = left.getInteger();
+      if (right.isInteger()) {
+        return KValue::createInteger(lhs & right.getInteger());
+      } else if (right.isFloat()) {
+        return KValue::createInteger(lhs &
+                                     static_cast<k_int>(right.getFloat()));
+      } else if (right.isBoolean()) {
+        k_int rhs = right.getBoolean() ? 1 : 0;
+        return KValue::createInteger(lhs & rhs);
       }
     }
 
     throw ConversionError(token, "Conversion error in bitwise & operation.");
   }
 
-  k_value do_bitwise_or(const Token& token, const k_value& left,
-                        const k_value& right) {
-    if (std::holds_alternative<k_int>(left)) {
-      auto lhs = std::get<k_int>(left);
-      if (std::holds_alternative<k_int>(right)) {
-        return lhs | std::get<k_int>(right);
-      } else if (std::holds_alternative<double>(right)) {
-        return lhs | static_cast<k_int>(std::get<double>(right));
-      } else if (std::holds_alternative<bool>(right)) {
-        k_int rhs = std::get<bool>(right) ? 1 : 0;
-        return lhs | rhs;
+  KValue do_bitwise_or(const Token& token, const KValue& left,
+                       const KValue& right) {
+    if (left.isInteger()) {
+      auto lhs = left.getInteger();
+      if (right.isInteger()) {
+        return KValue::createInteger(lhs | right.getInteger());
+      } else if (right.isFloat()) {
+        return KValue::createInteger(lhs |
+                                     static_cast<k_int>(right.getFloat()));
+      } else if (right.isBoolean()) {
+        k_int rhs = right.getBoolean() ? 1 : 0;
+        return KValue::createInteger(lhs | rhs);
       }
     }
 
     throw ConversionError(token, "Conversion error in bitwise | operation.");
   }
 
-  k_value do_bitwise_xor(const Token& token, const k_value& left,
-                         const k_value& right) {
-    if (std::holds_alternative<k_int>(left)) {
-      auto lhs = std::get<k_int>(left);
-      if (std::holds_alternative<k_int>(right)) {
-        return lhs ^ std::get<k_int>(right);
-      } else if (std::holds_alternative<double>(right)) {
-        return lhs ^ static_cast<k_int>(std::get<double>(right));
-      } else if (std::holds_alternative<bool>(right)) {
-        k_int rhs = std::get<bool>(right) ? 1 : 0;
-        return lhs ^ rhs;
+  KValue do_bitwise_xor(const Token& token, const KValue& left,
+                        const KValue& right) {
+    if (left.isInteger()) {
+      auto lhs = left.getInteger();
+      if (right.isInteger()) {
+        return KValue::createInteger(lhs ^ right.getInteger());
+      } else if (right.isFloat()) {
+        return KValue::createInteger(lhs ^
+                                     static_cast<k_int>(right.getFloat()));
+      } else if (right.isBoolean()) {
+        k_int rhs = right.getBoolean() ? 1 : 0;
+        return KValue::createInteger(lhs ^ rhs);
       }
     }
 
     throw ConversionError(token, "Conversion error in bitwise ^ operation.");
   }
 
-  k_value do_bitwise_not(const Token& token, const k_value& left) {
-    if (std::holds_alternative<k_int>(left)) {
-      return ~std::get<k_int>(left);
-    } else if (std::holds_alternative<double>(left)) {
-      return ~static_cast<k_int>(std::get<double>(left));
-    } else if (std::holds_alternative<bool>(left)) {
-      return ~static_cast<k_int>(std::get<bool>(left) ? 1 : 0);
+  KValue do_bitwise_not(const Token& token, const KValue& left) {
+    if (left.isInteger()) {
+      return KValue::createInteger(~left.getInteger());
+    } else if (left.isFloat()) {
+      return KValue::createInteger(~static_cast<k_int>(left.getFloat()));
+    } else if (left.isBoolean()) {
+      return KValue::createInteger(
+          ~static_cast<k_int>(left.getBoolean() ? 1 : 0));
     }
 
     throw ConversionError(token, "Conversion error in bitwise ~ operation.");
   }
 
-  k_value do_bitwise_lshift(const Token& token, const k_value& left,
-                            const k_value& right) {
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      return std::get<k_int>(left) << std::get<k_int>(right);
+  KValue do_bitwise_lshift(const Token& token, const KValue& left,
+                           const KValue& right) {
+    if (left.isInteger() && right.isInteger()) {
+      return KValue::createInteger(left.getInteger() << right.getInteger());
     }
 
     throw ConversionError(token, "Conversion error in bitwise << operation.");
   }
 
-  k_value do_bitwise_urshift(const Token& token, k_value left, k_value right) {
-    if (!std::holds_alternative<k_int>(left) ||
-        !std::holds_alternative<k_int>(right)) {
+  KValue do_bitwise_urshift(const Token& token, KValue left, KValue right) {
+    if (!left.isInteger() || !right.isInteger()) {
       throw ConversionError(token,
                             "Conversion error in bitwise >>> operation.");
     }
 
-    auto a = std::get<k_int>(left);
-    auto b = std::get<k_int>(right);
+    auto a = left.getInteger();
+    auto b = right.getInteger();
 
     if (b >= static_cast<k_int>(32)) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     unsigned int a_int = static_cast<unsigned int>(a);
 
-    return static_cast<k_int>(a_int >> b);
+    return KValue::createInteger(static_cast<k_int>(a_int >> b));
   }
 
-  k_value do_bitwise_rshift(const Token& token, const k_value& left,
-                            const k_value& right) {
-    if (std::holds_alternative<k_int>(left) &&
-        std::holds_alternative<k_int>(right)) {
-      return std::get<k_int>(left) >> std::get<k_int>(right);
+  KValue do_bitwise_rshift(const Token& token, const KValue& left,
+                           const KValue& right) {
+    if (left.isInteger() && right.isInteger()) {
+      return KValue::createInteger(left.getInteger() >> right.getInteger());
     }
 
     throw ConversionError(token, "Conversion error in bitwise >> operation.");
   }
 
-  k_value do_negation(const Token& token, const k_value& right) {
-    if (std::holds_alternative<k_int>(right)) {
-      return -std::get<k_int>(right);
-    } else if (std::holds_alternative<double>(right)) {
-      return -std::get<double>(right);
+  KValue do_negation(const Token& token, const KValue& right) {
+    if (right.isInteger()) {
+      return KValue::createInteger(-right.getInteger());
+    } else if (right.isFloat()) {
+      return KValue::createFloat(-right.getFloat());
     } else {
       throw ConversionError(token,
                             "Unary minus applied to a non-numeric value.");
     }
   }
 
-  k_value do_logical_not(const k_value& right) {
-    if (std::holds_alternative<bool>(right)) {
-      return !std::get<bool>(right);
-    } else if (std::holds_alternative<k_null>(right)) {
-      return true;
-    } else if (std::holds_alternative<k_int>(right)) {
-      return static_cast<k_int>(std::get<k_int>(right) == 0 ? 1 : 0);
-    } else if (std::holds_alternative<double>(right)) {
-      return std::get<double>(right) == 0;
-    } else if (std::holds_alternative<k_string>(right)) {
-      return std::get<k_string>(right).empty();
-    } else if (std::holds_alternative<k_list>(right)) {
-      return std::get<k_list>(right)->elements.empty();
-    } else if (std::holds_alternative<k_hashmap>(right)) {
-      return std::get<k_hashmap>(right)->keys.empty();
+  KValue do_logical_not(const KValue& right) {
+    if (right.isBoolean()) {
+      return KValue::createBoolean(!right.getBoolean());
+    } else if (right.isNull()) {
+      return KValue::createBoolean(true);
+    } else if (right.isInteger()) {
+      return KValue::createBoolean(right.getInteger() == 0 ? true : false);
+    } else if (right.isFloat()) {
+      return KValue::createBoolean(right.getFloat() == 0.0);
+    } else if (right.isString()) {
+      return KValue::createBoolean(right.getString().empty());
+    } else if (right.isList()) {
+      return KValue::createBoolean(right.getList()->elements.empty());
+    } else if (right.isHashmap()) {
+      return KValue::createBoolean(right.getHashmap()->keys.empty());
     } else {
-      return false;  // Object, Lambda, etc.
+      return KValue::createBoolean(false);  // Object, Lambda, etc.
     }
   }
 
-  double get_double(const Token& token, const k_value& value) {
-    if (std::holds_alternative<k_int>(value)) {
-      return static_cast<double>(std::get<k_int>(value));
-    } else if (std::holds_alternative<double>(value)) {
-      return std::get<double>(value);
+  double get_double(const Token& token, const KValue& value) {
+    if (value.isInteger()) {
+      return static_cast<double>(value.getInteger());
+    } else if (value.isFloat()) {
+      return value.getFloat();
     }
 
     throw ConversionError(token, "Cannot convert value to a double value.");
@@ -579,175 +522,185 @@ struct {
 
   double __epsilon__() { return std::numeric_limits<double>::epsilon(); }
 
-  k_value __sin__(const Token& token, const k_value& value) {
-    return sin(get_double(token, value));
+  KValue __sin__(const Token& token, const KValue& value) {
+    return KValue::createFloat(sin(get_double(token, value)));
   }
 
-  k_value __sinh__(const Token& token, const k_value& value) {
-    return sinh(get_double(token, value));
+  KValue __sinh__(const Token& token, const KValue& value) {
+    return KValue::createFloat(sinh(get_double(token, value)));
   }
 
-  k_value __asin__(const Token& token, const k_value& value) {
-    return asin(get_double(token, value));
+  KValue __asin__(const Token& token, const KValue& value) {
+    return KValue::createFloat(asin(get_double(token, value)));
   }
 
-  k_value __tan__(const Token& token, const k_value& value) {
-    return tan(get_double(token, value));
+  KValue __tan__(const Token& token, const KValue& value) {
+    return KValue::createFloat(tan(get_double(token, value)));
   }
 
-  k_value __tanh__(const Token& token, const k_value& value) {
-    return tanh(get_double(token, value));
+  KValue __tanh__(const Token& token, const KValue& value) {
+    return KValue::createFloat(tanh(get_double(token, value)));
   }
 
-  k_value __atan__(const Token& token, const k_value& value) {
-    return atan(get_double(token, value));
+  KValue __atan__(const Token& token, const KValue& value) {
+    return KValue::createFloat(atan(get_double(token, value)));
   }
 
-  k_value __atan2__(const Token& token, const k_value& valueY,
-                    const k_value& valueX) {
-    return atan2(get_double(token, valueY), get_double(token, valueX));
+  KValue __atan2__(const Token& token, const KValue& valueY,
+                   const KValue& valueX) {
+    return KValue::createFloat(
+        atan2(get_double(token, valueY), get_double(token, valueX)));
   }
 
-  k_value __cos__(const Token& token, const k_value& value) {
-    return cos(get_double(token, value));
+  KValue __cos__(const Token& token, const KValue& value) {
+    return KValue::createFloat(cos(get_double(token, value)));
   }
 
-  k_value __acos__(const Token& token, const k_value& value) {
-    return acos(get_double(token, value));
+  KValue __acos__(const Token& token, const KValue& value) {
+    return KValue::createFloat(acos(get_double(token, value)));
   }
 
-  k_value __cosh__(const Token& token, const k_value& value) {
-    return cosh(get_double(token, value));
+  KValue __cosh__(const Token& token, const KValue& value) {
+    return KValue::createFloat(cosh(get_double(token, value)));
   }
 
-  k_value __log__(const Token& token, const k_value& value) {
-    return log(get_double(token, value));
+  KValue __log__(const Token& token, const KValue& value) {
+    return KValue::createFloat(log(get_double(token, value)));
   }
 
-  k_value __log2__(const Token& token, const k_value& value) {
-    return log2(get_double(token, value));
+  KValue __log2__(const Token& token, const KValue& value) {
+    return KValue::createFloat(log2(get_double(token, value)));
   }
 
-  k_value __log10__(const Token& token, const k_value& value) {
-    return log10(get_double(token, value));
+  KValue __log10__(const Token& token, const KValue& value) {
+    return KValue::createFloat(log10(get_double(token, value)));
   }
 
-  k_value __log1p__(const Token& token, const k_value& value) {
-    return log1p(get_double(token, value));
+  KValue __log1p__(const Token& token, const KValue& value) {
+    return KValue::createFloat(log1p(get_double(token, value)));
   }
 
-  k_value __sqrt__(const Token& token, const k_value& value) {
-    return sqrt(get_double(token, value));
+  KValue __sqrt__(const Token& token, const KValue& value) {
+    return KValue::createFloat(sqrt(get_double(token, value)));
   }
 
-  k_value __cbrt__(const Token& token, const k_value& value) {
-    return cbrt(get_double(token, value));
+  KValue __cbrt__(const Token& token, const KValue& value) {
+    return KValue::createFloat(cbrt(get_double(token, value)));
   }
 
-  k_value __fmod__(const Token& token, const k_value& valueX,
-                   const k_value& valueY) {
-    return fmod(get_double(token, valueX), get_double(token, valueY));
+  KValue __fmod__(const Token& token, const KValue& valueX,
+                  const KValue& valueY) {
+    return KValue::createFloat(
+        fmod(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __hypot__(const Token& token, const k_value& valueX,
-                    const k_value& valueY) {
-    return hypot(get_double(token, valueX), get_double(token, valueY));
+  KValue __hypot__(const Token& token, const KValue& valueX,
+                   const KValue& valueY) {
+    return KValue::createFloat(
+        hypot(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __isfinite__(const Token& token, const k_value& value) {
-    return std::isfinite(get_double(token, value));
+  KValue __isfinite__(const Token& token, const KValue& value) {
+    return KValue::createBoolean(std::isfinite(get_double(token, value)));
   }
 
-  k_value __isinf__(const Token& token, const k_value& value) {
-    return std::isinf(get_double(token, value));
+  KValue __isinf__(const Token& token, const KValue& value) {
+    return KValue::createBoolean(std::isinf(get_double(token, value)));
   }
 
-  k_value __isnan__(const Token& token, const k_value& value) {
-    return std::isnan(get_double(token, value));
+  KValue __isnan__(const Token& token, const KValue& value) {
+    return KValue::createBoolean(std::isnan(get_double(token, value)));
   }
 
-  k_value __isnormal__(const Token& token, const k_value& value) {
-    return std::isnormal(get_double(token, value));
+  KValue __isnormal__(const Token& token, const KValue& value) {
+    return KValue::createBoolean(std::isnormal(get_double(token, value)));
   }
 
-  k_value __floor__(const Token& token, const k_value& value) {
-    return floor(get_double(token, value));
+  KValue __floor__(const Token& token, const KValue& value) {
+    return KValue::createFloat(floor(get_double(token, value)));
   }
 
-  k_value __ceil__(const Token& token, const k_value& value) {
-    return ceil(get_double(token, value));
+  KValue __ceil__(const Token& token, const KValue& value) {
+    return KValue::createFloat(ceil(get_double(token, value)));
   }
 
-  k_value __round__(const Token& token, const k_value& value) {
-    return round(get_double(token, value));
+  KValue __round__(const Token& token, const KValue& value) {
+    return KValue::createFloat(round(get_double(token, value)));
   }
 
-  k_value __trunc__(const Token& token, const k_value& value) {
-    return trunc(get_double(token, value));
+  KValue __trunc__(const Token& token, const KValue& value) {
+    return KValue::createFloat(trunc(get_double(token, value)));
   }
 
-  k_value __remainder__(const Token& token, const k_value& valueX,
-                        const k_value& valueY) {
-    return remainder(get_double(token, valueX), get_double(token, valueY));
+  KValue __remainder__(const Token& token, const KValue& valueX,
+                       const KValue& valueY) {
+    return KValue::createFloat(
+        remainder(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __exp__(const Token& token, const k_value& value) {
-    return exp(get_double(token, value));
+  KValue __exp__(const Token& token, const KValue& value) {
+    return KValue::createFloat(exp(get_double(token, value)));
   }
 
-  k_value __expm1__(const Token& token, const k_value& value) {
-    return expm1(get_double(token, value));
+  KValue __expm1__(const Token& token, const KValue& value) {
+    return KValue::createFloat(expm1(get_double(token, value)));
   }
 
-  k_value __erf__(const Token& token, const k_value& value) {
-    return erf(get_double(token, value));
+  KValue __erf__(const Token& token, const KValue& value) {
+    return KValue::createFloat(erf(get_double(token, value)));
   }
 
-  k_value __erfc__(const Token& token, const k_value& value) {
-    return erfc(get_double(token, value));
+  KValue __erfc__(const Token& token, const KValue& value) {
+    return KValue::createFloat(erfc(get_double(token, value)));
   }
 
-  k_value __lgamma__(const Token& token, const k_value& value) {
-    return lgamma(get_double(token, value));
+  KValue __lgamma__(const Token& token, const KValue& value) {
+    return KValue::createFloat(lgamma(get_double(token, value)));
   }
 
-  k_value __tgamma__(const Token& token, const k_value& value) {
-    return tgamma(get_double(token, value));
+  KValue __tgamma__(const Token& token, const KValue& value) {
+    return KValue::createFloat(tgamma(get_double(token, value)));
   }
 
-  k_value __fdim__(const Token& token, const k_value& valueX,
-                   const k_value& valueY) {
-    return fdim(get_double(token, valueX), get_double(token, valueY));
+  KValue __fdim__(const Token& token, const KValue& valueX,
+                  const KValue& valueY) {
+    return KValue::createFloat(
+        fdim(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __copysign__(const Token& token, const k_value& valueX,
-                       const k_value& valueY) {
-    return copysign(get_double(token, valueX), get_double(token, valueY));
+  KValue __copysign__(const Token& token, const KValue& valueX,
+                      const KValue& valueY) {
+    return KValue::createFloat(
+        copysign(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __nextafter__(const Token& token, const k_value& valueX,
-                        const k_value& valueY) {
-    return nextafter(get_double(token, valueX), get_double(token, valueY));
+  KValue __nextafter__(const Token& token, const KValue& valueX,
+                       const KValue& valueY) {
+    return KValue::createFloat(
+        nextafter(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __max__(const Token& token, const k_value& valueX,
-                  const k_value& valueY) {
-    return fmax(get_double(token, valueX), get_double(token, valueY));
+  KValue __max__(const Token& token, const KValue& valueX,
+                 const KValue& valueY) {
+    return KValue::createFloat(
+        fmax(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __min__(const Token& token, const k_value& valueX,
-                  const k_value& valueY) {
-    return fmin(get_double(token, valueX), get_double(token, valueY));
+  KValue __min__(const Token& token, const KValue& valueX,
+                 const KValue& valueY) {
+    return KValue::createFloat(
+        fmin(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __pow__(const Token& token, const k_value& valueX,
-                  const k_value& valueY) {
-    return pow(get_double(token, valueX), get_double(token, valueY));
+  KValue __pow__(const Token& token, const KValue& valueX,
+                 const KValue& valueY) {
+    return KValue::createFloat(
+        pow(get_double(token, valueX), get_double(token, valueY)));
   }
 
-  k_value __rotr__(k_int value, k_int shift) {
+  KValue __rotr__(k_int value, k_int shift) {
     if (shift == 0) {
-      return value;
+      return KValue::createInteger(value);
     }
 
     auto unsignedValue = static_cast<unsigned long long>(value);
@@ -762,12 +715,12 @@ struct {
     unsigned long long result =
         (unsignedValue >> shift) | (unsignedValue << (bits - shift));
 
-    return static_cast<k_int>(result);
+    return KValue::createInteger(static_cast<k_int>(result));
   }
 
-  k_value __rotl__(k_int value, k_int shift) {
+  KValue __rotl__(k_int value, k_int shift) {
     if (shift == 0) {
-      return value;
+      return KValue::createInteger(value);
     }
 
     unsigned long long unsignedValue = static_cast<unsigned long long>(value);
@@ -782,29 +735,29 @@ struct {
     unsigned long long result =
         (unsignedValue << shift) | (unsignedValue >> (bits - shift));
 
-    return static_cast<k_int>(result);
+    return KValue::createInteger(static_cast<k_int>(result));
   }
 
-  k_value __abs__(const Token& token, const k_value& value) {
-    if (std::holds_alternative<k_int>(value)) {
-      return static_cast<k_int>(
-          labs(static_cast<long>(std::get<k_int>(value))));
-    } else if (std::holds_alternative<double>(value)) {
-      return fabs(std::get<double>(value));
+  KValue __abs__(const Token& token, const KValue& value) {
+    if (value.isInteger()) {
+      return KValue::createInteger(
+          static_cast<k_int>(labs(static_cast<long>(value.getInteger()))));
+    } else if (value.isFloat()) {
+      return KValue::createFloat(fabs(value.getFloat()));
     }
 
     throw ConversionError(
         token, "Cannot take an absolute value of a non-numeric value.");
   }
 
-  std::vector<k_value> __divisors__(int number) {
-    std::vector<k_value> divisors;
+  std::vector<KValue> __divisors__(int number) {
+    std::vector<KValue> divisors;
 
     for (int i = 1; i <= sqrt(number); ++i) {
       if (number % i == 0) {
-        divisors.emplace_back(static_cast<k_int>(i));
+        divisors.emplace_back(KValue::createInteger(i));
         if (i != number / i) {
-          divisors.emplace_back(static_cast<k_int>(number / i));
+          divisors.emplace_back(KValue::createInteger(number / i));
         }
       }
     }
@@ -812,34 +765,33 @@ struct {
     return divisors;
   }
 
-  k_value __random__(const Token& token, const k_value& valueX,
-                     const k_value& valueY) {
-    if (std::holds_alternative<k_string>(valueX)) {
+  KValue __random__(const Token& token, const KValue& valueX,
+                    const KValue& valueY) {
+    if (valueX.isString()) {
       auto limit = get_integer(token, valueY);
-      return RNG::getInstance().randomString(std::get<k_string>(valueX), limit);
+      return KValue::createString(
+          RNG::getInstance().randomString(valueX.getString(), limit));
     }
 
-    if (std::holds_alternative<k_list>(valueX)) {
+    if (valueX.isList()) {
       auto limit = get_integer(token, valueY);
-      return RNG::getInstance().randomList(std::get<k_list>(valueX), limit);
+      return KValue::create(
+          RNG::getInstance().randomList(valueX.getList(), limit));
     }
 
-    if (std::holds_alternative<double>(valueX) ||
-        std::holds_alternative<double>(valueY)) {
+    if (valueX.isFloat() && valueY.isFloat()) {
       double x = get_double(token, valueX), y = get_double(token, valueY);
-      return RNG::getInstance().random(x, y);
-    } else if (std::holds_alternative<k_int>(valueX) ||
-               std::holds_alternative<k_int>(valueY)) {
+      return KValue::createFloat(RNG::getInstance().random(x, y));
+    } else if (valueX.isInteger() && valueY.isInteger()) {
       auto x = get_integer(token, valueX), y = get_integer(token, valueY);
-      return RNG::getInstance().random(x, y);
+      return KValue::createInteger(RNG::getInstance().random(x, y));
     }
 
     throw ConversionError(token,
                           "Expected a numeric value in random number range");
   }
 
-  k_value do_unary_op(const Token& token, const KName& op,
-                      const k_value& right) {
+  KValue do_unary_op(const Token& token, const KName& op, const KValue& right) {
     switch (op) {
       case KName::Ops_Not:
         return do_logical_not(right);
@@ -856,8 +808,8 @@ struct {
     }
   }
 
-  k_value do_binary_op(const Token& token, const KName& op, const k_value& left,
-                       const k_value& right) {
+  KValue do_binary_op(const Token& token, const KName& op, const KValue& left,
+                      const KValue& right) {
     switch (op) {
       case KName::Ops_Add:
       case KName::Ops_AddAssign:
@@ -897,10 +849,10 @@ struct {
         return do_bitwise_urshift(token, left, right);
       case KName::Ops_And:
       case KName::Ops_AndAssign:
-        return is_truthy(left) && is_truthy(right);
+        return KValue::createBoolean(is_truthy(left) && is_truthy(right));
       case KName::Ops_Or:
       case KName::Ops_OrAssign:
-        return is_truthy(left) || is_truthy(right);
+        return KValue::createBoolean(is_truthy(left) || is_truthy(right));
       case KName::Ops_LessThan:
         return do_lt_comparison(left, right);
       case KName::Ops_LessThanOrEqual:
@@ -910,7 +862,7 @@ struct {
       case KName::Ops_GreaterThanOrEqual:
         return do_gte_comparison(left, right);
       case KName::Ops_Equal:
-        return do_eq_comparison(left, right);
+        return KValue::createBoolean(do_eq_comparison(left, right));
       case KName::Ops_NotEqual:
         return do_neq_comparison(left, right);
       default:

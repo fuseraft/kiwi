@@ -11,10 +11,10 @@
 
 class FileIOBuiltinHandler {
  public:
-  static k_value execute(const Token& token, const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args) {
     if (SAFEMODE) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     switch (builtin) {
@@ -111,51 +111,54 @@ class FileIOBuiltinHandler {
   }
 
  private:
-  static k_value executeAppendText(const Token& token,
-                                   const std::vector<k_value>& args) {
+  static KValue executeAppendText(const Token& token,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.AppendText);
     }
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return File::writeToFile(token, fileName, value, true, false);
+    return KValue::createBoolean(
+        File::writeToFile(token, fileName, value, true, false));
   }
 
-  static k_value executeCopyFile(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeCopyFile(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CopyFile);
     }
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return File::copyFile(token, sourcePath, destinationPath);
+    return KValue::createBoolean(
+        File::copyFile(token, sourcePath, destinationPath));
   }
 
-  static k_value executeCopyR(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeCopyR(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CopyR);
     }
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return File::copyR(token, sourcePath, destinationPath);
+    return KValue::createBoolean(
+        File::copyR(token, sourcePath, destinationPath));
   }
 
-  static k_value executeCreateFile(const Token& token,
-                                   const std::vector<k_value>& args) {
+  static KValue executeCreateFile(const Token& token,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.CreateFile);
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::createFile(token, fileName);
+    return KValue::createBoolean(File::createFile(token, fileName));
   }
 
-  static k_value executeListDirectory(const Token& token,
-                                      const std::vector<k_value>& args) {
+  static KValue executeListDirectory(const Token& token,
+                                     const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ListDirectory);
     }
@@ -167,159 +170,159 @@ class FileIOBuiltinHandler {
     elements.reserve(listing.size());
 
     for (const auto& entry : listing) {
-      elements.emplace_back(entry);
+      elements.emplace_back(KValue::createString(entry));
     }
 
-    return list;
+    return KValue::createList(list);
   }
 
-  static k_value executeMakeDirectory(const Token& token,
-                                      const std::vector<k_value>& args) {
+  static KValue executeMakeDirectory(const Token& token,
+                                     const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.MakeDirectory);
     }
 
     auto path = get_string(token, args.at(0));
-    return File::makeDirectory(token, path);
+    return KValue::createBoolean(File::makeDirectory(token, path));
   }
 
-  static k_value executeMakeDirectoryP(const Token& token,
-                                       const std::vector<k_value>& args) {
+  static KValue executeMakeDirectoryP(const Token& token,
+                                      const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.MakeDirectoryP);
     }
 
     auto path = get_string(token, args.at(0));
-    return File::makeDirectoryP(token, path);
+    return KValue::createBoolean(File::makeDirectoryP(token, path));
   }
 
-  static k_value executeRemovePath(const Token& token,
-                                   const std::vector<k_value>& args) {
+  static KValue executeRemovePath(const Token& token,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.RemoveDirectory);
     }
 
     auto path = get_string(token, args.at(0));
-    return File::removePath(token, path);
+    return KValue::createBoolean(File::removePath(token, path));
   }
 
-  static k_value executeRemovePathF(const Token& token,
-                                    const std::vector<k_value>& args) {
+  static KValue executeRemovePathF(const Token& token,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.RemoveDirectoryF);
     }
 
     auto path = get_string(token, args.at(0));
-    return static_cast<k_int>(File::removePathF(token, path));
+    return KValue::createInteger(File::removePathF(token, path));
   }
 
-  static k_value executeGetTempDirectory(const Token& token,
-                                         const std::vector<k_value>& args) {
+  static KValue executeGetTempDirectory(const Token& token,
+                                        const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.TempDir);
     }
 
-    return File::getTempDirectory(token);
+    return KValue::createString(File::getTempDirectory(token));
   }
 
-  static k_value executeGetFileSize(const Token& token,
-                                    const std::vector<k_value>& args) {
+  static KValue executeGetFileSize(const Token& token,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileSize);
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getFileSize(token, fileName);
+    return KValue::createInteger(File::getFileSize(token, fileName));
   }
 
-  static k_value executeFileExists(const Token& token,
-                                   const std::vector<k_value>& args) {
+  static KValue executeFileExists(const Token& token,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileExists);
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::fileExists(token, fileName);
+    return KValue::createBoolean(File::fileExists(token, fileName));
   }
 
-  static k_value executeIsDirectory(const Token& token,
-                                    const std::vector<k_value>& args) {
+  static KValue executeIsDirectory(const Token& token,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.IsDirectory);
     }
 
     auto path = get_string(token, args.at(0));
-    return File::directoryExists(token, path);
+    return KValue::createBoolean(File::directoryExists(token, path));
   }
 
-  static k_value executeGetFileAbsolutePath(const Token& token,
-                                            const std::vector<k_value>& args) {
+  static KValue executeGetFileAbsolutePath(const Token& token,
+                                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.GetFileAbsolutePath);
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getAbsolutePath(token, fileName);
+    return KValue::createString(File::getAbsolutePath(token, fileName));
   }
 
-  static k_value executeGetFileExtension(const Token& token,
-                                         const std::vector<k_value>& args) {
+  static KValue executeGetFileExtension(const Token& token,
+                                        const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.GetFileExtension);
     }
 
     k_string fileName = get_string(token, args.at(0));
-    return File::getFileExtension(token, fileName);
+    return KValue::createString(File::getFileExtension(token, fileName));
   }
 
-  static k_value executeGetFileName(const Token& token,
-                                    const std::vector<k_value>& args) {
+  static KValue executeGetFileName(const Token& token,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.FileName);
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getFileName(token, fileName);
+    return KValue::createString(File::getFileName(token, fileName));
   }
 
-  static k_value executeGetCurrentDirectory(const Token& token,
-                                            const std::vector<k_value>& args) {
+  static KValue executeGetCurrentDirectory(const Token& token,
+                                           const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.GetCurrentDirectory);
     }
 
-    return File::getCurrentDirectory();
+    return KValue::createString(File::getCurrentDirectory());
   }
 
-  static k_value executeChangeDirectory(const Token& token,
-                                        const std::vector<k_value>& args) {
+  static KValue executeChangeDirectory(const Token& token,
+                                       const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            FileIOBuiltIns.ChangeDirectory);
     }
 
     auto path = get_string(token, args.at(0));
-    return File::setCurrentDirectory(path);
+    return KValue::createBoolean(File::setCurrentDirectory(path));
   }
 
-  static k_value executeGetFilePath(const Token& token,
-                                    const std::vector<k_value>& args) {
+  static KValue executeGetFilePath(const Token& token,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.GetFilePath);
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::getParentPath(token, fileName);
+    return KValue::createString(File::getParentPath(token, fileName));
   }
 
-  static k_value executeGlob(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeGlob(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Glob);
     }
@@ -331,46 +334,47 @@ class FileIOBuiltinHandler {
     elements.reserve(matchedFiles.size());
 
     for (const auto& file : matchedFiles) {
-      elements.emplace_back(file);
+      elements.emplace_back(KValue::createString(file));
     }
 
-    return matchList;
+    return KValue::createList(matchList);
   }
 
-  static k_value executeCombine(const Token& token,
-                                const std::vector<k_value>& args) {
+  static KValue executeCombine(const Token& token,
+                               const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.Combine);
     }
 
     auto firstPath = get_string(token, args.at(0));
     auto secondPath = get_string(token, args.at(1));
-    return File::joinPath(firstPath, secondPath);
+    return KValue::createString(File::joinPath(firstPath, secondPath));
   }
 
-  static k_value executeMoveFile(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeMoveFile(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.MoveFile);
     }
 
     auto sourcePath = get_string(token, args.at(0));
     auto destinationPath = get_string(token, args.at(1));
-    return File::movePath(token, sourcePath, destinationPath);
+    return KValue::createBoolean(
+        File::movePath(token, sourcePath, destinationPath));
   }
 
-  static k_value executeReadFile(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeReadFile(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadFile);
     }
 
     auto fileName = get_string(token, args.at(0));
-    return File::readFile(token, fileName);
+    return KValue::createString(File::readFile(token, fileName));
   }
 
-  static k_value executeReadLines(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeReadLines(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadLines);
     }
@@ -383,14 +387,14 @@ class FileIOBuiltinHandler {
     elements.reserve(lines.size());
 
     for (const auto& line : lines) {
-      elements.emplace_back(line);
+      elements.emplace_back(KValue::createString(line));
     }
 
-    return list;
+    return KValue::createList(list);
   }
 
-  static k_value executeReadBytes(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeReadBytes(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 1 && args.size() != 3) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.ReadBytes);
     }
@@ -398,14 +402,16 @@ class FileIOBuiltinHandler {
     auto fileName = get_string(token, args.at(0));
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
+    KValue byteValue;
 
     if (args.size() == 1) {
       auto bytes = File::readBytes(token, fileName);
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
-        elements.emplace_back(
+        byteValue.setValue(
             static_cast<k_int>(static_cast<unsigned char>(byte)));
+        elements.emplace_back(byteValue);
       }
     } else {
       auto offset = get_integer(token, args.at(1));
@@ -415,37 +421,40 @@ class FileIOBuiltinHandler {
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
-        elements.emplace_back(static_cast<k_int>(byte));
+        byteValue.setValue(static_cast<k_int>(byte));
+        elements.emplace_back(byteValue);
       }
     }
 
-    return list;
+    return KValue::createList(list);
   }
 
-  static k_value executeWriteLine(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeWriteLine(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteLine);
     }
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return File::writeToFile(token, fileName, value, true, true);
+    return KValue::createBoolean(
+        File::writeToFile(token, fileName, value, true, true));
   }
 
-  static k_value executeWriteText(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeWriteText(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteText);
     }
 
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
-    return File::writeToFile(token, fileName, value, false, false);
+    return KValue::createBoolean(
+        File::writeToFile(token, fileName, value, false, false));
   }
 
-  static k_value executeWriteBytes(const Token& token,
-                                   const std::vector<k_value>& args) {
+  static KValue executeWriteBytes(const Token& token,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FileIOBuiltIns.WriteBytes);
     }
@@ -453,24 +462,24 @@ class FileIOBuiltinHandler {
     auto fileName = get_string(token, args.at(0));
     auto value = args.at(1);
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw ConversionError(token, "Expected a list of bytes to write.");
     }
 
-    auto elements = std::get<k_list>(value)->elements;
+    auto elements = value.getList()->elements;
     std::vector<char> bytes;
     bytes.reserve(elements.size());
 
     for (const auto& item : elements) {
-      if (!std::holds_alternative<k_int>(item)) {
+      if (!item.isInteger()) {
         throw ConversionError(token, "Expected a list of bytes to write.");
       }
 
-      bytes.emplace_back(static_cast<char>(std::get<k_int>(item)));
+      bytes.emplace_back(static_cast<char>(item.getInteger()));
     }
 
     File::writeBytes(token, fileName, bytes);
-    return true;
+    return KValue::createBoolean(true);
   }
 };
 

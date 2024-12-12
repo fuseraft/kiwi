@@ -40,7 +40,7 @@ class File {
   // File content manipulation
   static k_int getFileSize(const Token& token, const k_string& filePath);
   static bool writeToFile(const Token& token, const k_string& filePath,
-                          const k_value& content, bool appendMode,
+                          const KValue& content, bool appendMode,
                           bool addNewLine);
   static void writeBytes(const Token& token, const k_string& filePath,
                          const std::vector<char>& data);
@@ -301,7 +301,7 @@ k_int File::getFileSize(const Token& token, const k_string& filePath) {
 /// @param addNewLine A flag to toggle appending a newline.
 /// @return Boolean indicating success.
 bool File::writeToFile(const Token& token, const k_string& filePath,
-                       const k_value& content, bool appendMode,
+                       const KValue& content, bool appendMode,
                        bool addNewLine) {
   std::ios_base::openmode mode = appendMode ? std::ios::app : std::ios::out;
   std::ofstream file(filePath, mode);

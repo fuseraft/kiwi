@@ -38,8 +38,8 @@ inline FrameFlags operator~(FrameFlags a) {
 }
 
 struct CallStackFrame {
-  std::unordered_map<k_string, k_value> variables;
-  k_value returnValue;
+  std::unordered_map<k_string, KValue> variables;
+  KValue returnValue;
   k_object objectContext;
   FrameFlags flags = FrameFlags::None;
   k_string name;
