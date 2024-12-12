@@ -11,10 +11,10 @@
 
 class LoggingBuiltinHandler {
  public:
-  static k_value execute(const Token& token, const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args) {
     if (SAFEMODE) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     switch (builtin) {
@@ -47,8 +47,8 @@ class LoggingBuiltinHandler {
   }
 
  private:
-  static k_value executeFilePath(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeFilePath(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, LoggingBuiltins.FilePath);
     }
@@ -56,11 +56,11 @@ class LoggingBuiltinHandler {
     auto filePath = get_string(token, args.at(0));
     Logger::getInstance().setLogFilePath(filePath);
 
-    return static_cast<k_int>(0);
+    return {};
   }
 
-  static k_value executeLevel(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeLevel(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, LoggingBuiltins.Level);
     }
@@ -68,11 +68,11 @@ class LoggingBuiltinHandler {
     auto level = Logger::loglevel_from_string(get_string(token, args.at(0)));
     Logger::getInstance().setMinimumLogLevel(level);
 
-    return static_cast<k_int>(0);
+    return {};
   }
 
-  static k_value executeMode(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeMode(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, LoggingBuiltins.Mode);
     }
@@ -80,11 +80,11 @@ class LoggingBuiltinHandler {
     auto mode = Logger::logmode_from_string(get_string(token, args.at(0)));
     Logger::getInstance().setLogMode(mode);
 
-    return static_cast<k_int>(0);
+    return {};
   }
 
-  static k_value executeEntryFormat(const Token& token,
-                                    const std::vector<k_value>& args) {
+  static KValue executeEntryFormat(const Token& token,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, LoggingBuiltins.EntryFormat);
     }
@@ -92,11 +92,11 @@ class LoggingBuiltinHandler {
     auto entryFormat = get_string(token, args.at(0));
     Logger::getInstance().setEntryFormat(entryFormat);
 
-    return static_cast<k_int>(0);
+    return {};
   }
 
-  static k_value executeTimestampFormat(const Token& token,
-                                        const std::vector<k_value>& args) {
+  static KValue executeTimestampFormat(const Token& token,
+                                       const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token,
                                            LoggingBuiltins.TimestampFormat);
@@ -105,11 +105,11 @@ class LoggingBuiltinHandler {
     auto timestampFormat = get_string(token, args.at(0));
     Logger::getInstance().setTimestampFormat(timestampFormat);
 
-    return static_cast<k_int>(0);
+    return {};
   }
 
-  static k_value executeWriteLog(const Token& token, const KName& builtin,
-                                 const std::vector<k_value>& args) {
+  static KValue executeWriteLog(const Token& token, const KName& builtin,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1 && args.size() != 2) {
       switch (builtin) {
         case KName::Builtin_Logging_Debug:
@@ -157,7 +157,7 @@ class LoggingBuiltinHandler {
         break;
     }
 
-    return static_cast<k_int>(0);
+    return {};
   }
 };
 

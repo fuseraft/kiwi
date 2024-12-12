@@ -13,12 +13,11 @@
 
 class ArgvBuiltinHandler {
  public:
-  static k_value execute(
-      const Token& token, const KName& builtin,
-      const std::vector<k_value>& args,
-      const std::unordered_map<k_string, k_string>& cliArgs) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args,
+                        const std::unordered_map<k_string, k_string>& cliArgs) {
     if (SAFEMODE) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     switch (builtin) {
@@ -36,8 +35,8 @@ class ArgvBuiltinHandler {
   }
 
  private:
-  static k_value executeGetArgv(
-      const Token& token, const std::vector<k_value>& args,
+  static KValue executeGetArgv(
+      const Token& token, const std::vector<KValue>& args,
       const std::unordered_map<k_string, k_string>& cliArgs) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, ArgvBuiltins.GetArgv);
@@ -48,15 +47,15 @@ class ArgvBuiltinHandler {
 
     for (const auto& pair : cliArgs) {
       if (String::beginsWith(pair.first, "argv_")) {
-        elements.emplace_back(pair.second);
+        elements.emplace_back(KValue::createString(pair.second));
       }
     }
 
-    return argv;
+    return KValue::createList(argv);
   }
 
-  static k_value executeGetXarg(
-      const Token& token, const std::vector<k_value>& args,
+  static KValue executeGetXarg(
+      const Token& token, const std::vector<KValue>& args,
       const std::unordered_map<k_string, k_string>& cliArgs) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, ArgvBuiltins.GetXarg);
@@ -66,11 +65,11 @@ class ArgvBuiltinHandler {
 
     for (const auto& pair : cliArgs) {
       if (pair.first == xargName) {
-        return pair.second;
+        return KValue::createString(pair.second);
       }
     }
 
-    return "";
+    return KValue::emptyString();
   }
 };
 

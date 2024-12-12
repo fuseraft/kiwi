@@ -14,7 +14,7 @@ class KContext {
   std::unordered_map<k_string, std::unique_ptr<KLambda>> lambdas;
   std::unordered_map<k_string, std::unique_ptr<KStruct>> structs;
   std::unordered_map<k_string, k_string> lambdaTable;
-  std::unordered_map<k_string, k_value> constants;
+  std::unordered_map<k_string, KValue> constants;
   httplib::Server server;
   std::unordered_map<int, k_string> serverHooks;
 
@@ -53,7 +53,10 @@ class KContext {
       cloned->addStruct(pair.first, pair.second->clone());
     }
 
-    cloned->constants = constants;
+    for (const auto& pair : constants) {
+      cloned->constants[pair.first] = pair.second;
+    }
+
     cloned->lambdaTable = lambdaTable;
     cloned->serverHooks = serverHooks;
 
@@ -64,11 +67,11 @@ class KContext {
     return constants.find(name) != constants.end();
   }
 
-  void addConstant(const k_string& name, const k_value& value) {
+  void addConstant(const k_string& name, const KValue& value) {
     constants[name] = clone_value(value);
   }
 
-  std::unordered_map<k_string, k_value>& getConstants() { return constants; }
+  std::unordered_map<k_string, KValue>& getConstants() { return constants; }
 
   bool hasPackage(const k_string& name) const {
     return packages.find(name) != packages.end();
