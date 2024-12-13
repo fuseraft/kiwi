@@ -10,12 +10,12 @@
 
 class FFIBuiltinHandler {
  public:
-  static k_value execute(FFIManager& ffi, const Token& token,
-                         const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(FFIManager& ffi, const Token& token,
+                        const KName& builtin, const std::vector<KValue>& args) {
     if (SAFEMODE) {
-      return static_cast<k_int>(0);
+      return {};
     }
+
     switch (builtin) {
       case KName::Builtin_FFI_Attach:
         return executeAttach(ffi, token, args);
@@ -32,8 +32,8 @@ class FFIBuiltinHandler {
   }
 
  private:
-  static k_value executeAttach(FFIManager& ffi, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeAttach(FFIManager& ffi, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 5) {
       throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Attach);
     }
@@ -41,39 +41,40 @@ class FFIBuiltinHandler {
     auto libAlias = get_string(token, args.at(0));
     auto funcAlias = get_string(token, args.at(1));
     auto ffiFuncName = get_string(token, args.at(2));
-    if (!std::holds_alternative<k_list>(args.at(3))) {
+    if (!args.at(3).isList()) {
       throw InvalidOperationError(
           token, "Expected a list of parameter types for argument 4 of `" +
                      FFIBuiltins.Attach + "`.");
     }
-    auto ffiParameterTypes = std::get<k_list>(args.at(3));
+    auto ffiParameterTypes = args.at(3).getList();
     auto ffiReturnType = get_string(token, args.at(4));
 
-    return ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName,
-                              ffiParameterTypes, ffiReturnType);
+    return KValue::createBoolean(
+        ffi.attachFunction(token, libAlias, funcAlias, ffiFuncName,
+                           ffiParameterTypes, ffiReturnType));
   }
 
-  static k_value executeInvoke(FFIManager& ffi, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeInvoke(FFIManager& ffi, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Invoke);
     }
 
     auto funcAlias = get_string(token, args.at(0));
 
-    if (!std::holds_alternative<k_list>(args.at(1))) {
+    if (!args.at(1).isList()) {
       throw InvalidOperationError(
           token, "Expected a list of parameters for argument 2 of `" +
                      FFIBuiltins.Invoke + "`.");
     }
 
-    const auto& funcParams = std::get<k_list>(args.at(1))->elements;
+    const auto& funcParams = args.at(1).getList()->elements;
 
     return ffi.invokeFunction(token, funcAlias, funcParams);
   }
 
-  static k_value executeLoad(FFIManager& ffi, const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeLoad(FFIManager& ffi, const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Load);
     }
@@ -86,8 +87,8 @@ class FFIBuiltinHandler {
     return {};
   }
 
-  static k_value executeUnload(FFIManager& ffi, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeUnload(FFIManager& ffi, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, FFIBuiltins.Unload);
     }

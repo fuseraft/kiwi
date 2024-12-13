@@ -11,11 +11,11 @@
 
 class TaskManager {
  public:
-  using TaskFunction = std::packaged_task<k_value()>;
+  using TaskFunction = std::packaged_task<KValue()>;
 
  private:
   std::atomic<k_int> nextPromiseId;
-  std::unordered_map<k_int, std::future<k_value>> tasks;
+  std::unordered_map<k_int, std::future<KValue>> tasks;
 
  public:
   TaskManager() : nextPromiseId(0) {}
@@ -28,26 +28,28 @@ class TaskManager {
     return id;
   }
 
-  std::unordered_map<k_int, std::future<k_value>>& getTasks() { return tasks; }
+  std::unordered_map<k_int, std::future<KValue>>& getTasks() { return tasks; }
 
   bool hasTask(k_int id) { return tasks.find(id) != tasks.end(); }
 
-  k_value getTaskStatus(const Token& token, const k_int& id) {
+  KValue getTaskStatus(const Token& token, const k_int& id) {
+    const auto& statusKey = KValue::createString("status");
     auto taskStatus = std::make_shared<Hashmap>();
-    taskStatus->add("status", "unknown");
+    taskStatus->add(statusKey, KValue::createString("unknown"));
 
     if (hasTask(id)) {
-      if (std::get<bool>(isTaskCompleted(token, id))) {
-        taskStatus->add("status", "completed");
+      const auto& taskCompleted = isTaskCompleted(token, id);
+      if (taskCompleted.isBoolean() && taskCompleted.getBoolean()) {
+        taskStatus->add(statusKey, KValue::createString("complete"));
       } else {
-        taskStatus->add("status", "running");
+        taskStatus->add(statusKey, KValue::createString("running"));
       }
     }
 
-    return taskStatus;
+    return KValue::createHashmap(taskStatus);
   }
 
-  k_value getTaskResult(const Token& token, k_int id) {
+  KValue getTaskResult(const Token& token, k_int id) {
     if (tasks.find(id) == tasks.end()) {
       return getTaskStatus(token, id);
     }
@@ -57,18 +59,19 @@ class TaskManager {
       return future.get();
     } else {
       auto status = std::make_shared<Hashmap>();
-      status->add("status", "running");
-      return status;
+      status->add(KValue::createString("status"),
+                  KValue::createString("running"));
+      return KValue::createHashmap(status);
     }
   }
 
-  k_value isTaskCompleted(const Token& token, k_int id) {
+  KValue isTaskCompleted(const Token& token, k_int id) {
     if (!hasTask(id)) {
       return getTaskStatus(token, id);
     }
 
-    return tasks.at(id).wait_for(std::chrono::seconds(0)) ==
-           std::future_status::ready;
+    return KValue::createBoolean(tasks.at(id).wait_for(std::chrono::seconds(
+                                     0)) == std::future_status::ready);
   }
 
   bool hasActiveTasks() {

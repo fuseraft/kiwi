@@ -16,7 +16,7 @@ enum class KCallableType {
 class KCallable {
  public:
   KCallableType type;
-  std::vector<std::pair<k_string, k_value>> parameters;
+  std::vector<std::pair<k_string, KValue>> parameters;
   std::unordered_set<k_string> defaultParameters;
   KCallable(KCallableType type) : type(type) {}
   virtual ~KCallable() = default;
