@@ -35,10 +35,10 @@ class SocketManager {
    * @param protocol The protocol number.
    * @return A unique socket ID.
    */
-  k_value create(const Token& token,
-                 const k_int& family = static_cast<k_int>(AF_INET),
-                 const k_int& type = static_cast<k_int>(SOCK_STREAM),
-                 const k_int& protocol = static_cast<k_int>(0));
+  KValue create(const Token& token,
+                const k_int& family = static_cast<k_int>(AF_INET),
+                const k_int& type = static_cast<k_int>(SOCK_STREAM),
+                const k_int& protocol = static_cast<k_int>(0));
 
   /**
    * Bind a socket to an address and port.
@@ -70,8 +70,8 @@ class SocketManager {
    * @param client_port Output parameter for the client's port number.
    * @return A new socket ID for the accepted connection.
    */
-  k_value accept(const Token& token, const k_int& sock_id,
-                 k_string& client_address, k_int& client_port);
+  KValue accept(const Token& token, const k_int& sock_id,
+                k_string& client_address, k_int& client_port);
 
   /**
    * Connect a socket to a remote address.
@@ -92,7 +92,7 @@ class SocketManager {
    * @param data Pointer to the data buffer.
    * @return Number of bytes sent.
    */
-  k_value send(const Token& token, const k_int& sock_id, k_value data);
+  KValue send(const Token& token, const k_int& sock_id, KValue data);
 
   /**
    * Send data over a raw socket connection.
@@ -103,8 +103,8 @@ class SocketManager {
    * @param data_value Pointer to the data buffer.
    * @return Number of bytes sent.
    */
-  k_value sendRawPacket(const Token& token, const k_int& sock_id,
-                        const k_string& destination, k_value data_value);
+  KValue sendRawPacket(const Token& token, const k_int& sock_id,
+                       const k_string& destination, KValue data_value);
 
   /**
    * Receive data from a socket.
@@ -114,8 +114,7 @@ class SocketManager {
    * @param length Maximum length of data to receive.
    * @return The received data as a string.
    */
-  k_value receive(const Token& token, const k_int& sock_id,
-                  const k_int& length);
+  KValue receive(const Token& token, const k_int& sock_id, const k_int& length);
 
   /**
    * Close a socket.
@@ -165,8 +164,8 @@ class SocketManager {
    * @param input The hostname.
    * @return A list of IP addresses.
    */
-  k_value resolveHostToIP(const k_string& hostname) {
-    std::vector<k_value> ipAddresses;
+  KValue resolveHostToIP(const k_string& hostname) {
+    std::vector<KValue> ipAddresses;
     struct addrinfo hints, *res, *ptr;
 
     // Zero out the hints structure
@@ -177,7 +176,7 @@ class SocketManager {
 
     int status = getaddrinfo(hostname.c_str(), nullptr, &hints, &res);
     if (status != 0) {
-      return std::make_shared<List>(ipAddresses);
+      return KValue::createList(std::make_shared<List>(ipAddresses));
     }
 
     for (ptr = res; ptr != nullptr; ptr = ptr->ai_next) {
@@ -195,11 +194,11 @@ class SocketManager {
         continue;
       }
 
-      ipAddresses.emplace_back(ipStr);
+      ipAddresses.emplace_back(KValue::createString(ipStr));
     }
 
     freeaddrinfo(res);  // Free the linked list
-    return std::make_shared<List>(ipAddresses);
+    return KValue::createList(std::make_shared<List>(ipAddresses));
   }
 
  private:
@@ -239,9 +238,9 @@ int SocketManager::get_socket(const Token& token, const k_int& sock_id) {
   return it->second;
 }
 
-k_value SocketManager::create(const Token& token, const k_int& family_value,
-                              const k_int& type_value,
-                              const k_int& protocol_value) {
+KValue SocketManager::create(const Token& token, const k_int& family_value,
+                             const k_int& type_value,
+                             const k_int& protocol_value) {
   int family = static_cast<int>(family_value);
   int type = static_cast<int>(type_value);
   int protocol = static_cast<int>(protocol_value);
@@ -258,7 +257,7 @@ k_value SocketManager::create(const Token& token, const k_int& family_value,
     sockets_[sock_id] = sock;
     socket_families_[sock_id] = family;
   }
-  return static_cast<k_int>(sock_id);
+  return KValue::createInteger(sock_id);
 }
 
 bool SocketManager::bind(const Token& token, const k_int& sock_id,
@@ -319,8 +318,8 @@ bool SocketManager::listen(const Token& token, const k_int& sock_id,
   return true;
 }
 
-k_value SocketManager::accept(const Token& token, const k_int& sock_id,
-                              k_string& client_address, k_int& client_port) {
+KValue SocketManager::accept(const Token& token, const k_int& sock_id,
+                             k_string& client_address, k_int& client_port) {
   int sock = get_socket(token, sock_id);
 
   struct sockaddr_storage client_addr;
@@ -384,7 +383,7 @@ k_value SocketManager::accept(const Token& token, const k_int& sock_id,
   // Release ownership of client_sock
   client_sock_guard.sock_fd = -1;
 
-  return static_cast<k_int>(client_sock_id);
+  return KValue::createInteger(client_sock_id);
 }
 
 bool SocketManager::connect(const Token& token, const k_int& sock_id,
@@ -424,9 +423,9 @@ bool SocketManager::connect(const Token& token, const k_int& sock_id,
   return true;
 }
 
-k_value SocketManager::sendRawPacket(const Token& token, const k_int& sock_id,
-                                     const k_string& destination,
-                                     k_value data_value) {
+KValue SocketManager::sendRawPacket(const Token& token, const k_int& sock_id,
+                                    const k_string& destination,
+                                    KValue data_value) {
   int sock = get_socket(token, sock_id);
 
   // Resolve destination address
@@ -442,21 +441,23 @@ k_value SocketManager::sendRawPacket(const Token& token, const k_int& sock_id,
 
   // Convert data to a raw byte buffer
   std::vector<char> raw_data;
-  if (std::holds_alternative<k_string>(data_value)) {
-    raw_data.assign(std::get<k_string>(data_value).begin(),
-                    std::get<k_string>(data_value).end());
-  } else if (std::holds_alternative<k_list>(data_value)) {
-    k_list data_list = std::get<k_list>(data_value);
-    for (const auto& elem : data_list->elements) {
-      if (std::holds_alternative<k_int>(elem)) {
-        raw_data.push_back(static_cast<char>(std::get<k_int>(elem)));
+  if (data_value.isString()) {
+    const auto& stringData = data_value.getString();
+    raw_data.assign(stringData.begin(), stringData.end());
+  } else if (data_value.isList()) {
+    const auto& elements = data_value.getList()->elements;
+    for (const auto& elem : elements) {
+      if (elem.isInteger()) {
+        raw_data.push_back(static_cast<char>(elem.getInteger()));
       }
     }
   }
 
+  KValue bytesSent;
+
   if (raw_data.empty()) {
     freeaddrinfo(res);
-    return static_cast<k_int>(0);  // Nothing to send
+    return bytesSent;  // Nothing to send
   }
 
   // Iterate over all resolved addresses and send data
@@ -476,27 +477,30 @@ k_value SocketManager::sendRawPacket(const Token& token, const k_int& sock_id,
         token, "Failed to send raw packet: " + k_string(std::strerror(errno)));
   }
 
-  return static_cast<k_int>(sent_bytes);
+  bytesSent.setValue(static_cast<k_int>(sent_bytes));
+
+  return bytesSent;
 }
 
-k_value SocketManager::send(const Token& token, const k_int& sock_id,
-                            k_value data_value) {
+KValue SocketManager::send(const Token& token, const k_int& sock_id,
+                           KValue data_value) {
   int sock = get_socket(token, sock_id);
 
   k_string data;
-  if (std::holds_alternative<k_string>(data_value)) {
-    data = std::get<k_string>(data_value);
-  } else if (std::holds_alternative<k_list>(data_value)) {
+  if (data_value.isString()) {
+    data = data_value.getString();
+  } else if (data_value.isList()) {
     // Assuming k_list of k_int (bytes)
-    k_list data_list = std::get<k_list>(data_value);
-    data.reserve(data_list->elements.size());
-    for (const auto& elem : data_list->elements) {
-      if (std::holds_alternative<k_int>(elem)) {
-        k_int byte_value = std::get<k_int>(elem);
-        if (byte_value < 0 || byte_value > 255) {
+    const auto& elements = data_value.getList()->elements;
+    k_int byteValue;
+    data.reserve(elements.size());
+    for (const auto& elem : elements) {
+      if (elem.isInteger()) {
+        byteValue = elem.getInteger();
+        if (byteValue < 0 || byteValue > 255) {
           throw SocketError(token, "Byte values must be between 0 and 255");
         }
-        data += static_cast<char>(byte_value);
+        data += static_cast<char>(byteValue);
       } else {
         throw SocketError(token, "Data list must contain integers");
       }
@@ -508,9 +512,11 @@ k_value SocketManager::send(const Token& token, const k_int& sock_id,
   const char* data_ptr = data.data();
   size_t data_size = data.size();
 
+  KValue bytesSent;
+
   if (data_size == 0) {
     // Nothing to send.
-    return static_cast<k_int>(0);
+    return bytesSent;
   }
 
   ssize_t total_bytes_sent = 0;
@@ -529,11 +535,12 @@ k_value SocketManager::send(const Token& token, const k_int& sock_id,
     total_bytes_sent += bytes_sent;
   }
 
-  return static_cast<k_int>(total_bytes_sent);
+  bytesSent.setValue(static_cast<k_int>(total_bytes_sent));
+  return bytesSent;
 }
 
-k_value SocketManager::receive(const Token& token, const k_int& sock_id,
-                               const k_int& length_value) {
+KValue SocketManager::receive(const Token& token, const k_int& sock_id,
+                              const k_int& length_value) {
   if (length_value <= 0) {
     throw SocketError(
         token, "Length must be positive: " + std::to_string(length_value));
@@ -557,14 +564,15 @@ k_value SocketManager::receive(const Token& token, const k_int& sock_id,
     break;
   }
 
-  if (bytes_received == 0) {
-    // Peer has performed an orderly shutdown
-    return k_string();  // Return an empty string
+  auto bytesReceived = KValue::emptyString();
+
+  if (bytes_received != 0) {
+    // Convert received data to a string
+    k_string data_str(buffer.begin(), buffer.begin() + bytes_received);
+    bytesReceived.setValue(data_str);
   }
 
-  // Convert received data to a string
-  k_string data_str(buffer.begin(), buffer.begin() + bytes_received);
-  return data_str;
+  return bytesReceived;
 }
 
 bool SocketManager::close(const Token& token, const k_int& sock_id) {

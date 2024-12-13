@@ -34,8 +34,8 @@ class Engine {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    if (std::holds_alternative<k_int>(result)) {
-      return static_cast<int>(std::get<k_int>(result));
+    if (result.isInteger()) {
+      return static_cast<int>(result.getInteger());
     }
 
     return 0;

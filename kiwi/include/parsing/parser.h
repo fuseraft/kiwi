@@ -1417,7 +1417,7 @@ std::unique_ptr<ASTNode> Parser::parseLiteral() {
   }
 
   auto literalNode = std::make_unique<LiteralNode>();
-  literalNode->value = kToken.getValue();
+  literalNode->value = KValue::create(kToken.getValue());
   next();  // Consume literal
   return literalNode;
 }

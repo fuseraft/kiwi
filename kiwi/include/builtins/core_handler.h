@@ -20,9 +20,8 @@
 
 class CoreBuiltinHandler {
  public:
-  static k_value execute(const Token& token, const KName& builtin,
-                         const k_value& value,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const KValue& value, const std::vector<KValue>& args) {
     if (KiwiBuiltins.is_builtin(builtin)) {
       return executeKiwiBuiltin(token, builtin, value, args);
     }
@@ -31,9 +30,9 @@ class CoreBuiltinHandler {
   }
 
  private:
-  static k_value executeKiwiBuiltin(const Token& token, const KName& builtin,
-                                    const k_value& value,
-                                    const std::vector<k_value>& args) {
+  static KValue executeKiwiBuiltin(const Token& token, const KName& builtin,
+                                   const KValue& value,
+                                   const std::vector<KValue>& args) {
     switch (builtin) {
       case KName::Builtin_Kiwi_Chars:
         return executeChars(token, value, args);
@@ -234,24 +233,24 @@ class CoreBuiltinHandler {
     throw UnknownBuiltinError(token, "");
   }
 
-  static k_value executeLines(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeLines(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Lines);
     }
 
     auto s = get_string(token, value);
-    return String::lines(s);
+    return KValue::createList(String::lines(s));
   }
 
-  static k_value executeTokens(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeTokens(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Tokens);
     }
 
     auto s = get_string(token, value);
-    std::vector<k_value> tokens;
+    std::vector<KValue> tokens;
 
     Lexer lex(token.getFile(), s);
 
@@ -259,79 +258,81 @@ class CoreBuiltinHandler {
     tokens.reserve(ts.size());
 
     for (const auto& token : ts) {
-      tokens.emplace_back(token.getText());
+      tokens.emplace_back(KValue::createString(token.getText()));
     }
 
-    return std::make_shared<List>(tokens);
+    return KValue::createList(std::make_shared<List>(tokens));
   }
 
-  static k_value executeTruthy(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeTruthy(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Truthy);
     }
 
-    switch (value.index()) {
-      case 0:  // k_int
-        return std::get<k_int>(value) != static_cast<k_int>(0);
+    switch (value.getType()) {
+      case KValueType::_INTEGER:
+        return KValue::createBoolean(value.getInteger() !=
+                                     static_cast<k_int>(0));
 
-      case 1:  // double
-        return std::get<double>(value) != static_cast<double>(0);
+      case KValueType::_FLOAT:
+        return KValue::createBoolean(value.getFloat() !=
+                                     static_cast<double>(0));
 
-      case 2:  // bool
-        return std::get<bool>(value);
+      case KValueType::_BOOLEAN:
+        return KValue::createBoolean(value.getBoolean());
 
-      case 3:  // k_string
-        return !std::get<k_string>(value).empty();
+      case KValueType::_STRING:
+        return KValue::createBoolean(!value.getString().empty());
 
-      case 4:  // k_list
-        return !std::get<k_list>(value)->elements.empty();
+      case KValueType::_LIST:
+        return KValue::createBoolean(!value.getList()->elements.empty());
 
-      case 5:  // k_hashmap
-        return std::get<k_hashmap>(value)->size() > 0;
+      case KValueType::_HASHMAP:
+        return KValue::createBoolean(value.getHashmap()->size() > 0);
 
-      case 6:  // k_object
-        return true;
+      case KValueType::_OBJECT:
+        return KValue::createBoolean(true);
 
-      case 7:  // k_lambda
-        return true;
+      case KValueType::_LAMBDA:
+        return KValue::createBoolean(true);
 
-      case 8:  // k_null
-        return false;
+      case KValueType::_NONE:
+        return KValue::createBoolean(false);
 
       default:
-        return false;
+        return KValue::createBoolean(false);
     }
   }
 
-  static k_value executeGet(const Token& token, const k_value& value,
-                            const std::vector<k_value>& args) {
+  static KValue executeGet(const Token& token, const KValue& value,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Get);
     }
 
-    if (std::holds_alternative<k_hashmap>(value)) {
-      const auto& hash = std::get<k_hashmap>(value);
+    if (value.isHashmap()) {
+      const auto& hash = value.getHashmap();
       const auto& key = args.at(0);
       if (!hash->hasKey(key)) {
         throw HashKeyError(token, Serializer::serialize(key));
       }
 
       return hash->get(key);
-    } else if (std::holds_alternative<k_list>(value)) {
+    } else if (value.isList()) {
       auto index = get_integer(token, args.at(0));
-      auto elements = std::get<k_list>(value)->elements;
+      auto elements = value.getList()->elements;
       if (index < 0 || index >= static_cast<k_int>(elements.size())) {
         throw RangeError(token, "List index out of range.");
       }
       return elements.at(index);
-    } else if (std::holds_alternative<k_string>(value)) {
+    } else if (value.isString()) {
       auto index = get_integer(token, args.at(0));
       auto str = get_string(token, value);
       if (index < 0 || index >= static_cast<k_int>(str.size())) {
         throw RangeError(token, "List index out of range.");
       }
-      return k_string(1, str.at(index));
+      return KValue::createString(k_string(1, str.at(index)));
     }
 
     throw InvalidOperationError(
@@ -339,19 +340,19 @@ class CoreBuiltinHandler {
                    KiwiBuiltins.Get + "`");
   }
 
-  static k_value executeSet(const Token& token, const k_value& value,
-                            const std::vector<k_value>& args) {
+  static KValue executeSet(const Token& token, const KValue& value,
+                           const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Set);
     }
 
-    if (std::holds_alternative<k_hashmap>(value)) {
-      auto& hash = std::get<k_hashmap>(value);
+    if (value.isHashmap()) {
+      auto& hash = value.getHashmap();
       hash->add(args.at(0), args.at(1));
-      return hash;
-    } else if (std::holds_alternative<k_list>(value)) {
+      return value;
+    } else if (value.isList()) {
       const auto& index = get_integer(token, args.at(0));
-      auto& elements = std::get<k_list>(value)->elements;
+      auto& elements = value.getList()->elements;
       if (index < 0 || index >= static_cast<k_int>(elements.size())) {
         throw RangeError(token, "List index out of range.");
       }
@@ -364,16 +365,16 @@ class CoreBuiltinHandler {
         "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
-  static k_value executeSwap(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeSwap(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Swap);
     }
 
-    if (std::holds_alternative<k_list>(value)) {
+    if (value.isList()) {
       auto firstIndex = get_integer(token, args.at(0));
       auto secondIndex = get_integer(token, args.at(1));
-      auto& elements = std::get<k_list>(value)->elements;
+      auto& elements = value.getList()->elements;
       if (firstIndex < 0 || firstIndex >= static_cast<k_int>(elements.size())) {
         throw RangeError(token, "The first parameter for " + KiwiBuiltins.Swap +
                                     " is out of range.");
@@ -396,52 +397,52 @@ class CoreBuiltinHandler {
         "Expected a hashmap or list in call to `" + KiwiBuiltins.Set + "`");
   }
 
-  static k_value executeFirst(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeFirst(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.First);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list in call to `" + KiwiBuiltins.First + "`");
     }
 
-    auto list = std::get<k_list>(value)->elements;
+    auto list = value.getList()->elements;
     if (list.empty()) {
       if (args.size() == 1) {
         return args.at(0);
       }
-      return std::make_shared<Null>();
+      return KValue::createNull();
     }
 
     return list.front();
   }
 
-  static k_value executeLast(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeLast(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Last);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list in call to `" + KiwiBuiltins.Last + "`");
     }
 
-    auto list = std::get<k_list>(value)->elements;
+    auto list = value.getList()->elements;
     if (list.empty()) {
       if (args.size() == 1) {
         return args.at(0);
       }
-      return std::make_shared<Null>();
+      return KValue::createNull();
     }
 
     return list.back();
   }
 
-  static k_value executeChars(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeChars(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Chars);
     }
@@ -454,14 +455,14 @@ class CoreBuiltinHandler {
     k_string temp(1, '\0');
     for (const char& c : stringValue) {
       temp[0] = c;
-      elements.emplace_back(temp);
+      elements.emplace_back(KValue::createString(temp));
     }
 
-    return newList;
+    return KValue::createList(newList);
   }
 
-  static k_value executeClone(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeClone(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Clone);
     }
@@ -469,28 +470,28 @@ class CoreBuiltinHandler {
     return clone_value(value);
   }
 
-  static k_value executePretty(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executePretty(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Pretty);
     }
 
-    return Serializer::pretty_serialize(value);
+    return KValue::createString(Serializer::pretty_serialize(value));
   }
 
-  static k_value executeJoin(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeJoin(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     int argSize = args.size();
 
     if (argSize != 0 && argSize != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Join);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(token, "Cannot join a non-list type.");
     }
 
-    auto list = std::get<k_list>(value);
+    auto list = value.getList();
     auto& elements = list->elements;
     std::ostringstream sv;
     k_string joiner;
@@ -506,39 +507,42 @@ class CoreBuiltinHandler {
       sv << Serializer::serialize(*it);
     }
 
-    return sv.str();
+    return KValue::createString(sv.str());
   }
 
-  static k_value executeSize(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeSize(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Size);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
-      return static_cast<k_int>(std::get<k_string>(value).length());
-    } else if (std::holds_alternative<k_list>(value)) {
-      return static_cast<k_int>(std::get<k_list>(value)->elements.size());
-    } else if (std::holds_alternative<k_hashmap>(value)) {
-      return static_cast<k_int>(std::get<k_hashmap>(value)->size());
+    if (value.isString()) {
+      return KValue::createInteger(
+          static_cast<k_int>(value.getString().length()));
+    } else if (value.isList()) {
+      return KValue::createInteger(
+          static_cast<k_int>(value.getList()->elements.size()));
+    } else if (value.isHashmap()) {
+      return KValue::createInteger(
+          static_cast<k_int>(value.getHashmap()->size()));
     }
 
     throw InvalidOperationError(
         token, "Invalid type for builtin `" + KiwiBuiltins.Size + "`.");
   }
 
-  static k_value executeToHex(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeToHex(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToHex);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list value for byte to string conversion.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
 
     if (elements.empty()) {
       throw EmptyListError(token);
@@ -548,104 +552,105 @@ class CoreBuiltinHandler {
     int width = 2;
 
     if (!args.empty()) {
-      if (!std::holds_alternative<k_int>(args[0])) {
+      if (!args.at(0).isInteger()) {
         throw ConversionError(token,
                               "Expected an integer as the width argument.");
       }
 
-      width = std::get<k_int>(args[0]);
+      width = args.at(0).getInteger();
       if (width < 2) {
         throw InvalidOperationError(token, "Width must be >= 2.");
       }
     }
 
     for (const auto& item : elements) {
-      if (!std::holds_alternative<k_int>(item)) {
+      if (!item.isInteger()) {
         throw InvalidOperationError(
             token, "Expected an integer value for byte to string conversion.");
       }
 
-      auto byte = std::get<k_int>(item);
+      auto byte = item.getInteger();
       ss << std::hex << std::setw(width) << std::setfill('0') << byte;
     }
 
-    return ss.str();
+    return KValue::createString(ss.str());
   }
 
-  static k_value executeToBytes(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeToBytes(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToBytes);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
-      auto stringValue = std::get<k_string>(value);
+    if (value.isString()) {
+      auto stringValue = value.getString();
       std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
       auto byteList = std::make_shared<List>();
       auto& elements = byteList->elements;
       elements.reserve(bytes.size());
 
       for (const auto& byte : bytes) {
-        elements.emplace_back(static_cast<k_int>(byte));
+        elements.emplace_back(KValue::createInteger(static_cast<k_int>(byte)));
       }
 
-      return byteList;
-    } else if (std::holds_alternative<k_list>(value)) {
-      auto listElements = std::get<k_list>(value)->elements;
+      return KValue::createList(byteList);
+    } else if (value.isList()) {
+      auto listElements = value.getList()->elements;
       auto byteList = std::make_shared<List>();
       auto& elements = byteList->elements;
 
       for (const auto& item : listElements) {
-        if (!std::holds_alternative<k_string>(item)) {
+        if (!item.isString()) {
           throw InvalidOperationError(
               token, "Expected a list to contain only string values.");
         }
 
-        auto stringValue = std::get<k_string>(item);
+        auto stringValue = item.getString();
         std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
 
         for (const auto& byte : bytes) {
-          elements.emplace_back(static_cast<k_int>(byte));
+          elements.emplace_back(
+              KValue::createInteger(static_cast<k_int>(byte)));
         }
       }
 
-      return byteList;
+      return KValue::createList(byteList);
     } else {
       throw InvalidOperationError(
           token, "Expected a string or list to convert to bytes.");
     }
   }
 
-  static k_value executeToDouble(const Token& token, const k_value& value,
-                                 const std::vector<k_value>& args) {
+  static KValue executeToDouble(const Token& token, const KValue& value,
+                                const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToD);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
-      k_string stringValue = std::get<k_string>(value);
+    if (value.isString()) {
+      k_string stringValue = value.getString();
       double doubleValue = 0;
       auto [ptr, ec] =
           std::from_chars(stringValue.data(),
                           stringValue.data() + stringValue.size(), doubleValue);
 
       if (ec == std::errc()) {
-        return doubleValue;
+        return KValue::createFloat(doubleValue);
       } else {
         throw ConversionError(
             token, "Cannot convert non-numeric value to a double: `" +
                        stringValue + "`");
       }
-    } else if (std::holds_alternative<k_int>(value)) {
-      return static_cast<double>(std::get<k_int>(value));
+    } else if (value.isInteger()) {
+      return KValue::createFloat(static_cast<double>(value.getInteger()));
     } else {
       throw ConversionError(token,
                             "Cannot convert non-numeric value to a double.");
     }
   }
 
-  static k_value executeToInteger(const Token& token, const k_value& value,
-                                  const std::vector<k_value>& args) {
+  static KValue executeToInteger(const Token& token, const KValue& value,
+                                 const std::vector<KValue>& args) {
     if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToI);
     }
@@ -653,60 +658,59 @@ class CoreBuiltinHandler {
     int base = 10;
 
     if (!args.empty()) {
-      if (!std::holds_alternative<k_int>(args[0])) {
+      if (!args.at(0).isInteger()) {
         throw ConversionError(token,
                               "Expected an integer as the base argument.");
       }
 
-      base = std::get<k_int>(args[0]);
+      base = args.at(0).getInteger();
       if (base < 2 || base > 36) {
         throw InvalidOperationError(
             token, "Base must be between 2 and 36, inclusive.");
       }
     }
 
-    if (std::holds_alternative<k_string>(value)) {
-      k_string stringValue = std::get<k_string>(value);
+    if (value.isString()) {
+      k_string stringValue = value.getString();
       k_int intValue = 0;
       auto [ptr, ec] = std::from_chars(stringValue.data(),
                                        stringValue.data() + stringValue.size(),
                                        intValue, base);
 
       if (ec == std::errc()) {
-        return static_cast<k_int>(intValue);
+        return KValue::createInteger(intValue);
       } else {
         throw ConversionError(
             token, "Cannot convert non-numeric value to an integer: `" +
                        stringValue + "`");
       }
-    } else if (std::holds_alternative<double>(value)) {
-      return static_cast<k_int>(std::get<double>(value));
-    } else if (std::holds_alternative<k_int>(value)) {
-      return std::get<k_int>(value);
+    } else if (value.isFloat()) {
+      return KValue::createInteger(static_cast<k_int>(value.getFloat()));
+    } else if (value.isInteger()) {
+      return value;
     } else {
       throw ConversionError(token,
                             "Cannot convert non-numeric value to an integer.");
     }
   }
 
-  static k_value executeToString(const Token& token, const k_value& value,
-                                 const std::vector<k_value>& args) {
+  static KValue executeToString(const Token& token, const KValue& value,
+                                const std::vector<KValue>& args) {
     if (args.size() != 0 && args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToS);
     }
 
     if (args.empty()) {
-      return Serializer::serialize(value);
+      return KValue::createString(Serializer::serialize(value));
     }
 
     auto format = get_string(token, args.at(0));
 
     if (String::trim(format).empty()) {
-      return Serializer::serialize(value);
+      return KValue::createString(Serializer::serialize(value));
     }
 
-    if (!std::holds_alternative<double>(value) &&
-        !std::holds_alternative<k_int>(value)) {
+    if (!value.isFloat() && !value.isInteger()) {
       throw ArgumentError(
           token, "Expected an integer or double for numeric formatting.");
     }
@@ -716,31 +720,31 @@ class CoreBuiltinHandler {
     if (format == "b" || format == "B") {
       auto toBinary = get_integer(token, value);
       sv << std::bitset<16>(toBinary);
-      return sv.str();
+      return KValue::createString(sv.str());
     } else if (format == "x" || format == "X") {
       sv << std::hex << get_integer(token, value);
       if (format == "x") {
-        return sv.str();
+        return KValue::createString(sv.str());
       }
-      return String::toUppercase(sv.str());
+      return KValue::createString(String::toUppercase(sv.str()));
     } else if (format == "o" || format == "O") {
       sv << std::oct << get_integer(token, value);
       if (format == "o") {
-        return sv.str();
+        return KValue::createString(sv.str());
       }
-      return String::toUppercase(sv.str());
+      return KValue::createString(String::toUppercase(sv.str()));
     } else if (String::beginsWith(String::toLowercase(format), "f") ||
                String::toLowercase(format) == "f") {
       // Fixed point
       try {
         auto precision = String::replace(String::toLowercase(format), "f", "");
         if (precision.empty()) {
-          sv << std::fixed << std::setprecision(0) << get_double(token, value);
+          sv << std::fixed << std::setprecision(0) << get_float(token, value);
         } else {
           sv << std::fixed << std::setprecision(std::stoi(precision))
-             << get_double(token, value);
+             << get_float(token, value);
         }
-        return sv.str();
+        return KValue::createString(sv.str());
       } catch (const std::exception& e) {
         throw ArgumentError(token,
                             "Invalid fixed-point format `" + format + "`");
@@ -750,13 +754,13 @@ class CoreBuiltinHandler {
     throw ArgumentError(token, "Unknown format specifier `" + format + "`");
   }
 
-  static k_value executeSubstring(const Token& token, const k_value& value,
-                                  const std::vector<k_value>& args) {
+  static KValue executeSubstring(const Token& token, const KValue& value,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 1 && args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Substring);
     }
 
-    if (!std::holds_alternative<k_string>(value)) {
+    if (!value.isString()) {
       throw InvalidOperationError(token,
                                   "Expected a string value for builtin `" +
                                       KiwiBuiltins.Substring + "`.");
@@ -770,11 +774,11 @@ class CoreBuiltinHandler {
       size = static_cast<size_t>(get_integer(token, args.at(1)));
     }
 
-    return String::substring(stringValue, pos, size);
+    return KValue::createString(String::substring(stringValue, pos, size));
   }
 
-  static k_value executeFind(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeFind(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Find);
     }
@@ -782,11 +786,11 @@ class CoreBuiltinHandler {
     auto stringValue = get_string(token, value);
     auto pattern = get_string(token, args.at(0));
 
-    return String::find(stringValue, pattern);
+    return KValue::createString(String::find(stringValue, pattern));
   }
 
-  static k_value executeMatch(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeMatch(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Match);
     }
@@ -794,11 +798,11 @@ class CoreBuiltinHandler {
     auto stringValue = get_string(token, value);
     auto pattern = get_string(token, args.at(0));
 
-    return String::match(stringValue, pattern);
+    return KValue::createList(String::match(stringValue, pattern));
   }
 
-  static k_value executeMatches(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeMatches(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Matches);
     }
@@ -806,11 +810,11 @@ class CoreBuiltinHandler {
     auto stringValue = get_string(token, value);
     auto pattern = get_string(token, args.at(0));
 
-    return String::matches(stringValue, pattern);
+    return KValue::createBoolean(String::matches(stringValue, pattern));
   }
 
-  static k_value executeMatchesAll(const Token& token, const k_value& value,
-                                   const std::vector<k_value>& args) {
+  static KValue executeMatchesAll(const Token& token, const KValue& value,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.MatchesAll);
     }
@@ -818,11 +822,11 @@ class CoreBuiltinHandler {
     auto stringValue = get_string(token, value);
     auto pattern = get_string(token, args.at(0));
 
-    return String::matchesAll(stringValue, pattern);
+    return KValue::createBoolean(String::matchesAll(stringValue, pattern));
   }
 
-  static k_value executeScan(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeScan(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Scan);
     }
@@ -830,11 +834,11 @@ class CoreBuiltinHandler {
     auto stringValue = get_string(token, value);
     auto pattern = get_string(token, args.at(0));
 
-    return String::scan(stringValue, pattern);
+    return KValue::createList(String::scan(stringValue, pattern));
   }
 
-  static k_value executeSplit(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeSplit(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Split);
     }
@@ -849,21 +853,21 @@ class CoreBuiltinHandler {
       k_string temp(1, '\0');
       for (char c : input) {
         temp[0] = c;
-        elements.emplace_back(temp);
+        elements.emplace_back(KValue::createString(temp));
       }
     } else {
       const auto& tokens = String::split(input, delimiter);
       elements.reserve(tokens.size());
       for (const auto& token : tokens) {
-        elements.emplace_back(token);
+        elements.emplace_back(KValue::createString(token));
       }
     }
 
-    return newList;
+    return KValue::createList(newList);
   }
 
-  static k_value executeRSplit(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeRSplit(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1 && args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.RSplit);
     }
@@ -883,172 +887,174 @@ class CoreBuiltinHandler {
       k_string temp(1, '\0');
       for (char c : input) {
         temp[0] = c;
-        elements.emplace_back(temp);
+        elements.emplace_back(KValue::createString(temp));
       }
     } else {
       const auto& tokens = String::rsplit(input, delimiter, limit);
       elements.reserve(tokens.size());
       for (const auto& token : tokens) {
-        elements.emplace_back(token);
+        elements.emplace_back(KValue::createString(token));
       }
     }
 
-    return newList;
+    return KValue::createList(newList);
   }
 
-  static k_value executeLeftTrim(const Token& token, const k_value& value,
-                                 const std::vector<k_value>& args) {
+  static KValue executeLeftTrim(const Token& token, const KValue& value,
+                                const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.LeftTrim);
     }
 
-    return String::trimLeft(get_string(token, value));
+    return KValue::createString(String::trimLeft(get_string(token, value)));
   }
 
-  static k_value executeRightTrim(const Token& token, const k_value& value,
-                                  const std::vector<k_value>& args) {
+  static KValue executeRightTrim(const Token& token, const KValue& value,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.RightTrim);
     }
 
-    return String::trimRight(get_string(token, value));
+    return KValue::createString(String::trimRight(get_string(token, value)));
   }
 
-  static k_value executeTrim(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeTrim(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Trim);
     }
 
-    return String::trim(get_string(token, value));
+    return KValue::createString(String::trim(get_string(token, value)));
   }
 
-  static k_value executeType(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeType(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Type);
     }
 
-    return Serializer::get_value_type_string(value);
+    return KValue::createString(Serializer::get_value_type_string(value));
   }
 
-  static k_value executeHasKey(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeHasKey(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.HasKey);
     }
 
-    if (!std::holds_alternative<k_hashmap>(value)) {
+    if (!value.isHashmap()) {
       throw InvalidOperationError(
           token, "Expected a hashmap for `" + KiwiBuiltins.HasKey + "`.");
     }
 
-    return std::get<k_hashmap>(value)->hasKey(args.at(0));
+    return KValue::createBoolean(value.getHashmap()->hasKey(args.at(0)));
   }
 
-  static k_value executeKeys(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executeKeys(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Keys);
     }
 
-    if (!std::holds_alternative<k_hashmap>(value)) {
+    if (!value.isHashmap()) {
       throw InvalidOperationError(
           token, "Expected a hashmap `" + KiwiBuiltins.Keys + "`.");
     }
 
-    return Serializer::get_hash_keys_list(std::get<k_hashmap>(value));
+    return KValue::createList(
+        Serializer::get_hash_keys_list(value.getHashmap()));
   }
 
-  static k_value executeValues(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeValues(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Values);
     }
 
-    if (!std::holds_alternative<k_hashmap>(value)) {
+    if (!value.isHashmap()) {
       throw InvalidOperationError(
           token, "Expected a hashmap for `" + KiwiBuiltins.Values + "`.");
     }
 
-    return Serializer::get_hash_values_list(std::get<k_hashmap>(value));
+    return KValue::createList(
+        Serializer::get_hash_values_list(value.getHashmap()));
   }
 
-  static k_value executeMerge(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeMerge(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Merge);
     }
 
-    if (!std::holds_alternative<k_hashmap>(value) ||
-        !std::holds_alternative<k_hashmap>(args.at(0))) {
+    if (!value.isHashmap() || !args.at(0).isHashmap()) {
       throw InvalidOperationError(
           token, "Expected a hashmap for `" + KiwiBuiltins.Merge + "`.");
     }
 
-    auto hashValue = std::get<k_hashmap>(value);
-    auto mergeHash = std::get<k_hashmap>(args.at(0));
+    auto& hashValue = value.getHashmap();
+    auto mergeHash = args.at(0).getHashmap();
 
     hashValue->merge(mergeHash);
 
-    return hashValue;
+    return value;
   }
 
-  static k_value executeBeginsWith(const Token& token, const k_value& value,
-                                   const std::vector<k_value>& args) {
+  static KValue executeBeginsWith(const Token& token, const KValue& value,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.BeginsWith);
     }
 
-    return String::beginsWith(get_string(token, value),
-                              get_string(token, args.at(0)));
+    return KValue::createBoolean(String::beginsWith(
+        get_string(token, value), get_string(token, args.at(0))));
   }
 
-  static k_value executeStringContains(const Token& token, const k_value& value,
-                                       const k_value& arg) {
-    return String::contains(get_string(token, value), get_string(token, arg));
+  static KValue executeStringContains(const Token& token, const KValue& value,
+                                      const KValue& arg) {
+    return KValue::createBoolean(
+        String::contains(get_string(token, value), get_string(token, arg)));
   }
 
-  static k_value executeListContains(const k_value& value, const k_value& arg) {
-    auto list = std::get<k_list>(value);
+  static KValue executeListContains(const KValue& value, const KValue& arg) {
+    auto list = value.getList();
     auto& elements = list->elements;
 
     for (const auto& item : elements) {
-      if (same_value(item, arg)) {
-        return true;
+      if (same_value(item.getValue(), arg.getValue())) {
+        return KValue::createBoolean(true);
       }
     }
 
-    return false;
+    return KValue::createBoolean(false);
   }
 
-  static k_value executeContains(const Token& token, const k_value& value,
-                                 const std::vector<k_value>& args) {
+  static KValue executeContains(const Token& token, const KValue& value,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Contains);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
+    if (value.isString()) {
       return executeStringContains(token, value, args.at(0));
-    } else if (std::holds_alternative<k_list>(value)) {
+    } else if (value.isList()) {
       return executeListContains(value, args.at(0));
     }
 
     throw InvalidOperationError(token, "Expected a string or list value.");
   }
 
-  static k_value executeEndsWith(const Token& token, const k_value& value,
-                                 const std::vector<k_value>& args) {
+  static KValue executeEndsWith(const Token& token, const KValue& value,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Contains);
     }
 
-    return String::endsWith(get_string(token, value),
-                            get_string(token, args.at(0)));
+    return KValue::createBoolean(String::endsWith(
+        get_string(token, value), get_string(token, args.at(0))));
   }
 
-  static k_value executeIsA(const Token& token, const k_value& value,
-                            const std::vector<k_value>& args) {
+  static KValue executeIsA(const Token& token, const KValue& value,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.IsA);
     }
@@ -1065,77 +1071,77 @@ class CoreBuiltinHandler {
     //   throw InvalidTypeNameError(token, typeName);
     // }
 
-    switch (value.index()) {
-      case 0:  // k_int
-        return typeName == TypeNames.Integer;
+    switch (value.getType()) {
+      case KValueType::_INTEGER:
+        return KValue::createBoolean(typeName == TypeNames.Integer);
 
-      case 1:  // double
-        return typeName == TypeNames.Float;
+      case KValueType::_FLOAT:
+        return KValue::createBoolean(typeName == TypeNames.Float);
 
-      case 2:  // bool
-        return typeName == TypeNames.Boolean;
+      case KValueType::_BOOLEAN:
+        return KValue::createBoolean(typeName == TypeNames.Boolean);
 
-      case 3:  // k_string
-        return typeName == TypeNames.String;
+      case KValueType::_STRING:
+        return KValue::createBoolean(typeName == TypeNames.String);
 
-      case 4:  // k_list
-        return typeName == TypeNames.List;
+      case KValueType::_LIST:
+        return KValue::createBoolean(typeName == TypeNames.List);
 
-      case 5:  // k_hashmap
-        return typeName == TypeNames.Hashmap;
+      case KValueType::_HASHMAP:
+        return KValue::createBoolean(typeName == TypeNames.Hashmap);
 
-      case 6:  // k_object
-        return typeName == TypeNames.Object;
+      case KValueType::_OBJECT:
+        return KValue::createBoolean(typeName == TypeNames.Object);
 
-      case 7:  // k_lambda
-        return typeName == TypeNames.Lambda;
+      case KValueType::_LAMBDA:
+        return KValue::createBoolean(typeName == TypeNames.Lambda);
 
-      case 8:  // k_null
-        return typeName == TypeNames.None;
+      case KValueType::_NONE:
+        return KValue::createBoolean(typeName == TypeNames.None);
 
       default:
-        return false;
+        return KValue::createBoolean(false);
     }
   }
 
-  static k_value executeReplace(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeReplace(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Replace);
     }
 
-    return String::replace(get_string(token, value),
-                           get_string(token, args.at(0)),
-                           get_string(token, args.at(1)));
+    return KValue::createString(String::replace(get_string(token, value),
+                                                get_string(token, args.at(0)),
+                                                get_string(token, args.at(1))));
   }
 
-  static k_value executeRReplace(const Token& token, const k_value& value,
-                                 const std::vector<k_value>& args) {
+  static KValue executeRReplace(const Token& token, const KValue& value,
+                                const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.RReplace);
     }
 
-    return String::rreplace(get_string(token, value),
-                            get_string(token, args.at(0)),
-                            get_string(token, args.at(1)));
+    return KValue::createString(String::rreplace(
+        get_string(token, value), get_string(token, args.at(0)),
+        get_string(token, args.at(1))));
   }
 
-  static k_value executeReverse(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeReverse(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Reverse);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
-      auto s = std::get<k_string>(value);
+    if (value.isString()) {
+      auto s = value.getString();
       std::reverse(s.begin(), s.end());
-      return s;
-    } else if (std::holds_alternative<k_list>(value)) {
-      auto v = std::get<k_list>(value)->elements;
+      return KValue::createString(s);
+    } else if (value.isList()) {
+      auto v = value.getList()->elements;
       std::reverse(v.begin(), v.end());
       auto list = std::make_shared<List>();
       list->elements = v;
-      return list;
+      return KValue::createList(list);
     }
 
     throw InvalidOperationError(token,
@@ -1143,17 +1149,17 @@ class CoreBuiltinHandler {
                                     KiwiBuiltins.Reverse + "`.");
   }
 
-  static k_value executeIndexOf(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeIndexOf(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.IndexOf);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
-      return static_cast<k_int>(String::indexOf(std::get<k_string>(value),
-                                                get_string(token, args.at(0))));
-    } else if (std::holds_alternative<k_list>(value)) {
-      return indexof_listvalue(std::get<k_list>(value), args.at(0));
+    if (value.isString()) {
+      return KValue::createInteger(
+          String::indexOf(value.getString(), get_string(token, args.at(0))));
+    } else if (value.isList()) {
+      return indexof_listvalue(value.getList(), args.at(0).getValue());
     }
 
     throw InvalidOperationError(token,
@@ -1161,17 +1167,17 @@ class CoreBuiltinHandler {
                                     KiwiBuiltins.IndexOf + "`.");
   }
 
-  static k_value executeLastIndexOf(const Token& token, const k_value& value,
-                                    const std::vector<k_value>& args) {
+  static KValue executeLastIndexOf(const Token& token, const KValue& value,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.LastIndexOf);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
-      return static_cast<k_int>(String::lastIndexOf(
-          std::get<k_string>(value), get_string(token, args.at(0))));
-    } else if (std::holds_alternative<k_list>(value)) {
-      return lastindexof_listvalue(std::get<k_list>(value), args.at(0));
+    if (value.isString()) {
+      return KValue::createInteger(String::lastIndexOf(
+          value.getString(), get_string(token, args.at(0))));
+    } else if (value.isList()) {
+      return lastindexof_listvalue(value.getList(), args.at(0).getValue());
     }
 
     throw InvalidOperationError(token,
@@ -1179,44 +1185,44 @@ class CoreBuiltinHandler {
                                     KiwiBuiltins.LastIndexOf + "`.");
   }
 
-  static k_value executeUppercase(const Token& token, const k_value& value,
-                                  const std::vector<k_value>& args) {
+  static KValue executeUppercase(const Token& token, const KValue& value,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Uppercase);
     }
 
-    return String::toUppercase(get_string(token, value));
+    return KValue::createString(String::toUppercase(get_string(token, value)));
   }
 
-  static k_value executeLowercase(const Token& token, const k_value& value,
-                                  const std::vector<k_value>& args) {
+  static KValue executeLowercase(const Token& token, const KValue& value,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Lowercase);
     }
 
-    return String::toLowercase(get_string(token, value));
+    return KValue::createString(String::toLowercase(get_string(token, value)));
   }
 
-  static k_value executeEmpty(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeEmpty(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() > 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Empty);
     }
 
     bool isEmpty = false;
-    if (std::holds_alternative<k_string>(value)) {
-      isEmpty = std::get<k_string>(value).empty();
-    } else if (std::holds_alternative<k_list>(value)) {
-      isEmpty = std::get<k_list>(value)->elements.empty();
-    } else if (std::holds_alternative<k_hashmap>(value)) {
-      isEmpty = std::get<k_hashmap>(value)->keys.empty();
-    } else if (std::holds_alternative<k_int>(value)) {
-      isEmpty = std::get<k_int>(value) == 0;
-    } else if (std::holds_alternative<double>(value)) {
-      isEmpty = std::get<double>(value) == 0.0;
-    } else if (std::holds_alternative<bool>(value)) {
-      isEmpty = !std::get<bool>(value);
-    } else if (std::holds_alternative<k_null>(value)) {
+    if (value.isString()) {
+      isEmpty = value.getString().empty();
+    } else if (value.isList()) {
+      isEmpty = value.getList()->elements.empty();
+    } else if (value.isHashmap()) {
+      isEmpty = value.getHashmap()->keys.empty();
+    } else if (value.isInteger()) {
+      isEmpty = value.getInteger() == 0;
+    } else if (value.isFloat()) {
+      isEmpty = value.getFloat() == 0.0;
+    } else if (value.isBoolean()) {
+      isEmpty = !value.getBoolean();
+    } else if (value.isNull()) {
       isEmpty = true;
     } else {
       throw InvalidOperationError(
@@ -1232,39 +1238,39 @@ class CoreBuiltinHandler {
       }
     }
 
-    return isEmpty;
+    return KValue::createBoolean(isEmpty);
   }
 
-  static k_value executePush(const Token& token, const k_value& value,
-                             const std::vector<k_value>& args) {
+  static KValue executePush(const Token& token, const KValue& value,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Push);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Push + "`.");
     }
 
-    std::get<k_list>(value)->elements.push_back(args.at(0));
-    return true;
+    value.getList()->elements.push_back(args.at(0));
+    return KValue::createBoolean(true);
   }
 
-  static k_value executePop(const Token& token, const k_value& value,
-                            const std::vector<k_value>& args) {
+  static KValue executePop(const Token& token, const KValue& value,
+                           const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Pop);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Pop + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
 
     if (elements.empty()) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     auto _value = elements.back();
@@ -1272,36 +1278,36 @@ class CoreBuiltinHandler {
     return _value;
   }
 
-  static k_value executeEnqueue(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeEnqueue(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Enqueue);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Enqueue + "`.");
     }
 
-    std::get<k_list>(value)->elements.push_back(args.at(0));
-    return true;
+    value.getList()->elements.push_back(args.at(0));
+    return KValue::createBoolean(true);
   }
 
-  static k_value executeDequeue(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeDequeue(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Dequeue);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Dequeue + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
 
     if (elements.empty()) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     auto _value = elements.front();
@@ -1309,21 +1315,21 @@ class CoreBuiltinHandler {
     return _value;
   }
 
-  static k_value executeShift(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeShift(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Shift);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Shift + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
 
     if (elements.empty()) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     auto _value = elements.front();
@@ -1331,51 +1337,51 @@ class CoreBuiltinHandler {
     return _value;
   }
 
-  static k_value executeUnshift(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeUnshift(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Unshift);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Unshift + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
     elements.insert(elements.begin(), args.at(0));
     return value;
   }
 
-  static k_value executeConcat(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
-    if (args.size() != 1 || !std::holds_alternative<k_list>(args.at(0))) {
+  static KValue executeConcat(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
+    if (args.size() != 1 || !args.at(0).isList()) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Concat);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Concat + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
-    const auto& concat = std::get<k_list>(args.at(0))->elements;
+    auto& elements = value.getList()->elements;
+    const auto& concat = args.at(0).getList()->elements;
     elements.insert(elements.end(), concat.begin(), concat.end());
     return value;
   }
 
-  static k_value executeInsert(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeInsert(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Insert);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Insert + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
     size_t index = get_integer(token, args.at(1));
 
     if (index > elements.size()) {
@@ -1387,19 +1393,18 @@ class CoreBuiltinHandler {
     return value;
   }
 
-  static k_value executeRemove(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeRemove(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Remove);
     }
 
-    if (std::holds_alternative<k_hashmap>(value)) {
-      auto hash = std::get<k_hashmap>(value);
-      auto key = get_string(token, args.at(0));
-      hash->remove(key);
-      return hash;
-    } else if (std::holds_alternative<k_list>(value)) {
-      auto& elements = std::get<k_list>(value)->elements;
+    if (value.isHashmap()) {
+      auto& hash = value.getHashmap();
+      hash->remove(args.at(0));
+      return value;
+    } else if (value.isList()) {
+      auto& elements = value.getList()->elements;
       auto it = std::find(elements.begin(), elements.end(), args.at(0));
 
       if (it != elements.end()) {
@@ -1414,18 +1419,18 @@ class CoreBuiltinHandler {
                                     KiwiBuiltins.Remove + "`.");
   }
 
-  static k_value executeRemoveAt(const Token& token, const k_value& value,
-                                 const std::vector<k_value>& args) {
+  static KValue executeRemoveAt(const Token& token, const KValue& value,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.RemoveAt);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(token, "Expected a list for builtin `" +
                                              KiwiBuiltins.RemoveAt + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
     size_t index = get_integer(token, args.at(0));
 
     if (index >= elements.size()) {
@@ -1437,19 +1442,19 @@ class CoreBuiltinHandler {
     return value;
   }
 
-  static k_value executeRotate(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
-    if (args.size() != 1 || !std::holds_alternative<k_int>(args[0])) {
+  static KValue executeRotate(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
+    if (args.size() != 1 || !args.at(0).isInteger()) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Rotate);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Rotate + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
-    auto rotation = get_integer(token, args[0]);
+    auto& elements = value.getList()->elements;
+    auto rotation = args.at(0).getInteger();
 
     if (elements.empty()) {
       throw EmptyListError(token, "Cannot rotate an empty list.");
@@ -1471,40 +1476,41 @@ class CoreBuiltinHandler {
     return value;
   }
 
-  static k_value executeUnique(const Token& token, const k_value& value,
-                               const std::vector<k_value>& args) {
+  static KValue executeUnique(const Token& token, const KValue& value,
+                              const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Unique);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Unique + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
     std::unordered_set<k_value> seen;
-    auto newEnd = std::remove_if(
-        elements.begin(), elements.end(),
-        [&seen](const k_value& item) { return !seen.insert(item).second; });
+    auto newEnd = std::remove_if(elements.begin(), elements.end(),
+                                 [&seen](const KValue& item) {
+                                   return !seen.insert(item.getValue()).second;
+                                 });
     elements.erase(newEnd, elements.end());
     return value;
   }
 
-  static k_value executeCount(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeCount(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Count);
     }
 
-    if (std::holds_alternative<k_string>(value)) {
+    if (value.isString()) {
       const auto& needle = get_string(token, args.at(0));
-      const auto& haystack = std::get<k_string>(value);
-      return String::count(haystack, needle);
-    } else if (std::holds_alternative<k_list>(value)) {
-      const auto& elements = std::get<k_list>(value)->elements;
-      return static_cast<k_int>(
-          std::count(elements.begin(), elements.end(), args.at(0)));
+      const auto& haystack = value.getString();
+      return KValue::createInteger(String::count(haystack, needle));
+    } else if (value.isList()) {
+      const auto& elements = value.getList()->elements;
+      return KValue::createInteger(static_cast<k_int>(
+          std::count(elements.begin(), elements.end(), args.at(0))));
     }
 
     throw InvalidOperationError(
@@ -1512,22 +1518,22 @@ class CoreBuiltinHandler {
         "Expected a list or string for builtin `" + KiwiBuiltins.Count + "`.");
   }
 
-  static k_value executeFlatten(const Token& token, const k_value& value,
-                                const std::vector<k_value>& args) {
+  static KValue executeFlatten(const Token& token, const KValue& value,
+                               const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Flatten);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Flatten + "`.");
     }
 
     auto flattened = std::make_shared<List>();
-    std::function<void(const k_value&)> flattenElement;
-    flattenElement = [&flattened, &flattenElement](const k_value& element) {
-      if (std::holds_alternative<k_list>(element)) {
-        for (const auto& subElement : std::get<k_list>(element)->elements) {
+    std::function<void(const KValue&)> flattenElement;
+    flattenElement = [&flattened, &flattenElement](const KValue& element) {
+      if (element.isList()) {
+        for (const auto& subElement : element.getList()->elements) {
           flattenElement(subElement);
         }
       } else {
@@ -1535,26 +1541,26 @@ class CoreBuiltinHandler {
       }
     };
 
-    const auto& elements = std::get<k_list>(value)->elements;
+    const auto& elements = value.getList()->elements;
     for (const auto& element : elements) {
       flattenElement(element);
     }
-    return flattened;
+    return KValue::createList(flattened);
   }
 
-  static k_value executeZip(const Token& token, const k_value& value,
-                            const std::vector<k_value>& args) {
-    if (args.size() != 1 || !std::holds_alternative<k_list>(args.at(0))) {
+  static KValue executeZip(const Token& token, const KValue& value,
+                           const std::vector<KValue>& args) {
+    if (args.size() != 1 || !args.at(0).isList()) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Zip);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Zip + "`.");
     }
 
-    const auto& elements1 = std::get<k_list>(value)->elements;
-    const auto& elements2 = std::get<k_list>(args.at(0))->elements;
+    const auto& elements1 = value.getList()->elements;
+    const auto& elements2 = args.at(0).getList()->elements;
     auto zipped = std::make_shared<List>();
     auto win_min = (elements1.size() < elements2.size()) ? elements1.size()
                                                          : elements2.size();
@@ -1562,24 +1568,24 @@ class CoreBuiltinHandler {
       auto pair = std::make_shared<List>();
       pair->elements.push_back(elements1.at(i));
       pair->elements.push_back(elements2.at(i));
-      zipped->elements.push_back(pair);
+      zipped->elements.push_back(KValue::createList(pair));
     }
 
-    return zipped;
+    return KValue::createList(zipped);
   }
 
-  static k_value executeSlice(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeSlice(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Slice);
     }
 
-    if (!std::holds_alternative<k_list>(value)) {
+    if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list for builtin `" + KiwiBuiltins.Slice + "`.");
     }
 
-    auto& elements = std::get<k_list>(value)->elements;
+    auto& elements = value.getList()->elements;
     auto start = static_cast<size_t>(get_integer(token, args.at(0)));
     auto end = static_cast<size_t>(get_integer(token, args.at(1)));
 
@@ -1592,23 +1598,23 @@ class CoreBuiltinHandler {
     auto& slice = slicedList->elements;
     slice.insert(slice.begin(), elements.begin() + start,
                  elements.begin() + end);
-    return slicedList;
+    return KValue::createList(slicedList);
   }
 
-  static k_value executeClear(const Token& token, const k_value& value,
-                              const std::vector<k_value>& args) {
+  static KValue executeClear(const Token& token, const KValue& value,
+                             const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.Clear);
     }
 
-    if (std::holds_alternative<k_list>(value)) {
-      std::get<k_list>(value)->elements.clear();
+    if (value.isList()) {
+      value.getList()->elements.clear();
       return value;
-    } else if (std::holds_alternative<k_hashmap>(value)) {
-      auto hash = std::get<k_hashmap>(value);
+    } else if (value.isHashmap()) {
+      auto& hash = value.getHashmap();
       hash->keys.clear();
       hash->kvp.clear();
-      return hash;
+      return value;
     }
 
     throw InvalidOperationError(

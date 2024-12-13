@@ -163,10 +163,10 @@ class StructNode : public ASTNode {
 
 class LiteralNode : public ASTNode {
  public:
-  k_value value;
+  KValue value;
 
   LiteralNode() : ASTNode(ASTNodeType::LITERAL) {}
-  LiteralNode(const k_value& value)
+  LiteralNode(const KValue& value)
       : ASTNode(ASTNodeType::LITERAL), value(value) {}
 
   void print(int depth) const override {

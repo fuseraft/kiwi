@@ -10,11 +10,10 @@
 
 class NetBuiltinHandler {
  public:
-  static k_value execute(SocketManager& sockmgr, const Token& token,
-                         const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(SocketManager& sockmgr, const Token& token,
+                        const KName& builtin, const std::vector<KValue>& args) {
     if (SAFEMODE) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     switch (builtin) {
@@ -50,19 +49,19 @@ class NetBuiltinHandler {
   }
 
  private:
-  static k_value executeIsIPAddr(SocketManager& sockmgr, const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeIsIPAddr(SocketManager& sockmgr, const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.IsIPAddr);
     }
 
     auto ipAddress = get_string(token, args.at(0));
     auto family = 0;
-    return sockmgr.isIPAddress(ipAddress, family);
+    return KValue::createBoolean(sockmgr.isIPAddress(ipAddress, family));
   }
 
-  static k_value executeResHost(SocketManager& sockmgr, const Token& token,
-                                const std::vector<k_value>& args) {
+  static KValue executeResHost(SocketManager& sockmgr, const Token& token,
+                               const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.ResolveHost);
     }
@@ -71,8 +70,8 @@ class NetBuiltinHandler {
     return sockmgr.resolveHostToIP(hostname);
   }
 
-  static k_value executeCreate(SocketManager& sockmgr, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeCreate(SocketManager& sockmgr, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 3) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Create);
     }
@@ -84,8 +83,8 @@ class NetBuiltinHandler {
     return sockmgr.create(token, family, type, protocol);
   }
 
-  static k_value executeBind(SocketManager& sockmgr, const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeBind(SocketManager& sockmgr, const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 3) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Bind);
     }
@@ -94,11 +93,11 @@ class NetBuiltinHandler {
     auto address = get_string(token, args.at(1));
     auto port = get_integer(token, args.at(2));
 
-    return sockmgr.bind(token, sockId, address, port);
+    return KValue::createBoolean(sockmgr.bind(token, sockId, address, port));
   }
 
-  static k_value executeListen(SocketManager& sockmgr, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeListen(SocketManager& sockmgr, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Listen);
     }
@@ -106,11 +105,11 @@ class NetBuiltinHandler {
     auto sockId = get_integer(token, args.at(0));
     auto backlog = get_integer(token, args.at(1));
 
-    return sockmgr.listen(token, sockId, backlog);
+    return KValue::createBoolean(sockmgr.listen(token, sockId, backlog));
   }
 
-  static k_value executeAccept(SocketManager& sockmgr, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeAccept(SocketManager& sockmgr, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Accept);
     }
@@ -123,14 +122,16 @@ class NetBuiltinHandler {
         sockmgr.accept(token, sockId, client_address, client_port);
 
     auto hash = std::make_shared<Hashmap>();
-    hash->add("client_sock_id", client_sock_id);
-    hash->add("client_address", client_address);
-    hash->add("client_port", client_port);
-    return hash;
+    hash->add(KValue::createString("client_sock_id"), client_sock_id);
+    hash->add(KValue::createString("client_address"),
+              KValue::createString(client_address));
+    hash->add(KValue::createString("client_port"),
+              KValue::createInteger(client_port));
+    return KValue::createHashmap(hash);
   }
 
-  static k_value executeConnect(SocketManager& sockmgr, const Token& token,
-                                const std::vector<k_value>& args) {
+  static KValue executeConnect(SocketManager& sockmgr, const Token& token,
+                               const std::vector<KValue>& args) {
     if (args.size() != 3) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Connect);
     }
@@ -139,11 +140,11 @@ class NetBuiltinHandler {
     auto address = get_string(token, args.at(1));
     auto port = get_integer(token, args.at(2));
 
-    return sockmgr.connect(token, sockId, address, port);
+    return KValue::createBoolean(sockmgr.connect(token, sockId, address, port));
   }
 
-  static k_value executeSend(SocketManager& sockmgr, const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeSend(SocketManager& sockmgr, const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Send);
     }
@@ -153,8 +154,8 @@ class NetBuiltinHandler {
     return sockmgr.send(token, sockId, args.at(1));
   }
 
-  static k_value executeSendRaw(SocketManager& sockmgr, const Token& token,
-                                const std::vector<k_value>& args) {
+  static KValue executeSendRaw(SocketManager& sockmgr, const Token& token,
+                               const std::vector<KValue>& args) {
     if (args.size() != 3) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.SendRaw);
     }
@@ -165,8 +166,8 @@ class NetBuiltinHandler {
     return sockmgr.sendRawPacket(token, sockId, destination, args.at(2));
   }
 
-  static k_value executeReceive(SocketManager& sockmgr, const Token& token,
-                                const std::vector<k_value>& args) {
+  static KValue executeReceive(SocketManager& sockmgr, const Token& token,
+                               const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Receive);
     }
@@ -177,19 +178,19 @@ class NetBuiltinHandler {
     return sockmgr.receive(token, sockId, length);
   }
 
-  static k_value executeClose(SocketManager& sockmgr, const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeClose(SocketManager& sockmgr, const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Close);
     }
 
     auto sockId = get_integer(token, args.at(0));
 
-    return sockmgr.close(token, sockId);
+    return KValue::createBoolean(sockmgr.close(token, sockId));
   }
 
-  static k_value executeShutdown(SocketManager& sockmgr, const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeShutdown(SocketManager& sockmgr, const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, SocketBuiltins.Shutdown);
     }
@@ -197,7 +198,7 @@ class NetBuiltinHandler {
     auto sockId = get_integer(token, args.at(0));
     auto how = get_integer(token, args.at(1));
 
-    return sockmgr.shutdown(token, sockId, how);
+    return KValue::createBoolean(sockmgr.shutdown(token, sockId, how));
   }
 };
 

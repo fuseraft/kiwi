@@ -87,7 +87,7 @@ class String {
   static k_list lines(const k_string& input) {
     auto lineCount = std::count(input.begin(), input.end(), '\n') + 1;
 
-    std::vector<k_value> results;
+    std::vector<KValue> results;
     results.reserve(lineCount);
 
     size_t start = 0;
@@ -96,13 +96,13 @@ class String {
     while ((end = input.find('\n', start)) != k_string::npos) {
       size_t length = (end > start && input[end - 1] == '\r') ? end - start - 1
                                                               : end - start;
-      results.emplace_back(input.substr(start, length));
+      results.emplace_back(KValue::createString(input.substr(start, length)));
 
       start = end + 1;
     }
 
     if (start < input.size()) {
-      results.emplace_back(input.substr(start));
+      results.emplace_back(KValue::createString(input.substr(start)));
     }
 
     return std::make_shared<List>(results);
@@ -115,11 +115,11 @@ class String {
   static k_list match(const k_string& text, const k_string& pattern) {
     std::regex reg(pattern);
     std::smatch match;
-    std::vector<k_value> results;
+    std::vector<KValue> results;
 
     if (std::regex_search(text, match, reg)) {
       for (size_t i = 1; i < match.size(); ++i) {
-        results.push_back(match[i].str());
+        results.push_back(KValue::createString(match[i].str()));
       }
     }
 
@@ -193,10 +193,10 @@ class String {
     std::sregex_iterator begin(text.begin(), text.end(), reg);
     std::sregex_iterator end;
 
-    std::vector<k_value> matches;
+    std::vector<KValue> matches;
     for (std::sregex_iterator i = begin; i != end; ++i) {
       std::smatch match = *i;
-      matches.emplace_back(match.str());
+      matches.emplace_back(KValue::createString(match.str()));
     }
 
     return std::make_shared<List>(matches);

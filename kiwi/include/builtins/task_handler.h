@@ -9,9 +9,8 @@
 
 class TaskBuiltinHandler {
  public:
-  static k_value execute(TaskManager& taskmgr, const Token& token,
-                         const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(TaskManager& taskmgr, const Token& token,
+                        const KName& builtin, const std::vector<KValue>& args) {
     switch (builtin) {
       case KName::Builtin_Task_Busy:
         return executeBusy(taskmgr, token, args);
@@ -35,17 +34,17 @@ class TaskBuiltinHandler {
   }
 
  private:
-  static k_value executeBusy(TaskManager& taskmgr, const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeBusy(TaskManager& taskmgr, const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskBusy);
     }
 
-    return k_value(taskmgr.hasActiveTasks());
+    return KValue::createBoolean(taskmgr.hasActiveTasks());
   }
 
-  static k_value executeSleep(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeSleep(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskSleep);
     }
@@ -57,55 +56,54 @@ class TaskBuiltinHandler {
     return {};
   }
 
-  static k_value executeList(TaskManager& taskmgr, const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeList(TaskManager& taskmgr, const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskList);
     }
 
-    std::vector<k_value> activeTasks;
+    std::vector<KValue> activeTasks;
 
     for (const auto& task : taskmgr.getTasks()) {
-      activeTasks.push_back(task.first);
+      activeTasks.push_back(KValue::create(task.first));
     }
 
-    return std::make_shared<List>(activeTasks);
+    return KValue::createList(std::make_shared<List>(activeTasks));
   }
 
-  static k_value executeResult(TaskManager& taskmgr, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeResult(TaskManager& taskmgr, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskResult);
     }
 
-    if (!std::holds_alternative<k_int>(args.at(0))) {
+    if (!args.at(0).isInteger()) {
       throw TaskError(token, "Invalid task identifier: " +
                                  Serializer::serialize(args.at(0)));
     }
 
-    auto taskId = std::get<k_int>(args.at(0));
+    auto taskId = args.at(0).getInteger();
     auto taskStatus = taskmgr.isTaskCompleted(token, taskId);
 
-    if (std::holds_alternative<bool>(taskStatus) &&
-        std::get<bool>(taskStatus)) {
+    if (taskStatus.isBoolean() && taskStatus.getBoolean()) {
       return taskmgr.getTaskResult(token, taskId);
     }
 
     return taskStatus;
   }
 
-  static k_value executeStatus(TaskManager& taskmgr, const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeStatus(TaskManager& taskmgr, const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, TaskBuiltins.TaskStatus);
     }
 
-    if (!std::holds_alternative<k_int>(args.at(0))) {
+    if (!args.at(0).isInteger()) {
       throw TaskError(token, "Invalid task identifier: " +
                                  Serializer::serialize(args.at(0)));
     }
 
-    k_int taskId = std::get<k_int>(args.at(0));
+    k_int taskId = args.at(0).getInteger();
 
     return taskmgr.getTaskStatus(token, taskId);
   }
