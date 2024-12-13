@@ -142,8 +142,8 @@ struct KValue {
 
   static KValue emptyString() { return createString(""); }
 
-  static KValue createInteger(const int& value) {
-    return {static_cast<k_int>(value), KValueType::_INTEGER};
+  static KValue createInteger(const k_int& value) {
+    return {value, KValueType::_INTEGER};
   }
   static KValue createInteger(const k_value& value) {
     return {value, KValueType::_INTEGER};
