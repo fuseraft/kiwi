@@ -142,7 +142,7 @@ end
 #println hexdigest(a_str)
 #println hexdigest(a_str * 7)
 
-
+/#
 #A = 0x67452301
 B = 0xefcdab89
 C = 0x98badcfe
@@ -158,3 +158,6 @@ println "~B = ${~B}"
 println "(~B & D) = ${(~B & D)}"
 
 println "(B & C) | (~B & D) = ${((B & C) | (~B & D))}"
+#/
+
+println 4023233417 & 2562383102
