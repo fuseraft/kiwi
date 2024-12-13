@@ -609,7 +609,8 @@ class CoreBuiltinHandler {
         std::vector<uint8_t> bytes(stringValue.begin(), stringValue.end());
 
         for (const auto& byte : bytes) {
-          elements.emplace_back(KValue::createInteger(static_cast<k_int>(byte)));
+          elements.emplace_back(
+              KValue::createInteger(static_cast<k_int>(byte)));
         }
       }
 

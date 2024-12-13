@@ -208,6 +208,11 @@ struct KValue {
   bool isStruct() const { return _type == KValueType::_STRUCT; }
   bool isPointer() const { return _type == KValueType::_POINTER; }
 
+  void set(const k_value& value, const KValueType& type) {
+    _value = value;
+    _type = type;
+  }
+
   void setValue(const KValue& value) {
     _value = value._value;
     _type = value._type;
