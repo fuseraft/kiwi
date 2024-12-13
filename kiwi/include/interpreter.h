@@ -1242,11 +1242,13 @@ KValue KInterpreter::visit(const IdentifierNode* node) {
   } else if (ctx->hasStruct(name)) {
     return KValue::createStruct(std::make_shared<StructRef>(name));
   } else if (ctx->hasLambda(name)) {
-    return KValue::createLambda(std::make_shared<LambdaRef>(name));
+    auto lambdaRef = std::make_shared<LambdaRef>(name);
+    return KValue::createLambda(lambdaRef);
   } else if (ctx->hasMappedLambda(name)) {
     const auto& mappedId = ctx->getMappedLambda(name);
     if (ctx->hasLambda(mappedId)) {
-      return KValue::createLambda(std::make_shared<LambdaRef>(mappedId));
+      auto mappedLambdaRef = std::make_shared<LambdaRef>(mappedId);
+      return KValue::createLambda(mappedLambdaRef);
     }
   } else if (ctx->hasConstant(name)) {
     return ctx->getConstants().at(name);
@@ -1970,8 +1972,8 @@ KValue KInterpreter::visit(const TryNode* node) {
 }
 
 KValue KInterpreter::visit(const LambdaCallNode* node) {
-  const auto& lambdaName =
-      interpret(node->lambdaNode.get()).getLambda()->identifier;
+  const auto& nodeValue = interpret(node->lambdaNode.get());
+  const auto& lambdaName = nodeValue.getLambda()->identifier;
   KValue result;
   bool requireDrop = false;
 
@@ -2015,7 +2017,8 @@ KValue KInterpreter::visit(const LambdaNode* node) {
   ctx->addLambda(tmpId, std::move(lambda));
   ctx->addMappedLambda(tmpId, tmpId);
 
-  return KValue::createLambda(std::make_shared<LambdaRef>(tmpId));
+  auto lambdaRef = std::make_shared<LambdaRef>(tmpId);
+  return KValue::createLambda(lambdaRef);
 }
 
 KValue KInterpreter::visit(const StructNode* node) {
@@ -2394,6 +2397,9 @@ KValue KInterpreter::callLambda(
   if (!ctx->hasLambda(targetLambda)) {
     if (ctx->hasMappedLambda(targetLambda)) {
       targetLambda = ctx->getMappedLambda(targetLambda);
+    } else {
+      throw SystemError(token,
+                        "Could not find target lambda `" + targetLambda + "`");
     }
   }
 
