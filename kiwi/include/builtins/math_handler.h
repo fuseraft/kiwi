@@ -10,8 +10,8 @@
 
 class MathBuiltinHandler {
  public:
-  static k_value execute(const Token& token, const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args) {
     switch (builtin) {
       case KName::Builtin_Math_Sin:
         return executeSin(token, args);
@@ -162,8 +162,8 @@ class MathBuiltinHandler {
   }
 
  private:
-  static k_value executeSin(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executeSin(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Sin);
     }
@@ -171,8 +171,8 @@ class MathBuiltinHandler {
     return MathImpl.__sin__(token, args.at(0));
   }
 
-  static k_value executeCos(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executeCos(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Cos);
     }
@@ -180,8 +180,8 @@ class MathBuiltinHandler {
     return MathImpl.__cos__(token, args.at(0));
   }
 
-  static k_value executeTan(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executeTan(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Tan);
     }
@@ -189,8 +189,8 @@ class MathBuiltinHandler {
     return MathImpl.__tan__(token, args.at(0));
   }
 
-  static k_value executeAsin(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeAsin(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Asin);
     }
@@ -198,8 +198,8 @@ class MathBuiltinHandler {
     return MathImpl.__asin__(token, args.at(0));
   }
 
-  static k_value executeAcos(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeAcos(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Acos);
     }
@@ -207,8 +207,8 @@ class MathBuiltinHandler {
     return MathImpl.__acos__(token, args.at(0));
   }
 
-  static k_value executeAtan(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeAtan(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Atan);
     }
@@ -216,8 +216,8 @@ class MathBuiltinHandler {
     return MathImpl.__atan__(token, args.at(0));
   }
 
-  static k_value executeAtan2(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeAtan2(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Atan2);
     }
@@ -225,8 +225,8 @@ class MathBuiltinHandler {
     return MathImpl.__atan2__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeSinh(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeSinh(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Sinh);
     }
@@ -234,8 +234,8 @@ class MathBuiltinHandler {
     return MathImpl.__sinh__(token, args.at(0));
   }
 
-  static k_value executeCosh(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeCosh(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Cosh);
     }
@@ -243,8 +243,8 @@ class MathBuiltinHandler {
     return MathImpl.__cosh__(token, args.at(0));
   }
 
-  static k_value executeTanh(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeTanh(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Tanh);
     }
@@ -252,8 +252,8 @@ class MathBuiltinHandler {
     return MathImpl.__tanh__(token, args.at(0));
   }
 
-  static k_value executeLog(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executeLog(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log);
     }
@@ -261,8 +261,8 @@ class MathBuiltinHandler {
     return MathImpl.__log__(token, args.at(0));
   }
 
-  static k_value executeLog2(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeLog2(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log2);
     }
@@ -270,8 +270,8 @@ class MathBuiltinHandler {
     return MathImpl.__log2__(token, args.at(0));
   }
 
-  static k_value executeLog10(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeLog10(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log10);
     }
@@ -279,8 +279,8 @@ class MathBuiltinHandler {
     return MathImpl.__log10__(token, args.at(0));
   }
 
-  static k_value executeLog1P(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeLog1P(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Log1P);
     }
@@ -288,8 +288,8 @@ class MathBuiltinHandler {
     return MathImpl.__log1p__(token, args.at(0));
   }
 
-  static k_value executeFmod(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeFmod(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Fmod);
     }
@@ -297,8 +297,8 @@ class MathBuiltinHandler {
     return MathImpl.__fmod__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeHypot(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeHypot(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Hypot);
     }
@@ -306,8 +306,8 @@ class MathBuiltinHandler {
     return MathImpl.__hypot__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeIsFinite(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeIsFinite(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsFinite);
     }
@@ -315,8 +315,8 @@ class MathBuiltinHandler {
     return MathImpl.__isfinite__(token, args.at(0));
   }
 
-  static k_value executeIsInf(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeIsInf(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsInf);
     }
@@ -324,8 +324,8 @@ class MathBuiltinHandler {
     return MathImpl.__isinf__(token, args.at(0));
   }
 
-  static k_value executeIsNaN(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeIsNaN(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsNaN);
     }
@@ -333,8 +333,8 @@ class MathBuiltinHandler {
     return MathImpl.__isnan__(token, args.at(0));
   }
 
-  static k_value executeIsNormal(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeIsNormal(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.IsNormal);
     }
@@ -342,8 +342,8 @@ class MathBuiltinHandler {
     return MathImpl.__isnormal__(token, args.at(0));
   }
 
-  static k_value executeSqrt(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeSqrt(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Sqrt);
     }
@@ -351,8 +351,8 @@ class MathBuiltinHandler {
     return MathImpl.__sqrt__(token, args.at(0));
   }
 
-  static k_value executeCbrt(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeCbrt(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Cbrt);
     }
@@ -360,8 +360,8 @@ class MathBuiltinHandler {
     return MathImpl.__cbrt__(token, args.at(0));
   }
 
-  static k_value executeAbs(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executeAbs(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Abs);
     }
@@ -369,8 +369,8 @@ class MathBuiltinHandler {
     return MathImpl.__abs__(token, args.at(0));
   }
 
-  static k_value executeFloor(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeFloor(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Floor);
     }
@@ -378,8 +378,8 @@ class MathBuiltinHandler {
     return MathImpl.__floor__(token, args.at(0));
   }
 
-  static k_value executeCeil(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeCeil(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Ceil);
     }
@@ -387,8 +387,8 @@ class MathBuiltinHandler {
     return MathImpl.__ceil__(token, args.at(0));
   }
 
-  static k_value executeTrunc(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeTrunc(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Trunc);
     }
@@ -396,8 +396,8 @@ class MathBuiltinHandler {
     return MathImpl.__trunc__(token, args.at(0));
   }
 
-  static k_value executeRound(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeRound(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Round);
     }
@@ -405,8 +405,8 @@ class MathBuiltinHandler {
     return MathImpl.__round__(token, args.at(0));
   }
 
-  static k_value executeRotateLeft(const Token& token,
-                                   const std::vector<k_value>& args) {
+  static KValue executeRotateLeft(const Token& token,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.RotateLeft);
     }
@@ -417,8 +417,8 @@ class MathBuiltinHandler {
     return MathImpl.__rotl__(number, shift);
   }
 
-  static k_value executeRotateRight(const Token& token,
-                                    const std::vector<k_value>& args) {
+  static KValue executeRotateRight(const Token& token,
+                                   const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.RotateRight);
     }
@@ -429,8 +429,8 @@ class MathBuiltinHandler {
     return MathImpl.__rotr__(number, shift);
   }
 
-  static k_value executeRemainder(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeRemainder(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Remainder);
     }
@@ -438,8 +438,8 @@ class MathBuiltinHandler {
     return MathImpl.__remainder__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeExp(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executeExp(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Remainder);
     }
@@ -447,8 +447,8 @@ class MathBuiltinHandler {
     return MathImpl.__exp__(token, args.at(0));
   }
 
-  static k_value executeExpM1(const Token& token,
-                              const std::vector<k_value>& args) {
+  static KValue executeExpM1(const Token& token,
+                             const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.ExpM1);
     }
@@ -456,8 +456,8 @@ class MathBuiltinHandler {
     return MathImpl.__expm1__(token, args.at(0));
   }
 
-  static k_value executeErf(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executeErf(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Erf);
     }
@@ -465,8 +465,8 @@ class MathBuiltinHandler {
     return MathImpl.__erf__(token, args.at(0));
   }
 
-  static k_value executeErfC(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeErfC(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.ErfC);
     }
@@ -474,8 +474,8 @@ class MathBuiltinHandler {
     return MathImpl.__erfc__(token, args.at(0));
   }
 
-  static k_value executeLGamma(const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeLGamma(const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.LGamma);
     }
@@ -483,8 +483,8 @@ class MathBuiltinHandler {
     return MathImpl.__lgamma__(token, args.at(0));
   }
 
-  static k_value executeTGamma(const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeTGamma(const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.TGamma);
     }
@@ -492,8 +492,8 @@ class MathBuiltinHandler {
     return MathImpl.__tgamma__(token, args.at(0));
   }
 
-  static k_value executeFMax(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeFMax(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.FMax);
     }
@@ -501,8 +501,8 @@ class MathBuiltinHandler {
     return MathImpl.__max__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeFMin(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeFMin(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.FMin);
     }
@@ -510,8 +510,8 @@ class MathBuiltinHandler {
     return MathImpl.__min__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeFDim(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeFDim(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.FDim);
     }
@@ -519,8 +519,8 @@ class MathBuiltinHandler {
     return MathImpl.__fdim__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeCopySign(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeCopySign(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.CopySign);
     }
@@ -528,8 +528,8 @@ class MathBuiltinHandler {
     return MathImpl.__copysign__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeNextAfter(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeNextAfter(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.NextAfter);
     }
@@ -537,8 +537,8 @@ class MathBuiltinHandler {
     return MathImpl.__nextafter__(token, args.at(0), args.at(1));
   }
 
-  static k_value executePow(const Token& token,
-                            const std::vector<k_value>& args) {
+  static KValue executePow(const Token& token,
+                           const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Pow);
     }
@@ -546,58 +546,58 @@ class MathBuiltinHandler {
     return MathImpl.__pow__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeEpsilon(const Token& token,
-                                const std::vector<k_value>& args) {
+  static KValue executeEpsilon(const Token& token,
+                               const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Epsilon);
     }
 
-    return MathImpl.__epsilon__();
+    return KValue::createFloat(MathImpl.__epsilon__());
   }
 
-  static k_value executeListPrimes(const Token& token,
-                                   const std::vector<k_value>& args) {
+  static KValue executeListPrimes(const Token& token,
+                                  const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.ListPrimes);
     }
 
-    if (!std::holds_alternative<k_int>(args.at(0))) {
+    if (!args.at(0).isInteger()) {
       throw ConversionError(token,
                             "Expected an integer argument for builtin `" +
                                 MathBuiltins.ListPrimes + "`.");
     }
 
-    auto primes = PrimeGenerator::listPrimes(std::get<k_int>(args.at(0)));
+    auto primes = PrimeGenerator::listPrimes(args.at(0).getInteger());
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
     elements.reserve(primes.size());
 
     for (const auto& prime : primes) {
-      elements.emplace_back(static_cast<k_int>(prime));
+      elements.emplace_back(KValue::createInteger(prime));
     }
 
-    return list;
+    return KValue::createList(list);
   }
 
-  static k_value executeNthPrime(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeNthPrime(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.NthPrime);
     }
 
-    if (!std::holds_alternative<k_int>(args.at(0))) {
+    if (!args.at(0).isInteger()) {
       throw ConversionError(token,
                             "Expected an integer argument for builtin `" +
                                 MathBuiltins.NthPrime + "`.");
     }
 
-    auto nthPrime = PrimeGenerator::nthPrime(std::get<k_int>(args.at(0)));
+    auto nthPrime = PrimeGenerator::nthPrime(args.at(0).getInteger());
 
-    return static_cast<k_int>(nthPrime);
+    return KValue::createInteger(nthPrime);
   }
 
-  static k_value executeRandom(const Token& token,
-                               const std::vector<k_value>& args) {
+  static KValue executeRandom(const Token& token,
+                              const std::vector<KValue>& args) {
     if (args.size() != 2) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Random);
     }
@@ -605,19 +605,19 @@ class MathBuiltinHandler {
     return MathImpl.__random__(token, args.at(0), args.at(1));
   }
 
-  static k_value executeDivisors(const Token& token,
-                                 const std::vector<k_value>& args) {
+  static KValue executeDivisors(const Token& token,
+                                const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, MathBuiltins.Divisors);
     }
 
-    if (!std::holds_alternative<k_int>(args.at(0))) {
+    if (!args.at(0).isInteger()) {
       throw ConversionError(token,
                             "Expected an integer argument for builtin `" +
                                 MathBuiltins.Divisors + "`.");
     }
 
-    const auto& divisors = MathImpl.__divisors__(std::get<k_int>(args.at(0)));
+    const auto& divisors = MathImpl.__divisors__(args.at(0).getInteger());
     auto list = std::make_shared<List>();
     auto& elements = list->elements;
     elements.reserve(divisors.size());
@@ -626,7 +626,7 @@ class MathBuiltinHandler {
       elements.emplace_back(divisor);
     }
 
-    return list;
+    return KValue::createList(list);
   }
 };
 

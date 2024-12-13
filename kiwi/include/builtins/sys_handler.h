@@ -10,10 +10,10 @@
 
 class SysBuiltinHandler {
  public:
-  static k_value execute(const Token& token, const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args) {
     if (SAFEMODE) {
-      return static_cast<k_int>(0);
+      return {};
     }
 
     switch (builtin) {
@@ -34,33 +34,33 @@ class SysBuiltinHandler {
   }
 
  private:
-  static k_value executeEffectiveUserId(const Token& token,
-                                        const std::vector<k_value>& args) {
+  static KValue executeEffectiveUserId(const Token& token,
+                                       const std::vector<KValue>& args) {
     if (args.size() != 0) {
       throw BuiltinUnexpectedArgumentError(token, SysBuiltins.EffectiveUserId);
     }
 
-    return static_cast<k_int>(Sys::getEffectiveUserId());
+    return KValue::createInteger(Sys::getEffectiveUserId());
   }
 
-  static k_value executeExec(const Token& token,
-                             const std::vector<k_value>& args) {
+  static KValue executeExec(const Token& token,
+                            const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, SysBuiltins.Exec);
     }
 
-    k_string command = get_string(token, args.at(0));
-    return Sys::exec(command);
+    auto command = get_string(token, args.at(0));
+    return KValue::createInteger(Sys::exec(command));
   }
 
-  static k_value executeExecOut(const Token& token,
-                                const std::vector<k_value>& args) {
+  static KValue executeExecOut(const Token& token,
+                               const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, SysBuiltins.Exec);
     }
 
-    k_string command = get_string(token, args.at(0));
-    return Sys::execOut(command);
+    auto command = get_string(token, args.at(0));
+    return KValue::createString(Sys::execOut(command));
   }
 };
 
