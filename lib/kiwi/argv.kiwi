@@ -1,23 +1,23 @@
 /#
-Summary: A package for working with command-line arguments.
+@summary: A package for working with command-line arguments.
 #/
 package argv
   /#
-  Summary: Get the list of command-line arguments.
-  Returns: List of command-line arguments.
+  @summary: Get the list of command-line arguments.
+  @return: List of command-line arguments.
   #/
-  fn get()
+  fn get(): list
     return __argv__()
   end
 
   /#
-  Summary: Get a named option value by key.
-  Params:
-    - _key: The option key.
-  Returns: String containing the option value.
+  @summary: Get a named option value by key.
+  @params:
+    - `key`: The option key.
+  @return: String containing the option value.
   #/
-  fn opt(_key)
-    return __xarg__(_key)
+  fn opt(key: string): string
+    return __xarg__(key)
   end
 end
 

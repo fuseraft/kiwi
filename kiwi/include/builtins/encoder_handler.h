@@ -11,8 +11,8 @@
 
 class EncoderBuiltinHandler {
  public:
-  static k_value execute(const Token& token, const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args) {
     switch (builtin) {
       case KName::Builtin_Encoder_Base64Decode:
         return executeBase64Decode(token, args);
@@ -34,44 +34,44 @@ class EncoderBuiltinHandler {
   }
 
  private:
-  static k_value executeBase64Decode(const Token& token,
-                                     const std::vector<k_value>& args) {
+  static KValue executeBase64Decode(const Token& token,
+                                    const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, EncoderBuiltins.Base64Decode);
     }
 
     auto value = get_string(token, args.at(0));
-    return String::base64Decode(value);
+    return KValue::createString(String::base64Decode(value));
   }
 
-  static k_value executeBase64Encode(const Token& token,
-                                     const std::vector<k_value>& args) {
+  static KValue executeBase64Encode(const Token& token,
+                                    const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, EncoderBuiltins.Base64Encode);
     }
 
     auto value = get_string(token, args.at(0));
-    return String::base64Encode(value);
+    return KValue::createString(String::base64Encode(value));
   }
 
-  static k_value executeUrlDecode(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeUrlDecode(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, EncoderBuiltins.UrlDecode);
     }
 
     auto value = get_string(token, args.at(0));
-    return String::urlDecode(value);
+    return KValue::createString(String::urlDecode(value));
   }
 
-  static k_value executeUrlEncode(const Token& token,
-                                  const std::vector<k_value>& args) {
+  static KValue executeUrlEncode(const Token& token,
+                                 const std::vector<KValue>& args) {
     if (args.size() != 1) {
       throw BuiltinUnexpectedArgumentError(token, EncoderBuiltins.UrlEncode);
     }
 
     auto value = get_string(token, args.at(0));
-    return String::urlEncode(value);
+    return KValue::createString(String::urlEncode(value));
   }
 };
 

@@ -41,8 +41,8 @@ class FFIManager {
                       const k_list& parameters, const k_string& returnType);
 
   // Invoke a function by its alias with the provided arguments
-  k_value invokeFunction(const Token& token, const k_string& funcAlias,
-                         const std::vector<k_value>& args);
+  KValue invokeFunction(const Token& token, const k_string& funcAlias,
+                        const std::vector<KValue>& args);
 
   // Unload a library by its alias and clean up resources
   void unloadLibrary(const Token& token, const k_string& libAlias);
@@ -61,7 +61,7 @@ class FFIManager {
 
   void prepareArguments(const Token& token,
                         const std::vector<k_string>& paramTypes,
-                        const std::vector<k_value>& args,
+                        const std::vector<KValue>& args,
                         std::vector<ffi_type*>& argTypes,
                         std::vector<void*>& argValues,
                         std::vector<Allocation>& allocations);
@@ -70,8 +70,8 @@ class FFIManager {
                      std::vector<ffi_type*>& argTypes, ffi_type* retType,
                      std::vector<void*>& argValues);
 
-  k_value processReturnValue(const Token& token, void* retVal,
-                             const k_string& retTypeStr);
+  KValue processReturnValue(const Token& token, void* retVal,
+                            const k_string& retTypeStr);
 
   void cleanUpAllocations(std::vector<Allocation>& allocations);
 };
@@ -116,13 +116,13 @@ bool FFIManager::attachFunction(const Token& token, const k_string& libAlias,
   parameterTypes.reserve(funcParameters.size());
 
   for (const auto& funcParam : funcParameters) {
-    if (!std::holds_alternative<k_string>(funcParam)) {
+    if (!funcParam.isString()) {
       throw FFIError(
           token, "Invalid type string in function parameter information for `" +
                      funcAlias + "`.");
     }
 
-    parameterTypes.push_back(std::get<k_string>(funcParam));
+    parameterTypes.push_back(funcParam.getString());
   }
 
   functionRegistry[funcAlias] = {funcPtr, parameterTypes, returnType, libAlias};
@@ -130,9 +130,8 @@ bool FFIManager::attachFunction(const Token& token, const k_string& libAlias,
   return true;
 }
 
-k_value FFIManager::invokeFunction(const Token& token,
-                                   const k_string& funcAlias,
-                                   const std::vector<k_value>& args) {
+KValue FFIManager::invokeFunction(const Token& token, const k_string& funcAlias,
+                                  const std::vector<KValue>& args) {
   std::lock_guard<std::mutex> lock(managerMutex);
 
   if (!functionRegistry.count(funcAlias)) {
@@ -166,7 +165,7 @@ k_value FFIManager::invokeFunction(const Token& token,
       callFunction(token, funcInfo.funcPtr, argTypes, retType, argValues);
 
   // Process the return value
-  k_value result = processReturnValue(token, retVal, retTypeStr);
+  KValue result = processReturnValue(token, retVal, retTypeStr);
 
   // Cleanup
   cleanUpAllocations(allocations);
@@ -240,14 +239,14 @@ ffi_type* FFIManager::getFFIType(const Token& token, const k_string& typeStr) {
 
 void FFIManager::prepareArguments(const Token& token,
                                   const std::vector<k_string>& paramTypes,
-                                  const std::vector<k_value>& args,
+                                  const std::vector<KValue>& args,
                                   std::vector<ffi_type*>& argTypes,
                                   std::vector<void*>& argValues,
                                   std::vector<Allocation>& allocations) {
   try {
     for (size_t i = 0; i < paramTypes.size(); ++i) {
       const k_string& typeStr = paramTypes[i];
-      const k_value& arg = args[i];
+      const KValue& arg = args[i];
 
       ffi_type* ffiType = getFFIType(token, typeStr);
       argTypes.push_back(ffiType);
@@ -256,37 +255,37 @@ void FFIManager::prepareArguments(const Token& token,
 
       try {
         if (typeStr == "int") {
-          int* value = new int(static_cast<int>(std::get<k_int>(arg)));
+          int* value = new int(static_cast<int>(arg.getInteger()));
           argValue = value;
           allocations.push_back({value, [](void* p) {
                                    delete static_cast<int*>(p);
                                  }});
         } else if (typeStr == "size_t") {
-          size_t* value = new size_t(static_cast<size_t>(std::get<k_int>(arg)));
+          size_t* value = new size_t(static_cast<size_t>(arg.getInteger()));
           argValue = value;
           allocations.push_back({value, [](void* p) {
                                    delete static_cast<size_t*>(p);
                                  }});
         } else if (typeStr == "double") {
-          double* value = new double(std::get<double>(arg));
+          double* value = new double(arg.getFloat());
           argValue = value;
           allocations.push_back({value, [](void* p) {
                                    delete static_cast<double*>(p);
                                  }});
         } else if (typeStr == "bool") {
-          bool* value = new bool(std::get<bool>(arg));
+          bool* value = new bool(arg.getBoolean());
           argValue = value;
           allocations.push_back({value, [](void* p) {
                                    delete static_cast<bool*>(p);
                                  }});
         } else if (typeStr == "pointer") {
-          void** value = new void*(std::get<k_pointer>(arg).ptr);
+          void** value = new void*(arg.getPointer().ptr);
           argValue = value;
           allocations.push_back({value, [](void* p) {
                                    delete static_cast<void**>(p);
                                  }});
         } else if (typeStr == "string") {
-          const k_string& str = std::get<k_string>(arg);
+          const k_string& str = arg.getString();
           char* cstr = new char[str.size() + 1];
           std::strcpy(cstr, str.c_str());
           argValue = &cstr;
@@ -294,15 +293,14 @@ void FFIManager::prepareArguments(const Token& token,
                                    delete[] static_cast<char*>(p);
                                  }});
         } else if (typeStr == "string[]") {
-          const std::vector<k_value>& strArray =
-              std::get<k_list>(arg)->elements;
+          const std::vector<KValue>& strArray = arg.getList()->elements;
 
           size_t arraySize = strArray.size();
           char** cstrArray =
               new char*[arraySize + 1];  // +1 for NULL terminator if needed
 
           for (size_t j = 0; j < arraySize; ++j) {
-            const k_string& str = std::get<k_string>(strArray[j]);
+            const k_string& str = strArray[j].getString();
             char* cstr = new char[str.size() + 1];
             std::strcpy(cstr, str.c_str());
             cstrArray[j] = cstr;
@@ -363,8 +361,8 @@ void* FFIManager::callFunction(const Token& token, void* funcPtr,
   return retVal;
 }
 
-k_value FFIManager::processReturnValue(const Token& token, void* retVal,
-                                       const k_string& retTypeStr) {
+KValue FFIManager::processReturnValue(const Token& token, void* retVal,
+                                      const k_string& retTypeStr) {
   if (retTypeStr == "void") {
     return {};
   }
@@ -375,28 +373,28 @@ k_value FFIManager::processReturnValue(const Token& token, void* retVal,
 
   if (retTypeStr == "int") {
     int value = *static_cast<int*>(retVal);
-    return static_cast<k_int>(value);
+    return KValue::createInteger(static_cast<k_int>(value));
   } else if (retTypeStr == "size_t") {
     size_t value = *static_cast<size_t*>(retVal);
-    return static_cast<k_int>(value);
+    return KValue::createInteger(static_cast<k_int>(value));
   } else if (retTypeStr == "double") {
     double value = *static_cast<double*>(retVal);
-    return value;
+    return KValue::createFloat(value);
   } else if (retTypeStr == "bool") {
     bool value = *static_cast<bool*>(retVal);
-    return value;
+    return KValue::createBoolean(value);
   } else if (retTypeStr == "pointer") {
     void* value = *static_cast<void**>(retVal);
-    return k_pointer(value);
+    return KValue::createPointer(k_pointer(value));
   } else if (retTypeStr == "string") {
     char* value = *static_cast<char**>(retVal);
     if (!value) {
       throw FFIError(token, "String return value is null");
     }
-    return k_string(value);
+    return KValue::createString(k_string(value));
   } else if (retTypeStr == "string[]") {
     char** cstrArray = *static_cast<char***>(retVal);
-    std::vector<k_value> strArray;
+    std::vector<KValue> strArray;
 
     if (!cstrArray) {
       throw FFIError(token, "Returned string array is null");
@@ -406,11 +404,11 @@ k_value FFIManager::processReturnValue(const Token& token, void* retVal,
     while (cstrArray[index] != nullptr) {
       char* cstr = cstrArray[index];
       k_string str(cstr);
-      strArray.push_back(str);
+      strArray.push_back(KValue::createString(str));
       ++index;
     }
 
-    return std::make_shared<List>(strArray);
+    return KValue::createList(std::make_shared<List>(strArray));
   } else {
     throw FFIError(token, "Unsupported return type: " + retTypeStr);
   }

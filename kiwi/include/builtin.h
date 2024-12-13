@@ -25,28 +25,24 @@
 
 class BuiltinDispatch {
  public:
-  static k_value execute(FFIManager& ffi, const Token& token,
-                         const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(FFIManager& ffi, const Token& token,
+                        const KName& builtin, const std::vector<KValue>& args) {
     return FFIBuiltinHandler::execute(ffi, token, builtin, args);
   }
 
-  static k_value execute(SocketManager& sockmgr, const Token& token,
-                         const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(SocketManager& sockmgr, const Token& token,
+                        const KName& builtin, const std::vector<KValue>& args) {
     return NetBuiltinHandler::execute(sockmgr, token, builtin, args);
   }
 
-  static k_value execute(TaskManager& taskmgr, const Token& token,
-                         const KName& builtin,
-                         const std::vector<k_value>& args) {
+  static KValue execute(TaskManager& taskmgr, const Token& token,
+                        const KName& builtin, const std::vector<KValue>& args) {
     return TaskBuiltinHandler::execute(taskmgr, token, builtin, args);
   }
 
-  static k_value execute(
-      const Token& token, const KName& builtin,
-      const std::vector<k_value>& args,
-      const std::unordered_map<k_string, k_string>& cliArgs) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const std::vector<KValue>& args,
+                        const std::unordered_map<k_string, k_string>& cliArgs) {
     if (FileIOBuiltIns.is_builtin(builtin)) {
       return FileIOBuiltinHandler::execute(token, builtin, args);
     } else if (TimeBuiltins.is_builtin(builtin)) {
@@ -72,9 +68,8 @@ class BuiltinDispatch {
     throw UnknownBuiltinError(token, token.getText());
   }
 
-  static k_value execute(const Token& token, const KName& builtin,
-                         const k_value& value,
-                         const std::vector<k_value>& args) {
+  static KValue execute(const Token& token, const KName& builtin,
+                        const KValue& value, const std::vector<KValue>& args) {
     if (KiwiBuiltins.is_builtin(builtin)) {
       return CoreBuiltinHandler::execute(token, builtin, value, args);
     }
