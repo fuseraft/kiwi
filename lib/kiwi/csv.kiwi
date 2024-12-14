@@ -2,7 +2,7 @@ package csv
   fn parse(csv_file_path: string, delimiter: string = ",", has_header_row: boolean = false): list
     var (p = CSVParser.new(csv_file_path, delimiter))
     var (csv_list: list = p.parse())
-    return CSVParser.hashify(csv_list, true)
+    return CSVParser.hashify(csv_list, has_header_row)
   end
 end
 
