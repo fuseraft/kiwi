@@ -1743,6 +1743,7 @@ KValue KInterpreter::visit(const WhileLoopNode* node) {
       }
 
       if (frame->isFlagSet(FrameFlags::Return)) {
+        fallOut = true;
         break;
       }
 
