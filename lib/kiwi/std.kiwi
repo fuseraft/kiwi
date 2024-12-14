@@ -34,7 +34,7 @@ package std
 end
 
 package std::error
-  fn create(error_type = "KiwiError", error_message = "An error occurred.")
+  fn create(error_type: string = "KiwiError", error_message: string = "An error occurred."): hashmap
     return { "error": error_type, "message": error_message }
   end
 
