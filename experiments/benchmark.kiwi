@@ -1,0 +1,73 @@
+const PRINT = false
+
+fn get_calc(): hashmap
+  return {}.set("add", (with (a: float, b: float) do a + b end))
+           .set("sub", (with (a: float, b: float) do a - b end))
+           .set("mul", (with (a: float, b: float) do a * b end))
+           .set("div", (with (a: float, b: float) do a / b end))
+end
+
+fn do_mathy_stuff(calc: hashmap): float
+  var (a: float = 1.0,
+       b: float = 2.0,
+       c: float = 0.0)
+
+  for op in calc do
+    var (func: lambda = calc.get(op))
+    
+    if PRINT
+      println "${op}(${a}, ${b}) = ${func(a, b)}"
+    end
+
+    c += func(a, b)
+  end
+
+  return c
+end
+
+fn test(): float
+  var (calc: hashmap = get_calc(),
+       sum: float)
+
+  for i in [1..1000] do
+    sum += do_mathy_stuff(calc)
+  end
+
+  return sum
+end
+
+fn benchmark()
+  var (start: float = time::ticks(),
+       _ = test(),
+       stop: float = time::ticks(), 
+       duration: float = time::ticksms(stop - start))
+  
+  if PRINT
+    println "computed in ${duration} milliseconds."
+  end
+
+  return duration
+end
+
+fn main(argv: list = [])
+  var (num_runs: integer = 5,
+       results: list = [],
+       total_duration: float)
+
+  if !argv.empty() && string::isnumeric(argv.first())
+    num_runs = argv.first().to_int()
+  end
+
+  for run in std::range(0, num_runs) do
+    var (duration: float = benchmark())
+    results.push(duration)
+    total_duration += duration
+  end
+
+  println "durations: ${results}"
+  println "minimum: ${results.min()}"
+  println "maximum: ${results.max()}"
+  println "average: ${total_duration / results.size()}"
+end
+
+main()

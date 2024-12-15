@@ -319,6 +319,13 @@ class String {
     return s.substr(pos, std::min(size, s.size() - pos));
   }
 
+  /// @brief Removes noise from a mangled string. For internal use only.
+  /// @param s The string to unmangle.
+  static k_string unmangle(const k_string& s) {
+    static const size_t MANGLEN = 10;
+    return String::substring(s, MANGLEN, MANGLEN - s.length());
+  }
+
   /// @brief Get the index of a string within another string.
   /// @param s The string to search.
   /// @param search The string to find.
