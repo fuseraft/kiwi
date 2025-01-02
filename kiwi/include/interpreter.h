@@ -1117,7 +1117,6 @@ KValue KInterpreter::visit(const ConstAssignmentNode* node) {
 
 KValue KInterpreter::visit(const AssignmentNode* node) {
   auto frame = callStack.top();
-  auto left = interpret(node->left.get());
   auto value = interpret(node->initializer.get());
   auto type = node->op;
   auto name = node->name;
