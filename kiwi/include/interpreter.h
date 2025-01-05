@@ -49,6 +49,10 @@ class KInterpreter {
 
   bool hasActiveTasks() { return taskmgr.hasActiveTasks(); }
 
+  std::stack<k_string> getFuncStack() {
+    return funcStack;
+  }
+
  private:
   std::unique_ptr<KContext> ctx;
   TaskManager taskmgr;
@@ -121,6 +125,13 @@ class KInterpreter {
     return true;
   }
   void dropFrame();
+  bool inTry() {
+    if (callStack.empty()) {
+      return false;
+    }
+
+    return callStack.top()->isFlagSet(FrameFlags::InTry);
+  }
 
   k_string getTemporaryId();
   k_string id(const ASTNode* node);
@@ -1106,7 +1117,6 @@ KValue KInterpreter::visit(const ConstAssignmentNode* node) {
 
 KValue KInterpreter::visit(const AssignmentNode* node) {
   auto frame = callStack.top();
-  auto left = interpret(node->left.get());
   auto value = interpret(node->initializer.get());
   auto type = node->op;
   auto name = node->name;
@@ -1940,7 +1950,7 @@ KValue KInterpreter::visit(const TryNode* node) {
 
         dropFrame();
       } catch (const KiwiError&) {
-        if (requireDrop) {
+        if (requireDrop && inTry()) {
           dropFrame();
         }
         throw;
@@ -1982,7 +1992,7 @@ KValue KInterpreter::visit(const LambdaCallNode* node) {
     result = callLambda(node->token, lambdaName, node->arguments, requireDrop);
     dropFrame();
   } catch (const KiwiError& e) {
-    if (requireDrop) {
+    if (requireDrop && inTry()) {
       dropFrame();
     }
     throw;
@@ -2060,7 +2070,6 @@ KValue KInterpreter::visit(const VariableDeclarationNode* node) {
   // dereference typeHints for quicker access
   const auto& typeHints = node->typeHints;
 
-  auto varCount = 0;  // a simple counter for the `TypeError` error message
   auto hasDefaultValue =
       false;  // a flag to determine if a variable has an initializer
 
@@ -2071,7 +2080,6 @@ KValue KInterpreter::visit(const VariableDeclarationNode* node) {
   for (const auto& pair : node->variables) {
     KValue value = {};       // a variable value
     auto name = pair.first;  // grab the name
-    ++varCount;              // increment the counter (starts at 1)
     hasDefaultValue = pair.second != nullptr;
 
     // if there is a default value, grab it
@@ -2097,8 +2105,8 @@ KValue KInterpreter::visit(const VariableDeclarationNode* node) {
         throw TypeError(node->token,
                         "Expected type `" +
                             Serializer::get_typename_string(expectedType) +
-                            "` for variable " + std::to_string(varCount) +
-                            " but received `" +
+                            "` for variable " +
+                            " `" + String::unmangle(name) + "` but received `" +
                             Serializer::get_value_type_string(value) + "`.");
       } else if (!hasDefaultValue) {
         // give it a default value based on the type-hint
@@ -2345,7 +2353,7 @@ KValue KInterpreter::visit(const FunctionCallNode* node) {
       dropFrame();
     }
   } catch (const KiwiError& e) {
-    if (requireDrop) {
+    if (requireDrop && inTry()) {
       dropFrame();
     }
     throw;
@@ -2642,7 +2650,7 @@ KValue KInterpreter::callFunction(
     result = executeFunctionBody(function);
     dropFrame();
   } catch (const KiwiError& e) {
-    if (requireDrop) {
+    if (requireDrop && inTry()) {
       dropFrame();
     }
     throw;
@@ -3013,7 +3021,7 @@ void KInterpreter::handleWebServerRequest(int webhookID, k_hashmap requestHash,
 
     dropFrame();
   } catch (const KiwiError& e) {
-    if (requireDrop) {
+    if (requireDrop && inTry()) {
       dropFrame();
     }
     throw;
