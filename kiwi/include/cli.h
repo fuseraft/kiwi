@@ -114,6 +114,9 @@ int KiwiCLI::run(std::vector<k_string>& v) {
     return host.start();
   } catch (const KiwiError& e) {
     return ErrorHandler::handleError(e);
+  } catch (const std::exception& e) {
+    ErrorHandler::handleFatalError(e);
+    return 1;
   }
 }
 

@@ -1,1 +1,4 @@
 # a script for debugging and experimentation (and fun!)
+
+import "experiments/benchmark.kiwi"
+#import "experiments/cidr.kiwi"
