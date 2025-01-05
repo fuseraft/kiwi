@@ -6,6 +6,7 @@
 #include "parsing/lexer.h"
 #include "parsing/parser.h"
 #include "parsing/tokens.h"
+#include "tracing/handler.h"
 #include "typing/value.h"
 #include "util/file.h"
 #include "globals.h"
@@ -23,19 +24,21 @@ class Engine {
   }
 
   int runStreamCollection() {
-    auto ast = parser.parseTokenStreamCollection(streamCollection);
+    try {
+      auto ast = parser.parseTokenStreamCollection(streamCollection);
+      interp.setContext(std::make_unique<KContext>());
+      auto result = interp.interpret(ast.get());
 
-    interp.setContext(std::make_unique<KContext>());
+      while (interp.hasActiveTasks()) {
+        // avoid busy-waiting
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
 
-    auto result = interp.interpret(ast.get());
-
-    while (interp.hasActiveTasks()) {
-      // avoid busy-waiting
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    if (result.isInteger()) {
-      return static_cast<int>(result.getInteger());
+      if (result.isInteger()) {
+        return static_cast<int>(result.getInteger());
+      }
+    } catch (const KiwiError& e) {
+      ErrorHandler::handleError(e, interp.getFuncStack());
     }
 
     return 0;

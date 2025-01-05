@@ -537,6 +537,12 @@ class CoreBuiltinHandler {
       throw BuiltinUnexpectedArgumentError(token, KiwiBuiltins.ToHex);
     }
 
+    if (value.isInteger()) {
+      std::ostringstream oss;
+      oss << std::hex << value.getInteger();
+      return KValue::createString(oss.str());
+    }
+
     if (!value.isList()) {
       throw InvalidOperationError(
           token, "Expected a list value for byte to string conversion.");
