@@ -17,7 +17,8 @@ class ErrorHandler {
     return 1;
   }
 
-  static int handleError(const KiwiError& e, const std::stack<std::string>& stack) {
+  static int handleError(const KiwiError& e,
+                         const std::stack<std::string>& stack) {
     printKiwiError(e);
 
     const Token& token = e.getToken();
@@ -30,12 +31,12 @@ class ErrorHandler {
       funcStack.emplace_back(tmpStack.top());
       tmpStack.pop();
     }
-    
+
     funcStack.erase(funcStack.end());
     for (const auto& func : funcStack) {
       std::cout << "  " << func << std::endl;
     }
-      
+
     return 1;
   }
 
