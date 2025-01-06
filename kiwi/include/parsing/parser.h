@@ -662,6 +662,7 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   std::vector<std::pair<k_string, std::unique_ptr<ASTNode>>> parameters;
   std::unordered_map<k_string, KName> typeHints;
   KName returnTypeHint = KName::Types_Any;
+  bool requiredNameStack = false;
 
   if (isTypeName && tokenType() != KTokenType::OPEN_PAREN) {
     throw SyntaxError(getErrorToken(), "Expected '(' after the identifier `" +
@@ -672,6 +673,7 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
     next();  // Consume '('
 
     auto& mangledNames = pushNameStack();
+    requiredNameStack = true;
 
     while (tokenType() != KTokenType::CLOSE_PAREN) {
       if (tokenType() != KTokenType::IDENTIFIER) {
@@ -745,7 +747,9 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
 
   next();  // Consume 'end'
 
-  popNameStack();
+  if (requiredNameStack) {
+    popNameStack();
+  }
 
   auto functionDeclaration = std::make_unique<FunctionDeclarationNode>();
   functionDeclaration->name = functionName;
