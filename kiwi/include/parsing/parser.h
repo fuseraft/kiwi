@@ -671,7 +671,7 @@ std::unique_ptr<ASTNode> Parser::parseFunction() {
   if (tokenType() == KTokenType::OPEN_PAREN) {
     next();  // Consume '('
 
-    auto& mangledNames = getNameMap();
+    auto& mangledNames = pushNameStack();
 
     while (tokenType() != KTokenType::CLOSE_PAREN) {
       if (tokenType() != KTokenType::IDENTIFIER) {
