@@ -49,9 +49,7 @@ class KInterpreter {
 
   bool hasActiveTasks() { return taskmgr.hasActiveTasks(); }
 
-  std::stack<k_string> getFuncStack() {
-    return funcStack;
-  }
+  std::stack<k_string> getFuncStack() { return funcStack; }
 
  private:
   std::unique_ptr<KContext> ctx;
@@ -2105,8 +2103,8 @@ KValue KInterpreter::visit(const VariableDeclarationNode* node) {
         throw TypeError(node->token,
                         "Expected type `" +
                             Serializer::get_typename_string(expectedType) +
-                            "` for variable " +
-                            " `" + String::unmangle(name) + "` but received `" +
+                            "` for variable " + " `" + String::unmangle(name) +
+                            "` but received `" +
                             Serializer::get_value_type_string(value) + "`.");
       } else if (!hasDefaultValue) {
         // give it a default value based on the type-hint
