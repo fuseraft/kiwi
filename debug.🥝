@@ -1,4 +1,23 @@
 # a script for debugging and experimentation (and fun!)
 
-import "experiments/benchmark.kiwi"
+#import "experiments/benchmark.kiwi"
 #import "experiments/cidr.kiwi"
+
+var (print_s: lambda = with (s: string = "", newline: boolean = false) do
+  if newline
+    println s
+  else
+    print s
+  end
+end)
+
+x = "foobar"
+
+fn test()
+  x = "baz"
+  print_s(x)
+end
+
+print_s(x)
+test()
+print_s(x, true)
