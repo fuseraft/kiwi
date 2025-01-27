@@ -1,5 +1,5 @@
 /#
- The Kiwi Programming Language 2.0.12
+ The Kiwi Programming Language 2.0.13
  #/
 
 fn testsuite()
@@ -455,8 +455,8 @@ guava::register_test("structs", with do
   circle = Circle.new(5)
 
   # magic numbers everywhere
-  guava::assert(math::floor(circle.area()).to_int() == 78)
-  guava::assert(math::floor(circle.perimeter()).to_int() == 31)
+  guava::assert(math::floor(circle.area()).to_integer() == 78)
+  guava::assert(math::floor(circle.perimeter()).to_integer() == 31)
 end)
 
 guava::register_test("builtins", with do

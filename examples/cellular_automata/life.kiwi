@@ -40,7 +40,7 @@ fn get_grid_size(args)
   end
 
   try
-    grid_size = args.get(0).to_int()
+    grid_size = args.get(0).to_integer()
     grid_size = [grid_size, 20].max()
   end
 

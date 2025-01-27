@@ -13,7 +13,7 @@ package cidr
     throw "Invalid IPv4 address: ${ip}"
       when parts.size() != 4
 
-    return (parts[0].to_int() << 24) | (parts[1].to_int() << 16) | (parts[2].to_int() << 8) | parts[3].to_int()
+    return (parts[0].to_integer() << 24) | (parts[1].to_integer() << 16) | (parts[2].to_integer() << 8) | parts[3].to_integer()
   end
 
   /#
@@ -39,7 +39,7 @@ package cidr
       when parts.size() != 2
 
     var (network_ip: integer = cidr::ip_to_int(parts.first()),
-         prefix_length: integer = parts.last().to_int())
+         prefix_length: integer = parts.last().to_integer())
 
     throw "Invalid prefix length: ${prefix_length}"
       when prefix_length < 0 || prefix_length > 32
@@ -141,8 +141,8 @@ package cidr_ipv6
     throw "Invalid IPv6 address: ${ip}" 
       when parts.size() > 2
 
-    var (left_part = parts.first().empty("").split(":").map(with (p) do p.empty("0").to_int(16) end))
-    var (right_part = parts.last().empty("").split(":").map(with (p) do p.empty("0").to_int(16) end))
+    var (left_part = parts.first().empty("").split(":").map(with (p) do p.empty("0").to_integer(16) end))
+    var (right_part = parts.last().empty("").split(":").map(with (p) do p.empty("0").to_integer(16) end))
 
     # Number of missing groups (if "::" was used)
     var (missing_groups = 8 - left_part.size() - right_part.size())
@@ -242,7 +242,7 @@ package cidr_ipv6
       when parts.size() != 2
 
     var (network_ip = cidr_ipv6::ip_to_blocks(parts.first()))
-    var (prefix_length = parts.last().to_int())
+    var (prefix_length = parts.last().to_integer())
     var (netmask = cidr_ipv6::prefix_to_netmask(prefix_length))
 
     # Compute the network address
