@@ -110,7 +110,7 @@ for i in [0..49].reverse() do
   tempSum = carry
   
   for num in numbers do
-    tempSum += num[i].to_int()
+    tempSum += num[i].to_integer()
   end
 
   sum[i + 2] = tempSum % 10

@@ -1090,7 +1090,6 @@ KValue KInterpreter::visit(const MemberAssignmentNode* node) {
 }
 
 KValue KInterpreter::visit(const ConstAssignmentNode* node) {
-  auto frame = callStack.top();
   auto name = node->name;
   auto value = interpret(node->initializer.get());
 
@@ -1506,7 +1505,17 @@ KValue KInterpreter::visit(const IfNode* node) {
 }
 
 KValue KInterpreter::visit(const CaseNode* node) {
-  KValue testValue = interpret(node->testValue.get());
+  KValue testValue = KValue::createBoolean(true);
+  
+  if (node->testValue) {
+    testValue = interpret(node->testValue.get());
+    
+    if (node->testValueAlias) {
+      auto alias = id(node->testValueAlias.get());
+      auto& frame = callStack.top();
+      frame->variables[alias] = testValue;
+    }
+  }
 
   for (const auto& whenNode : node->whenNodes) {
     KValue whenCondition = interpret(whenNode->condition.get());

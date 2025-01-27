@@ -5,7 +5,7 @@ exit (with do
 end)() when argv::get().empty()
 
 start = time::ticks()
-n = argv::get().first().to_int()
+n = argv::get().first().to_integer()
 sum = 0.
 flip = -1.
 

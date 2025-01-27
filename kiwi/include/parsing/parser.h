@@ -1026,9 +1026,23 @@ std::unique_ptr<ASTNode> Parser::parseCase() {
   }
 
   auto node = std::make_unique<CaseNode>();
+  auto& mangledNames = getNameMap();
+  std::unordered_set<k_string> subMangled;
 
   if (hasValue()) {
     node->testValue = parseExpression();
+
+    if (matchSubType(KName::KW_As)) {
+      if (tokenType() != KTokenType::IDENTIFIER) {
+        throw SyntaxError(getErrorToken(), "Expected an identifier.");
+      }
+
+      k_string mangler = "_" + RNG::getInstance().random8() + "_";
+      mangledNames[kToken.getText()] = mangler + kToken.getText();
+      subMangled.emplace(mangler + kToken.getText());
+
+      node->testValueAlias = parseIdentifier(false, false);
+    }
   }
 
   while (tokenName() != KName::KW_End) {
@@ -1061,6 +1075,10 @@ std::unique_ptr<ASTNode> Parser::parseCase() {
   }
 
   next();  // Consume 'end'
+
+  for (const auto& mangledName : subMangled) {
+    mangledNames.erase(mangledName);
+  }  
 
   return node;
 }
@@ -2057,6 +2075,8 @@ std::unique_ptr<ASTNode> Parser::parsePrimary() {
     default:
       if (tokenName() == KName::KW_Lambda) {
         node = parseLambda();
+      } else if (tokenName() == KName::KW_Case) {
+        node = parseCase();
       } else {
         throw SyntaxError(getErrorToken(),
                           "Unexpected token '" + kToken.getText() + "'.");

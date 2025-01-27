@@ -279,8 +279,8 @@ struct DateTime
 
   fn to_number()
     number_string = to_string().replace("-", "").replace(":", "").split(" ")
-    date_part = number_string[0].to_int()
-    time_part = ("1" + number_string[1]).to_int()
+    date_part = number_string[0].to_integer()
+    time_part = ("1" + number_string[1]).to_integer()
 
     return [date_part, time_part]
   end
