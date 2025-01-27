@@ -44,7 +44,7 @@ package process
         dirname = fs::filename(entry)
 
         if string::isnumeric(dirname)
-          pid = dirname.to_int()
+          pid = dirname.to_integer()
           proc_name = process::get_proc_name(entry)
 
           # Handle cases where process name couldn't be read

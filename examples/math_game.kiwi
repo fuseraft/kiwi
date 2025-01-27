@@ -13,7 +13,7 @@ while true do
   try
     total += 1
     
-    if user_answer.to_int() == real_answer
+    if user_answer.to_integer() == real_answer
       println("right!")
       correct += 1
     else
@@ -24,7 +24,7 @@ while true do
   end
 end
 
-score = ((correct.to_float() / [total, 1].max()) * 100).to_int()
+score = ((correct.to_float() / [total, 1].max()) * 100).to_integer()
 print("Your score is ${score}%...")
 
 if score >= 100   println("A+")
