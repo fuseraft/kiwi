@@ -48,8 +48,8 @@ println(myList[2])       # Outputs: fun!
 myList = []
 anotherList = [1, 2]
 
-myList << "Hello, Kiwi!"
-myList << anotherList
+myList.push("Hello, Kiwi!")
+myList.push(anotherList)
 
 # myList now contains ["Hello, Kiwi!", [1, 2]]
 ```
@@ -96,7 +96,7 @@ end
 fn sieve_of_eratosthenes(limit)
   isPrime = []
   for i in [0..limit] do
-     isPrime << true
+     isPrime.push(true)
   end
 
   isPrime[0] = false
@@ -122,7 +122,7 @@ fn sieve_of_eratosthenes(limit)
   primes = []
   for i in [0..limit] do
     if isPrime[i]
-      primes << i
+      primes.push(i)
     end
   end
 
