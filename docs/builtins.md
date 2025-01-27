@@ -78,7 +78,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`serialize(value)`](#serializevalue)
   - [`to_float()`](#to_float)
   - [`to_hashmap()`](#to_hashmap)
-  - [`to_int()`](#to_int)
+  - [`to_integer()`](#to_integer)
   - [`to_string()`](#to_string)
   - [`truthy()`](#truthy)
   - [`type()`](#type)
@@ -827,16 +827,16 @@ json = "{
 println(json.to_hashmap()) # prints: {"boolean": true, "float": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
-### `to_int()`
+### `to_integer()`
 
 Converts a numeric value to an integer.
 
 ```kiwi
-n = "100".to_int()
+n = "100".to_integer()
 n += 0.5
 println(n) # 100.5
 
-n = n.to_int()
+n = n.to_integer()
 println(n) # 100
 ```
 

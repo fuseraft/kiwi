@@ -55,7 +55,7 @@ fn main(argv: list = [])
        total_duration: float)
 
   if !argv.empty() && string::isnumeric(argv.first())
-    num_runs = argv.first().to_int()
+    num_runs = argv.first().to_integer()
   end
 
   for run in std::range(0, num_runs) do
