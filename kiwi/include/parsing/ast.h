@@ -1166,6 +1166,7 @@ class CaseWhenNode : public ASTNode {
 class CaseNode : public ASTNode {
  public:
   std::unique_ptr<ASTNode> testValue;
+  std::unique_ptr<ASTNode> testValueAlias;
   std::vector<std::unique_ptr<ASTNode>> elseBody;
   std::vector<std::unique_ptr<CaseWhenNode>> whenNodes;
 

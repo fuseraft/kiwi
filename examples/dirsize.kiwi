@@ -17,7 +17,7 @@ fn main(args)
       exit print_help("The depth must be a non-zero positive integer.")
     end
 
-    max_depth = args[1].to_int()
+    max_depth = args[1].to_integer()
     if max_depth < 1
       exit print_help("The depth must be a non-zero positive integer.")
     end
@@ -135,7 +135,7 @@ end
 #/
 fn format_bytes(size, precision = 2)
   base = math::log(size) / math::log(1024)
-  suffix = ["B", "K", "M", "G", "T"][[math::floor(base).to_int(), 0].max()]
+  suffix = ["B", "K", "M", "G", "T"][[math::floor(base).to_integer(), 0].max()]
   res = math::pow(1024, base - math::floor(base))
   res = math::isnan(res) ? 0 : res
   return res.to_string("F${precision}") + " ${suffix}"
