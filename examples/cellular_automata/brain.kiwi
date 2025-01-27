@@ -23,7 +23,7 @@ fn get_grid_size(args)
   grid_size = null
 
   try
-    grid_size = args.get(0).to_int()  
+    grid_size = args.get(0).to_integer()  
 
     if grid_size < global.min_grid_size
       grid_size = null
