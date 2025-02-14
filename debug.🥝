@@ -24,7 +24,7 @@ test() # baz
 print_s(x, true) # baz
 #/
 
-dt = 22
+dt = 20
 
 case
     when dt < 12
