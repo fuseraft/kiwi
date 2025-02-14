@@ -7,6 +7,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`var`](#var)
 - [Control Structures](#control-structures)
   - [`break`](#break)
+  - [`case`](#case)
   - [`do`](#do)
   - [`else`](#else)
   - [`elsif`](#elsif)
@@ -94,6 +95,11 @@ The `end` keyword is used to end a code-block.
 The `for` keyword is used to define a for-loop.
 
 See [Loops](loops.md).
+
+### `case`
+The `case` keyword is used to define a `case` statement.
+
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md#case).
 
 ### `if`
 The `if` keyword is used to define the `if` branch in a conditional statement.

@@ -115,7 +115,7 @@ ext install fuseraft.kiwi-lang
 
 ### Kiwi Wiki
 
-The [Kiwi Wiki](docs/README.md) provides comprehensive information on language features, usage, and standard library functions.
+The [Kiwi Wiki](docs/README.md) provides comprehensive information on language features, usage, and [standard library](docs/lib) functions.
 
 ### Test Suite
 
