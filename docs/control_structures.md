@@ -5,14 +5,15 @@ Control structures are used to control the flow of execution within Kiwi.
 
 ## Table of Contents
 1. [`if`](#if)
-2. [`when`](#when)
+2. [`case`](#case)
+3. [`when`](#when)
     1. [`break`](loops.md#exit-a-loop)
     2. [`exit`](#exit)
     3. [`next`](loops.md#loop-continuation)
     4. [`return`](functions.md#return-value)
     5. [`throw`](error_handling.md#throwing-an-error)
-3. [`while`](loops.md#while)
-4. [`?: (ternary operator)`](#ternary-operator)
+4. [`while`](loops.md#while)
+5. [`?: (ternary operator)`](#ternary-operator)
 
 ### `exit`
 
@@ -54,6 +55,48 @@ elsif a > b
 else
   println("${a} is equal to ${b}")
 end
+```
+
+### `case`
+
+The `case` keyword is used to define a case statement.
+
+#### Example: `case`
+
+```hayward
+dt = time::now()
+
+# A `case` statement without a test.
+case
+    when dt.hour() < 12
+        println "good morning"
+    when dt.hour() < 17
+        println "good afternoon"
+    when dt.hour() < 21
+        println "good evening"
+    else
+        println "good night"
+end
+
+# A `case` statement with a test and an alias for the test value (for better hallway vision).
+case dt.hour() as hour
+    when hour < 12
+        println "good morning"
+    when hour < 17
+        println "good afternoon"
+    when hour < 21
+        println "good evening"
+    else
+        println "good night, the time is: ${dt}"
+end
+
+# Using a `case` statement to assign a value conditionally.
+x = case dt.hour() as hour
+        when hour < 12 "morning"
+        when hour < 17 "afternoon"
+        when hour < 21 "evening"
+        else "night"
+    end
 ```
 
 ### `when`
