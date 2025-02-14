@@ -1505,11 +1505,13 @@ KValue KInterpreter::visit(const IfNode* node) {
 }
 
 KValue KInterpreter::visit(const CaseNode* node) {
-  KValue testValue = KValue::createBoolean(true);
-  
+  auto testValue = KValue::createBoolean(true);
+  auto isSwitch = false;
+
   if (node->testValue) {
     testValue = interpret(node->testValue.get());
-    
+    isSwitch = true;
+
     if (node->testValueAlias) {
       auto alias = id(node->testValueAlias.get());
       auto& frame = callStack.top();
@@ -1520,7 +1522,8 @@ KValue KInterpreter::visit(const CaseNode* node) {
   for (const auto& whenNode : node->whenNodes) {
     KValue whenCondition = interpret(whenNode->condition.get());
 
-    if (MathImpl.do_eq_comparison(testValue, whenCondition)) {
+    if ((isSwitch && MathImpl.is_truthy(whenCondition)) ||
+        (!isSwitch && MathImpl.do_eq_comparison(testValue, whenCondition))) {
       auto frame = callStack.top();
       KValue result;
       for (const auto& stmt : whenNode->body) {

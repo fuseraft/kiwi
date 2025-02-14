@@ -1213,6 +1213,7 @@ class CaseNode : public ASTNode {
 
     auto node = std::make_unique<CaseNode>();
     node->testValue = testValue ? testValue->clone() : nullptr;
+    node->testValueAlias = testValueAlias ? testValueAlias->clone() : nullptr;
     node->elseBody = std::move(clonedElseBody);
     node->whenNodes = std::move(clonedWhenNodes);
     return node;

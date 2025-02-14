@@ -3,8 +3,8 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/kiwi/src",
-                "${workspaceFolder}/kiwi/include"
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",
