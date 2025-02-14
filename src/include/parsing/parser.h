@@ -1078,7 +1078,7 @@ std::unique_ptr<ASTNode> Parser::parseCase() {
 
   for (const auto& mangledName : subMangled) {
     mangledNames.erase(mangledName);
-  }  
+  }
 
   return node;
 }
