@@ -1,8 +1,8 @@
 CXX := g++
 CXXFLAGS := -std=c++17 -O3 -Wall -Wextra -pedantic -g
 
-SRC_DIR := kiwi/src
-INCLUDE_DIR := kiwi/include
+SRC_DIR := src
+INCLUDE_DIR := src/include
 BUILD_DIR := build
 BIN_DIR := bin
 
@@ -51,6 +51,6 @@ clean:
 
 rpm: all
 	# Create source tarball
-	tar czf kiwi-2.0.13.tar.gz --transform 's,^,kiwi-2.0.13/,' bin/ lib/ kiwi.spec
+	tar czf kiwi-2.0.14.tar.gz --transform 's,^,kiwi-2.0.14/,' bin/ lib/ kiwi.spec
 	# Build the RPM package
-	rpmbuild -ta kiwi-2.0.13.tar.gz
+	rpmbuild -ta kiwi-2.0.14.tar.gz
