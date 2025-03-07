@@ -79,6 +79,13 @@ void print_depth(int depth) {
   }
 }
 
+template <typename NodeType, typename... Args>
+std::unique_ptr<NodeType> createClone(const Token& token, Args&&... args) {
+  auto node = std::make_unique<NodeType>(std::forward<Args>(args)...);
+  node->token = token;
+  return node;
+}
+
 class ProgramNode : public ASTNode {
  public:
   std::vector<std::unique_ptr<ASTNode>> statements;
@@ -104,7 +111,7 @@ class ProgramNode : public ASTNode {
       clonedStatements.push_back(statement->clone());
     }
 
-    return std::make_unique<ProgramNode>(std::move(clonedStatements));
+    return createClone<ProgramNode>(token, std::move(clonedStatements));
   }
 };
 
@@ -156,8 +163,8 @@ class StructNode : public ASTNode {
       clonedMethods.push_back(method->clone());
     }
 
-    return std::make_unique<StructNode>(name, baseStruct, interfaces,
-                                        std::move(clonedMethods));
+    return createClone<StructNode>(token, name, baseStruct, interfaces,
+                                   std::move(clonedMethods));
   }
 };
 
@@ -175,7 +182,7 @@ class LiteralNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<LiteralNode>(value);
+    return createClone<LiteralNode>(token, value);
   }
 };
 
@@ -206,7 +213,7 @@ class HashLiteralNode : public ASTNode {
       clonedElements.emplace(key->clone(), value->clone());
     }
 
-    return std::make_unique<HashLiteralNode>(std::move(clonedElements), keys);
+    return createClone<HashLiteralNode>(token, std::move(clonedElements), keys);
   }
 };
 
@@ -233,7 +240,7 @@ class ListLiteralNode : public ASTNode {
       clonedElements.push_back(element->clone());
     }
 
-    return std::make_unique<ListLiteralNode>(std::move(clonedElements));
+    return createClone<ListLiteralNode>(token, std::move(clonedElements));
   }
 };
 
@@ -257,8 +264,8 @@ class RangeLiteralNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<RangeLiteralNode>(rangeStart->clone(),
-                                              rangeEnd->clone());
+    return createClone<RangeLiteralNode>(token, rangeStart->clone(),
+                                         rangeEnd->clone());
   }
 };
 
@@ -293,8 +300,8 @@ class IndexingNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<IndexingNode>(
-        indexedObject ? indexedObject->clone() : nullptr,
+    return createClone<IndexingNode>(
+        token, indexedObject ? indexedObject->clone() : nullptr,
         indexExpression->clone());
   }
 };
@@ -326,9 +333,9 @@ class ReturnNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ReturnNode>(
-        returnValue ? returnValue->clone() : nullptr,
-        condition ? condition->clone() : nullptr);
+    return createClone<ReturnNode>(token,
+                                   returnValue ? returnValue->clone() : nullptr,
+                                   condition ? condition->clone() : nullptr);
   }
 };
 
@@ -359,9 +366,9 @@ class ThrowNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ThrowNode>(
-        errorValue ? errorValue->clone() : nullptr,
-        condition ? condition->clone() : nullptr);
+    return createClone<ThrowNode>(token,
+                                  errorValue ? errorValue->clone() : nullptr,
+                                  condition ? condition->clone() : nullptr);
   }
 };
 
@@ -392,8 +399,9 @@ class ExitNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ExitNode>(exitValue ? exitValue->clone() : nullptr,
-                                      condition ? condition->clone() : nullptr);
+    return createClone<ExitNode>(token,
+                                 exitValue ? exitValue->clone() : nullptr,
+                                 condition ? condition->clone() : nullptr);
   }
 };
 
@@ -414,8 +422,8 @@ class ParseNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ParseNode>(parseValue ? parseValue->clone()
-                                                  : nullptr);
+    return createClone<ParseNode>(token,
+                                  parseValue ? parseValue->clone() : nullptr);
   }
 };
 
@@ -439,7 +447,8 @@ class NextNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<NextNode>(condition ? condition->clone() : nullptr);
+    return createClone<NextNode>(token,
+                                 condition ? condition->clone() : nullptr);
   }
 };
 
@@ -463,8 +472,8 @@ class BreakNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<BreakNode>(condition ? condition->clone()
-                                                 : nullptr);
+    return createClone<BreakNode>(token,
+                                  condition ? condition->clone() : nullptr);
   }
 };
 
@@ -478,7 +487,7 @@ class NoOpNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<NoOpNode>(*this);
+    return createClone<NoOpNode>(token, *this);
   }
 };
 
@@ -497,7 +506,7 @@ class ImportNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ImportNode>(packageName->clone());
+    return createClone<ImportNode>(token, packageName->clone());
   }
 };
 
@@ -516,7 +525,7 @@ class ExportNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ExportNode>(packageName->clone());
+    return createClone<ExportNode>(token, packageName->clone());
   }
 };
 
@@ -548,7 +557,7 @@ class PackageNode : public ASTNode {
       clonedBody.push_back(statement->clone());
     }
 
-    auto node = std::make_unique<PackageNode>(packageName->clone());
+    auto node = createClone<PackageNode>(token, packageName->clone());
     node->body = std::move(clonedBody);
     return node;
   }
@@ -600,8 +609,8 @@ class SliceNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<SliceNode>(
-        slicedObject->clone(),
+    return createClone<SliceNode>(
+        token, slicedObject->clone(),
         startExpression ? startExpression->clone() : nullptr,
         stopExpression ? stopExpression->clone() : nullptr,
         stepExpression ? stepExpression->clone() : nullptr);
@@ -623,7 +632,7 @@ class IdentifierNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    auto node = std::make_unique<IdentifierNode>(name);
+    auto node = createClone<IdentifierNode>(token, name);
     node->package = package;
     return node;
   }
@@ -659,9 +668,9 @@ class TernaryOperationNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<TernaryOperationNode>(evalExpression->clone(),
-                                                  trueExpression->clone(),
-                                                  falseExpression->clone());
+    return createClone<TernaryOperationNode>(token, evalExpression->clone(),
+                                             trueExpression->clone(),
+                                             falseExpression->clone());
   }
 };
 
@@ -688,8 +697,8 @@ class BinaryOperationNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<BinaryOperationNode>(left->clone(), op,
-                                                 right->clone());
+    return createClone<BinaryOperationNode>(token, left->clone(), op,
+                                            right->clone());
   }
 };
 
@@ -711,7 +720,7 @@ class UnaryOperationNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<UnaryOperationNode>(op, operand->clone());
+    return createClone<UnaryOperationNode>(token, op, operand->clone());
   }
 };
 
@@ -741,8 +750,8 @@ class PrintNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<PrintNode>(expression->clone(), printNewline,
-                                       printStdError);
+    return createClone<PrintNode>(token, expression->clone(), printNewline,
+                                  printStdError);
   }
 };
 
@@ -769,8 +778,8 @@ class PrintXyNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<PrintXyNode>(expression->clone(), x->clone(),
-                                         y->clone());
+    return createClone<PrintXyNode>(token, expression->clone(), x->clone(),
+                                    y->clone());
   }
 };
 
@@ -830,7 +839,7 @@ class VariableDeclarationNode : public ASTNode {
     }
 
     // create a new unique pointer with the same data (a clone)
-    auto node = std::make_unique<VariableDeclarationNode>();
+    auto node = createClone<VariableDeclarationNode>(token);
     node->variables = std::move(clonedVariables);
     node->typeHints = typeHints;  // just use the copy constructor
     return node;
@@ -912,7 +921,7 @@ class FunctionDeclarationNode : public ASTNode {
       clonedBody.push_back(stmt->clone());
     }
 
-    auto node = std::make_unique<FunctionDeclarationNode>();
+    auto node = createClone<FunctionDeclarationNode>(token);
     node->name = name;
     node->parameters = std::move(clonedParameters);
     node->body = std::move(clonedBody);
@@ -987,7 +996,7 @@ class LambdaNode : public ASTNode {
       clonedBody.push_back(stmt->clone());
     }
 
-    auto node = std::make_unique<LambdaNode>();
+    auto node = createClone<LambdaNode>(token);
     node->parameters = std::move(clonedParameters);
     node->body = std::move(clonedBody);
     node->typeHints = typeHints;
@@ -1038,7 +1047,7 @@ class ForLoopNode : public ASTNode {
       clonedBody.push_back(stmt->clone());
     }
 
-    auto node = std::make_unique<ForLoopNode>();
+    auto node = createClone<ForLoopNode>(token);
     node->dataSet = dataSet->clone();
     node->valueIterator = valueIterator->clone();
     node->indexIterator = indexIterator ? indexIterator->clone() : nullptr;
@@ -1078,7 +1087,7 @@ class WhileLoopNode : public ASTNode {
       clonedBody.push_back(stmt->clone());
     }
 
-    auto node = std::make_unique<WhileLoopNode>();
+    auto node = createClone<WhileLoopNode>(token);
     node->condition = condition->clone();
     node->body = std::move(clonedBody);
     return node;
@@ -1122,7 +1131,7 @@ class RepeatLoopNode : public ASTNode {
       clonedBody.push_back(stmt->clone());
     }
 
-    auto node = std::make_unique<RepeatLoopNode>();
+    auto node = createClone<RepeatLoopNode>(token);
     node->count = count->clone();
     node->alias = alias ? alias->clone() : nullptr;
     node->body = std::move(clonedBody);
@@ -1156,7 +1165,7 @@ class CaseWhenNode : public ASTNode {
       clonedBody.push_back(stmt->clone());
     }
 
-    auto node = std::make_unique<CaseWhenNode>();
+    auto node = createClone<CaseWhenNode>(token);
     node->condition = condition->clone();
     node->body = std::move(clonedBody);
     return node;
@@ -1211,7 +1220,7 @@ class CaseNode : public ASTNode {
           static_cast<CaseWhenNode*>(when->clone().release())));
     }
 
-    auto node = std::make_unique<CaseNode>();
+    auto node = createClone<CaseNode>(token);
     node->testValue = testValue ? testValue->clone() : nullptr;
     node->testValueAlias = testValueAlias ? testValueAlias->clone() : nullptr;
     node->elseBody = std::move(clonedElseBody);
@@ -1276,7 +1285,7 @@ class IfNode : public ASTNode {
           static_cast<IfNode*>(elif->clone().release())));
     }
 
-    auto node = std::make_unique<IfNode>();
+    auto node = createClone<IfNode>(token);
     node->condition = condition->clone();
     node->body = std::move(clonedBody);
     node->elseBody = std::move(clonedElseBody);
@@ -1356,7 +1365,7 @@ class TryNode : public ASTNode {
       clonedFinallyBody.push_back(stmt->clone());
     }
 
-    auto node = std::make_unique<TryNode>();
+    auto node = createClone<TryNode>(token);
     node->tryBody = std::move(clonedTryBody);
     node->catchBody = std::move(clonedCatchBody);
     node->finallyBody = std::move(clonedFinallyBody);
@@ -1397,8 +1406,8 @@ class FunctionCallNode : public ASTNode {
       clonedArguments.push_back(arg->clone());
     }
 
-    return std::make_unique<FunctionCallNode>(functionName, op,
-                                              std::move(clonedArguments));
+    return createClone<FunctionCallNode>(token, functionName, op,
+                                         std::move(clonedArguments));
   }
 };
 
@@ -1431,8 +1440,8 @@ class LambdaCallNode : public ASTNode {
       clonedArguments.push_back(arg->clone());
     }
 
-    return std::make_unique<LambdaCallNode>(lambdaNode->clone(),
-                                            std::move(clonedArguments));
+    return createClone<LambdaCallNode>(token, lambdaNode->clone(),
+                                       std::move(clonedArguments));
   }
 };
 
@@ -1470,8 +1479,8 @@ class MethodCallNode : public ASTNode {
       clonedArguments.push_back(arg->clone());
     }
 
-    return std::make_unique<MethodCallNode>(object->clone(), methodName, op,
-                                            std::move(clonedArguments));
+    return createClone<MethodCallNode>(token, object->clone(), methodName, op,
+                                       std::move(clonedArguments));
   }
 };
 
@@ -1493,7 +1502,7 @@ class MemberAccessNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<MemberAccessNode>(object->clone(), memberName);
+    return createClone<MemberAccessNode>(token, object->clone(), memberName);
   }
 };
 
@@ -1514,7 +1523,7 @@ class SelfNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<SelfNode>(name);
+    return createClone<SelfNode>(token, name);
   }
 };
 
@@ -1544,8 +1553,8 @@ class IndexAssignmentNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<IndexAssignmentNode>(object->clone(), op,
-                                                 initializer->clone());
+    return createClone<IndexAssignmentNode>(token, object->clone(), op,
+                                            initializer->clone());
   }
 };
 
@@ -1592,8 +1601,8 @@ class PackAssignmentNode : public ASTNode {
       clonedRight.push_back(rhs->clone());
     }
 
-    return std::make_unique<PackAssignmentNode>(std::move(clonedLeft),
-                                                std::move(clonedRight), op);
+    return createClone<PackAssignmentNode>(token, std::move(clonedLeft),
+                                           std::move(clonedRight), op);
   }
 };
 
@@ -1621,8 +1630,8 @@ class ConstAssignmentNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<ConstAssignmentNode>(name, op,
-                                                 initializer->clone());
+    return createClone<ConstAssignmentNode>(token, name, op,
+                                            initializer->clone());
   }
 };
 
@@ -1652,8 +1661,8 @@ class AssignmentNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<AssignmentNode>(left->clone(), name, op,
-                                            initializer->clone());
+    return createClone<AssignmentNode>(token, left->clone(), name, op,
+                                       initializer->clone());
   }
 };
 
@@ -1685,8 +1694,8 @@ class MemberAssignmentNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<MemberAssignmentNode>(object->clone(), memberName,
-                                                  op, initializer->clone());
+    return createClone<MemberAssignmentNode>(token, object->clone(), memberName,
+                                             op, initializer->clone());
   }
 };
 
@@ -1705,7 +1714,7 @@ class SpawnNode : public ASTNode {
   }
 
   std::unique_ptr<ASTNode> clone() const override {
-    return std::make_unique<SpawnNode>(expression->clone());
+    return createClone<SpawnNode>(token, expression->clone());
   }
 };
 

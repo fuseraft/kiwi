@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 
 Name: kiwi
-Version: 2.0.14
+Version: 2.0.15
 Release: 1%{?dist}
 Summary: The Kiwi Programming Language
 
@@ -29,5 +29,5 @@ cp -r lib/* %{buildroot}/usr/lib/kiwi/
 /usr/lib/kiwi/*
 
 %changelog
-* Tue Nov 22 2024 Scott Stauffer <scott@fuseraft.com> - 2.0.14-1
-- Version 2.0.14 release
+* Tue Nov 22 2024 Scott Stauffer <scott@fuseraft.com> - 2.0.15-1
+- Version 2.0.15 release
