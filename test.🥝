@@ -375,7 +375,7 @@ guava::register_test("hashmaps", with do
 end)
 
 guava::register_test("dates", with do
-  d = DateTime.new(DateTime.now().get_year(), 1, 2).add_days(-1).add_hours(-1).add_minutes(-1).add_seconds(-1)
+  d = DateTime.new(DateTime.now().year(), 1, 2).add_days(-1).add_hours(-1).add_minutes(-1).add_seconds(-1)
   d2 = DateTime.now()
 
   guava::assert(d.before(d2))

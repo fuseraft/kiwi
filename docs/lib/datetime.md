@@ -31,12 +31,12 @@ println(DateTime.format(d, "%Y-%m-%dT%H:%M:%S")) # prints: 2023-12-30T22:58:59
 | instance | `DateTime` | `add_hours(n)` | Adds `n` number of hours. |
 | instance | `DateTime` | `add_minutes(n)` | Adds `n` number of minutes. |
 | instance | `DateTime` | `add_seconds(n)` | Adds `n` number of seconds. |
-| instance | `Integer` | `get_year()` | Gets the year. |
-| instance | `Integer` | `get_month()` | Gets the month. |
-| instance | `Integer` | `get_day()` | Gets the day. |
-| instance | `Integer` | `get_hour()` | Gets the hour. |
-| instance | `Integer` | `get_minute()` | Gets the minute. |
-| instance | `Integer` | `get_second()` | Gets the second. |
+| instance | `Integer` | `year()` | Gets the year. |
+| instance | `Integer` | `month()` | Gets the month. |
+| instance | `Integer` | `day()` | Gets the day. |
+| instance | `Integer` | `hour()` | Gets the hour. |
+| instance | `Integer` | `minute()` | Gets the minute. |
+| instance | `Integer` | `second()` | Gets the second. |
 
 ## `TimeSpan`
 
@@ -55,10 +55,10 @@ println(duration.to_string()) # prints: TimeSpan: 1 years, 0 months, 0 days, 0 h
 | Type | Returns | Method | Description |
 | :--- | :--- | :--- | :--- |
 | Constructor | `TimeSpan` | `new(year, month, day, hour, minute, second)` | Initialize a new `TimeSpan` with the given values. <br> All parameters default to `0`. |
-| Instance | `Integer` | `get_year()` | Returns the number of years in the `TimeSpan`. |
-| Instance | `Integer` | `get_month()` | Returns the number of months in the `TimeSpan`. |
-| Instance | `Integer` | `get_day()` | Returns the number of days in the `TimeSpan`. |
-| Instance | `Integer` | `get_hour()` | Returns the number of hours in the `TimeSpan`. |
-| Instance | `Integer` | `get_minute()` | Returns the number of minutes in the `TimeSpan`. |
-| Instance | `Integer` | `get_second()` | Returns the number of seconds in the `TimeSpan`. |
+| Instance | `Integer` | `year()` | Returns the number of years in the `TimeSpan`. |
+| Instance | `Integer` | `month()` | Returns the number of months in the `TimeSpan`. |
+| Instance | `Integer` | `day()` | Returns the number of days in the `TimeSpan`. |
+| Instance | `Integer` | `hour()` | Returns the number of hours in the `TimeSpan`. |
+| Instance | `Integer` | `minute()` | Returns the number of minutes in the `TimeSpan`. |
+| Instance | `Integer` | `second()` | Returns the number of seconds in the `TimeSpan`. |
 | Instance | `String` | `to_string()` | Returns a string representation of the `TimeSpan` object. |

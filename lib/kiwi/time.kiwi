@@ -203,12 +203,12 @@ struct TimeSpan
     @second = second.is_a(Integer) ? second : 0
   end
 
-  fn get_year() return @year end
-  fn get_month() return @month end
-  fn get_day() return @day end
-  fn get_hour() return @hour end
-  fn get_minute() return @minute end
-  fn get_second() return @second end
+  fn year() return @year end
+  fn month() return @month end
+  fn day() return @day end
+  fn hour() return @hour end
+  fn minute() return @minute end
+  fn second() return @second end
 
   fn to_string()
     return "TimeSpan: ${@year} years, ${@month} months, ${@day} days, ${@hour} hours, ${@minute} minutes, ${@second} seconds"
@@ -239,12 +239,12 @@ struct DateTime
     throw "dt is not a DateTime" when dt.type() != "DateTime"
     
     # Calculate the differences
-    year_diff = @year - dt.get_year()
-    month_diff = @month - dt.get_month()
-    day_diff = @day - dt.get_day()
-    hour_diff = @hour - dt.get_hour()
-    minute_diff = @minute - dt.get_minute()
-    second_diff = @second - dt.get_second()
+    year_diff = @year - dt.year()
+    month_diff = @month - dt.month()
+    day_diff = @day - dt.day()
+    hour_diff = @hour - dt.hour()
+    minute_diff = @minute - dt.minute()
+    second_diff = @second - dt.second()
 
     # Normalize negative values by borrowing from the next higher unit
     if second_diff < 0
@@ -263,7 +263,7 @@ struct DateTime
     end
 
     if day_diff < 0
-      month_days = time::monthdays(dt.get_year(), dt.get_month())
+      month_days = time::monthdays(dt.year(), dt.month())
       day_diff += month_days
       month_diff -= 1
     end
@@ -436,12 +436,12 @@ struct DateTime
     return @
   end
 
-  fn get_year() return @year end
-  fn get_month() return @month end
-  fn get_day() return @day end
-  fn get_hour() return @hour end
-  fn get_minute() return @minute end
-  fn get_second() return @second end
+  fn year() return @year end
+  fn month() return @month end
+  fn day() return @day end
+  fn hour() return @hour end
+  fn minute() return @minute end
+  fn second() return @second end
 
   static fn format(_datetime, _format = "%Y-%m-%d %H:%M:%S")
     return time::dtformat(_datetime, _format)
@@ -449,6 +449,10 @@ struct DateTime
 
   static fn now()
     return DateTime.new(time::year(), time::month(), time::day(), time::hour(), time::minute(), time::second())
+  end
+
+  static fn today()
+    return DateTime.new(time::year(), time::month(), time::day())
   end
 end
 

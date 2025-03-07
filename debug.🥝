@@ -1,58 +1,7 @@
 # a script for debugging and experimentation (and fun!)
 
 #import "experiments/benchmark.kiwi"
-#import "experiments/cidr.kiwi"
+import "experiments/cidr.kiwi"
+#import "experiments/lambdas.kiwi"
+#import "experiments/case_syntax.kiwi"
 
-/#
-var (print_s: lambda = with (s: string = "", newline: boolean = false) do
-  if newline
-    println s
-  else
-    print s
-  end
-end)
-
-x = "foobar"
-
-fn test()
-  x = "baz"
-  print_s(x)
-end
-
-print_s(x) # foobar
-test() # baz
-print_s(x, true) # baz
-#/
-
-dt = 20
-
-case
-    when dt < 12
-        println "good morning"
-    when dt < 17
-        println "good afternoon"
-    when dt < 21
-        println "good evening"
-    else
-        println "good night"
-end
-
-case dt as hour
-    when hour < 12
-        println "good morning"
-    when hour < 17
-        println "good afternoon"
-    when hour < 21
-        println "good evening"
-    else
-        println "good night, the time is: ${dt}"
-end
-
-x = case dt as hour
-        when hour < 12 "morning"
-        when hour < 17 "afternoon"
-        when hour < 21 "evening"
-        else "night"
-    end
-
-println x
