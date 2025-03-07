@@ -1,5 +1,14 @@
 # a script for debugging and experimentation (and fun!)
 
+fn main()
+  export "cidr"
+  export "cidr_ipv6"
+
+  test_cidr()
+  test_subnet()
+  test_cidr_ipv6()
+end
+
 package cidr
   /#
   @summary: Converts an IP address to its integer representation.
@@ -130,8 +139,6 @@ package cidr
     return subnets
   end
 end
-
-export "cidr"
 
 package cidr_ipv6
   # Converts an IPv6 address string to a list of eight 16-bit integers.
@@ -317,8 +324,6 @@ package cidr_ipv6
   end
 end
 
-export "cidr_ipv6"
-
 fn assert(condition: boolean, message: string)
   if !condition
     eprintln message
@@ -480,6 +485,4 @@ fn test_cidr_ipv6()
   println("--- All CIDR IPv6 Tests Passed! ---")
 end
 
-test_cidr()
-test_subnet()
-test_cidr_ipv6()
+main()
