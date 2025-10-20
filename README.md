@@ -2,6 +2,8 @@
 
 Kiwi is a high-level, dynamically-typed language designed for efficiency and expressiveness across a variety of tasks.
 
+Please see [Project Hayward](https://github.com/fuseraft/hayward) for the .NET build!
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
