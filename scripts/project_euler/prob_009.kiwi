@@ -1,0 +1,26 @@
+# https://projecteuler.net/problem=9
+
+fn pythagorean_triplet(sum)
+  found = false
+  result = 0
+
+  for a in [1 .. (sum / 3) + 1] do
+    for b in [a .. sum / 2] do
+      c = sum - a - b
+      product = a ** 2 + b ** 2
+      
+      if product == c ** 2
+        found = true
+        result = a * b * c
+      end
+      
+      break when found
+    end
+
+    break when found
+  end
+
+  return found ? result : -1
+end
+
+println(pythagorean_triplet(1000))

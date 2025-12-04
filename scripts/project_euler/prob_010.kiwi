@@ -1,0 +1,41 @@
+# https://projecteuler.net/problem=10
+
+const LIMIT = 2000000
+
+fn sum_primes_below(limit: integer): integer
+  return 0 when limit < 2
+
+  # Boolean array: is_prime[i] = true if i is prime
+  is_prime = [false, false] + [true] * (limit - 1)  # index 0,1 false; 2..limit-1 = true
+
+  # Mark multiples of each prime starting from 2
+  i = 2
+  while i * i < limit do
+    if is_prime[i]
+      # Mark multiples of i as non-prime
+      mark = i * i
+      while mark < limit do
+        is_prime[mark] = false
+        mark = mark + i
+      end
+    end
+    i = i + 1
+  end
+
+  # Sum all indices where is_prime[i] is true
+  sum = 0
+  for i in [2..limit - 1] do
+    if is_prime[i] then
+      sum = sum + i
+    end
+  end
+
+  return sum
+end
+
+start = time::ticks()
+result = sum_primes_below(LIMIT)
+elapsed = time::ticksms(time::ticks() - start)
+
+println "Sum of all primes below ${LIMIT}: ${result}"
+println "Computed in ${elapsed}ms"

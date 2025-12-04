@@ -1,0 +1,21 @@
+# https://projecteuler.net/problem=2
+
+fn fibonacci(n)
+  fib = []
+  t1 = 0, t2 = 1, nextTerm = 0
+  nextTerm = t1 + t2
+
+  while nextTerm <= n do
+    fib.push(nextTerm)
+    t1 = t2
+    t2 = nextTerm
+    nextTerm = t1 + t2
+  end
+
+  return fib
+end
+
+limit = 4000000
+numbers = fibonacci(limit)
+
+println(numbers.filter(with (n) do n % 2 == 0 end).reduce(0, with (acc, n) do acc += n end))
