@@ -4,11 +4,11 @@ Lambdas are used to treat functions as first-struct citizens. You can pass lambd
 
 You can define a lambda using the `with` keyword.
 
-For the examples below, I am using a list of hashes called `list`.
+For demonstration, we will define a list of hashmaps called `id_list` to be used in the examples below.
 
 ```kiwi
-# Define a list of hashes to work with in our example.
-list = [
+# Define a list of hashmaps to work with in our example.
+id_list = [
   {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
   {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
 ]
@@ -19,7 +19,7 @@ list = [
 Lambdas can be used inline (without assignment).
 
 ```kiwi
-println(list.select(with (item) do return item["id"] % 2 == 0 end))
+println(id_list.filter(with (item) do return item["id"] % 2 == 0 end))
 # prints: [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
 ```
 
@@ -32,7 +32,7 @@ odd_item_id = with (item) do
   return item["id"] % 2 != 0
 end
 
-println(list.select(odd_item_id))
+println(id_list.filter(odd_item_id))
 # prints: [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}]
 ```
 

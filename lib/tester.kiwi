@@ -1,0 +1,63 @@
+package tester
+  fn initialize()
+    if !global.has_key("unit_tests")
+      global.unit_tests = {}
+      global.unit_test_results = []
+    end
+  end
+
+  fn assert_eq(actual: any, expected: any, msg: string = "")
+    if serialize(actual) != serialize(expected)
+      throw "FAIL: " + (msg.empty() ? "" : " ${msg}") + "\nexpected ${expected},\ngot ${actual}"
+    end
+  end
+
+  fn assert(condition: boolean, msg: string = "assertion failed")
+    if !condition
+      throw "FAIL: ${msg}"
+    end
+  end
+  
+  fn register_test(name: string, t: lambda)
+    tester::initialize()
+    global.unit_tests.set(name, t)
+  end
+  
+  fn run_test(name: string, test: lambda, results: list = [])
+    print string::padend("Running test: ${name} ", 45, " ")
+    tester::initialize()
+  
+    test_start = time::ticks()
+    passed = false
+    error_message = ""
+  
+    try
+      test()
+      passed = true
+    catch (err)
+      error_message = err
+    end
+    
+    test_stop = time::ticks()
+    duration = time::ticksms(test_stop - test_start)
+    results.push({ name: t, result: passed, duration: duration })
+  
+    println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
+    if !error_message.empty()
+      println "  " + error_message
+    end
+  end
+  
+  fn run_tests()
+    tester::initialize()
+    results = []
+
+    for name, t in global.unit_tests do
+      tester::run_test(name, t, results)
+    end
+  
+    return results
+  end
+end
+
+export "tester"

@@ -89,7 +89,7 @@ The `elsif` keyword is used to define an `elsif` branch in a conditional stateme
 See [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ### `end`
-The `end` keyword is used to end a code-block.
+The `end` keyword is used to terminate a code-block.
 
 ### `for`
 The `for` keyword is used to define a for-loop.
@@ -104,7 +104,7 @@ See [Conditionals](conditionals.md) and [Control Structures](control_structures.
 ### `if`
 The `if` keyword is used to define the `if` branch in a conditional statement.
 
-See [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md#if).
 
 ### `in`
 The `in` keyword is used to specify the collection to iterate in a for-loop.

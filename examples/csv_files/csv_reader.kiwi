@@ -1,9 +1,0 @@
-try
-  data = csv::parse("example.csv", ";", true)
-
-  for row in data do
-    println row
-  end
-catch (err, msg)
-  println "${err}: ${msg}"
-end

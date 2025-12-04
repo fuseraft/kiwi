@@ -1,0 +1,37 @@
+/#
+@summary The __global__ file contains global definitions.
+#/
+
+const HAYWARD_STDLIB_VERSION = "1.2.1"
+
+/#
+@summary Easy access to the date type.
+#/
+fn d
+(
+  year:         any     = time::now().to_string(),
+  month:        integer = 1,
+  day:          integer = 1,
+  hour:         integer = 0,
+  minute:       integer = 0,
+  second:       integer = 0,
+  millisecond:  integer = 0
+) #: date
+  return year.to_date() when year.is_a(string)
+
+  var
+  (
+    y:          string = year.to_string(),
+    m:          string = string::padstart(month.to_string(), 2, "0"),
+    d:          string = string::padstart(day.to_string(), 2, "0"),
+    h:          string = string::padstart(hour.to_string(), 2, "0"),
+    mi:         string = string::padstart(minute.to_string(), 2, "0"),
+    s:          string = string::padstart(second.to_string(), 2, "0"),
+    ms:         string = string::padstart(millisecond.to_string(), 3, "0"),
+    date_part:  string = "${y}/${m}/${d}",
+    time_part:  string = "${h}:${mi}:${s}.${ms}",
+    new_date:   date   = ("${date_part} ${time_part}").to_date()
+  )
+
+  return new_date
+end

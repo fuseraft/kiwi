@@ -1,0 +1,112 @@
+/#
+Summary: A package for working with asynchronous tasks.
+#/
+package task
+  /#
+  Summary: Returns true if there are active tasks.
+  Returns: Boolean indicating business.
+  #/
+  fn busy()
+    return __task_busy__()
+  end
+
+  /#
+  Summary: Spawn a new task.
+  Params:
+    - callback: A lambda to invoke as a task.
+  Returns: Integer containing the task identifier.
+  #/
+  fn create(callback)
+    task_id = spawn (with() do
+      callback()
+    end)()
+
+    return task_id
+  end
+
+  /#
+  Summary: Returns a list of task identifiers.
+  Returns: List of integers.
+  #/
+  fn list()
+    return __task_list__()
+  end
+
+  /#
+  Summary: Returns a result or a status hashmap.
+  Params:
+    - task_identifier: An integer task identifier.
+  Returns: Result of a task, or its status in a hashmap.
+  #/
+  fn result(task_identifier)
+    return __task_result__(task_identifier)
+  end
+
+  /#
+  Summary: Sleeps for a number of milliseconds.
+  Params:
+    - ms: An integer representing milliseconds to sleep.
+  #/
+  fn sleep(ms)
+    __task_sleep__(ms)
+  end
+
+  /#
+  Summary: Get a status hashmap for a given task.
+  Params:
+    - task_identifier: An integer task identifier.
+  Returns: Hashmap containing status.
+  #/
+  fn status(task_identifier)
+    return __task_status__(task_identifier)
+  end
+
+  /#
+  Summary: Schedule a task to run after a delay.
+  Params:
+    - ms: An integer representing milliseconds to sleep.
+    - callback: A lambda to invoke after the timer delay.
+  Returns: Integer containing the task identifier.
+  #/
+  fn timer(ms, callback)
+    task_id = spawn (with() do
+      task::sleep(ms)
+      callback()
+    end)()
+
+    return task_id
+  end
+
+  /#
+  Summary: Schedule a task to run on an interval.
+  Params:
+    - ms: An integer representing milliseconds between execution.
+    - callback: A lambda to invoke after the timer delay. It will continue to run so long as it returns true.
+  Returns: Integer containing the task identifier.
+  #/
+  fn interval(ms, callback)
+    task_id = spawn (with() do
+      while true do
+        task::sleep(ms)
+        callback_result = callback()
+
+        if callback_result != null && callback_result != 0 && callback_result != true
+          break
+        end
+      end
+    end)()
+
+    return task_id
+  end
+
+  /#
+  Summary: Waits for all tasks to complete.
+  #/
+  fn wait()
+    while task::busy() do
+      task::sleep(100)
+    end # avoid busy waiting
+  end
+end
+
+export "task"

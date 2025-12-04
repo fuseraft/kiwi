@@ -1,0 +1,203 @@
+package collections
+end
+
+/# An implementation for working with heaps. #/
+
+struct Heap
+  fn new(type: string = "min")
+    @heap = []
+    @heap_type = ["min", "max"].contains(type) ? type : "min"
+  end
+
+  fn insert(value: any)
+    @heap.push(value)
+    heapify_up(@heap.size() - 1)
+  end
+
+  fn extract_root(): any
+    throw "Heap is empty" when @heap.empty()
+
+    var (root: any = @heap.get(0))
+    
+    if @heap.size() > 1
+      @heap.set(0, @heap.pop())  # Move the last element to the root
+      heapify_down(0)
+    else
+      @heap.pop()  # Remove the last element if it's the only one left
+    end
+
+    return root
+  end
+
+  fn peek(): any
+    throw "Heap is empty" when @heap.empty()
+    return @heap.get(0)
+  end
+
+  fn size(): integer
+    return @heap.size()
+  end
+
+  fn is_empty(): boolean
+    return @heap.empty()
+  end
+
+  private fn heapify_up(index: integer)
+    var (parent_index: integer = (index - 1) / 2)
+
+    if @heap_type == "min"
+      while index > 0 && @heap.get(index) < @heap.get(parent_index) do
+        swap(index, parent_index)
+        index = parent_index
+        parent_index = (index - 1) / 2
+      end
+    else
+      while index > 0 && @heap.get(index) > @heap.get(parent_index) do
+        swap(index, parent_index)
+        index = parent_index
+        parent_index = (index - 1) / 2
+      end
+    end
+  end
+
+  private fn heapify_down(index: integer)
+    var (left_child_index: integer = 2 * index + 1)
+    var (right_child_index: integer = 2 * index + 2)
+    size = @heap.size()
+
+    if @heap_type == "min"
+      var (smallest: integer = index)
+
+      if left_child_index < size && @heap.get(left_child_index) < @heap.get(smallest)
+        smallest = left_child_index
+      end
+      
+      if right_child_index < size && @heap.get(right_child_index) < @heap.get(smallest)
+        smallest = right_child_index
+      end
+      
+      if smallest != index
+        swap(index, smallest)
+        heapify_down(smallest)
+      end
+    else
+      var (largest: integer = index)
+      
+      if left_child_index < size && @heap.get(left_child_index) > @heap.get(largest)
+        largest = left_child_index
+      end
+      
+      if right_child_index < size && @heap.get(right_child_index) > @heap.get(largest)
+        largest = right_child_index
+      end
+      
+      if largest != index
+        swap(index, largest)
+        heapify_down(largest)
+      end
+    end
+  end
+
+  private fn swap(i: integer, j: integer)
+    @heap.swap(i, j)
+  end
+end
+
+/# An implementation for working with sets. #/
+
+struct Set
+  fn new(data: list = [])
+    @data = data.unique()
+  end
+
+  fn add(item: any)
+    new_data = (@data).clone()
+    new_data.push(item)
+    @data = new_data.flatten().unique()
+  end
+
+  fn remove(item: any)
+    new_data = to_list().filter(with (n) do return n != item end)
+    @data = new_data
+  end
+
+  fn contains(item: any): boolean
+    return to_list().contains(item)
+  end
+
+  fn size(): integer
+    return to_list().size()
+  end
+
+  fn clear()
+    @data = []
+  end
+
+  fn difference(data: any)
+    var (input_data: any = get_input_data(data))
+    var (new_data: list = to_list())
+    return Set.new(new_data.filter(with (n: any) do return !input_data.contains(n) end))
+  end
+
+  fn disjoint(data: any)
+    return !intersect(data)
+  end
+
+  fn intersect(data: any)
+    var (input_data: any = get_input_data(data))
+    var (new_data: list = to_list())
+    return !new_data.filter(with (n: any) do return input_data.contains(n) end).empty()
+  end
+
+  fn merge(data: any)
+    var (input_data: any = get_input_data(data))
+    var (new_data: list = to_list())
+    new_data.push(input_data)
+    @data = new_data.flatten().unique()
+  end
+
+  fn union(data: any): object
+    var (input_data: any = get_input_data(data))
+    var (new_data: list = to_list())
+    new_data.push(input_data)
+    return Set.new(new_data.flatten())
+  end
+
+  fn subset(data: any): boolean
+    var (input_data: any = get_input_data(data))
+    var (new_data: list = to_list())
+    return input_data.filter(with (n) do return new_data.contains(n) end).size() == new_data.size()
+  end
+
+  fn superset(data: any): boolean
+    var (input_data: any = get_input_data(data))
+    var (new_data: list = to_list())
+    return input_data.filter(with (n) do return new_data.contains(n) end).size() == input_data.size()
+  end
+
+  fn to_list(): list
+    return ((@data).clone())
+  end
+
+  fn to_string(): string
+    return to_list().to_string()
+  end
+
+  fn type(): string
+    return "Set"
+  end
+
+  private fn get_input_data(data: any): list
+    input_data = []
+    if data.type() == "Set"
+      input_data = data.to_list()
+    elsif data.is_a(List)
+      input_data = data
+    else
+      throw "Expected a List or a Set."
+    end
+    return input_data
+  end
+end
+
+export "collections"

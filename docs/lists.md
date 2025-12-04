@@ -30,7 +30,7 @@ You can define a list using a range.
 
 ```kiwi
 # This is equivalent to: numbers = [1, 2, 3, 4, 5]
-numbers = [1..5] 
+numbers = [1 to 5] 
 ```
 
 ### Accessing List Elements
@@ -66,11 +66,11 @@ println(list) # prints: ["a", "b", "c", "e", "f"]
 
 ### Filtering a List
 
-You can use the `.select(lambda)` builtin to filter a list based on a condition.
+You can use the `.filter(lambda)` builtin to filter a list based on a condition.
 
 ```kiwi
 list = ["kiwi", "mango", "banana"]
-println(list.select(with (item) do return item.contains("i") end))
+println(list.filter(with (item) do return item.contains("i") end))
 # prints: ["kiwi"]
 ```
 
@@ -95,7 +95,7 @@ end
 ```kiwi
 fn sieve_of_eratosthenes(limit)
   isPrime = []
-  for i in [0..limit] do
+  for i in [0 to limit] do
      isPrime.push(true)
   end
 
@@ -120,7 +120,7 @@ fn sieve_of_eratosthenes(limit)
 
   # Collect all prime numbers
   primes = []
-  for i in [0..limit] do
+  for i in [0 to limit] do
     if isPrime[i]
       primes.push(i)
     end

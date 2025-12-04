@@ -1,8 +1,0 @@
-println "PID\tNAME"
-for p in process::get_procs() do
-  println "${p.pid}\t${p.name}"
-end
-
-if process::is_proc("kiwi")
-  process::kill("kiwi")
-end

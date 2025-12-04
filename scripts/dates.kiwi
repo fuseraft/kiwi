@@ -1,0 +1,7 @@
+dt = time::first_day()
+dt = time::add_days(dt, -1)
+
+repeat 365 do
+  dt = time::add_days(dt, 1)
+  println dt.to_string("yyyy-MM-dd hh:mm:ss tt")
+end

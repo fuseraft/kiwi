@@ -1,0 +1,36 @@
+fn main()
+  var (size: integer = 60 * 2,
+       generations: integer = 30 * 2,
+       state: list = [0] * size)
+
+  state[size / 2] = 1
+  
+  for gen in [0 to generations - 1] do
+    println display(state)
+    state = rule30(state)
+  end
+end
+
+fn display(state: list): string
+  return state.join().replace("0", " ").replace("1", "*")
+end
+
+fn rule30(current_state: list): list
+  var (
+    cells: integer = current_state.size() - 1,
+    new_state: list = [0] * current_state.size()
+  )
+  
+  for i in [0 to cells - 1] do
+    var (
+      left: integer = i == 0 ? 0 : current_state[i - 1],
+      center: integer = current_state[i],
+      right: integer = i == (cells - 1) ? 0 : current_state[i + 1]
+    )
+    new_state[i] = (left ^ (center | right)) & !(left & center & right)
+  end
+  
+  return new_state
+end
+
+main()

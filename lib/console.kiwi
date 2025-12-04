@@ -1,0 +1,52 @@
+package console
+  fn bg(color)
+    __console_background__(color)
+  end
+
+  fn fg(color)
+    __console_foreground__(color)
+  end
+
+  fn reset()
+    __console_reset__()
+  end
+
+  fn clear()
+    __console_clear__()
+  end
+
+  fn read(msg = "")
+    return input(msg)
+  end
+
+  fn write(msg = "")
+    print msg
+  end
+
+  fn writeln(msg = "")
+    println msg
+  end
+end
+
+export "console"
+
+package console_color
+  const BLACK = 0
+  const DARK_BLUE = 1
+  const DARK_GREEN = 2
+  const DARK_CYAN = 3
+  const DARK_RED = 4
+  const DARK_MAGENTA = 5
+  const DARK_YELLOW = 6
+  const GRAY = 7
+  const DARK_GRAY = 8
+  const BLUE = 9
+  const GREEN = 10
+  const CYAN = 11
+  const RED = 12
+  const MAGENTA = 13
+  const YELLOW = 14
+  const WHITE = 15
+end
+
+export "console_color"

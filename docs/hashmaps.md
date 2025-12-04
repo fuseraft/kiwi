@@ -1,6 +1,6 @@
-# Hashmapmaps
+# Hashmaps
 
-Hashmapmaps in Kiwi are similar to hashmaps and dictionaries in other languages.
+Hashmaps in Kiwi are similar to hashmaps and dictionaries in other languages.
 
 A hashmap contains a series of key-value pairs and can easily be serialized into JSON and vice-versa.
 
@@ -42,7 +42,7 @@ println(myHashmap.key2)  # Outputs: [1, 2, 3, 4]
 
 ```kiwi
 myHashmap = {}
-myHashmap["key1"] = [1..3]
+myHashmap["key1"] = [1, 2, 3]
 myHashmap.key2 = { "nested": "hashmap" }
 
 # myHashmap now contains {"key1": [1, 2, 3]}

@@ -1,0 +1,117 @@
+/#
+Summary: A package containing functionality for working with `conf` files.
+
+Common file extensions are: .conf, .ini, .cfg, and .env
+
+The format of a `conf` file is to use a line to represent an individual key-value pair, using a delimiter (commonly an `=` or `:`).
+
+Example `conf` file using `=` to separate keys and values, with a setting for each line:
+ENABLED  =   true
+PATH     =   /home/scs/kiwi
+CONN_STR =   server=%SERVER%;db=%DB_NAME%;user=%DB_USER%;pass=%DB_PASS%
+#/
+
+package conf
+  /#
+  Summary: Reads settings from a `conf` file into a hashmap.
+  Params:
+    - _conf_path: The path to a `conf` file.
+    - _delim: The delimiter for splitting key-value pairs.
+  Returns: Hashmap containing settings read from a `conf` file. 
+  #/
+  fn read(_conf_path, _delim = "=")
+    _conf_hashmap = conf::read_confhashmap(_conf_path, _delim)
+
+    for _key in _conf_hashmap.keys() do
+      _val = _conf_hashmap[_key]
+      _conf_hashmap[_key] = conf::convert(_val)
+    end
+
+    return _conf_hashmap
+  end
+
+  /#
+  Summary: Reads settings from a `json` file into a hashmap.
+  Params:
+    - _json_path: The path to a `json` file.
+  Returns: Hashmap containing settings read from a `json` file. 
+  #/
+  fn readjson(_json_path)
+    try
+      if !__fio_isfile__(_json_path)
+        return {}
+      end
+
+      return __fio_readfile__(_json_path).to_hashmap()
+    catch
+      return {}
+    end
+  end
+
+  fn read_confhashmap(_conf_path, _delim)
+    try
+      if !__fio_isfile__(_conf_path)
+        return {}
+      end
+  
+      return __fio_readlines__(_conf_path).reduce({}, with (_acc, _line) do
+        _delim_index = _line.index(_delim)
+
+        if _delim_index > -1
+          _key = _line[0:_delim_index]
+          _value = _line.replace(_key, "")[1:]
+          _acc[_key.trim()] = _value.trim()
+        end
+
+        return _acc
+      end)
+    catch
+      return {}
+    end
+  end
+
+  fn convert(_value)
+    _ret_val = _value
+
+    if _value == "true"
+      _ret_val = true
+    elsif _value == "false" 
+      _ret_val = false
+    else
+      _dot_count = 0
+      _is_string = false
+      _builder = []
+      _digits = "0123456789".chars()
+
+      for _c in _value.chars() do
+        if !_digits.contains(_c)
+          if _c == "."
+            _dot_count += 1
+          else
+            _is_string = true
+            break
+          end
+
+          if _dot_count > 1
+            _is_string = true
+            break
+          end
+        end
+
+        _builder.push(_c)
+      end
+
+      if !_is_string
+        if _dot_count == 1
+          _ret_val = _builder.join().to_float()
+        else
+          _ret_val = _builder.join().to_integer()
+        end
+      end
+    end
+
+    return _ret_val
+  end
+end
+
+export "conf"

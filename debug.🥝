@@ -1,7 +1,0 @@
-# a script for debugging and experimentation (and fun!)
-
-#import "experiments/benchmark.kiwi"
-import "experiments/cidr.kiwi"
-#import "experiments/lambdas.kiwi"
-#import "experiments/case_syntax.kiwi"
-

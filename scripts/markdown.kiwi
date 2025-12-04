@@ -1,0 +1,37 @@
+/#
+This simple markdown generator reads all `.kiwi` files found within the current 
+directory and its subdirectories, and generates a markdown file called `output.md` 
+containing the contents of each file.
+#/
+
+fn generate_markdown(output_name: string = "output.md", ext: string = ".cs", lang: string = "csharp")
+  try
+    var (output_path: string = fio::abspath("./${output_name}"),
+         markdown:    list   = [])
+    
+    fio::remove(output_path)
+
+    for path in fio::glob("./", ["./**/*${ext}"]) do
+      var (filename:  string = fio::filename(path),
+           content:   string = fio::read(path))
+
+      markdown.push([
+        "## ${filename}", 
+        "```${lang}", 
+        content, 
+        "```"
+      ])
+    end
+
+    fio::writeln(output_path, markdown.flatten())
+
+    throw "could not generate ${output_path}" 
+      when !fio::exists(output_path)
+    
+    println "generated ${output_path}"
+  catch (err)
+    println "an error occurred: ${err}"
+  end
+end
+
+generate_markdown("kiwi-files.md", ".kiwi", "kiwi")

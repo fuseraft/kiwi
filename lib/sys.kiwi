@@ -1,0 +1,74 @@
+/#
+Summary: A package for working with external processes.
+#/
+package sys
+  /#
+  Summary: Executes a command by building it from provided arguments.
+  Params:
+    - `cmd`: The base command to run (e.g., "ls", "echo").
+    - `args`: A list of arguments to append to the command.
+    - `capture_output`: Boolean flag indicating if output should be captured (default is false).
+  Returns: The command output as a string if `capture_output` is true, or the return code otherwise.
+  #/
+  fn command(cmd, args, capture_output = false)
+    cmd_text = cmd.clone()
+
+    # Append each argument, making sure to properly escape/quote as needed.
+    for arg in args do
+      cmd_text += " " + sys::escape_argument(arg)
+    end
+
+    # Choose execution method based on capture_output flag.
+    if capture_output
+      return sys::execout(cmd_text)
+    else
+      return sys::exec(cmd_text)
+    end
+  end
+
+  /#
+  Summary: Run an external process or open a file.
+  Params:
+    - _command: String containing the command text.
+  Returns: Integer containing exit code of external process.
+  #/
+  fn open(_command)
+    return __sys_open__(_command)
+  end
+
+  /#
+  Summary: Run an external process and capture its exit code.
+  Params:
+    - _command: String containing the command text.
+  Returns: Integer containing exit code of external process.
+  #/
+  fn exec(_command)
+    return __sys_exec__(_command)
+  end
+
+  /#
+  Summary: Run an external process and capture its standard output.
+  Params:
+    - _command: String containing the command text.
+  Returns: String containing standard output from external process.
+  #/
+  fn execout(_command)
+    return __sys_execout__(_command)
+  end
+
+  /#
+  Summary: Escapes an argument to prevent command injection and ensure safe passing.
+  Params:
+    - arg: An command-line argument. 
+  Returns: The argument wrapped in quotes if it contains spaces or special characters.
+  #/
+  fn escape_argument(arg)
+    if arg.contains(" ") || string::contains_any(arg, "!@#$%^&*()[]{}|;:<>,.?/~`")
+      return "\"" + arg + "\""
+    end
+
+    return arg
+  end
+end
+
+export "sys"
