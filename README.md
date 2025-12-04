@@ -61,7 +61,7 @@ $ kiwi tests/test
 Find [examples](scripts/) demonstrating Kiwi, including:
 
 - [Levenshtein distance](scripts/algo/levenshtein.kiwi)
-- [The cryptogrpahy library](lib/crypto.kiwi)
+- [The cryptography library](lib/crypto.kiwi)
 - [Sieve of Eratosthenes](scripts/algo/sieve.kiwi)
 - [Conway's Game of Life](scripts/cellular_automata/life.kiwi)
 - [Project Euler examples](scripts/project_euler/)
