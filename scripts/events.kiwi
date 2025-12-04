@@ -1,0 +1,50 @@
+/#
+Proof of concept demonstrating the event bus feature.
+#/
+
+x_once = 0
+once "hello" do
+  println "hello world!"
+  x_once += 1
+end
+
+x_on = 0
+on "hello" do
+  println "hola"
+  x_on += 1
+end
+
+repeat 3 do
+  emit "hello"
+end
+
+/#
+hello world!
+hola
+hola
+hola
+#/
+
+println "once event invoked: ${x_once} time(s)"
+println "on event invoked:   ${x_on} time(s)"
+
+/#
+once event invoked: 1 time(s)
+on event invoked:   3 time(s)
+#/
+
+on "string-repeat" with (text: string, count: integer) do
+  println text * count
+end
+
+repeat 5 as i do
+  emit "string-repeat" ("hello", i)
+end
+
+/#
+hello
+hellohello
+hellohellohello
+hellohellohellohello
+hellohellohellohellohello
+#/

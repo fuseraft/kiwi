@@ -1,0 +1,789 @@
+package testsuite
+  fn __version__()
+    "0.0.1"
+  end
+
+  fn register_tests()
+    tester::register_test("events", with do
+      invocations = 0
+      
+      on "event" do
+        invocations += 1
+      end
+
+      repeat 5 do
+        emit "event"
+      end
+
+      tester::assert(invocations == 5, "A1")
+    end)
+
+    tester::register_test("packages", with do
+      package foobar_test_pkg
+        fn hello()
+          return "hello"
+        end
+      end
+      export "foobar_test_pkg"
+      tester::assert(foobar_test_pkg::hello() == "hello", "A1")
+    end)
+
+    tester::register_test("assignments", with do
+      d = 5, e = 3, a = b = c = d
+      b -= e
+      tester::assert(a + b + c == d * e - e, "A1")
+    end)
+
+    tester::register_test("var declaration", with do
+      fn var_decl_one(): list
+        var (
+          f: float = 0.5,            # type-hint with initializer 
+          s = "string",              # regular variable declaration
+          n,                         # uninitialized variable defaults to null
+          b: boolean,                # type-hint without initializer (`boolean` defaults to false)
+          m: list = [[0] * 5] * 5,   # a 5x5 matrix for funsies
+          l: list,                   # will be an empty list
+          h: hashmap,                # will be an empty hashmap
+          i: integer                 # will be 0
+        )
+
+        return [f, s, n, b, m, l, h, i]
+      end
+
+      fn var_decl_two(): list
+        var (f: float = 0.5)          # type-hint with initializer 
+        var (s = "string")            # regular variable declaration
+        var (n)                       # uninitialized variable defaults to null
+        var (b: boolean)              # type-hint without initializer (`boolean` defaults to false)
+        var (m: list = [[0] * 5] * 5) # a 5x5 matrix for funsies
+        var (l: list)                 # will be an empty list
+        var (h: hashmap)              # will be an empty hashmap
+        var (i: integer)              # will be 0
+
+        return [f, s, n, b, m, l, h, i]
+      end
+
+      # declare the variables one and two
+      var (one: list = var_decl_one())
+      var (two: list = var_decl_two())
+
+      tester::assert(one.to_string() == two.to_string(), "A1")
+
+      for i in [0 to one.size() - 1] do
+        tester::assert(one[i].to_string() == two[i].to_string(), "A2")
+      end
+    end)
+
+    tester::register_test("constants", with do
+      const MSG = "hello"
+      var (err_c: integer = 0)
+
+      try
+        MSG = "foobar"
+      catch
+        err_c += 1
+      end
+
+      tester::assert(MSG == "hello", "A1")
+      tester::assert(err_c == 1, "A2")
+
+      package xxx
+        const Y = "hello"
+      end
+
+      export "xxx"
+
+      tester::assert(xxx::Y == MSG, "A3")
+    end)
+
+    tester::register_test("truthiness", with do
+      tester::assert(not null.truthy(), "A1")       # null is never truthy
+      tester::assert(not (0).truthy(), "A2")        # 0 is the only non-truthy number
+      tester::assert((1).truthy(), "A3")         # non-zero numbers are always truthy
+      tester::assert(not "".truthy(), "A4")         # empty strings are not truthy
+      tester::assert("0".truthy(), "A5")         # non-empty strings are truthy
+      tester::assert(not [].truthy(), "A6")         # empty lists are not truthy
+      tester::assert([0].truthy(), "A7")         # non-empty lists are truthy
+      tester::assert(not {}.truthy(), "A8")         # empty hashmaps are not truthy
+      tester::assert({a: 1}.truthy(), "A9")    # non-empty hashmaps are truthy
+      tester::assert(not false.truthy(), "A10")     # false is never truthy
+      tester::assert(true.truthy(), "A11")       # true is always truthy
+    end)
+
+    tester::register_test("unpacking", with do
+      a, b, c =< true, {a: false}, [1, 2, 3]
+
+      tester::assert(a == true, "A1")
+      tester::assert(b.keys().size() == 1 and b.to_string() == "{\"a\": false}", "A2")
+      tester::assert(c.size() == 3 and c.to_string() == "[1, 2, 3]", "A3")
+
+      fn get_zero_and_one(): list
+        return [0, 1]
+      end
+
+      zero, one =< get_zero_and_one()
+
+      tester::assert(zero == 0, "A4")
+      tester::assert(one == 1, "A5")
+
+      a, b =< [[1, 2], ["a", "b"]]
+
+      tester::assert(a.size() == 2 and a.sum() == 3, "A6")
+      tester::assert(b.size() == 2 and b.join() == "ab", "A7")
+    end)
+
+    tester::register_test("operators", with do
+      # arithmetic
+      tester::assert(10 + 20 == 30)   # addition
+      tester::assert(10 - 20 == -10)  # subtraction
+      tester::assert(10 * 20 == 200)  # multiplication
+      tester::assert(10 / 20. == 0.5) # division
+      tester::assert(10 % 2 == 0)     # modulo division
+      tester::assert(10 ** 2 == 100)  # exponentiation
+
+      # logical or 
+      tester::assert(not (false or false))
+      tester::assert(false or true)
+      tester::assert(true or false)
+      tester::assert(true or true)
+
+      # logical and
+      tester::assert(not (false and false))
+      tester::assert(not (false and true))
+      tester::assert(not (true and false))
+      tester::assert(true and true)
+
+      # logical not
+      tester::assert(false == not true)
+      tester::assert(not not true)
+      tester::assert(not false)
+
+      # comparison
+      tester::assert(1 < 2)
+      tester::assert(2 > 1)
+      tester::assert(1 <= 1)
+      tester::assert(1 >= 1)
+      tester::assert(1 == 1)
+      tester::assert(1 != 0)
+
+      # bitwise operators
+      a = 5
+      b = 9
+      tester::assert((a & b) == 1)
+      tester::assert((a | b) == 13)
+      tester::assert((a ^ b) == 12)
+      tester::assert(a << 1 == 10)
+      tester::assert(a >> 1 == 2)
+      tester::assert(~a == -6)
+
+      # bitswap
+      old_a = a
+      old_b = b
+      a = a ^ b
+      b = a ^ b
+      a = a ^ b
+      tester::assert(b == old_a)
+      tester::assert(a == old_b)
+    end)
+
+    tester::register_test("strings", with do
+      # simple concatenation
+      a = "Hello"
+      b = " World"
+      tester::assert(a + b == "Hello World", "A1")
+
+      # concatenation expression
+      a = "Hello"
+      b = "World"
+      tester::assert((a + " " + b) == "Hello World", "A2")
+
+      # string interpolation
+      tester::assert("${a} ${b}" == "Hello World", "A3")
+
+      wrap_string = with (inputstring, openchar, closechar) do
+        return "${openchar}${inputstring}${closechar}"
+      end
+
+      tester::assert(wrap_string("div", "<", ">") == "<div>", "A4")
+
+      # string multiplication
+      a = "Hello"
+      b = 5
+      tester::assert(a * b == "HelloHelloHelloHelloHello", "A5")
+    end)
+
+    tester::register_test("lists", with do
+      # Basic List Operations
+      basic_list = [1, 2, 3]
+      tester::assert(basic_list.size() == 3, "A1")
+      tester::assert(basic_list[0] == 1, "A2")
+      tester::assert(basic_list[1] == 2, "A3")
+      tester::assert(basic_list[2] == 3, "A4")
+      # List Insertion
+      basic_list.push(4)
+      tester::assert(basic_list.size() == 4 and basic_list.sum() == 10, "A5")
+      # List Concatenation
+      other_list = [5, 6, 7]
+      combined_list = basic_list.concat(other_list)
+      tester::assert(combined_list.size() == 7 and combined_list.sum() == 28, "A6")
+
+      # List Joining
+      words = ["The", "Kiwi", "Programming", "Language"]
+      tester::assert(words.join(" ") == "The Kiwi Programming Language", "A7")
+      tester::assert(words.join("-") == "The-Kiwi-Programming-Language", "A8")
+      tester::assert(words.join("") == "TheKiwiProgrammingLanguage", "A9")
+      tester::assert(words.join() == "TheKiwiProgrammingLanguage", "A10")
+
+      # List Slicing
+      sliced_list = combined_list[2:5]
+      tester::assert(sliced_list.size() == 3 and sliced_list.sum() == 12, "A11")
+
+      # List Reversal
+      reversed_list = combined_list[::-1]
+      tester::assert(reversed_list.size() == 7 and reversed_list.first() == 7 and reversed_list.sum() == 28, "A12")
+
+      # Nested Lists and Flattening
+      nested_list = [1, 2, [3, 4], [5, [6, 7]]].flatten()
+      tester::assert(nested_list.size() == 7 and nested_list.sum() == 28, "A13")
+
+      # String to List Conversion and Manipulation
+      char_list = "abcdef".chars().reverse()
+      tester::assert(char_list.join() == "fedcba", "A14")
+
+      # Empty List Verification
+      new_list = []
+      
+      while not char_list.empty() do
+        new_list.push(char_list.first())
+        char_list.remove_at(0)
+      end
+
+      tester::assert(char_list.empty(), "A15")
+      tester::assert(new_list.join() == "fedcba", "A16")
+
+      # List Initialization with a Range
+      range_list = [1 to 5]
+      tester::assert(range_list.size() == 5 and range_list.sum() == 15, "A17")
+
+      a = [1 to 10]
+      b = a.filter(with (i) do i % 2 == 0 end)
+      c = a - b
+      d = []
+      d += b
+      d += c
+
+      tester::assert(d.to_string() == "[2, 4, 6, 8, 10, 1, 3, 5, 7, 9]", "A18")
+    end)
+
+    tester::register_test("sets", with do
+      s1 = Set.new([1, 2, 3])
+      s2 = Set.new([1, 2])
+      s3 = Set.new([4, 5])
+      s4 = Set.new([1, 2, 3, 4])
+
+      tester::assert(s1.subset(s2) == false, "A1")
+      tester::assert(s2.subset(s1) == true, "A2")
+      tester::assert(s3.subset(s1) == false, "A3")
+      tester::assert(s2.subset(s2) == true, "A4")
+      tester::assert(s2.subset(s4) == true, "A5")
+      tester::assert(s1.superset(s2) == true, "A6")
+      tester::assert(s2.superset(s1) == false, "A7")
+      tester::assert(s1.superset(s3) == false, "A8")
+      tester::assert(s2.superset(s2) == true, "A9")
+      tester::assert(s4.superset(s2) == true, "A10")
+      
+      a1 = Set.new([3,6,4])
+      a2 = Set.new([1,2,3,4,5,6,7,8,9])
+      
+      a3 = a2.difference(a1)
+      tester::assert(a3.to_list().to_string() == [1, 2, 5, 7, 8, 9].to_string(), "A11")
+      
+      a3.clear()
+      tester::assert(a3.to_list().empty(), "A12")
+    end)
+
+    tester::register_test("heaps", with do
+      min_heap = Heap.new("min")
+      max_heap = Heap.new("max")
+
+      # Insert elements into the min-heap
+      min_heap.insert(5)
+      min_heap.insert(3)
+      min_heap.insert(8)
+      min_heap.insert(1)
+
+      # Extract root from min-heap
+      tester::assert(min_heap.extract_root() == 1, "A1")
+      tester::assert(min_heap.extract_root() == 3, "A2")
+
+      # Insert elements into the max-heap
+      max_heap.insert(5)
+      max_heap.insert(3)
+      max_heap.insert(8)
+      max_heap.insert(1)
+
+      # Extract root from max-heap
+      tester::assert(max_heap.extract_root() == 8, "A3")
+      tester::assert(max_heap.extract_root() == 5, "A4")
+    end)
+
+    tester::register_test("hashmaps", with do
+      var (hash: hashmap = {
+        key1: true, 
+        key2: 1, 
+        key3: ["a", "b", "c"]
+      })
+
+      var (other_hashmap: hashmap)
+
+      for key in hash.keys() do 
+        other_hashmap[key] = hash[key]
+      end
+      
+      other_hashmap = {}
+      other_hashmap = hash.merge(other_hashmap)
+      
+      for k in hash.keys() do
+        tester::assert(other_hashmap.has_key(k), "A1")
+        tester::assert(other_hashmap.get(k).to_string() == hash.get(k).to_string(), "A2")
+      end
+
+      other_hashmap.remove("key1")
+      tester::assert(other_hashmap.keys().sort().join() == "key2key3", "A3")
+      tester::assert(other_hashmap.values().sort().first() == 1, "A4")
+
+      other_hashmap.clear()
+      tester::assert(other_hashmap.empty(), "A5")
+
+      other_hashmap.hello = "world"
+      tester::assert(other_hashmap.get("hello") == "world", "A6")
+      
+      other_hashmap.set("hello", "kiwi")
+      tester::assert(other_hashmap.hello == "kiwi", "A7")
+    end)
+
+    tester::register_test("structs", with do
+      struct Shape
+        fn area() end
+        fn perimeter() end
+      end
+
+      struct Circle < Shape
+        fn new(radius)
+          @radius = radius
+        end
+
+        fn area(): float
+          return 3.14159 * @radius * @radius
+        end
+
+        fn perimeter(): float
+          return 2 * 3.14159 * @radius
+        end
+      end
+
+      circle = Circle.new(5)
+
+      # magic numbers everywhere
+      tester::assert(math::floor(circle.area()).to_integer() == 78)
+      tester::assert(math::floor(circle.perimeter()).to_integer() == 31)
+    end)
+
+    tester::register_test("builtins", with do
+      var (a: string = "FooBar".lowercase()) 
+      tester::assert("${a}${a.uppercase()}" == "foobarFOOBAR", "A1")
+      tester::assert(a.index("bar") == 3, "A2")
+      tester::assert(a.chars().size() == 6, "A3")
+      tester::assert("foobar".replace("foo", "food") == "foodbar", "A4")
+      tester::assert(not a.begins_with("food"), "A5")
+      tester::assert("foobar".ends_with("bar"), "A6")
+      tester::assert(not "foobar".ends_with("bark"), "A7")
+    end)
+
+    tester::register_test("standard library", with do
+      tester::assert(string::mirror("hello") == "helloolleh", "A1")
+    end)
+
+    tester::register_test("nulls", with do
+      var (e: hashmap = {a: null, b: null})
+      tester::assert(e.get("a") == null, "A1")
+      tester::assert(e.get("b") == null, "A2")
+
+      e.a = false
+      e.b = "hello"
+      tester::assert(e.get("a") == false, "A3")
+      tester::assert(e.get("b") == "hello", "A4")
+
+      e.a = null
+      e.b = null
+      tester::assert(e.get("a") == null, "A5")
+      tester::assert(e.get("b") == null, "A6")
+
+      e = null
+      tester::assert(e == null, "A7")
+
+      e = 0
+      tester::assert(e != null, "A8")
+
+      tester::assert(not null, "A9")
+      tester::assert(not not not null, "A10")
+    end)
+
+    tester::register_test("type checks", with do
+      s = "kiwi"
+      i = 100
+      d = 3.14159
+      b = true
+      h = {a: [123, 456, "789"]}
+
+      tester::assert(s.is_a(String), "A1")
+      tester::assert(i.is_a(Integer), "A2")
+      tester::assert(d.is_a(Float), "A3")
+      tester::assert(b.is_a(Boolean), "A4")
+      tester::assert(null.is_a(None), "A5")
+      tester::assert(h.is_a(Hashmap), "A6")
+      tester::assert(h.a.is_a(List), "A7")
+    end)
+
+    tester::register_test("loops", with do
+      fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
+      new_list = []
+
+      # iterate list
+      for fruit in fruits do
+        new_list.push(fruit)
+      end
+
+      tester::assert(new_list.join() == "kiwistrawberrypineapplelimemangoguava", "A1")
+      new_list.clear()
+
+      # iterate index
+      for fruit, index in fruits do 
+        new_list.push(index)
+      end
+
+      tester::assert(new_list.sum() == 15, "A2")
+      new_list.clear()
+
+      # iterate inline list
+      for item in ["kiwi", "is", "fun"] do
+        new_list.push(item)
+      end
+
+      tester::assert(new_list.join() == "kiwiisfun", "A3")
+      new_list.clear()
+
+      # iterate an inline list with an index
+      for item, index in ["kiwi", "is", "fun"] do
+        new_list.push(index)
+      end
+
+      tester::assert(new_list.sum() == 3 and new_list.size() == 3, "A4")
+      new_list.clear()
+
+      # iterate a range
+      for i in [0 to 5] do
+        new_list.push(i)
+      end
+
+      tester::assert(new_list.size() == 6 and new_list.sum() == 15, "A5")
+      new_list.clear()
+
+      # nested while loops
+      var (test_sum: integer = 0)
+      i = 0
+      j = 0
+      while i < 10 do
+        i += 1
+        j = 0
+
+        while j < 10 do
+          j += 1
+          test_sum += 1
+        end
+      end
+
+      tester::assert(test_sum == 100, "A7")
+
+      new_list = []
+      i = 1
+      while i <= 10 do
+        new_list.push("Item ${i}")
+        i += 1
+      end
+
+      counter = 0
+      for item, index in new_list do
+        counter += 1
+        break when index == 4
+      end
+
+      tester::assert(counter == 5, "A8")
+
+      counter = 0
+      for item, index in new_list do
+        counter += 1
+        break when index == 5
+      end
+
+      tester::assert(counter == 6, "A9")
+
+      # repeat-loop
+      sum = 0
+      repeat 10 as i do
+        sum += i
+      end
+
+      tester::assert(sum == 55, "A10")
+
+      x = 2
+      repeat 4 do
+        x *= x
+      end
+
+      tester::assert(x == 65536, "A11")
+    end)
+
+    tester::register_test("try-finally", with do
+      a = 0, b = 0
+
+      try
+        a += 1
+        println "${1 / 0}" # throws DivideByZeroError
+        a += 1
+      finally
+        b += 1
+      end
+      
+      tester::assert(a == 1)
+      tester::assert(b == 1)
+    end)
+
+    tester::register_test("try-catch-finally", with do
+      a = 0, b = 0, c = 0
+
+      try
+        for i in [0  to  1] do
+          a += 1
+          println "${i / 0}" # throws DivideByZeroError
+          a += 1
+        end
+      catch (err)
+        b += 1
+      finally
+        c += 1
+      end
+
+      tester::assert(a == 1)
+      tester::assert(b == 1)
+      tester::assert(c == 1)
+    end)
+
+    tester::register_test("nested try-catch", with do
+      a = 0, b = 0, c = 0
+
+      for i in [0  to  1] do
+        try
+          a += 1
+          println "${i / 0}" # throws DivideByZeroError
+        catch (err, msg)
+          b += 1
+        finally
+          c += 1
+        end
+      end
+
+      tester::assert(a == 2)
+      tester::assert(b == 2)
+      tester::assert(c == 2)
+    end)
+
+    tester::register_test("lambdas", with do
+      # setup
+      new_list = [{id: 0}, {id: 1}, {id: 2}, {id: 3}, {id: 4},
+                  {id: 5}, {id: 6}, {id: 7}, {id: 8}, {id: 9}]
+
+      # Assigned and inline lambdas
+      odd_item_id = with (item) do 
+        return item.id % 2 != 0 
+      end
+
+      puts = with (s) do 
+        return s
+      end
+
+      tester::assert(puts("Hello, World!") == "Hello, World!", "A1")
+
+      # Lambdas as first-class citizens
+      fn use_lambda(print_func, message) 
+        return print_func(message)
+      end
+      
+      # passing a lambda to a function
+      tester::assert(use_lambda(puts, "Hello, Kiwi!") == "Hello, Kiwi!", "A2")
+
+      # using an inline lambda
+      tester::assert(new_list.filter(with (item) do return item["id"] % 2 == 0 end).map(with (item) do item["id"]end).sum() == 20, "A3")
+      
+      # using the `odd_item_id` assigned lambda
+      tester::assert(new_list.filter(odd_item_id).map(with (item) do item["id"]end).sum() == 25, "A4")
+
+      # List.reduce
+      numbers = [1, 2, 3, 4, 5]
+
+      tester::assert((numbers.reduce(0, with (acc, n) do acc += n end)) == 15, "A6")
+
+      tester::assert(
+        (
+          numbers.reduce({}, with (acc, n) do
+                              acc["key${n}"] = n
+                            end)
+        )
+        .keys()
+        .reduce("", with (acc, key) do 
+                      acc += key
+                    end) == "key1key2key3key4key5", "A7")
+
+      # Inline lambda assignment
+      x = (with (n) do n ** 2 end)(5)
+      tester::assert(x == 25, "A8")
+    end)
+
+    tester::register_test("md5", with do
+      var (a_str: string = "just a test string")
+      
+      tester::assert("d41d8cd98f00b204e9800998ecf8427e" == crypto::md5_hash(""), "A1")
+      tester::assert("c105456108ab41026a95d4f0cc66fe78" == crypto::md5_hash(a_str), "A2")
+      tester::assert("e8754b080e52f959766d9d40f5e406ee" == crypto::md5_hash(a_str * 7), "A3")
+    end)
+
+    tester::register_test("sha224", with do
+      var (a_str: string = "just a test string")
+
+      tester::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == crypto::sha224_hash(), "A1")
+      tester::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == crypto::sha224_hash(a_str), "A2")
+      tester::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == crypto::sha224_hash(a_str*7), "A3")
+    end)
+
+    tester::register_test("sha256", with do
+      var (a_str: string = "just a test string")
+
+      tester::assert("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" == crypto::sha256_hash(), "A1")
+      tester::assert("d7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f" == crypto::sha256_hash(a_str), "A2")
+      tester::assert("8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21" == crypto::sha256_hash(a_str*7), "A3")
+      
+      s = SHA256.new(a_str)
+      s.update(a_str)
+      tester::assert("03d9963e05a094593190b6fc794cb1a3e1ac7d7883f0b5855268afeccc70d461" == s.hexdigest(), "A4")
+    end)
+
+    tester::register_test("iter", with do
+      # Test data
+      data = ["apple", "banana", "cherry", "date", "elderberry"]
+      empty = []
+      single = ["lone"]
+
+      # Test 1: Basic iteration
+      it = ListIterator.new(data)
+      it.reset()
+
+      items = []
+      while it.can_read() do
+        items.append(it.current())
+        it.consume()
+      end
+
+      tester::assert_eq(items, data, "basic iteration should return all items")
+      tester::assert_eq(it.position(), 5, "position should be at end")
+      tester::assert(it.eof(), "eof() should be true at end")
+
+      # Test 2: peek() and current()
+      it.reset()
+      tester::assert_eq(it.current(), "apple", "current() at start")
+      tester::assert_eq(it.peek(), "banana", "peek() should show next")
+      it.consume()
+      tester::assert_eq(it.current(), "banana")
+      tester::assert_eq(it.peek(), "cherry")
+
+      # Test 3: skip() and rewind()
+      it.reset()
+      it.skip(2)
+      tester::assert_eq(it.current(), "cherry", "skip(2) from start => cherry")
+      it.rewind(1)
+      tester::assert_eq(it.current(), "banana", "rewind(1) => banana")
+      it.skip(10)  # overshoot
+      tester::assert_eq(it.position(), 5, "skip() must clamp to end")
+      tester::assert_eq(it.current(), null, "current() past end returns default (null)")
+
+      # Test 4: grab() and reach()
+      it.reset()
+      tester::assert_eq(it.grab(0), "apple", "grab(0)")
+      tester::assert_eq(it.grab(4), "elderberry", "grab(4)")
+      tester::assert(it.grab(99) == null, "grab out of bounds => default")
+
+      tester::assert_eq(it.reach(-1), "elderberry", "reach(-1) = last element")
+      tester::assert_eq(it.reach(-3), "cherry", "reach(-3)")
+      tester::assert_eq(it.reach(0), "apple", "reach(0) = first element")
+      tester::assert(it.reach(-10) == null, "reach too far => default")
+
+      # Test 5: default value handling
+      with_default = ListIterator.new(["a", null, null, "b", null, "c"], "MISSING")
+
+      tester::assert_eq(with_default.current(), "a")
+      with_default.consume()
+      tester::assert_eq(with_default.current(), null, "should return default (null)")
+
+      with_default.reset()
+      with_default.skip_defaults()
+      tester::assert_eq(with_default.current(), "a", "skip_defaults() skips leading")
+
+      with_default.consume(4)  # now at "c"
+      with_default.consume()
+      tester::assert_eq(with_default.current(), "MISSING", "past end => custom default")
+
+      # Test 6: look_ahead() and count_ahead()
+      mixed = ListIterator.new(["x", null, null, "y", "z"], null)
+
+      tester::assert_eq(mixed.look_ahead(), "x", "look_ahead from start")
+      mixed.consume()
+      tester::assert_eq(mixed.look_ahead(), "y", "look_ahead skips nulls => y")
+      tester::assert_eq(mixed.count_ahead(), 2, "count_ahead = 2 nulls")
+
+      mixed.consume(2)  # now at "y"
+      tester::assert_eq(mixed.look_ahead(), "z")
+      mixed.consume()
+      tester::assert_eq(mixed.look_ahead(), null, "look_ahead at end => default")
+      tester::assert_eq(mixed.count_ahead(), 0)
+
+      # Test 7: remaining()
+      it = ListIterator.new(data)
+      it.skip(2)
+      tester::assert_eq(it.remaining(), ["cherry", "date", "elderberry"], "remaining() from pos 2")
+      it.consume(10)
+      tester::assert_eq(it.remaining(), [], "remaining() at end => empty list")
+
+      # Test 8: empty and single-element lists
+      empty_it = ListIterator.new(empty, "EMPTY")
+      tester::assert(!empty_it.can_read(), "empty list => cannot read")
+      tester::assert(empty_it.eof(), "empty list => eof true")
+      tester::assert_eq(empty_it.current(), "EMPTY")
+      tester::assert_eq(empty_it.remaining(), [])
+      tester::assert_eq(empty_it.look_ahead(), "EMPTY")
+
+      single_it = ListIterator.new(single)
+      tester::assert_eq(single_it.current(), "lone")
+      single_it.consume()
+      tester::assert(!single_it.can_read())
+      tester::assert_eq(single_it.peek(), null)
+
+      # Test 9: reset() works multiple times
+      it.reset()
+      it.skip(3)
+      tester::assert_eq(it.current(), "date")
+      it.reset()
+      tester::assert_eq(it.current(), "apple", "reset brings us back to start")
+    end)
+  end
+end
+
+export "testsuite"

@@ -1,0 +1,64 @@
+# curl -s https://httpbin.org/image/jpeg | ./bin/kiwi scripts/filetype
+# curl -s https://httpbin.org/image/png | ./bin/kiwi scripts/filetype
+
+bytes = stdin::readbytes()
+
+if bytes.size() == 0
+  println "empty input"
+  exit 1
+end
+
+# Helpers
+fn hex(byte)
+  digits = "0123456789ABCDEF"
+  return "${digits[(byte >> 4) & 0xF]}${digits[byte & 0xF]}"
+end
+
+fn matches(offset, expected)
+  return false when bytes.size() < offset + expected.size()
+
+  for i in std::range(0, expected.size()) do
+    return false when bytes[offset + i] != expected[i]
+  end
+
+  return true
+end
+
+# File type detection table
+types = [
+  { name: "JPEG Image",                             sig: [0xFF, 0xD8, 0xFF] },
+  { name: "PNG Image",                              sig: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
+  { name: "GIF Image",                              sig: [0x47, 0x49, 0x46, 0x38, 0x37, 0x61] },
+  { name: "GIF Image",                              sig: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61] },
+  { name: "PDF Document",                           sig: [0x25, 0x50, 0x44, 0x46, 0x2D] },
+  { name: "ZIP Archive (DOCX, XLSX, JAR, EPUB...)", sig: [0x50, 0x4B, 0x03, 0x04] },
+  { name: "ZIP Archive (central directory)",        sig: [0x50, 0x4B, 0x01, 0x02] },
+  { name: "ZIP Archive (end of directory)",         sig: [0x50, 0x4B, 0x05, 0x06] },
+  { name: "ZIP Archive (data descriptor)",          sig: [0x50, 0x4B, 0x07, 0x08] },
+]
+
+# Search the type detection table
+for t in types do
+  if matches(0, t.sig)
+    println t.name
+    exit 0
+  end
+end
+
+# Fallback
+println "Unknown file type"
+println "First 16 bytes (hex):"
+
+for i in [0..15] do
+  if i < bytes.size()
+    print " ${hex(bytes[i])}"
+  else
+    print "   "
+  end
+
+  # Nice spacing: group by 4
+  if i % 4 == 3
+    print " "
+  end
+end
+println ""

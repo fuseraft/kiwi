@@ -8,19 +8,17 @@ The Kiwi CLI provides an interface for working with Kiwi files.
 kiwi [--flags] <script|args>
 ```
 
-If no arguments are supplied, Kiwi enters an interactive Read-Evaluate-Print Loop (REPL) where you can type and execute Kiwi code directly in the terminal. To learn more about the REPL, please see [REPL](repl.md).
-
 ### Table of Contents
 - [Options](#options)
   - [`-h`, `--help`](#-h---help)
   - [`-v`, `--version`](#-v---version)
-  - [`-p`, `--parse <kiwi_code>`](#-p---parse-kiwi_code)
+  - [`-s`, `--settings`](#-s---settings)
   - [`-n`, `--new <file_path>`](#-n---new-file_path)
+  - [`-i`, `--interactive`](#-i---interactive)
   - [`-a`, `--ast <input_file_path>`](#-a---ast-input_file_path)
-  - [`-m`, `--minify <input_file_path>`](#-m---minify-input_file_path)
   - [`-t`, `--tokenize <input_file_path>`](#-t---tokenize-input_file_path)
-  - [`-s`, `--safemode`](#-s---safemode)
-  - [`-ns`, `--no-std-lib`](#-ns---no-std-lib)
+  - [`-ns`, `--no-stdlib`](#-ns---no-stdlib)
+  - [`-sm`, `--safemode`](#-sm---safemode)
   - [`-<key>=<value>`](#-keyvalue)
 
 ## Options
@@ -41,31 +39,24 @@ Prints the current version.
 kiwi -v
 ```
 
-### `-p`, `--parse <kiwi_code>`
+### `-s`, `--settings`
 
-Parses kiwi code as an argument.
-
-```
-kiwi -p 'println "hello".chars()' 
-# Prints: ["h", "e", "l", "l", "o"]
-
-kiwi -p 'println math::random(0, 100)' 
-# Prints a random number between 0 and 100
-```
-
-Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
-
-### `-n`, `--new <file_path>`
-
-Creates a new file with the `.🥝` extension (`.kiwi` on Windows). If you don't include the extension in `<file_path>`, it will be appended automatically.
+Prints the interpreter settings (for debugging).
 
 ```
-kiwi -n filename         # Creates ./filename.🥝
-kiwi -n ../app           # Creates ../app.🥝 in the parent directory
-kiwi -n ./somedir/app    # Creates ./somedir/app.🥝 in the specified subdirectory
+kiwi -s
 ```
 
-Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
+### `-i`, `--interactive`
+
+Starts an interactive Read-Evaluate-Print Loop (REPL) where you can type and execute Kiwi code directly in the terminal. 
+
+To learn more about the REPL, please see [REPL](repl.md).
+
+
+```
+kiwi -i
+```
 
 ### `-a`, `--ast <input_file_path>`
 
@@ -73,14 +64,6 @@ Prints the abstract syntax tree of the input file.
 
 ```
 kiwi -a filename         # Prints AST of the file.
-```
-
-### `-m`, `--minify <input_file_path>`
-
-Creates a minified file with the `.min.🥝` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
-
-```
-kiwi -m filename         # Creates ./filename.min.🥝
 ```
 
 ### `-t`, `--tokenize <input_file_path>`
@@ -91,7 +74,19 @@ Tokenizes a file with the Kiwi lexer and prints the results to the standard outp
 kiwi -t filename         # Prints tokens by line from the file
 ```
 
-### `-s`, `--safemode`
+### `-n`, `--new <file_path>`
+
+Creates a new file with the `.kiwi` extension. If you don't include the extension in `<file_path>`, it will be appended automatically.
+
+```
+kiwi -n filename         # Creates ./filename.kiwi
+kiwi -n ../app           # Creates ../app.kiwi in the parent directory
+kiwi -n ./somedir/app    # Creates ./somedir/app.kiwi in the specified subdirectory
+```
+
+Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br>
+
+### `-sm`, `--safemode`
 
 Runs Kiwi in safe mode. This disables access to web, filesystem, and system shell functionality.
 
@@ -99,7 +94,7 @@ Runs Kiwi in safe mode. This disables access to web, filesystem, and system shel
 kiwi -t filename         # Prints tokens from the file in a minified way.
 ```
 
-### `-ns`, `--no-std-lib`
+### `-ns`, `--no-stdlib`
 
 Runs Kiwi without loading its standard library.
 
@@ -112,5 +107,5 @@ kiwi -ns filename.k        # Runs `filename.k` without loading the Kiwi standard
 Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
 
 ```
-kiwi -theme=dark -p 'print argv::opt("theme")' # Prints "dark"
+kiwi myapp -theme=dark
 ```

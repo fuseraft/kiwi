@@ -1,0 +1,477 @@
+package crypto
+  fn md5_hash(input = "")
+    return MD5.hexdigest(input)
+  end
+
+  fn sha224_hash(input = "")
+    return SHA224.new(input).hexdigest()
+  end
+
+  fn sha256_hash(input = "")
+    return SHA256.new(input).hexdigest()
+  end
+end
+
+struct MD5
+  static fn hexdigest(input)
+    # All variables wrap modulo 2^32 when calculating:
+    s = [0] * 64
+    K = [0] * 64
+    
+    # s specifies the per-round shift amounts
+    s[ 0:15] = [7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22]
+    s[16:31] = [5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20]
+    s[32:47] = [4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23]
+    s[48:63] = [6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21]
+    
+    # Use binary integer part of the sines of integers (Radians) as constants:
+    K[ 0: 3] = [ 0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee ]
+    K[ 4: 7] = [ 0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501 ]
+    K[ 8:11] = [ 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be ]
+    K[12:15] = [ 0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821 ]
+    K[16:19] = [ 0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa ]
+    K[20:23] = [ 0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8 ]
+    K[24:27] = [ 0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed ]
+    K[28:31] = [ 0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a ]
+    K[32:35] = [ 0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c ]
+    K[36:39] = [ 0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70 ]
+    K[40:43] = [ 0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05 ]
+    K[44:47] = [ 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665 ]
+    K[48:51] = [ 0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039 ]
+    K[52:55] = [ 0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1 ]
+    K[56:59] = [ 0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1 ]
+    K[60:63] = [ 0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391 ]
+    
+    a0 = 0x67452301   # A
+    b0 = 0xefcdab89   # B
+    c0 = 0x98badcfe   # C
+    d0 = 0x10325476   # D
+    
+    message = input.to_bytes()
+    
+    # Original message length in bits, mod 2^64
+    original_bitlength = input.size() * 8
+  
+    # Append 0x80 (128 in decimal, 10000000 in binary) to the message
+    message.push(0x80)
+    
+    # Pad with zeros until the message length in bytes is 56 mod 64
+    while message.size() % 64 != 56 do
+      message.push(0x00)
+    end
+    
+    # Append the length in bits at the end of the buffer.
+    for i in [0 to 7] do
+      message.push(original_bitlength >> (i * 8))
+    end
+    
+    chunk_size = 64  # 64 bytes = 512 bits
+    num_chunks = message.size() / chunk_size
+    
+    for chunk_index in [0 to num_chunks - 1] do
+      # Extract the current chunk:
+      start_index = chunk_index * chunk_size
+      stop_index = start_index + chunk_size
+      chunk = message[start_index:stop_index]
+    
+      # Break chunk into sixteen 32-bit words M[j], 0 ≤ j ≤ 15
+      M = [0] * 16
+      for j in [0 to 15] do
+        start_chunk_index = j * 4
+        stop_chunk_index = start_chunk_index + 4
+        # Convert each 4-byte segment into an integer
+        sub_chunk = chunk[start_chunk_index:stop_chunk_index]
+        M[j] = (sub_chunk[3] << 24) | (sub_chunk[2] << 16) | (sub_chunk[1] << 8) | sub_chunk[0]
+      end
+    
+      # Initialize hash value for this chunk:
+      A = a0
+      B = b0
+      C = c0
+      D = d0
+    
+      # Main loop:
+      for i in [0 to 63] do
+        F = 0
+        g = 0
+        
+        if 0 <= i && i <= 15
+          F = (B & C) | (~B & D)
+          g = i
+        elsif 16 <= i && i <= 31
+          F = (D & B) | (~D & C)
+          g = (5 * i + 1) % 16
+        elsif 32 <= i && i <= 47
+          F = B ^ C ^ D
+          g = (3 * i + 5) % 16
+        elsif 48 <= i && i <= 63
+          F = C ^ (B | ~D)
+          g = (7 * i) % 16
+        end
+    
+        # Update the hash values
+        temp = D
+        D = C
+        C = B
+        B = B + MD5.left_rotate(A + F + K[i] + M[g], s[i])
+        A = temp
+      end
+  
+      # Add this chunk's hash to result so far:
+      a0 += A
+      b0 += B
+      c0 += C
+      d0 += D
+    end
+  
+    digest        = [0] * 16
+    digest[ 0: 3] = MD5.int_to_bytes(a0)
+    digest[ 4: 7] = MD5.int_to_bytes(b0)
+    digest[ 8:11] = MD5.int_to_bytes(c0)
+    digest[12:15] = MD5.int_to_bytes(d0)
+  
+    return digest.to_hex()
+  end
+  
+  static fn left_rotate(value, count)
+    adjusted_value = value & 0xFFFFFFFF
+    return (adjusted_value << count | adjusted_value >> (32 - count)) & 0xFFFFFFFF
+  end
+  
+  static fn int_to_bytes(num)
+    num &= 0xFFFFFFFF
+    return [num & 0xFF, (num >> 8) & 0xFF, (num >> 16) & 0xFF, (num >> 24) & 0xFF]
+  end
+end
+
+/#
+A SHA-2 implementation based on the implementation in PyPy https://foss.heptapod.net/pypy/pypy/-/blob/branch/default/lib_pypy/_sha256.py
+#/
+struct SHA
+  static fn BLOCKSIZE() 
+    return 64
+  end
+  
+  static fn DIGESTSIZE()
+    return 32
+  end
+
+  static fn new_shaobject()
+    obj = {}
+    obj.digest = [0] * 8
+    obj.count_lo = 0
+    obj.count_hi = 0
+    obj.data = [0] * SHA.BLOCKSIZE()
+    obj.local = 0
+    obj.digestsize = 0
+
+    return obj
+  end
+
+  static fn Ch(x, y, z)
+    return (z ^ (x & (y ^ z)))
+  end
+
+  static fn Maj(x, y, z)
+    return (((x | y) & z) | (x & y))
+  end
+
+  static fn S(x, n)
+    return (((x & 0xffffffff) >> (n & 31)) | (x << (32 - (n & 31)))) & 0xffffffff
+  end
+
+  static fn R(x, n)
+    return (x & 0xffffffff) >> n
+  end
+
+  static fn Sigma0(x)
+    return (SHA.S(x, 2) ^ SHA.S(x, 13) ^ SHA.S(x, 22))
+  end
+
+  static fn Sigma1(x)
+    return (SHA.S(x, 6) ^ SHA.S(x, 11) ^ SHA.S(x, 25))
+  end
+
+  static fn Gamma0(x)
+    return (SHA.S(x, 7) ^ SHA.S(x, 18) ^ SHA.R(x, 3))
+  end
+
+  static fn Gamma1(x)
+    return (SHA.S(x, 17) ^ SHA.S(x, 19) ^ SHA.R(x, 10))
+  end
+    
+  static fn RND(a,b,c,d,e,f,g,h,i,ki,W)
+    t0 = (h + SHA.Sigma1(e) + SHA.Ch(e, f, g) + ki + W[i]) % (1 << 32)
+    t1 = (SHA.Sigma0(a) + SHA.Maj(a, b, c)) % (1 << 32)
+    d += t0
+    h  = t0 + t1
+
+    return [(d & 0xffffffff), (h & 0xffffffff)]
+  end
+
+  static fn transform(sha_info)
+    W = []
+    
+    d = sha_info.data
+    for i in std::range(0,16) do
+      W.push((d[4 * i] << 24) + (d[4 * i + 1] << 16) + (d[4 * i + 2] << 8) + d[4 * i + 3])
+    end
+    
+    for i in std::range(16,64) do
+      W.push((SHA.Gamma1(W[i - 2]) + W[i - 7] + SHA.Gamma0(W[i - 15]) + W[i - 16]) & 0xffffffff)
+    end
+
+    ss = sha_info.digest[:]
+    
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],0,0x428a2f98,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],1,0x71374491,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],2,0xb5c0fbcf,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],3,0xe9b5dba5,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],4,0x3956c25b,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],5,0x59f111f1,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],6,0x923f82a4,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],7,0xab1c5ed5,W), ss[4] = r[0], ss[0] = r[1]
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],8,0xd807aa98,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],9,0x12835b01,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],10,0x243185be,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],11,0x550c7dc3,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],12,0x72be5d74,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],13,0x80deb1fe,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],14,0x9bdc06a7,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],15,0xc19bf174,W), ss[4] = r[0], ss[0] = r[1]
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],16,0xe49b69c1,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],17,0xefbe4786,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],18,0x0fc19dc6,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],19,0x240ca1cc,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],20,0x2de92c6f,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],21,0x4a7484aa,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],22,0x5cb0a9dc,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],23,0x76f988da,W), ss[4] = r[0], ss[0] = r[1]
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],24,0x983e5152,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],25,0xa831c66d,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],26,0xb00327c8,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],27,0xbf597fc7,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],28,0xc6e00bf3,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],29,0xd5a79147,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],30,0x06ca6351,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],31,0x14292967,W), ss[4] = r[0], ss[0] = r[1]
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],32,0x27b70a85,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],33,0x2e1b2138,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],34,0x4d2c6dfc,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],35,0x53380d13,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],36,0x650a7354,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],37,0x766a0abb,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],38,0x81c2c92e,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],39,0x92722c85,W), ss[4] = r[0], ss[0] = r[1]
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],40,0xa2bfe8a1,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],41,0xa81a664b,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],42,0xc24b8b70,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],43,0xc76c51a3,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],44,0xd192e819,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],45,0xd6990624,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],46,0xf40e3585,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],47,0x106aa070,W), ss[4] = r[0], ss[0] = r[1]
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],48,0x19a4c116,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],49,0x1e376c08,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],50,0x2748774c,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],51,0x34b0bcb5,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],52,0x391c0cb3,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],53,0x4ed8aa4a,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],54,0x5b9cca4f,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],55,0x682e6ff3,W), ss[4] = r[0], ss[0] = r[1]
+    r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],56,0x748f82ee,W), ss[3] = r[0], ss[7] = r[1]
+    r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],57,0x78a5636f,W), ss[2] = r[0], ss[6] = r[1]
+    r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],58,0x84c87814,W), ss[1] = r[0], ss[5] = r[1]
+    r = SHA.RND(ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],59,0x8cc70208,W), ss[0] = r[0], ss[4] = r[1]
+    r = SHA.RND(ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],60,0x90befffa,W), ss[7] = r[0], ss[3] = r[1]
+    r = SHA.RND(ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],ss[2],61,0xa4506ceb,W), ss[6] = r[0], ss[2] = r[1]
+    r = SHA.RND(ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],ss[1],62,0xbef9a3f7,W), ss[5] = r[0], ss[1] = r[1]
+    r = SHA.RND(ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],ss[0],63,0xc67178f2,W), ss[4] = r[0], ss[0] = r[1]
+
+    dig = []
+    for x, i in sha_info.digest do
+      dig.push(((x + ss[i]) & 0xffffffff) % (1 << 32))
+    end
+
+    sha_info.digest = dig
+    return sha_info.clone()
+  end
+
+  static fn sha_init()
+    sha_info = SHA.new_shaobject()
+    sha_info.digest = [0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19]
+    sha_info.count_lo = 0
+    sha_info.count_hi = 0
+    sha_info.local = 0
+    sha_info.digestsize = 32
+    return sha_info
+  end
+
+  static fn sha224_init()
+    sha_info = SHA.new_shaobject()
+    sha_info.digest = [0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939, 0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4]
+    sha_info.count_lo = 0
+    sha_info.count_hi = 0
+    sha_info.local = 0
+    sha_info.digestsize = 28
+    return sha_info
+  end
+
+  static fn getbuf(s)
+    return s.to_bytes()
+  end
+
+  static fn sha_update(sha_info, buffer)
+    count = buffer.size()
+    buffer_idx = 0
+    clo = (sha_info.count_lo + (count << 3)) & 0xffffffff
+    if clo < sha_info.count_lo
+      sha_info.count_hi += 1
+    end
+
+    sha_info.count_lo = clo
+    sha_info.count_hi += (count >> 29)
+    
+    if sha_info.local
+      i = SHA.BLOCKSIZE() - sha_info.local
+      if i > count
+        i = count
+      end
+      
+      # copy buffer
+      for x, j in buffer[buffer_idx:buffer_idx+i] do
+        sha_info.data.set(sha_info.local + j, x)
+      end
+      
+      count -= i
+      buffer_idx += i
+      
+      sha_info.local += i
+      if sha_info.local == SHA.BLOCKSIZE()
+        sha_info = SHA.transform(sha_info)
+        sha_info.local = 0
+      else
+        return sha_info.clone()
+      end
+    end
+    
+    while count >= SHA.BLOCKSIZE() do
+      # copy buffer
+      sha_info.data = buffer[buffer_idx:buffer_idx + SHA.BLOCKSIZE()]
+      count -= SHA.BLOCKSIZE()
+      buffer_idx += SHA.BLOCKSIZE()
+      sha_info = SHA.transform(sha_info)
+    end
+    
+    # copy buffer
+    pos = sha_info.local
+    for i in std::range(pos, pos + count) do
+      sha_info.data.set(i, buffer[buffer_idx])
+      buffer_idx += 1
+    end
+
+    sha_info.local = count
+    return sha_info.clone()
+  end
+
+  static fn sha_final(sha_info)
+    lo_bit_count = sha_info.count_lo
+    hi_bit_count = sha_info.count_hi
+    count = (lo_bit_count >> 3) & 0x3f
+    sha_info.data.set(count, 0x80)
+    count += 1
+
+    if count > SHA.BLOCKSIZE() - 8
+      # zero the bytes in data after the count
+      sha_info.data = sha_info.data[:count] + ([0] * (SHA.BLOCKSIZE() - count))
+      sha_info = SHA.transform(sha_info)
+      # zero bytes in data
+      sha_info.data = [0] * SHA.BLOCKSIZE()
+    else
+      sha_info.data = sha_info.data[:count] + ([0] * (SHA.BLOCKSIZE() - count))
+    end
+
+    sha_info.data.set(56, (hi_bit_count >> 24) & 0xff)
+    sha_info.data.set(57, (hi_bit_count >> 16) & 0xff)
+    sha_info.data.set(58, (hi_bit_count >>  8) & 0xff)
+    sha_info.data.set(59, (hi_bit_count >>  0) & 0xff)
+    sha_info.data.set(60, (lo_bit_count >> 24) & 0xff)
+    sha_info.data.set(61, (lo_bit_count >> 16) & 0xff)
+    sha_info.data.set(62, (lo_bit_count >>  8) & 0xff)
+    sha_info.data.set(63, (lo_bit_count >>  0) & 0xff)
+    
+    sha_info = SHA.transform(sha_info)
+    
+    dig = []
+    for i in sha_info.digest do
+      dig.concat([ ((i>>24) & 0xff), ((i>>16) & 0xff), ((i>>8) & 0xff), (i & 0xff) ])
+    end
+
+    return dig
+  end
+end
+
+struct SHA256
+  fn new(s = null)
+    @_sha = SHA.sha_init()
+
+    if s
+      @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
+    end
+  end
+    
+  fn update(s)
+    @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
+  end
+    
+  fn digest()
+    return SHA.sha_final(@_sha.clone())[:@_sha.digestsize]
+  end
+    
+  fn hexdigest()
+    return digest().to_hex()
+  end
+
+  fn copy()
+    new_sha256 = SHA256.new()
+    new_sha256.set_sha(@_sha.clone())
+    return new_sha256
+  end
+
+  private fn set_sha(sha)
+    @_sha = sha
+  end
+end
+
+struct SHA224 < SHA256
+  fn new(s = null)
+    @_sha = SHA.sha224_init()
+    if s
+      @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
+    end
+  end
+    
+  fn update(s)
+    @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
+  end
+    
+  fn digest()
+    return SHA.sha_final(@_sha.clone())[:@_sha.digestsize]
+  end
+    
+  fn hexdigest()
+    return digest().to_hex()
+  end
+
+  fn copy()
+    new_sha224 = SHA224.new()
+    new_sha224.set_sha(@_sha.clone())
+    return new_sha224
+  end
+
+  private fn set_sha(sha)
+    @_sha = sha
+  end
+end
+
+export "crypto"

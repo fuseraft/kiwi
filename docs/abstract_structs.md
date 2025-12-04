@@ -8,8 +8,8 @@ To define an abstract struct, use the `abstract struct` keywords followed by the
 
 ```kiwi
 abstract struct Shape
-  abstract fn area()
-  abstract fn perimeter()
+  abstract fn area() end
+  abstract fn perimeter() end
 end
 ```
 

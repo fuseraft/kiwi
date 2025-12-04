@@ -1,0 +1,36 @@
+#!/usr/bin/env kiwi
+
+__version__ = "0.0.0.1"
+
+def main(argv: list)
+  if env::opt("version")
+    println __version__
+    exit 0
+  elsif env::opt("help") or argv.empty()
+    println "./cowsay.k MESSAGE"
+    exit 0
+  end
+
+  phrase = argv.join(" ")
+  topbar = "_" * (phrase.size() + 2)
+  bottombar = "-" * (phrase.size() + 2)
+  output = string::dedent
+  (
+    "
+     ${topbar}
+    < ${phrase} >
+     ${bottombar}"
+    +
+    '
+            \   ^__^
+             \  (oo)\_______
+                (__)\       )\/\
+                    ||----w |
+                    ||     ||
+    '
+  )
+
+  print output
+end
+
+main(env::argv().keys())

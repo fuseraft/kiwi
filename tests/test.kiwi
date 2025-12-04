@@ -1,0 +1,38 @@
+/#
+The Kiwi Project 1.2.1
+#/
+
+
+fn main()
+  println "Running Kiwi Test Suite...\n"
+
+  import "lib/testsuite"
+
+  testsuite::register_tests()
+
+  var (results:   list    = tester::run_tests())
+  var (succeeded: integer = 0)
+  var (failed:    integer = 0)
+  var (duration:  integer = 0)
+
+  for r in results do
+    duration += r.duration
+
+    if r.result
+      succeeded += 1
+    else
+      failed += 1
+    end
+  end
+
+  println "\nRan ${results.size()} test(s) in ${duration}ms\n"
+
+  if failed == 0
+    println "All tests passed!"
+  else
+    println "${succeeded} tests passed, ${failed} tests failed."
+    exit 1
+  end
+end
+
+main()

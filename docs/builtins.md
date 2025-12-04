@@ -4,6 +4,14 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
 
 # Table of Contents
 - [**`global`**](#global)
+- [**`Date` Builtins**](#date-builtins)
+  - [`year`](#year)
+  - [`month`](#month)
+  - [`day`](#day)
+  - [`hour`](#hour)
+  - [`minute`](#minute)
+  - [`second`](#second)
+  - [`millisecond`](#millisecond)
 - [**`String` Builtins**](#string-builtins)
   - [`begins_with(str)`](#begins_withstr)
   - [`chars()`](#chars)
@@ -17,14 +25,14 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`substring(pos, length)`](#substringpos-length)
   - [`trim()`](#trim)
   - [`uppercase()`](#uppercase)
-  - [**Regular Expression Builtins**](#regex-builtins)
-    - [`find(regex)`](#findregex)
-    - [`match(regex)`](#matchregex)
-    - [`matches(regex)`](#matchesregex)
-    - [`matches_all(regex)`](#matches_allregex)
-    - [`replace(search, replacement)`](#replacesearch-replacement)
-    - [`scan(regex)`](#scanregex)
-    - [`split(delim)`](#splitdelim-limit---1)
+- [**Regular Expression Builtins**](#regex-builtins)
+  - [`find(regex)`](#findregex)
+  - [`match(regex)`](#matchregex)
+  - [`matches(regex)`](#matchesregex)
+  - [`matches_all(regex)`](#matches_allregex)
+  - [`replace(search, replacement)`](#replacesearch-replacement)
+  - [`scan(regex)`](#scanregex)
+  - [`split(delim)`](#splitdelim-limit---1)
 - [**`Hashmap` Builtins**](#hashmap-builtins)
   - [`keys()`](#keys)
   - [`values()`](#values)
@@ -43,7 +51,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`first(default_value)`](#firstdefault_value)
   - [`flatten()`](#flatten)
   - [`index(value)`](#indexvalue)
-  - [`insert(value, index)`](#insertvalue-index)
+  - [`insert(index, value)`](#insertindex-value)
   - [`join(str)`](#joinstr)
   - [`last(default_value)`](#lastdefault_value)
   - [`lastindex(value)`](#lastindexvalue)
@@ -57,7 +65,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`remove_at(index)`](#remove_atindex)
   - [`reverse()`](#reverse)
   - [`rotate(n)`](#rotaten)
-  - [`select(lambda)`](#selectlambda)
+  - [`filter(lambda)`](#filterlambda)
   - [`shift()`](#shift)
   - [`size()`](#size)
   - [`slice(start, end)`](#slicestart-end)
@@ -86,6 +94,36 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
 ## `global`
 
 The `global` variable is a hashmap that can be used to store global data. This is useful for sharing data between scripts.
+
+## Date Builtins
+
+### `year()`
+
+Returns the year part.
+
+### `month()`
+
+Returns the month part. (1 through 12)
+
+### `day()`
+
+Returns the day part. (1 through number of days in the month)
+
+### `hour()`
+
+Returns the hour part. (0 through 23)
+
+### `minute()`
+
+Returns the minute part. (0 through 59)
+
+### `second()`
+
+Returns the second part. (0 through 59)
+
+### `millisecond()`
+
+Returns the millisecond part. (0 through 999)
 
 ## String Builtins
 
@@ -417,12 +455,14 @@ end)
 #/
 
 # Iterate a range.
-[1..3].each(with (v, i) do println("${i}: ${v}") end)
+[1 to 5].each(with (v, i) do println("${i}: ${v}") end)
 
 /# Prints:
 0: 1
 1: 2
 2: 3
+3: 4
+4: 5
 #/
 
 # Iterate a list.
@@ -481,12 +521,12 @@ println([1, 2, 3, 4, 5].index(1))  # prints: 0
 println([1, 2, 3, 4, 5].index(6))  # prints: -1
 ```
 
-### `insert(value, index)`
+### `insert(index, value)`
 
 Insert a value at a specified index.
 
 ```kiwi
-println([1, 2, 3].insert("a", 2)) # prints: [1, 2, "a", 3]
+println([1, 2, 3].insert(2, "a")) # prints: [1, 2, "a", 3]
 ```
 
 ### `join(str)`
@@ -616,13 +656,13 @@ println("abcd".chars().rotate(0))  # prints: ["a", "b", "c", "d"]
 println("abcd".chars().rotate(-1)) # prints: ["b", "c", "d", "a"]
 ```
 
-### `select(lambda)`
+### `filter(lambda)`
 
 Filter a list based on a condition.
 
 ```kiwi
 list = ["kiwi", "mango", "banana"]
-println(list.select(with (item) do return item.contains("s") end))
+println(list.filter(with (item) do return item.contains("s") end))
 # prints: ["kiwi"]
 ```
 
@@ -886,10 +926,7 @@ Valid types are: `Integer`, `Float`, `Boolean`, `String`, `List`, `Hashmap`, `Ob
 If the type is an object, `type()` will return the struct name of the instance.
 
 ```kiwi
-struct MyStruct
-  fn new()
-  end
-end
+struct MyStruct end
 
 instance = MyStruct.new()
 println(instance.type()) # prints: MyStruct

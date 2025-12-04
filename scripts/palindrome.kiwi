@@ -1,0 +1,11 @@
+# Simple function to check if a string is a palindrome :)
+
+fn is_palindrome(s)
+  reversed = s.reverse()
+  return (s == reversed)
+end
+
+println(is_palindrome("level"))  # returns true
+println(is_palindrome("hello"))  # returns false
+println(is_palindrome("racecar"))  # returns true
+println(is_palindrome("world"))  # returns false

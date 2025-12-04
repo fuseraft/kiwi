@@ -165,7 +165,7 @@ end
 Use the `for` keyword to iterate a range.
 
 ```kiwi
-for i in [1..10] do
+for i in [1 to 10] do
   println("${i}")
 end
 ```

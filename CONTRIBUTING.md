@@ -1,6 +1,6 @@
 # Contributing to Kiwi
 
-First off, thank you for considering contributing to Kiwi! Let's build something amazing!
+First off, thank you for considering contributing to Kiwi!
 
 ## How Can I Contribute?
 
@@ -47,9 +47,8 @@ Here's how to submit a pull request:
 
 Before you submit a pull request, please test your changes.
 
-1. Add your test script to the [test suite](test.🥝).
-2. Run the test suite through [Valgrind](https://valgrind.org/).
-    > `valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./bin/kiwi test.🥝`
+1. Add your test script to the [test suite](scripts/test.kiwi).
+2. Run the test suite through Kiwi.
 
 ## Styleguides
 

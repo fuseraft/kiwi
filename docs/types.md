@@ -8,6 +8,7 @@ Kiwi supports the following types:
 | [`Float`](#Float) | A floating point number. | See below for an example. |
 | [`Boolean`](#boolean) | A `true` or `false` value. | See below for an example. |
 | [`String`](#string) | A sequence of characters. | See [Strings](strings.md). |
+| [`Date`](#date) | A date-time object. | See [Dates](dates.md). |
 | [`List`](#list) | A list of values. | See [Lists](lists.md). |
 | [`Hashmap`](#hashmap) | A dictionary of key-value pairs. | See [Hashmaps](hashmaps.md). |
 | [`Object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_structs.md). |
@@ -60,6 +61,16 @@ hello = "Hello, World!"
 println(hello) # prints: Hello, World!
 ```
 
+### `Date`
+
+Represents a date and time.  See [Dates](dates.md).
+
+```kiwi
+dt = "2023-01-02".to_date()
+
+println(dt) # prints: 1/2/2023 12:00:00 AM
+```
+
 ### `List`
 
 A list of values.  See [Lists](lists.md).
@@ -88,10 +99,7 @@ An instance of a `struct`.  See [Structs](structs.md) and [Abstract Structs](abs
 
 ```kiwi
 # Define an empty struct called `MyStruct`
-struct MyStruct
-  fn new()
-  end
-end
+struct MyStruct end
 
 # Create an instance of `MyStruct`
 inst = MyStruct.new()
@@ -156,5 +164,4 @@ end
 if !null
   println "hello world" # prints: hello world
 end
-
 ```

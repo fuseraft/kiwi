@@ -1,0 +1,23 @@
+package stdin
+  fn read()
+    return __stdin_read__()
+  end
+
+  fn readbytes()
+    return __stdin_readbytes__()
+  end
+
+  fn readline()
+    return __stdin_readline__()
+  end
+
+  fn lines()
+    return __stdin_lines__()
+  end
+
+  fn empty()
+    return __stdin_empty__()
+  end
+end
+
+export "stdin"

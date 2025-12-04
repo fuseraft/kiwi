@@ -1,0 +1,253 @@
+/#
+@summary A package containing functionality for working with time and date information.
+#/
+package time
+  /#
+  @summary Adds a number of days to a date.
+  @params The number of days.
+  @returns The modified date.
+  #/
+  fn add_days(dt: date, n: integer): date
+    return __time_dayadd__(dt, n)
+  end
+
+  /#
+  @summary Adds a number of months to a date.
+  @params The number of months.
+  @returns The modified date.
+  #/
+  fn add_months(dt: date, n: integer): date
+    return __time_monthadd__(dt, n)
+  end
+
+  /#
+  @summary Adds a number of years to a date.
+  @params The number of years.
+  @returns The modified date.
+  #/
+  fn add_years(dt: date, n: integer): date
+    return __time_yearadd__(dt, n)
+  end
+
+  /#
+  @summary Adds a number of hours to a date.
+  @params The number of hours.
+  @returns The modified date.
+  #/
+  fn add_hours(dt: date, n: integer): date
+    return __time_houradd__(dt, n)
+  end
+
+  /#
+  @summary Adds a number of minutes to a date.
+  @params The number of minutes.
+  @returns The modified date.
+  #/
+  fn add_minutes(dt: date, n: integer): date
+    return __time_minuteadd__(dt, n)
+  end
+
+  /#
+  @summary Adds a number of seconds to a date.
+  @params The number of seconds.
+  @returns The modified date.
+  #/
+  fn add_seconds(dt: date, n: integer): date
+    return __time_secadd__(dt, n)
+  end
+
+  /#
+  @summary Adds a number of milliseconds to a date.
+  @params The number of milliseconds.
+  @returns The modified date.
+  #/
+  fn add_milliseconds(dt: date, n: integer): date
+    return __time_millisecadd__(dt, n)
+  end
+  
+  /#
+  @summary Returns the current time as a date value.
+  @returns Date
+  #/
+  fn now(): date
+    return __time_now__()
+  end
+
+  /#
+  @summary Returns the first day of the year
+  @returns The first day of the year
+  #/
+  fn first_day(): date
+    return d(__time_year__(), 1, 1)
+  end
+
+  /#
+  @summary Returns the end of the year
+  @returns The last day of the year
+  #/
+  fn last_day(): date
+    return d(time::year(), 12, 31)
+  end
+
+  /#
+  @summary Get hours since midnight (0 to 23).
+  @returns Integer
+  #/
+  fn hour(): integer
+    return __time_hour__()
+  end
+
+  /#
+  @summary Get minutes after the hour (0 to 59).
+  @returns Integer
+  #/
+  fn minute()
+    return __time_minute__()
+  end
+
+  /#
+  @summary Get seconds after the minute (0 to 60).
+  @returns Integer
+  #/
+  fn second()
+    return __time_second__()
+  end
+
+  /#
+  @summary Get milliseconds after the second (0 to 1000).
+  @returns Integer
+  #/
+  fn millisecond()
+    return __time_millisecond__()
+  end
+
+  /#
+  @summary Get time of day designation for 12 hour clocks as "AM" or "PM".
+  @returns String
+  #/
+  fn ampm()
+    return __time_ampm__()
+  end
+
+  /#
+  @summary Get current timestamp in YYYY/mm/dd hh:mm:ss tt format.
+  @returns String
+  #/
+  fn timestamp()
+    var (year = time::year())
+    var (month = time::month())
+    var (day = time::day())
+    var (hour = time::hour())
+    var (minute = time::minute())
+    var (second = time::second())
+    var (ampm = time::ampm())
+
+    hour -= 12 when hour > 12
+    hour = "0${hour}" when hour < 10
+    minute = "0${minute}" when minute < 10
+    second = "0${second}" when second < 10
+    month = "0${month}" when month < 10
+    day = "0${day}" when day < 10
+
+    return "${year}/${month}/${day} ${hour}:${minute}:${second} ${ampm}"
+  end
+
+  /#
+  @summary Get the day of the month (1 to 31).
+  @returns Integer
+  #/
+  fn day()
+    return __time_monthday__()
+  end
+
+  /#
+  @summary Get months since January (1 to 12).
+  @returns Integer
+  #/
+  fn month()
+    return __time_month__()
+  end
+
+  /#
+  @summary Get the current year.
+  @returns Integer
+  #/
+  fn year()
+    return __time_year__()
+  end
+
+  /#
+  @summary Check if a given year is a leap year.
+  Params:
+    _year: The year to check.
+  @returns Boolean
+  #/
+  fn leapyear(_year: integer)
+    return (_year % 4 == 0 && _year % 100 != 0) || (_year % 400 == 0)
+  end
+  
+  /#
+  @summary Get how many days are in a given month.
+  Params:
+    _year: The year to check.
+    _month: The month to check.
+  @returns Integer
+  #/
+  fn monthdays(_year: integer, _month: integer)
+    if [4, 6, 9, 11].contains(_month)
+      return 30
+    elsif 2 == _month && time::leapyear(_year)
+      return 29
+    elsif 2 == _month
+      return 28
+    else
+      return 31
+    end
+  end
+
+  fn valid_day(_year: integer, _month: integer, _day: integer)
+    return _day > time::monthdays(_year, _month)
+  end
+
+  /#
+  @summary Get the day of the week (1 to 7).
+  @returns Integer
+  #/
+  fn weekday()
+    return __time_weekday__()
+  end
+
+  /#
+  @summary Get the day of the year (0 to 365). December 31st is 364 on leap years.
+  @returns Integer
+  #/
+  fn yearday()
+    return __time_yearday__()
+  end
+
+  /#
+  @summary Get boolean indicating whether it is Daylight Savings Time.
+  @returns Boolean
+  #/
+  fn isdst()
+    return __time_isdst__()
+  end
+
+  /#
+  @summary Get nanoseconds since January 1st, 1970.
+  @returns Float
+  #/
+  fn ticks()
+    return __time_ticks__()
+  end
+
+  /#
+  @summary Converts ticks to milliseconds.
+  @returns Float
+  #/
+  fn ticksms(_ticks: float)
+    return __time_ticksms__(_ticks)
+  end
+end
+
+export "time"

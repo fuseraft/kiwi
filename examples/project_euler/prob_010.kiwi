@@ -1,3 +1,0 @@
-# https://projecteuler.net/problem=10
-
-println(__listprimes__(2000000).sum())

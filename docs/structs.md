@@ -12,7 +12,7 @@ Each concrete struct should define a constructor method, called `new`.
 struct MyStruct
   fn new(name)
     # Use the `@` symbol to declare an instance variable.
-    @name = name 
+    @name = name
   end
 
   fn say_hello()
@@ -36,8 +36,6 @@ Kiwi supports single inheritance. Use the `<` symbol to specify the parent struc
 
 ```kiwi
 struct MySubStruct < MyStruct
-  fn new() end
-
   fn say_goodbye()
     println("Goodbye, ${name}!")
   end
@@ -50,8 +48,6 @@ Methods are defined using the `fn` keyword, followed by the method name and any 
 
 ```kiwi
 struct MyStruct
-  fn new() end
-
   fn my_method(param)
     # Method code here
   end
@@ -64,8 +60,6 @@ The `override` keyword is not required to override `to_string()`.
 
 ```kiwi
 struct KiwiStruct
-  fn new() end
-
   fn to_string()
     return "I am a Kiwi struct"
   end
@@ -83,7 +77,6 @@ Methods declared as static can be invoked directly through the struct and cannot
 
 ```kiwi
 struct MyStruct
-  fn new() end
   static fn static_method()
     println("I can be invoked without an instance!")
   end
@@ -98,8 +91,6 @@ Kiwi supports `private` methods that cannot be called outside the struct definit
 
 ```kiwi
 struct MyStruct
-  fn new() end
-
   private fn my_private_method()
     # Private method code here
   end

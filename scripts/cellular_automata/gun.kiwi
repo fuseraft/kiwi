@@ -1,0 +1,85 @@
+const WIDTH  = 60
+const HEIGHT = 30
+
+fn main()
+  grid = [[false] * WIDTH] * HEIGHT 
+
+  # Gosper Glider Gun in the upper-left quadrant
+  add_gun(grid, 1, 1)
+
+  repeat 1500 do
+    console::clear()
+    print_grid(grid)
+    grid = update(grid)
+  end
+end
+
+fn print_grid(grid: list)
+  for row in grid do
+    row_str = row.map(with (cell) do cell ? "O" : " " end).join()
+    println row_str
+  end
+end
+
+fn add_gun(grid: list, top_left_x: integer, top_left_y: integer)
+  var (gun_coords: list = [
+    [0,4], [0,5], [1,4], [1,5],
+    [10,4], [10,5], [10,6],
+    [11,3], [11,7],
+    [12,2], [12,8],
+    [13,2], [13,8],
+    [14,5],
+    [15,3], [15,7],
+    [16,4], [16,5], [16,6],
+    [17,5],
+    [20,2], [20,3], [20,4],
+    [21,2], [21,3], [21,4],
+    [22,1], [22,5],
+    [24,0], [24,1], [24,5], [24,6],
+    [34,2], [34,3],
+    [35,2], [35,3]
+  ])
+
+  for coord in gun_coords do
+    dx, dy =< coord
+    
+    var (x: integer = top_left_x + dx)
+    var (y: integer = top_left_y + dy)
+
+    grid[y][x] = x.between(0, WIDTH - 1) and y.between(0, HEIGHT - 1)
+  end
+end
+
+fn update(grid: list): list
+  var (new_grid: list = [[false] * WIDTH] * HEIGHT) 
+
+  for y in [0 to HEIGHT - 1] do
+    for x in [0 to WIDTH - 1] do
+      # count neighbors
+      var (alive: boolean = grid[y][x])
+      var (neighbors: integer)
+
+      for dy in [-1, 0, 1] do
+        for dx in [-1, 0, 1] do
+          next when dx == 0 and dy == 0
+          ny = y + dy
+          nx = x + dx
+          if ny.between(0, HEIGHT - 1) and nx.between(0, WIDTH - 1) and grid[ny][nx]
+            neighbors += 1
+          end
+        end
+      end
+
+      # Conway's Game of Life
+      if alive and (neighbors == 2 or neighbors == 3)
+        new_grid[y][x] = true
+      elsif not alive and neighbors == 3
+        new_grid[y][x] = true
+      end
+    end
+  end
+
+  return new_grid
+end
+
+main()

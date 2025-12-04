@@ -1,0 +1,53 @@
+var (
+  strings: list = [],
+  max_depth: integer = 5,
+  alphabet: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".uppercase(),
+  alphabet_size: integer = alphabet.size() - 1
+)
+
+fn get_vehicle(): string
+  var (v: list = [])
+
+  repeat 5 do
+    v.push(alphabet[math::random(0, alphabet_size)])
+  end
+
+  return v.join()
+end
+
+fn get_projects(v: string = ""): list
+  var (
+    t: string = "",
+    c: string = "",
+    p: list
+  )
+
+  repeat math::random(0, 100) as i do
+    t = string::padstart(i, 4, "0")
+
+    repeat math::random(0, 100) as j do
+      c = string::padstart(j, 4, "0")
+      p.push("${v}.${t}.${c}")
+    end
+  end
+
+  return p
+end
+
+fn gen_strings()
+  var (
+    project_strings: list = [],
+  )
+
+  repeat 500 do
+    var (
+      vehicle: string = get_vehicle(),
+      projects: list = get_projects(vehicle)
+    )
+    project_strings.concat(projects)
+  end
+
+  fio::writeln("strings.txt", project_strings)
+end
+
+main()

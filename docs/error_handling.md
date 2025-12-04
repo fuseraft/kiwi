@@ -9,7 +9,7 @@ Kiwi provides robust mechanisms for error handling through the use of `try`, `ca
   - [`finally` block](#finally-block)
 - [Nested `try-catch` Blocks](#nested-try-catch-blocks)
 - [Using `throw` for Custom Errors](#using-throw-for-custom-errors)
-- [Error Hashes](#error-hashmaps)
+- [Error Hashmaps](#error-hashmaps)
 
 ## Basic Error Handling
 
@@ -65,7 +65,7 @@ Kiwi also supports nested `try-catch` blocks, allowing for more granular error h
 fn nested_error_handling_example()
   a = 0, b = 0, c = 0
 
-  for i in [0 .. 1] do
+  for i in [0, 1] do
     try
       a += 1
       println "${i / 0}"  # This will throw a division by zero error

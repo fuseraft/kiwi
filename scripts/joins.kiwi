@@ -1,0 +1,138 @@
+#!/usr/bin/env kiwi
+
+/#
+N+1: one of the most common performance traps in data-heavy scripting languages.
+
+This program demonstrates the real-world cost of writing joins the way humans 
+naturally read SQL versus the way databases actually execute them.
+
+With just over 1 million users and a handful of groups, two logically identical queries
+produce the same correct result, but one takes over half a second, the other finishes
+in thirty microseconds. This is a 17000x difference.
+
+Pedagogical clarity is great for learning.
+Production performance is great for shipping.
+
+You can have both, but only if you filter early, join from the mapping table,
+and never let an O(n^2) or O(n^3) query sneak into your script disguised
+as "readable" nested filters.
+#/
+
+# This is a simple schema with some mock data. We'll add more users later.
+tables = {
+  "users": [
+    { "user_id": 1,  "user_name": "alice",   "active": true,  "country": "NZ"  },
+    { "user_id": 2,  "user_name": "bob",     "active": true,  "country": "AU"  },
+    { "user_id": 3,  "user_name": "carol",   "active": false, "country": "NZ"  },
+    { "user_id": 4,  "user_name": "dave",    "active": true,  "country": "US"  },
+    { "user_id": 5,  "user_name": "eve",     "active": true,  "country": "NZ"  },
+    { "user_id": 6,  "user_name": "frank",   "active": true,  "country": "UK"  },
+    { "user_id": 7,  "user_name": "grace",   "active": false, "country": "CA"  },
+    { "user_id": 8,  "user_name": "heidi",   "active": true,  "country": "NZ"  },
+    { "user_id": 9,  "user_name": "ivan",    "active": true,  "country": "NZ"  },
+    { "user_id": 10, "user_name": "judy",    "active": true,  "country": "AU"  }
+  ],
+
+  "groups": [
+    { "group_id": 101, "group_name": "kiwi-dev",      "region": "APAC", "public": true  },
+    { "group_id": 102, "group_name": "kiwi-core",  "region": "APAC", "public": false },
+    { "group_id": 103, "group_name": "open-source",   "region": "GLOBAL", "public": true },
+    { "group_id": 104, "group_name": "aot-experts",   "region": "APAC", "public": false },
+    { "group_id": 105, "group_name": "beta-testers",  "region": "GLOBAL", "public": true },
+    { "group_id": 106, "group_name": "night-owls",    "region": "GLOBAL", "public": false }
+  ],
+
+  "group_users": [
+    { "group_id": 101, "user_id": 1  },
+    { "group_id": 101, "user_id": 5  },
+    { "group_id": 101, "user_id": 8  },
+    { "group_id": 101, "user_id": 9  },
+    { "group_id": 102, "user_id": 1  },
+    { "group_id": 102, "user_id": 2  },
+    { "group_id": 103, "user_id": 1  },
+    { "group_id": 103, "user_id": 4  },
+    { "group_id": 103, "user_id": 6  },
+    { "group_id": 104, "user_id": 5  },
+    { "group_id": 104, "user_id": 9  },
+    { "group_id": 105, "user_id": 2  },
+    { "group_id": 105, "user_id": 8  },
+    { "group_id": 106, "user_id": 1  },
+    { "group_id": 106, "user_id": 5  }
+  ]
+}
+
+# This is a function for measuring the time it takes to execute our queries.
+fn clock_it(message: string, callback: lambda)
+  println "Measuring: ${message}"
+  start = time::ticks()
+  callback()
+  stop = time::ticks()
+  duration = time::ticksms(stop - start)
+  println "Finished in ${duration}ms"
+end
+
+# This is a function for generating n number of users.
+fn add_users(n: integer)
+  alpha = "abcdefghijklmnopqrstuvwxyz"
+  max_user_id = tables.users.map(with (u) do u.user_id end).max()
+  repeat n as i do
+    print "\rAdding users... ${((i.to_float() / n.to_float()) * 100).to_integer()}%"
+    next_user_id = max_user_id + i
+    next_user_name = [0..4].map(with (n) do
+      alpha[math::random(0, alpha.size() - 1)]
+    end).join()
+    tables.users.concat({
+      user_id: next_user_id, 
+      user_name: next_user_name,
+      active: true,
+      country: "US"
+    })
+  end
+  println ""
+end
+
+# Add one million users
+add_users(1000000)
+
+/#
+-- We're going to try to simulate the following query in Kiwi:
+SELECT g.group_id, g.group_name 
+FROM users u
+JOIN group_users gu ON u.user_id = gu.user_id
+JOIN groups g on gu.group_id = g.group_id
+WHERE u.user_id = 2
+#/
+
+clock_it("pedagogical clarity", with () do
+  println tables.users.filter(with (u) do u.user_id == 2 end)
+    .map(with (u) do
+      tables.group_users.filter(with (gu) do u.user_id == gu.user_id end)
+    end)
+    .flatten()
+    .map(with (gu) do
+      tables.groups.filter(with (g) do gu.group_id == g.group_id end)
+    end)
+    .flatten()
+    .map(with (g) do { group_id: g.group_id, group_name: g.group_name } end)
+end)
+
+clock_it("more like a database engine", with () do
+  println tables.group_users
+    .filter(with (gu) do gu.user_id == 2 end)
+    .map(with (gu) do
+      tables.groups.filter(with (g) do g.group_id == gu.group_id end)
+    end)
+    .flatten()
+    .map(with (g) do { group_id: g.group_id, group_name: g.group_name } end)
+end)
+
+/#
+scs@kiwi:~/github/kiwi$ kiwi hello
+Adding users... 100%
+Measuring: pedagogical clarity
+[{"group_id": 102, "group_name": "kiwi-core"}, {"group_id": 105, "group_name": "beta-testers"}]
+Finished in 517.313616ms
+Measuring: more like a database engine
+[{"group_id": 102, "group_name": "kiwi-core"}, {"group_id": 105, "group_name": "beta-testers"}]
+Finished in 0.033183ms
+#/

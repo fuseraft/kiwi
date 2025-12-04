@@ -19,8 +19,8 @@ package excited_greeter
 end
 
 # Importing packages.
-import "greeter"
-import "excited_greeter"
+export "greeter"
+export "excited_greeter"
 
 # Invoking their methods.
 greeter::greet("World")

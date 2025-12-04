@@ -49,11 +49,11 @@ end
 a = 0, b = 1
 
 if a < b
-  println("${a} is less than ${b}")
+  println "${a} is less than ${b}"
 elsif a > b
-  println("${a} is greater than ${b}")
+  println "${a} is greater than ${b}"
 else
-  println("${a} is equal to ${b}")
+  println "${a} is equal to ${b}"
 end
 ```
 
@@ -63,39 +63,39 @@ The `case` keyword is used to define a case statement.
 
 #### Example: `case`
 
-```hayward
+```kiwi
 dt = time::now()
 
 # A `case` statement without a test.
 case
-    when dt.hour() < 12
-        println "good morning"
-    when dt.hour() < 17
-        println "good afternoon"
-    when dt.hour() < 21
-        println "good evening"
-    else
-        println "good night"
-end
+  when dt.hour() < 12
+    println "good morning"
+  when dt.hour() < 17
+    println "good afternoon"
+  when dt.hour() < 21
+    println "good evening"
+  else
+    println "good night"
+  end
 
 # A `case` statement with a test and an alias for the test value (for better hallway vision).
 case dt.hour() as hour
-    when hour < 12
-        println "good morning"
-    when hour < 17
-        println "good afternoon"
-    when hour < 21
-        println "good evening"
-    else
-        println "good night, the time is: ${dt}"
-end
+  when hour < 12
+    println "good morning"
+  when hour < 17
+    println "good afternoon"
+  when hour < 21
+    println "good evening"
+  else
+    println "good night, the time is: ${dt}"
+  end
 
 # Using a `case` statement to assign a value conditionally.
 x = case dt.hour() as hour
-        when hour < 12 "morning"
-        when hour < 17 "afternoon"
-        when hour < 21 "evening"
-        else "night"
+      when hour < 12 "morning"
+      when hour < 17 "afternoon"
+      when hour < 21 "evening"
+      else "night"
     end
 ```
 
@@ -118,10 +118,10 @@ control_structure [ expression ] when condition
 #### Example: `when`
 
 ```kiwi
-fn sum(list)
-  throw "Cannot sum a non-List value." when !list.is_a(List)
-  return 0 when list.empty()
-  return list.sum()
+fn sum(numbers)
+  throw "Cannot sum a non-List value." when !numbers.is_a(List)
+  return 0 when numbers.empty()
+  return numbers.sum()
 end
 
 println(sum([1, 2])) # prints: 3

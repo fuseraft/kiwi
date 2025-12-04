@@ -1,0 +1,138 @@
+package iter
+  /#
+  An implementation of the iterator pattern.
+  #/
+  fn __version__()
+    return "0.0.2"
+  end
+end
+
+struct ListIterator
+  # Creates a new iterator over a list
+  # list_data: the list to iterate
+  # default: value returned when out of bounds (default: null)
+  fn new(list_data: list, default: any = null)
+    @list_data = list_data
+    @len       = list_data.size()
+    @pos       = 0
+    @default   = default
+  end
+
+  # Advance the cursor by n
+  fn consume(n: integer = 0)
+    @pos += n + 1
+  end
+
+  # Skip forward n elements (clamped to end)
+  fn skip(n: integer = 1)
+    @pos = [@pos + n, @len].min()
+  end
+
+  # Rewind backward n elements (clamped to 0)
+  fn rewind(n: integer = 1)
+    @pos = [@pos - n, 0].max()
+  end
+
+  # Can we read current position?
+  fn can_read()
+    return @pos < @len
+  end
+
+  # Are we at the end?
+  fn eof()
+    return !can_read()
+  end
+
+  # Current value (or default if out of bounds)
+  fn current()
+    return @pos < @len ? @list_data[@pos] : @default
+  end
+
+  # Next value without consuming
+  fn peek()
+    return @pos + 1 < @len ? @list_data[@pos + 1] : @default
+  end
+
+    # Reset to beginning
+  fn reset()
+    @pos = 0
+  end
+
+  # Remaining elements as list
+  fn remaining()
+    return can_read() ? @list_data[@pos::] : []
+  end
+
+  # Get value at absolute index (safe)
+  fn grab(index: integer)
+    return (index >= 0 && index < @len) ? @list_data[index] : @default
+  end
+
+  # Get value relative to end: reach(-1) = last element
+  fn reach(offset: integer)
+    index = offset
+
+    # Handle negative offsets: convert to positive index from end
+    if offset < 0
+      index = @len + offset
+    end
+
+    # Bounds check
+    if index >= 0 && index < @len
+      return @list_data[index]
+    else
+      return @default
+    end
+  end
+
+  # Current position (0-based)
+  fn position()
+    return @pos
+  end
+
+  # Total length of list
+  fn length()
+    return @len
+  end
+
+  # Skip over consecutive default values
+  fn skip_defaults()
+    while can_read() && current() == @default do
+      consume()
+    end
+  end
+
+  # Look ahead: first non-default value from current position
+  fn look_ahead()
+    if !can_read()
+      return @default
+    end
+
+    for i in [@pos .. @len - 1] do
+      var (val: any = @list_data[i])
+      if val != @default
+        return val
+      end
+    end
+    return @default
+  end
+
+  # Count how many default values are ahead
+  fn count_ahead()
+    if !can_read()
+      return 0
+    end
+
+    var (count: integer = 0)
+    for i in [@pos .. @len - 1] do
+      if @list_data[i] == @default
+        count += 1
+      else
+        break
+      end
+    end
+    return count
+  end
+end
+
+export "iter"

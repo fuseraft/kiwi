@@ -1,0 +1,17 @@
+/#
+the new file extension is `.kiwi`
+#/
+
+var (old_extension: string = ".kiwi",
+     new_extension: string = ".kiwi")
+
+for path in fio::glob("./", ["./**/*${old_extension}"]) do
+  var (filename:    string = fio::filename(path),
+       new_path:    string = fio::combine([
+                                fio::parentdir(path), 
+                                filename.replace(fio::ext(path), new_extension)
+                             ]))
+
+  println "moving ${path} to ${new_path}"
+  fio::move(path, new_path)
+end

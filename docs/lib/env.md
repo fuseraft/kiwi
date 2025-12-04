@@ -5,23 +5,62 @@ The `env` package contains functionality for working with environment variables.
 ## Table of Contents
 
 - [Package Functions](#package-functions)
+  - [`all()`](#all)
+  - [`argv()`](#argv)
+  - [`opt(_key)`](#opt_key)
   - [`get(_varname)`](#get_varname)
-  - [`getvars()`](#getvars)
   - [`set(_varname, _varvalue)`](#set_varname-_varvalue)
-  - [`kiwi()`](#kiwi)
-  - [`kiwilib()`](#kiwilib)
-  - [`unset(_varname)](#unset_varname)
+  - [`bin()`](#bin)
+  - [`lib()`](#lib)
 
 ## Package Functions
 
-### `getvars()`
+### `all()`
 
-Returns a hashmap where each key-value pair is an environment variable and value.
+Get environment variables as a hashmap.
 
 **Returns**
 | Type | Description |
 | :--- | :---|
 | `Hashmap` | A hashmap representing system environment variables. |
+
+### `argv()`
+
+Get the list of command-line arguments supplied to the program.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `List` | A list of command-line arguments. |
+
+### `opt(_key)`
+Get a KVP command-line option value by key.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `String` | `_key` | The option key.|
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `String` | The option value. |
+
+## KVP Command-Line Options
+
+You can pass a named command-line argument in the form of a key-value pair.
+
+```bash
+kiwi -key=value
+kiwi --key=value
+kiwi /key=value
+```
+
+You can pull these values using this package.
+
+```kiwi
+println(env::opt("key")) # prints: value
+```
 
 ### `get(_varname)`
 
@@ -52,21 +91,7 @@ Set an environment variable.
 | :--- | :---|
 | `Boolean` | `true` on success. |
 
-### `unset(_varname)`
-
-Unset an environment variable.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `String` | `_varname` | The environment variable name to 
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `Boolean` | `true` on success. |
-
-### `kiwi()`
+### `bin()`
 
 Returns a string containing the path to the Kiwi executable.
 
@@ -75,7 +100,7 @@ Returns a string containing the path to the Kiwi executable.
 | :--- | :---|
 | `String` | Path to Kiwi. |
 
-### `kiwilib()`
+### `lib()`
 
 Returns a string containing the path to the Kiwi Standard Library.
 

@@ -1,0 +1,35 @@
+{
+    "name": "kiwi",
+    "version": "1.2.1",
+    "file_extensions": {
+      "primary": ".kiwi",
+      "minified": ".min.kiwi",
+      "recognized": [
+        ".min.kiwi",
+        ".kiwi",
+        ".min.🥝",
+        ".🥝"
+      ]
+    },
+    "standard_library": [
+      {
+        "autoload": true,
+        "path": "../lib",
+        "include_subdirectories": true
+      }
+    ],
+    "safemode": true,
+    "debug": {
+      "cli_args": [
+        "~/github/kiwi/hello",
+        "20",
+        "--stdlib-path",
+        "~/github/kiwi/lib"
+      ]
+    },
+    "environment_variables": {
+      "_KIWI": ""
+    },
+    "crashdump_path": "../kiwi_crash.log"
+  }
+  

@@ -1,6 +1,0 @@
-# rename this file to .🥝 or .kiwi and run it with `kiwi timer`
-
-for i in [1..10] do
-  println("Current timestamp: ${time::timestamp()}")
-  time::delay(1000)
-end
