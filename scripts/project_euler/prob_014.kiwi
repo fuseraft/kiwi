@@ -1,0 +1,23 @@
+# https://projecteuler.net/problem=14
+
+limit = 1000000, lengths = [0, 1]
+
+for i in [2 .. limit - 1] do
+  n = i
+  length = 0
+
+  while n != 1 && n >= i do
+    length += 1
+
+    if n % 2 == 0 
+      n /= 2
+    else
+      n = 3 * n + 1
+    end
+  end
+  
+  lengths.push(length + lengths[n])
+end
+
+maxvalue = lengths.max(), number = lengths.index(maxvalue)
+println("max value = ${maxvalue}, number = ${number}")

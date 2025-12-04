@@ -1,0 +1,45 @@
+# https://projecteuler.net/problem=7
+
+fn is_prime(n: integer): boolean
+  return false when n < 2
+  return true when n == 2 or n == 3
+  return false when n % 2 == 0 or n % 3 == 0
+
+  # Test divisors up to sqrt(n) using 6k±1 wheel
+  i = 5
+  while i * i <= n do
+    if n % i == 0 || n % (i + 2) == 0
+      return false
+    end
+    i = i + 6
+  end
+
+  return true
+end
+
+fn nth_prime(n: integer): integer
+  return 2 when n == 1
+  return 3 when n == 2
+
+  count = 2          # we already have 2 and 3
+  candidate = 5
+
+  while count < n do
+    if is_prime(candidate)
+      count = count + 1
+      if count == n
+        return candidate
+      end
+    end
+    candidate = candidate + 2   # skip even numbers
+  end
+
+  return -1  # unreachable
+end
+
+start = time::ticks()
+result = nth_prime(10001)
+elapsed = time::ticksms(time::ticks() - start)
+
+println "The 10,001st prime is: ${result}"
+println "Computed in ${elapsed}ms"

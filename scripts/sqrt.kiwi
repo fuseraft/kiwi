@@ -1,0 +1,16 @@
+fn sqrt(x)
+  z = 1.0
+  tolerance = math::eps()
+
+  while true do
+    nextZ = z - (z * z - x) / (2 * z)
+    break when math::abs(z - nextZ) < tolerance
+    z = nextZ    
+  end
+
+  return z
+end
+
+repeat 100 as n do
+  println "sqrt(${n}) = ${sqrt(n)}"
+end

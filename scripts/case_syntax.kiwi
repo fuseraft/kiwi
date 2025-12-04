@@ -1,0 +1,32 @@
+dt = time::now()
+
+case
+    when dt.hour() < 12
+        println "good morning"
+    when dt.hour() < 17
+        println "good afternoon"
+    when dt.hour() < 21
+        println "good evening"
+    else
+        println "good night"
+end
+
+case dt.hour() as hour
+    when hour < 12
+        println "good morning"
+    when hour < 17
+        println "good afternoon"
+    when hour < 21
+        println "good evening"
+    else
+        println "good night, the time is: ${dt}"
+end
+
+x = case dt.hour() as hour
+        when hour < 12 "morning"
+        when hour < 17 "afternoon"
+        when hour < 21 "evening"
+        else "night"
+    end
+
+println x

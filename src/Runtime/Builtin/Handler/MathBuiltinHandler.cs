@@ -13,8 +13,10 @@ public static class MathBuiltinHandler
         {
             TokenName.Builtin_Math_Abs => Abs(token, args),
             TokenName.Builtin_Math_Ceil => Ceil(token, args),
+            TokenName.Builtin_Math_Epsilon => Eps(token, args),
             TokenName.Builtin_Math_Floor => Floor(token, args),
             TokenName.Builtin_Math_Random => Random(token, args),
+            TokenName.Builtin_Math_Sqrt => Sqrt(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
@@ -42,6 +44,13 @@ public static class MathBuiltinHandler
         ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.Ceil, 0, args[0]);
 
         return Value.CreateFloat(Math.Ceiling(args[0].GetFloat()));
+    }
+
+    private static Value Eps(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, MathBuiltin.Epsilon, 0, args.Count);
+
+        return Value.CreateFloat(double.Epsilon);
     }
 
     private static Value Floor(Token token, List<Value> args)
@@ -95,5 +104,14 @@ public static class MathBuiltinHandler
         }
 
         return Value.CreateFloat(System.Random.Shared.NextDouble());
+    }
+
+    private static Value Sqrt(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, MathBuiltin.Sqrt, 1, args.Count);
+
+        ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.Sqrt, 0, args[0]);
+
+        return Value.CreateFloat(Math.Sqrt(args[0].GetFloat()));
     }
 }

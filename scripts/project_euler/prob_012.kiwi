@@ -1,0 +1,42 @@
+# https://projecteuler.net/problem=12
+
+fn count_divisors(n: integer): integer
+  return 0 when n == 0
+
+  count = 0
+  # Only check up to sqrt(n), symmetry does the rest
+  for i in [1..math::sqrt(n.to_float()).to_integer()] do
+    if n % i == 0 then
+      count = count + (i * i == n ? 1 : 2)  # perfect square has one middle divisor
+    end
+  end
+
+  return count
+end
+
+fn solve(min_divisors: integer): integer
+  triangle = 0
+  n = 1
+
+  while true do
+    triangle = triangle + n
+    divisors = count_divisors(triangle)
+
+    if divisors > min_divisors then
+      return triangle
+    end
+
+    n = n + 1
+  end
+
+  return -1  # unreachable
+end
+
+# Time it
+start = time::ticks()
+result = solve(500)
+elapsed = time::ticksms(time::ticks() - start)
+
+println "First triangle number with >500 divisors: ${result}"
+println "Number of divisors: ${count_divisors(result)}"
+println "Computed in ${elapsed}ms"

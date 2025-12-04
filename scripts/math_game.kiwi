@@ -1,0 +1,36 @@
+println("This is a simple but fun math game! Enter `x` at anytime to end the game.")
+
+correct = 0
+total = 0
+
+while true do
+  number1 = math::random(1, 10)
+  number2 = math::random(1, 10)
+  real_answer = number1 + number2
+  user_answer = input("${number1} + ${number2} = ")
+  break when user_answer == "x"
+  
+  try
+    total += 1
+    
+    if user_answer.to_integer() == real_answer
+      println("right!")
+      correct += 1
+    else
+      println("wrong...")
+    end
+  catch
+    println("not a number!")
+  end
+end
+
+score = ((correct.to_float() / [total, 1].max()) * 100).to_integer()
+print("Your score is ${score}%...")
+
+if score >= 100   println("A+")
+elsif score >= 90 println("A")
+elsif score >= 80 println("B")
+elsif score >= 70 println("C")
+elsif score >= 60 println("D")
+else              println("F")
+end

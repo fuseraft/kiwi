@@ -1,0 +1,23 @@
+# https://projecteuler.net/problem=4
+
+max_palindrome = 0
+products = []
+
+for i in [100..999].reverse() do
+  for j in [100..i].reverse() do
+    product = i * j
+    product_str = product.to_string()
+    reversed = product_str.reverse()
+    if product_str == reversed
+      products.push(product)
+    end
+  end
+end
+
+for product in products do
+  if product > max_palindrome
+    max_palindrome = product
+  end
+end
+
+println(max_palindrome)
