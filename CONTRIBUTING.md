@@ -47,7 +47,7 @@ Here's how to submit a pull request:
 
 Before you submit a pull request, please test your changes.
 
-1. Add your test script to the [test suite](scripts/test.kiwi).
+1. Add your test script to the [test suite](tests/test.kiwi).
 2. Run the test suite through Kiwi.
 
 ## Styleguides

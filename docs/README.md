@@ -1,4 +1,4 @@
-# About Kiwi
+# Kiwi Docs
 
 1. **Getting Started**
    - [Using the Kiwi CLI](cli.md)
