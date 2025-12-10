@@ -1010,6 +1010,10 @@ public class Interpreter
         {
             return Value.True;
         }
+        else if (node.Op == TokenName.Ops_NullCoalesce && !left.IsNull())
+        {
+            return left;
+        }
 
         var right = Interpret(node.Right);
         return OpDispatch.DoBinary(node.Token, node.Op, ref left, ref right);

@@ -320,7 +320,6 @@ public class Lexer : IDisposable
             '[' or ']' => TokenizeBracket(span, c),
             '{' or '}' => TokenizeBrace(span, c),
             '#' => TokenizeComment(span),
-            '?' => CreateToken(TokenType.Question, span, "?"),
             '/' when PeekChar() == '#' => TokenizeBlockComment(span),
             _ => TokenizeOperator(span, c),
         };
