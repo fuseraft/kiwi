@@ -2072,12 +2072,13 @@ public partial class Parser
     {
         var left = ParseLogicalAnd();
 
-        while (stream.CanRead && GetTokenName() == TokenName.Ops_Or)
+        while (stream.CanRead && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
         {
-            Next();  // Consume '||'
+            var op = GetTokenName();
+            Next();  // Consume '||' or '??'
 
             var right = ParseLogicalAnd();
-            left = new BinaryOperationNode(left, TokenName.Ops_Or, right);
+            left = new BinaryOperationNode(left, op, right);
         }
 
         return left;
