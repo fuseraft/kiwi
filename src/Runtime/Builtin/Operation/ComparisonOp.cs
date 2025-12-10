@@ -8,6 +8,8 @@ public struct ComparisonOp
 
     public static Value NotEqual(ref Value left, ref Value right) => Value.CreateBoolean(!BooleanOp.IsSame(left, right));
 
+    public static Value NullCoalesce(ref Value left, ref Value right) => left.IsNull() ? right : left;
+
     public static Value LessThan(ref Value left, ref Value right) => Value.CreateBoolean(GetLtResult(ref left, ref right));
 
     public static Value LessThanOrEqual(ref Value left, ref Value right) => Value.CreateBoolean(GetLteResult(ref left, ref right));

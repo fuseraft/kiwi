@@ -1805,12 +1805,7 @@ public partial class Parser
                 new IdentifierNode(identifierName));
         }
 
-        if (!MatchName(TokenName.Ops_Assign))
-        {
-            throw new SyntaxError(GetErrorToken(), "Expected an unpack operator, '=<', in pack assignment.");
-        }
-
-        if (!MatchName(TokenName.Ops_LessThan))
+        if (!MatchName(TokenName.Ops_Unpack))
         {
             throw new SyntaxError(GetErrorToken(), "Expected an unpack operator, '=<', in pack assignment.");
         }
@@ -2021,7 +2016,7 @@ public partial class Parser
             case TokenType.Qualifier when Peek().Type == TokenType.Identifier:
                 node = ParseQualifiedIdentifier(identifierName);
                 break;
-            case TokenType.Comma when !packed && LookAhead([TokenName.Ops_Assign, TokenName.Ops_LessThan]):
+            case TokenType.Comma when !packed && LookAhead([TokenName.Ops_Unpack]):
                 node = ParsePackAssignment(node);
                 break;
             default:
@@ -2077,12 +2072,13 @@ public partial class Parser
     {
         var left = ParseLogicalAnd();
 
-        while (stream.CanRead && GetTokenName() == TokenName.Ops_Or)
+        while (stream.CanRead && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
         {
-            Next();  // Consume '||'
+            var op = GetTokenName();
+            Next();  // Consume '||' or '??'
 
             var right = ParseLogicalAnd();
-            left = new BinaryOperationNode(left, TokenName.Ops_Or, right);
+            left = new BinaryOperationNode(left, op, right);
         }
 
         return left;
