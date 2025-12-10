@@ -108,33 +108,6 @@ public struct BitwiseOp
         return Value.CreateInteger(res);
     }
 
-    /*
-    KValue do_bitwise_urshift(const Token& token, KValue& left,
-                            const KValue& right, const bool& doAssign = false) {
-    if (!left.isInteger() || !right.isInteger()) {
-      throw ConversionError(token,
-                            "Conversion error in bitwise >>> operation.");
-    }
-
-    auto a = left.getInteger();
-    auto b = right.getInteger();
-
-    if (b >= static_cast<k_int>(32)) {
-      return {};
-    }
-
-    unsigned int a_int = static_cast<unsigned int>(a);
-    k_int res = static_cast<k_int>(a_int >> b);
-
-    if (doAssign) {
-      left.set(res, KValueType::_INTEGER);
-      return left;
-    }
-
-    return KValue::createInteger(res);
-  }
-    */
-
     public static Value Rightshift(Token token, ref Value left, ref Value right, bool doAssign = false)
     {
         if (!left.IsInteger() || !right.IsInteger())

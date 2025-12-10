@@ -345,42 +345,118 @@ public class Lexer : IDisposable
 
     private Token TokenizeOperator(TokenSpan span, char c)
     {
-        var text = string.Empty + c;
+        var sb = new System.Text.StringBuilder();
+        sb.Append(c);
 
-        if (stream.CanRead)
+        char Consume()
         {
-            char? nc = PeekChar();
-            bool isArithmeticOpChar = c is '+' or '*' or '-' or '/' or '%';
-            bool isBooleanOpChar = c is '|' or '&' or '=' or '!' or '<' or '>';
-            bool isArithmeticOp = (nc == '=' && (isArithmeticOpChar || isBooleanOpChar)) ||
-                (c == '*' && nc == '*');
-            bool isBooleanOp = (nc == '|' || nc == '&') && isBooleanOpChar;
-            bool isBitwiseOp =
-                ((c == '|' || c == '&' || c == '^' || c == '~') && nc == '=') ||
-                (c == '<' && nc == '<') ||
-                (c == '>' && nc == '>');
-
-            if (isArithmeticOp || isBooleanOp || isBitwiseOp)
-            {
-                text += nc;
-                nc = GetChar();
-
-                if ((nc == '=' && (text == "**" || text == "||" || text == "&&" || text == "<<" || text == ">>")) ||
-                    (nc == '>' && text == ">>"))
-                {
-                    text += nc;
-                    nc = PeekChar();
-
-                    if (nc == '=' && text == ">>>")
-                    {
-                        text += nc;
-                        GetChar();
-                    }
-                }
-            }
+            var ch = GetChar();
+            if (ch != null) sb.Append(ch.Value);
+            return ch ?? '\0';
         }
 
-        var name = GetOperatorName(text);
+        // op chars: ! + - * / % = < > | & ^ ~ ?
+        while (true)
+        {
+            char? next = PeekChar();
+            if (next == null)
+            {
+                break;
+            }
+
+            if (!"!+-*/%=<>&|^~?".Contains(next.Value))
+            {
+                break;
+            }
+
+            // null-coalesce
+            if (sb.Length == 1 && sb[0] == '?' && next == '?')
+            {
+                Consume();
+                continue;
+            }
+
+            // Don't allow more than 3 chars unless it's >>> or >>>=
+            if (sb.Length >= 3 && !(sb.ToString() == ">>>" && next == '='))
+            {
+                break;
+            }
+
+            // Don't allow ?? followed by anything
+            if (sb.ToString() == "??")
+            {
+                break;
+            }
+
+            Consume();
+        }
+
+        string text = sb.ToString();
+
+        TokenName name = text switch
+        {
+            // 4-char
+            ">>>=" => TokenName.Ops_BitwiseUnsignedRightShiftAssign,
+
+            // 3-char
+            ">>>" => TokenName.Ops_BitwiseUnsignedRightShift,
+            "**=" => TokenName.Ops_ExponentAssign,
+            "||=" => TokenName.Ops_OrAssign,
+            "&&=" => TokenName.Ops_AndAssign,
+            "<<=" => TokenName.Ops_BitwiseLeftShiftAssign,
+            ">>=" => TokenName.Ops_BitwiseRightShiftAssign,
+
+            // 2-char
+            "=<" => TokenName.Ops_Unpack,
+            "+=" => TokenName.Ops_AddAssign,
+            "-=" => TokenName.Ops_SubtractAssign,
+            "*=" => TokenName.Ops_MultiplyAssign,
+            "/=" => TokenName.Ops_DivideAssign,
+            "%=" => TokenName.Ops_ModuloAssign,
+            "|=" => TokenName.Ops_BitwiseOrAssign,
+            "&=" => TokenName.Ops_BitwiseAndAssign,
+            "^=" => TokenName.Ops_BitwiseXorAssign,
+            "~=" => TokenName.Ops_BitwiseNotAssign,
+            "==" => TokenName.Ops_Equal,
+            "!=" => TokenName.Ops_NotEqual,
+            "<=" => TokenName.Ops_LessThanOrEqual,
+            ">=" => TokenName.Ops_GreaterThanOrEqual,
+            "<<" => TokenName.Ops_BitwiseLeftShift,
+            ">>" => TokenName.Ops_BitwiseRightShift,
+            "||" => TokenName.Ops_Or,
+            "&&" => TokenName.Ops_And,
+            "??" => TokenName.Ops_NullCoalesce,
+            "**" => TokenName.Ops_Exponent,
+
+            // 1-char
+            "=" => TokenName.Ops_Assign,
+            "!" => TokenName.Ops_Not,
+            "+" => TokenName.Ops_Add,
+            "-" => TokenName.Ops_Subtract,
+            "*" => TokenName.Ops_Multiply,
+            "/" => TokenName.Ops_Divide,
+            "%" => TokenName.Ops_Modulus,
+            "<" => TokenName.Ops_LessThan,
+            ">" => TokenName.Ops_GreaterThan,
+            "|" => TokenName.Ops_BitwiseOr,
+            "&" => TokenName.Ops_BitwiseAnd,
+            "^" => TokenName.Ops_BitwiseXor,
+            "~" => TokenName.Ops_BitwiseNot,
+            "?" => TokenName.Ops_Question, // ternary
+
+            _ => TokenName.Default
+        };
+
+        // If unknown, treat as error or fallback
+        if (name == TokenName.Default)
+        {
+            return CreateToken(TokenType.Error, span, text);
+        } 
+        else if (name == TokenName.Ops_Question)
+        {
+            // ternary
+            return CreateToken(TokenType.Question, span, "?");
+        }
 
         return CreateToken(TokenType.Operator, span, text, name);
     }
