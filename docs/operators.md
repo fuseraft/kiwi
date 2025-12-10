@@ -1,50 +1,84 @@
 # Operators
 
-Kiwi offers many different operators for performing every day programming operations.
+Kiwi provides a rich set of operators with modern syntax and predictable precedence.
 
-| **Operator Category / Name** | **Operator** | **Operator Type** |
-| ------------ | -------- | --------------- |
-| ***Arithmetic Operators*** | | |
-| Subtract | `-` | Binary |
-| Add | `+` | Binary |
-| Modulus | `%` | Binary |
-| Divide  | `/` | Binary |
-| Multiply | `*` | Binary |
-| Exponent | `**` | Binary |
-| ***Assignment Operators*** | | |
-| Assign | `=` | Assignment |
-| Unpack Assign | `=<` | Assignment |
-| Subtract Assign | `-=` | Assignment |
-| Add Assign | `+=` | Assignment |
-| Modulo Assign | `%=` | Assignment |
-| Divide Assign | `/=` | Assignment |
-| Multiply Assign | `*=` | Assignment |
-| Exponent Assign | `**=` | Assignment |
-| ***Comparison Operators*** | | |
-| Equal | `==` | Comparison |
-| Not Equal | `!=` | Comparison |
-| Less Than | `<` | Comparison |
-| Less Than Or Equal | `<=` | Comparison |
-| Greater Than | `>` | Comparison |
-| Greater Than Or Equal | `>=` | Comparison |
-| ***Logical Operators*** | | |
-| Logical OR | `\|\|`  | Binary |
-| Logical AND | `&&` | Binary |
-| Logical NOT | `!` | Unary |
-| ***Logical Assignment Operators*** | | |
-| Logical OR Assign | `\|\|=`  | Assignment |
-| Logical AND Assign | `&&=` | Assignment |
-| ***Bitwise Operators*** | | |
-| Bitwise OR | `\|`  | Binary |
-| Bitwise AND | `&` | Binary |
-| Bitwise XOR | `^` | Binary |
-| Bitwise NOT | `~` | Unary |
-| Bitwise Left Shift | `<<` | Binary |
-| Bitwise Right Shift | `>>` | Binary |
-| ***Bitwise Assignment Operators*** | | |
-| Bitwise OR Assignment | `\|=` | Assignment |
-| Bitwise AND Assignment | `&=` | Assignment |
-| Bitwise XOR Assignment | `^=` | Assignment |
-| Bitwise NOT Assignment | `~=` | Assignment |
-| Bitwise Left Shift Assignment | `<<=` | Assignment |
-| Bitwise Right Shift Assignment | `>>=` | Assignment |
+# Table of Contents
+- [Arithmetic Operators](#arithmetic-operators)
+- [Comparison Operators](#comparison-operators)
+- [Null-Coalescing Operator](#null-coalescing-operator)
+- [Logical Operators](#logical-operators)
+- [Bitwise Operators](#bitwise-operators)
+- [Assignment Operators](#assignment-operators)
+- [Logical Assignment Operators](#logical-assignment-operators)
+- [Bitwise Assignment Operators](#bitwise-assignment-operators)
+
+### Arithmetic Operators
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Subtract | `-` | Binary | `a - b` |
+| Add | `+` | Binary  | `a + b` |
+| Modulus | `%` | Binary  | `a % b` |
+| Divide  | `/` | Binary  | `a / b` |
+| Multiply | `*` | Binary  | `a * b` |
+| Exponent | `**` | Binary  | `a ** b` |
+
+### Comparison Operators
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Equal | `==` | Comparison | `a == b` |
+| Not Equal | `!=` | Comparison | `a != b` |
+| Less Than | `<` | Comparison | `a < b` |
+| Less Than Or Equal | `<=` | Comparison | `a <= b` |
+| Greater Than | `>` | Comparison | `a > b` |
+| Greater Than Or Equal | `>=` | Comparison | `a >= b` |
+
+### Null-Coalescing Operator
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Null-Coalesce | `??` | Binary | `a ?? b` |
+
+### Logical Operators
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Logical OR | `\|\|`  | Binary | `a \|\| b` |
+| Logical AND | `&&` | Binary | `a && b` |
+| Logical NOT | `!` | Unary | `!a` |
+
+### Bitwise Operators
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Bitwise OR | `\|`  | Binary | `a \| b` |
+| Bitwise AND | `&` | Binary | `a & b` |
+| Bitwise XOR | `^` | Binary | `a ^ b` |
+| Bitwise NOT | `~` | Unary | `~a` |
+| Bitwise Left Shift | `<<` | Binary | `a << b` |
+| Bitwise Right Shift | `>>` | Binary | `a >> b` |
+| Logical (Unsigned) Right Shift | `>>>` | Binary | `a >>> b` |
+
+### Assignment Operators
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Assign | `=` | Assignment  | `a = 5` |
+| Unpack Assign | `=<` | Assignment | `a, b = 5, 2` |
+| Subtract Assign | `-=` | Assignment | `a -= 5` |
+| Add Assign | `+=` | Assignment | `a += 5` |
+| Modulo Assign | `%=` | Assignment | `a %= 5` |
+| Divide Assign | `/=` | Assignment | `a /= 5` |
+| Multiply Assign | `*=` | Assignment | `a *= 5` |
+| Exponent Assign | `**=` | Assignment | `a **= 5` |
+
+### Logical Assignment Operators
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Logical OR Assign | `\|\|=`  | Assignment | `a \|\|= b` |
+| Logical AND Assign | `&&=` | Assignment | `a &&= b` |
+
+### Bitwise Assignment Operators
+| **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
+| ------------ | -------- | --------------- | -------- |
+| Bitwise OR Assignment | `\|=` | Assignment | `a \|= b` |
+| Bitwise AND Assignment | `&=` | Assignment | `a &= b` |
+| Bitwise XOR Assignment | `^=` | Assignment | `a ^= b` |
+| Bitwise NOT Assignment | `~=` | Assignment | `a ~= b` |
+| Bitwise Left Shift Assignment | `<<=` | Assignment | `a <<= b` |
+| Bitwise Right Shift Assignment | `>>=` | Assignment | `a >>= b` |

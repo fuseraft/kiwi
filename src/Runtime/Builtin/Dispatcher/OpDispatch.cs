@@ -56,6 +56,7 @@ public struct OpDispatch
             TokenName.Ops_GreaterThanOrEqual => ComparisonOp.GreaterThanOrEqual(ref left, ref right),
             TokenName.Ops_Equal => Value.CreateBoolean(ComparisonOp.Equal(ref left, ref right)),
             TokenName.Ops_NotEqual => ComparisonOp.NotEqual(ref left, ref right),
+            TokenName.Ops_NullCoalesce => ComparisonOp.NullCoalesce(ref left, ref right),
             _ => throw new InvalidOperationError(token, "Unknown binary operation."),
         };
     }

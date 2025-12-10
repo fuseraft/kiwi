@@ -62,7 +62,7 @@ struct MD5
     
     # Append the length in bits at the end of the buffer.
     for i in [0 to 7] do
-      message.push(original_bitlength >> (i * 8))
+      message.push(original_bitlength >>> (i * 8))
     end
     
     chunk_size = 64  # 64 bytes = 512 bits
@@ -135,12 +135,12 @@ struct MD5
   
   static fn left_rotate(value, count)
     adjusted_value = value & 0xFFFFFFFF
-    return (adjusted_value << count | adjusted_value >> (32 - count)) & 0xFFFFFFFF
+    return (adjusted_value << count | adjusted_value >>> (32 - count)) & 0xFFFFFFFF
   end
   
   static fn int_to_bytes(num)
     num &= 0xFFFFFFFF
-    return [num & 0xFF, (num >> 8) & 0xFF, (num >> 16) & 0xFF, (num >> 24) & 0xFF]
+    return [num & 0xFF, (num >>> 8) & 0xFF, (num >>> 16) & 0xFF, (num >>> 24) & 0xFF]
   end
 end
 
@@ -177,11 +177,11 @@ struct SHA
   end
 
   static fn S(x, n)
-    return (((x & 0xffffffff) >> (n & 31)) | (x << (32 - (n & 31)))) & 0xffffffff
+    return (((x & 0xffffffff) >>> (n & 31)) | (x << (32 - (n & 31)))) & 0xffffffff
   end
 
   static fn R(x, n)
-    return (x & 0xffffffff) >> n
+    return (x & 0xffffffff) >>> n
   end
 
   static fn Sigma0(x)
@@ -330,7 +330,7 @@ struct SHA
     end
 
     sha_info.count_lo = clo
-    sha_info.count_hi += (count >> 29)
+    sha_info.count_hi += (count >>> 29)
     
     if sha_info.local
       i = SHA.BLOCKSIZE() - sha_info.local
@@ -377,7 +377,7 @@ struct SHA
   static fn sha_final(sha_info)
     lo_bit_count = sha_info.count_lo
     hi_bit_count = sha_info.count_hi
-    count = (lo_bit_count >> 3) & 0x3f
+    count = (lo_bit_count >>> 3) & 0x3f
     sha_info.data.set(count, 0x80)
     count += 1
 
@@ -391,20 +391,20 @@ struct SHA
       sha_info.data = sha_info.data[:count] + ([0] * (SHA.BLOCKSIZE() - count))
     end
 
-    sha_info.data.set(56, (hi_bit_count >> 24) & 0xff)
-    sha_info.data.set(57, (hi_bit_count >> 16) & 0xff)
-    sha_info.data.set(58, (hi_bit_count >>  8) & 0xff)
-    sha_info.data.set(59, (hi_bit_count >>  0) & 0xff)
-    sha_info.data.set(60, (lo_bit_count >> 24) & 0xff)
-    sha_info.data.set(61, (lo_bit_count >> 16) & 0xff)
-    sha_info.data.set(62, (lo_bit_count >>  8) & 0xff)
-    sha_info.data.set(63, (lo_bit_count >>  0) & 0xff)
+    sha_info.data.set(56, (hi_bit_count >>> 24) & 0xff)
+    sha_info.data.set(57, (hi_bit_count >>> 16) & 0xff)
+    sha_info.data.set(58, (hi_bit_count >>>  8) & 0xff)
+    sha_info.data.set(59, (hi_bit_count >>>  0) & 0xff)
+    sha_info.data.set(60, (lo_bit_count >>> 24) & 0xff)
+    sha_info.data.set(61, (lo_bit_count >>> 16) & 0xff)
+    sha_info.data.set(62, (lo_bit_count >>>  8) & 0xff)
+    sha_info.data.set(63, (lo_bit_count >>>  0) & 0xff)
     
     sha_info = SHA.transform(sha_info)
     
     dig = []
     for i in sha_info.digest do
-      dig.concat([ ((i>>24) & 0xff), ((i>>16) & 0xff), ((i>>8) & 0xff), (i & 0xff) ])
+      dig.concat([ ((i>>>24) & 0xff), ((i>>>16) & 0xff), ((i>>>8) & 0xff), (i & 0xff) ])
     end
 
     return dig
