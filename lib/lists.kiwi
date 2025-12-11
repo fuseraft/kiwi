@@ -1,0 +1,182 @@
+package lists
+  # returns true if every element satisfies predicate
+  fn all(_list: list, _predicate: lambda): boolean
+    var (_all_satisfied: boolean = true)
+
+    for _val in _list do
+      if !_predicate(_val)
+        _all_satisfied = false
+        break
+      end
+    end
+
+    _all_satisfied
+  end
+
+  # returns true if any element satisfies predicate
+  fn _any(_list: list, _predicate: lambda): boolean
+    var (_any_satisfied: boolean = false)
+
+    for _val in _list do
+      if _predicate(_val)
+        _any_satisfied = true
+        break
+      end
+    end
+
+    _any_satisfied
+  end
+
+  # returns count of elements satisfying the predicate.
+  fn _count(_list: list, _predicate: lambda): integer
+    _list.filter(_predicate).size()
+  end
+
+  # finds first index matching predicate (or -1)
+  fn find(_list: list, _predicate: lambda): integer
+    var (_index_of: integer = -1)
+
+    for _val, _index in _list do
+      if _predicate(_val)
+        _index_of = _index
+        break
+      end
+    end
+
+    _index_of
+  end
+
+  # returns first element matching predicate (or null)
+  fn first_where(_list: list, _predicate: lambda): any
+    var (_first_match: any = null)
+
+    for _val in _list do
+      if _predicate(_val)
+        _first_match = _val
+        break
+      end
+    end
+
+    _first_match
+  end
+
+  # returns first index of a given value (-1 if missing)
+  fn index_of(_list: list, _value: any): integer
+    _list.index(_value)
+  end
+
+  # returns last index of a given value (-1 if missing)
+  fn last_index_of(_list: list, _value: any): integer
+    _list.lastindex(_value)
+  end
+
+  # returns true if every element in the list is unique
+  fn is_unique(_list: list): boolean
+    _list.size() == _list.unique().size()
+  end
+
+  # returns last element matching predicate (or null)
+  fn last_where(_list: list, _predicate: lambda): any
+    var (_last_match: any = null,
+         _val: any = null)
+
+    for _index in [_list.size() - 1..0] do
+      _val = _list[_index]
+      if _predicate(_val)
+        _last_match = _val
+        break
+      end
+    end
+
+    _last_match
+  end
+
+  # returns true if no element satisfies predicate
+  fn _none(_list: list, _predicate: lambda): boolean
+    not lists::_any(_list, _predicate)
+  end
+  
+  # returns true if exactly one element matches
+  fn one(_list: list, _predicate: lambda): boolean
+    _list.filter(_predicate).size() == 1
+  end
+
+  # returns a list of elements that do not satisfy the predicate
+  fn reject(_list: list, _predicate: lambda): list
+    var (_rejected: list = [])
+    
+    for _val in _list do
+      if not _predicate(_val)
+        _rejected.append(_val)
+      end
+    end
+
+    _rejected
+  end
+
+  # computes the sum (as an integer) of a numeric list (non-integer values are discarded)
+  fn sum_integer(_list: list): integer
+    [0].concat(
+      _list.filter(
+        with (_n) do 
+          _n.is_a(integer) 
+        end
+      )
+    ).sum()
+  end
+
+  # computes the sum (as a float) of a numeric list (non-float values are discarded)
+  fn sum_float(_list: list): float
+    [0.0].concat(_list.filter(with (_n) do _n.is_a(float) end)).sum()
+  end
+
+  # computes the sum (as a float) of a numeric list (non-float values are discarded)
+  fn sum_float(_list: list): float
+    [0.0].concat(_list.filter(with (_n) do _n.is_a(float) end)).sum()
+  end
+
+  /# WIP:
+  # computes the product of a numeric list (non-numeric values are discarded)
+  fn product(_list: list): float
+    var (_product: float = 1.0)
+    for _n in _list.filter(with (_) do _.is_a(integer) or _.is_a(float) end) do
+      _product *= _n
+    end
+    _product
+  end
+  #/
+
+  /#
+  Partitioning / Grouping
+  - `partition(_list: list, _predicate: lambda): [list, list]` # returns matching / non-matching
+  - `group_by(_list: list, _lambda: lambda): map<any, list>` # returns returns a map of key => list of elements
+  - `chunk(_list: list, size: integer): list<list>` # returns splits into fixed-size chunks
+  - `chunk_while(_list: list, _predicate: lambda): list<list>` # returns chunks while predicate holds between consecutive elements
+
+  Set-like operations
+  - `union(_list1: list, _list2: list): list` # returns unique elements, preserving order of first occurrence
+  - `intersection(_list1: list, _list2: list): list`
+  - `difference(_list1: list, _list2: list): list`
+  - `symmetric_difference(_list1: list, _list2: list): list`
+
+  Zipping / Combining
+  - `zip(_list1: list, _list2: list, ... ): list<list>` # returns combines elements into sublists
+  - `flatten(_list: list, levels: integer = -1): list` # returns flatten nested lists (all levels by default)
+  - `intersperse(_list: list, separator: any): list` # returns inserts separator between elements
+  - `join(_list: list, separator: string = ""): string` # returns stringifies and joins
+
+  Mutation-style helpers (returning new lists)
+  - `push(_list: list, ...values): list` # returns appends
+  - `prepend(_list: list, ...values): list` # returns inserts at start
+  - `insert_at(_list: list, index: integer, value: any): list`
+  - `delete_at(_list: list, index: integer): list`
+  - `delete(_list: list, value: any): list` # returns removes all occurrences
+  - `slice(_list: list, start: integer, length: integer = nil): list`
+  - `take(_list: list, n: integer): list`
+  - `drop(_list: list, n: integer): list`
+  - `take_while(_list: list, _predicate: lambda): list`
+  - `drop_while(_list: list, _predicate: lambda): list`
+  #/
+end
+
+export "lists"
