@@ -76,6 +76,7 @@ public class Program
                 CliArgs = ParseKeyValueArgs(config.Args),
             });
         }
+        
         return new StdInRunner(new()
         {
             CliArgs = ParseKeyValueArgs(config.Args),
