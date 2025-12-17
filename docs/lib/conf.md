@@ -21,13 +21,13 @@ Reads settings from a `conf` file into a hashmap.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `_conf_path` | The path to the file. |
-| `String` | `_delim` | The delimiter for splitting key-value pairs. |
+| `string` | `_conf_path` | The path to the file. |
+| `string` | `_delim` | The delimiter for splitting key-value pairs. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hashmap` | Settings read from a file. |
+| `hashmap` | Settings read from a file. |
 
 ### `readjson(_json_path)`
 
@@ -36,10 +36,10 @@ Reads settings from a `json` file into a hashmap.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `_json_path` | The path to a `json` file. |
-| `String` | `_delim` | The delimiter for splitting key-value pairs. |
+| `string` | `_json_path` | The path to a `json` file. |
+| `string` | `_delim` | The delimiter for splitting key-value pairs. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hashmap` | Settings read from a `json` file. |
+| `hashmap` | Settings read from a `json` file. |

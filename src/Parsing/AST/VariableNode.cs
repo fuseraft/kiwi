@@ -8,7 +8,7 @@ public class VariableNode : ASTNode
         : base(ASTNodeType.Variable) { }
 
     public List<KeyValuePair<string, ASTNode?>> Variables { get; set; } = [];
-    public Dictionary<string, TokenName> TypeHints { get; set; } = [];
+    public Dictionary<string, int> TypeHints { get; set; } = [];
 
     public override void Print(int depth = 0)
     {
@@ -24,11 +24,11 @@ public class VariableNode : ASTNode
 
             Console.WriteLine($"Identifier: `{ASTTracer.Unmangle(v.Key)}`");
 
-            if (TypeHints.ContainsKey(v.Key))
+            if (TypeHints.TryGetValue(v.Key, out int value))
             {
                 ASTTracer.PrintDepth(2 + depth);
-                var typeHint = TypeHints[v.Key];
-                Console.WriteLine($"Type: {Serializer.GetTypenameString(typeHint)}");
+                var typeHint = value;
+                Console.WriteLine($"Type: {TypeRegistry.GetTypeName(typeHint)}");
             }
 
             if (v.Value == null)

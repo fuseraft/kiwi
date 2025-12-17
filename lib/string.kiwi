@@ -10,8 +10,8 @@ package string
   @return  Boolean          : True if found.
   #/
   fn contains_any(str, matches = [])
-    matches = matches.chars() when matches.type() == "String"
-    throw "matches must be a list" when matches.type() != "List"
+    matches = matches.chars() when matches.type() == "string"
+    throw "matches must be a list" when matches.type() != "list"
 
     for m in matches do
       if str.contains(m)
@@ -176,7 +176,7 @@ package string
     _slug = ""
 
     for char in _hyphenated.chars() do
-      if char.is_a(Integer) || (char >= "a" && char <= "z") || char == "-"
+      if char.is_a(integer) || (char >= "a" && char <= "z") || char == "-"
         _slug += char
       end
     end

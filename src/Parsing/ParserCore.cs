@@ -1,6 +1,7 @@
 using kiwi.Parsing.AST;
 using kiwi.Tracing;
 using kiwi.Tracing.Error;
+using kiwi.Typing;
 
 namespace kiwi.Parsing;
 
@@ -13,6 +14,8 @@ public partial class Parser(bool rethrowErrors = false)
     private readonly bool rethrow = rethrowErrors;
     private Token token = Token.Eof;
     private TokenStream stream = new([]);
+    private Stack<string> structStack = new();
+    private List<string> structsDefined = [];
     private Stack<Dictionary<string, string>> mangledNameStack = new();
     
     public bool HasError { get; set; } = false;
@@ -213,9 +216,28 @@ public partial class Parser(bool rethrowErrors = false)
         token = stream.Current();
     }
 
+    private string GetTokenText() => token.Text;
+
     private TokenType GetTokenType() => token.Type;
 
     private TokenName GetTokenName() => token.Name;
+
+    private bool IsValidTypeName() => GetTokenType() == TokenType.Typename || structsDefined.Contains(GetTokenText());
+
+    private int GetTypeName()
+    {
+        // expect a type name
+        if (!IsValidTypeName())
+        {
+            throw new SyntaxError(GetErrorToken(), "Expected a type name in parameter type hint.");
+        }
+
+        // grab the type name
+        var typeName = GetTokenText();
+        Next();  // next token please
+
+        return TypeRegistry.GetType(typeName);
+    }
 
     private bool IsUnaryOperator() => token.Name switch
     {

@@ -17,12 +17,12 @@ Generates an MD5 hash string.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `input` | The input string.|
+| `string` | `input` | The input string.|
 
 **Returns**
 | Type | Description |
 | :--- | :--- |
-| `String` | An MD5 hash. |
+| `string` | An MD5 hash. |
 
 ### `sha224_hash(input = "")`
 Generates a SHA-224 hash string.
@@ -30,12 +30,12 @@ Generates a SHA-224 hash string.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `input` | The input string.|
+| `string` | `input` | The input string.|
 
 **Returns**
 | Type | Description |
 | :--- | :--- |
-| `String` | A SHA-224 hash. |
+| `string` | A SHA-224 hash. |
 
 ### `sha256_hash(input = "")`
 Generates a SHA-56 hash string.
@@ -43,9 +43,9 @@ Generates a SHA-56 hash string.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `input` | The input string.|
+| `string` | `input` | The input string.|
 
 **Returns**
 | Type | Description |
 | :--- | :--- |
-| `String` | A SHA-256 hash. |
+| `string` | A SHA-256 hash. |
