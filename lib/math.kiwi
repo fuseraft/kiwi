@@ -11,7 +11,7 @@ package math
   end
 
   fn eps(n = 9)
-    n = n.type() == "Integer" && n > 0 && n < 16 ? n : 9
+    n = n.type() == "integer" && n > 0 && n < 16 ? n : 9
     epsilon = 1.0
 
     repeat n do

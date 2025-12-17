@@ -191,7 +191,7 @@ struct Set
     input_data = []
     if data.type() == "Set"
       input_data = data.to_list()
-    elsif data.is_a(List)
+    elsif data.is_a(list)
       input_data = data
     else
       throw "Expected a List or a Set."

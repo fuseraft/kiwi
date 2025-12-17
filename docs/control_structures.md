@@ -119,7 +119,7 @@ control_structure [ expression ] when condition
 
 ```kiwi
 fn sum(numbers)
-  throw "Cannot sum a non-List value." when !numbers.is_a(List)
+  throw "Cannot sum a non-List value." when !numbers.is_a(list)
   return 0 when numbers.empty()
   return numbers.sum()
 end

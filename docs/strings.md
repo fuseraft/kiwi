@@ -1,19 +1,19 @@
 # Strings
 
-The `String` type in Kiwi is used to represent text data.
+The `string` type in Kiwi is used to represent text data.
 
 Strings in Kiwi are wrapped with either double-quotes or single-quotes.
 
 # Table of Contents
 - [Builtins](#builtins)
-- [Defining a `String`](#defining-a-string)
-- [Defining a Raw `String`](#defining-raw-strings)
+- [Defining a `string`](#defining-a-string)
+- [Defining a Raw `string`](#defining-raw-strings)
 - [String Interpolation](#string-interpolation)
 - [String Multiplication](#string-multiplication)
 
 ### Builtins
 
-For documentation on `String` builtins, take a look at the [`String` builtins](builtins.md#string-builtins).
+For documentation on `string` builtins, take a look at the [`string` builtins](builtins.md#string-builtins).
 
 ### Defining a String
 

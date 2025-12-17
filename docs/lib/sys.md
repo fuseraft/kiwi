@@ -18,7 +18,7 @@ Get the effective user ID.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Integer` | The effective user ID. |
+| `integer` | The effective user ID. |
 
 
 ### `exec(_command)`
@@ -28,12 +28,12 @@ Run an external process and capture its exit code.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `_command` | The command text. |
+| `string` | `_command` | The command text. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Integer` | The exit code of an external process. |
+| `integer` | The exit code of an external process. |
 
 ### `execout(_command)`
 
@@ -42,9 +42,9 @@ Run an external process and capture its standard output.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `_command` | The command text. |
+| `string` | `_command` | The command text. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String` | The standard output of an external process. |
+| `string` | The standard output of an external process. |
