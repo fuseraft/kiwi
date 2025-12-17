@@ -444,6 +444,9 @@ public partial class Parser
         // Push to the stack for operator overload detection.
         structStack.Push(structName);
 
+        // Eagerly mark as defined so that the type can be used in typehints within the struct definition
+        structsDefined.Add(structName);
+
         List<ASTNode?> methods = [];
         bool isStatic = false, isPrivate = false;
         
@@ -477,7 +480,6 @@ public partial class Parser
         Next();  // Consume 'end'
 
         // Outside the struct definition
-        structsDefined.Add(structStack.Peek());
         structStack.Pop();
 
         return new StructNode(structName, baseStruct, interfaces, methods);
