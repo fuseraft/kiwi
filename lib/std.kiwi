@@ -12,23 +12,23 @@ package std
   end
 
   fn is_int(n)
-    return std::type(n) == Integer
+    return std::type(n) == integer
   end
 
   fn is_float(n)
-    return std::type(n) == Float
+    return std::type(n) == float
   end
 
   fn is_string(s)
-    return std::type(s) == String
+    return std::type(s) == string
   end
 
   fn is_hashmap(s)
-    return std::type(s) == Hashmap
+    return std::type(s) == hashmap
   end
 
   fn range(x, y)
-    throw Error.InvalidRange() when ![x, y].all(with (n) do std::is_int(n) end)
+    throw std::error::InvalidRange() when ![x, y].all(with (n) do std::is_int(n) end)
     return [x to y - 1]
   end
 end

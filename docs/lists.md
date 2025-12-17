@@ -4,18 +4,18 @@ Lists are array-like objects that expand as needed and can contain values of mul
 
 # Table of Contents
 - [Builtins](#Builtins)
-- [Defining a `List`](#defining-a-list)
-- [Defining a `List` with a `Range`](#defining-a-list-with-a-range)
+- [Defining a `list`](#defining-a-list)
+- [Defining a `list` with a `Range`](#defining-a-list-with-a-range)
 - [Accessing Elements](#accessing-list-elements)
 - [Adding Elements](#adding-elements-to-a-list)
 - [Removing Elements](#removing-elements-from-a-list)
-- [Filtering a `List`](#filtering-a-list)
-- [Iterating a `List`](#iterating-a-list)
+- [Filtering a `list`](#filtering-a-list)
+- [Iterating a `list`](#iterating-a-list)
 - [An Example](#an-example)
 
 ### Builtins
 
-For documentation on `List` builtins, take a look at the [`List` builtins](builtins.md#list-builtins).
+For documentation on `list` builtins, take a look at the [`list` builtins](builtins.md#list-builtins).
 
 ### Defining a List
 

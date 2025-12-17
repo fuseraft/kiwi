@@ -10,8 +10,9 @@ public class FunctionNode : ASTNode
     public string Name { get; set; } = string.Empty;
     public List<KeyValuePair<string, ASTNode?>> Parameters { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];
-    public Dictionary<string, TokenName> TypeHints { get; set; } = [];
-    public TokenName ReturnTypeHint { get; set; } = TokenName.Types_Any;
+    public Dictionary<string, int> TypeHints { get; set; } = [];
+    public int ReturnTypeHint { get; set; }
+    public bool IsOperatorOverload { get; set; }
     public bool IsStatic { get; set; }
     public bool IsPrivate { get; set; }
 
@@ -29,7 +30,7 @@ public class FunctionNode : ASTNode
         }
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine($"ReturnType: {Serializer.GetTypenameString(ReturnTypeHint)}");
+        Console.WriteLine($"ReturnType: {TypeRegistry.GetTypeName(ReturnTypeHint)}");
 
         ASTTracer.PrintDepth(1 + depth);
         Console.WriteLine("Parameters: ");
@@ -38,11 +39,11 @@ public class FunctionNode : ASTNode
             ASTTracer.PrintDepth(2 + depth);
             Console.WriteLine($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
 
-            if (TypeHints.ContainsKey(param.Key))
+            if (TypeHints.TryGetValue(param.Key, out int value))
             {
                 ASTTracer.PrintDepth(3 + depth);
-                var typeHint = TypeHints[param.Key];
-                Console.WriteLine($"ParameterType: {Serializer.GetTypenameString(typeHint)}");
+                var typeHint = value;
+                Console.WriteLine($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
             }
 
             if (param.Value == null)

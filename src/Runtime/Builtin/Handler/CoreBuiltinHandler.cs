@@ -244,7 +244,7 @@ public static class CoreBuiltinHandler
             return Value.CreateBoolean(range.Min() <= test && test <= range.Max());
         }
 
-        throw new InvalidOperationError(token, $"Invalid type for `{CoreBuiltin.Between}`: {Serializer.GetTypenameString(value)}");
+        throw new InvalidOperationError(token, $"Invalid type for `{CoreBuiltin.Between}`: {TypeRegistry.GetTypeName(value)}");
     }
 
     private static Value Hour(Token token, Value value, List<Value> args)
@@ -689,7 +689,7 @@ public static class CoreBuiltinHandler
             return Value.CreateString(value.GetDate().ToString(format));
         }
 
-        throw new InvalidOperationError(token, $"Unable to format type: {Serializer.GetTypenameString(value)}");
+        throw new InvalidOperationError(token, $"Unable to format type: {TypeRegistry.GetTypeName(value)}");
     }
 
     private static Value GetFormattedNumericValue(Token token, Value value, string format)
@@ -1699,7 +1699,7 @@ public static class CoreBuiltinHandler
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Type, 0, args.Count);
 
-        return Value.CreateString(Serializer.GetTypenameString(value));
+        return Value.CreateString(TypeRegistry.GetTypeName(value));
     }
 
     private static Value BeginsWith(Token token, Value value, List<Value> args)

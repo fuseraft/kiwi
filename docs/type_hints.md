@@ -7,7 +7,7 @@ Kiwi supports type hints for function arguments and return values. Type hints he
 Type hints in Kiwi are specified by adding a colon (`:`) followed by the expected type after the parameter or return value in a function declaration.
 
 ```kiwi
-fn function_name(parameter: Type, ...): ReturnType
+fn function_name(parameter: type, ...): return_type
   # function body
 end
 ```
@@ -15,27 +15,26 @@ end
 ### Example
 
 ```kiwi
-fn add_numbers(a: Integer, b: Integer): Integer
+fn add_numbers(a: integer, b: integer): integer
   return a + b
 end
 ```
 
-In this example, both `a` and `b` are expected to be of type `Integer`, and the function is expected to return an `Integer`.
+In this example, both `a` and `b` are expected to be of type `integer`, and the function is expected to return an `integer`.
 
 ## Supported Types
 
-Kiwi’s type hint system supports the following types:
+Kiwi’s type hint system supports the following builtin types:
 
-- **Integer**: Represents integer numbers.
-- **Float**: Represents floating-point numbers.
-- **String**: Represents sequences of characters.
-- **Boolean**: Represents a truth value (`true` or `false`).
-- **List**: Represents a list of items.
-- **Hashmap**: Represents a key-value map.
-- **Function**: Represents a callable function.
-- **Object**: Represents an object.
-- **Lambda**: Represents a lambda.
-- **Any**: Accepts any type. Useful for parameters or return values where the type is flexible.
+- **integer**: Represents integer numbers.
+- **float**: Represents floating-point numbers.
+- **string**: Represents sequences of characters.
+- **boolean**: Represents a truth value (`true` or `false`).
+- **list**: Represents a list of items.
+- **hashmap**: Represents a key-value map.
+- **object**: Represents an object.
+- **lambda**: Represents a lambda.
+- **any**: Accepts any type. Useful for parameters or return values where the type is flexible.
 
 ## Function Parameters with Type Hints
 
@@ -44,14 +43,14 @@ To add type hints to function parameters, specify the parameter name followed by
 ### Example
 
 ```kiwi
-fn concatenate_strings(prefix: String, suffix: String): String
-  return prefix + suffix
+fn concatenate_strings(prefix: string, suffix: string): string
+  prefix + suffix
 end
 
 println concatenate_strings("Hello, ", "World!") # Output: Hello, World!
 ```
 
-If the arguments passed to `concatenate_strings` are not `String` types, Kiwi will raise a type error.
+If the arguments passed to `concatenate_strings` are not `string` types, Kiwi will raise a type error.
 
 ## Default Values with Type Hints
 
@@ -60,12 +59,12 @@ Type hints can be used with parameters that have default values.
 ### Example
 
 ```kiwi
-fn greet(name: String, greeting: String = "Hello"): String
-  return greeting + ", " + name
+fn greet(name: string, greeting: string = "Hello"): string
+  greeting + ", " + name
 end
 
 println greet("Alice")           # Output: Hello, Alice
-println greet("Alice", "Hi")      # Output: Hi, Alice
+println greet("Alice", "Hi")     # Output: Hi, Alice
 ```
 
 ## Type Hints for Return Types
@@ -75,12 +74,12 @@ The return type hint specifies the expected type of the function’s result.
 ### Example
 
 ```kiwi
-fn is_even(number: Integer): Boolean
+fn is_even(number: integer): boolean
   return number % 2 == 0
 end
 ```
 
-In this example, the function `is_even` is expected to return a `Boolean` value.
+In this example, the function `is_even` is expected to return a `boolean` value.
 
 ## Type Checking at Runtime
 
@@ -89,11 +88,11 @@ Kiwi performs runtime type checking for all parameters with type hints. If an ar
 ### Example with Error Handling
 
 ```kiwi
-fn multiply(a: Integer, b: Integer): Integer
+fn multiply(a: integer, b: integer): integer
   return a * b
 end
 
-multiply(5, "10")  # Error: Expected `Integer` for parameter 2 of `multiply`, but received `String`.
+multiply(5, "10")  # Error: Expected `integer` for parameter 2 of `multiply`, but received `string`.
 ```
 
-In this example, an error is raised because `b` is expected to be an `Integer`, but a `String` was provided.
+In this example, an error is raised because `b` is expected to be an `integer`, but a `string` was provided.
