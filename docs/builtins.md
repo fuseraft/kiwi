@@ -4,7 +4,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
 
 # Table of Contents
 - [**`global`**](#global)
-- [**`Date` Builtins**](#date-builtins)
+- [**`date` Builtins**](#date-builtins)
   - [`year`](#year)
   - [`month`](#month)
   - [`day`](#day)
@@ -12,7 +12,7 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`minute`](#minute)
   - [`second`](#second)
   - [`millisecond`](#millisecond)
-- [**`String` Builtins**](#string-builtins)
+- [**`string` Builtins**](#string-builtins)
   - [`begins_with(str)`](#begins_withstr)
   - [`chars()`](#chars)
   - [`contains(str)`](#containsstr)
@@ -33,14 +33,14 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`replace(search, replacement)`](#replacesearch-replacement)
   - [`scan(regex)`](#scanregex)
   - [`split(delim)`](#splitdelim-limit---1)
-- [**`Hashmap` Builtins**](#hashmap-builtins)
+- [**`hashmap` Builtins**](#hashmap-builtins)
   - [`keys()`](#keys)
   - [`values()`](#values)
   - [`has_key(key)`](#has_keykey)
   - [`get(key)`](#getkey)
   - [`set(key, value)`](#setkey-value)
   - [`merge(hashmap)`](#mergehashmap)
-- [**`List` Builtins**](#list-builtins)
+- [**`list` Builtins**](#list-builtins)
   - [`clear()`](#clear)
   - [`concat(list)`](#concatlist)
   - [`count(value)`](#countvalue)
@@ -802,7 +802,7 @@ println(list2) # prints: ["hello", 2, 3, true, false]
 Used for type-checking.
 
 ```kiwi
-println("foobar".is_a(String)) # prints: true
+println("foobar".is_a(string)) # prints: true
 ```
 
 ### `pretty()`
@@ -921,7 +921,7 @@ println true.truthy() # prints: true        # true is always truthy
 
 Returns the type of the value as a string.
 
-Valid types are: `Integer`, `Float`, `Boolean`, `String`, `List`, `Hashmap`, `Object`, `Lambda`.
+Valid types are: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `object`, `lambda`.
 
 If the type is an object, `type()` will return the struct name of the instance.
 

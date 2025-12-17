@@ -827,6 +827,44 @@ public class Interpreter
         return Value.CreateNull();
     }
 
+    private bool AssertTypeMatch(Token t, Value v, int type)
+    {
+        string typeName = TypeRegistry.GetTypeName(type);
+
+        var isTypeMatch = typeName switch
+        {
+            "any" => true,
+            "boolean" => v.IsBoolean(),
+            "float" => v.IsFloat(),
+            "hashmap" => v.IsHashmap(),
+            "integer" => v.IsInteger(),
+            "date" => v.IsDate(),
+            "lambda" => v.IsLambda(),
+            "list" => v.IsList(),
+            "none" => v.IsNull(),
+            "object" => v.IsObject(),
+            "string" => v.IsString(),
+            "pointer" => v.IsPointer(),
+            _ => false,
+        };
+
+        if (!isTypeMatch && v.IsObject())
+        {
+            var structName = v.GetObject().StructName;
+            isTypeMatch = TypeRegistry.GetType(t, structName) == type;
+
+            if (!isTypeMatch)
+            {
+                var struc = Context.Structs[structName];
+                var baseStruct = struc.BaseStruct;
+
+                isTypeMatch = TypeRegistry.GetType(t, baseStruct) == type;   
+            }
+        }
+
+        return isTypeMatch;
+    }
+
     private void BindParameters(Callable callable, List<Value> args, Token token, string name, Scope scope)
     {
         for (int i = 0; i < callable.Parameters.Count; i++)
@@ -838,11 +876,11 @@ public class Interpreter
 
             // Type hint check
             if (callable.TypeHints.TryGetValue(param.Key, out var hint) &&
-                !Serializer.AssertTypematch(argValue, hint))
+                !AssertTypeMatch(token, argValue, hint))
             {
                 throw new TypeError(token,
-                    $"Parameter {i + 1} of `{name}` expected `{Serializer.GetTypenameString(hint)}`, " +
-                    $"got `{Serializer.GetTypenameString(argValue)}`.");
+                    $"Parameter {i + 1} of `{name}` expected `{TypeRegistry.GetTypeName(hint)}`, " +
+                    $"got `{TypeRegistry.GetTypeName(argValue)}`.");
             }
 
             // Lambda mapping
@@ -913,11 +951,11 @@ public class Interpreter
             var result = ExecuteBody(body, frame);
 
             // Validate return type
-            if (!Serializer.AssertTypematch(result, callable.ReturnTypeHint))
+            if (!AssertTypeMatch(token, result, callable.ReturnTypeHint))
             {
                 throw new TypeError(token,
-                    $"Expected `{Serializer.GetTypenameString(callable.ReturnTypeHint)}` " +
-                    $"from `{displayName}` but got `{Serializer.GetTypenameString(result)}`.");
+                    $"Expected `{TypeRegistry.GetTypeName(callable.ReturnTypeHint)}` " +
+                    $"from `{displayName}` but got `{TypeRegistry.GetTypeName(result)}`.");
             }
 
             return result;
@@ -1576,44 +1614,50 @@ public class Interpreter
             }
 
             // check for a type-hint
-            if (typeHints.TryGetValue(name, out TokenName expectedType))
+            if (typeHints.TryGetValue(name, out int expectedType))
             {
                 // if a default value was supplied, expect it to match the type
-                if (hasDefaultValue && !Serializer.AssertTypematch(value, expectedType))
+                if (hasDefaultValue && !AssertTypeMatch(node.Token, value, expectedType))
                 {
-                    throw new TypeError(node.Token, $"Expected type `{Serializer.GetTypenameString(expectedType)}` for variable  `{ASTTracer.Unmangle(name)}` but received `{Serializer.GetTypenameString(value)}`.");
+                    throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for variable  `{ASTTracer.Unmangle(name)}` but received `{TypeRegistry.GetTypeName(value)}`.");
                 }
                 else if (!hasDefaultValue)
                 {
                     // give it a default value based on the type-hint
-                    switch (expectedType)
+                    if (TypeRegistry.IsPrimitive(expectedType))
                     {
-                        case TokenName.Types_Boolean:
-                            value.SetValue(false);
-                            break;
+                        var expectedValueType = TypeRegistry.GetValueType(expectedType);
 
-                        case TokenName.Types_Integer:
-                            value.SetValue(0);
-                            break;
+                        switch (expectedValueType)
+                        {
+                            case Typing.ValueType.Boolean:
+                                value.SetValue(false);
+                                break;
 
-                        case TokenName.Types_Float:
-                            value.SetValue(0.0);
-                            break;
+                            case Typing.ValueType.Integer:
+                                value.SetValue(0);
+                                break;
 
-                        case TokenName.Types_String:
-                            value.SetValue(string.Empty);
-                            break;
+                            case Typing.ValueType.Float:
+                                value.SetValue(0.0);
+                                break;
 
-                        case TokenName.Types_List:
-                            value.SetValue(Value.CreateList());
-                            break;
+                            case Typing.ValueType.String:
+                                value.SetValue(string.Empty);
+                                break;
 
-                        case TokenName.Types_Hashmap:
-                            value.SetValue(Value.CreateHashmap());
-                            break;
+                            case Typing.ValueType.List:
+                                value.SetValue(Value.CreateList());
+                                break;
 
-                        default:
-                            break;
+                            case Typing.ValueType.Hashmap:
+                                value.SetValue(Value.CreateHashmap());
+                                break;
+
+                            default:
+                                // to throw, or not to throw...
+                                break;
+                        }
                     }
                 }
             }
@@ -1772,12 +1816,12 @@ public class Interpreter
             {
                 var hash = obj.GetHashmap();
 
-                if (!hash.ContainsKey(indexValue))
+                if (!hash.TryGetValue(indexValue, out Value? value))
                 {
                     throw new HashKeyError(node.Token, Serializer.Serialize(indexValue));
                 }
 
-                return hash[indexValue];
+                return value;
             }
             else if (obj.IsString())
             {
@@ -1810,7 +1854,7 @@ public class Interpreter
             return SliceUtil.ListSlice(node.Token, slice, obj.GetList());
         }
 
-        throw new InvalidOperationError(node.Token, $"Non-sliceable type: `{Serializer.GetTypenameString(obj)}`");
+        throw new InvalidOperationError(node.Token, $"Non-sliceable type: `{TypeRegistry.GetTypeName(obj)}`");
     }
 
     private Value Visit(ParseNode node)
@@ -1854,11 +1898,11 @@ public class Interpreter
             {
                 paramValue = Interpret(pair.Value);
 
-                if (typeHints.TryGetValue(paramName, out TokenName expectedType))
+                if (typeHints.TryGetValue(paramName, out int expectedType))
                 {
-                    if (!Serializer.AssertTypematch(paramValue, expectedType))
+                    if (!AssertTypeMatch(node.Token, paramValue, expectedType))
                     {
-                        throw new TypeError(node.Token, $"Expected type `{Serializer.GetTypenameString(expectedType)}` for parameter {paramCount} of `{name}` but received `{Serializer.GetTypenameString(paramValue)}`.");
+                        throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {paramCount} of `{name}` but received `{TypeRegistry.GetTypeName(paramValue)}`.");
                     }
                 }
 
@@ -2312,9 +2356,9 @@ public class Interpreter
             }
         }
 
-        if (!Serializer.AssertTypematch(result, returnTypeHint))
+        if (!AssertTypeMatch(node.Token, result, returnTypeHint))
         {
-            throw new TypeError(node.Token, $"Expected type `{Serializer.GetTypenameString(returnTypeHint)}` for return type of `{functionName}` but received `{Serializer.GetTypenameString(result)}`.");
+            throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;
@@ -2349,15 +2393,15 @@ public class Interpreter
             throw;
         }
 
-        if (!Serializer.AssertTypematch(result, returnTypeHint))
+        if (!AssertTypeMatch(token, result, returnTypeHint))
         {
-            throw new TypeError(token, $"Expected type `{Serializer.GetTypenameString(returnTypeHint)}` for return type of `{functionName}` but received `{Serializer.GetTypenameString(result)}`.");
+            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;
     }
 
-    private void ProcessFunctionParameters(KFunction function, List<ASTNode?> args, Token token, string functionName, HashSet<string> defaultParameters, Scope scope, Dictionary<string, TokenName> typeHints)
+    private void ProcessFunctionParameters(KFunction function, List<ASTNode?> args, Token token, string functionName, HashSet<string> defaultParameters, Scope scope, Dictionary<string, int> typeHints)
     {
         for (var i = 0; i < function.Parameters.Count; ++i)
         {
@@ -2424,9 +2468,9 @@ public class Interpreter
                 }
             }
 
-            if (!Serializer.AssertTypematch(result, returnTypeHint))
+            if (!AssertTypeMatch(token, result, returnTypeHint))
             {
-                throw new TypeError(token, $"Expected type `{Serializer.GetTypenameString(returnTypeHint)}` for return type of `{lambdaName}` but received `{Serializer.GetTypenameString(result)}`.");
+                throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
             }
 
             return result;
@@ -2482,9 +2526,9 @@ public class Interpreter
             }
         }
 
-        if (!Serializer.AssertTypematch(result, returnTypeHint))
+        if (!AssertTypeMatch(token, result, returnTypeHint))
         {
-            throw new TypeError(token, $"Expected type `{Serializer.GetTypenameString(returnTypeHint)}` for return type of `{lambdaName}` but received `{Serializer.GetTypenameString(result)}`.");
+            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;
@@ -2537,7 +2581,7 @@ public class Interpreter
         return result;
     }
 
-    private void PrepareFunctionCall(KFunction func, FunctionCallNode node, HashSet<string> defaultParameters, Dictionary<string, TokenName> typeHints, StackFrame functionFrame)
+    private void PrepareFunctionCall(KFunction func, FunctionCallNode node, HashSet<string> defaultParameters, Dictionary<string, int> typeHints, StackFrame functionFrame)
     {
         var parms = func.Parameters;
         var nodeArguments = node.Arguments;
@@ -2562,9 +2606,9 @@ public class Interpreter
                 throw new ParameterCountMismatchError(node.Token, node.FunctionName, parms.Count, nodeArguments.Count);
             }
 
-            if (typeHints.TryGetValue(param.Key, out TokenName expectedType) && !Serializer.AssertTypematch(argValue, expectedType))
+            if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(node.Token, argValue, expectedType))
             {
-                throw new TypeError(node.Token, $"Expected type `{Serializer.GetTypenameString(expectedType)}` for parameter {(1 + i)} of `{node.FunctionName}` but received `{Serializer.GetTypenameString(argValue)}`.");
+                throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {(1 + i)} of `{node.FunctionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
             }
 
             if (argValue.IsLambda())
@@ -2578,11 +2622,11 @@ public class Interpreter
         }
     }
 
-    private void PrepareFunctionVariables(Dictionary<string, TokenName> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string functionName, Scope scope)
+    private void PrepareFunctionVariables(Dictionary<string, int> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string functionName, Scope scope)
     {
-        if (typeHints.TryGetValue(param.Key, out TokenName expectedType) && !Serializer.AssertTypematch(argValue, expectedType))
+        if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(token, argValue, expectedType))
         {
-            throw new TypeError(token, $"Expected type `{Serializer.GetTypenameString(expectedType)}` for parameter {(1 + i)} of `{functionName}` but received `{Serializer.GetTypenameString(argValue)}`.");
+            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {(1 + i)} of `{functionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
         if (argValue.IsLambda())
@@ -2596,7 +2640,7 @@ public class Interpreter
         }
     }
 
-    private void PrepareLambdaCall(KLambda func, List<ASTNode?> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, TokenName> typeHints, string lambdaName, Scope scope)
+    private void PrepareLambdaCall(KLambda func, List<ASTNode?> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, int> typeHints, string lambdaName, Scope scope)
     {
         var parms = func.Parameters;
         for (var i = 0; i < parms.Count; ++i)
@@ -2620,7 +2664,7 @@ public class Interpreter
         }
     }
 
-    private void PrepareLambdaCall(KLambda func, List<Value> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, TokenName> typeHints, string lambdaName, Scope scope)
+    private void PrepareLambdaCall(KLambda func, List<Value> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, int> typeHints, string lambdaName, Scope scope)
     {
         var parms = func.Parameters;
         for (var i = 0; i < parms.Count; ++i)
@@ -2646,11 +2690,11 @@ public class Interpreter
         }
     }
 
-    private void PrepareLambdaVariables(Dictionary<string, TokenName> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string lambdaName, Scope scope)
+    private void PrepareLambdaVariables(Dictionary<string, int> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string lambdaName, Scope scope)
     {
-        if (typeHints.TryGetValue(param.Key, out TokenName expectedType) && !Serializer.AssertTypematch(argValue, expectedType))
+        if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(token, argValue, expectedType))
         {
-            throw new TypeError(token, $"Expected type `{Serializer.GetTypenameString(expectedType)}` for parameter {(1 + i)} of `{lambdaName}` but received `{Serializer.GetTypenameString(argValue)}`.");
+            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {(1 + i)} of `{lambdaName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
         if (argValue.IsLambda())
@@ -2744,9 +2788,9 @@ public class Interpreter
             }
         }
 
-        if (!Serializer.AssertTypematch(result, returnTypeHint))
+        if (!AssertTypeMatch(node.Token, result, returnTypeHint))
         {
-            throw new TypeError(node.Token, $"Expected type `{Serializer.GetTypenameString(returnTypeHint)}` for return type of `{functionName}` but received `{Serializer.GetTypenameString(result)}`.");
+            throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;

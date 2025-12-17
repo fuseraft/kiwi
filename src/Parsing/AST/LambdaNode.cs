@@ -9,8 +9,8 @@ public class LambdaNode : ASTNode
 
     public List<KeyValuePair<string, ASTNode?>> Parameters { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];
-    public Dictionary<string, TokenName> TypeHints { get; set; } = [];
-    public TokenName ReturnTypeHint { get; set; } = TokenName.Types_Any;
+    public Dictionary<string, int> TypeHints { get; set; } = [];
+    public int ReturnTypeHint { get; set; } = TypeRegistry.GetType("any");
 
     public override void Print(int depth = 0)
     {
@@ -18,7 +18,7 @@ public class LambdaNode : ASTNode
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine($"ReturnType: {Serializer.GetTypenameString(ReturnTypeHint)}");
+        Console.WriteLine($"ReturnType: {TypeRegistry.GetTypeName(ReturnTypeHint)}");
 
         ASTTracer.PrintDepth(1 + depth);
         Console.WriteLine("Parameters: ");
@@ -27,11 +27,11 @@ public class LambdaNode : ASTNode
             ASTTracer.PrintDepth(2 + depth);
             Console.WriteLine($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
 
-            if (TypeHints.ContainsKey(param.Key))
+            if (TypeHints.TryGetValue(param.Key, out int value))
             {
                 ASTTracer.PrintDepth(2 + depth);
-                var typeHint = TypeHints[param.Key];
-                Console.WriteLine($"ParameterType: {Serializer.GetTypenameString(typeHint)}");
+                var typeHint = value;
+                Console.WriteLine($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
             }
 
             if (param.Value == null)

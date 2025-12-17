@@ -18,11 +18,11 @@ The following table will illustrate this.
 
 | Type | Truthy Value | Falsey Value | Explanation |
 | :--- | :--- | :--- | :--- |
-| `Integer` | `1` | `0` | A non-zero value is considered truthy. |
-| `Float` | `1.0` | `0.0` | A non-zero value is considered truthy. |
-| `Boolean` | `true` | `false` | These are the boolean values. |
-| `String` | `"hello"` | `""` | A non-empty string is considered truthy. |
-| `List` | `[1, 2, 3]` | `[]` | A non-empty list is considered truthy. |
-| `Hashmap` | `{"a": 1}` | `{}` | A non-empty hashmap is considered truthy. |
+| `integer` | `1` | `0` | A non-zero value is considered truthy. |
+| `float` | `1.0` | `0.0` | A non-zero value is considered truthy. |
+| `boolean` | `true` | `false` | These are the boolean values. |
+| `string` | `"hello"` | `""` | A non-empty string is considered truthy. |
+| `list` | `[1, 2, 3]` | `[]` | A non-empty list is considered truthy. |
+| `hashmap` | `{"a": 1}` | `{}` | A non-empty hashmap is considered truthy. |
 
 For more documentation on types, please see [Types](types.md).

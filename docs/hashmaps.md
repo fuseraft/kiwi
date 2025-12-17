@@ -6,15 +6,15 @@ A hashmap contains a series of key-value pairs and can easily be serialized into
 
 # Table of Contents
 - [Builtins](#hashmap-builtins)
-- [Defining a `Hashmap`](#defining-a-hashmap)
+- [Defining a `hashmap`](#defining-a-hashmap)
 - [Accessing Elements](#accessing-hashmap-elements)
 - [Adding Elements](#adding-elements-to-a-hashmap)
 - [Removing Elements](#removing-elements-from-a-hashmap)
-- [Iterating a `Hashmap`](#iterating-a-hashmap)
+- [Iterating a `hashmap`](#iterating-a-hashmap)
 
 ### Builtins
 
-For documentation on `Hashmap` builtins, take a look at the [`Hashmap` builtins](builtins.md#hashmap-builtins).
+For documentation on `hashmap` builtins, take a look at the [`hashmap` builtins](builtins.md#hashmap-builtins).
 
 ### Defining a Hashmap
 

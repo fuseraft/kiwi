@@ -243,7 +243,7 @@ public partial class Parser
                 Parameters = [],
                 Body = body,
                 TypeHints = [],
-                ReturnTypeHint = TokenName.Types_Any,
+                ReturnTypeHint = 0,
                 Token = t
             };
         }
@@ -440,10 +440,16 @@ public partial class Parser
                 Next();
             }
         }
+        
+        // Push to the stack for operator overload detection.
+        structStack.Push(structName);
+
+        // Eagerly mark as defined so that the type can be used in typehints within the struct definition
+        structsDefined.Add(structName);
 
         List<ASTNode?> methods = [];
         bool isStatic = false, isPrivate = false;
-
+        
         while (GetTokenName() != TokenName.KW_End)
         {
             if (MatchName(TokenName.KW_Static))
@@ -472,6 +478,9 @@ public partial class Parser
         }
 
         Next();  // Consume 'end'
+
+        // Outside the struct definition
+        structStack.Pop();
 
         return new StructNode(structName, baseStruct, interfaces, methods);
     }
@@ -517,7 +526,7 @@ public partial class Parser
         List<KeyValuePair<string, ASTNode?>> variables = [];
 
         // a container for type-hints, mapped to variable names.
-        Dictionary<string, TokenName> typeHints = [];
+        Dictionary<string, int> typeHints = [];
 
         // collect variable declarations
         while (GetTokenType() != TokenType.RParen)
@@ -549,18 +558,8 @@ public partial class Parser
             // check for a type-hint after a ':'
             if (MatchType(TokenType.Colon))
             {
-                // expect a type name
-                if (GetTokenType() != TokenType.Typename)
-                {
-                    throw new SyntaxError(GetErrorToken(), "Expected a type name in parameter type hint.");
-                }
-
-                // grab the type name
-                var typeName = GetTokenName();
-                Next();  // next token please
-
                 // register type-hint for the variable
-                typeHints[mangledName] = typeName;
+                typeHints[mangledName] = GetTypeName();
             }
 
             // check for default value
@@ -601,10 +600,16 @@ public partial class Parser
         MatchType(TokenType.Keyword);  // Consume 'fn'
 
         var isTypeName = GetTokenType() == TokenType.Typename;
+        var isOperator = GetTokenType() == TokenType.Operator;
 
-        if (GetTokenType() != TokenType.Identifier && !isTypeName)
+        if (GetTokenType() != TokenType.Identifier && !isTypeName && !isOperator)
         {
             throw new SyntaxError(GetErrorToken(), "Expected identifier after 'fn'.");
+        }
+
+        if (isOperator && structStack.Count == 0)
+        {
+            throw new SyntaxError(GetErrorToken(), "Global operator overloading is not supported.");
         }
 
         string functionName = token.Text;
@@ -614,8 +619,8 @@ public partial class Parser
 
         // Parse parameters
         List<KeyValuePair<string, ASTNode?>> parameters = [];
-        Dictionary<string, TokenName> typeHints = [];
-        TokenName returnTypeHint = TokenName.Types_Any;
+        Dictionary<string, int> typeHints = [];
+        int returnTypeHint = 0; // 0 is any
 
         if (isTypeName && GetTokenType() != TokenType.LParen)
         {
@@ -649,15 +654,7 @@ public partial class Parser
 
                 if (MatchType(TokenType.Colon))
                 {
-                    if (GetTokenType() != TokenType.Typename)
-                    {
-                        throw new SyntaxError(GetErrorToken(), "Expected a type name in parameter type hint.");
-                    }
-
-                    var typeName = GetTokenName();
-                    Next();
-
-                    typeHints[mangledName] = typeName;
+                    typeHints[mangledName] = GetTypeName();
                 }
 
                 // Check for default value
@@ -684,15 +681,7 @@ public partial class Parser
 
             if (MatchType(TokenType.Colon))
             {
-                if (GetTokenType() != TokenType.Typename)
-                {
-                    throw new SyntaxError(GetErrorToken(), "Expected a type name in return type hint.");
-                }
-
-                var typeName = GetTokenName();
-                Next();
-
-                returnTypeHint = typeName;
+                returnTypeHint = GetTypeName();
             }
         }
 
@@ -717,7 +706,8 @@ public partial class Parser
             Parameters = parameters,
             Body = body,
             TypeHints = typeHints,
-            ReturnTypeHint = returnTypeHint
+            ReturnTypeHint = returnTypeHint,
+            IsOperatorOverload = isOperator
         };
     }
 
@@ -1325,8 +1315,8 @@ public partial class Parser
 
         var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
         Dictionary<string, string> localNames = [];
-        Dictionary<string, TokenName> typeHints = [];
-        TokenName returnTypeHint = TokenName.Types_Any;
+        Dictionary<string, int> typeHints = [];
+        var returnTypeHint = TypeRegistry.GetType("any");
         var mangledNames = PushNameStack();
 
         // Parse parameters
@@ -1357,14 +1347,7 @@ public partial class Parser
                 // Check for type hint.
                 if (MatchType(TokenType.Colon))
                 {
-                    if (GetTokenType() != TokenType.Typename)
-                    {
-                        throw new SyntaxError(GetErrorToken(), "Expected a type name in parameter type hint.");
-                    }
-
-                    var typeName = GetTokenName();
-                    Next();
-
+                    var typeName = GetTypeName();
                     typeHints[mangledName] = typeName;
                 }
 
@@ -1392,15 +1375,7 @@ public partial class Parser
 
             if (MatchType(TokenType.Colon))
             {
-                if (GetTokenType() != TokenType.Typename)
-                {
-                    throw new SyntaxError(GetErrorToken(), "Expected a type name in return type hint.");
-                }
-
-                var typeName = GetTokenName();
-                Next();
-
-                returnTypeHint = typeName;
+                returnTypeHint = GetTypeName();
             }
         }
 

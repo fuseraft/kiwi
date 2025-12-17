@@ -1,21 +1,21 @@
 # Types
 
-Kiwi supports the following types: 
+Kiwi supports the following builtin types. To build your own type, see [Structs](structs.md).
 
 | Type | Description | Documentation |
 | :--- | :--- | :--- |
-| [`Integer`](#integer) | A 64-bit integer. | See below for an example. |
-| [`Float`](#Float) | A floating point number. | See below for an example. |
-| [`Boolean`](#boolean) | A `true` or `false` value. | See below for an example. |
-| [`String`](#string) | A sequence of characters. | See [Strings](strings.md). |
-| [`Date`](#date) | A date-time object. | See [Dates](dates.md). |
-| [`List`](#list) | A list of values. | See [Lists](lists.md). |
-| [`Hashmap`](#hashmap) | A dictionary of key-value pairs. | See [Hashmaps](hashmaps.md). |
-| [`Object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_structs.md). |
-| [`Lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
-| [`None`](#none) | A null value. | See below for an example. |
+| [`integer`](#integer) | A 64-bit integer. | See below for an example. |
+| [`float`](#Float) | A floating point number. | See below for an example. |
+| [`boolean`](#boolean) | A `true` or `false` value. | See below for an example. |
+| [`string`](#string) | A sequence of characters. | See [Strings](strings.md). |
+| [`date`](#date) | A date-time object. | See [Dates](dates.md). |
+| [`list`](#list) | A list of values. | See [Lists](lists.md). |
+| [`hashmap`](#hashmap) | A dictionary of key-value pairs. | See [Hashmaps](hashmaps.md). |
+| [`object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_structs.md). |
+| [`lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
+| [`none`](#none) | A null value. | See below for an example. |
 
-### `Integer`
+### `integer`
 
 An 64-bit integer.
 
@@ -27,7 +27,7 @@ number += 5
 println(number) # prints: 10
 ```
 
-### `Float`
+### `float`
 
 A floating point number.
 
@@ -39,7 +39,7 @@ tau = pi * 2
 println(tau) # prints: 6.28318
 ```
 
-### `Boolean`
+### `boolean`
 
 A `true` or `false` value.
 
@@ -50,7 +50,7 @@ enabled = true
 println(enabled) # prints: true
 ```
 
-### `String`
+### `string`
 
 Represents text data.  See [Strings](strings.md).
 
@@ -61,7 +61,7 @@ hello = "Hello, World!"
 println(hello) # prints: Hello, World!
 ```
 
-### `Date`
+### `date`
 
 Represents a date and time.  See [Dates](dates.md).
 
@@ -71,7 +71,7 @@ dt = "2023-01-02".to_date()
 println(dt) # prints: 1/2/2023 12:00:00 AM
 ```
 
-### `List`
+### `list`
 
 A list of values.  See [Lists](lists.md).
 
@@ -81,7 +81,7 @@ list = [1, 2, 3, 4, 5]
 println(list) # prints: [1, 2, 3, 4, 5]
 ```
 
-### `Hashmap`
+### `hashmap`
 
 A dictionary of key-value pairs.  See [Hashmaps](hashmaps.md).
 
@@ -93,7 +93,7 @@ println(hashmap) # prints: {"language": "kiwi"}
 println(hashmap.language) # prints: kiwi
 ```
 
-### Object
+### `object`
 
 An instance of a `struct`.  See [Structs](structs.md) and [Abstract Structs](abstract_structs.md).
 
@@ -107,7 +107,7 @@ println(inst)
 # prints: [Object(struct=MyStruct, identifier=inst)]
 ```
 
-### Lambda
+### `lambda`
 
 An anonymous function. Lambdas can be assigned identifiers for code reuse.  See [lambdas](lambdas.md).
 
@@ -120,7 +120,7 @@ end
 puts("Hello, World!") # prints: Hello, World!
 ```
 
-### None
+### `none`
 
 A `null` value. A value that points to nothing.
 

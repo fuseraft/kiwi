@@ -22,7 +22,7 @@ Get environment variables as a hashmap.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Hashmap` | A hashmap representing system environment variables. |
+| `hashmap` | A hashmap representing system environment variables. |
 
 ### `argv()`
 
@@ -31,7 +31,7 @@ Get the list of command-line arguments supplied to the program.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `List` | A list of command-line arguments. |
+| `list` | A list of command-line arguments. |
 
 ### `opt(_key)`
 Get a KVP command-line option value by key.
@@ -39,12 +39,12 @@ Get a KVP command-line option value by key.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `_key` | The option key.|
+| `string` | `_key` | The option key.|
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String` | The option value. |
+| `string` | The option value. |
 
 ## KVP Command-Line Options
 
@@ -69,12 +69,12 @@ Get an environment variable.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `_varname` | The environment variable name to retrieve. |
+| `string` | `_varname` | The environment variable name to retrieve. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String` | The environment variable value, an empty string if not found. |
+| `string` | The environment variable value, an empty string if not found. |
 
 ### `set(_varname, _varvalue)`
 
@@ -83,13 +83,13 @@ Set an environment variable.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `_varname` | The environment variable name to set. |
-| `String` | `_varvalue` | The environment variable value. |
+| `string` | `_varname` | The environment variable name to set. |
+| `string` | `_varvalue` | The environment variable value. |
 
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `Boolean` | `true` on success. |
+| `boolean` | `true` on success. |
 
 ### `bin()`
 
@@ -98,7 +98,7 @@ Returns a string containing the path to the Kiwi executable.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String` | Path to Kiwi. |
+| `string` | Path to Kiwi. |
 
 ### `lib()`
 
@@ -107,4 +107,4 @@ Returns a string containing the path to the Kiwi Standard Library.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `String` | Path to Kiwi Standard Library. |
+| `string` | Path to Kiwi Standard Library. |

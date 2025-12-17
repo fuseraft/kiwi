@@ -30,8 +30,8 @@ Checks if a condition is true. If the condition is `false`, an error is thrown w
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `Boolean` | `condition` | The condition to evaluate. |
-| `String` | `msg` | The message to display if the assertion fails (optional, defaults to `"Assertion failed."`). |
+| `boolean` | `condition` | The condition to evaluate. |
+| `string` | `msg` | The message to display if the assertion fails (optional, defaults to `"Assertion failed."`). |
 
 **Returns**
 _None_
@@ -44,7 +44,7 @@ Registers a test function to the global test list.
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `name` | The name of the test. |
+| `string` | `name` | The name of the test. |
 | `Function` | `t` | The test function. |
 
 **Returns**
@@ -58,9 +58,9 @@ Runs a specific test, measures its duration, and adds the result to the `results
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `String` | `name` | The name of the test. |
+| `string` | `name` | The name of the test. |
 | `Function` | `test` | The test function to execute. |
-| `List` | `results` | The list where test results are stored (optional, defaults to an empty list). |
+| `list` | `results` | The list where test results are stored (optional, defaults to an empty list). |
 
 **Returns**
 _None_
@@ -76,4 +76,4 @@ _None_
 **Returns**
 | Type | Description |
 | :--- | :--- |
-| `List` | A list of test result objects, each containing the `name`, `result` (boolean), and `duration` (milliseconds). |
+| `list` | A list of test result objects, each containing the `name`, `result` (boolean), and `duration` (milliseconds). |

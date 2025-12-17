@@ -467,13 +467,13 @@ package testsuite
       b = true
       h = {a: [123, 456, "789"]}
 
-      tester::assert(s.is_a(String), "A1")
-      tester::assert(i.is_a(Integer), "A2")
-      tester::assert(d.is_a(Float), "A3")
-      tester::assert(b.is_a(Boolean), "A4")
-      tester::assert(null.is_a(None), "A5")
-      tester::assert(h.is_a(Hashmap), "A6")
-      tester::assert(h.a.is_a(List), "A7")
+      tester::assert(s.is_a(string), "A1")
+      tester::assert(i.is_a(integer), "A2")
+      tester::assert(d.is_a(float), "A3")
+      tester::assert(b.is_a(boolean), "A4")
+      tester::assert(null.is_a(none), "A5")
+      tester::assert(h.is_a(hashmap), "A6")
+      tester::assert(h.a.is_a(list), "A7")
     end)
 
     tester::register_test("loops", with do
@@ -690,7 +690,6 @@ package testsuite
 
     tester::register_test("sha224", with do
       var (a_str: string = "just a test string")
-
       tester::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == crypto::sha224_hash(), "A1")
       tester::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == crypto::sha224_hash(a_str), "A2")
       tester::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == crypto::sha224_hash(a_str*7), "A3")
