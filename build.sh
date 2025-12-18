@@ -36,8 +36,8 @@ esac
 RUNTIME_ID="$DEFAULT_RID"  # Default RID; override with env var or argument
 
 # Allow overriding runtime identifier via environment variable or argument
-if [[ -n "${HAYWARD_RUNTIME_ID:-}" ]]; then
-  RUNTIME_ID="$HAYWARD_RUNTIME_ID"
+if [[ -n "${KIWI_RUNTIME_ID:-}" ]]; then
+  RUNTIME_ID="$KIWI_RUNTIME_ID"
 elif [[ $# -gt 0 ]]; then
   RUNTIME_ID="$1"
 fi
