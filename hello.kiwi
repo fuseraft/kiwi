@@ -1,14 +1,3 @@
 #!/usr/bin/env kiwi
 
-struct Number
-  fn new(_value: any = 0)
-    @_value = _value
-  end
-
-  fn to_string()
-    "${@_value}"
-  end
-end
-
-n = Number.new(5)
-println n
+println "Hello, World!"
