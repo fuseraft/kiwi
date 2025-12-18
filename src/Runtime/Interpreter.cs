@@ -933,7 +933,7 @@ public class Interpreter
             frame.SetObjectContext(instance);
         }
 
-        PushFrame(displayName, scope, callable is KLambda);
+        PushFrame(frame, callable is KLambda);
         if (callable is KLambda)
         {
             frame.SetFlag(FrameFlags.InLambda);
@@ -3715,6 +3715,18 @@ public class Interpreter
         }
 
         return Value.CreateList(resultList);
+    }
+
+    private StackFrame PushFrame(StackFrame frame, bool inLambda = false)
+    {
+        if (inLambda)
+        {
+            frame.SetFlag(FrameFlags.InLambda);
+        }
+
+        CallStack.Push(frame);
+        FuncStack.Push(frame.Name);
+        return frame;
     }
 
     private StackFrame PushFrame(string name, Scope scope, bool inLambda = false)
