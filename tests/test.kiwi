@@ -4,16 +4,16 @@ The Kiwi Project 1.2.1
 
 
 fn main()
-  println "Running Kiwi Test Suite...\n"
-
   import "lib/testsuite"
 
-  testsuite::register_tests()
+  println "Running Kiwi Test Suite v${testsuite::__version__()}...\n"
 
-  var (results:   list    = tester::run_tests())
-  var (succeeded: integer = 0)
-  var (failed:    integer = 0)
-  var (duration:  integer = 0)
+  var (
+    results:   list    = tester::run_tests(),
+    succeeded: integer = 0,
+    failed:    integer = 0,
+    duration:  integer = 0
+  )
 
   for r in results do
     duration += r.duration

@@ -933,7 +933,7 @@ public class Interpreter
             frame.SetObjectContext(instance);
         }
 
-        PushFrame(displayName, scope, callable is KLambda);
+        PushFrame(frame, callable is KLambda);
         if (callable is KLambda)
         {
             frame.SetFlag(FrameFlags.InLambda);
@@ -1036,6 +1036,39 @@ public class Interpreter
         return Interpret(node.FalseExpression);
     }
 
+    private bool HasOperatorOverload(InstanceRef inst, TokenName op, out KFunction? func)
+    {
+        var struc = Context.Structs[inst.StructName];
+        var opString = Serializer.GetOperatorString(op);
+        func = null;
+
+        if (string.IsNullOrEmpty(opString))
+        {
+            return false;
+        }
+
+        if (struc.Methods.TryGetValue(opString, out KFunction? structFunc))
+        {
+            func = structFunc;
+            return true;
+        }
+
+        // check base struct
+        if (!string.IsNullOrEmpty(struc.BaseStruct))
+        {
+            var baseStruct = Context.Structs[struc.BaseStruct];
+            var baseStructMethods = baseStruct.Methods;
+
+            if (baseStructMethods.TryGetValue(opString, out KFunction? baseStructFunc))
+            {
+                func = baseStructFunc;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private Value Visit(BinaryOperationNode node)
     {
         var left = Interpret(node.Left);
@@ -1051,6 +1084,21 @@ public class Interpreter
         else if (node.Op == TokenName.Ops_NullCoalesce && !left.IsNull())
         {
             return left;
+        }
+
+        if (left.IsObject())
+        {
+            var inst = left.GetObject();
+
+            if (HasOperatorOverload(inst, node.Op, out KFunction? func))
+            {
+                if (func == null)
+                {
+                    throw new FunctionUndefinedError(node.Token, Serializer.GetOperatorString(node.Op));
+                }
+
+                return InvokeCallable(func, [node.Right], node.Token, $"{inst.StructName}#{func.Name}", inst);
+            }
         }
 
         var right = Interpret(node.Right);
@@ -2304,10 +2352,18 @@ public class Interpreter
         var args = GetMethodCallArguments(node.Arguments);
         var op = node.Op;
 
-        if (ReflectorBuiltin.IsBuiltin(op))
+        if (KiwiBuiltin.IsBuiltin(op))
         {
+            return InterpretKiwiBuiltin(node.Token, op, args);
+        }
+        else if (ReflectorBuiltin.IsBuiltin(op))
+        {
+            // for reflection to work, we need to inject a few things.
             return ReflectorBuiltinHandler.Execute(node.Token, op, args, Context, CallStack, FuncStack);
         }
+        
+        // TODO: need to create issues for these in GitHub.
+        /*
         else if (WebServerBuiltin.IsBuiltin(op))
         {
             // return InterpretWebServerBuiltin(node.Token, op, args);
@@ -2328,6 +2384,7 @@ public class Interpreter
         {
             // return BuiltinDispatch.Execute(taskmgr, node.Token, op, args);
         }
+        */
 
         return BuiltinDispatch.Execute(node.Token, op, args, CliArgs);
     }
@@ -3121,7 +3178,6 @@ public class Interpreter
         }
         finally
         {
-
             scope.Remove(keyName);
             if (valueName != null)
             {
@@ -3131,6 +3187,23 @@ public class Interpreter
         }
 
         return result;
+    }
+
+    private Value InterpretKiwiBuiltin(Token token, TokenName op, List<Value> args)
+    {
+        return op switch
+        {
+            TokenName.Builtin_Kiwi_TypeOf => TypeOf(token, args),
+            _ => throw new InvalidOperationError(token, "Invalid builtin invocation."),
+        };
+    }
+
+    private Value TypeOf(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, KiwiBuiltin.TypeOf, 1, args.Count);
+        var target = args[0];
+
+        return Value.CreateString(TypeRegistry.GetTypeName(target));
     }
 
     private Value InterpretListBuiltin(Token token, ref Value obj, TokenName op, List<Value> args)
@@ -3715,6 +3788,18 @@ public class Interpreter
         }
 
         return Value.CreateList(resultList);
+    }
+
+    private StackFrame PushFrame(StackFrame frame, bool inLambda = false)
+    {
+        if (inLambda)
+        {
+            frame.SetFlag(FrameFlags.InLambda);
+        }
+
+        CallStack.Push(frame);
+        FuncStack.Push(frame.Name);
+        return frame;
     }
 
     private StackFrame PushFrame(string name, Scope scope, bool inLambda = false)
