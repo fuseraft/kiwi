@@ -140,6 +140,7 @@ public enum TokenName
   Builtin_Encoder_Base64Decode,
   Builtin_Encoder_UrlEncode,
   Builtin_Encoder_UrlDecode,
+  Builtin_Kiwi_TypeOf,
   Builtin_List_All,
   Builtin_List_Each,
   Builtin_List_Map,

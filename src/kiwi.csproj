@@ -7,12 +7,17 @@
     <Nullable>enable</Nullable>
     <UseSystemTextJsonSourceGeneration>true</UseSystemTextJsonSourceGeneration>
     <JsonSerializerIsReflectionEnabled>false</JsonSerializerIsReflectionEnabled>
-    <PublishAot>true</PublishAot>
-    <PublishTrimmed>true</PublishTrimmed>
-    <PublishReadyToRun>true</PublishReadyToRun>
-    <StripSymbols>true</StripSymbols>
-    <DebugType>none</DebugType>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <PublishAot Condition="'$(Configuration)' == 'Release'">true</PublishAot>
+    <PublishTrimmed Condition="'$(Configuration)' == 'Release'">true</PublishTrimmed>
+    <PublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</PublishReadyToRun>
+    <IncludeNativeLibrariesForSelfExtract Condition="'$(Configuration)' == 'Release'">true</IncludeNativeLibrariesForSelfExtract>
+    
+    <!-- Full debug symbols in Debug configuration -->
+    <DebugType Condition="'$(Configuration)' == 'Debug'">portable</DebugType>
+    <DebugSymbols Condition="'$(Configuration)' == 'Debug'">true</DebugSymbols>
+    <StripSymbols Condition="'$(Configuration)' == 'Debug'">false</StripSymbols>
   </PropertyGroup>
 
   <ItemGroup>

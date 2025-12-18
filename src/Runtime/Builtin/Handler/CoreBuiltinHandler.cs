@@ -328,16 +328,16 @@ public static class CoreBuiltinHandler
 
         return value.Type switch
         {
-            Typing.ValueType.Integer => Value.CreateBoolean(typeName.Equals("Integer") || typeName.Equals("integer")),
-            Typing.ValueType.Float => Value.CreateBoolean(typeName.Equals("Float") || typeName.Equals("float")),
-            Typing.ValueType.Boolean => Value.CreateBoolean(typeName.Equals("Boolean") || typeName.Equals("boolean")),
-            Typing.ValueType.String => Value.CreateBoolean(typeName.Equals("String") || typeName.Equals("string")),
-            Typing.ValueType.Date => Value.CreateBoolean(typeName.Equals("Date") || typeName.Equals("date")),
-            Typing.ValueType.List => Value.CreateBoolean(typeName.Equals("List") || typeName.Equals("list")),
-            Typing.ValueType.Hashmap => Value.CreateBoolean(typeName.Equals("Hashmap") || typeName.Equals("hashmap")),
-            Typing.ValueType.Object => Value.CreateBoolean(typeName.Equals("Object") || typeName.Equals("object")),
-            Typing.ValueType.Lambda => Value.CreateBoolean(typeName.Equals("Lambda") || typeName.Equals("lambda")),
-            Typing.ValueType.None => Value.CreateBoolean(typeName.Equals("None") || typeName.Equals("none")),
+            Typing.ValueType.Integer => Value.CreateBoolean(typeName.Equals("integer")),
+            Typing.ValueType.Float => Value.CreateBoolean(typeName.Equals("float")),
+            Typing.ValueType.Boolean => Value.CreateBoolean(typeName.Equals("boolean")),
+            Typing.ValueType.String => Value.CreateBoolean(typeName.Equals("string")),
+            Typing.ValueType.Date => Value.CreateBoolean(typeName.Equals("date")),
+            Typing.ValueType.List => Value.CreateBoolean(typeName.Equals("list")),
+            Typing.ValueType.Hashmap => Value.CreateBoolean(typeName.Equals("hashmap")),
+            Typing.ValueType.Object => Value.CreateBoolean(typeName.Equals("object")),
+            Typing.ValueType.Lambda => Value.CreateBoolean(typeName.Equals("lambda")),
+            Typing.ValueType.None => Value.CreateBoolean(typeName.Equals("none")),
             _ => Value.False,
         };
     }
