@@ -772,7 +772,8 @@ public class Lexer : IDisposable
 
     private static Token TokenizeBuiltinMethod(TokenSpan span, string builtin)
     {
-        if (ConsoleBuiltin.Map.TryGetValue(builtin, out TokenName name)) { }
+        if (KiwiBuiltin.Map.TryGetValue(builtin, out TokenName name)) { }
+        else if (ConsoleBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (EnvBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (FileIOBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (LoggingBuiltin.Map.TryGetValue(builtin, out name)) { }
