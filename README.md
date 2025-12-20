@@ -1,38 +1,40 @@
-# kiwi 🥝
+# The Kiwi Programming Language 🥝
 
 Kiwi is a high-level, dynamically-typed language designed for efficiency and expressiveness across a variety of tasks.
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
-  - [VS Code Integration](#visual-studio-code-integration)
+- [VS Code Integration](#visual-studio-code-integration)
 - [Documentation](#documentation)
-  - [Kiwi Docs](#kiwi-docs)
-  - [Test Suite](#test-suite)
-  - [Examples](#examples)
+- [Test Suite](#test-suite)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Getting Started
-
-You should visit the [docs](docs/README.md) to learn the fundamentals of the language.
 
 Clone the repository:
 ```bash
 $ git clone https://github.com/fuseraft/kiwi.git
 ```
 
-Build Kiwi:
+To build Kiwi, run the build script:
 ```bash
 $ ./build.sh
 ```
 
-Run the test suite:
+Create a symlink to run `kiwi` from anywhere:
 ```bash
-$ ./bin/kiwi tests/test
+$ mkdir -p ~/bin
+$ ln -sf "$(pwd)/bin/kiwi" ~/bin/kiwi
 ```
 
-### Visual Studio Code Integration
+Verify setup:
+```bash
+$ kiwi -v
+```
+
+## Visual Studio Code Integration
 
 For syntax highlighting and code snippets in VS Code, install the [Kiwi language extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang).
 
@@ -44,27 +46,15 @@ ext install fuseraft.kiwi-lang
 
 ## Documentation
 
-### Kiwi Docs
-
 The [docs](docs/README.md) provide comprehensive information on language features, usage, and the [standard library](docs/lib/README.md).
 
-### Test Suite
+## Test Suite
 
-Explore the [test suite](tests/test.kiwi) for a variety of test cases. To run the test suite:
+Explore the [test suite](tests/lib/suite) for a variety of test cases. To run the test suite:
 
 ```shell
 $ kiwi tests/test
 ```
-
-### Examples
-
-Find [examples](scripts/) demonstrating Kiwi, including:
-
-- [Levenshtein distance](scripts/algo/levenshtein.kiwi)
-- [The cryptography library](lib/crypto.kiwi)
-- [Sieve of Eratosthenes](scripts/algo/sieve.kiwi)
-- [Conway's Game of Life](scripts/cellular_automata/life.kiwi)
-- [Project Euler examples](scripts/project_euler/)
 
 ## Contributing
 
