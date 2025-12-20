@@ -34,8 +34,6 @@ Verify setup:
 $ kiwi -v
 ```
 
-You can read the [docs](docs/README.md) to learn the fundamentals of the language.
-
 ## Visual Studio Code Integration
 
 For syntax highlighting and code snippets in VS Code, install the [Kiwi language extension](https://marketplace.visualstudio.com/items?itemName=fuseraft.kiwi-lang).
