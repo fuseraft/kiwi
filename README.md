@@ -18,7 +18,7 @@ Clone the repository:
 $ git clone https://github.com/fuseraft/kiwi.git
 ```
 
-To build Kiwi, run the build script:
+Run the build script:
 ```bash
 $ ./build.sh
 ```
