@@ -1,0 +1,16 @@
+/# ==============================================================================
+    Testing the kiwi event bus.
+   ============================================================================== #/
+tester::register_test("events", with do
+  invocations = 0
+  
+  on "event" do
+    invocations += 1
+  end
+
+  repeat 5 do
+    emit "event"
+  end
+
+  tester::assert(invocations == 5, "A1")
+end)

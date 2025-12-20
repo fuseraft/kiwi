@@ -1,0 +1,17 @@
+/# ==============================================================================
+    Testing try-finally.
+   ============================================================================== #/
+tester::register_test("try-finally", with do
+  a = 0, b = 0
+
+  try
+    a += 1
+    println "${1 / 0}" # throws DivideByZeroError
+    a += 1
+  finally
+    b += 1
+  end
+  
+  tester::assert(a == 1)
+  tester::assert(b == 1)
+end)

@@ -1,0 +1,110 @@
+/# ==============================================================================
+    Testing the `iter` package. A package in the standard library that provides
+    an implementation of the iterator pattern for working with list data.
+   ============================================================================== #/
+tester::register_test("iterators", with do
+  # Test data
+  data = ["apple", "banana", "cherry", "date", "elderberry"]
+  empty = []
+  single = ["lone"]
+
+  # Test 1: Basic iteration
+  it = ListIterator.new(data)
+  it.reset()
+
+  items = []
+  while it.can_read() do
+    items.append(it.current())
+    it.consume()
+  end
+
+  tester::assert_eq(items, data, "basic iteration should return all items")
+  tester::assert_eq(it.position(), 5, "position should be at end")
+  tester::assert(it.eof(), "eof() should be true at end")
+
+  # Test 2: peek() and current()
+  it.reset()
+  tester::assert_eq(it.current(), "apple", "current() at start")
+  tester::assert_eq(it.peek(), "banana", "peek() should show next")
+  it.consume()
+  tester::assert_eq(it.current(), "banana")
+  tester::assert_eq(it.peek(), "cherry")
+
+  # Test 3: skip() and rewind()
+  it.reset()
+  it.skip(2)
+  tester::assert_eq(it.current(), "cherry", "skip(2) from start => cherry")
+  it.rewind(1)
+  tester::assert_eq(it.current(), "banana", "rewind(1) => banana")
+  it.skip(10)  # overshoot
+  tester::assert_eq(it.position(), 5, "skip() must clamp to end")
+  tester::assert_eq(it.current(), null, "current() past end returns default (null)")
+
+  # Test 4: grab() and reach()
+  it.reset()
+  tester::assert_eq(it.grab(0), "apple", "grab(0)")
+  tester::assert_eq(it.grab(4), "elderberry", "grab(4)")
+  tester::assert(it.grab(99) == null, "grab out of bounds => default")
+
+  tester::assert_eq(it.reach(-1), "elderberry", "reach(-1) = last element")
+  tester::assert_eq(it.reach(-3), "cherry", "reach(-3)")
+  tester::assert_eq(it.reach(0), "apple", "reach(0) = first element")
+  tester::assert(it.reach(-10) == null, "reach too far => default")
+
+  # Test 5: default value handling
+  with_default = ListIterator.new(["a", null, null, "b", null, "c"], "MISSING")
+
+  tester::assert_eq(with_default.current(), "a")
+  with_default.consume()
+  tester::assert_eq(with_default.current(), null, "should return default (null)")
+
+  with_default.reset()
+  with_default.skip_defaults()
+  tester::assert_eq(with_default.current(), "a", "skip_defaults() skips leading")
+
+  with_default.consume(4)  # now at "c"
+  with_default.consume()
+  tester::assert_eq(with_default.current(), "MISSING", "past end => custom default")
+
+  # Test 6: look_ahead() and count_ahead()
+  mixed = ListIterator.new(["x", null, null, "y", "z"], null)
+
+  tester::assert_eq(mixed.look_ahead(), "x", "look_ahead from start")
+  mixed.consume()
+  tester::assert_eq(mixed.look_ahead(), "y", "look_ahead skips nulls => y")
+  tester::assert_eq(mixed.count_ahead(), 2, "count_ahead = 2 nulls")
+
+  mixed.consume(2)  # now at "y"
+  tester::assert_eq(mixed.look_ahead(), "z")
+  mixed.consume()
+  tester::assert_eq(mixed.look_ahead(), null, "look_ahead at end => default")
+  tester::assert_eq(mixed.count_ahead(), 0)
+
+  # Test 7: remaining()
+  it = ListIterator.new(data)
+  it.skip(2)
+  tester::assert_eq(it.remaining(), ["cherry", "date", "elderberry"], "remaining() from pos 2")
+  it.consume(10)
+  tester::assert_eq(it.remaining(), [], "remaining() at end => empty list")
+
+  # Test 8: empty and single-element lists
+  empty_it = ListIterator.new(empty, "EMPTY")
+  tester::assert(!empty_it.can_read(), "empty list => cannot read")
+  tester::assert(empty_it.eof(), "empty list => eof true")
+  tester::assert_eq(empty_it.current(), "EMPTY")
+  tester::assert_eq(empty_it.remaining(), [])
+  tester::assert_eq(empty_it.look_ahead(), "EMPTY")
+
+  single_it = ListIterator.new(single)
+  tester::assert_eq(single_it.current(), "lone")
+  single_it.consume()
+  tester::assert(!single_it.can_read())
+  tester::assert_eq(single_it.peek(), null)
+
+  # Test 9: reset() works multiple times
+  it.reset()
+  it.skip(3)
+  tester::assert_eq(it.current(), "date")
+  it.reset()
+  tester::assert_eq(it.current(), "apple", "reset brings us back to start")
+end)

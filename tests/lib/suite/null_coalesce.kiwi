@@ -1,0 +1,9 @@
+/# ==============================================================================
+    Testing the null-coalesce operator `??`.
+   ============================================================================== #/
+tester::register_test("null-coalesce", with do
+  a, b, c, d =< null, null, "foo", "bar"
+  tester::assert((a ?? b ?? c ?? d) == c, "A1")
+  tester::assert((a ?? c) == c, "A2")
+  tester::assert((d ?? a) == d, "A3")
+end)

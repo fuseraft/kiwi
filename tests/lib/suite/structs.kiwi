@@ -1,0 +1,29 @@
+/# ==============================================================================
+    Testing structs... a WIP, but there are many other tests here using structs.
+   ============================================================================== #/
+tester::register_test("structs", with do
+  struct Shape
+    fn area() end
+    fn perimeter() end
+  end
+
+  struct Circle < Shape
+    fn new(radius)
+      @radius = radius
+    end
+
+    fn area(): float
+      return 3.14159 * @radius * @radius
+    end
+
+    fn perimeter(): float
+      return 2 * 3.14159 * @radius
+    end
+  end
+
+  circle = Circle.new(5)
+
+  # magic numbers everywhere
+  tester::assert(math::floor(circle.area()).to_integer() == 78)
+  tester::assert(math::floor(circle.perimeter()).to_integer() == 31)
+end)
