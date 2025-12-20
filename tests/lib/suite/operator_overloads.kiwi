@@ -1,0 +1,84 @@
+/# ==============================================================================
+    Testing operator overloads. A WIP but still pretty cool.
+   ============================================================================== #/
+tester::register_test("operator overloads", with do
+  struct Number
+    fn new(_value: any = 0)
+      throw "Not a number: ${_value}"
+        when not Number.is_numeric(_value)
+
+      if typeof(_value) == "Number"
+        @_value = _value.get_value()
+      elsif [integer, float].contains(typeof(_value))
+        @_value = _value
+      end
+    end
+
+    fn get_value(): any
+      @_value
+    end
+
+    static fn is_numeric(_value: any): boolean
+      ["Number", integer, float].contains(typeof(_value))
+    end
+
+    fn +(other): Number
+      var (_tmp = @_value, _type = typeof(other))
+
+      if _type == "Number"
+        return Number.new(_tmp + other.get_value())
+      elsif [integer, float].contains(_type)
+        return Number.new(_tmp + other)
+      end
+
+      throw "Not a number: ${other}"
+    end
+
+    fn -(other: any): Number
+      var (_tmp = @_value, _type = typeof(other))
+
+      if _type == "Number"
+        return Number.new(_tmp - other.get_value())
+      elsif [integer, float].contains(_type)
+        return Number.new(_tmp - other)
+      end
+
+      throw "Not a number: ${other}"
+    end
+
+    fn ==(other: any): boolean
+      var (_tmp = @_value, _type = typeof(other))
+
+      if _type == "Number"
+        return _tmp == other.get_value()
+      elsif [integer, float].contains(_type)
+        return _tmp == other
+      end
+
+      throw "Not a number: ${other}"
+    end
+
+    fn to_string()
+      "${@_value}"
+    end
+  end
+
+  fn number(_value): Number
+    Number.new(_value)
+  end
+
+  n = number(1)
+  tester::assert(n.get_value() == 1, "expected n to contain 1")
+
+  n = n + number(2)
+  tester::assert(n.get_value() == 3, "expected n to contain 3")
+
+  n = n + 3
+  tester::assert(n.get_value() == 6, "expected n to contain 6")
+  tester::assert((n + n).get_value() == 12, "expected n + n to be 12")
+
+  pi = number(3.14159)
+
+  tester::assert(pi == pi, "expected pi to be pi")
+  tester::assert(pi == 3.14159, "expected pi to be 3.14159")
+end)

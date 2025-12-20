@@ -1,0 +1,27 @@
+/# ==============================================================================
+    Testing null values.
+   ============================================================================== #/
+tester::register_test("nulls", with do
+  var (e: hashmap = {a: null, b: null})
+  tester::assert(e.get("a") == null, "A1")
+  tester::assert(e.get("b") == null, "A2")
+
+  e.a = false
+  e.b = "hello"
+  tester::assert(e.get("a") == false, "A3")
+  tester::assert(e.get("b") == "hello", "A4")
+
+  e.a = null
+  e.b = null
+  tester::assert(e.get("a") == null, "A5")
+  tester::assert(e.get("b") == null, "A6")
+
+  e = null
+  tester::assert(e == null, "A7")
+
+  e = 0
+  tester::assert(e != null, "A8")
+
+  tester::assert(not null, "A9")
+  tester::assert(not not not null, "A10")
+end)

@@ -4,6 +4,7 @@ namespace kiwi.Runtime;
 
 public class KContext
 {
+    public HashSet<string> Includes { get; set; } = [];
     public Dictionary<string, KPackage> Packages { get; set; } = [];
     public Dictionary<string, KFunction> Functions { get; set; } = [];
     public Dictionary<string, KFunction> Methods { get; set; } = [];

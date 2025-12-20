@@ -22,6 +22,7 @@ public enum ASTNodeType
     Identifier,
     If,
     Import,
+    Include,
     IndexAssignment,
     Index,
     Interface,

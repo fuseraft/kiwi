@@ -303,6 +303,7 @@ public enum TokenName
   KW_Resume,
   KW_If,
   KW_Import,
+  KW_Include,
   KW_In,
   KW_Interface,
   KW_Lambda,

@@ -993,6 +993,7 @@ public class Lexer : IDisposable
             "yield" => TokenName.KW_Yield,
             "resume" => TokenName.KW_Resume,
             "import" => TokenName.KW_Import,
+            "include" => TokenName.KW_Include,
             "in" => TokenName.KW_In,
             "interface" => TokenName.KW_Interface,
             "def" => TokenName.KW_Method,

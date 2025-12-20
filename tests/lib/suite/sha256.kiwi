@@ -1,0 +1,14 @@
+/# ==============================================================================
+    Testing the `crypto` package SHA-256 implementation.
+   ============================================================================== #/
+tester::register_test("sha256", with do
+  var (a_str: string = "just a test string")
+
+  tester::assert("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" == crypto::sha256_hash(), "A1")
+  tester::assert("d7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f" == crypto::sha256_hash(a_str), "A2")
+  tester::assert("8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21" == crypto::sha256_hash(a_str*7), "A3")
+  
+  s = SHA256.new(a_str)
+  s.update(a_str)
+  tester::assert("03d9963e05a094593190b6fc794cb1a3e1ac7d7883f0b5855268afeccc70d461" == s.hexdigest(), "A4")
+end)
