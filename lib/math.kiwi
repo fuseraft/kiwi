@@ -493,4 +493,4 @@ package math
   end
 end
 
-import "math"
+export "math"
