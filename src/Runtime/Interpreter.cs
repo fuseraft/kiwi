@@ -60,6 +60,7 @@ public class Interpreter
             ASTNodeType.Identifier => Visit((IdentifierNode)node),
             ASTNodeType.If => Visit((IfNode)node),
             ASTNodeType.Import => Visit((ImportNode)node),
+            ASTNodeType.Include => Visit((IncludeNode)node),
             ASTNodeType.Index => Visit((IndexingNode)node),
             ASTNodeType.IndexAssignment => Visit((IndexAssignmentNode)node),
             ASTNodeType.Lambda => Visit((LambdaNode)node),
@@ -163,6 +164,8 @@ public class Interpreter
         return Value.Default;
     }
 
+    private bool Initialized = false;
+
     /// <summary>
     /// The entry point of the program.
     /// </summary>
@@ -171,12 +174,13 @@ public class Interpreter
     private Value Visit(ProgramNode node)
     {
         // This is the program root
-        if (node.IsEntryPoint)
+        if (node.IsEntryPoint && !Initialized)
         {
             PushFrame("kiwi", _globalScope);
 
             // Add the "global" hashmap.
             _globalScope.Declare("global", Value.CreateHashmap());
+            Initialized = true;
         }
 
         var result = Value.Default;
@@ -284,6 +288,47 @@ public class Interpreter
     {
         var packageName = Interpret(node.PackageName);
         ImportPackage(node.Token, packageName);
+
+        return Value.Default;
+    }
+
+    private Value Visit(IncludeNode node)
+    {
+        var pathValue = Interpret(node.Path);
+        if (!pathValue.IsString())
+        {
+            throw new InvalidOperationError(node.Token, "Include path must be a string.");
+        }
+
+        var filePath = pathValue.GetString();
+        var parentPath = FileUtil.GetParentPath(node.Token, ExecutionPath);
+        var fullPath = Path.GetFullPath(Path.Combine(parentPath, filePath));
+
+        if (!Path.HasExtension(fullPath))
+        {
+            fullPath = FileUtil.TryGetExtensionless(node.Token, fullPath);
+        }
+
+        if (Context.Includes.Contains(fullPath))
+        {
+            return Value.Default;
+        }
+
+        Context.Includes.Add(fullPath);
+
+        if (!FileUtil.FileExists(node.Token, fullPath))
+        {
+            throw new InvalidOperationError(node.Token, $"File not found: {filePath}");
+        }
+
+        var oldExecutionPath = ExecutionPath;
+        ExecutionPath = fullPath;
+
+        using var lexer = new Lexer(fullPath);
+        var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
+        var result = Interpret(ast);
+
+        ExecutionPath = oldExecutionPath;
 
         return Value.Default;
     }

@@ -102,6 +102,9 @@ public partial class Parser
             case TokenName.KW_Import:
                 return ParseImport();
 
+            case TokenName.KW_Include:
+                return ParseInclude();
+
             case TokenName.KW_Export:
                 return ParseExport();
 
@@ -988,6 +991,19 @@ public partial class Parser
         }
 
         return new ImportNode(ParseExpression());
+    }
+
+    private IncludeNode? ParseInclude()
+    {
+        MatchName(TokenName.KW_Include);
+
+        if (!HasValue())
+        {
+            throw new SyntaxError(GetErrorToken(), "Expected path after 'include'.");
+        }
+
+        var package = ParseExpression() ?? throw new SyntaxError(GetErrorToken(), "Expected path after 'include`.");
+        return new IncludeNode(package);
     }
 
     private PackageNode? ParsePackage()

@@ -1,0 +1,101 @@
+/# ==============================================================================
+    Testing every kind of loop available in kiwi: `for`, `while`, `repeat`
+   ============================================================================== #/
+tester::register_test("loops", with do
+  fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
+  new_list = []
+
+  # iterate list
+  for fruit in fruits do
+    new_list.push(fruit)
+  end
+
+  tester::assert(new_list.join() == "kiwistrawberrypineapplelimemangoguava", "A1")
+  new_list.clear()
+
+  # iterate index
+  for fruit, index in fruits do 
+    new_list.push(index)
+  end
+
+  tester::assert(new_list.sum() == 15, "A2")
+  new_list.clear()
+
+  # iterate inline list
+  for item in ["kiwi", "is", "fun"] do
+    new_list.push(item)
+  end
+
+  tester::assert(new_list.join() == "kiwiisfun", "A3")
+  new_list.clear()
+
+  # iterate an inline list with an index
+  for item, index in ["kiwi", "is", "fun"] do
+    new_list.push(index)
+  end
+
+  tester::assert(new_list.sum() == 3 and new_list.size() == 3, "A4")
+  new_list.clear()
+
+  # iterate a range
+  for i in [0 to 5] do
+    new_list.push(i)
+  end
+
+  tester::assert(new_list.size() == 6 and new_list.sum() == 15, "A5")
+  new_list.clear()
+
+  # nested while loops
+  var (test_sum: integer = 0)
+  i = 0
+  j = 0
+  while i < 10 do
+    i += 1
+    j = 0
+
+    while j < 10 do
+      j += 1
+      test_sum += 1
+    end
+  end
+
+  tester::assert(test_sum == 100, "A7")
+
+  new_list = []
+  i = 1
+  while i <= 10 do
+    new_list.push("Item ${i}")
+    i += 1
+  end
+
+  counter = 0
+  for item, index in new_list do
+    counter += 1
+    break when index == 4
+  end
+
+  tester::assert(counter == 5, "A8")
+
+  counter = 0
+  for item, index in new_list do
+    counter += 1
+    break when index == 5
+  end
+
+  tester::assert(counter == 6, "A9")
+
+  # repeat-loop
+  sum = 0
+  repeat 10 as i do
+    sum += i
+  end
+
+  tester::assert(sum == 55, "A10")
+
+  x = 2
+  repeat 4 do
+    x *= x
+  end
+
+  tester::assert(x == 65536, "A11")
+end)

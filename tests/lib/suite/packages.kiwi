@@ -1,0 +1,12 @@
+/# ==============================================================================
+    Testing package exports.
+   ============================================================================== #/
+tester::register_test("packages", with do
+  package foobar_test_pkg
+    fn hello()
+      return "hello"
+    end
+  end
+  export "foobar_test_pkg"
+  tester::assert(foobar_test_pkg::hello() == "hello", "A1")
+end)

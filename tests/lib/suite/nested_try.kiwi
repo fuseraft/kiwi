@@ -1,0 +1,22 @@
+/# ==============================================================================
+    Testing try-catches nested within other blocks. Mostly redundant as the test-
+    suite uses the try-catch construct to detect and collect failed assertions.
+   ============================================================================== #/
+tester::register_test("nested try-catch", with do
+  a = 0, b = 0, c = 0
+
+  for i in [0 to 1] do
+    try
+      a += 1
+      println "${i / 0}" # throws DivideByZeroError
+    catch (err, msg)
+      b += 1
+    finally
+      c += 1
+    end
+  end
+
+  tester::assert(a == 2)
+  tester::assert(b == 2)
+  tester::assert(c == 2)
+end)

@@ -1,0 +1,22 @@
+/# ==============================================================================
+    Testing try-catch-finally.
+   ============================================================================== #/
+tester::register_test("try-catch-finally", with do
+  a = 0, b = 0, c = 0
+
+  try
+    for i in [0  to  1] do
+      a += 1
+      println "${i / 0}" # throws DivideByZeroError
+      a += 1
+    end
+  catch (err)
+    b += 1
+  finally
+    c += 1
+  end
+
+  tester::assert(a == 1)
+  tester::assert(b == 1)
+  tester::assert(c == 1)
+end)

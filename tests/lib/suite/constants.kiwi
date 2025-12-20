@@ -1,0 +1,24 @@
+/# ==============================================================================
+    Testing constants (permanently immutable variables)
+   ============================================================================== #/
+tester::register_test("constants", with do
+  const MSG = "hello"
+  var (err_c: integer = 0)
+
+  try
+    MSG = "foobar"
+  catch
+    err_c += 1
+  end
+
+  tester::assert(MSG == "hello", "A1")
+  tester::assert(err_c == 1, "A2")
+
+  package xxx
+    const Y = "hello"
+  end
+
+  export "xxx"
+
+  tester::assert(xxx::Y == MSG, "A3")
+end)

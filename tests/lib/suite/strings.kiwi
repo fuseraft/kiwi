@@ -1,0 +1,28 @@
+/# ==============================================================================
+    Testing some common string manipulation, concatenation, interpolation, etc.
+   ============================================================================== #/
+tester::register_test("strings", with do
+  # simple concatenation
+  a = "Hello"
+  b = " World"
+  tester::assert(a + b == "Hello World", "A1")
+
+  # concatenation expression
+  a = "Hello"
+  b = "World"
+  tester::assert((a + " " + b) == "Hello World", "A2")
+
+  # string interpolation
+  tester::assert("${a} ${b}" == "Hello World", "A3")
+
+  wrap_string = with (inputstring, openchar, closechar) do
+    return "${openchar}${inputstring}${closechar}"
+  end
+
+  tester::assert(wrap_string("div", "<", ">") == "<div>", "A4")
+
+  # string multiplication
+  a = "Hello"
+  b = 5
+  tester::assert(a * b == "HelloHelloHelloHelloHello", "A5")
+end)

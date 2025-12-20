@@ -1,0 +1,43 @@
+/# ==============================================================================
+    Testing `var` declarations. These are special variable declarations that are
+    always guaranteed to be unique to the scope they are defined within.
+   ============================================================================== #/
+tester::register_test("var declaration", with do
+  fn var_decl_one(): list
+    var (
+      f: float = 0.5,            # type-hint with initializer 
+      s = "string",              # regular variable declaration
+      n,                         # uninitialized variable defaults to null
+      b: boolean,                # type-hint without initializer (`boolean` defaults to false)
+      m: list = [[0] * 5] * 5,   # a 5x5 matrix for funsies
+      l: list,                   # will be an empty list
+      h: hashmap,                # will be an empty hashmap
+      i: integer                 # will be 0
+    )
+
+    return [f, s, n, b, m, l, h, i]
+  end
+
+  fn var_decl_two(): list
+    var (f: float = 0.5)          # type-hint with initializer 
+    var (s = "string")            # regular variable declaration
+    var (n)                       # uninitialized variable defaults to null
+    var (b: boolean)              # type-hint without initializer (`boolean` defaults to false)
+    var (m: list = [[0] * 5] * 5) # a 5x5 matrix for funsies
+    var (l: list)                 # will be an empty list
+    var (h: hashmap)              # will be an empty hashmap
+    var (i: integer)              # will be 0
+
+    return [f, s, n, b, m, l, h, i]
+  end
+
+  # declare the variables one and two
+  var (one: list = var_decl_one())
+  var (two: list = var_decl_two())
+
+  tester::assert(one.to_string() == two.to_string(), "A1")
+
+  for i in [0 to one.size() - 1] do
+    tester::assert(one[i].to_string() == two[i].to_string(), "A2")
+  end
+end)

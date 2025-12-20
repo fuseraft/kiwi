@@ -1,0 +1,8 @@
+/# ==============================================================================
+    Testing simple (and complex?) assignment operations.
+   ============================================================================== #/
+tester::register_test("assignments", with do
+  d = 5, e = 3, a = b = c = d
+  b -= e
+  tester::assert(a + b + c == d * e - e, "A1")
+end)

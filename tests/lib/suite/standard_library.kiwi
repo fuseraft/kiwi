@@ -1,0 +1,7 @@
+/# ==============================================================================
+    Testing some standard library functions. Mostly redundant as the sha and md5
+    tests at the end use the `crypto` package from the standard library.
+   ============================================================================== #/
+tester::register_test("standard library", with do
+  tester::assert(string::mirror("hello") == "helloolleh", "A1")
+end)

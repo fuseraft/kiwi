@@ -1,0 +1,25 @@
+/# ==============================================================================
+    Testing the unpack operator `=<`. Useful for when a function returns more
+    than one value and you want to capture each as a separate variable.
+   ============================================================================== #/
+tester::register_test("unpacking", with do
+  a, b, c =< true, {a: false}, [1, 2, 3]
+
+  tester::assert(a == true, "A1")
+  tester::assert(b.keys().size() == 1 and b.to_string() == "{\"a\": false}", "A2")
+  tester::assert(c.size() == 3 and c.to_string() == "[1, 2, 3]", "A3")
+
+  fn get_zero_and_one(): list
+    return [0, 1]
+  end
+
+  zero, one =< get_zero_and_one()
+
+  tester::assert(zero == 0, "A4")
+  tester::assert(one == 1, "A5")
+
+  a, b =< [[1, 2], ["a", "b"]]
+
+  tester::assert(a.size() == 2 and a.sum() == 3, "A6")
+  tester::assert(b.size() == 2 and b.join() == "ab", "A7")
+end)
