@@ -1,0 +1,14 @@
+/# ==============================================================================
+    Testing some common string builtins. There are builtins used all throughout
+    the testsuite, so this may be redundant, but we should cover all our bases.
+   ============================================================================== #/
+tester::register_test("builtins", with do
+  var (a: string = "FooBar".lowercase()) 
+  tester::assert("${a}${a.uppercase()}" == "foobarFOOBAR", "A1")
+  tester::assert(a.index("bar") == 3, "A2")
+  tester::assert(a.chars().size() == 6, "A3")
+  tester::assert("foobar".replace("foo", "food") == "foodbar", "A4")
+  tester::assert(not a.begins_with("food"), "A5")
+  tester::assert("foobar".ends_with("bar"), "A6")
+  tester::assert(not "foobar".ends_with("bark"), "A7")
+end)

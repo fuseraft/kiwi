@@ -1,0 +1,29 @@
+/# ==============================================================================
+    Testing sets in from the `collections` package of the standard library.
+   ============================================================================== #/
+tester::register_test("sets", with do
+  s1 = Set.new([1, 2, 3])
+  s2 = Set.new([1, 2])
+  s3 = Set.new([4, 5])
+  s4 = Set.new([1, 2, 3, 4])
+
+  tester::assert(s1.subset(s2) == false, "s1 is not a subset of s2")
+  tester::assert(s2.subset(s1) == true, "s2 is a subset of s1")
+  tester::assert(s3.subset(s1) == false, "s3 is not a subset of s1")
+  tester::assert(s2.subset(s2) == true, "s2 is a subset of s2")
+  tester::assert(s2.subset(s4) == true, "s2 is a subset of s4")
+  tester::assert(s1.superset(s2) == true, "s1 is a superset of s2")
+  tester::assert(s2.superset(s1) == false, "s2 is not a superset of s1")
+  tester::assert(s1.superset(s3) == false, "s1 is not a superset of s3")
+  tester::assert(s2.superset(s2) == true, "s2 is a superset of s2")
+  tester::assert(s4.superset(s2) == true, "s4 is a superset of s2")
+  
+  a1 = Set.new([3,6,4])
+  a2 = Set.new([1,2,3,4,5,6,7,8,9])
+  
+  a3 = a2.difference(a1)
+  tester::assert(a3.to_list().to_string() == [1, 2, 5, 7, 8, 9].to_string(), "expected a3 to contain the difference between a2 and a1")
+  
+  a3.clear()
+  tester::assert(a3.to_list().empty(), "expected an empty set")
+end)

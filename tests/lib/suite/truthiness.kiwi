@@ -1,0 +1,16 @@
+/# ==============================================================================
+    Testing truthy and falsy values.
+   ============================================================================== #/
+tester::register_test("truthiness", with do
+  tester::assert(not null.truthy(), "null is never truthy")
+  tester::assert(not (0).truthy(), "zero is the only non-truthy number")
+  tester::assert((1).truthy(), "non-zero numbers are always truthy")
+  tester::assert(not "".truthy(), "empty strings are not truthy")
+  tester::assert("0".truthy(), "non-empty strings are truthy")
+  tester::assert(not [].truthy(), "empty lists are not truthy")
+  tester::assert([0].truthy(), "non-empty lists are truthy")
+  tester::assert(not {}.truthy(), "empty hashmaps are not truthy")
+  tester::assert({a: 1}.truthy(), "non-empty hashmaps are truthy")
+  tester::assert(not false.truthy(), "false is never truthy")
+  tester::assert(true.truthy(), "true is always truthy")
+end)

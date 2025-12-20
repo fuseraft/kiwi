@@ -1,0 +1,54 @@
+/# ==============================================================================
+    Testing lambdas (both assigned and inline), mostly redundant as lambdas are
+    used throughout (including in each call to `tester::register_test`).
+   ============================================================================== #/
+tester::register_test("lambdas", with do
+  # setup
+  new_list = [{id: 0}, {id: 1}, {id: 2}, {id: 3}, {id: 4},
+              {id: 5}, {id: 6}, {id: 7}, {id: 8}, {id: 9}]
+
+  # Assigned and inline lambdas
+  odd_item_id = with (item) do 
+    return item.id % 2 != 0 
+  end
+
+  puts = with (s) do 
+    return s
+  end
+
+  tester::assert(puts("Hello, World!") == "Hello, World!", "A1")
+
+  # Lambdas as first-class citizens
+  fn use_lambda(print_func, message) 
+    return print_func(message)
+  end
+  
+  # passing a lambda to a function
+  tester::assert(use_lambda(puts, "Hello, Kiwi!") == "Hello, Kiwi!", "A2")
+
+  # using an inline lambda
+  tester::assert(new_list.filter(with (item) do return item["id"] % 2 == 0 end).map(with (item) do item["id"]end).sum() == 20, "A3")
+  
+  # using the `odd_item_id` assigned lambda
+  tester::assert(new_list.filter(odd_item_id).map(with (item) do item["id"]end).sum() == 25, "A4")
+
+  # List.reduce
+  numbers = [1, 2, 3, 4, 5]
+
+  tester::assert((numbers.reduce(0, with (acc, n) do acc += n end)) == 15, "A6")
+
+  tester::assert(
+    (
+      numbers.reduce({}, with (acc, n) do
+                          acc["key${n}"] = n
+                        end)
+    )
+    .keys()
+    .reduce("", with (acc, key) do 
+                  acc += key
+                end) == "key1key2key3key4key5", "A7")
+
+  # Inline lambda assignment
+  x = (with (n) do n ** 2 end)(5)
+  tester::assert(x == 25, "A8")
+end)

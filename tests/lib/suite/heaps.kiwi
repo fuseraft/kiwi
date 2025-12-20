@@ -1,0 +1,28 @@
+/# ==============================================================================
+    Testing the min and max heaps from the `collections` package in the standard
+    library.
+   ============================================================================== #/
+tester::register_test("heaps", with do
+  min_heap = Heap.new("min")
+  max_heap = Heap.new("max")
+
+  # Insert elements into the min-heap
+  min_heap.insert(5)
+  min_heap.insert(3)
+  min_heap.insert(8)
+  min_heap.insert(1)
+
+  # Extract root from min-heap
+  tester::assert(min_heap.extract_root() == 1, "expected root of min heap to be 1")
+  tester::assert(min_heap.extract_root() == 3, "expected new root of min heap to be 3")
+
+  # Insert elements into the max-heap
+  max_heap.insert(5)
+  max_heap.insert(3)
+  max_heap.insert(8)
+  max_heap.insert(1)
+
+  # Extract root from max-heap
+  tester::assert(max_heap.extract_root() == 8, "expected root of max heap to be 8")
+  tester::assert(max_heap.extract_root() == 5, "expected next root of max heap to be 5")
+end)

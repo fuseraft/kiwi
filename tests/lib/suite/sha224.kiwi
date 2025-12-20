@@ -1,0 +1,9 @@
+/# ==============================================================================
+    Testing the `crypto` package SHA-224 implementation.
+   ============================================================================== #/
+tester::register_test("sha224", with do
+  var (a_str: string = "just a test string")
+  tester::assert("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" == crypto::sha224_hash(), "A1")
+  tester::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == crypto::sha224_hash(a_str), "A2")
+  tester::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == crypto::sha224_hash(a_str*7), "A3")
+end)

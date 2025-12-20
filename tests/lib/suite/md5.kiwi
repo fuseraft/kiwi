@@ -1,0 +1,10 @@
+/# ==============================================================================
+    Testing the `crypto` package MD5 implementation.
+   ============================================================================== #/
+tester::register_test("md5", with do
+  var (a_str: string = "just a test string")
+  
+  tester::assert("d41d8cd98f00b204e9800998ecf8427e" == crypto::md5_hash(""), "A1")
+  tester::assert("c105456108ab41026a95d4f0cc66fe78" == crypto::md5_hash(a_str), "A2")
+  tester::assert("e8754b080e52f959766d9d40f5e406ee" == crypto::md5_hash(a_str * 7), "A3")
+end)

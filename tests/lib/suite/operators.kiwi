@@ -1,0 +1,56 @@
+/# ==============================================================================
+    Testing operators and the ability to bit-twiddle with kiwi.
+   ============================================================================== #/
+tester::register_test("operators", with do
+  # arithmetic
+  tester::assert(10 + 20 == 30)   # addition
+  tester::assert(10 - 20 == -10)  # subtraction
+  tester::assert(10 * 20 == 200)  # multiplication
+  tester::assert(10 / 20. == 0.5) # division
+  tester::assert(10 % 2 == 0)     # modulo division
+  tester::assert(10 ** 2 == 100)  # exponentiation
+
+  # logical or 
+  tester::assert(not (false or false))
+  tester::assert(false or true)
+  tester::assert(true or false)
+  tester::assert(true or true)
+
+  # logical and
+  tester::assert(not (false and false))
+  tester::assert(not (false and true))
+  tester::assert(not (true and false))
+  tester::assert(true and true)
+
+  # logical not
+  tester::assert(false == not true)
+  tester::assert(not not true)
+  tester::assert(not false)
+
+  # comparison
+  tester::assert(1 < 2)
+  tester::assert(2 > 1)
+  tester::assert(1 <= 1)
+  tester::assert(1 >= 1)
+  tester::assert(1 == 1)
+  tester::assert(1 != 0)
+
+  # bitwise operators
+  a = 5
+  b = 9
+  tester::assert((a & b) == 1)
+  tester::assert((a | b) == 13)
+  tester::assert((a ^ b) == 12)
+  tester::assert(a << 1 == 10)
+  tester::assert(a >> 1 == 2)
+  tester::assert(~a == -6)
+
+  # bitswap
+  old_a = a
+  old_b = b
+  a = a ^ b
+  b = a ^ b
+  a = a ^ b
+  tester::assert(b == old_a)
+  tester::assert(a == old_b)
+end)
