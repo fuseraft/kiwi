@@ -50,15 +50,6 @@ public partial class Parser
             case TokenName.KW_PrintXy:
                 return ParsePrintXy();
 
-            case TokenName.KW_Spawn:
-                return ParseSpawn();
-
-            case TokenName.KW_Yield:
-                return ParseYield();
-
-            case TokenName.KW_Resume:
-                return ParseResume();
-
             case TokenName.KW_For:
                 return ParseForLoop();
 
@@ -371,38 +362,6 @@ public partial class Parser
     {
         MatchType(TokenType.Comment);
         return null;
-    }
-
-    private SpawnNode? ParseSpawn()
-    {
-        MatchName(TokenName.KW_Spawn);
-
-        if (!HasValue())
-        {
-            throw new SyntaxError(GetErrorToken(), "Expected expression for spawn.");
-        }
-
-        var spawned = ParseExpression() ?? throw new SyntaxError(GetErrorToken(), "Expected expression for spawn.");
-        return new SpawnNode(spawned);
-    }
-
-    private YieldNode? ParseYield()
-    {
-        MatchName(TokenName.KW_Yield);
-        return new YieldNode();
-    }
-
-    private ResumeNode? ParseResume()
-    {
-        MatchName(TokenName.KW_Resume);
-
-        if (!HasValue())
-        {
-            throw new SyntaxError(GetErrorToken(), "Expected expression for resume.");
-        }
-
-        var spawned = ParseExpression() ?? throw new SyntaxError(GetErrorToken(), "Expected expression for resume.");
-        return new ResumeNode(spawned);
     }
 
     private StructNode? ParseStruct()
@@ -1873,11 +1832,7 @@ public partial class Parser
         var type = GetTokenName();
         AssignmentNode? assignment = null;
 
-        if (type == TokenName.KW_Spawn)
-        {
-            assignment = new(baseNode, identifierName, type, ParseSpawn());
-        }
-        else if (type == TokenName.KW_Case)
+        if (type == TokenName.KW_Case)
         {
             assignment = new(baseNode, identifierName, type, ParseCase());
         }
@@ -1959,11 +1914,6 @@ public partial class Parser
             if (isInstance)
             {
                 return new SelfNode();
-            }
-
-            if (GetTokenName() == TokenName.KW_Spawn)
-            {
-                return ParseSpawn();
             }
 
             throw new SyntaxError(GetErrorToken(), "Expected an identifier.");
