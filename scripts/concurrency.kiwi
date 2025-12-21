@@ -1,0 +1,66 @@
+#!/usr/bin/env kiwi
+
+println "Starting 8 parallel prime calculations...\n"
+
+# Simple (slightly inefficient) prime check: CPU work
+fn is_prime(n)
+  return true when n < 2
+  return false when n % 2 == 0 && n > 2
+
+  i = 3
+  while i * i <= n do
+    return false when n % i == 0
+    i += 2
+  end
+
+  return true
+end
+
+# Worker lambda, each runs in its own thread-pool thread
+worker = with (num, label) do
+  println "[Task ${label}] Computing primes up to ${num}..."
+
+  task::sleep(100 + math::random(0, 400))  # simulate variable work + show interleaving
+
+  count = 0
+
+  for i in [2 to num] do
+    if is_prime(i)
+      count += 1
+    end
+  end
+  
+  println "[Task ${label}] Done! Found ${count} primes."
+  return count
+end
+
+# Spawn 8 tasks with different ranges
+tasks = []
+labels = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta"]
+
+for label, idx in labels do
+  n = 50000 + idx * 10000
+  id = task::spawn(worker, [n, label])
+  tasks.append({ id: id, label: label, n: n })
+end
+
+println "\nMain thread: All tasks spawned. Doing some work myself..."
+task::sleep(300)
+println "Main thread: Still alive - no blocking! Awaiting results...\n"
+
+# Await and collect results
+results = {}
+for t in tasks do
+  count = task::await(t.id)
+  results[t.label] = count
+  println "-> ${t.label} (up to ${t.n}) -> ${count} primes"
+end
+
+println "\n=== Final Results ==="
+for label, count in results do
+  println "${label}: ${count} primes"
+end
+
+println "\nTasks still running? ${task::busy()}"
+println "Demo complete. Kiwi just ran 8 parallel CPU tasks in a <8MB native binary."
+println "Ruby/Node/Python: hold my kiwi!"
