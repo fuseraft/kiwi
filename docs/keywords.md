@@ -42,10 +42,9 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`export`](#export)
   - [`import`](#import)
   - [`package`](#package)
-- [Concurrency](#concurrency)
-  - [`spawn`](#spawn)
-  - [`then`](#then)
 - [Console I/O](#console-io)
+  - [`eprint`](#eprint)
+  - [`eprintln`](#eprintln)
   - [`input`](#input)
   - [`print`](#print)
   - [`println`](#println)
@@ -234,18 +233,6 @@ The `package` keyword is used to define a package.
 
 See [Packages](packages.md).
 
-## Concurrency
-
-### `spawn`
-The `spawn` keyword is used to spawn an asynchronous task.
-
-See [`task`](lib/task.md#creating-tasks-with-spawn).
-
-### `then`
-The `then` keyword is used to specify code to execute after the completion of an asynchronous task.
-
-See [`task`](lib/task.md).
-
 ## Console I/O
 
 ### `input`
@@ -253,13 +240,21 @@ The `input` keyword is used to request user input from a console.
 
 See [Console I/O](console_io.md).
 
+### `eprint`
+The `eprint` keyword is used to print to the standard error stream.
+
+See [Console I/O](console_io.md).
+
+### `eprintln`
+The `eprintln` keyword is used to print to the standard error stream. The output is terminated with a newline.
+
 ### `print`
-The `print` keyword is used to print output to a console.
+The `print` keyword is used to print output to the standard output stream.
 
 See [Console I/O](console_io.md).
 
 ### `println`
-The `println` keyword is used to print output to a console. The output is terminated with a newline.
+The `println` keyword is used to print output to the standard output stream. The output is terminated with a newline.
 
 See [Console I/O](console_io.md).
 
