@@ -78,10 +78,5 @@ public struct BuiltinDispatch
     {
         return NetBuiltinHandler::execute(sockmgr, token, builtin, args);
     }
-
-    public static Value Execute(ref TaskManager taskmgr, Token token, TokenName builtin, List<Value> args)
-    {
-        return TaskBuiltinHandler::execute(taskmgr, token, builtin, args);
-    }
     */
 }

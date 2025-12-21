@@ -29,6 +29,10 @@ public class Interpreter
     private Stack<string> PackageStack { get; set; } = [];
     private Stack<string> StructStack { get; set; } = [];
     private Stack<string> FuncStack { get; set; } = [];
+    public long CurrentTaskId { get; set; } = 0; // 0 = main thread
+
+    // New property for access from builtins
+    public TaskManager TaskMgr => TaskManager.Instance;
 
     public void SetContext(KContext context) => Context = context;
 
@@ -86,7 +90,6 @@ public class Interpreter
             ASTNodeType.Return => Visit((ReturnNode)node),
             ASTNodeType.Self => Visit((SelfNode)node),
             ASTNodeType.Slice => Visit((SliceNode)node),
-            ASTNodeType.Spawn => Value.Default,
             ASTNodeType.Struct => Visit((StructNode)node),
             ASTNodeType.TernaryOperation => Visit((TernaryOperationNode)node),
             ASTNodeType.Throw => Visit((ThrowNode)node),
@@ -1970,10 +1973,6 @@ public class Interpreter
         return result;
     }
 
-    /*
-    private Value Visit(SpawnNode node) => throw new NotImplementedException();
-    */
-
     private KFunction CreateFunction(FunctionNode node, string name)
     {
         List<KeyValuePair<string, Value>> parameters = [];
@@ -2406,6 +2405,10 @@ public class Interpreter
             // for reflection to work, we need to inject a few things.
             return ReflectorBuiltinHandler.Execute(node.Token, op, args, Context, CallStack, FuncStack);
         }
+        else if (TaskBuiltin.IsBuiltin(op))
+        {
+            return TaskBuiltinHandler.Execute(TaskMgr, node.Token, op, args, Context);
+        }
         
         // TODO: need to create issues for these in GitHub.
         /*
@@ -2424,10 +2427,6 @@ public class Interpreter
         else if (SocketBuiltin.IsBuiltin(op))
         {
             // return BuiltinDispatch.Execute(sockmgr, node.Token, op, args);
-        }
-        else if (TaskBuiltin.IsBuiltin(op))
-        {
-            // return BuiltinDispatch.Execute(taskmgr, node.Token, op, args);
         }
         */
 
@@ -2534,7 +2533,7 @@ public class Interpreter
         try
         {
             var lambdaName = lambda.Identifier;
-            var scope = new Scope(CallStack.Peek().Scope);
+            var scope = CallStack.Count > 0 ? new Scope(CallStack.Peek().Scope) : new Scope();
             var lambdaFrame = PushFrame(lambdaName, scope, true);
             var result = Value.Default;
             var targetLambda = lambdaName;
