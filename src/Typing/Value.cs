@@ -92,7 +92,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static Value CreateLambda(object value) => new(value, ValueType.Lambda);
     public static Value CreateStruct(StructRef value) => new(value, ValueType.Struct);
     public static Value CreateStruct(object value) => new(value, ValueType.Struct);
-    public static Value CreatePointer(object value) => new(value, ValueType.Pointer);
+    public static Value CreatePointer(IntPtr value) => new(value, ValueType.Pointer);
 
     public double GetNumber()
     {
@@ -118,6 +118,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public InstanceRef GetObject() => (InstanceRef)Value_;
     public LambdaRef GetLambda() => (LambdaRef)Value_;
     public StructRef GetStruct() => (StructRef)Value_;
+    public IntPtr GetPointer() => (IntPtr)(Value_ ?? IntPtr.Zero);
     public NullRef GetNull()
     {
         Value_ ??= new NullRef();
