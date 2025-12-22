@@ -76,6 +76,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
 
             Interpreter.ExecutionPath = ExecutionPath;
             Interpreter.Interpret(ast);
+            AwaitTasks();
         }
         catch (KiwiError e)
         {
@@ -135,6 +136,35 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
         }
 
         StandardLibraryLoaded = true;
+    }
+
+    private void AwaitTasks()
+    {
+        if (Interpreter.Current?.TaskMgr.Busy().GetBoolean() == true)
+        {
+            while (Interpreter.Current.TaskMgr.Busy().GetBoolean())
+            {
+                var count = 0;
+
+                foreach (var task in Interpreter.Current.TaskMgr.List())
+                {
+                    var status = Interpreter.Current.TaskMgr.Status(task.GetInteger()).GetString();
+
+                    if (!(status is "Faulted" or "Completed"))
+                    {
+                        count++;
+                    }
+                }
+
+                // If nothing is in an active state, we're done waiting.
+                if (count == 0)
+                {
+                    return;
+                }
+
+                Interpreter.Current.TaskMgr.Sleep(10);
+            }
+        }
     }
 
     private static bool IsRecognizedScript(string path)
