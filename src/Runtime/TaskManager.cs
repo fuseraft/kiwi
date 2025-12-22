@@ -17,7 +17,7 @@ public sealed class TaskManager
     private readonly ConcurrentDictionary<long, TaskState> _tasks = new();
 
     // Reusable TaskState objects: grow-only, lock-free pooling.
-    private readonly ConcurrentBag<TaskState> _stateBag = new();
+    private readonly ConcurrentBag<TaskState> _stateBag = [];
 
     public static TaskManager Instance { get; } = new();
 

@@ -47,15 +47,15 @@ public static class TaskBuiltinHandler
     private static Value Status(TaskManager mgr, Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TaskBuiltin.TaskStatus, 1, args.Count);
-        var id = ConversionOp.GetInteger(token, args[0]);
-        return mgr.Status(id);
+        TypeError.ExpectInteger(token, args[0]);
+        return mgr.Status(args[0].GetInteger());
     }
 
     private static Value Result(TaskManager mgr, Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TaskBuiltin.TaskResult, 1, args.Count);
-        var id = ConversionOp.GetInteger(token, args[0]);
-        return mgr.Result(id);
+        TypeError.ExpectInteger(token, args[0]);
+        return mgr.Result(args[0].GetInteger());
     }
 
     private static Value List(TaskManager mgr, Token token, List<Value> args)
