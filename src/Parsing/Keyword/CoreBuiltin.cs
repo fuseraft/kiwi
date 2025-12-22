@@ -199,6 +199,7 @@ public static class CoreBuiltin
         if (StdInBuiltin.Map.ContainsKey(arg))      return true;
         if (SysBuiltin.Map.ContainsKey(arg))        return true;
         if (TaskBuiltin.Map.ContainsKey(arg))       return true;
+        if (ChannelBuiltin.Map.ContainsKey(arg))    return true;
         if (TimeBuiltin.Map.ContainsKey(arg))       return true;
         if (WebServerBuiltin.Map.ContainsKey(arg))  return true;
 

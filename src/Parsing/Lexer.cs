@@ -780,6 +780,7 @@ public class Lexer : IDisposable
         else if (ListBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (MathBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (TaskBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (ChannelBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (SysBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (TimeBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (StdInBuiltin.Map.TryGetValue(builtin, out name)) { }

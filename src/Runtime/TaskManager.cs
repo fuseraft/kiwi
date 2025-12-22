@@ -23,6 +23,8 @@ public sealed class TaskManager
 
     private TaskManager() { }
 
+    public Channel CreateChannel(int capacity = 0) => Channel.Create(capacity);
+
     private TaskState Rent() => _stateBag.TryTake(out var state) ? state : new TaskState();
 
     private void Return(TaskState state)

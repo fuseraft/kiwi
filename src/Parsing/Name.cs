@@ -4,6 +4,11 @@ public enum TokenName
 {
   Default,
   Regex,
+  Builtin_Channel_Create,
+  Builtin_Channel_Send,
+  Builtin_Channel_Recv,
+  Builtin_Channel_TryRecv,
+  Builtin_Channel_Close,
   Builtin_Stdin_Read,
   Builtin_Stdin_ReadLine,
   Builtin_Stdin_Lines,
