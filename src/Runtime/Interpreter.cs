@@ -2409,6 +2409,10 @@ public class Interpreter
         {
             return TaskBuiltinHandler.Execute(TaskMgr, node.Token, op, args, Context);
         }
+        else if (ChannelBuiltin.IsBuiltin(op))
+        {
+            return ChannelBuiltinHandler.Execute(TaskMgr, node.Token, op, args);
+        }
         
         // TODO: need to create issues for these in GitHub.
         /*
