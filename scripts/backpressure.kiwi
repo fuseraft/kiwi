@@ -1,0 +1,38 @@
+channel = task::channel(3)  # small buffer to show backpressure
+
+producer = with (chan: Channel) do
+  for i in [1 to 15] do
+    println "[Producer] -> sending ${i}"
+    chan.send(i)
+
+    if i % 4 == 0
+      # slow down sometimes
+      task::sleep(100)
+    end
+  end
+
+  chan.close()
+  println "[Producer] finished & closed channel"
+end
+
+consumer = with (chan: Channel) do
+  total = 0
+  count = 0
+  while v = chan.recv() do
+    total += v
+    count += 1
+    println "[Consumer] <- received ${v} (avg: ${(total / count)})"
+    task::sleep(150)  # consumer slower -> backpressure
+  end
+  println "[Consumer] channel closed - processed ${count} messages"
+end
+
+# Producer
+task::spawn(producer, [channel])
+
+# Consumer
+task::spawn(consumer, [channel])
+
+println "Main thread: both tasks running independently - no shared state, no locks"
+task::sleep(3000)
+println "Done!"

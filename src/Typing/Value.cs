@@ -178,6 +178,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             ValueType.Lambda => CreateLambda(GetLambda()),
             ValueType.None => CreateNull(),
             ValueType.Struct => CreateStruct(GetStruct()),
+            ValueType.Pointer => CreatePointer(GetPointer()),
             _ => throw new Exception("Unsupported type for cloning"),
         };
     }

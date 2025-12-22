@@ -1,4 +1,39 @@
 /#
+Represents a channel
+#/
+struct Channel
+  fn new(chan: pointer)
+    @chan = chan
+    @is_closed = false
+  end
+
+  fn close()
+    __chan_close__(@chan)
+    @is_closed = true
+  end
+
+  fn recv(): any
+    __chan_recv__(@chan)
+  end
+
+  /#
+  @summary Attempts to receive data from the channel.
+  @returns [boolean, any] containing whether a value was received, and if so the value
+  #/
+  fn try_recv(): list # [boolean, any]
+    __chan_tryrecv__(@chan)
+  end
+
+  fn closed(): boolean
+    @is_closed
+  end
+
+  fn send(data: any)
+    __chan_send__(@chan, data)
+  end
+end
+
+/#
 @summary A package for working with asynchronous tasks.
 #/
 package task
@@ -16,6 +51,10 @@ package task
   #/
   fn busy()
     __task_busy__()
+  end
+
+  fn channel(cap: integer = 0): Channel
+    Channel.new(__chan_create__(cap))
   end
 
   /#
