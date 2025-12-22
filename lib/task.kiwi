@@ -2,8 +2,8 @@
 Represents a channel
 #/
 struct Channel
-  fn new(chan: pointer)
-    @chan = chan
+  fn new(cap: integer = 0)
+    @chan = __chan_create__(cap)
     @is_closed = false
   end
 
@@ -54,7 +54,7 @@ package task
   end
 
   fn channel(cap: integer = 0): Channel
-    Channel.new(__chan_create__(cap))
+    Channel.new(cap)
   end
 
   /#
