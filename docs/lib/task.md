@@ -13,6 +13,13 @@ The `task` package contains functionality for concurrency in Kiwi.
   - [`sleep(ms)`](#sleepms)
   - [`status(task_id)`](#statustask_id)
   - [`wait()`](#wait)
+- [`Channel` struct](#channel)
+  - [Constructor](#constructor)
+  - [`close()`](#close)
+  - [`closed()`](#closed)
+  - [`recv()`](#recv)
+  - [`send(data)`](#senddata)
+  - [`try_recv()`](#try_recv)
 
 ## Package Functions
 
@@ -124,3 +131,70 @@ _None_
 
 **Returns**
 _None_
+
+---
+
+## `Channel`
+
+A synchronization structure for asynchronous producer-consumer patterns, acting as a thread-safe queue to pass data between concurrent tasks, ensuring items are processed in FIFO order.
+
+### Constructor
+
+Creates a channel. When `capacity` is `0`, the channel is "unbounded." 
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer` | `capacity` | The number of items the channel may store. |
+
+### `close()`
+
+Closes the channel.
+
+**Parameters**
+_None_
+
+### `closed()`
+
+Returns `true` if the channel is closed.
+
+**Parameters**
+_None_
+
+**Returns**
+| Type | Description |
+| :--- | :--- |
+| `boolean` | `true` when the channel is closed. |
+
+### `recv()`
+
+Reads an item from the channel.
+
+**Parameters**
+_None_
+
+**Returns**
+| Type | Description |
+| :--- | :--- |
+| `any` | The item. |
+
+### `send(data)`
+
+Writes data to a channel.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `any` | `data` | An item to store on the channel. |
+
+### `try_recv()`
+
+Attempts to receive an item from the channel. 
+
+**Parameters**
+_None_
+
+**Returns**
+| Type | Description |
+| :--- | :--- |
+| `list` | Returns a list containing two values: a `boolean` indicating whether a value was received, and the value if received (otherwise `0`).  |
