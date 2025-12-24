@@ -17,6 +17,21 @@ public sealed class SocketManager
 
     private SocketManager() { }
 
+    public bool TryGetSocket(long serverId, out SocketState? state)
+    {
+        if (_sockets.TryGetValue(serverId, out var socketState))
+        {
+            state = socketState;
+            return true;
+        }
+        else
+        {
+            state = null;
+        }
+
+        return false;
+    }
+
     public long TcpServer(string host, int port, int backlog = 128)
     {
         var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -178,7 +193,7 @@ public sealed class SocketManager
     }
 }
 
-internal sealed class SocketState
+public sealed class SocketState
 {
     // Public init is fine as we control creation.
     public long Id { get; init; }
@@ -194,7 +209,7 @@ internal sealed class SocketState
     public Channel? AcceptChannel { get; init; }
 }
 
-internal enum SocketRole
+public enum SocketRole
 {
     Listener,
     Client

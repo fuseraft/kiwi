@@ -180,6 +180,8 @@ public enum TokenName
   Builtin_Socket_Send,
   Builtin_Socket_SendRaw,
   Builtin_Socket_Receive,
+  Builtin_Socket_TcpConnect,
+  Builtin_Socket_TcpServer,
   Builtin_Socket_Close,
   Builtin_Socket_Shutdown,
   Builtin_Net_ResolveHost,
