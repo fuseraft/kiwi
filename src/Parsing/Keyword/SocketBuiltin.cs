@@ -9,7 +9,7 @@ public static class SocketBuiltin
     public const string Connect     = "__socket_connect__";
     public const string Send        = "__socket_send__";
     public const string SendRaw     = "__socket_sendraw__";
-    public const string Receive     = "__socket_receive__";
+    public const string Receive     = "__socket_recv__";
     public const string Close       = "__socket_close__";
     public const string Shutdown    = "__socket_shutdown__";
     public const string TcpConnect  = "__socket_tcpconnect__";
