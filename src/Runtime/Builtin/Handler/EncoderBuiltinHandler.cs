@@ -22,7 +22,6 @@ public static class EncoderBuiltinHandler
     private static Value Base64Decode(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, EncoderBuiltin.Base64Decode, 1, args.Count);
-
         ParameterTypeMismatchError.ExpectString(token, EncoderBuiltin.Base64Decode, 0, args[0]);
 
         var base64 = args[0].GetString();
@@ -38,30 +37,36 @@ public static class EncoderBuiltinHandler
 
     private static Value Base64Encode(Token token, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, EncoderBuiltin.Base64Encode, 1, args.Count);
-
+        ParameterCountMismatchError.Check(token, EncoderBuiltin.Base64Encode, 1, args.Count);        
         ParameterTypeMismatchError.ExpectList(token, EncoderBuiltin.Base64Encode, 0, args[0]);
 
-        List<byte> resultBytes = [];
-
-        foreach (var item in args[0].GetList())
+        if (args[0].IsList())
         {
-            if (!item.IsInteger())
+            List<byte> resultBytes = [];
+
+            foreach (var item in args[0].GetList())
             {
-                throw new InvalidOperationError(token, "Expected a list of integers.");
+                TypeError.ExpectInteger(token, item);
+                TypeError.ByteCheck(token, item.GetInteger());
+
+                resultBytes.Add((byte)item.GetInteger());
             }
 
-            resultBytes.Add((byte)item.GetInteger());
+            var res = Convert.ToBase64String(resultBytes.ToArray());
+            return Value.CreateString(res);            
+        }
+        else if (args[0].IsBytes())
+        {
+            var res = Convert.ToBase64String(args[0].GetBytes());
+            return Value.CreateString(res);
         }
 
-        var res = Convert.ToBase64String(resultBytes.ToArray());
-        return Value.CreateString(res);
+        throw new InvalidOperationError(token, "Expected a list or bytes.");
     }
 
     private static Value UrlDecode(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, EncoderBuiltin.UrlDecode, 1, args.Count);
-
         ParameterTypeMismatchError.ExpectString(token, EncoderBuiltin.UrlDecode, 0, args[0]);
 
         var res = System.Web.HttpUtility.UrlDecode(args[0].GetString()) ?? string.Empty;
@@ -71,7 +76,6 @@ public static class EncoderBuiltinHandler
     private static Value UrlEncode(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, EncoderBuiltin.UrlEncode, 1, args.Count);
-
         ParameterTypeMismatchError.ExpectString(token, EncoderBuiltin.UrlEncode, 0, args[0]);
 
         var res = System.Web.HttpUtility.UrlEncode(args[0].GetString()) ?? string.Empty;
