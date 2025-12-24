@@ -390,5 +390,6 @@ public enum TokenName
   Types_None,
   Types_Object,
   Types_String,
-  Types_Pointer
+  Types_Pointer,
+  Types_Bytes
 }

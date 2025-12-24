@@ -198,7 +198,7 @@ package fio
   @param _size  The number of bytes to read from the file.
   @return List
   #/
-  fn readslice(_path: string, _offset: integer, _size: integer): list
+  fn readslice(_path: string, _offset: integer, _size: integer): bytes
     return __fio_readslice__(_path, _offset, _size)
   end
 
@@ -280,7 +280,7 @@ package fio
   @param _path The path to a file or a filename.
   @param _bytes The list of bytes to write.
   #/
-  fn writebytes(_path: string, _data: list)
+  fn writebytes(_path: string, _data: bytes)
     __fio_writebytes__(_path, _data)
   end
 
@@ -290,7 +290,7 @@ package fio
   @param _offset The zero based position to begin writing.
   @param _data The list of bytes to write.
   #/
-  fn writeslice(_path: string, _offset: integer, _data: list): integer
+  fn writeslice(_path: string, _offset: integer, _data: bytes): integer
     __fio_writeslice__(_path, _offset, _data)
   end
 end

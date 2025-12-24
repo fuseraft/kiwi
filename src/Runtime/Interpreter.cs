@@ -922,6 +922,7 @@ public class Interpreter
             "object" => v.IsObject(),
             "string" => v.IsString(),
             "pointer" => v.IsPointer(),
+            "bytes" => v.IsBytes(),
             _ => false,
         };
 

@@ -915,6 +915,11 @@ public class Lexer : IDisposable
             case "Pointer":
                 name = TokenName.Types_Pointer;
                 break;
+
+            case "bytes":
+            case "Bytes":
+                name = TokenName.Types_Bytes;
+                break;
         }
 
         return name != TokenName.Default;

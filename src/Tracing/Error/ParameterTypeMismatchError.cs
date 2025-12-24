@@ -67,6 +67,14 @@ public class ParameterTypeMismatchError : KiwiError
         }
     }
 
+    public static void ExpectBytes(Token token, string name, int position, Value value)
+    {
+        if (!value.IsBytes())
+        {
+            throw new ParameterTypeMismatchError(token, name, position, ValueType.Bytes, value.Type);
+        }
+    }
+
     public static void ExpectString(Token token, string name, int position, Value value)
     {
         if (!value.IsString())
