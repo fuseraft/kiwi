@@ -183,11 +183,11 @@ public static class FileIOBuiltinHandler
         {
             ParameterTypeMismatchError.ExpectList(token, FileIOBuiltin.WriteBytes, 1, args[1]);
             var bytes = args[1].GetList();
-            return Value.CreateBoolean(FileUtil.WriteBytes(token, path, bytes));
+            return Value.CreateInteger(FileUtil.WriteBytes(token, path, bytes));
         }
         else if (args[1].IsBytes())
         {
-            return Value.CreateBoolean(FileUtil.WriteBytes(token, path, args[1].GetBytes()));        
+            return Value.CreateInteger(FileUtil.WriteBytes(token, path, args[1].GetBytes()));        
         }
 
         throw new InvalidOperationError(token, "Expected a list or bytes.");
@@ -237,11 +237,11 @@ public static class FileIOBuiltinHandler
         ParameterCountMismatchError.Check(token, FileIOBuiltin.WriteSlice, 3, args.Count);
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.WriteSlice, 0, args[0]);
         ParameterTypeMismatchError.ExpectInteger(token, FileIOBuiltin.WriteSlice, 1, args[1]);
-        ParameterTypeMismatchError.ExpectList(token, FileIOBuiltin.WriteSlice, 2, args[2]);
+        ParameterTypeMismatchError.ExpectBytes(token, FileIOBuiltin.WriteSlice, 2, args[2]);
 
         string filePath = args[0].GetString();
         long offset = args[1].GetInteger();
-        List<Value> data = args[2].GetList();
+        byte[] data = args[2].GetBytes();
 
         return Value.CreateInteger(FileUtil.WriteSlice(token, filePath, offset, data));
     }
@@ -257,7 +257,7 @@ public static class FileIOBuiltinHandler
         long offset = args[1].GetInteger();
         long length = args[2].GetInteger();
 
-        return Value.CreateList(FileUtil.ReadSlice(token, filePath, offset, length));
+        return Value.CreateBytes(FileUtil.ReadSlice(token, filePath, offset, length));
     }
 
     private static Value ReadBytes(Token token, List<Value> args)
