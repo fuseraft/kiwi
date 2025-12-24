@@ -118,6 +118,7 @@ public enum TokenName
   Builtin_Core_ToInteger,
   Builtin_Core_ToString,
   Builtin_Core_ToDate,
+  Builtin_Core_ToList,
   Builtin_Core_Tokens,
   Builtin_Core_Trim,
   Builtin_Core_Truthy,
