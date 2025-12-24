@@ -39,6 +39,24 @@ public sealed class Channel
 
     public static Channel Create(int capacity = 0) => new(capacity);
 
+    public void Send(Value value)
+    {
+        if (_closed)
+        {
+            throw new Exception("Send on a closed channel.");
+        }
+
+        // Try fast path first
+        if (_inner.Writer.TryWrite(value))
+        {
+            return;
+        }
+
+        // Block current task until space
+        _inner.Writer.WaitToWriteAsync().AsTask().Wait();
+        _inner.Writer.TryWrite(value); // must succeed now
+    }
+
     public void Send(Token token, Value value)
     {
         if (_closed)

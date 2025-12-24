@@ -67,7 +67,6 @@ public sealed class SocketManager
     {
         ThreadPool.UnsafeQueueUserWorkItem(_ =>
         {
-            var eof = Token.Eof;
             var state = listenerState;
             try
             {
@@ -75,7 +74,7 @@ public sealed class SocketManager
                 {
                     var clientSocket = state.Socket.Accept();
                     var clientState = CreateClientState(clientSocket);
-                    state.AcceptChannel!.Send(eof, Value.CreateInteger(clientState.Id));
+                    state.AcceptChannel!.Send(Value.CreateInteger(clientState.Id));
                 }
             }
             catch (ObjectDisposedException) { /* closed */ }
@@ -91,15 +90,14 @@ public sealed class SocketManager
     {
         ThreadPool.UnsafeQueueUserWorkItem(_ =>
         {
-            var eof = Token.Eof;
             var socket = state.Socket;
-            var buffer = new byte[8192]; // TODO: pool later
+            var buffer = new byte[8192]; // fixed-size receive buffer
 
             try
             {
                 while (true)
                 {
-                    int bytesRead = socket.Receive(buffer, SocketFlags.None);
+                    int bytesRead = socket.Receive(buffer, 0, buffer.Length, SocketFlags.None);
 
                     if (bytesRead == 0)
                     {
@@ -112,14 +110,14 @@ public sealed class SocketManager
                     Buffer.BlockCopy(buffer, 0, data, 0, bytesRead);
 
                     // blocks if channel buffer full, natural backpressure
-                    state.ReadChannel.Send(eof, Value.CreateBytes(data));
+                    state.ReadChannel.Send(Value.CreateBytes(data));
                 }
             }
             catch (ObjectDisposedException) { /* socket closed */ }
-            catch (SocketException) { /* connection reset, timeout, etc. */ }
+            catch (SocketException) { /* connection reset, timeout, etc */ }
             finally
             {
-                // Signal end-of-stream to script side
+                // Signal EOF to any waiting recv calls
                 state.ReadChannel.Close();
             }
         }, null);
@@ -136,14 +134,21 @@ public sealed class SocketManager
                 
                 while (true)
                 {
-                    Value dataVal = state.WriteChannel.Receive(eof);
-                    if (!dataVal.IsBytes())
+                    try
                     {
-                        continue; // safety – should never happen
-                    }
+                        Value dataVal = state.WriteChannel.Receive(eof);
+                        if (!dataVal.IsBytes())
+                        {
+                            continue; // safety – should never happen
+                        }
 
-                    byte[] data = dataVal.GetBytes();
-                    socket.Send(data, SocketFlags.None);
+                        byte[] data = dataVal.GetBytes();
+                        socket.Send(data, SocketFlags.None);
+                    }
+                    catch (InvalidOperationError)
+                    {
+                        break;
+                    }
                 }
             }
             catch (ObjectDisposedException) { /* closed */ }
