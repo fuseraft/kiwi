@@ -177,12 +177,20 @@ public static class FileIOBuiltinHandler
         ParameterCountMismatchError.Check(token, FileIOBuiltin.WriteBytes, 2, args.Count);
 
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.WriteBytes, 0, args[0]);
-        ParameterTypeMismatchError.ExpectList(token, FileIOBuiltin.WriteBytes, 1, args[1]);
-
         var path = args[0].GetString();
-        var bytes = args[1].GetList();
 
-        return Value.CreateBoolean(FileUtil.WriteBytes(token, path, bytes));
+        if (args[1].IsList())
+        {
+            ParameterTypeMismatchError.ExpectList(token, FileIOBuiltin.WriteBytes, 1, args[1]);
+            var bytes = args[1].GetList();
+            return Value.CreateBoolean(FileUtil.WriteBytes(token, path, bytes));
+        }
+        else if (args[1].IsBytes())
+        {
+            return Value.CreateBoolean(FileUtil.WriteBytes(token, path, args[1].GetBytes()));        
+        }
+
+        throw new InvalidOperationError(token, "Expected a list or bytes.");
     }
 
     private static Value WriteText(Token token, List<Value> args)
@@ -260,7 +268,7 @@ public static class FileIOBuiltinHandler
 
         var path = args[0].GetString();
 
-        return Value.CreateList(FileUtil.ReadBytes(token, path));
+        return Value.CreateBytes(FileUtil.ReadBytes(token, path));
     }
 
     private static Value ReadFile(Token token, List<Value> args)

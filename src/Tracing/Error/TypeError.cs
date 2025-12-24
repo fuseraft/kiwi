@@ -46,6 +46,14 @@ public class TypeError(Token t, string message = "Unexpected type.")
         }
     }
 
+    public static void ExpectBytes(Token token, Value value)
+    {
+        if (!value.IsBytes())
+        {
+            throw new TypeError(token, $"Expected bytes but instead received `{value.Type}`.");
+        }
+    }
+
     public static void ExpectList(Token token, Value value)
     {
         if (!value.IsList())
