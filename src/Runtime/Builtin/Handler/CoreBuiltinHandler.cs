@@ -69,6 +69,7 @@ public static class CoreBuiltinHandler
             TokenName.Builtin_Core_ToInteger => ToInteger(token, value, args),
             TokenName.Builtin_Core_ToString => ToString(token, value, args),
             TokenName.Builtin_Core_ToDate => ToDate(token, value, args),
+            TokenName.Builtin_Core_ToList => ToList(token, value, args),
             TokenName.Builtin_Core_Swap => Swap(token, value, args),
             TokenName.Builtin_Core_Pretty => Pretty(token, value, args),
             TokenName.Builtin_Core_Hour => Hour(token, value, args),
@@ -1676,13 +1677,43 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a list or bytes.");
     }
 
-    private static Value Chars(Token token, Value value, List<Value> args)
+    private static Value ToList(Token token, Value value, List<Value> args)
     {
-        if (args.Count > 0)
+        ParameterCountMismatchError.Check(token, CoreBuiltin.ToList, 0, args.Count);
+
+        if (value.IsList())
         {
-            throw new ParameterCountMismatchError(token, CoreBuiltin.Chars);
+            return value;
+        }
+        else if (value.IsString())
+        {
+            var s = value.GetString();
+
+            if (string.IsNullOrEmpty(s))
+            {
+                return Value.CreateList([]);
+            }
+
+            var chars = s.ToCharArray().Select(x => Value.CreateString(x.ToString())).ToList();
+            return Value.CreateList(chars);
+        }
+        else if (value.IsBytes())
+        {
+            if (value.GetBytes().Length == 0)
+            {
+                return Value.CreateList([]);
+            }
+
+            var bytes = value.GetBytes().ToList().Select(x => Value.CreateInteger((int)x)).ToList();
+            return Value.CreateList(bytes);
         }
 
+        throw new InvalidOperationError(token, "Expected a string, list, or bytes.");
+    }
+
+    private static Value Chars(Token token, Value value, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CoreBuiltin.Chars, 0, args.Count);
         TypeError.ExpectString(token, value);
 
         var s = value.GetString();
