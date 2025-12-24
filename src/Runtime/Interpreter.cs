@@ -644,6 +644,35 @@ public class Interpreter
                         hashObj[index] = OpDispatch.DoBinary(node.Token, op, ref oldValue, ref newValue);
                     }
                 }
+                else if (indexedObj.IsBytes())
+                {
+                    var bytesObj = indexedObj.GetBytes().ToList();
+                    var indexValue = (int)ConversionOp.GetInteger(node.Token, index);
+
+                    if (indexValue < 0 || indexValue >= bytesObj.Count)
+                    {
+                        throw new IndexError(node.Token, "The index was outside the bounds of the bytes.");
+                    }
+
+                    TypeError.ExpectInteger(node.Token, newValue);
+
+                    var nValue = newValue.GetInteger();
+                    TypeError.ByteCheck(node.Token, nValue);
+
+                    if (op == TokenName.Ops_Assign)
+                    {
+                        bytesObj[indexValue] = (byte)nValue;
+                    }
+                    else
+                    {
+                        var oldValue = Value.CreateInteger(bytesObj[indexValue]);
+                        var assignValue = OpDispatch.DoBinary(node.Token, op, ref oldValue, ref newValue);
+                        TypeError.ByteCheck(node.Token, assignValue.GetInteger());
+                        bytesObj[indexValue] = (byte)assignValue.GetInteger();
+                    }
+
+                    scope.Assign(identifierName, Value.CreateBytes([.. bytesObj]));
+                }
             }
             else if (indexExpr.IndexedObject.Type == ASTNodeType.Index)
             {
@@ -1316,6 +1345,10 @@ public class Interpreter
         {
             return HashmapLoop(node, dataSetValue.GetHashmap());
         }
+        else if (dataSetValue.IsBytes())
+        {
+            return BytesLoop(node, dataSetValue.GetBytes());
+        }
 
         throw new InvalidOperationError(node.Token, "Expected a list value in for-loop.");
     }
@@ -1908,6 +1941,18 @@ public class Interpreter
 
                 return list[(int)index];
             }
+            else if (obj.IsBytes())
+            {
+                var index = ConversionOp.GetInteger(node.Token, indexValue);
+                var list = obj.GetBytes();
+
+                if (index < 0 || index >= list.Length)
+                {
+                    throw new IndexError(node.Token, "The index was outside the bounds of the bytes.");
+                }
+
+                return Value.CreateInteger(list[(int)index]);
+            }
             else if (obj.IsHashmap())
             {
                 var hash = obj.GetHashmap();
@@ -1948,6 +1993,10 @@ public class Interpreter
         else if (obj.IsList())
         {
             return SliceUtil.ListSlice(node.Token, slice, obj.GetList());
+        }
+        else if (obj.IsBytes())
+        {
+            return SliceUtil.BytesSlice(node.Token, slice, obj.GetBytes());
         }
 
         throw new InvalidOperationError(node.Token, $"Non-sliceable type: `{TypeRegistry.GetTypeName(obj)}`");
@@ -2181,6 +2230,10 @@ public class Interpreter
         else if (obj.IsString())
         {
             stopIndex.SetValue(obj.GetString().Length);
+        }
+        else if (obj.IsBytes())
+        {
+            stopIndex.SetValue(obj.GetBytes().Length);
         }
 
         stepValue.SetValue(1);
@@ -3013,6 +3066,118 @@ public class Interpreter
         Interpret(ast);
 
         return;
+    }
+    private Value BytesLoop(ForLoopNode node, byte[] list)
+    {
+        var frame = CallStack.Peek();
+        var scope = frame.Scope;
+        frame.SetFlag(FrameFlags.InLoop);
+
+        var valueName = Id(node.ValueIterator);
+        string? indexName = null;
+        if (node.IndexIterator != null)
+        {
+            indexName = Id(node.IndexIterator);
+        }
+
+        // Declare iterators in scope
+        scope.Declare(valueName, Value.Default);
+        if (indexName != null)
+        {
+            scope.Declare(indexName, Value.Default);
+        }
+
+        var result = Value.Default;
+        var fallOut = false;
+
+        try
+        {
+            for (int i = 0; i < list.Length; i++)
+            {
+                if (fallOut)
+                {
+                    break;
+                }
+
+                // Update iterators
+                scope.Assign(valueName, Value.CreateInteger(list[i]));
+                if (indexName != null)
+                {
+                    scope.Assign(indexName, Value.CreateInteger(i));
+                }
+
+                var skip = false;
+
+                foreach (var stmt in node.Body)
+                {
+                    if (skip)
+                    {
+                        break;
+                    }
+
+                    if (stmt == null)
+                    {
+                        continue;
+                    }
+
+                    ASTNodeType statement = stmt.Type;
+                    if (statement != ASTNodeType.Next && statement != ASTNodeType.Break)
+                    {
+                        result = Interpret(stmt);
+
+                        if (frame.IsFlagSet(FrameFlags.Break))
+                        {
+                            frame.ClearFlag(FrameFlags.Break);
+                            fallOut = true;
+                            break;
+                        }
+
+                        if (frame.IsFlagSet(FrameFlags.Next))
+                        {
+                            frame.ClearFlag(FrameFlags.Next);
+                            skip = true;
+                            break;
+                        }
+                    }
+
+                    if (frame.IsFlagSet(FrameFlags.Return))
+                    {
+                        break;
+                    }
+
+                    if (statement == ASTNodeType.Next)
+                    {
+                        var condition = ((NextNode)stmt).Condition;
+                        if (condition == null || BooleanOp.IsTruthy(Interpret(condition)))
+                        {
+                            skip = true;
+                            break;
+                        }
+                    }
+                    else if (statement == ASTNodeType.Break)
+                    {
+                        var condition = ((BreakNode)stmt).Condition;
+                        if (condition == null || BooleanOp.IsTruthy(Interpret(condition)))
+                        {
+                            fallOut = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        finally
+        {
+            scope.Remove(valueName);
+            if (indexName != null)
+            {
+                scope.Remove(indexName);
+            }
+
+            frame.ClearFlag(FrameFlags.InLoop);
+        }
+
+        return result;
     }
 
     private Value ListLoop(ForLoopNode node, List<Value> list)
