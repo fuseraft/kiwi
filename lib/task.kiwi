@@ -58,6 +58,22 @@ package task
   end
 
   /#
+  @summary Execute a callback on an interval.
+  @param ms An integer representing milliseconds to sleep.
+  @param callback A lambda to invoke after sleeping.
+  #/
+  fn interval(ms: integer, callback: lambda)
+    __task_spawn__(
+      with (_ms: integer) do
+        while true do
+          callback()
+          __task_sleep__(_ms)
+        end
+      end, [ms]
+    )
+  end
+
+  /#
   @@summary Spawn a new task.
   @param callback A lambda to invoke as a task.
   @returns integer containing the task identifier.
@@ -98,6 +114,22 @@ package task
   #/
   fn status(task_identifier: integer)
     __task_status__(task_identifier)
+  end
+
+  /#
+  @summary Execute a callback after a specified amount of milliseconds.
+  @param ms An integer representing milliseconds to sleep.
+  @param callback A lambda to invoke after sleeping.
+  #/
+  fn timer(ms: integer, callback: lambda)
+    __task_await__(
+      __task_spawn__(
+        with (_ms: integer) do
+          __task_sleep__([0, _ms].max())
+          callback()
+        end, [ms]
+      )
+    )
   end
 
   /#
