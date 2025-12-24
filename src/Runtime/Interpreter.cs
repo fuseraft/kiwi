@@ -2456,7 +2456,6 @@ public class Interpreter
         }
         else if (ReflectorBuiltin.IsBuiltin(op))
         {
-            // for reflection to work, we need to inject a few things.
             return ReflectorBuiltinHandler.Execute(node.Token, op, args, Context, CallStack, FuncStack);
         }
         else if (TaskBuiltin.IsBuiltin(op))
@@ -2467,13 +2466,13 @@ public class Interpreter
         {
             return ChannelBuiltinHandler.Execute(TaskMgr, node.Token, op, args);
         }
+        else if (SocketBuiltin.IsBuiltin(op))
+        {
+            return SocketBuiltinHandler.Execute(node.Token, op, args);
+        }
         
         // TODO: need to create issues for these in GitHub.
         /*
-        else if (WebServerBuiltin.IsBuiltin(op))
-        {
-            // return InterpretWebServerBuiltin(node.Token, op, args);
-        }
         else if (SignalBuiltin.IsBuiltin(op))
         {
             // return InterpretSignalBuiltin(node.Token, op, args);
@@ -2481,10 +2480,6 @@ public class Interpreter
         else if (FFIBuiltin.IsBuiltin(op))
         {
             // return BuiltinDispatch.Execute(ffimgr, node.Token, op, args);
-        }
-        else if (SocketBuiltin.IsBuiltin(op))
-        {
-            // return BuiltinDispatch.Execute(sockmgr, node.Token, op, args);
         }
         */
 
