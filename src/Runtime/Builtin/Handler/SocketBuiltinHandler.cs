@@ -61,8 +61,8 @@ public static class SocketBuiltinHandler
 
     private static Value Accept(Token token, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, "socket.accept", 1, args.Count);
-        ParameterTypeMismatchError.ExpectInteger(token, "socket.accept", 0, args[0]);
+        ParameterCountMismatchError.Check(token, SocketBuiltin.Accept, 1, args.Count);
+        ParameterTypeMismatchError.ExpectInteger(token, SocketBuiltin.Accept, 0, args[0]);
 
         long serverId = args[0].GetInteger();
 
@@ -80,7 +80,7 @@ public static class SocketBuiltinHandler
 
     private static Value Send(Token token, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, "socket.send", 2, args.Count);
+        ParameterCountMismatchError.Check(token, SocketBuiltin.Send, 2, args.Count);
         ParameterTypeMismatchError.ExpectInteger(token, SocketBuiltin.Send, 0, args[0]);
         ParameterTypeMismatchError.ExpectBytes(token, SocketBuiltin.Send, 1, args[1]);
 
