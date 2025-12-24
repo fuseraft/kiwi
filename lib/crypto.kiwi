@@ -47,7 +47,7 @@ struct MD5
     c0 = 0x98badcfe   # C
     d0 = 0x10325476   # D
     
-    message = input.to_bytes()
+    message = input.to_bytes().to_list()
     
     # Original message length in bits, mod 2^64
     original_bitlength = input.size() * 8
@@ -318,7 +318,7 @@ struct SHA
   end
 
   static fn getbuf(s)
-    return s.to_bytes()
+    return s.to_bytes().to_list()
   end
 
   static fn sha_update(sha_info, buffer)

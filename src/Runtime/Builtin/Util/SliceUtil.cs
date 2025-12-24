@@ -34,6 +34,77 @@ public struct SliceUtil
         return Value.CreateString(Serializer.Serialize(sliced));
     }
 
+    public static Value BytesSlice(Token token, SliceIndex slice, byte[] bytes)
+    {
+        if (!slice.IndexOrStart.IsInteger())
+        {
+            throw new IndexError(token, "Start index must be an integer.");
+        }
+        else if (!slice.StopIndex.IsInteger())
+        {
+            throw new IndexError(token, "Stop index must be an integer.");
+        }
+        else if (!slice.StepValue.IsInteger())
+        {
+            throw new IndexError(token, "Step value must be an integer.");
+        }
+
+        var list = bytes.ToList();
+        var start = (int)slice.IndexOrStart.GetInteger();
+        var stop = (int)slice.StopIndex.GetInteger();
+        var step = (int)slice.StepValue.GetInteger();
+
+        // adjust negative indices
+        int listSize = list.Count;
+        if (start < 0)
+        {
+            start = start + listSize > 0 ? start + listSize : 0;
+        }
+
+        if (stop < 0)
+        {
+            stop += listSize;
+        }
+        else
+        {
+            stop = stop < listSize ? stop : listSize;
+        }
+
+        // special case for reverse slicing
+        stop = step < 0 && stop == listSize ? -1 : stop;
+
+        List<byte> slicedList = [];
+
+        if (step < 0)
+        {
+            for (int i = start == 0 ? listSize - 1 : start; i >= stop; i += step)
+            {
+                // prevent out-of-bounds access
+                if (i < 0 || i >= listSize)
+                {
+                    break;
+                }
+
+                slicedList.Add(list[i]);
+            }
+        }
+        else
+        {
+            for (int i = start; i < stop; i += step)
+            {
+                // prevent out-of-bounds access
+                if (i >= listSize)
+                {
+                    break;
+                }
+
+                slicedList.Add(list[i]);
+            }
+        }
+
+        return Value.CreateBytes([.. slicedList]);
+    }
+
     public static Value ListSlice(Token token, SliceIndex slice, List<Value> list)
     {
         if (!slice.IndexOrStart.IsInteger())

@@ -368,17 +368,20 @@ public static class CoreBuiltinHandler
 
             foreach (var item in listElements)
             {
-                if (!item.IsString())
+                if (item.IsString())
                 {
-                    throw new InvalidOperationError(token, "Expected a list of strings for byte conversion.");
+                    var stringValue = item.GetString();
+                    var bytes = System.Text.Encoding.UTF8.GetBytes(stringValue);
+
+                    foreach (var b in bytes)
+                    {
+                        resultBytes.Add(b);
+                    }                    
                 }
-
-                var stringValue = item.GetString();
-                var bytes = System.Text.Encoding.UTF8.GetBytes(stringValue);
-
-                foreach (var b in bytes)
+                else if (item.IsInteger())
                 {
-                    resultBytes.Add(b);
+                    TypeError.ByteCheck(token, item.GetInteger());
+                    resultBytes.Add((byte)item.GetInteger());
                 }
             }
 
@@ -407,37 +410,77 @@ public static class CoreBuiltinHandler
             return Value.CreateString(hexString);
         }
 
-        // if not an integer, we expect bytes
-        TypeError.ExpectBytes(token, value);
-
-        var elements = value.GetBytes();
-        if (elements.Length == 0)
+        if (value.IsBytes())
         {
-            throw new InvalidOperationError(token, "Cannot convert empty bytes to hex.");
-        }
+            var sb = new System.Text.StringBuilder();
 
-        var width = 2;
-
-        if (args.Count == 1)
-        {
-            ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.ToI, 0, args[0]);
-
-            width = (int)args[0].GetNumber();
-            if (width < 2)
+            var elements = value.GetBytes();
+            if (elements.Length == 0)
             {
-                throw new InvalidOperationError(token, "Width must be >= 2.");
+                throw new InvalidOperationError(token, "Cannot convert empty bytes to hex.");
             }
+
+            var width = 2;
+
+            if (args.Count == 1)
+            {
+                ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.ToI, 0, args[0]);
+
+                width = (int)args[0].GetNumber();
+                if (width < 2)
+                {
+                    throw new InvalidOperationError(token, "Width must be >= 2.");
+                }
+            }
+
+            foreach (var byteValue in elements)
+            {
+                var b = (byte)(byteValue & 0xFF);
+                sb.Append(b.ToString("x").PadLeft(width, '0'));
+            }
+
+            return Value.CreateString(sb.ToString());
         }
-
-        var sb = new System.Text.StringBuilder();
-
-        foreach (var byteValue in elements)
+        else if (value.IsList())
         {
-            var b = (byte)(byteValue & 0xFF);
-            sb.Append(b.ToString("x").PadLeft(width, '0'));
+            var sb = new System.Text.StringBuilder();
+
+            var elements = value.GetList();
+            if (elements.Count == 0)
+            {
+                throw new InvalidOperationError(token, "Cannot convert empty bytes to hex.");
+            }
+
+            var width = 2;
+
+            if (args.Count == 1)
+            {
+                ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.ToI, 0, args[0]);
+
+                width = (int)args[0].GetNumber();
+                if (width < 2)
+                {
+                    throw new InvalidOperationError(token, "Width must be >= 2.");
+                }
+            }
+
+            foreach (var item in elements)
+            {
+                if (!item.IsInteger())
+                {
+                    throw new InvalidOperationError(token, "Expected a list of integers.");
+                }
+
+                var byteValue = item.GetInteger();
+                TypeError.ByteCheck(token, byteValue);
+                var b = (byte)(byteValue & 0xFF);
+                sb.Append(b.ToString("x").PadLeft(width, '0'));
+            }
+
+            return Value.CreateString(sb.ToString());
         }
 
-        return Value.CreateString(sb.ToString());
+        throw new InvalidOperationError(token, "Expected a list or bytes.");
     }
 
     private static Value ToFloat(Token token, Value value, List<Value> args)
@@ -774,7 +817,7 @@ public static class CoreBuiltinHandler
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Swap, 2, args.Count);
 
-        if (!value.IsBytes() || value.IsList())
+        if (!value.IsBytes() && !value.IsList())
         {
             throw new TypeError(token, $"Expected a list or bytes, but instead received `{value.Type}`.");
             
@@ -1175,7 +1218,7 @@ public static class CoreBuiltinHandler
         else if (value.IsBytes())
         {
             TypeError.ExpectInteger(token, args[0]);
-            ByteCheck(token, args[0].GetInteger());
+            TypeError.ByteCheck(token, args[0].GetInteger());
 
             var count = 0;
             var byteValue = (byte)args[0].GetInteger();
@@ -1404,7 +1447,7 @@ public static class CoreBuiltinHandler
 
             ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.Set, 1, args[1]);
             var byteValue = args[1].GetInteger();
-            ByteCheck(token, byteValue);
+            TypeError.ByteCheck(token, byteValue);
 
             value.GetBytes()[index] = (byte)args[1].GetInteger();
             return value;
@@ -1416,14 +1459,6 @@ public static class CoreBuiltinHandler
         }
 
         throw new InvalidOperationError(token, "Expected a list or hashmap.");
-    }
-
-    private static void ByteCheck(Token token, long byteValue)
-    {
-        if (byteValue < 0 || byteValue > 255)
-        {
-            throw new InvalidOperationError(token, $"Byte range is from 0 to 255 inclusive, but received {byteValue}");
-        }
     }
 
     private static Value Remove(Token token, Value value, List<Value> args)
@@ -1634,7 +1669,7 @@ public static class CoreBuiltinHandler
         {
             TypeError.ExpectInteger(token, args[0]);
             var byteValue = args[0].GetInteger();
-            ByteCheck(token, byteValue);
+            TypeError.ByteCheck(token, byteValue);
 
             var byteList = value.GetBytes().ToList();
             byteList.Add((byte)byteValue);
@@ -1958,7 +1993,7 @@ public static class CoreBuiltinHandler
         else if (value.IsBytes())
         {
             ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.Contains, 0, args[0]);
-            ByteCheck(token, args[0].GetInteger());
+            TypeError.ByteCheck(token, args[0].GetInteger());
             var byteValue = (byte)args[0].GetInteger();
 
             foreach (var byt in value.GetBytes())
