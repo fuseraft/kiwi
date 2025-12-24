@@ -337,6 +337,7 @@ public static class CoreBuiltinHandler
             Typing.ValueType.Hashmap => Value.CreateBoolean(typeName.Equals("hashmap")),
             Typing.ValueType.Object => Value.CreateBoolean(typeName.Equals("object")),
             Typing.ValueType.Lambda => Value.CreateBoolean(typeName.Equals("lambda")),
+            Typing.ValueType.Bytes => Value.CreateBoolean(typeName.Equals("bytes")),
             Typing.ValueType.None => Value.CreateBoolean(typeName.Equals("none")),
             _ => Value.False,
         };
@@ -350,19 +351,19 @@ public static class CoreBuiltinHandler
         {
             var stringValue = value.GetString();
             var bytes = System.Text.Encoding.UTF8.GetBytes(stringValue);
-            var byteList = new List<Value>(bytes.Length);
+            var byteList = new List<byte>(bytes.Length);
 
             foreach (var b in bytes)
             {
-                byteList.Add(Value.CreateInteger(b));
+                byteList.Add(b);
             }
 
-            return Value.CreateList(byteList);
+            return Value.CreateBytes([.. byteList]);
         }
         else if (value.IsList())
         {
             var listElements = value.GetList();
-            var resultBytes = new List<Value>();
+            var resultBytes = new List<byte>();
 
             foreach (var item in listElements)
             {
@@ -376,11 +377,15 @@ public static class CoreBuiltinHandler
 
                 foreach (var b in bytes)
                 {
-                    resultBytes.Add(Value.CreateInteger(b));
+                    resultBytes.Add(b);
                 }
             }
 
-            return Value.CreateList(resultBytes);
+            return Value.CreateBytes([.. resultBytes]);
+        }
+        else if (value.IsBytes())
+        {
+            return Value.CreateBytes(value.GetBytes());
         }
 
         throw new InvalidOperationError(token, "Expected a string or list of strings to convert to bytes.");
@@ -401,13 +406,13 @@ public static class CoreBuiltinHandler
             return Value.CreateString(hexString);
         }
 
-        // if not an integer, we expect a list of integers (bytes)
-        TypeError.ExpectList(token, value);
+        // if not an integer, we expect bytes
+        TypeError.ExpectBytes(token, value);
 
-        var elements = value.GetList();
-        if (elements.Count == 0)
+        var elements = value.GetBytes();
+        if (elements.Length == 0)
         {
-            throw new InvalidOperationError(token, "Cannot convert an empty list to hex.");
+            throw new InvalidOperationError(token, "Cannot convert empty bytes to hex.");
         }
 
         var width = 2;
@@ -425,14 +430,8 @@ public static class CoreBuiltinHandler
 
         var sb = new System.Text.StringBuilder();
 
-        foreach (var item in elements)
+        foreach (var byteValue in elements)
         {
-            if (!item.IsInteger())
-            {
-                throw new InvalidOperationError(token, "Expected a list of integers.");
-            }
-
-            var byteValue = item.GetInteger();
             var b = (byte)(byteValue & 0xFF);
             sb.Append(b.ToString("x").PadLeft(width, '0'));
         }
@@ -770,33 +769,60 @@ public static class CoreBuiltinHandler
         return Value.CreateString(formatted);
     }
 
-
     private static Value Swap(Token token, Value value, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Swap, 2, args.Count);
 
-        TypeError.ExpectList(token, value);
+        if (!value.IsBytes() || value.IsList())
+        {
+            throw new TypeError(token, $"Expected a list or bytes, but instead received `{value.Type}`.");
+            
+        }
         ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Swap, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Swap, 1, args[1]);
 
         var firstIndex = (int)args[0].GetNumber();
         var secondIndex = (int)args[1].GetNumber();
-        var lst = value.GetList();
 
-        if (firstIndex < 0 || firstIndex >= lst.Count)
+        if (value.IsList())
         {
-            throw new RangeError(token);
+            var lst = value.GetList();
+
+            if (firstIndex < 0 || firstIndex >= lst.Count)
+            {
+                throw new RangeError(token);
+            }
+
+            if (secondIndex < 0 || secondIndex >= lst.Count)
+            {
+                throw new RangeError(token);
+            }
+
+            var firstValue = lst[firstIndex];
+            var secondValue = lst[secondIndex];
+            lst[firstIndex] = secondValue;
+            lst[secondIndex] = firstValue;
+        }
+        else if (value.IsBytes())
+        {
+            var lst = value.GetBytes();
+
+            if (firstIndex < 0 || firstIndex >= lst.Length)
+            {
+                throw new RangeError(token);
+            }
+
+            if (secondIndex < 0 || secondIndex >= lst.Length)
+            {
+                throw new RangeError(token);
+            }
+
+            var firstValue = lst[firstIndex];
+            var secondValue = lst[secondIndex];
+            lst[firstIndex] = secondValue;
+            lst[secondIndex] = firstValue;
         }
 
-        if (secondIndex < 0 || secondIndex >= lst.Count)
-        {
-            throw new RangeError(token);
-        }
-
-        var firstValue = lst[firstIndex];
-        var secondValue = lst[secondIndex];
-        lst[firstIndex] = secondValue;
-        lst[secondIndex] = firstValue;
         return value;
     }
 
@@ -899,7 +925,6 @@ public static class CoreBuiltinHandler
 
         return Value.CreateList(zipped);
     }
-
 
     private static Value Flatten(Token token, Value value, List<Value> args)
     {
@@ -1146,6 +1171,24 @@ public static class CoreBuiltinHandler
 
             return Value.CreateInteger(count);
         }
+        else if (value.IsBytes())
+        {
+            TypeError.ExpectInteger(token, args[0]);
+            ByteCheck(token, args[0].GetInteger());
+
+            var count = 0;
+            var byteValue = (byte)args[0].GetInteger();
+
+            foreach (var byt in value.GetBytes())
+            {
+                if (byt == byteValue)
+                {
+                    count++;
+                }
+            }
+
+            return Value.CreateInteger(count);
+        }
 
         throw new InvalidOperationError(token, "Expected a string or list.");
     }
@@ -1186,8 +1229,14 @@ public static class CoreBuiltinHandler
             value.GetList().Reverse();
             return value;
         }
+        else if (value.IsBytes())
+        {
+            var lst = value.GetBytes().ToList();
+            lst.Reverse();
+            return Value.CreateBytes([.. lst]);
+        }
 
-        throw new InvalidOperationError(token, "Expected a string or list.");
+        throw new InvalidOperationError(token, "Expected a string, list, or bytes.");
     }
 
     private static Value IndexOf(Token token, Value value, List<Value> args)
@@ -1295,6 +1344,19 @@ public static class CoreBuiltinHandler
 
             return value.GetList()[index];
         }
+        else if (value.IsBytes())
+        {
+            ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.Get, 0, args[0]);
+
+            var index = (int)args[0].GetInteger();
+
+            if (index < 0 || index >= value.GetBytes().Length)
+            {
+                throw new IndexError(token);
+            }
+
+            return Value.CreateInteger(value.GetBytes()[index]);
+        }
         else if (value.IsHashmap())
         {
             if (value.GetHashmap().TryGetValue(args[0], out Value? v))
@@ -1328,6 +1390,24 @@ public static class CoreBuiltinHandler
             value.GetList()[index] = args[1].Clone();
             return value;
         }
+        else if (value.IsBytes())
+        {
+            ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.Set, 0, args[0]);
+
+            var index = (int)args[0].GetInteger();
+
+            if (index < 0 || index >= value.GetBytes().Length)
+            {
+                throw new IndexError(token);
+            }
+
+            ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.Set, 1, args[1]);
+            var byteValue = args[1].GetInteger();
+            ByteCheck(token, byteValue);
+
+            value.GetBytes()[index] = (byte)args[1].GetInteger();
+            return value;
+        }
         else if (value.IsHashmap())
         {
             value.GetHashmap()[args[0]] = args[1].Clone();
@@ -1335,6 +1415,14 @@ public static class CoreBuiltinHandler
         }
 
         throw new InvalidOperationError(token, "Expected a list or hashmap.");
+    }
+
+    private static void ByteCheck(Token token, long byteValue)
+    {
+        if (byteValue < 0 || byteValue > 255)
+        {
+            throw new InvalidOperationError(token, $"Byte range is from 0 to 255 inclusive, but received {byteValue}");
+        }
     }
 
     private static Value Remove(Token token, Value value, List<Value> args)
@@ -1358,12 +1446,61 @@ public static class CoreBuiltinHandler
     private static Value RemoveAt(Token token, Value value, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.RemoveAt, 1, args.Count);
-
-        TypeError.ExpectList(token, value);
         ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.RemoveAt, 0, args[0]);
+        var index = (int)args[0].GetInteger();
 
-        value.GetList().RemoveAt((int)args[0].GetInteger());
-        return value;
+        if (value.IsString())
+        {
+            var str = value.GetString();
+
+            if (index < 0)
+            {
+                index = str.Length + index;
+            }
+
+            if (index < 0 || index >= str.Length)
+            {
+                throw new IndexError(token, "Index out of bounds.");
+            }
+
+            return Value.CreateString(str.Remove(index, 1));
+        }
+        else if (value.IsList())
+        {
+            var lst = value.GetList();
+
+            if (index < 0)
+            {
+                index = lst.Count + index;
+            }
+
+            if (index < 0 || index >= lst.Count)
+            {
+                throw new IndexError(token, "Index out of bounds.");
+            }
+
+            value.GetList().RemoveAt(index);
+            return value;
+        }
+        else if (value.IsBytes())
+        {
+            var lst = value.GetBytes().ToList();
+
+            if (index < 0)
+            {
+                index = lst.Count + index;
+            }
+
+            if (index < 0 || index >= lst.Count)
+            {
+                throw new IndexError(token, "Index out of bounds.");
+            }
+
+            lst.RemoveAt(index);
+            return Value.CreateBytes([.. lst]);
+        }
+
+        throw new InvalidOperationError(token, "Expected a string, list, or bytes.");
     }
 
     private static Value Replace(Token token, Value value, List<Value> args)
@@ -1423,21 +1560,36 @@ public static class CoreBuiltinHandler
             value.GetHashmap().Clear();
             return value;
         }
+        else if (value.IsBytes())
+        {
+            value.SetValue(""u8.ToArray());
+            return value;
+        }
 
-        throw new InvalidOperationError(token, "Expected a string, list, or hashmap.");
+        throw new InvalidOperationError(token, "Expected a string, list, hashmap, or bytes.");
     }
 
     private static Value First(Token token, Value value, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.First, 0, args.Count);
 
-        TypeError.ExpectList(token, value);
-
-        var lst = value.GetList();
-
-        if (lst.Count != 0)
+        if (value.IsList())
         {
-            return lst[0];
+            var lst = value.GetList();
+
+            if (lst.Count != 0)
+            {
+                return lst[0];
+            }
+        }
+        else if (value.IsBytes())
+        {
+            var lst = value.GetBytes();
+
+            if (lst.Length != 0)
+            {
+                return Value.CreateInteger(lst[0]);
+            }            
         }
 
         return Value.CreateNull();
@@ -1447,13 +1599,23 @@ public static class CoreBuiltinHandler
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Last, 0, args.Count);
 
-        TypeError.ExpectList(token, value);
-
-        var lst = value.GetList();
-
-        if (lst.Count != 0)
+        if (value.IsList())
         {
-            return lst[^1];
+            var lst = value.GetList();
+
+            if (lst.Count != 0)
+            {
+                return lst[^1];
+            }            
+        }
+        else if (value.IsBytes())
+        {
+            var lst = value.GetBytes();
+
+            if (lst.Length != 0)
+            {
+                return Value.CreateInteger(lst[^1]);
+            }
         }
 
         return Value.CreateNull();
@@ -1463,27 +1625,55 @@ public static class CoreBuiltinHandler
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Push, 1, args.Count);
 
-        TypeError.ExpectList(token, value);
+        if (value.IsList())
+        {
+            value.GetList().Add(args[0].Clone());            
+        }
+        else if (value.IsBytes())
+        {
+            TypeError.ExpectInteger(token, args[0]);
+            var byteValue = args[0].GetInteger();
+            ByteCheck(token, byteValue);
 
-        value.GetList().Add(args[0].Clone());
+            var byteList = value.GetBytes().ToList();
+            byteList.Add((byte)byteValue);
+            value.SetValue([.. byteList]);
+        }
+
         return value;
     }
 
     private static Value Pop(Token token, Value value, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Pop, 0, args.Count);
-
-        TypeError.ExpectList(token, value);
-
-        var lst = value.GetList();
-        if (lst.Count == 0)
+        
+        if (value.IsList())
         {
-            return Value.CreateNull();
+            var lst = value.GetList();
+            if (lst.Count == 0)
+            {
+                return Value.CreateNull();
+            }
+
+            var back = lst[^1].Clone();
+            lst.RemoveAt(lst.Count - 1);
+            return back;
+        }
+        else if (value.IsBytes())
+        {
+            var lst = value.GetBytes().ToList();
+            if (lst.Count == 0)
+            {
+                return Value.CreateNull();
+            }
+
+            var back = lst[^1];
+            lst.RemoveAt(lst.Count - 1);
+            value.SetValue([.. lst]);
+            return Value.CreateInteger(back);
         }
 
-        var back = lst[^1].Clone();
-        lst.RemoveAt(lst.Count - 1);
-        return back;
+        throw new InvalidOperationError(token, "Expected a list or bytes.");
     }
 
     private static Value Chars(Token token, Value value, List<Value> args)
@@ -1592,8 +1782,12 @@ public static class CoreBuiltinHandler
         {
             return Value.CreateInteger(value.GetHashmap().Count);
         }
+        else if (value.IsBytes())
+        {
+            return Value.CreateInteger(value.GetBytes().Length);
+        }
 
-        throw new InvalidOperationError(token, "Expected a string, list, or hashmap.");
+        throw new InvalidOperationError(token, "Expected a string, list, hashmap, or bytes.");
     }
 
     private static Value Empty(Token token, Value value, List<Value> args)
@@ -1611,6 +1805,10 @@ public static class CoreBuiltinHandler
         else if (value.IsList())
         {
             isEmpty = value.GetList().Count == 0;
+        }
+        else if (value.IsBytes())
+        {
+            isEmpty = value.GetBytes().Length == 0;
         }
         else if (value.IsHashmap())
         {
@@ -1725,6 +1923,22 @@ public static class CoreBuiltinHandler
         else if (value.IsList())
         {
             return Value.CreateBoolean(value.GetList().Contains(args[0]));
+        }
+        else if (value.IsBytes())
+        {
+            ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.Contains, 0, args[0]);
+            ByteCheck(token, args[0].GetInteger());
+            var byteValue = (byte)args[0].GetInteger();
+
+            foreach (var byt in value.GetBytes())
+            {
+                if (byt == byteValue)
+                {
+                    return Value.CreateBoolean(true);
+                }
+            }
+
+            return Value.CreateBoolean(false);
         }
 
         throw new InvalidOperationError(token, "Expected a string or list.");

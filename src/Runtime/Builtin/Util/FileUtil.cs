@@ -399,11 +399,11 @@ public struct FileUtil
         }
     }
 
-    public static List<Value> ReadBytes(Token token, string filePath)
+    public static byte[] ReadBytes(Token token, string filePath)
     {
         try
         {
-            return [.. File.ReadAllBytes(filePath).Select(x => Value.CreateInteger(x))];
+            return File.ReadAllBytes(filePath);
         }
         catch (Exception)
         {
@@ -548,6 +548,19 @@ public struct FileUtil
         {
             File.AppendAllLines(path, text);
             return true;
+        }
+        catch (Exception)
+        {
+            throw new FileSystemError(token, $"Could not write to file: {path}");
+        }
+    }
+
+    public static int WriteBytes(Token token, string path, byte[] bytes)
+    {
+        try
+        {
+            File.WriteAllBytes(path, bytes);
+            return bytes.Length;
         }
         catch (Exception)
         {
