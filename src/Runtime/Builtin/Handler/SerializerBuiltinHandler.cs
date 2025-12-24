@@ -20,7 +20,6 @@ public class SerializerBuiltinHandler
     private static Value Deserialize(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, SerializerBuiltin.Deserialize, 1, args.Count);
-
         ParameterTypeMismatchError.ExpectString(token, SerializerBuiltin.Deserialize, 0, args[0]);
 
         var input = args[0].GetString();
@@ -36,7 +35,6 @@ public class SerializerBuiltinHandler
     private static Value Serialize(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, SerializerBuiltin.Deserialize, 1, args.Count);
-
         return Value.CreateString(Serializer.Serialize(args[0]));
     }
 }

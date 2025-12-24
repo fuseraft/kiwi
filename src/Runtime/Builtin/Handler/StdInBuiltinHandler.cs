@@ -97,12 +97,6 @@ public static class StdinBuiltinHandler
         RawStream.CopyTo(ms);
         var bytes = ms.ToArray();
 
-        List<Value> list = [];
-        foreach (var b in bytes)
-        {
-            list.Add(Value.CreateInteger(b));
-        }
-
-        return Value.CreateList(list);
+        return Value.CreateBytes(bytes);
     }
 }
