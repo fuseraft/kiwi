@@ -695,6 +695,11 @@ public static class CoreBuiltinHandler
         // no format argument provided
         if (args.Count == 0)
         {
+            if (value.IsBytes())
+            {
+                return Value.CreateString(System.Text.Encoding.UTF8.GetString(value.GetBytes()));
+            }
+
             var serialized = Serializer.Serialize(value);
             return Value.CreateString(serialized);
         }
@@ -707,6 +712,11 @@ public static class CoreBuiltinHandler
         // if empty, just serialize
         if (string.IsNullOrEmpty(format))
         {
+            if (value.IsBytes())
+            {
+                return Value.CreateString(System.Text.Encoding.UTF8.GetString(value.GetBytes()));
+            }
+
             var serialized = Serializer.Serialize(value);
             return Value.CreateString(serialized);
         }
