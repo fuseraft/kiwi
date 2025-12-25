@@ -75,6 +75,22 @@ public sealed class Channel
         _inner.Writer.TryWrite(value); // must succeed now
     }
 
+    public Value Receive()
+    {
+        if (_inner.Reader.TryRead(out var value))
+        {
+            return value;
+        }
+
+        // Block until data or completion
+        if (!_inner.Reader.WaitToReadAsync().AsTask().Result)
+        {
+            throw new Exception("Receive on a closed channel");
+        }
+
+        return _inner.Reader.ReadAsync().AsTask().Result;
+    }
+
     public Value Receive(Token token)
     {
         if (_inner.Reader.TryRead(out var value))

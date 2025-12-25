@@ -7,6 +7,7 @@ package http
   # Returns null on malformed request (we can improve error handling later)
   fn parse(raw: bytes): hashmap
     text = raw.to_string()
+    println "http.parse: ${text}"
 
     lines = text.split("\r\n")
     if lines.empty() or lines[0].empty()
@@ -88,6 +89,8 @@ package http
       end
     end
 
+    println "body: ${body}"
+
     # Content-Length
     body_bytes = body.is_a(string) ? body.to_bytes() : body
     default_headers["content-length"] = body_bytes.size().to_string()
@@ -135,20 +138,21 @@ end
 
 export "http"
 
-server = __socket_tcpserver__("0.0.0.0", 8080)
+server = __socket_tcpserver__("127.0.0.1", 8080)
 
 handle_client = with (client) do
   req = http::parse(__socket_recv__(client))
   println "sending ok response"
-  __socket_send__(client, http::response(200, "Hello from Kiwi 🥝"))
+  resp = __socket_send__(client, http::response(200, "Hello from Kiwi"))
+  println "Response size: ${resp.size()} bytes"
   println "closing socket"
   __socket_close__(client)
 end
 
-task::await(task::spawn(with (_server) do
+task::await(task::spawn(with (_server, _handler) do
   while true do
     client = __socket_accept__(_server)
     println "connected"
-    task::spawn(handle_client, [client])
+    task::spawn(_handler, [client])
   end
-end, [server]))
+end, [server, handle_client]))
