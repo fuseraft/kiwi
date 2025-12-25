@@ -35,7 +35,13 @@ public sealed class SocketManager
     public long TcpServer(string host, int port, int backlog = 128)
     {
         var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        var ip = string.IsNullOrEmpty(host) ? IPAddress.Any : IPAddress.Parse(host);
+        listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        listener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, false);
+
+        var ip = string.IsNullOrEmpty(host)
+            ? IPAddress.Any
+            : Dns.GetHostAddresses(host).First(a => a.AddressFamily == AddressFamily.InterNetwork);
+
         listener.Bind(new IPEndPoint(ip, port));
         listener.Listen(backlog);
 
@@ -92,8 +98,18 @@ public sealed class SocketManager
                     state.AcceptChannel!.Send(Value.CreateInteger(clientState.Id));
                 }
             }
-            catch (ObjectDisposedException) { /* closed */ }
-            catch (SocketException) { /* closed */ }
+            catch (ObjectDisposedException ode)
+            {
+                Console.Error.WriteLine($"SocketManager.StartAcceptLoop ObjectDisposedException: {ode.Message}");
+            }
+            catch (SocketException se)
+            {
+                Console.Error.WriteLine($"SocketManager.StartAcceptLoop SocketException: {se.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"SocketManager.StartAcceptLoop Exception: {ex.Message}");
+            }
             finally
             {
                 state.AcceptChannel!.Close();
@@ -128,8 +144,18 @@ public sealed class SocketManager
                     state.ReadChannel.Send(Value.CreateBytes(data));
                 }
             }
-            catch (ObjectDisposedException) { /* socket closed */ }
-            catch (SocketException) { /* connection reset, timeout, etc */ }
+            catch (ObjectDisposedException ode)
+            {
+                Console.Error.WriteLine($"SocketManager.StartReceiveLoop ObjectDisposedException: {ode.Message}");
+            }
+            catch (SocketException se)
+            {
+                Console.Error.WriteLine($"SocketManager.StartReceiveLoop SocketException: {se.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"SocketManager.StartReceiveLoop Exception: {ex.Message}");
+            }
             finally
             {
                 // Signal EOF to any waiting recv calls
@@ -158,7 +184,11 @@ public sealed class SocketManager
                         }
 
                         byte[] data = dataVal.GetBytes();
-                        socket.Send(data, SocketFlags.None);
+                        int sent = 0;
+                        while (sent < data.Length)
+                        {
+                            sent += socket.Send(data, sent, data.Length - sent, SocketFlags.None);
+                        }
                     }
                     catch (InvalidOperationError)
                     {
@@ -166,9 +196,19 @@ public sealed class SocketManager
                     }
                 }
             }
-            catch (ObjectDisposedException) { /* closed */ }
-            catch (SocketException) { /* closed */ }
+            catch (ObjectDisposedException ode)
+            {
+                Console.Error.WriteLine($"SocketManager.StartWriteLoop ObjectDisposedException: {ode.Message}");
+            }
+            catch (SocketException se) { 
+                Console.Error.WriteLine($"SocketManager.StartWriteLoop SocketException: {se.Message}");
+            }
             catch (InvalidOperationError) when (state.WriteChannel.Closed) { /* channel closed */ }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"SocketManager.StartWriteLoop Exception: {ex.Message}");
+                throw;
+            }
             finally
             {
                 try { state.Socket.Shutdown(SocketShutdown.Send); }

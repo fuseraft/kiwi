@@ -74,7 +74,7 @@ public static class SocketBuiltinHandler
         }
 
         // Blocks the current task until a new client arrives
-        Value clientIdVal = state.AcceptChannel.Receive(token);
+        Value clientIdVal = state.AcceptChannel.Receive();
         return clientIdVal;
     }
 
@@ -91,7 +91,7 @@ public static class SocketBuiltinHandler
             throw new InvalidOperationError(token, $"Socket {sockId} not found.");
         }
 
-        state.WriteChannel.Send(token, args[1]);
+        state.WriteChannel.Send(args[1]);
         return Value.Default;
     }
 
@@ -114,7 +114,7 @@ public static class SocketBuiltinHandler
             : int.MaxValue;
 
         // Blocks the current task until data arrives or connection closes
-        Value dataVal = state.ReadChannel.Receive(token);
+        Value dataVal = state.ReadChannel.Receive();
 
         if (!dataVal.IsBytes())
         {
