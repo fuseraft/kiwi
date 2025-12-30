@@ -21,7 +21,7 @@
     "safemode": true,
     "debug": {
       "cli_args": [
-        "~/github/kiwi/app",
+        "~/github/kiwi/scripts/backpressure",
         "20",
         "--stdlib-path",
         "~/github/kiwi/lib"

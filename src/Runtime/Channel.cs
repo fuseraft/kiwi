@@ -106,13 +106,22 @@ public sealed class Channel
             return value;
         }
 
-        // Block until data or completion
-        if (!_inner.Reader.WaitToReadAsync().AsTask().Result)
+        try
         {
-            throw new InvalidOperationError(token, "Receive on a closed channel");
+            // Block until data or completion
+            if (!_inner.Reader.WaitToReadAsync().AsTask().Result)
+            {
+                throw new InvalidOperationError(token, "Receive on a closed channel");
+            }
+
+            return _inner.Reader.ReadAsync().AsTask().Result;            
+        }
+        catch
+        {
+            // WIP: swallowing this exception.
         }
 
-        return _inner.Reader.ReadAsync().AsTask().Result;
+        return Value.Default;
     }
 
     public (bool Success, Value Value) TryReceive()
