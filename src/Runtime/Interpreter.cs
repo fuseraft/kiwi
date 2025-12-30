@@ -1667,7 +1667,7 @@ public class Interpreter
             parameters.Add(new(paramName, paramValue));
         }
 
-        var internalName = $"<lambda_{Context.Lambdas.Count}>";
+        var internalName = $"<lambda_{Guid.NewGuid()}>";
         Context.Lambdas[internalName] = new KLambda(node)
         {
             Parameters = parameters,
@@ -2629,8 +2629,9 @@ public class Interpreter
 
             return result;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine(ex);
             throw;
         }
         finally

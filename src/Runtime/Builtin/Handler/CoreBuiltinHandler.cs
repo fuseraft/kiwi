@@ -1158,6 +1158,23 @@ public static class CoreBuiltinHandler
 
             return value;
         }
+        else if (value.IsBytes())
+        {
+            var bytes = value.GetBytes().ToList();
+
+            foreach (var arg in args)
+            {
+                if (!arg.IsBytes())
+                {
+                    throw new InvalidOperationError(token, $"Expected bytes when concatenating bytes, but instead received `{arg.Type}`.");
+                }
+
+                bytes.AddRange(arg.GetBytes());
+            }
+
+            value = Value.CreateBytes([.. bytes]);
+            return value;
+        }
 
         throw new InvalidOperationError(token, "Expected a string or list.");
     }

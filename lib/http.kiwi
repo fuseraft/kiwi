@@ -1,95 +1,135 @@
-/#
-Summary: A package for performing HTTP requests.
-#/
+# Kiwi Standard Library – Minimal HTTP/1.1 Parser & Responder
+
 package http
-  /#
-  Summary: Performs an HTTP DELETE request to the specified URL.
-  Params:
-    - _url: The base URL.
-    - _path: The path to request. 
-    - _headers: The headers. Defaults to {}.
-  Returns: A hashmap with the response status code, headers, and body.
-  #/
-  fn delete_(_url, _path, _headers = {})
-    return __webc_delete__(_url, _path, _headers)
+  # Parses raw bytes from __socket_recv__ into a request hashmap
+  # Returns null on malformed request (we can improve error handling later)
+  fn parse(raw: bytes): hashmap
+    text = raw.to_string()
+
+    lines = text.lines()
+    if lines.empty() or lines[0].empty()
+      return null
+    end
+
+    # Request line: METHOD PATH HTTP/1.1
+    request_line = lines[0].split(" ")
+    if request_line.size() < 3
+      return null
+    end
+
+    method = request_line[0].uppercase()
+    path = request_line[1]
+    version = request_line[2]
+
+    # Find header/body split
+    header_end = lists::find(lines, with (l) do l.empty() end)
+    header_end = header_end < 0 ? lines.size() : header_end
+
+    headers = {}
+
+    for i in std::range(1, header_end - 1) do
+      line = lines[i]
+      colon = line.index(":")
+      if colon
+        key = line.chars().slice(0, colon).join().trim().lowercase()
+        val = line.substring(colon, line.size() - colon).trim()
+        headers[key] = val
+      end
+    end
+
+    body = ""
+    if header_end + 1 < lines.size()
+      body_lines = lines.skip(header_end)
+      body = body_lines.join("\r\n")
+    end
+
+    {
+      method: method,
+      path: path,
+      version: version,
+      headers: headers,
+      body: body,
+      raw: raw
+    }
   end
 
-  /#
-  Summary: Performs an HTTP GET request to the specified URL.
-  Params:
-    - _url: The base URL.
-    - _path: The path to request. 
-    - _headers: The headers. Defaults to {}.
-  Returns: A hashmap with the response status code, headers, and body.
-  #/
-  fn get(_url, _path, _headers = {})
-    return __webc_get__(_url, _path, _headers)
+  # Creates a minimal HTTP response
+  # status: integer (e.g. 200)
+  # body: string or bytes
+  # headers: optional hash (defaults to reasonable values)
+  fn response(status: integer, body: any = "", headers: hashmap = {}): bytes
+    status_texts = {
+      "200": "OK",
+      "201": "Created",
+      "400": "Bad Request",
+      "404": "Not Found",
+      "500": "Internal Server Error",
+      "301": "Moved Permanently",
+      "302": "Found"
+    }
+
+    reason = status_texts[status.to_string()] ?? "Unknown"
+
+    # Default headers
+    default_headers = {
+      "date": time::timestamp(),
+      server: "Kiwi/1.0",
+      connection: "close"
+    }
+
+    # Content-Type guessing
+    if !headers.has_key("content-type")
+      if body.is_a(string)
+        default_headers["content-type"] = "text/html; charset=utf-8"
+      elsif body.is_a(bytes)
+        default_headers["content-type"] = "application/octet-stream"
+      end
+    end
+
+    # Content-Length
+    body_bytes = body.is_a(string) ? body.to_bytes() : body
+    default_headers["content-length"] = body_bytes.size().to_string()
+
+    # Merge user headers (override defaults)
+    final_headers = default_headers.merge(headers)
+
+    # Build response
+    response_lines = [
+      "HTTP/1.1 ${status} ${reason}"
+    ]
+
+    for k, v in final_headers do
+      response_lines.push("${k}: ${v}")
+    end
+
+    response_lines.push("")
+    response_lines.push("")
+
+    response_text = response_lines.join("\r\n")
+    response_bytes = response_text.to_bytes()
+
+    # Append body
+    if body_bytes.size > 0
+      full = [].concat(response_bytes.to_list())
+               .concat(body_bytes.to_list())
+               .to_bytes()
+      return full
+    end
+
+    response_bytes
   end
 
-  /#
-  Summary: Performs an HTTP HEAD request to the specified URL.
-  Params:
-    - _url: The base URL.
-    - _path: The path to request. 
-    - _headers: The headers. Defaults to {}.
-  Returns: A hashmap with the response status code, headers, and body.
-  #/
-  fn head(_url, _path, _headers = {})
-    return __webc_head__(_url, _path, _headers)
+  # Convenience: simple HTML response
+  fn html(status: integer = 200, body: string, headers: hashmap = {}): bytes
+    headers["content-type"] = "text/html; charset=utf-8"
+    http::response(status, body, headers)
   end
 
-  /#
-  Summary: Performs an HTTP OPTIONS request to the specified URL.
-  Params:
-    - _url: The base URL.
-    - _path: The path to request. 
-    - _headers: The headers. Defaults to {}.
-  Returns: A hashmap with the response status code, headers, and body.
-  #/
-  fn options(_url, _path, _headers = {})
-    return __webc_options__(_url, _path, _headers)
-  end
-
-  /#
-  Summary: Performs an HTTP PATCH request to the specified URL.
-  Params:
-    - _url: The URL to request.
-    - _path: The path to request. 
-    - _body: The body to send.
-    - _headers: The headers. Defaults to {}.
-    - _content_type: The content-type. Defaults to "text/plain".
-  Returns: A hashmap with the response status code, headers, and body.
-  #/
-  fn patch(_url, _path, _body, _content_type = "text/plain", _headers = {})
-    return __webc_patch__(_url, _path, _body, _content_type, _headers)
-  end
-
-  /#
-  Summary: Performs an HTTP POST request to the specified URL.
-  Params:
-    - _url: The URL to request.
-    - _path: The path to request. 
-    - _body: The body to send.
-    - _headers: The headers. Defaults to {}.
-    - _content_type: The content-type. Defaults to "text/plain".
-  Returns: A hashmap with the response status code, headers, and body.
-  #/
-  fn post(_url, _path, _body, _content_type = "text/plain", _headers = {})
-    return __webc_post__(_url, _path, _body, _content_type, _headers)
-  end
-
-  /#
-  Summary: Performs an HTTP PUT request to the specified URL.
-  Params:
-    - _url: The URL to request.
-    - _path: The path to request. 
-    - _body: The body to send.
-    - _headers: The headers. Defaults to {}.
-    - _content_type: The content-type. Defaults to "text/plain". 
-  Returns: A hashmap with the response status code, headers, and body.
-  #/
-  fn put(_url, _path, _body, _content_type = "text/plain", _headers = {})
-    return __webc_put__(_url, _path, _body, _content_type, _headers)
+  # Convenience: JSON response
+  fn json(status: integer = 200, data: any, headers: hashmap = {}): bytes
+    json_body = serialize(data)
+    headers["content-type"] = "application/json; charset=utf-8"
+    http::response(status, json_body, headers)
   end
 end
 

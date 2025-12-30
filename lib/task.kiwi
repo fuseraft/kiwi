@@ -41,8 +41,8 @@ package task
   @summary Await a specified task.
   @returns The result of the task.
   #/
-  fn await(task_id: integer)
-    __task_await__(task_id)
+  fn await(task_id: integer, is_async: boolean = false)
+    __task_await__(task_id, is_async)
   end
 
   /#

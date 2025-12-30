@@ -21,10 +21,10 @@ public class MethodCallNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"MethodCall: `{MethodName}` on object:");
+        Print($"MethodCall: `{MethodName}` on object:");
         Object?.Print(1 + depth);
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Arguments:");
+        Print("Arguments:");
         foreach (var arg in Arguments)
         {
             arg?.Print(2 + depth);

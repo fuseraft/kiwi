@@ -31,8 +31,26 @@ public static class TaskBuiltinHandler
 
     private static Value Await(TaskManager mgr, Token token, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, TaskBuiltin.TaskAwait, 1, args.Count);
-        var id = ConversionOp.GetInteger(token, args[0], "Await requires integer id");
+        if (args.Count != 1 && args.Count != 2)
+        {
+            throw new ParameterCountMismatchError(token, TaskBuiltin.TaskAwait);
+        }
+
+        TypeError.ExpectInteger(token, args[0]);
+
+        var id = args[0].GetInteger();
+
+        if (args.Count == 2)
+        {
+            TypeError.ExpectBoolean(token, args[1]);
+            var isAsync = args[1].GetBoolean();
+
+            if (isAsync)
+            {
+                return mgr.AsyncAwait(id, token);
+            }
+        }
+
         return mgr.Await(id, token);
     }
 

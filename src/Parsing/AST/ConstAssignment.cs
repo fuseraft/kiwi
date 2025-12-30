@@ -19,9 +19,9 @@ public class ConstAssignmentNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"Constant Assignment: `{ASTTracer.Unmangle(Name)}`");
+        Print($"Constant Assignment: `{ASTTracer.Unmangle(Name)}`");
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Initializer:");
+        Print("Initializer:");
         Initializer?.Print(2 + depth);
     }
 

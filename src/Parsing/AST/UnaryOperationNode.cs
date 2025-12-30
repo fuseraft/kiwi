@@ -18,7 +18,7 @@ public class UnaryOperationNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"UnaryOperation: {Serializer.GetOperatorString(Op)}");
+        Print($"UnaryOperation: {Serializer.GetOperatorString(Op)}");
         Operand?.Print(1 + depth);
     }
 

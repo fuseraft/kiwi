@@ -19,7 +19,7 @@ public class PackageNode : ASTNode
         PackageName?.Print(1 + depth);
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Body:");
+        Print("Body:");
         foreach (var stmt in Body)
         {
             stmt?.Print(2 + depth);

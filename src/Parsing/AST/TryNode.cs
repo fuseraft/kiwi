@@ -13,10 +13,10 @@ public class TryNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine("Try: ");
+        Print("Try: ");
 
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine("Try statements:");
+        Print("Try statements:");
         foreach (var stmt in TryBody)
         {
             stmt?.Print(1 + depth);
@@ -25,24 +25,24 @@ public class TryNode : ASTNode
         if (CatchBody.Count > 0)
         {
             ASTTracer.PrintDepth(depth);
-            Console.WriteLine("Catch:");
+            Print("Catch:");
 
             if (ErrorType != null)
             {
                 ASTTracer.PrintDepth(1 + depth);
-                Console.WriteLine("Error type:");
+                Print("Error type:");
                 ErrorType?.Print(2 + depth);
             }
 
             if (ErrorMessage != null)
             {
                 ASTTracer.PrintDepth(1 + depth);
-                Console.WriteLine("Error message:");
+                Print("Error message:");
                 ErrorMessage?.Print(2 + depth);
             }
 
             ASTTracer.PrintDepth(depth);
-            Console.WriteLine("Catch statements:");
+            Print("Catch statements:");
             foreach (var stmt in CatchBody)
             {
                 stmt?.Print(1 + depth);
@@ -52,7 +52,7 @@ public class TryNode : ASTNode
         if (FinallyBody.Count > 0)
         {
             ASTTracer.PrintDepth(depth);
-            Console.WriteLine("Finally statements:");
+            Print("Finally statements:");
             foreach (var stmt in FinallyBody)
             {
                 stmt?.Print(1 + depth);

@@ -19,15 +19,15 @@ public class TernaryOperationNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine("TernaryOperation:");
+        Print("TernaryOperation:");
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Evaluate expression:");
+        Print("Evaluate expression:");
         EvalExpression?.Print(2 + depth);
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("True expression:");
+        Print("True expression:");
         TrueExpression?.Print(2 + depth);
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("False expression:");
+        Print("False expression:");
         FalseExpression?.Print(2 + depth);
     }
 

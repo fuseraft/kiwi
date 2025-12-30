@@ -10,7 +10,7 @@ public class EmitNode(ASTNode eventName, List<ASTNode?> eventArgs) : ASTNode(AST
         ASTTracer.PrintDepth(depth);
         PrintASTNodeType();
         EventName?.Print(1 + depth);
-        Console.WriteLine("Arguments:");
+        Print("Arguments:");
         foreach (var arg in EventArgs)
         {
             arg?.Print(2 + depth);

@@ -14,11 +14,11 @@ public class IndexingNode(ASTNode? indexedObject, ASTNode indexExpression) : AST
         {
             PrintASTNodeType();
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine($"Name: `{ASTTracer.Unmangle(Name)}`");
+            Print($"Name: `{ASTTracer.Unmangle(Name)}`");
         }
         else
         {
-            Console.WriteLine("Index on object:");
+            Print("Index on object:");
             IndexedObject.Print(1 + depth);
         }
 
