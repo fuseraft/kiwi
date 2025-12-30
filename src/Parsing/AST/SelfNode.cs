@@ -16,7 +16,7 @@ public class SelfNode : ASTNode
         if (!string.IsNullOrEmpty(Name))
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine($"Name: `{ASTTracer.Unmangle(Name)}`");
+            Print($"Name: `{ASTTracer.Unmangle(Name)}`");
         }
     }
 

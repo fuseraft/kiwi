@@ -75,6 +75,14 @@ public sealed class Channel
         _inner.Writer.TryWrite(value); // must succeed now
     }
 
+    public bool TrySend(Value value)
+    {
+        if (_closed)
+            return false;
+
+        return _inner.Writer.TryWrite(value);
+    }
+
     public Value Receive()
     {
         if (_inner.Reader.TryRead(out var value))

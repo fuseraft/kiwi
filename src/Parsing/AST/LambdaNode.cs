@@ -18,20 +18,20 @@ public class LambdaNode : ASTNode
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine($"ReturnType: {TypeRegistry.GetTypeName(ReturnTypeHint)}");
+        Print($"ReturnType: {TypeRegistry.GetTypeName(ReturnTypeHint)}");
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Parameters: ");
+        Print("Parameters: ");
         foreach (var param in Parameters)
         {
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
+            Print($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
 
             if (TypeHints.TryGetValue(param.Key, out int value))
             {
                 ASTTracer.PrintDepth(2 + depth);
                 var typeHint = value;
-                Console.WriteLine($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
+                Print($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
             }
 
             if (param.Value == null)
@@ -40,12 +40,12 @@ public class LambdaNode : ASTNode
             }
 
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine("Default: ");
+            Print("Default: ");
             param.Value.Print(1 + depth);
         }
 
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine("Statements:");
+        Print("Statements:");
         foreach (var stmt in Body)
         {
             stmt?.Print(1 + depth);

@@ -75,8 +75,9 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
             }
 
             Interpreter.ExecutionPath = ExecutionPath;
+            SocketManager.Instance.Start();
             Interpreter.Interpret(ast);
-            AwaitTasks();
+            AwaitTasksAndShutdown();
         }
         catch (KiwiError e)
         {
@@ -138,33 +139,32 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
         StandardLibraryLoaded = true;
     }
 
-    private void AwaitTasks()
+    private void AwaitTasksAndShutdown()
     {
         if (Interpreter.Current?.TaskMgr.Busy().GetBoolean() == true)
         {
             while (Interpreter.Current.TaskMgr.Busy().GetBoolean())
             {
-                var count = 0;
-
+                var activeCount = 0;
                 foreach (var task in Interpreter.Current.TaskMgr.List())
                 {
                     var status = Interpreter.Current.TaskMgr.Status(task.GetInteger()).GetString();
-
                     if (!(status is "Faulted" or "Completed"))
                     {
-                        count++;
+                        activeCount++;
                     }
                 }
 
-                // If nothing is in an active state, we're done waiting.
-                if (count == 0)
+                if (activeCount == 0)
                 {
-                    return;
+                    break;
                 }
 
                 Interpreter.Current.TaskMgr.Sleep(10);
             }
         }
+
+        SocketManager.Instance.Stop();
     }
 
     private static bool IsRecognizedScript(string path)

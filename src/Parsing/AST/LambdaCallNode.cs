@@ -19,7 +19,7 @@ public class LambdaCallNode : ASTNode
         ASTTracer.PrintDepth(depth);
         PrintASTNodeType();
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Arguments:");
+        Print("Arguments:");
         foreach (var arg in Arguments)
         {
             arg?.Print(2 + depth);

@@ -27,6 +27,52 @@ public sealed class TaskManager
 
     private TaskState Rent() => _stateBag.TryTake(out var state) ? state : new TaskState();
 
+    public long AllocateAsyncTaskId() => Interlocked.Increment(ref _nextId);
+
+    public long AllocateAndRegisterAsyncTask()
+    {
+        long taskId = AllocateAsyncTaskId();
+        
+        var state = Rent();
+        state.Id = taskId;
+        state.Status = TaskStatus.Running;
+        state.Completion = new ManualResetEventSlim(false);
+        
+        _tasks[taskId] = state;
+        
+        return taskId;
+    }
+
+    public void Complete(long taskId, Value result)
+    {
+        if (_tasks.TryRemove(taskId, out var state))
+        {
+            state.Result = result;
+            state.Status = TaskStatus.Completed;
+            state.Completion.Set();
+            Return(state);
+        }
+    }
+
+    public void CompleteWithFault(long taskId, Exception ex)
+    {
+        if (_tasks.TryGetValue(taskId, out var state))
+        {
+            state.Exception = ex;
+            state.Status = TaskStatus.Faulted;
+            state.Completion.Set();
+        }
+        else
+        {
+            var rented = Rent();
+            rented.Id = taskId;
+            rented.Exception = ex;
+            rented.Status = TaskStatus.Faulted;
+            rented.Completion.Set();
+            _tasks[taskId] = rented;
+        }
+    }
+
     private void Return(TaskState state)
     {
         // clear references to prevent leaks across tasks
@@ -106,6 +152,34 @@ public sealed class TaskManager
             ErrorHandler.DumpCrashLog(state.Exception);
             throw state.Exception;
         }
+
+        var result = state.Result;
+        Return(state); // return to pool
+        return result;
+    }
+
+    /// <summary>
+    /// Blocks the current fiber until the task completes.
+    /// Returns the task result. Removes task from active map.
+    /// </summary>
+    public Value AsyncAwait(long id, Token token)
+    {
+        if (!_tasks.TryGetValue(id, out var state))
+        {
+            throw new InvalidOperationError(token, $"Task {id} not found or already completed.");
+        }
+
+        // Block only this fiber/thread
+        state.Completion.Wait();
+
+        if (state.Exception != null)
+        {
+            // WIP: log crash for diagnostics, then rethrow
+            ErrorHandler.DumpCrashLog(state.Exception);
+            throw state.Exception;
+        }
+
+        _tasks.TryRemove(id, out _);  
 
         var result = state.Result;
         Return(state); // return to pool

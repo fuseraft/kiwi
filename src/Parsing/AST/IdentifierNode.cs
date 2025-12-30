@@ -15,7 +15,7 @@ public class IdentifierNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"Identifier: `{ASTTracer.Unmangle(Name)}`");
+        Print($"Identifier: `{ASTTracer.Unmangle(Name)}`");
     }
 
     public override ASTNode Clone() => new IdentifierNode(Name)

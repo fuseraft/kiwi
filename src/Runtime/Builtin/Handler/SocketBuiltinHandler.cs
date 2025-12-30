@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
 using kiwi.Runtime.Builtin.Operation;
@@ -51,7 +50,7 @@ public static class SocketBuiltinHandler
         ParameterCountMismatchError.Check(token, SocketBuiltin.TcpConnect, 2, args.Count);
         ParameterTypeMismatchError.ExpectString(token, SocketBuiltin.TcpConnect, 0, args[0]);
         ParameterTypeMismatchError.ExpectInteger(token, SocketBuiltin.TcpConnect, 1, args[1]);
-
+        
         string host = args[0].GetString();
         int port = (int)args[1].GetInteger();
 
@@ -63,19 +62,9 @@ public static class SocketBuiltinHandler
     {
         ParameterCountMismatchError.Check(token, SocketBuiltin.Accept, 1, args.Count);
         ParameterTypeMismatchError.ExpectInteger(token, SocketBuiltin.Accept, 0, args[0]);
-
         long serverId = args[0].GetInteger();
-
-        if (!Mgr.TryGetSocket(serverId, out var state) ||
-            state?.Role != SocketRole.Listener ||
-            state.AcceptChannel is null)
-        {
-            throw new InvalidOperationError(token, "Invalid or non-listener socket for accept");
-        }
-
-        // Blocks the current task until a new client arrives
-        Value clientIdVal = state.AcceptChannel.Receive();
-        return clientIdVal;
+        long taskId = SocketManager.Instance.EnqueueAccept(serverId);
+        return Value.CreateInteger(taskId); // Awaitable!
     }
 
     private static Value Send(Token token, List<Value> args)
@@ -84,15 +73,12 @@ public static class SocketBuiltinHandler
         ParameterTypeMismatchError.ExpectInteger(token, SocketBuiltin.Send, 0, args[0]);
         ParameterTypeMismatchError.ExpectBytes(token, SocketBuiltin.Send, 1, args[1]);
 
+        ParameterCountMismatchError.Check(token, SocketBuiltin.Send, 2, args.Count);
         long sockId = args[0].GetInteger();
+        byte[] data = args[1].GetBytes();
 
-        if (!Mgr.TryGetSocket(sockId, out var state) || state == null)
-        {
-            throw new InvalidOperationError(token, $"Socket {sockId} not found.");
-        }
-
-        state.WriteChannel.Send(args[1]);
-        return Value.Default;
+        long taskId = Mgr.EnqueueSend(sockId, data);
+        return Value.CreateInteger(taskId);
     }
 
     private static Value Recv(Token token, List<Value> args)
@@ -100,38 +86,10 @@ public static class SocketBuiltinHandler
         int expected = args.Count == 1 ? 1 : 2;
         ParameterCountMismatchError.Check(token, SocketBuiltin.Receive, expected, args.Count);
         ParameterTypeMismatchError.ExpectInteger(token, SocketBuiltin.Receive, 0, args[0]);
-
         long sockId = args[0].GetInteger();
-
-        if (!Mgr.TryGetSocket(sockId, out var state) || state == null)
-        {
-            throw new InvalidOperationError(token, $"Socket {sockId} not found.");
-        }
-
-        // Optional max bytes parameter
-        int maxBytes = args.Count == 2 
-            ? (int)ConversionOp.GetInteger(token, args[1], "max_bytes must be integer.")
-            : int.MaxValue;
-
-        // Blocks the current task until data arrives or connection closes
-        Value dataVal = state.ReadChannel.Receive();
-
-        if (!dataVal.IsBytes())
-        {
-            return Value.CreateNull(); // should not happen
-        }
-
-        byte[] data = dataVal.GetBytes();
-
-        // If caller requested a max and we have more, truncate
-        if (data.Length > maxBytes)
-        {
-            var truncated = new byte[maxBytes];
-            Array.Copy(data, truncated, maxBytes);
-            return Value.CreateBytes(truncated);
-        }
-
-        return dataVal;
+        int max = args.Count > 1 ? (int)args[1].GetInteger() : 4096;
+        long taskId = SocketManager.Instance.EnqueueRecv(sockId, max);
+        return Value.CreateInteger(taskId);
     }
 
     private static Value Close(Token token, List<Value> args)
@@ -141,7 +99,6 @@ public static class SocketBuiltinHandler
 
         long sockId = args[0].GetInteger();
         Mgr.Close(sockId);
-
         return Value.Default;
     }
 }

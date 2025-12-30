@@ -16,19 +16,19 @@ public class VariableNode : ASTNode
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Variables: ");
+        Print("Variables: ");
 
         foreach (var v in Variables)
         {
             ASTTracer.PrintDepth(2 + depth);
 
-            Console.WriteLine($"Identifier: `{ASTTracer.Unmangle(v.Key)}`");
+            Print($"Identifier: `{ASTTracer.Unmangle(v.Key)}`");
 
             if (TypeHints.TryGetValue(v.Key, out int value))
             {
                 ASTTracer.PrintDepth(2 + depth);
                 var typeHint = value;
-                Console.WriteLine($"Type: {TypeRegistry.GetTypeName(typeHint)}");
+                Print($"Type: {TypeRegistry.GetTypeName(typeHint)}");
             }
 
             if (v.Value == null)
@@ -37,7 +37,7 @@ public class VariableNode : ASTNode
             }
 
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine("Default: ");
+            Print("Default: ");
             v.Value.Print(1 + depth);
         }
     }

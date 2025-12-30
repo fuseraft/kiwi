@@ -1,158 +1,36 @@
+raw_get = "GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/8.5.0
+Accept: */*
+"
 
+raw_get_headers = "GET /index.html HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+Accept: text/html,application/xhtml+xml
+Accept-Language: en-US,en;q=0.9
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+"
 
-# Kiwi Standard Library – Minimal HTTP/1.1 Parser & Responder
+raw_post_text = "POST /submit HTTP/1.1
+Host: localhost:8080
+User-Agent: kiwi-client/1.0
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 27
 
-package http
-  # Parses raw bytes from __socket_recv__ into a request hashmap
-  # Returns null on malformed request (we can improve error handling later)
-  fn parse(raw: bytes): hashmap
-    text = raw.to_string()
-    println "http.parse: ${text}"
+name=Alice&age=30&city=NYC"
 
-    lines = text.split("\r\n")
-    if lines.empty() or lines[0].empty()
-      return null
-    end
+raw_post_json = "POST /api/users HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+Content-Length: 51
+Accept: application/json
 
-    # Request line: METHOD PATH HTTP/1.1
-    request_line = lines[0].split(" ")
-    if request_line.size() < 3
-      return null
-    end
+{\"name\":\"Bob\",\"email\":\"bob@example.com\",\"active\":true}"
 
-    method = request_line[0].uppercase()
-    path = request_line[1]
-    version = request_line[2]
-
-    # Find header/body split
-    header_end = lists::find(lines, with (l) do l.empty() end)
-    header_end = header_end < 0 ? lines.size() : header_end
-
-    headers = {}
-
-    for i in std::range(1, header_end - 1) do
-      line = lines[i]
-      colon = line.index(":")
-      if colon
-        key = line.chars().slice(0, colon).join().trim().lowercase()
-        val = line.substring(colon, line.size() - colon).trim()
-        headers[key] = val
-      end
-    end
-
-    body = ""
-    if header_end + 1 < lines.size()
-      body_lines = lines.skip(header_end)
-      body = body_lines.join("\r\n")
-    end
-
-    {
-      method: method,
-      path: path,
-      version: version,
-      headers: headers,
-      body: body,
-      raw: raw
-    }
-  end
-
-  # Creates a minimal HTTP response
-  # status: integer (e.g. 200)
-  # body: string or bytes
-  # headers: optional hash (defaults to reasonable values)
-  fn response(status: integer, body: any = "", headers: hashmap = {}): bytes
-    status_texts = {
-      "200": "OK",
-      "201": "Created",
-      "400": "Bad Request",
-      "404": "Not Found",
-      "500": "Internal Server Error",
-      "301": "Moved Permanently",
-      "302": "Found"
-    }
-
-    reason = status_texts[status.to_string()] ?? "Unknown"
-
-    # Default headers
-    default_headers = {
-      "date": time::timestamp(),
-      server: "Kiwi/1.0",
-      connection: "close"
-    }
-
-    # Content-Type guessing
-    if !headers.has_key("content-type")
-      if body.is_a(string)
-        default_headers["content-type"] = "text/html; charset=utf-8"
-      elsif body.is_a(bytes)
-        default_headers["content-type"] = "application/octet-stream"
-      end
-    end
-
-    println "body: ${body}"
-
-    # Content-Length
-    body_bytes = body.is_a(string) ? body.to_bytes() : body
-    default_headers["content-length"] = body_bytes.size().to_string()
-
-    # Merge user headers (override defaults)
-    final_headers = default_headers.merge(headers)
-
-    # Build response
-    response_lines = [
-      "HTTP/1.1 ${status} ${reason}"
-    ]
-
-    for k, v in final_headers do
-      response_lines.push("${k}: ${v}")
-    end
-
-    response_lines.push("")
-    response_text = response_lines.join("\r\n")
-    response_bytes = response_text.to_bytes()
-
-    # Append body
-    if body_bytes.size > 0
-      full = [].concat(response_bytes.to_list())
-               .concat(body_bytes.to_list())
-               .to_bytes()
-      return full
-    end
-
-    response_bytes
-  end
-
-  # Convenience: simple HTML response
-  fn html(status: integer = 200, body: string, headers: hashmap = {}): bytes
-    headers["content-type"] = "text/html; charset=utf-8"
-    response(status, body, headers)
-  end
-
-  # Convenience: JSON response
-  fn json(status: integer = 200, data: any, headers: hashmap = {}): bytes
-    json_body = serialize(data)
-    headers["content-type"] = "application/json; charset=utf-8"
-    response(status, json_body, headers)
-  end
-end
-
-export "http"
-
-server = __socket_tcpserver__("127.0.0.1", 8080)
-
-handle_client = with (client) do
-  req = http::parse(__socket_recv__(client))
-  println "sending ok response"
-  resp = __socket_send__(client, http::response(200, "Hello from Kiwi"))
-  println "Response size: ${resp.size()} bytes"
-  println "closing socket"
-  __socket_close__(client)
-end
-
-task::await(task::spawn(with (_server, _handler) do
-  while true do
-    client = __socket_accept__(_server)
-    println "connected"
-    task::spawn(_handler, [client])
-  end
-end, [server, handle_client]))
+req = http::parse(raw_post_json.to_bytes())
+println "Method: ${req.method}"
+println "Path: ${req.path}"
+println "Content-Type: ${req.headers['content-type']}"
+println "Body: ${req.body}"

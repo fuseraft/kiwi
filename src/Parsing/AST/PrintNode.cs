@@ -20,11 +20,11 @@ public class PrintNode : ASTNode
         ASTTracer.PrintDepth(depth);
         if (PrintStdError)
         {
-            Console.WriteLine(PrintNewline ? "PrintErrorLine:" : "PrintError:");
+            Print(PrintNewline ? "PrintErrorLine:" : "PrintError:");
         }
         else
         {
-            Console.WriteLine(PrintNewline ? "PrintLine:" : "Print:");
+            Print(PrintNewline ? "PrintLine:" : "Print:");
         }
 
         Expression?.Print(1 + depth);

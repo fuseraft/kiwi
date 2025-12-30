@@ -19,9 +19,9 @@ public class FunctionCallNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"FunctionCall: `{ASTTracer.Unmangle(FunctionName)}`");
+        Print($"FunctionCall: `{ASTTracer.Unmangle(FunctionName)}`");
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Arguments:");
+        Print("Arguments:");
         foreach (var arg in Arguments)
         {
             arg?.Print(2 + depth);
