@@ -1,0 +1,33 @@
+package socket
+  # creates a tcp server socket, returns the socket id
+  fn tcpserver(host: string, port: integer, backlog: integer = 128): integer
+    __socket_tcpserver__(host, port, backlog)
+  end
+
+  # creates a tcp client socket, returns the socket id
+  fn tcpconnect(host: string, port: integer): integer
+    __socket_tcpconnect__(host, port)
+  end
+
+  # enqueues an accept task on a server socket, returns an awaitable task id
+  fn accept(sock_id: integer): integer
+    __socket_accept__(sock_id)
+  end
+
+  # closes a socket, faults any pending tasks
+  fn close(sock_id: integer)
+    __socket_close__(sock_id)
+  end
+
+  # enqueues a recv task on a client socket, returns an awaitable task id
+  fn recv(sock_id: integer, max_bytes: integer = 4096): integer
+    __socket_recv__(sock_id, max_bytes)
+  end
+
+  # enqueues a send  task on a client socket, returns an awaitable task id
+  fn send(sock_id: integer, data: bytes): integer
+    __socket_send__(sock_id, data)
+  end
+end
+
+export "socket"
