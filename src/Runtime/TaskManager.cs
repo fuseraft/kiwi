@@ -45,42 +45,46 @@ public sealed class TaskManager
 
     public void Complete(long taskId, Value result)
     {
-        if (_tasks.TryRemove(taskId, out var state))
+        if (!_tasks.TryGetValue(taskId, out var state))
         {
-            state.Result = result;
-            state.Status = TaskStatus.Completed;
-            state.Completion.Set();
-            Return(state);
+            return;
         }
+
+        if (Interlocked.Exchange(ref state.Completed, 1) != 0)
+        {
+            return;
+        }
+
+        state.Result = result;
+        state.Status = TaskStatus.Completed;
+        state.Completion.Set();
     }
 
     public void CompleteWithFault(long taskId, Exception ex)
     {
-        if (_tasks.TryGetValue(taskId, out var state))
+        if (!_tasks.TryGetValue(taskId, out var state))
         {
-            state.Exception = ex;
-            state.Status = TaskStatus.Faulted;
-            state.Completion.Set();
+            return;
         }
-        else
+
+        if (Interlocked.Exchange(ref state.Completed, 1) != 0)
         {
-            var rented = Rent();
-            rented.Id = taskId;
-            rented.Exception = ex;
-            rented.Status = TaskStatus.Faulted;
-            rented.Completion.Set();
-            _tasks[taskId] = rented;
+            return;
         }
+
+        state.Exception = ex;
+        state.Status = TaskStatus.Faulted;
+        state.Completion.Set();
     }
 
     private void Return(TaskState state)
     {
-        // clear references to prevent leaks across tasks
         state.Lambda = null!;
         state.Args.Clear();
         state.Result = Value.Default;
-        state.Status = TaskStatus.Running; // ready for next spawn
+        state.Status = TaskStatus.Running;
         state.Exception = null;
+        state.Completed = 0;
         state.Completion.Reset();
 
         _stateBag.Add(state);
@@ -138,52 +142,29 @@ public sealed class TaskManager
     /// </summary>
     public Value Await(long id, Token token)
     {
-        if (!_tasks.TryRemove(id, out var state))
-        {
-            throw new InvalidOperationError(token, $"Task {id} not found or already completed.");
-        }
-
-        // Block only this fiber/thread
-        state.Completion.Wait();
-
-        if (state.Exception != null)
-        {
-            // WIP: log crash for diagnostics, then rethrow
-            ErrorHandler.DumpCrashLog(state.Exception);
-            throw state.Exception;
-        }
-
-        var result = state.Result;
-        Return(state); // return to pool
-        return result;
-    }
-
-    /// <summary>
-    /// Blocks the current fiber until the task completes.
-    /// Returns the task result. Removes task from active map.
-    /// </summary>
-    public Value AsyncAwait(long id, Token token)
-    {
         if (!_tasks.TryGetValue(id, out var state))
         {
-            throw new InvalidOperationError(token, $"Task {id} not found or already completed.");
+            throw new InvalidOperationError(token, $"Task {id} not found.");
         }
 
-        // Block only this fiber/thread
         state.Completion.Wait();
 
-        if (state.Exception != null)
+        _tasks.TryRemove(id, out _);
+
+        try
         {
-            // WIP: log crash for diagnostics, then rethrow
-            ErrorHandler.DumpCrashLog(state.Exception);
-            throw state.Exception;
+            if (state.Exception != null)
+            {
+                ErrorHandler.DumpCrashLog(state.Exception);
+                throw state.Exception;
+            }
+
+            return state.Result;
         }
-
-        _tasks.TryRemove(id, out _);  
-
-        var result = state.Result;
-        Return(state); // return to pool
-        return result;
+        finally
+        {
+            Return(state);
+        }
     }
 
     /// <summary>
@@ -235,4 +216,5 @@ internal sealed class TaskState
     public TaskStatus Status;
     public ManualResetEventSlim Completion = new(false);
     public Exception? Exception;
+    public int Completed; // 0 = no, 1 = yes
 }

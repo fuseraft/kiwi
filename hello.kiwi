@@ -1,36 +1,3 @@
-raw_get = "GET / HTTP/1.1
-Host: localhost:8080
-User-Agent: curl/8.5.0
-Accept: */*
-"
+#!/usr/bin/env kiwi
 
-raw_get_headers = "GET /index.html HTTP/1.1
-Host: example.com
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
-Accept: text/html,application/xhtml+xml
-Accept-Language: en-US,en;q=0.9
-Connection: keep-alive
-Upgrade-Insecure-Requests: 1
-"
-
-raw_post_text = "POST /submit HTTP/1.1
-Host: localhost:8080
-User-Agent: kiwi-client/1.0
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 27
-
-name=Alice&age=30&city=NYC"
-
-raw_post_json = "POST /api/users HTTP/1.1
-Host: localhost:8080
-Content-Type: application/json
-Content-Length: 51
-Accept: application/json
-
-{\"name\":\"Bob\",\"email\":\"bob@example.com\",\"active\":true}"
-
-req = http::parse(raw_post_json.to_bytes())
-println "Method: ${req.method}"
-println "Path: ${req.path}"
-println "Content-Type: ${req.headers['content-type']}"
-println "Body: ${req.body}"
+println "Hello, World!"

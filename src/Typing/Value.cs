@@ -287,7 +287,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
                 return GetDate().Equals(other.GetDate());
 
             case ValueType.Bytes:
-                return GetBytes().Equals(other.GetBytes());
+                return GetBytes().SequenceEqual(other.GetBytes());
 
             case ValueType.List:
                 {

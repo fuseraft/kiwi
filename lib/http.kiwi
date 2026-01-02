@@ -32,14 +32,14 @@ package http
       colon = line.index(":")
       if colon
         key = line.chars().slice(0, colon).join().trim().lowercase()
-        val = line.substring(colon, line.size() - colon).trim()
+        val = line.substring(colon + 1, line.size() - colon - 1).trim()
         headers[key] = val
       end
     end
 
     body = ""
     if header_end + 1 < lines.size()
-      body_lines = lines.skip(header_end)
+      body_lines = lines.skip(header_end + 1)
       body = body_lines.join("\r\n")
     end
 
@@ -109,7 +109,7 @@ package http
     response_bytes = response_text.to_bytes()
 
     # Append body
-    if body_bytes.size > 0
+    if body_bytes.size() > 0
       full = [].concat(response_bytes.to_list())
                .concat(body_bytes.to_list())
                .to_bytes()
