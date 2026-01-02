@@ -9,7 +9,7 @@ public class LiteralNode(Value value) : ASTNode(ASTNodeType.Literal)
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"Literal: {Serializer.Serialize(Value, true)}");
+        Print($"Literal: {Serializer.Serialize(Value, true)}");
     }
 
     public override ASTNode Clone() => new LiteralNode(Value)

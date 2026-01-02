@@ -1,9 +1,9 @@
 # curl -s https://httpbin.org/image/jpeg | ./bin/kiwi scripts/filetype
 # curl -s https://httpbin.org/image/png | ./bin/kiwi scripts/filetype
 
-bytes = stdin::readbytes()
+byte_data = stdin::readbytes()
 
-if bytes.size() == 0
+if byte_data.size() == 0
   println "empty input"
   exit 1
 end
@@ -15,10 +15,10 @@ fn hex(byte)
 end
 
 fn matches(offset, expected)
-  return false when bytes.size() < offset + expected.size()
+  return false when byte_data.size() < offset + expected.size()
 
   for i in std::range(0, expected.size()) do
-    return false when bytes[offset + i] != expected[i]
+    return false when byte_data[offset + i] != expected[i]
   end
 
   return true
@@ -50,8 +50,8 @@ println "Unknown file type"
 println "First 16 bytes (hex):"
 
 for i in [0..15] do
-  if i < bytes.size()
-    print " ${hex(bytes[i])}"
+  if i < byte_data.size()
+    print " ${hex(byte_data[i])}"
   else
     print "   "
   end

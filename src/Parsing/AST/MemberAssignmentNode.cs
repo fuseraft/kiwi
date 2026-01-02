@@ -22,11 +22,11 @@ public class MemberAssignmentNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"MemberAssignment: `{MemberName}` on object: ");
+        Print($"MemberAssignment: `{MemberName}` on object: ");
         ASTTracer.PrintDepth(1 + depth);
         Object?.Print(2 + depth);
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Initializer:");
+        Print("Initializer:");
         Initializer?.Print(2 + depth);
     }
 

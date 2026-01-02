@@ -16,13 +16,13 @@ public class CaseNode : ASTNode
         if (TestValue != null)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("Test:");
+            Print("Test:");
             TestValue.Print(2 + depth);
 
             if (TestValueAlias != null)
             {
                 ASTTracer.PrintDepth(1 + depth);
-                Console.WriteLine("Alias:");
+                Print("Alias:");
                 TestValueAlias.Print(2 + depth);
             }
         }
@@ -38,7 +38,7 @@ public class CaseNode : ASTNode
         if (ElseBody.Count > 0)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("Case else:");
+            Print("Case else:");
             foreach (var stmt in ElseBody)
             {
                 stmt?.Print(2 + depth);

@@ -32,6 +32,7 @@ public static class TypeRegistry
         RegisterType("lambda");
         RegisterType("string");
         RegisterType("list");
+        RegisterType("bytes");
         RegisterType("object");
         RegisterType("pointer");
         RegisterType("none");
@@ -44,6 +45,7 @@ public static class TypeRegistry
         registeredPrimitives.Add(GetType("hashmap"), ValueType.Hashmap);
         registeredPrimitives.Add(GetType("string"), ValueType.String);
         registeredPrimitives.Add(GetType("list"), ValueType.List);
+        registeredPrimitives.Add(GetType("bytes"), ValueType.Bytes);
     }
 
     public static bool IsPrimitive(int type) => registeredPrimitives.ContainsKey(type);
@@ -68,6 +70,7 @@ public static class TypeRegistry
             Typing.ValueType.None => "none",
             Typing.ValueType.String => "string",
             Typing.ValueType.Pointer => "pointer",
+            Typing.ValueType.Bytes => "bytes",
             _ => string.Empty,
         };
         

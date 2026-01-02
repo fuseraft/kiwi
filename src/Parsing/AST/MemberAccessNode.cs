@@ -16,7 +16,7 @@ public class MemberAccessNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"MemberAccess: `{MemberName}` on object: ");
+        Print($"MemberAccess: `{MemberName}` on object: ");
         Object?.Print(1 + depth);
     }
 

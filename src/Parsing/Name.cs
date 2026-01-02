@@ -118,6 +118,7 @@ public enum TokenName
   Builtin_Core_ToInteger,
   Builtin_Core_ToString,
   Builtin_Core_ToDate,
+  Builtin_Core_ToList,
   Builtin_Core_Tokens,
   Builtin_Core_Trim,
   Builtin_Core_Truthy,
@@ -179,6 +180,8 @@ public enum TokenName
   Builtin_Socket_Send,
   Builtin_Socket_SendRaw,
   Builtin_Socket_Receive,
+  Builtin_Socket_TcpConnect,
+  Builtin_Socket_TcpServer,
   Builtin_Socket_Close,
   Builtin_Socket_Shutdown,
   Builtin_Net_ResolveHost,
@@ -389,5 +392,6 @@ public enum TokenName
   Types_None,
   Types_Object,
   Types_String,
-  Types_Pointer
+  Types_Pointer,
+  Types_Bytes
 }

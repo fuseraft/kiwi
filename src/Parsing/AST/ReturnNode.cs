@@ -24,7 +24,7 @@ public class ReturnNode : ASTNode
         if (Condition != null)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("Condition:");
+            Print("Condition:");
             Condition.Print(1 + depth);
         }
     }

@@ -19,31 +19,31 @@ public class FunctionNode : ASTNode
     public override void Print(int depth = 0)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"Function: `{ASTTracer.Unmangle(Name)}`");
+        Print($"Function: `{ASTTracer.Unmangle(Name)}`");
 
         if (IsStatic || IsPrivate)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("Modifiers:");
+            Print("Modifiers:");
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine($"Private: {IsPrivate}, Static: {IsStatic}");
+            Print($"Private: {IsPrivate}, Static: {IsStatic}");
         }
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine($"ReturnType: {TypeRegistry.GetTypeName(ReturnTypeHint)}");
+        Print($"ReturnType: {TypeRegistry.GetTypeName(ReturnTypeHint)}");
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Parameters: ");
+        Print("Parameters: ");
         foreach (var param in Parameters)
         {
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
+            Print($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
 
             if (TypeHints.TryGetValue(param.Key, out int value))
             {
                 ASTTracer.PrintDepth(3 + depth);
                 var typeHint = value;
-                Console.WriteLine($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
+                Print($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
             }
 
             if (param.Value == null)
@@ -52,12 +52,12 @@ public class FunctionNode : ASTNode
             }
 
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine("Default: ");
+            Print("Default: ");
             param.Value.Print(3 + depth);
         }
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Statements:");
+        Print("Statements:");
         foreach (var stmt in Body)
         {
             stmt?.Print(2 + depth);

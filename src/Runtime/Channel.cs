@@ -39,6 +39,24 @@ public sealed class Channel
 
     public static Channel Create(int capacity = 0) => new(capacity);
 
+    public void Send(Value value)
+    {
+        if (_closed)
+        {
+            throw new Exception("Send on a closed channel.");
+        }
+
+        // Try fast path first
+        if (_inner.Writer.TryWrite(value))
+        {
+            return;
+        }
+
+        // Block current task until space
+        _inner.Writer.WaitToWriteAsync().AsTask().Wait();
+        _inner.Writer.TryWrite(value); // must succeed now
+    }
+
     public void Send(Token token, Value value)
     {
         if (_closed)
@@ -57,7 +75,15 @@ public sealed class Channel
         _inner.Writer.TryWrite(value); // must succeed now
     }
 
-    public Value Receive(Token token)
+    public bool TrySend(Value value)
+    {
+        if (_closed)
+            return false;
+
+        return _inner.Writer.TryWrite(value);
+    }
+
+    public Value Receive()
     {
         if (_inner.Reader.TryRead(out var value))
         {
@@ -67,10 +93,35 @@ public sealed class Channel
         // Block until data or completion
         if (!_inner.Reader.WaitToReadAsync().AsTask().Result)
         {
-            throw new InvalidOperationError(token, "Receive on a closed channel");
+            throw new Exception("Receive on a closed channel");
         }
 
         return _inner.Reader.ReadAsync().AsTask().Result;
+    }
+
+    public Value Receive(Token token)
+    {
+        if (_inner.Reader.TryRead(out var value))
+        {
+            return value;
+        }
+
+        try
+        {
+            // Block until data or completion
+            if (!_inner.Reader.WaitToReadAsync().AsTask().Result)
+            {
+                throw new InvalidOperationError(token, "Receive on a closed channel");
+            }
+
+            return _inner.Reader.ReadAsync().AsTask().Result;            
+        }
+        catch
+        {
+            // WIP: swallowing this exception.
+        }
+
+        return Value.Default;
     }
 
     public (bool Success, Value Value) TryReceive()

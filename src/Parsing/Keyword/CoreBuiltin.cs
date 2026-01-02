@@ -61,6 +61,7 @@ public static class CoreBuiltin
     public const string Split        = "split";
     public const string Substring    = "substring";
     public const string Swap         = "swap";
+    public const string ToList       = "to_list";
     public const string ToBytes      = "to_bytes";
     public const string ToD          = "to_date";
     public const string ToF          = "to_float";
@@ -146,6 +147,7 @@ public static class CoreBuiltin
             { ToHex,        TokenName.Builtin_Core_ToHex       },
             { ToI,          TokenName.Builtin_Core_ToInteger   },
             { Tokens,       TokenName.Builtin_Core_Tokens      },
+            { ToList,       TokenName.Builtin_Core_ToList      },
             { ToS,          TokenName.Builtin_Core_ToString    },
             { Trim,         TokenName.Builtin_Core_Trim        },
             { Truthy,       TokenName.Builtin_Core_Truthy      },

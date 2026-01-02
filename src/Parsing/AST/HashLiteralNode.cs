@@ -12,14 +12,14 @@ public class HashLiteralNode(Dictionary<ASTNode, ASTNode?> elements, List<string
         foreach (var element in Elements)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("KVP:");
+            Print("KVP:");
 
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine("Key:");
+            Print("Key:");
             element.Key.Print(3 + depth);
 
             ASTTracer.PrintDepth(2 + depth);
-            Console.WriteLine("Value: ");
+            Print("Value: ");
             element.Value?.Print(3 + depth);
         }
     }

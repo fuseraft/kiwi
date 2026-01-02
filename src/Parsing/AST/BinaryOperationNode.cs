@@ -20,7 +20,7 @@ public class BinaryOperationNode : ASTNode
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"BinaryOperation: {Serializer.GetOperatorString(Op)}");
+        Print($"BinaryOperation: {Serializer.GetOperatorString(Op)}");
         Left?.Print(1 + depth);
         Right?.Print(1 + depth);
     }

@@ -12,7 +12,7 @@ public class DoNode : ASTNode
         PrintASTNodeType();
         Condition?.Print(1 + depth);
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine("Statements:");
+        Print("Statements:");
         foreach (var stmt in Body)
         {
             stmt?.Print(1 + depth);

@@ -64,6 +64,10 @@ public struct LogicalOp
         {
             return Value.CreateBoolean(right.GetHashmap().Count == 0);
         }
+        else if (right.IsBytes())
+        {
+            return Value.CreateBoolean(right.GetBytes().Length == 0);
+        }
         else
         {
             return Value.False;  // Object, Lambda, etc.
