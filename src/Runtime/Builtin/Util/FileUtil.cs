@@ -399,11 +399,11 @@ public struct FileUtil
         }
     }
 
-    public static List<Value> ReadBytes(Token token, string filePath)
+    public static byte[] ReadBytes(Token token, string filePath)
     {
         try
         {
-            return [.. File.ReadAllBytes(filePath).Select(x => Value.CreateInteger(x))];
+            return File.ReadAllBytes(filePath);
         }
         catch (Exception)
         {
@@ -411,7 +411,7 @@ public struct FileUtil
         }
     }
 
-    public static List<Value> ReadSlice(Token token, string filePath, long start, long length)
+    public static byte[] ReadSlice(Token token, string filePath, long start, long length)
     {
         if (start < 0 || length <= 0)
         {
@@ -431,7 +431,7 @@ public struct FileUtil
             byte[] buffer = new byte[toRead];
             int bytesRead = fs.Read(buffer, 0, buffer.Length);
 
-            return [.. buffer.Take(bytesRead).Select(b => Value.CreateInteger(b))];
+            return [.. buffer.Take(bytesRead)];
         }
         catch (Exception)
         {
@@ -439,14 +439,14 @@ public struct FileUtil
         }
     }
 
-    public static int WriteSlice(Token token, string filePath, long offset, List<Value> data)
+    public static int WriteSlice(Token token, string filePath, long offset, byte[] data)
     {
         if (offset < 0)
         {
             throw new FileSystemError(token, "Offset must be non-negative.");
         }
 
-        if (data == null || data.Count == 0)
+        if (data == null || data.Length == 0)
         {
             return 0; // nothing to write
         }
@@ -468,24 +468,18 @@ public struct FileUtil
                 bufferSize: 81920,
                 useAsync: false);
 
-            if (offset + data.Count > fs.Length)
+            if (offset + data.Length > fs.Length)
             {
-                fs.SetLength(offset + data.Count);
+                fs.SetLength(offset + data.Length);
             }
 
             fs.Seek(offset, SeekOrigin.Begin);
 
-            byte[] buffer = new byte[data.Count];
-            for (int i = 0; i < data.Count; i++)
+            byte[] buffer = new byte[data.Length];
+            for (int i = 0; i < data.Length; i++)
             {
-                long val = data[i].GetInteger();
-
-                if (val < 0 || val > 255)
-                {
-                    throw new FileSystemError(token, $"Byte value at index {i} is out of range [0-255]: {val}");
-                }
-
-                buffer[i] = (byte)val;
+                byte val = data[i];
+                buffer[i] = val;
             }
 
             fs.Write(buffer, 0, buffer.Length);
@@ -548,6 +542,19 @@ public struct FileUtil
         {
             File.AppendAllLines(path, text);
             return true;
+        }
+        catch (Exception)
+        {
+            throw new FileSystemError(token, $"Could not write to file: {path}");
+        }
+    }
+
+    public static int WriteBytes(Token token, string path, byte[] bytes)
+    {
+        try
+        {
+            File.WriteAllBytes(path, bytes);
+            return bytes.Length;
         }
         catch (Exception)
         {

@@ -22,13 +22,13 @@ public class PackAssignmentNode : ASTNode
         ASTTracer.PrintDepth(depth);
         PrintASTNodeType();
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Left-hand side:");
+        Print("Left-hand side:");
         foreach (var lhs in Left)
         {
             lhs?.Print(2 + depth);
         }
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Right-hand side:");
+        Print("Right-hand side:");
         foreach (var rhs in Right)
         {
             rhs?.Print(2 + depth);

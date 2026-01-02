@@ -13,22 +13,22 @@ public class ForLoopNode(ASTNode valueIterator) : ASTNode(ASTNodeType.ForLoop)
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("LoopSet:");
+        Print("LoopSet:");
         DataSet?.Print(2 + depth);
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("ValueIterator:");
+        Print("ValueIterator:");
         ValueIterator?.Print(2 + depth);
 
         if (IndexIterator != null)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("IndexIterator:");
+            Print("IndexIterator:");
             IndexIterator.Print(2 + depth);
         }
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Statements:");
+        Print("Statements:");
         foreach (var stmt in Body)
         {
             stmt?.Print(2 + depth);

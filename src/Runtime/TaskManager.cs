@@ -27,14 +27,64 @@ public sealed class TaskManager
 
     private TaskState Rent() => _stateBag.TryTake(out var state) ? state : new TaskState();
 
+    public long AllocateAsyncTaskId() => Interlocked.Increment(ref _nextId);
+
+    public long AllocateAndRegisterAsyncTask()
+    {
+        long taskId = AllocateAsyncTaskId();
+        
+        var state = Rent();
+        state.Id = taskId;
+        state.Status = TaskStatus.Running;
+        state.Completion = new ManualResetEventSlim(false);
+        
+        _tasks[taskId] = state;
+        
+        return taskId;
+    }
+
+    public void Complete(long taskId, Value result)
+    {
+        if (!_tasks.TryGetValue(taskId, out var state))
+        {
+            return;
+        }
+
+        if (Interlocked.Exchange(ref state.Completed, 1) != 0)
+        {
+            return;
+        }
+
+        state.Result = result;
+        state.Status = TaskStatus.Completed;
+        state.Completion.Set();
+    }
+
+    public void CompleteWithFault(long taskId, Exception ex)
+    {
+        if (!_tasks.TryGetValue(taskId, out var state))
+        {
+            return;
+        }
+
+        if (Interlocked.Exchange(ref state.Completed, 1) != 0)
+        {
+            return;
+        }
+
+        state.Exception = ex;
+        state.Status = TaskStatus.Faulted;
+        state.Completion.Set();
+    }
+
     private void Return(TaskState state)
     {
-        // clear references to prevent leaks across tasks
         state.Lambda = null!;
         state.Args.Clear();
         state.Result = Value.Default;
-        state.Status = TaskStatus.Running; // ready for next spawn
+        state.Status = TaskStatus.Running;
         state.Exception = null;
+        state.Completed = 0;
         state.Completion.Reset();
 
         _stateBag.Add(state);
@@ -92,24 +142,29 @@ public sealed class TaskManager
     /// </summary>
     public Value Await(long id, Token token)
     {
-        if (!_tasks.TryRemove(id, out var state))
+        if (!_tasks.TryGetValue(id, out var state))
         {
-            throw new InvalidOperationError(token, $"Task {id} not found or already completed.");
+            throw new InvalidOperationError(token, $"Task {id} not found.");
         }
 
-        // Block only this fiber/thread
         state.Completion.Wait();
 
-        if (state.Exception != null)
-        {
-            // WIP: log crash for diagnostics, then rethrow
-            ErrorHandler.DumpCrashLog(state.Exception);
-            throw state.Exception;
-        }
+        _tasks.TryRemove(id, out _);
 
-        var result = state.Result;
-        Return(state); // return to pool
-        return result;
+        try
+        {
+            if (state.Exception != null)
+            {
+                ErrorHandler.DumpCrashLog(state.Exception);
+                throw state.Exception;
+            }
+
+            return state.Result;
+        }
+        finally
+        {
+            Return(state);
+        }
     }
 
     /// <summary>
@@ -143,4 +198,23 @@ public sealed class TaskManager
     }
 
     public Value Busy() => Value.CreateBoolean(!_tasks.IsEmpty);
+}
+
+public enum TaskStatus
+{
+    Running,
+    Completed,
+    Faulted
+}
+
+internal sealed class TaskState
+{
+    public long Id;
+    public LambdaRef Lambda = null!;
+    public List<Value> Args = [];
+    public Value Result = Value.Default;
+    public TaskStatus Status;
+    public ManualResetEventSlim Completion = new(false);
+    public Exception? Exception;
+    public int Completed; // 0 = no, 1 = yes
 }

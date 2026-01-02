@@ -14,11 +14,11 @@ public class CaseWhenNode : ASTNode
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Condition:");
+        Print("Condition:");
         Condition?.Print(2 + depth);
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Statements:");
+        Print("Statements:");
         foreach (var stmt in Body)
         {
             stmt?.Print(2 + depth);

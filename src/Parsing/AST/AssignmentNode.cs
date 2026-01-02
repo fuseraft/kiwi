@@ -11,9 +11,9 @@ public class AssignmentNode(ASTNode? left, string name, TokenName op, ASTNode? i
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine($"Assignment: `{ASTTracer.Unmangle(Name)}`");
+        Print($"Assignment: `{ASTTracer.Unmangle(Name)}`");
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Initializer:");
+        Print("Initializer:");
         Initializer?.Print(2 + depth);
     }
 

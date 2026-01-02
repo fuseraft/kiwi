@@ -14,7 +14,7 @@ public class IfNode : ASTNode
         PrintASTNodeType();
         Condition?.Print(1 + depth);
         ASTTracer.PrintDepth(depth);
-        Console.WriteLine("Statements:");
+        Print("Statements:");
         foreach (var stmt in Body)
         {
             stmt?.Print(1 + depth);
@@ -25,7 +25,7 @@ public class IfNode : ASTNode
             foreach (var elsif in ElsifNodes)
             {
                 ASTTracer.PrintDepth(depth);
-                Console.WriteLine("Else-If:");
+                Print("Else-If:");
                 elsif?.Print(1 + depth);
             }
         }
@@ -33,7 +33,7 @@ public class IfNode : ASTNode
         if (ElseBody.Count > 0)
         {
             ASTTracer.PrintDepth(depth);
-            Console.WriteLine("Else:");
+            Print("Else:");
             foreach (var stmt in ElseBody)
             {
                 stmt?.Print(1 + depth);

@@ -15,18 +15,18 @@ public class RepeatLoopNode : ASTNode
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Count:");
+        Print("Count:");
         Count?.Print(2 + depth);
 
         if (Alias != null)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("Alias:");
+            Print("Alias:");
             Alias?.Print(2 + depth);
         }
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Statements:");
+        Print("Statements:");
         foreach (var stmt in Body)
         {
             stmt?.Print(2 + depth);

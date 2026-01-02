@@ -13,28 +13,28 @@ public class SliceNode(ASTNode? slicedObject = null, ASTNode? startExpression = 
 
         if (SlicedObject != null)
         {
-            Console.WriteLine("Slice on object:");
+            Print("Slice on object:");
             SlicedObject.Print(1 + depth);
         }
 
         if (StartExpression != null)
         {
             ASTTracer.PrintDepth(depth);
-            Console.WriteLine("Slice start:");
+            Print("Slice start:");
             StartExpression.Print(1 + depth);
         }
 
         if (StopExpression != null)
         {
             ASTTracer.PrintDepth(depth);
-            Console.WriteLine("Slice stop:");
+            Print("Slice stop:");
             StopExpression.Print(1 + depth);
         }
 
         if (StepExpression != null)
         {
             ASTTracer.PrintDepth(depth);
-            Console.WriteLine("Slice step:");
+            Print("Slice step:");
             StepExpression.Print(1 + depth);
         }
     }

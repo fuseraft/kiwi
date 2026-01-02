@@ -23,29 +23,29 @@ public class StructNode : ASTNode
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine($"Name: {Name}");
+        Print($"Name: {Name}");
 
         if (!string.IsNullOrEmpty(BaseStruct))
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine($"Base: {BaseStruct}");
+            Print($"Base: {BaseStruct}");
         }
 
         if (Interfaces.Count > 0)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("Interfaces:");
+            Print("Interfaces:");
             foreach (var iface in Interfaces)
             {
                 ASTTracer.PrintDepth(2 + depth);
-                Console.WriteLine(iface);
+                Print(iface);
             }
         }
 
         if (Methods.Count > 0)
         {
             ASTTracer.PrintDepth(1 + depth);
-            Console.WriteLine("Methods:");
+            Print("Methods:");
             foreach (var method in Methods)
             {
                 method?.Print(2 + depth);

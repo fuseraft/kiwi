@@ -21,7 +21,7 @@ public class IndexAssignmentNode : ASTNode
         PrintASTNodeType();
         Object?.Print(1 + depth);
         ASTTracer.PrintDepth(1 + depth);
-        Console.WriteLine("Initializer:");
+        Print("Initializer:");
         Initializer?.Print(2 + depth);
     }
 

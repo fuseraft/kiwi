@@ -93,6 +93,8 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static Value CreateStruct(StructRef value) => new(value, ValueType.Struct);
     public static Value CreateStruct(object value) => new(value, ValueType.Struct);
     public static Value CreatePointer(IntPtr value) => new(value, ValueType.Pointer);
+    public static Value CreateBytes(byte[] value) => new(value, ValueType.Bytes);
+    public static Value CreateBytes(object value) => new(value, ValueType.Bytes);
 
     public double GetNumber()
     {
@@ -119,6 +121,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public LambdaRef GetLambda() => (LambdaRef)Value_;
     public StructRef GetStruct() => (StructRef)Value_;
     public IntPtr GetPointer() => (IntPtr)(Value_ ?? IntPtr.Zero);
+    public byte[] GetBytes() => (byte[])(Value_ ?? ""u8.ToArray());
     public NullRef GetNull()
     {
         Value_ ??= new NullRef();
@@ -138,6 +141,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public bool IsNull() => Type == ValueType.None;
     public bool IsStruct() => Type == ValueType.Struct;
     public bool IsPointer() => Type == ValueType.Pointer;
+    public bool IsBytes() => Type == ValueType.Bytes;
 
     public static List<Value> Clone(List<Value> list)
     {
@@ -179,6 +183,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             ValueType.None => CreateNull(),
             ValueType.Struct => CreateStruct(GetStruct()),
             ValueType.Pointer => CreatePointer(GetPointer()),
+            ValueType.Bytes => CreateBytes(GetBytes()),
             _ => throw new Exception("Unsupported type for cloning"),
         };
     }
@@ -199,12 +204,6 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     {
         Value_ = value.Value_;
         Type = value.Type;
-    }
-
-    public void SetValue(long value)
-    {
-        Value_ = value;
-        Type = ValueType.Integer;
     }
 
     public void SetValue(int value)
@@ -231,46 +230,10 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
         Type = ValueType.String;
     }
 
-    public void SetValue(DateTime value)
+    public void SetValue(byte[] value)
     {
         Value_ = value;
-        Type = ValueType.String;
-    }
-
-    public void SetValue(List<Value> value)
-    {
-        Value_ = value;
-        Type = ValueType.List;
-    }
-
-    public void SetValue(Dictionary<Value, Value> value)
-    {
-        Value_ = value;
-        Type = ValueType.Hashmap;
-    }
-
-    public void SetValue(InstanceRef value)
-    {
-        Value_ = value;
-        Type = ValueType.Object;
-    }
-
-    public void SetValue(LambdaRef value)
-    {
-        Value_ = value;
-        Type = ValueType.Lambda;
-    }
-
-    public void SetValue(StructRef value)
-    {
-        Value_ = value;
-        Type = ValueType.Struct;
-    }
-
-    public void SetValue(NullRef value)
-    {
-        Value_ = value;
-        Type = ValueType.None;
+        Type = ValueType.Bytes;
     }
 
     public override bool Equals(object? obj)
@@ -322,6 +285,9 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
 
             case ValueType.Date:
                 return GetDate().Equals(other.GetDate());
+
+            case ValueType.Bytes:
+                return GetBytes().SequenceEqual(other.GetBytes());
 
             case ValueType.List:
                 {
@@ -465,6 +431,11 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
                     hash = hash * 31 + d.GetHashCode();
                     break;
                 }
+            case ValueType.Bytes:
+                {
+                    hash = hash * 31 + GetBytes().GetHashCode();
+                    break;
+                }
             case ValueType.List:
             case ValueType.Hashmap:
             case ValueType.Object:
@@ -496,6 +467,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             case ValueType.Boolean:
             case ValueType.String:
             case ValueType.Date:
+            case ValueType.Bytes:
                 return GetHashCode();
 
             case ValueType.List:
@@ -586,6 +558,12 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
                 {
                     var d = GetDate();
                     hash = hash * 31 + d.GetHashCode();
+                    break;
+                }
+            case ValueType.Bytes:
+                {
+                    var b = GetBytes();
+                    hash = hash * 31 + b.GetHashCode();
                     break;
                 }
             case ValueType.List:
@@ -687,6 +665,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             ValueType.Integer => GetInteger().CompareTo(other.GetInteger()),
             ValueType.Float => GetFloat().CompareTo(other.GetFloat()),// Use GetNumber() or directly compare doubles
             ValueType.Boolean => GetBoolean().CompareTo(other.GetBoolean()),// False < True
+            ValueType.Bytes => CompareBytes(GetBytes(), other.GetBytes()), // This should work for now.
             ValueType.String => string.Compare(GetString(), other.GetString(), StringComparison.Ordinal),// Lexical (ordinal) comparison for strings
             ValueType.Date => GetDate().CompareTo(other.GetDate()),// Chronological comparison
             ValueType.List => CompareLists(GetList(), other.GetList()),// Lexicographical comparison of list items
@@ -698,10 +677,39 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
         };
     }
 
+    public static int CompareBytes(byte[] b1, byte[] b2)
+    {
+        // Same reference, definitely equal
+        if (ReferenceEquals(b1, b2))
+        {
+            return 0;
+        }
+
+        // Different lengths, definitely not equal
+        int countCompare = b1.Length.CompareTo(b2.Length);
+        if (countCompare != 0)
+        {
+            return countCompare;
+        }
+
+        // They are the same length, so compare each byte.
+        for (int i = 0; i < b1.Length; i++)
+        {
+            int result = b1[i].CompareTo(b2[i]);
+            if (result != 0)
+            {
+                return result;
+            }
+        }
+
+        // If we get here, they are equal.
+        return 0;
+    }
+
     /// <summary>
-    /// Example method for comparing two lists of Value lexicographically.
+    /// Method for comparing two lists of Value lexicographically.
     /// </summary>
-    private int CompareLists(List<Value> xlist, List<Value> ylist)
+    public static int CompareLists(List<Value> xlist, List<Value> ylist)
     {
         int minCount = Math.Min(xlist.Count, ylist.Count);
         for (int i = 0; i < minCount; i++)
@@ -718,12 +726,12 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     }
 
     /// <summary>
-    /// Example method for comparing two hashmaps.
+    /// Method for comparing two hashmaps.
     /// This is a simple approach that compares Count first,
     /// and then tries a structural approach based on sorted keys.
     /// You may wish to refine this further depending on your needs.
     /// </summary>
-    private int CompareHashmaps(Dictionary<Value, Value> xmap, Dictionary<Value, Value> ymap)
+    public static int CompareHashmaps(Dictionary<Value, Value> xmap, Dictionary<Value, Value> ymap)
     {
         // Compare counts first
         int countCompare = xmap.Count.CompareTo(ymap.Count);
@@ -765,9 +773,9 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     }
 
     /// <summary>
-    /// Example method for comparing two objects by struct name, identifier, and instance variables.
+    /// Method for comparing two objects by struct name, identifier, and instance variables.
     /// </summary>
-    private int CompareObjects(InstanceRef xobj, InstanceRef yobj)
+    public static int CompareObjects(InstanceRef xobj, InstanceRef yobj)
     {
         // Compare struct names
         int structNameCompare = string.Compare(xobj.StructName, yobj.StructName, StringComparison.Ordinal);
@@ -831,6 +839,7 @@ public enum ValueType
     Struct = 9,
     Pointer = 10,
     Date = 11,
+    Bytes = 12,
     Unset = 20,
     Number = 21
 };
