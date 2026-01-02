@@ -1,0 +1,28 @@
+#!/usr/bin/env kiwi
+
+graph = {
+  "A": ["B", "C"],
+  "B": ["D", "E"],
+  "C": ["F"],
+  "D": [],
+  "E": ["F"],
+  "F": []
+}
+
+visited = {}
+
+fn dfs(node)
+  if visited[node]
+    return
+  end
+
+  visited[node] = true
+  println "visit ${node}"
+
+  neighbors = graph[node] ?? []
+  for n in neighbors do
+    dfs(n)
+  end
+end
+
+dfs("A")

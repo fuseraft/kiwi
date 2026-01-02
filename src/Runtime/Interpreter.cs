@@ -793,7 +793,7 @@ public class Interpreter
 
             if (!hash.TryGetValue(memberKey, out Value? memberValue))
             {
-                throw new HashKeyError(node.Token, memberName);
+                return Value.CreateNull();
             }
 
             return memberValue;
@@ -1956,7 +1956,7 @@ public class Interpreter
 
                 if (!hash.TryGetValue(indexValue, out Value? value))
                 {
-                    throw new HashKeyError(node.Token, Serializer.Serialize(indexValue));
+                    return Value.CreateNull();
                 }
 
                 return value;
@@ -2125,10 +2125,10 @@ public class Interpreter
             var keyString = Value.CreateString(key);
             var hashObj = baseObj.GetHashmap();
 
-            if (!hashObj.TryGetValue(keyString, out Value? nestedValue))
-            {
-                throw new HashKeyError(indexExpr.Token, key);
-            }
+            // if (!hashObj.TryGetValue(keyString, out Value? nestedValue))
+            // {
+            //     throw new HashKeyError(indexExpr.Token, key);
+            // }
 
             if (op == TokenName.Ops_Assign)
             {

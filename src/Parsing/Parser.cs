@@ -747,7 +747,7 @@ public partial class Parser
 
         if (!MatchName(TokenName.KW_Do))
         {
-            throw new SyntaxError(GetErrorToken(), "Expected 'do' in for-loop.");
+            throw new SyntaxError(GetErrorToken(), "Expected 'do' in while-loop.");
         }
 
         List<ASTNode?> body = [];
@@ -788,7 +788,7 @@ public partial class Parser
 
         if (!MatchName(TokenName.KW_Do))
         {
-            throw new SyntaxError(GetErrorToken(), "Expected 'do' in for-loop.");
+            throw new SyntaxError(GetErrorToken(), "Expected 'do' in repeat-loop.");
         }
 
         List<ASTNode?> body = [];
