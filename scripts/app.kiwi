@@ -1,7 +1,7 @@
 #!/usr/bin/env kiwi
 
 fn main()
-  server_sock = __socket_tcpserver__("127.0.0.1", 8080)
+  server_sock = socket::tcpserver("127.0.0.1", 8080)
   main_task = task::spawn(accept_loop, [server_sock, req_handler])
 end
 
@@ -10,7 +10,7 @@ listens for new requests
 #/
 accept_loop = with (server: integer, handler: lambda) do
   while true do
-    pending_accept = __socket_accept__(server)
+    pending_accept = socket::accept(server)
     client_sock = task::await(pending_accept)  
     handler_task = task::spawn(handler, [client_sock])
   end
@@ -22,7 +22,7 @@ handles requests
 req_handler = with (client: integer) do
   buffer = [].to_bytes()
 
-  recv_task = __socket_recv__(client, 8192)
+  recv_task = socket::recv(client, 8192)
   data = task::await(recv_task)
 
   if data.size() > 0
@@ -46,12 +46,12 @@ req_handler = with (client: integer) do
                           " +
                         '</body>
                         </html>'))
-      send = __socket_send__(client, resp)
+      send = socket::send(client, resp)
       send_res = task::await(send)
     end
   end
   
-  __socket_close__(client)
+  socket::close(client)
 end
 
 main()
