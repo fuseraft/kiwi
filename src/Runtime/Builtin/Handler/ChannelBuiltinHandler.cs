@@ -9,11 +9,11 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public static class ChannelBuiltinHandler
 {
-    public static Value Execute(TaskManager mgr, Token token, TokenName builtin, List<Value> args)
+    public static Value Execute(Token token, TokenName builtin, List<Value> args)
     {
         return builtin switch
         {
-            TokenName.Builtin_Channel_Create  => Create(mgr, token, args),
+            TokenName.Builtin_Channel_Create  => Create(token, args),
             TokenName.Builtin_Channel_Send    => Send(token, args),
             TokenName.Builtin_Channel_Recv    => Recv(token, args),
             TokenName.Builtin_Channel_TryRecv => TryRecv(token, args),
@@ -22,7 +22,7 @@ public static class ChannelBuiltinHandler
         };
     }
 
-    private static Value Create(TaskManager mgr, Token token, List<Value> args)
+    private static Value Create(Token token, List<Value> args)
     {
         if (args.Count > 1)
         {
@@ -30,7 +30,7 @@ public static class ChannelBuiltinHandler
         }
 
         int cap = args.Count > 0 ? (int)ConversionOp.GetInteger(token, args[0]) : 0;
-        var chan = mgr.CreateChannel(cap);
+        var chan = TaskManager.Instance.CreateChannel(cap);
 
         // WIP: returning as a managed reference
         var handle = GCHandle.Alloc(chan);

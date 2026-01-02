@@ -23,6 +23,11 @@ public sealed class SocketManager
 
     private SocketManager() { }
 
+    private static List<PendingOp> SnapshotOps(SocketState state, OpType type)
+    {
+        return state.PendingOps.Where(p => p.Type == type).ToList();
+    }
+
     public void Start()
     {
         if (_running) return;
@@ -278,10 +283,15 @@ public sealed class SocketManager
 
     private void HandleAccept(SocketState state)
     {
-        // Collect pending accepts once (safe snapshot)
-        var pendingAccepts = new List<PendingOp>(state.PendingOps.Where(p => p.Type == OpType.Accept));
+        List<PendingOp> pendingAccepts;
 
-        if (pendingAccepts.Count == 0) return;
+        lock (_lock)
+        {
+            pendingAccepts = SnapshotOps(state, OpType.Accept);
+        }
+
+        if (pendingAccepts.Count == 0)
+            return;
 
         int completedCount = 0;
 
@@ -293,7 +303,12 @@ public sealed class SocketManager
                 client.Blocking = false;
 
                 long clientId = Interlocked.Increment(ref _nextId);
-                var clientState = new SocketState { Id = clientId, Socket = client, Role = SocketRole.Client };
+                var clientState = new SocketState
+                {
+                    Id = clientId,
+                    Socket = client,
+                    Role = SocketRole.Client
+                };
 
                 lock (_lock)
                 {
@@ -302,20 +317,17 @@ public sealed class SocketManager
                 }
 
                 // Complete the next pending accept task
-                var op = pendingAccepts[completedCount];
-                TaskManager.Instance.Complete(op.TaskId, Value.CreateInteger(clientId));
+                TaskManager.Instance.Complete(pendingAccepts[completedCount].TaskId, Value.CreateInteger(clientId));
 
                 completedCount++;
             }
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.WouldBlock)
             {
-                Console.Error.WriteLine($"HandleAccept: {ex.Message}");
                 // No more connections ready right now
                 break;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"HandleAccept: {ex.Message}");
                 // Fault remaining accepts
                 for (int i = completedCount; i < pendingAccepts.Count; i++)
                 {
@@ -326,46 +338,70 @@ public sealed class SocketManager
         }
 
         // Remove only the completed ones
-        lock (_lock)
+        if (completedCount > 0)
         {
-            for (int i = 0; i < completedCount; i++)
+            lock (_lock)
             {
-                state.PendingOps.Remove(pendingAccepts[i]);
+                state.PendingOps.RemoveAll(op => pendingAccepts.Take(completedCount).Contains(op));
             }
         }
     }
 
     private void HandleRecv(SocketState state)
     {
-        var recvs = state.PendingOps.Where(p => p.Type == OpType.Recv).ToList();
+        List<PendingOp> recvs;
+
+        lock (_lock)
+        {
+            recvs = SnapshotOps(state, OpType.Recv);
+        }
+
         foreach (var op in recvs)
         {
             try
             {
                 byte[] buffer = new byte[op.MaxBytes];
                 int read = state.Socket.Receive(buffer);
-                byte[] data = read > 0 ? buffer.AsSpan(0, read).ToArray() : Array.Empty<byte>();
 
-                TaskManager.Instance.Complete(op.TaskId, Value.CreateBytes(data));
+                if (read == 0)
+                {
+                    TaskManager.Instance.CompleteWithFault(
+                        op.TaskId,
+                        new SocketException((int)SocketError.ConnectionReset)
+                    );
+                }
+                else
+                {
+                    var data = buffer.AsSpan(0, read).ToArray();
+                    TaskManager.Instance.Complete(op.TaskId, Value.CreateBytes(data));
+                }
             }
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.WouldBlock)
             {
-                Console.Error.WriteLine($"HandleRecv: {ex.Message}");
-                return; // Keep pending
+                // Keep pending
+                return;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"HandleRecv: {ex.Message}");
                 TaskManager.Instance.CompleteWithFault(op.TaskId, ex);
             }
 
-            state.PendingOps.Remove(op);
+            lock (_lock)
+            {
+                state.PendingOps.Remove(op);
+            }
         }
     }
 
     private void HandleSend(SocketState state)
     {
-        var sends = state.PendingOps.Where(p => p.Type == OpType.Send).ToList();
+        List<PendingOp> sends;
+
+        lock (_lock)
+        {
+            sends = SnapshotOps(state, OpType.Send);
+        }
+
         foreach (var op in sends)
         {
             try
@@ -375,48 +411,92 @@ public sealed class SocketManager
                     continue;
                 }
 
-                int sent = state.Socket.Send(op.Data);
-                if (sent == op.Data.Length)
-                {
-                    TaskManager.Instance.Complete(op.TaskId, Value.Default);
-                }
-                else
-                {
+                int sent = state.Socket.Send(
+                    op.Data,
+                    op.Offset,
+                    op.Data.Length - op.Offset,
+                    SocketFlags.None
+                );
+
+                op.Offset += sent;
+
+                if (op.Offset < op.Data.Length)
+                {   
+                    // wait for next writable
                     return;
                 }
+
+                TaskManager.Instance.Complete(op.TaskId, Value.Default);
             }
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.WouldBlock)
             {
-                Console.Error.WriteLine($"HandleSend: {ex.Message}");
                 return;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"HandleSend: {ex.Message}");
                 TaskManager.Instance.CompleteWithFault(op.TaskId, ex);
             }
 
-            state.PendingOps.Remove(op);
+            lock (_lock)
+            {
+                state.PendingOps.Remove(op);
+            }
         }
     }
 
     private void HandleConnectComplete(SocketState state)
     {
-        if (state.ConnectTaskId.HasValue)
+        if (!state.ConnectTaskId.HasValue)
         {
-            TaskManager.Instance.Complete(state.ConnectTaskId.Value, Value.CreateInteger(state.Id));
+            return;
+        }
+
+        try
+        {
+            int error = (int)state.Socket.GetSocketOption(
+                SocketOptionLevel.Socket,
+                SocketOptionName.Error
+            );
+
+            if (error != 0)
+            {
+                throw new SocketException(error);
+            }
+
+            TaskManager.Instance.Complete(
+                state.ConnectTaskId.Value,
+                Value.CreateInteger(state.Id)
+            );
+        }
+        catch (Exception ex)
+        {
+            TaskManager.Instance.CompleteWithFault(state.ConnectTaskId.Value, ex);
+        }
+        finally
+        {
             state.ConnectTaskId = null;
-            state.PendingOps.RemoveAll(p => p.Type == OpType.Connect);
+
+            lock (_lock)
+            {
+                state.PendingOps.RemoveAll(p => p.Type == OpType.Connect);
+            }
         }
     }
-
+    
     private void FaultAllPendingOps(SocketState state, Exception ex)
     {
-        foreach (var op in state.PendingOps)
+        List<PendingOp> ops;
+
+        lock (_lock)
+        {
+            ops = state.PendingOps.ToList();
+            state.PendingOps.Clear();
+        }
+
+        foreach (var op in ops)
         {
             TaskManager.Instance.CompleteWithFault(op.TaskId, ex);
         }
-        state.PendingOps.Clear();
     }
 }
 
@@ -435,6 +515,7 @@ public class PendingOp
     public long TaskId;
     public int MaxBytes;
     public byte[]? Data;
+    public int Offset;
 }
 
 public enum OpType { Accept, Recv, Send, Connect }

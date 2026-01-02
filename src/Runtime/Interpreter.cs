@@ -30,10 +30,6 @@ public class Interpreter
     private Stack<string> StructStack { get; set; } = [];
     private Stack<string> FuncStack { get; set; } = [];
     public long CurrentTaskId { get; set; } = 0; // 0 = main thread
-
-    // New property for access from builtins
-    public TaskManager TaskMgr => TaskManager.Instance;
-
     public void SetContext(KContext context) => Context = context;
 
     public Value Interpret(ASTNode? node)
@@ -2460,11 +2456,11 @@ public class Interpreter
         }
         else if (TaskBuiltin.IsBuiltin(op))
         {
-            return TaskBuiltinHandler.Execute(TaskMgr, node.Token, op, args, Context);
+            return TaskBuiltinHandler.Execute(node.Token, op, args, Context);
         }
         else if (ChannelBuiltin.IsBuiltin(op))
         {
-            return ChannelBuiltinHandler.Execute(TaskMgr, node.Token, op, args);
+            return ChannelBuiltinHandler.Execute(node.Token, op, args);
         }
         else if (SocketBuiltin.IsBuiltin(op))
         {

@@ -141,14 +141,14 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
 
     private void AwaitTasksAndShutdown()
     {
-        if (Interpreter.Current?.TaskMgr.Busy().GetBoolean() == true)
+        if (TaskManager.Instance.Busy().GetBoolean() == true)
         {
-            while (Interpreter.Current.TaskMgr.Busy().GetBoolean())
+            while (TaskManager.Instance.Busy().GetBoolean())
             {
                 var activeCount = 0;
-                foreach (var task in Interpreter.Current.TaskMgr.List())
+                foreach (var task in TaskManager.Instance.List())
                 {
-                    var status = Interpreter.Current.TaskMgr.Status(task.GetInteger()).GetString();
+                    var status = TaskManager.Instance.Status(task.GetInteger()).GetString();
                     if (!(status is "Faulted" or "Completed"))
                     {
                         activeCount++;
@@ -160,7 +160,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
                     break;
                 }
 
-                Interpreter.Current.TaskMgr.Sleep(10);
+                TaskManager.Instance.Sleep(10);
             }
         }
 
