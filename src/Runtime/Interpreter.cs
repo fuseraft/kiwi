@@ -986,7 +986,7 @@ public class Interpreter
 
             if (frame.IsFlagSet(FrameFlags.Return))
             {
-                break;
+                return frame.ReturnValue ?? result;
             }
         }
 
@@ -1198,7 +1198,7 @@ public class Interpreter
                 result = Interpret(stmt);
                 if (frame.IsFlagSet(FrameFlags.Return))
                 {
-                    break;
+                    return frame.ReturnValue ?? result;
                 }
             }
         }
@@ -1219,7 +1219,7 @@ public class Interpreter
                 result = Interpret(stmt);
                 if (frame.IsFlagSet(FrameFlags.Return))
                 {
-                    break;
+                    return frame.ReturnValue ?? result;
                 }
             }
         }
@@ -1242,7 +1242,7 @@ public class Interpreter
                         result = Interpret(stmt);
                         if (frame.IsFlagSet(FrameFlags.Return))
                         {
-                            break;
+                            return frame.ReturnValue ?? result;
                         }
                     }
                     executed = true;
@@ -1257,7 +1257,7 @@ public class Interpreter
                     result = Interpret(stmt);
                     if (frame.IsFlagSet(FrameFlags.Return))
                     {
-                        break;
+                        return frame.ReturnValue ?? result;
                     }
                 }
             }
@@ -1433,7 +1433,7 @@ public class Interpreter
 
         frame.ClearFlag(FrameFlags.InLoop);
 
-        return result;
+        return frame.ReturnValue ?? result;
     }
 
     private Value Visit(RepeatLoopNode node)
@@ -1471,7 +1471,7 @@ public class Interpreter
                 result = ExecuteLoopBody(node.Body, frame);
                 if (frame.IsFlagSet(FrameFlags.Return))
                 {
-                    break;
+                    return frame.ReturnValue ?? result;
                 }
             }
         }
@@ -1518,8 +1518,12 @@ public class Interpreter
                 result = Interpret(stmt);
             }
 
-            if (frame.IsFlagSet(FrameFlags.Return) ||
-                frame.IsFlagSet(FrameFlags.Break) ||
+            if (frame.IsFlagSet(FrameFlags.Return))
+            {
+                return frame.ReturnValue ?? result;
+            }
+
+            if (frame.IsFlagSet(FrameFlags.Break) ||
                 frame.IsFlagSet(FrameFlags.Next))
             {
                 break;
@@ -3135,7 +3139,7 @@ public class Interpreter
 
                     if (frame.IsFlagSet(FrameFlags.Return))
                     {
-                        break;
+                        return frame.ReturnValue ?? result;
                     }
 
                     if (statement == ASTNodeType.Next)
@@ -3248,7 +3252,7 @@ public class Interpreter
 
                     if (frame.IsFlagSet(FrameFlags.Return))
                     {
-                        break;
+                        return frame.ReturnValue ?? result;
                     }
 
                     if (statement == ASTNodeType.Next)
@@ -3358,7 +3362,7 @@ public class Interpreter
 
                     if (frame.IsFlagSet(FrameFlags.Return))
                     {
-                        break;
+                        return frame.ReturnValue ?? result;
                     }
 
                     if (stmt.Type == ASTNodeType.Next)
