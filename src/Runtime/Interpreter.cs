@@ -1571,7 +1571,8 @@ public class Interpreter
 
         try
         {
-            var tryFrame = PushFrame(tryName, new Scope(CallStack.Peek().Scope));
+            var scope = new Scope(CallStack.Peek().Scope);
+            var tryFrame = PushFrame(tryName, scope);
             tryFrame.SetFlag(FrameFlags.InTry);
 
             result = ExecuteBody(node.TryBody, tryFrame);
@@ -2493,7 +2494,8 @@ public class Interpreter
         var typeHints = func.TypeHints;
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
-        var functionFrame = PushFrame(functionName, CallStack.Peek().Scope);
+        var functionScope = new Scope(CallStack.Peek().Scope);
+        var functionFrame = PushFrame(functionName, functionScope);
         var result = Value.Default;
 
         PrepareFunctionCall(func, node, defaultParameters, typeHints, functionFrame);

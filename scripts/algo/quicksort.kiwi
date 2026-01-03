@@ -1,0 +1,63 @@
+#!/usr/bin/env kiwi
+
+fn main()
+  random_list = []
+  for i in [1 to 100] do
+    random_list.append(math::random(1, 1000))
+  end
+
+  println "Input:\n${random_list}"
+
+  quicksort(random_list)
+
+  is_sorted = true
+
+  for i in [1 to random_list.size() - 1] do
+    if random_list[i-1] > random_list[i]
+      is_sorted = false
+      break
+    end
+  end
+
+  println "Output:\n${random_list}"
+  println "Sorted correctly? ${is_sorted}"
+end
+
+fn partition(arr: list, low: integer, high: integer)
+  # Lomuto partition scheme
+  pivot = arr[high]
+  i = low - 1
+
+  for j in [low to high-1] do
+    if arr[j] <= pivot
+      i += 1
+      # swap arr[i] and arr[j]
+      temp = arr[i]
+      arr[i] = arr[j]
+      arr[j] = temp
+    end
+  end
+
+  # swap arr[i+1] and arr[high] (pivot)
+  temp = arr[i+1]
+  arr[i+1] = arr[high]
+  arr[high] = temp
+
+  return i + 1
+end
+
+fn quicksort_helper(arr: list, low: integer, high: integer)
+  if low < high
+    pi = partition(arr, low, high)
+
+    quicksort_helper(arr, low, pi - 1)
+    quicksort_helper(arr, pi + 1, high)
+  end
+end
+
+fn quicksort(arr: list)
+  quicksort_helper(arr, 0, arr.size() - 1)
+  return arr
+end
+
+main()
