@@ -1,4 +1,19 @@
-fn fibonacci(n)
+#!/usr/bin/env kiwi
+
+fn main()
+  println "recursive fibonacci: " + [0 to 30].map(with (n) do rfib(n) end)
+  println "iterative fibonacci: " + ifib(100000)
+end
+
+fn rfib(n: integer): integer
+  if n <= 1
+    return n
+  end
+  
+  rfib(n - 1) + rfib(n - 2)
+end
+
+fn ifib(n)
   fib = [], t1 = 0, t2 = 1, nextTerm = 0
   nextTerm = t1 + t2
 
@@ -9,7 +24,7 @@ fn fibonacci(n)
     nextTerm = t1 + t2
   end
 
-  return fib
+  fib
 end
 
-println(fibonacci(100000))
+main()

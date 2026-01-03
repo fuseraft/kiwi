@@ -1,0 +1,13 @@
+#!/usr/bin/env kiwi
+
+fn hanoi(n: integer, from: string, _to: string, aux: string)
+  if n <= 0
+    return
+  end
+
+  hanoi(n - 1, from, aux, _to)
+  println "Move disk ${n} from ${from} to ${_to}"
+  hanoi(n - 1, aux, _to, from)
+end
+
+hanoi(3, 'A', 'C', 'B')

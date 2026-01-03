@@ -21,7 +21,7 @@
     "safemode": true,
     "debug": {
       "cli_args": [
-        "~/github/kiwi/scripts/app",
+        "~/github/kiwi/hello",
         "20",
         "--stdlib-path",
         "~/github/kiwi/lib"
