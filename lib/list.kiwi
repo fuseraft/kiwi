@@ -1,4 +1,4 @@
-package lists
+package list
   # returns true if every element satisfies predicate
   fn all(_list: list, _predicate: lambda): boolean
     var (_all_satisfied: boolean = true)
@@ -93,7 +93,7 @@ package lists
 
   # returns true if no element satisfies predicate
   fn _none(_list: list, _predicate: lambda): boolean
-    not lists::_any(_list, _predicate)
+    not list::_any(_list, _predicate)
   end
   
   # returns true if exactly one element matches
@@ -179,4 +179,4 @@ package lists
   #/
 end
 
-export "lists"
+export "list"
