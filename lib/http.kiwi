@@ -22,7 +22,7 @@ package http
     version = request_line[2]
 
     # Find header/body split
-    header_end = lists::find(lines, with (l) do l.empty() end)
+    header_end = list::find(lines, with (l) do l.empty() end)
     header_end = header_end < 0 ? lines.size() : header_end
 
     headers = {}
