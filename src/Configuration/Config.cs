@@ -72,18 +72,25 @@ public class Config
 
                 case "-p":
                 case "--stdlib-path":
-                    if (!iter.MoveNext())
+                    if (!config.HasScripts)
                     {
-                        throw new CliError($"Expected a path after `{current}`.");
-                    }
+                        if (!iter.MoveNext())
+                        {
+                            throw new CliError($"Expected a path after `{current}`.");
+                        }
 
-                    Kiwi.Settings.StandardLibrary = [new StandardLibraryPath
+                        Kiwi.Settings.StandardLibrary = [new StandardLibraryPath
+                        {
+                            AutoLoad = true,
+                            IncludeSubdirectories = true,
+                            IsOverride = true,
+                            Path = iter.Current
+                        }];
+                    }
+                    else
                     {
-                        AutoLoad = true,
-                        IncludeSubdirectories = true,
-                        IsOverride = true,
-                        Path = iter.Current
-                    }];
+                        config.Args.Add(current);
+                    }
                     break;
 
                 case "-t":
