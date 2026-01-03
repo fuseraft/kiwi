@@ -1,4 +1,8 @@
 package list
+  fn iterator(_list: list)
+    ListIterator.new(_list)
+  end
+
   # returns true if every element satisfies predicate
   fn all(_list: list, _predicate: lambda): boolean
     var (_all_satisfied: boolean = true)
