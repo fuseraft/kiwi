@@ -308,7 +308,7 @@ Get the content of a file as a string.
 
 ### `readbytes(_path)`
 
-Get the content of a file as a list of bytes.
+Get the content of a file as bytes.
 
 **Parameters**
 | Type | Name | Description |
@@ -318,7 +318,7 @@ Get the content of a file as a list of bytes.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `list` | Bytes from a file. |
+| `bytes` | Bytes from a file. |
 
 ### `readlines(_path)`
 
@@ -336,7 +336,7 @@ Get the content of a file as a list of strings.
 
 ### `readslice(_path, _offset, _size)`
 
-Get the content of a file as a list of bytes.
+Get the content of a file as bytes at a specified offset.
 
 **Parameters**
 | Type | Name | Description |
@@ -348,7 +348,7 @@ Get the content of a file as a list of bytes.
 **Returns**
 | Type | Description |
 | :--- | :---|
-| `list` | Bytes from a file. |
+| `bytes` | Bytes from a file. |
 
 ### `remove(_path)`
 
@@ -447,21 +447,21 @@ Write a line of text to a file. This always appends to a file.
 
 ### `writebytes(_path, _data)`
 
-Write a list of bytes to a file. This overwrites the file if it exists.
+Write bytes to a file. This overwrites the file if it exists.
 
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `_path` | The file path. |
-| `list` | `_data` | The list of bytes to write. |
+| `bytes` | `_data` | The bytes to write. |
 
 ### `writeslice(_path, _offset, _data)`
 
-Write a list of bytes to a file at a specified offset.
+Write bytes to a file at a specified offset.
 
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `_path` | The file path. |
 | `integer` | `_offset` | The offset to begin writing. |
-| `list` | `_data` | The list of bytes to write. |
+| `bytes` | `_data` | The bytes to write. |

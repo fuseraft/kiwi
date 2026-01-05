@@ -41,6 +41,7 @@
    - [`fio`](fio.md) - Functions for file system operations.
    - [`math`](math.md) - Common mathematical functions and utilities.
    - [`socket`](socket.md) - Low-level asynchronous TCP networking.
+   - [`stdin`](stdin.md) - Functions for reading from standard input.
    - [`string`](string.md) - String manipulation and transformation utilities.
    - [`sys`](sys.md) - For executing shell commands.
    - [`task`](task.md) - Asynchronous task management.

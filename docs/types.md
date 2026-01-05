@@ -4,28 +4,61 @@ Kiwi supports the following builtin types. To build your own type, see [Structs]
 
 | Type | Description | Documentation |
 | :--- | :--- | :--- |
-| [`integer`](#integer) | A 64-bit integer. | See below for an example. |
-| [`float`](#Float) | A floating point number. | See below for an example. |
 | [`boolean`](#boolean) | A `true` or `false` value. | See below for an example. |
-| [`string`](#string) | A sequence of characters. | See [Strings](strings.md). |
+| [`bytes`](#bytes) | A byte array. | See below for an example. |
 | [`date`](#date) | A date-time object. | See [Dates](dates.md). |
-| [`list`](#list) | A list of values. | See [Lists](lists.md). |
+| [`float`](#Float) | A floating point number. | See below for an example. |
 | [`hashmap`](#hashmap) | A dictionary of key-value pairs. | See [Hashmaps](hashmaps.md). |
-| [`object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_structs.md). |
+| [`integer`](#integer) | A 64-bit integer. | See below for an example. |
 | [`lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
+| [`list`](#list) | A list of values. | See [Lists](lists.md). |
 | [`none`](#none) | A null value. | See below for an example. |
+| [`object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_structs.md). |
+| [`pointer`](#pointer) | A pointer to a managed reference. | See example below. |
+| [`string`](#string) | A sequence of characters. | See [Strings](strings.md). |
 
-### `integer`
+---
 
-An 64-bit integer.
+### `boolean`
+
+A `true` or `false` value.
 
 ```kiwi
-# A whole number.
-number = 5
-number += 5
+# A value indicating true or false.
+enabled = true
 
-println(number) # prints: 10
+println(enabled) # prints: true
 ```
+
+---
+
+### `bytes`
+
+A byte array.
+
+```kiwi
+ascii_chars = [33..126].to_bytes()
+
+println ascii_chars.to_string() 
+
+/# prints:
+!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+#/
+```
+
+---
+
+### `date`
+
+Represents a date and time.  See [Dates](dates.md).
+
+```kiwi
+dt = "2023-01-02".to_date()
+
+println(dt) # prints: 1/2/2023 12:00:00 AM
+```
+
+---
 
 ### `float`
 
@@ -39,47 +72,7 @@ tau = pi * 2
 println(tau) # prints: 6.28318
 ```
 
-### `boolean`
-
-A `true` or `false` value.
-
-```kiwi
-# A value indicating true or false.
-enabled = true
-
-println(enabled) # prints: true
-```
-
-### `string`
-
-Represents text data.  See [Strings](strings.md).
-
-```kiwi
-# A string of text.
-hello = "Hello, World!"
-
-println(hello) # prints: Hello, World!
-```
-
-### `date`
-
-Represents a date and time.  See [Dates](dates.md).
-
-```kiwi
-dt = "2023-01-02".to_date()
-
-println(dt) # prints: 1/2/2023 12:00:00 AM
-```
-
-### `list`
-
-A list of values.  See [Lists](lists.md).
-
-```kiwi
-# A list of values.
-list = [1, 2, 3, 4, 5]
-println(list) # prints: [1, 2, 3, 4, 5]
-```
+---
 
 ### `hashmap`
 
@@ -93,19 +86,21 @@ println(hashmap) # prints: {"language": "kiwi"}
 println(hashmap.language) # prints: kiwi
 ```
 
-### `object`
+---
 
-An instance of a `struct`.  See [Structs](structs.md) and [Abstract Structs](abstract_structs.md).
+### `integer`
+
+An 64-bit integer.
 
 ```kiwi
-# Define an empty struct called `MyStruct`
-struct MyStruct end
+# A whole number.
+number = 5
+number += 5
 
-# Create an instance of `MyStruct`
-inst = MyStruct.new()
-println(inst)
-# prints: [Object(struct=MyStruct, identifier=inst)]
+println(number) # prints: 10
 ```
+
+---
 
 ### `lambda`
 
@@ -119,6 +114,20 @@ end
 
 puts("Hello, World!") # prints: Hello, World!
 ```
+
+---
+
+### `list`
+
+A list of values.  See [Lists](lists.md).
+
+```kiwi
+# A list of values.
+list = [1, 2, 3, 4, 5]
+println(list) # prints: [1, 2, 3, 4, 5]
+```
+
+---
 
 ### `none`
 
@@ -164,4 +173,46 @@ end
 if !null
   println "hello world" # prints: hello world
 end
+```
+
+---
+
+### `object`
+
+An instance of a `struct`.  See [Structs](structs.md) and [Abstract Structs](abstract_structs.md).
+
+```kiwi
+# Define an empty struct called `MyStruct`
+struct MyStruct end
+
+# Create an instance of `MyStruct`
+inst = MyStruct.new()
+println(inst)
+# prints: [Object(struct=MyStruct, identifier=inst)]
+```
+---
+
+### `pointer`
+
+A pointer to a managed reference. For internal use only.
+
+```kiwi
+cap = 3
+chan = __chan_create__(cap)
+__chan_send__(chan, "hello")
+println __chan_recv__(chan) # prints hello
+__chan_close__(chan)
+```
+
+---
+
+### `string`
+
+Represents text data.  See [Strings](strings.md).
+
+```kiwi
+# A string of text.
+hello = "Hello, World!"
+
+println(hello) # prints: Hello, World!
 ```
