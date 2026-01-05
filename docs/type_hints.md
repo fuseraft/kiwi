@@ -34,6 +34,8 @@ Kiwi’s type hint system supports the following builtin types:
 - **hashmap**: Represents a key-value map.
 - **object**: Represents an object.
 - **lambda**: Represents a lambda.
+- **bytes**: Represents a byte array.
+- **pointer**: Represents a pointer to a managed reference.
 - **any**: Accepts any type. Useful for parameters or return values where the type is flexible.
 
 ## Function Parameters with Type Hints

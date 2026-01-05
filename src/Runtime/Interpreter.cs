@@ -2,6 +2,7 @@ using kiwi.Runtime.Builtin.Operation;
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
 using kiwi.Typing;
+using kiwi.Tracing;
 using kiwi.Tracing.Error;
 using kiwi.Parsing.Keyword;
 using kiwi.Runtime.Builtin.Handler;
@@ -104,19 +105,119 @@ public class Interpreter
         return result;
     }
 
-    private static bool RequiresSigCheck(ASTNodeType type)
+    public Value FuncToLambda(KFunction func)
     {
-        return type is ASTNodeType.Program
-            or ASTNodeType.Export
-            or ASTNodeType.Try or ASTNodeType.If or ASTNodeType.Case or
-            ASTNodeType.ForLoop or ASTNodeType.WhileLoop or ASTNodeType.RepeatLoop or
-            ASTNodeType.LambdaCall or ASTNodeType.FunctionCall or ASTNodeType.MethodCall;
+        return Visit(func.Decl.ToLambda(), false);
     }
 
-    private static Value PrintNode(ASTNode node)
+    public Value InvokeCallable(Callable callable, List<Value> args, Token token, string displayName, InstanceRef? instance = null)
     {
-        node.Print();
-        return Value.Default;
+        var scope = new Scope(callable.CapturedScope ?? _globalScope);
+        var frame = new StackFrame(displayName, scope);
+
+        BindParameters(callable, args, token, displayName, scope);
+
+        // Set object context for methods
+        if (instance != null)
+        {
+            frame.SetObjectContext(instance);
+        }
+
+        PushFrame(frame, callable is KLambda);
+        if (callable is KLambda)
+        {
+            frame.SetFlag(FrameFlags.InLambda);
+        }
+
+        try
+        {
+            var body = callable switch
+            {
+                KFunction f => f.Decl.Body,
+                KLambda l => l.Decl.Body,
+                _ => throw new NotSupportedException()
+            };
+
+            var result = ExecuteBody(body, frame);
+
+            // Validate return type
+            if (!AssertTypeMatch(token, result, callable.ReturnTypeHint))
+            {
+                throw new TypeError(token,
+                    $"Expected `{TypeRegistry.GetTypeName(callable.ReturnTypeHint)}` " +
+                    $"from `{displayName}` but got `{TypeRegistry.GetTypeName(result)}`.");
+            }
+
+            return result;
+        }
+        finally
+        {
+            PopFrame();
+        }
+    }
+
+    public Value InvokeEvent(Token token, LambdaRef lambda, List<Value> args)
+    {
+        var doPop = false;
+
+        try
+        {
+            var lambdaName = lambda.Identifier;
+            var scope = CallStack.Count > 0 ? new Scope(CallStack.Peek().Scope) : new Scope();
+            var lambdaFrame = PushFrame(lambdaName, scope, true);
+            var result = Value.Default;
+            var targetLambda = lambdaName;
+
+            if (!Context.HasLambda(targetLambda))
+            {
+                if (!Context.HasMappedLambda(targetLambda))
+                {
+                    throw new CallableError(token, $"Could not find target lambda `{targetLambda}`");
+                }
+
+                targetLambda = Context.LambdaTable[targetLambda];
+            }
+
+            var func = Context.Lambdas[targetLambda];
+            var typeHints = func.TypeHints;
+            var returnTypeHint = func.ReturnTypeHint;
+            var defaultParameters = func.DefaultParameters;
+
+            PrepareLambdaCall(func, args, defaultParameters, token, targetLambda, typeHints, lambdaName, scope);
+
+            lambdaFrame.SetFlag(FrameFlags.InLambda);
+            doPop = true;
+
+            var decl = func.Decl.Body;
+            foreach (var stmt in decl)
+            {
+                result = Interpret(stmt);
+                if (lambdaFrame.IsFlagSet(FrameFlags.Return))
+                {
+                    result = lambdaFrame.ReturnValue ?? result;
+                    break;
+                }
+            }
+
+            if (!AssertTypeMatch(token, result, returnTypeHint))
+            {
+                throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            ErrorHandler.DumpCrashLog(ex);
+            throw;
+        }
+        finally
+        {
+            if (doPop)
+            {
+                PopFrame();
+            }
+        }
     }
 
     private Value Visit(OnNode node)
@@ -802,8 +903,6 @@ public class Interpreter
         return Value.Default;
     }
 
-    private static Value Visit(LiteralNode node) => node.Value;
-
     private Value Visit(RangeLiteralNode node)
     {
         var startValue = Interpret(node.RangeStart);
@@ -993,51 +1092,10 @@ public class Interpreter
         return result;
     }
 
-    private Value InvokeCallable(Callable callable, List<ASTNode?> argNodes, Token token, string displayName, InstanceRef? instance = null)
+    private Value InvokeCallable(Callable callable, List<ASTNode?> argNodes, Token token, string displayName, InstanceRef instance)
     {
         var args = argNodes.Select(Interpret).ToList();
-        var scope = new Scope(callable.CapturedScope ?? _globalScope);
-        var frame = new StackFrame(displayName, scope);
-
-        BindParameters(callable, args, token, displayName, scope);
-
-        // Set object context for methods
-        if (instance != null)
-        {
-            frame.SetObjectContext(instance);
-        }
-
-        PushFrame(frame, callable is KLambda);
-        if (callable is KLambda)
-        {
-            frame.SetFlag(FrameFlags.InLambda);
-        }
-
-        try
-        {
-            var body = callable switch
-            {
-                KFunction f => f.Decl.Body,
-                KLambda l => l.Decl.Body,
-                _ => throw new NotSupportedException()
-            };
-
-            var result = ExecuteBody(body, frame);
-
-            // Validate return type
-            if (!AssertTypeMatch(token, result, callable.ReturnTypeHint))
-            {
-                throw new TypeError(token,
-                    $"Expected `{TypeRegistry.GetTypeName(callable.ReturnTypeHint)}` " +
-                    $"from `{displayName}` but got `{TypeRegistry.GetTypeName(result)}`.");
-            }
-
-            return result;
-        }
-        finally
-        {
-            PopFrame();
-        }
+        return InvokeCallable(callable, args, token, displayName, instance);
     }
 
     private string PrintObject(Token token, Value value)
@@ -1062,7 +1120,7 @@ public class Interpreter
 
         try
         {
-            var result = InvokeCallable(method, [], token, $"{instance.StructName}#{CoreBuiltin.ToS}", instance);
+            var result = InvokeCallable(method, new List<Value>(), token, $"{instance.StructName}#{CoreBuiltin.ToS}", instance);
             return Serializer.Serialize(result);
         }
         finally
@@ -1649,7 +1707,7 @@ public class Interpreter
         return result;
     }
 
-    private Value Visit(LambdaNode node)
+    private Value Visit(LambdaNode node, bool map = true)
     {
         List<KeyValuePair<string, Value>> parameters = [];
         HashSet<string> defaultParameters = [];
@@ -1678,7 +1736,10 @@ public class Interpreter
             CapturedScope = CallStack.Peek().Scope
         };
 
-        Context.AddMappedLambda(node.Token.Text, internalName);
+        if (map)
+        {
+            Context.AddMappedLambda(node.Token.Text, internalName);
+        }
 
         return Value.CreateLambda(new LambdaRef { Identifier = internalName });
     }
@@ -1886,6 +1947,10 @@ public class Interpreter
         {
             return InterpretListBuiltin(node.Token, ref obj, node.Op, GetMethodCallArguments(node.Arguments));
         }
+        else if (CallableBuiltin.IsBuiltin(node.Op))
+        {
+            return InterpretCallableBuiltin(node, GetMethodCallArguments(node.Arguments));
+        }
         else if (CoreBuiltin.IsBuiltin(node.Op))
         {
             return BuiltinDispatch.Execute(node.Token, node.Op, obj, GetMethodCallArguments(node.Arguments));
@@ -2067,20 +2132,6 @@ public class Interpreter
             ReturnTypeHint = node.ReturnTypeHint,
             CapturedScope = CallStack.Peek().Scope
         };
-    }
-
-    private static Value DoSliceAssignment(Token token, ref Value slicedObj, SliceIndex slice, ref Value newValue)
-    {
-        if (slicedObj.IsList() && newValue.IsList())
-        {
-            var targetList = slicedObj.GetList();
-            var rhsValues = newValue.GetList();
-            SliceUtil.UpdateListSlice(token, false, ref targetList, slice, rhsValues);
-
-            return Value.CreateList(targetList);
-        }
-
-        return slicedObj;
     }
 
     private Value HandleNestedIndexing(IndexingNode indexExpr, Value baseObj, TokenName op, Value newValue)
@@ -2578,70 +2629,6 @@ public class Interpreter
             }
 
             PrepareFunctionVariables(typeHints, param, ref argValue, token, i, functionName, scope);
-        }
-    }
-
-    public Value InvokeEvent(Token token, LambdaRef lambda, List<Value> args)
-    {
-        var doPop = false;
-
-        try
-        {
-            var lambdaName = lambda.Identifier;
-            var scope = CallStack.Count > 0 ? new Scope(CallStack.Peek().Scope) : new Scope();
-            var lambdaFrame = PushFrame(lambdaName, scope, true);
-            var result = Value.Default;
-            var targetLambda = lambdaName;
-
-            if (!Context.HasLambda(targetLambda))
-            {
-                if (!Context.HasMappedLambda(targetLambda))
-                {
-                    throw new CallableError(token, $"Could not find target lambda `{targetLambda}`");
-                }
-
-                targetLambda = Context.LambdaTable[targetLambda];
-            }
-
-            var func = Context.Lambdas[targetLambda];
-            var typeHints = func.TypeHints;
-            var returnTypeHint = func.ReturnTypeHint;
-            var defaultParameters = func.DefaultParameters;
-
-            PrepareLambdaCall(func, args, defaultParameters, token, targetLambda, typeHints, lambdaName, scope);
-
-            lambdaFrame.SetFlag(FrameFlags.InLambda);
-            doPop = true;
-
-            var decl = func.Decl.Body;
-            foreach (var stmt in decl)
-            {
-                result = Interpret(stmt);
-                if (lambdaFrame.IsFlagSet(FrameFlags.Return))
-                {
-                    result = lambdaFrame.ReturnValue ?? result;
-                    break;
-                }
-            }
-
-            if (!AssertTypeMatch(token, result, returnTypeHint))
-            {
-                throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
-            }
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-            throw;
-        }
-        finally
-        {
-            if (doPop)
-            {
-                PopFrame();
-            }
         }
     }
 
@@ -3418,6 +3405,54 @@ public class Interpreter
         return Value.CreateString(TypeRegistry.GetTypeName(target));
     }
 
+    private Value InterpretCallableBuiltin(MethodCallNode node, List<Value> args)
+    {
+        var result = Value.Default;
+        var obj = Interpret(node.Object);
+
+        Callable? callable = null;
+        string? callableName = null;
+        if (obj.IsLambda())
+        {
+            callableName = obj.GetLambda().Identifier;
+            
+            if (Context.HasLambda(callableName))
+            {
+                callable = Context.Lambdas[callableName];
+            }
+            else if (Context.HasMappedLambda(callableName))
+            {
+                callable = Context.Lambdas[Context.LambdaTable[callableName]];
+            }
+        }
+        else if (node.Object?.Type == ASTNodeType.Identifier)
+        {
+            callableName = Id(node.Object);
+
+            if (Context.HasFunction(callableName))
+            {
+                callable = Context.Functions[callableName];
+            }
+        }
+
+        if (callableName == null)
+        {
+            throw new InvalidOperationError(node.Token, $"Expected a callable for function `{CallableBuiltin.MapName(node.Op)}`.");
+        }
+
+        if (callable == null)
+        {
+            throw new InvalidOperationError(node.Token, $"Expected a callable for function `{CallableBuiltin.MapName(node.Op)}` on `{callableName}`.");
+        }
+
+        if (!(callable is KFunction || callable is KLambda))
+        {
+            throw new InvalidOperationError(node.Token, $"Expected a function or lambda for function `{CallableBuiltin.MapName(node.Op)}` on `{callableName}`.");
+        }
+
+        return CallableBuiltinHandler.Execute(this, node.Token, node.Op, callable, callableName, args);
+    }
+
     private Value InterpretListBuiltin(Token token, ref Value obj, TokenName op, List<Value> args)
     {
         if (!obj.IsList())
@@ -3642,6 +3677,37 @@ public class Interpreter
         list.Sort();
         return Value.CreateList(list);
     }
+
+        private static bool RequiresSigCheck(ASTNodeType type)
+    {
+        return type is ASTNodeType.Program
+            or ASTNodeType.Export
+            or ASTNodeType.Try or ASTNodeType.If or ASTNodeType.Case or
+            ASTNodeType.ForLoop or ASTNodeType.WhileLoop or ASTNodeType.RepeatLoop or
+            ASTNodeType.LambdaCall or ASTNodeType.FunctionCall or ASTNodeType.MethodCall;
+    }
+
+    private static Value PrintNode(ASTNode node)
+    {
+        node.Print();
+        return Value.Default;
+    }
+
+    private static Value DoSliceAssignment(Token token, ref Value slicedObj, SliceIndex slice, ref Value newValue)
+    {
+        if (slicedObj.IsList() && newValue.IsList())
+        {
+            var targetList = slicedObj.GetList();
+            var rhsValues = newValue.GetList();
+            SliceUtil.UpdateListSlice(token, false, ref targetList, slice, rhsValues);
+
+            return Value.CreateList(targetList);
+        }
+
+        return slicedObj;
+    }
+
+    private static Value Visit(LiteralNode node) => node.Value;
 
     private Value LambdaSort(KLambda lambda, List<Value> list)
     {
