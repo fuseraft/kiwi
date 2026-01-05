@@ -41,15 +41,15 @@ end
 fn rectangle(size, stroke = ".", fill = " ")
   rows = []
 
-  if size.type() != Integer || size < 1
+  if size.type() != integer || size < 1
     size = 1
   end
 
-  if stroke.type() != String || stroke.empty()
+  if stroke.type() != string || stroke.empty()
     stroke = "#"
   end
 
-  if fill.type() != String || fill.empty()
+  if fill.type() != string || fill.empty()
     fill = " "
   end
 
@@ -74,15 +74,15 @@ end
 fn diamond(size, stroke = ".", fill = " ")
   rows = []
 
-  if size.type() != Integer || size < 1
+  if size.type() != integer || size < 1
     size = 1
   end
 
-  if stroke.type() != String || stroke.empty()
+  if stroke.type() != string || stroke.empty()
     stroke = "*"
   end
 
-  if fill.type() != String || fill.empty()
+  if fill.type() != string || fill.empty()
     fill = " "
   end
 
