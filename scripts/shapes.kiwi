@@ -1,15 +1,15 @@
 fn triangle(height, stroke = ".", fill = " ")
   rows = []
 
-  if height.type() != Integer || height < 0
+  if height.type() != integer || height < 0
     height = 0
   end
 
-  if stroke.type() != String || stroke.empty()
+  if stroke.type() != string || stroke.empty()
     stroke = "."
   end
 
-  if fill.type() != String || fill.empty()
+  if fill.type() != string || fill.empty()
     fill = " "
   end
 
