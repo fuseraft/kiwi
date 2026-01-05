@@ -33,22 +33,17 @@
      - [Methods](functions.md)
 
 4. **Standard Library**
-   - [`collections`](lib/collections.md): Specialized collection types, including `Heap` and `Set`.
-   - [`conf`](lib/conf.md): A package for reading configuration files.
-   - [`console`](lib/console.md): An interface that wraps core I/O operations.
-   <!-- - [`crypto`](lib/crypto.md): Cryptographic functions like MD5 and SHA-2. -->
-   - [`env`](lib/env.md): For interacting with command-line arguments and environment variables.
-   <!-- - [`ffi`](lib/ffi.md): A simple Foreign Function Interface package. -->
-   - [`fio`](lib/fio.md): Functions for file system operations.
-   - [`tester`](lib/tester.md): A simple unit testing framework.
-   <!-- - [`http`](lib/http.md): Functions for HTTP requests (GET, POST, etc). -->
-   <!-- - [`log`](lib/log.md): A minimal logging interface. -->
-   - [`math`](lib/math.md): Common mathematical functions and utilities.
-   <!-- - [`process`](lib/process.md): Utilities for interacting with system processes. -->
-   <!-- - [`signal`](lib/signal.md): Functions and constants for signal handling. -->
-   <!-- - [`socket`](lib/socket.md): Functions and constants for network communication using sockets. -->
-   - [`string`](lib/string.md): String manipulation and transformation utilities.
-   - [`sys`](lib/sys.md): For executing shell commands.
-   <!-- - [`task`](lib/task.md): Asynchronous task management with support for timers and intervals. -->
-   - [`time`](lib/time.md): Time and date utilities.
-   <!-- - [`web`](lib/web.md): A lightweight web framework. -->
+   - [`collections`](collections.md) - Specialized collection types, including `Heap` and `Set`.
+   - [`conf`](conf.md) - A package for reading configuration files.
+   - [`console`](console.md) - An interface that wraps core I/O operations.
+   - [`crypto`](crypto.md) - Cryptographic functions like MD5 and SHA-2.
+   - [`env`](env.md) - For interacting with environment variables.
+   - [`fio`](fio.md) - Functions for file system operations.
+   - [`math`](math.md) - Common mathematical functions and utilities.
+   - [`socket`](socket.md) - Low-level asynchronous TCP networking.
+   - [`stdin`](stdin.md) - Functions for reading from standard input.
+   - [`string`](string.md) - String manipulation and transformation utilities.
+   - [`sys`](sys.md) - For executing shell commands.
+   - [`task`](task.md) - Asynchronous task management.
+   - [`tester`](tester.md) - A simple unit testing framework.
+   - [`time`](time.md) - Time and date utilities.

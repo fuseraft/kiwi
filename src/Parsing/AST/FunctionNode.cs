@@ -16,6 +16,31 @@ public class FunctionNode : ASTNode
     public bool IsStatic { get; set; }
     public bool IsPrivate { get; set; }
 
+    public LambdaNode ToLambda()
+    {
+        List<KeyValuePair<string, ASTNode?>> clonedParameters = [];
+        foreach (var param in Parameters)
+        {
+            KeyValuePair<string, ASTNode?> item = new(param.Key, param.Value?.Clone());
+            clonedParameters.Add(item);
+        }
+
+        List<ASTNode?> clonedBody = [];
+        foreach (var stmt in Body)
+        {
+            clonedBody.Add(stmt?.Clone());
+        }
+        
+        return new LambdaNode
+        {
+            Parameters = clonedParameters,
+            Body = clonedBody,
+            TypeHints = TypeHints,
+            ReturnTypeHint = ReturnTypeHint,
+            Token = Token
+        };
+    }
+
     public override void Print(int depth = 0)
     {
         ASTTracer.PrintDepth(depth);

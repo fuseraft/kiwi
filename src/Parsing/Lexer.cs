@@ -778,6 +778,7 @@ public class Lexer : IDisposable
         else if (FileIOBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (LoggingBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (ListBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (CallableBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (MathBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (TaskBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (ChannelBuiltin.Map.TryGetValue(builtin, out name)) { }
@@ -800,6 +801,7 @@ public class Lexer : IDisposable
     {
         if (CoreBuiltin.Map.TryGetValue(builtin, out TokenName name)) { }
         else if (ListBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (CallableBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);
     }

@@ -165,7 +165,7 @@ public static class CoreBuiltin
 
     public static bool IsBuiltin(string arg)
     {
-        if (ListBuiltin.Map.ContainsKey(arg))
+        if (ListBuiltin.Map.ContainsKey(arg) || CallableBuiltin.Map.ContainsKey(arg))
         {
             return true;
         }
@@ -175,7 +175,7 @@ public static class CoreBuiltin
 
     public static bool IsBuiltin(TokenName arg)
     {
-        if (ListBuiltin.IsBuiltin(arg))
+        if (ListBuiltin.IsBuiltin(arg) || CallableBuiltin.IsBuiltin(arg))
         {
             return true;
         }
