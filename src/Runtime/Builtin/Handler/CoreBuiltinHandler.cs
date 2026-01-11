@@ -539,8 +539,16 @@ public static class CoreBuiltinHandler
 
             try
             {
-                var parsed = ParseStringToIntBase(token, stringValue, numberBase);
-                return Value.CreateInteger(parsed);
+                // char to byte
+                if (stringValue.Length == 1)
+                {
+                    return Value.CreateInteger((long)stringValue[0]);
+                }
+                else
+                {
+                    var parsed = ParseStringToIntBase(token, stringValue, numberBase);
+                    return Value.CreateInteger(parsed);                    
+                }
             }
             catch (Exception)
             {
