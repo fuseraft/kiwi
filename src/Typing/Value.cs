@@ -122,6 +122,8 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public StructRef GetStruct() => (StructRef)Value_;
     public IntPtr GetPointer() => (IntPtr)(Value_ ?? IntPtr.Zero);
     public byte[] GetBytes() => (byte[])(Value_ ?? ""u8.ToArray());
+    public List<Value> GetStringAsList() => [.. ((string)Value_).ToCharArray().Select(x => CreateString(x))];
+    public List<Value> GetBytesAsList() => [.. ((byte[])Value_).Select(x => CreateInteger(x))];
     public NullRef GetNull()
     {
         Value_ ??= new NullRef();

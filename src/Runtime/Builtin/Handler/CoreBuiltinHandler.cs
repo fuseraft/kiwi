@@ -930,17 +930,42 @@ public static class CoreBuiltinHandler
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Slice, 2, args.Count);
 
-        TypeError.ExpectList(token, value);
+        if (!value.IsList() && !value.IsBytes() && !value.IsString())
+        {
+            throw new InvalidOperationError(token, "Expected a string, list, or bytes.");
+        }
+
         ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Slice, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Slice, 1, args[1]);
 
-        var elements = value.GetList();
+        List<Value> elements = [];
+
+        if (value.IsList())
+        {
+            elements.AddRange(value.GetList());
+        }
+        else if (value.IsString())
+        {
+            elements.AddRange(value.GetStringAsList());
+        }
+        else if (value.IsBytes())
+        {
+            elements.AddRange(value.GetBytesAsList());
+        }
+
         var start = (int)args[0].GetNumber();
         var end = (int)args[1].GetNumber();
 
         if (start < 0 || end < 0 || start > end || end > elements.Count)
         {
-            throw new IndexError(token);
+            var boundsError = 
+                start < 0 ? $"Start position {start} is less than 0."
+                : end < 0 ? $"End position {end} is less than 0."
+                : start > end ? $"Start position {start} is after end position {end}."
+                : end > elements.Count ? $"End position {start} is beyond the number of elements {elements.Count}."
+                : "Invalid index.";
+
+            throw new IndexError(token, boundsError);
         }
 
         var sliceSize = end - start;
@@ -1408,7 +1433,17 @@ public static class CoreBuiltinHandler
 
     private static Value Get(Token token, Value value, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, CoreBuiltin.Get, 1, args.Count);
+        if (args.Count == 0 || args.Count > 2)
+        {
+            throw new ParameterCountMismatchError(token, CoreBuiltin.Get);
+        }
+
+        var defaultValue = Value.CreateNull();
+        var hasDefault = args.Count == 2;
+        if (hasDefault)
+        {
+            defaultValue = args[1];
+        }
 
         if (value.IsList())
         {
@@ -1418,6 +1453,11 @@ public static class CoreBuiltinHandler
 
             if (index < 0 || index >= value.GetList().Count)
             {
+                if (hasDefault)
+                {
+                    return defaultValue;
+                }
+
                 throw new IndexError(token);
             }
 
@@ -1431,6 +1471,12 @@ public static class CoreBuiltinHandler
 
             if (index < 0 || index >= value.GetBytes().Length)
             {
+                if (hasDefault && defaultValue.IsInteger())
+                {
+                    TypeError.ByteCheck(token, defaultValue.GetInteger());
+                    return defaultValue;
+                }
+
                 throw new IndexError(token);
             }
 
@@ -1444,7 +1490,7 @@ public static class CoreBuiltinHandler
             }
             else
             {
-                return Value.CreateNull();
+                return defaultValue;
             }
         }
 
