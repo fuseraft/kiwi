@@ -116,3 +116,34 @@ public class KPackage(ASTNode node)
         return new KPackage(nodeptr);
     }
 }
+
+public static class TypeBuiltins
+{
+    private static Dictionary<int, Dictionary<string, KFunction>> builtins = [];
+
+    public static void Register(int type, string name, KFunction func)
+    {
+        if (!builtins.TryGetValue(type, out Dictionary<string, KFunction>? map))
+        {
+            map = [];
+            builtins[type] = map;
+        }
+
+        map.Add(name, func);
+    }
+
+    public static bool TryGetBuiltin(int type, string name, out KFunction? func)
+    {
+        if (builtins.TryGetValue(type, out Dictionary<string, KFunction>? map))
+        {
+            if (map.TryGetValue(name, out KFunction? mappedFunc))
+            {
+                func = mappedFunc;
+                return true;
+            }
+        }
+
+        func = null;
+        return false;
+    }
+}

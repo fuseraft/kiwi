@@ -21,10 +21,10 @@
     "safemode": true,
     "debug": {
       "cli_args": [
-        "~/github/kiwi/hello",
-        "20",
         "--stdlib-path",
-        "~/github/kiwi/lib"
+        "~/github/kiwi/lib",
+        "~/github/kiwi/hello",
+        "20"
       ]
     },
     "environment_variables": {
