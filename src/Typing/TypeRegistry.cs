@@ -48,6 +48,18 @@ public static class TypeRegistry
         registeredPrimitives.Add(GetType("bytes"), ValueType.Bytes);
     }
 
+    public static bool TryGetPrimitiveType(string name, out int type)
+    {
+        if (IsRegistered(name))
+        {
+            type = GetType(name);
+            return true;
+        }
+
+        type = -1;
+        return false;
+    }
+
     public static bool IsPrimitive(int type) => registeredPrimitives.ContainsKey(type);
 
     public static Typing.ValueType GetValueType(int type) => registeredPrimitives[type];
@@ -82,6 +94,12 @@ public static class TypeRegistry
         return typeName;
     }
 
+    public static int GetType(Token t, Value v)
+    {
+        var typeName = GetTypeName(v);
+        return GetType(t, typeName);
+    }
+
     public static int GetType(Token t, string typeName)
     {
         if (!registeredTypes.ContainsKey(typeName))
@@ -91,6 +109,8 @@ public static class TypeRegistry
 
         return registeredTypes[typeName];
     }
+
+    public static bool IsRegistered(string typeName) => registeredTypes.ContainsKey(typeName);
 
     public static int GetType(string typeName)
     {

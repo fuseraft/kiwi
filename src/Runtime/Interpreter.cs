@@ -40,8 +40,6 @@ public class Interpreter
             return Value.Default;
         }
 
-        var sigCheck = RequiresSigCheck(node.Type);
-
         var result = node.Type switch
         {
             ASTNodeType.Assignment => Visit((AssignmentNode)node),
@@ -96,11 +94,6 @@ public class Interpreter
             ASTNodeType.WhileLoop => Visit((WhileLoopNode)node),
             _ => PrintNode(node),
         };
-
-        if (sigCheck)
-        {
-            // HandlePendingSignals(node.Token);
-        }
 
         return result;
     }
@@ -1955,6 +1948,19 @@ public class Interpreter
         {
             return BuiltinDispatch.Execute(node.Token, node.Op, obj, GetMethodCallArguments(node.Arguments));
         }
+        else
+        {
+            var type = TypeRegistry.GetType(node.Token, obj);
+            
+            // check for type builtin
+            if (TypeBuiltins.TryGetBuiltin(type, node.MethodName, out KFunction? typeBuiltin) && typeBuiltin != null)
+            {
+                List<Value> args = [];
+                args.Add(obj);
+                args.AddRange(GetMethodCallArguments(node.Arguments));
+                return InvokeCallable(typeBuiltin, args, node.Token, node.MethodName);
+            }
+        }
 
         throw new FunctionUndefinedError(node.Token, node.MethodName);
     }
@@ -3025,6 +3031,17 @@ public class Interpreter
         foreach (var stmt in decl.Body)
         {
             Interpret(stmt);
+        }
+
+        // detect type builtin definitions
+        if (TypeRegistry.TryGetPrimitiveType(packageNameValue, out int type))
+        {
+            var prefix = packageNameValue + "::";
+            var funcs = Context.Functions.Where(x => x.Key.StartsWith(prefix)).ToList();
+            foreach (var func in funcs)
+            {
+                TypeBuiltins.Register(type, func.Key.Replace(prefix, string.Empty), func.Value);
+            }
         }
 
         if (PackageStack.Count > 0)
