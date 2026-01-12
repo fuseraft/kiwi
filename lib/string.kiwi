@@ -183,6 +183,65 @@ package string
 
     return _slug
   end
+  
+  /#
+  @summary Returns a copy of the string with the first character uppercased and the rest lowercased.
+  @param   String  _input   : The input string.
+  @return  String           : The capitalized string.
+  #/
+  fn capitalize(_input: string): string
+    return "" when _input.empty()
+    
+    first = _input[0].uppercase()
+    rest = _input[1:].lowercase()
+    return first + rest
+  end
+
+  fn capitalise(_input: string): string
+    return string::capitalize(_input)
+  end
+
+  /#
+  @summary Returns a copy of the string with the first character of every word uppercased and the rest lowercased.
+  @param   String  _input   : The input string.
+  @return  String           : The capitalized string.
+  #/
+  # 
+  # Very common in headings, article titles, etc.
+  fn titleize(_input: string): string
+    return "" when _input.empty()
+    
+    # Split on whitespace, capitalize each non-empty word, join back
+    words = _input.rsplit('\s+').filter(with (w) do not w.empty() end)
+    words.map(with (word) do word.capitalize() end).join(" ")
+  end
+
+  # Popular alias (Ruby, Rails, many JS libs use this name)
+  fn title(s: string): string
+    return string::titleize(s)
+  end
+
+  fn smart_titleize(
+    s: string, 
+    keep_lowercase: list = ["a", "an", "and", "but", "by", "for", "in", "nor", "of", "on", "or", "the", "to", "with"]
+  ): string
+    words = s.rsplit('\s+').filter(with (w) do not w.empty() end)
+    
+    result = []
+    
+    for i, word in words do
+      lowered = word.lowercase()
+      
+      # First word always capitalized or small words that are NOT in the exception list
+      if i == 0 or not keep_lowercase.contains(lowered)
+        result.push(word.capitalize())
+      else
+        result.push(lowered)
+      end
+    end
+    
+    result.join(" ")
+  end
 
   /#
   @summary Checks if the string consists only of numeric characters.
