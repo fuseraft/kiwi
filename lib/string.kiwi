@@ -206,8 +206,6 @@ package string
   @param   String  _input   : The input string.
   @return  String           : The capitalized string.
   #/
-  # 
-  # Very common in headings, article titles, etc.
   fn titleize(_input: string): string
     return "" when _input.empty()
     
@@ -216,7 +214,6 @@ package string
     words.map(with (word) do word.capitalize() end).join(" ")
   end
 
-  # Popular alias (Ruby, Rails, many JS libs use this name)
   fn title(s: string): string
     return string::titleize(s)
   end
