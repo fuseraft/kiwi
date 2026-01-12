@@ -1,0 +1,114 @@
+fn test_parse_basic_get()
+  raw = "GET /hello/world HTTP/1.1\r\nHost: example.com\r\nUser-Agent: KiwiTest/1.0\r\nAccept: text/html\r\n\r\n".to_bytes()
+  req = http::parse(raw)
+
+  tester::assert_eq(req["method"], "GET")
+  tester::assert_eq(req["path"], "/hello/world")
+  tester::assert_eq(req["version"], "HTTP/1.1")
+  tester::assert_eq(req["headers"]["host"], "example.com")
+  tester::assert_eq(req["headers"]["user-agent"], "KiwiTest/1.0")
+  tester::assert_eq(req["query"], {})
+  tester::assert(req["body"].empty())
+end
+
+fn test_parse_with_query_params()
+  raw = "GET /search?q=kiwi%20framework&lang=en&page=2 HTTP/1.1\r\nHost: kiwi.local\r\n\r\n".to_bytes()
+  req = http::parse(raw)
+
+  tester::assert_eq(req["path"], "/search")
+  tester::assert_eq(req["query"]["q"], "kiwi framework")
+  tester::assert_eq(req["query"]["lang"], "en")
+  tester::assert_eq(req["query"]["page"], "2")
+end
+
+fn test_parse_post_form_urlencoded()
+  raw = "POST /submit HTTP/1.1\r\nHost: api.example.com\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: 45\r\n\r\nname=John+Doe&email=john%40example.com&age=42".to_bytes()
+  req = http::parse(raw)
+
+  tester::assert_eq(req["method"], "POST")
+  tester::assert_eq(req["path"], "/submit")
+  tester::assert_eq(req["form"]["name"], "John Doe")
+  tester::assert_eq(req["form"]["email"], "john@example.com")
+  tester::assert_eq(req["form"]["age"], "42")
+  tester::assert(req["body"].is_a(hashmap))
+end
+
+fn test_parse_chunked_encoding_simple()
+  raw = "POST /upload HTTP/1.1\r\nHost: test.local\r\nTransfer-Encoding: chunked\r\n\r\n7\r\nMozilla\r\n11\r\nDeveloper Network\r\n0\r\n\r\n".to_bytes()
+
+  req = http::parse(raw)
+
+  tester::assert_eq(req["method"], "POST")
+  tester::assert(req["body"].is_a(string))
+  tester::assert_eq(req["body"], "MozillaDeveloper Network")
+end
+
+fn test_parse_incomplete_headers_should_return_null()
+  raw = "GET /test HTTP/1.1\r\nHost: example.com\r\nUser-Agent: KiwiTest\r\n".to_bytes()  # missing final \r\n\r\n
+  req = http::parse(raw)
+  tester::assert(req == null, "Incomplete headers should return null")
+end
+
+fn test_response_basic_html()
+  body = "<h1>Hello World</h1>"
+  resp = http::response(200, body)
+
+  resp_str = resp.to_string()
+
+  tester::assert(resp_str.contains("HTTP/1.1 200 OK"))
+  tester::assert(resp_str.contains("Content-Type: text/html; charset=utf-8"))
+  tester::assert(resp_str.contains("Content-Length: ${body.size()}"))
+  tester::assert(resp_str.ends_with(body))
+end
+
+fn test_response_json()
+  data = { message: "success", count: 42 }
+  resp = http::json(201, data)
+
+  resp_str = resp.to_string()
+
+  tester::assert(resp_str.contains("HTTP/1.1 201 Created"))
+  tester::assert(resp_str.contains("Content-Type: application/json; charset=utf-8"))
+  tester::assert(resp_str.contains('"message": "success"'))
+  tester::assert(resp_str.contains('"count": 42'))
+end
+
+fn test_url_decode()
+  tester::assert_eq(
+    http::url_decode("hello+world%20%21%23%24"),
+    "hello world !#$",
+    "url_decode should handle + and %XX correctly"
+  )
+
+  tester::assert_eq(
+    http::url_decode("a%20b+c%2Fd", false),
+    "a b+c/d",
+    "should not decode + when decode_plus=false"
+  )
+end
+
+fn test_response_custom_headers_override()
+  custom_headers = {
+    "X-Powered-By": "Kiwi",
+    "Content-Type": "application/xml"
+  }
+
+  resp = http::response(200, "<xml/>", custom_headers)
+
+  resp_str = resp.to_string()
+  tester::assert(resp_str.contains("Content-Type: application/xml"))
+  tester::assert(resp_str.contains("X-Powered-By: Kiwi"))
+end
+
+# ────────────────────────────────────────────────────────────────
+
+tester::register_test("parse basic GET", test_parse_basic_get.to_lambda())
+tester::register_test("parse with query params", test_parse_with_query_params.to_lambda())
+tester::register_test("parse POST form-urlencoded", test_parse_post_form_urlencoded.to_lambda())
+tester::register_test("parse chunked encoding simple", test_parse_chunked_encoding_simple.to_lambda())
+tester::register_test("incomplete headers -> null", test_parse_incomplete_headers_should_return_null.to_lambda())
+
+tester::register_test("response basic HTML", test_response_basic_html.to_lambda())
+tester::register_test("response JSON convenience", test_response_json.to_lambda())
+tester::register_test("url_decode behavior", test_url_decode.to_lambda())
+tester::register_test("response custom headers override", test_response_custom_headers_override.to_lambda())

@@ -15,6 +15,7 @@ var (unit_tests: list = [
   "null_coalesce",
   "unpacking",
   "operators",
+  "http",
   "strings",
   "lists",
   "sets",
