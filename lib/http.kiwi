@@ -1,54 +1,231 @@
-# Kiwi Standard Library – Minimal HTTP/1.1 Parser & Responder
-
 package http
-  # Parses raw bytes from __socket_recv__ into a request hashmap
-  # Returns null on malformed request (we can improve error handling later)
-  fn parse(raw: bytes): hashmap
-    text = raw.to_string()
-
-    lines = text.lines()
-    if lines.empty() or lines[0].empty()
-      return null
+  # Parse hexadecimal string to integer
+  fn parse_hex(s: string): integer
+    s = s.lowercase()
+    val = 0
+    for c in s.chars() do
+      digit = 0
+      if c >= '0' && c <= '9'
+        digit = c.to_integer() - '0'.to_integer()
+      elsif c >= 'a' && c <= 'f'
+        digit = c.to_integer() - 'a'.to_integer() + 10
+      else
+        throw "Invalid hex digit: ${c}"
+      end
+      val = val * 16 + digit
     end
+    val
+  end
 
-    # Request line: METHOD PATH HTTP/1.1
-    request_line = lines[0].split(" ")
-    if request_line.size() < 3
-      return null
+  # URL decode a string (handles %XX and + for spaces in forms)
+  fn url_decode(s: string, decode_plus: boolean = true): string
+    if decode_plus
+      s = s.replace("+", " ")
     end
+    result = []
+    i = 0
+    while i < s.size() do
+      if s[i] == '%'
+        if i + 2 >= s.size()
+          result.push('%')
+          i += 1
+          next
+        end
+        hex = s.substring(i + 1, 2)
+        byte = http::parse_hex(hex)
+        result.push([byte].to_bytes().to_string())
+        i += 3
+      else
+        result.push(s[i])
+        i += 1
+      end
+    end
+    result.join("")
+  end
 
-    method = request_line[0].uppercase()
-    path = request_line[1]
-    version = request_line[2]
+  # Read a CRLF-terminated line from byte iterator (returns string without CRLF)
+  fn read_crlf_line(iter): string
+    sb = []
+    while iter.can_read() do
+      b = iter.consume()
+      sb.push(b)
+      if b == 10 && sb.size() >= 2 && sb[sb.size() - 2] == 13
+        return sb[0 : sb.size() - 2].to_bytes().to_string()
+      end
+    end
+    throw "Incomplete line: no CRLF found"
+  end
 
-    # Find header/body split
-    header_end = list::find(lines, with (l) do l.empty() end)
-    header_end = header_end < 0 ? lines.size() : header_end
+  # Dechunk a chunked-encoded body
+  fn dechunk(data: bytes): bytes
+    list_data = data.to_list()
+    iter = ListIterator.new(list_data)
+    result = []
 
-    headers = {}
+    while true do
+      size_line = http::read_crlf_line(iter).trim()
+      if size_line.empty()
+        next
+      end
 
-    for i in std::range(1, header_end - 1) do
-      line = lines[i]
-      colon = line.index(":")
-      if colon
-        key = line.chars().slice(0, colon).join().trim().lowercase()
-        val = line.substring(colon + 1, line.size() - colon - 1).trim()
-        headers[key] = val
+      chunk_size = http::parse_hex(size_line)
+      if chunk_size == 0
+        # Skip trailers until empty line
+        while true do
+          trailer_line = http::read_crlf_line(iter)
+          if trailer_line.trim().empty()
+            break
+          end
+        end
+        break
+      end
+
+      # Read chunk data
+      if iter.length() - iter.position() < chunk_size
+        throw "Incomplete chunk data"
+      end
+
+      for _ in [0 .. chunk_size - 1] do
+        result.push(iter.consume())
+      end
+
+      # Expect CRLF after chunk
+      if !iter.can_read() || iter.consume() != 13 || !iter.can_read() || iter.consume() != 10
+        throw "Missing chunk terminator CRLF"
       end
     end
 
-    body = ""
-    if header_end + 1 < lines.size()
-      body_lines = lines.skip(header_end + 1)
-      body = body_lines.join("\r\n")
+    result.to_bytes()
+  end
+
+  # Parses raw bytes from socket into a request hashmap
+  # Returns null on malformed/incomplete request
+  fn parse(raw: bytes)
+    text = raw.to_string()
+    header_end = text.index("\r\n\r\n")
+    if header_end < 0
+      return null  # Incomplete headers
     end
+    header_end += 4  # Skip \r\n\r\n
+
+    header_text = text.substring(0, header_end - 4)
+    lines = header_text.split("\r\n")
+    if lines.empty() || lines[0].empty()
+      eprintln "Empty headers"
+      return null
+    end
+
+    # Request line: METHOD PATH HTTP/VERSION
+    request_parts = lines[0].split(" ")
+    if request_parts.size() != 3
+      eprintln "Expected 3 parts in request line, got ${request_parts.size()}"
+      return null
+    end
+
+    method = request_parts[0].uppercase()
+    full_path = request_parts[1]
+    version = request_parts[2]
+
+    # Parse path and query
+    path = full_path
+    query = {}
+    query_pos = full_path.index("?")
+    if query_pos >= 0
+      path = full_path.substring(0, query_pos)
+      query_str = full_path.substring(query_pos + 1, full_path.size() - query_pos - 1)
+      query_parts = query_str.split("&")
+      for qp in query_parts do
+        if qp.empty()
+          next
+        end
+        eq_pos = qp.index("=")
+        key = ""
+        val = ""
+        if eq_pos >= 0
+          key = qp.substring(0, eq_pos)
+          val = qp.substring(eq_pos + 1, qp.size() - eq_pos - 1)
+        else
+          key = qp
+        end
+        query.set(http::url_decode(key), http::url_decode(val, true))
+      end
+    end
+
+    # Parse headers (with folding support)
+    headers = {}
+    i = 1
+    while i < lines.size() && !lines[i].empty() do
+      line = lines[i]
+      colon = line.index(":")
+      if colon < 0
+        i += 1
+        next
+      end
+      key = line.substring(0, colon).trim().lowercase()
+      val = line.substring(colon + 1, line.size() - colon - 1).trim()
+
+      # Handle folded lines
+      i += 1
+      while i < lines.size() && (lines[i].begins_with(" ") || lines[i].begins_with("\t")) do
+        val += " " + lines[i].trim()
+        i += 1
+      end
+
+      headers.set(key, val)
+    end
+
+    # Extract body as bytes
+    body_raw = raw.slice(header_end, raw.size()).to_bytes() #raw[header_end : raw.size() - header_end]
+
+    # Handle transfer-encoding: chunked
+    if headers.has_key("transfer-encoding") && headers.get("transfer-encoding").lowercase().contains("chunked")
+      try
+        body_raw = http::dechunk(body_raw)
+      catch e
+        eprintln "Malformed chunked"
+        return null  # Malformed chunked
+      end
+    elsif headers.has_key("content-length")
+      expected_len = headers.get("content-length").to_integer()
+      if body_raw.size() != expected_len
+        eprintln "Incomplete body"
+        return null  # Incomplete body
+      end
+    end
+
+    # Optionally parse body based on content-type (e.g., form data)
+    body = body_raw.to_string()
+    form = {}
+    if method == "POST" && headers.has_key("content-type") && headers.get("content-type").begins_with("application/x-www-form-urlencoded")
+      form_str = body_raw.to_string()
+      form_parts = form_str.split("&")
+      for fp in form_parts do
+        if fp.empty()
+          next
+        end
+        eq_pos = fp.index("=")
+        key = ""
+        val = ""
+        if eq_pos >= 0
+          key = fp.substring(0, eq_pos)
+          val = fp.substring(eq_pos + 1, fp.size() - eq_pos - 1)
+        else
+          key = fp
+        end
+        form.set(http::url_decode(key), http::url_decode(val, true))
+      end
+      body = form  # Override body with parsed form
+    end
+    # TODO: Add multipart/form-data parsing if needed (more complex, requires boundary handling)
 
     {
       method: method,
       path: path,
+      query: query,
       version: version,
       headers: headers,
       body: body,
+      form: form,  # Empty if not form-urlencoded
       raw: raw
     }
   end
@@ -68,67 +245,63 @@ package http
       "302": "Found"
     }
 
-    reason = status_texts[status.to_string()] ?? "Unknown"
+    reason = status_texts.get(status.to_string(), "Unknown")
 
     # Default headers
-    default_headers = {
+    var (default_headers: hashmap = {
       "date": time::timestamp(),
-      server: "Kiwi/1.0",
-      connection: "close"
-    }
+      "server": "Kiwi/1.0",
+      "connection": "close"
+    })
 
     # Content-Type guessing
     if !headers.has_key("content-type")
       if body.is_a(string)
-        default_headers["content-type"] = "text/html; charset=utf-8"
+        default_headers.set("content-type", "text/html; charset=utf-8")
       elsif body.is_a(bytes)
-        default_headers["content-type"] = "application/octet-stream"
+        default_headers.set("content-type", "application/octet-stream")
       end
     end
 
     # Content-Length
-    body_bytes = body.is_a(string) ? body.to_bytes() : body
-    default_headers["content-length"] = body_bytes.size().to_string()
+    var (body_bytes: bytes = body.is_a(string) ? body.to_bytes() : body)
+    default_headers.set("content-length", body_bytes.size().to_string())
 
     # Merge user headers (override defaults)
-    final_headers = default_headers.merge(headers)
+    var (final_headers: hashmap = default_headers.merge(headers))
 
     # Build response
-    response_lines = [
-      "HTTP/1.1 ${status} ${reason}"
-    ]
+    var (response_lines: list = ["HTTP/1.1 ${status} ${reason}"])
 
     for k, v in final_headers do
-      response_lines.push("${k}: ${v}")
+      header_key = k.split('-').map(with (s) do s.capitalize() end).join('-')
+      response_lines.push("${header_key}: ${v}")
     end
 
     response_lines.push("")
     response_lines.push("")
 
-    response_text = response_lines.join("\r\n")
-    response_bytes = response_text.to_bytes()
+    var (response_text: string = response_lines.join("\r\n"))
+    var (response_bytes: bytes = response_text.to_bytes())
 
     # Append body
     if body_bytes.size() > 0
-      full = [].concat(response_bytes.to_list())
-               .concat(body_bytes.to_list())
-               .to_bytes()
-      return full
+      return response_bytes.concat(body_bytes)
     end
 
     response_bytes
   end
 
-  # Convenience: simple HTML response
+  # Simple HTML response
   fn html(status: integer = 200, body: string, headers: hashmap = {}): bytes
-    headers["content-type"] = "text/html; charset=utf-8"
+    headers.set("content-type", "text/html; charset=utf-8")
     http::response(status, body, headers)
   end
 
-  # Convenience: JSON response
+  # JSON response
   fn json(status: integer = 200, data: any, headers: hashmap = {}): bytes
-    json_body = serialize(data)
-    headers["content-type"] = "application/json; charset=utf-8"
+    var (json_body: string = serialize(data))
+    headers.set("content-type", "application/json; charset=utf-8")
     http::response(status, json_body, headers)
   end
 end
