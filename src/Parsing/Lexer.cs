@@ -470,20 +470,79 @@ public class Lexer : IDisposable
         {
             if (escape)
             {
-                text += c switch
-                {
-                    'n' => '\n',
-                    'r' => '\r',
-                    't' => '\t',
-                    '\\' => '\\',
-                    'b' => '\b',
-                    'f' => '\f',
-                    '"' => '"',
-                    _ => $"\\{c}",
-                };
-
                 escape = false;
-                GetChar();
+                GetChar();  // consume the escaped char
+
+                switch (c)
+                {
+                    case 'n':  text += '\n'; break;
+                    case 'r':  text += '\r'; break;
+                    case 't':  text += '\t'; break;
+                    case '\\': text += '\\'; break;
+                    case '"':  text += '"';  break;
+                    case 'b':  text += '\b'; break;
+                    case 'f':  text += '\f'; break;
+                    case 'u':  // \uXXXX
+                    {
+                        string hex = "";
+                        bool valid = true;
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            char? h = PeekChar();
+                            if (h == null || !IsHexDigit(h.Value))
+                            {
+                                valid = false;
+                                break;
+                            }
+                            hex += GetChar();
+                        }
+
+                        if (valid && hex.Length == 4)
+                        {
+                            int code = Convert.ToInt32(hex, 16);
+                            text += (char)code;
+                        }
+                        else
+                        {
+                            // fallback: keep literal \uXXXX...
+                            text += "\\u" + hex;
+                        }
+                        break;
+                    }
+
+                    case 'U':  // \UXXXXXXXX
+                    {
+                        string hex = "";
+                        bool valid = true;
+
+                        for (int i = 0; i < 8; i++)
+                        {
+                            char? h = PeekChar();
+                            if (h == null || !IsHexDigit(h.Value))
+                            {
+                                valid = false;
+                                break;
+                            }
+                            hex += GetChar();
+                        }
+
+                        if (valid && hex.Length == 8)
+                        {
+                            int code = Convert.ToInt32(hex, 16);
+                            text += char.ConvertFromUtf32(code);  // handles surrogates
+                        }
+                        else
+                        {
+                            text += "\\U" + hex;
+                        }
+                        break;
+                    }
+
+                    default:
+                        text += "\\" + c;
+                        break;
+                }
             }
             else if (c == '\\')
             {
@@ -495,13 +554,6 @@ public class Lexer : IDisposable
                 GetChar();  // Move past the closing quote
                 break;      // End of string
             }
-            /*else if (c == '$' && PeekChar() == '{')
-            {
-                GetChar();  // Skip '$'
-                GetChar();  // Skip '{'
-                text += TokenizeInterpolation();
-                continue;
-            }*/
             else
             {
                 text += c;
@@ -538,6 +590,8 @@ public class Lexer : IDisposable
 
         return CreateStringLiteralToken(span, text, Value.CreateString(text));
     }
+
+    private static bool IsHexDigit(char c) => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 
     private Token TokenizeBlockComment(TokenSpan span)
     {

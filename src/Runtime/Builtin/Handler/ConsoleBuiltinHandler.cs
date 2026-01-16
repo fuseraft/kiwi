@@ -16,8 +16,11 @@ public static class ConsoleBuiltinHandler
             TokenName.Builtin_Console_Foreground => Foreground(token, args),
             TokenName.Builtin_Console_Background => Background(token, args),
             TokenName.Builtin_Console_Clear => Clear(token, args),
+            TokenName.Builtin_Console_CursorVisible => CursorVisible(token, args),
             TokenName.Builtin_Console_ReadKey => ReadKey(token, args),
             TokenName.Builtin_Console_Reset => Reset(token, args),
+            TokenName.Builtin_Console_Title => Title(token, args),
+            TokenName.Builtin_Console_WindowSize => WindowSize(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
@@ -146,6 +149,35 @@ public static class ConsoleBuiltinHandler
         }
 
         return Value.CreateString(result);
+    }
+
+    private static Value Title(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, ConsoleBuiltin.Title, 1, args.Count);
+        ParameterTypeMismatchError.ExpectString(token, ConsoleBuiltin.Title, 0, args[0]);
+        Console.Title = args[0].GetString();
+        return Value.Default;
+    }
+
+    private static Value CursorVisible(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, ConsoleBuiltin.CursorVisible, 1, args.Count);
+        ParameterTypeMismatchError.ExpectBoolean(token, ConsoleBuiltin.CursorVisible, 0, args[0]);
+        Console.CursorVisible = args[0].GetBoolean();
+        return Value.Default;
+    }
+
+    private static Value WindowSize(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, ConsoleBuiltin.WindowSize, 0, args.Count);
+
+        var map = new Dictionary<Value, Value>
+        {
+            [Value.CreateString("width")]  = Value.CreateInteger(Console.WindowWidth),
+            [Value.CreateString("height")] = Value.CreateInteger(Console.WindowHeight)
+        };
+
+        return Value.CreateHashmap(map);
     }
 
     private static Value Foreground(Token token, List<Value> args)
