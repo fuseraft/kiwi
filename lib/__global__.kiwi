@@ -2,7 +2,7 @@
 @summary The __global__ file contains global definitions.
 #/
 
-const KIWI_STDLIB_VERSION = "1.3.3"
+const KIWI_STDLIB_VERSION = "1.3.4"
 
 /#
 @summary Easy access to the date type.
