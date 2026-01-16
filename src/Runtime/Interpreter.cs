@@ -76,7 +76,7 @@ public class Interpreter
             ASTNodeType.Once => Visit((OnceNode)node),
             ASTNodeType.Package => Visit((PackageNode)node),
             ASTNodeType.PackAssignment => Visit((PackAssignmentNode)node),
-            ASTNodeType.Parse => Visit((ParseNode)node),
+            ASTNodeType.Eval => Visit((EvalNode)node),
             ASTNodeType.Print => Visit((PrintNode)node),
             ASTNodeType.PrintXy => Visit((PrintXyNode)node),
             ASTNodeType.Program => Visit((ProgramNode)node),
@@ -2075,7 +2075,7 @@ public class Interpreter
         throw new InvalidOperationError(node.Token, $"Non-sliceable type: `{TypeRegistry.GetTypeName(obj)}`");
     }
 
-    private Value Visit(ParseNode node)
+    private Value Visit(EvalNode node)
     {
         var content = Interpret(node.ParseValue);
 

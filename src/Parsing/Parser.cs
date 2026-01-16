@@ -74,8 +74,8 @@ public partial class Parser
             case TokenName.KW_Exit:
                 return ParseExit();
 
-            case TokenName.KW_Parse:
-                return ParseParse();
+            case TokenName.KW_Eval:
+                return ParseEval();
 
             case TokenName.KW_Next:
                 return ParseNext();
@@ -916,16 +916,16 @@ public partial class Parser
         return node;
     }
 
-    private ParseNode? ParseParse()
+    private EvalNode? ParseEval()
     {
-        MatchName(TokenName.KW_Parse);
+        MatchName(TokenName.KW_Eval);
 
         if (!HasValue())
         {
-            throw new SyntaxError(GetErrorToken(), "Expected value after 'parse'.");
+            throw new SyntaxError(GetErrorToken(), "Expected value after 'eval'.");
         }
 
-        return new ParseNode(ParseExpression());
+        return new EvalNode(ParseExpression());
     }
 
     private ExportNode? ParseExport()
