@@ -3,6 +3,7 @@ using kiwi.Settings;
 using kiwi.Tracing;
 using kiwi.Runtime.Runner;
 using kiwi.Tracing.Error;
+using System.Text;
 
 namespace kiwi;
 public class Program
@@ -10,14 +11,17 @@ public class Program
     public static int Main(string[] args)
     {
         var exitCode = 1;
-
-        if (System.Diagnostics.Debugger.IsAttached)
-        {
-            args = [.. Kiwi.Settings.Debug.CommandLineArguments];
-        }
         
         try
-        {
+        {   
+            Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+            Console.InputEncoding  = Encoding.UTF8;
+
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                args = [.. Kiwi.Settings.Debug.CommandLineArguments];
+            }
+
             var config = Config.Configure(args);
             var runner = GetRunner(config);
 

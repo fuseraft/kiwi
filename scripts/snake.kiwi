@@ -1,0 +1,134 @@
+#!/usr/bin/env kiwi
+
+const WIDTH  = 40
+const HEIGHT = 20
+const FPS    = 10   # updates per second
+
+# Directions (dx, dy)
+directions = {
+  "RightArrow":  [ 1,  0],
+  "LeftArrow":   [-1,  0],
+  "UpArrow":     [ 0, -1],
+  "DownArrow":   [ 0,  1]
+}
+
+fn spawn_food()
+  while true do
+    fx = math::random(1, WIDTH-2)
+    fy = math::random(1, HEIGHT-2)
+    if !snake.contains([fx, fy])
+      return [fx, fy]
+    end
+  end
+end
+
+fn floor_div(a: integer, b: integer): integer
+  math::floor(a.to_float() / b.to_float()).to_integer()
+end
+
+# Game state
+snake       = [[floor_div(WIDTH, 2), floor_div(HEIGHT, 2)]] # list of [x, y] positions
+direction   = [1, 0] # initial: right
+food        = spawn_food()
+score       = 0
+game_over   = false
+
+fn draw()
+  console::clear()
+
+  # Draw border
+  console::fg("dark_gray")
+  for y in std::range(0, HEIGHT) do
+    for x in std::range(0, WIDTH) do
+      if x == 0 || x == WIDTH-1 || y == 0 || y == HEIGHT-1
+        print "#"
+      elsif snake.contains([x, y])
+        console::fg("green")
+        print "\u25A0"
+        console::reset()
+      elsif food[0] == x && food[1] == y
+        console::fg("red")
+        print "\u25CF"
+        console::reset()
+      else
+        print " "
+      end
+    end
+    println ""
+  end
+
+  println ""
+  println "  Score: ${score}    Use arrow keys  |  q = quit"
+  console::reset()
+end
+
+fn update()
+  # Calculate new head position
+  head = snake[0]
+  nx = head[0] + direction[0]
+  ny = head[1] + direction[1]
+
+  # Wall collision
+  if nx <= 0 || nx >= WIDTH-1 || ny <= 0 || ny >= HEIGHT-1
+    game_over = true
+    return
+  end
+
+  # Self collision
+  if snake.contains([nx, ny])
+    game_over = true
+    return
+  end
+
+  # Add new head
+  snake.unshift([nx, ny])
+
+  # Ate food?
+  if nx == food[0] && ny == food[1]
+    score += 10
+    food = spawn_food()
+  else
+    # Remove tail
+    snake.pop()
+  end
+end
+
+fn main()
+  console::cursor_visible(false)
+  console::clear()
+
+  println "SNAKE"
+  println "Use arrow keys to move. Eat red food. q = quit"
+  println "Press any key to start..."
+  console::read_key() # wait for first key
+
+  while !game_over do
+    # Non-blocking-ish read (we'll check every frame)
+    key = console::read_key(true)
+
+    if key.key == "q" || key.key == "Q"
+      game_over = true
+      break
+    elsif directions.has_key(key.key)
+      new_dir = directions[key.key]
+      # Prevent 180 degree turn
+      if !(new_dir[0] == -direction[0] && new_dir[1] == -direction[1])
+        direction = new_dir
+      end
+    end
+
+    update()
+    draw()
+
+    task::sleep(1000 / FPS)
+  end
+
+  console::clear()
+  console::fg("red")
+  println "GAME OVER!"
+  println "Final score: ${score}"
+  console::reset()
+  console::cursor_visible(true)
+end
+
+main()

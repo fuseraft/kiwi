@@ -1,10 +1,35 @@
 package console
-  fn bg(color)
-    __console_background__(color)
+  fn bg(color: string)
+    __console_background__(console::map_color(color))
   end
 
-  fn fg(color)
-    __console_foreground__(color)
+  fn fg(color: string)
+    __console_foreground__(console::map_color(color))
+  end
+
+  fn map_color(name: string): integer
+    console::get_colors().get(name.uppercase(), 0)
+  end
+
+  fn get_colors(): hashmap
+    {
+      BLACK: 0,
+      DARK_BLUE: 1,
+      DARK_GREEN: 2,
+      DARK_CYAN: 3,
+      DARK_RED: 4,
+      DARK_MAGENTA: 5,
+      DARK_YELLOW: 6,
+      GRAY: 7,
+      DARK_GRAY: 8,
+      BLUE: 9,
+      GREEN: 10,
+      CYAN: 11,
+      RED: 12,
+      MAGENTA: 13,
+      YELLOW: 14,
+      WHITE: 15
+    }
   end
 
   fn reset()
@@ -13,6 +38,18 @@ package console
 
   fn clear()
     __console_clear__()
+  end
+  
+  fn cursor_visible(is_visible: boolean)
+    __console_cursorvisible__(is_visible)
+  end
+
+  fn size()
+    __console_windowsize__()
+  end
+  
+  fn title(new_title: string)
+    __console_title__(new_title)
   end
 
   fn read(msg: string = "")
@@ -31,6 +68,10 @@ package console
     return __console_readkey__(intercept)
   end
 
+  fn read_key(intercept: boolean = true)
+    return __console_readkey__(intercept)
+  end
+
   fn write(msg: string = "")
     print msg
   end
@@ -45,24 +86,3 @@ package console
 end
 
 export "console"
-
-package console_color
-  const BLACK = 0
-  const DARK_BLUE = 1
-  const DARK_GREEN = 2
-  const DARK_CYAN = 3
-  const DARK_RED = 4
-  const DARK_MAGENTA = 5
-  const DARK_YELLOW = 6
-  const GRAY = 7
-  const DARK_GRAY = 8
-  const BLUE = 9
-  const GREEN = 10
-  const CYAN = 11
-  const RED = 12
-  const MAGENTA = 13
-  const YELLOW = 14
-  const WHITE = 15
-end
-
-export "console_color"
