@@ -1063,7 +1063,7 @@ public class Lexer : IDisposable
             "on" => TokenName.KW_On,
             "once" => TokenName.KW_Once,
             "override" => TokenName.KW_Override,
-            "eval" => TokenName.KW_Parse, // eval is evil
+            "eval" => TokenName.KW_Eval, // eval is evil
             "pass" => TokenName.KW_Pass,
             "print" => TokenName.KW_Print,
             "println" => TokenName.KW_PrintLn,

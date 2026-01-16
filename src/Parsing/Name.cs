@@ -330,7 +330,7 @@ public enum TokenName
   KW_On,
   KW_Once,
   KW_Override,
-  KW_Parse,
+  KW_Eval,
   KW_Pass,
   KW_Print,
   KW_PrintLn,
