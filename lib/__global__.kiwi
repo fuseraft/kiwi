@@ -35,3 +35,36 @@ fn d
 
   return new_date
 end
+
+/#
+Returns a unicode character without requiring escaping.
+
+Usage:
+```kiwi
+println char(0x1F95D)          # 🥝
+println char("U+1F40D")        # 🐍
+println char(0x2764)           # ❤️
+println char(0x25A0)           # ■ 
+println char("1F600")          # 😊
+```
+#/
+fn char(code)
+  # code can be integer or hex string
+  if code.is_a(integer)
+    hex = code.to_hex().padstart(8, "0").uppercase()
+  else
+    hex = code.uppercase().trim().replace("0x", "").replace("U+", "")
+    if hex.size() < 4
+      hex = hex.padstart(4, "0")
+    elsif hex.size() > 8
+      hex = hex[hex.size()-8:]  # truncate to last 8 digits
+    end
+  end
+    
+  hex = hex.size() < 8 ? hex.padstart(8, "0") : hex
+
+  code_str = "\"\\U${hex}\""  
+  lambda_str = "(with () do ${code_str} end)()"
+
+  eval(lambda_str)
+end

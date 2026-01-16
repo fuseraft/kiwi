@@ -2189,8 +2189,11 @@ public partial class Parser
         switch (GetTokenType())
         {
             case TokenType.Identifier:
-            case TokenType.Keyword:
                 node = ParseIdentifier(false, false);
+                break;
+
+            case TokenType.Keyword:
+                node = ParseKeyword();
                 break;
 
             case TokenType.Literal:
