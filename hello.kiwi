@@ -1,3 +1,20 @@
 #!/usr/bin/env kiwi
 
-println "Hello, World!"
+/#
+username = console::readline("username: ")
+password = console::read_secret("password: ", "*")
+
+println "${username}:${password}"
+#/
+
+while true do
+  x = console::readkey()
+
+  if x.key == "LeftArrow"
+  elsif x.key == "RightArrow"
+  elsif x.key == "DownArrow"
+  elsif x.key == "UpArrow"
+  end
+  
+  println x
+end

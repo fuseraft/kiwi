@@ -15,15 +15,31 @@ package console
     __console_clear__()
   end
 
-  fn read(msg = "")
+  fn read(msg: string = "")
     return input(msg)
   end
 
-  fn write(msg = "")
+  fn readline(msg: string = "")
+    return input(msg)
+  end
+
+  fn read_secret(msg: string = "", mask: string = "")
+    return input(msg, true, mask)
+  end
+
+  fn readkey(intercept: boolean = true)
+    return __console_readkey__(intercept)
+  end
+
+  fn write(msg: string = "")
     print msg
   end
 
-  fn writeln(msg = "")
+  fn writeln(msg: string = "")
+    println msg
+  end
+
+  fn writeline(msg: string = "")
     println msg
   end
 end

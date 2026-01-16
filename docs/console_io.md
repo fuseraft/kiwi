@@ -1,9 +1,11 @@
 # Console I/O
 
-Kiwi offers the following constructs to work with console I/O:
-- `input(msg)`: Read input from the console.
-- `print`: Print text to the console.
-- `println`: Print a line of text to the console.
+Kiwi offers the following builtins to work with console I/O:
+- [`input(msg)`](#input): Read input from the console.
+- [`print`](#print): Print text to the console.
+- [`println`](#println): Print a line of text to the console.
+
+For more advanced console I/O, please see [console](lib/console.md).
 
 For file I/O, please see [fio](lib/fio.md).
 

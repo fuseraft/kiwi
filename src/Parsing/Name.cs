@@ -17,6 +17,7 @@ public enum TokenName
   Builtin_Console_Input,
   Builtin_Console_Foreground,
   Builtin_Console_Background,
+  Builtin_Console_ReadKey,
   Builtin_Console_Reset,
   Builtin_Console_Clear,
   Builtin_Env_GetArgv,
