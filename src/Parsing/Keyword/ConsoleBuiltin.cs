@@ -5,6 +5,7 @@ public static class ConsoleBuiltin
     public const string Input = "input";
     public const string Background = "__console_background__";
     public const string Foreground = "__console_foreground__";
+    public const string ReadKey = "__console_readkey__";
     public const string Reset = "__console_reset__";
     public const string Clear = "__console_clear__";
 
@@ -15,6 +16,7 @@ public static class ConsoleBuiltin
             { Background, TokenName.Builtin_Console_Background },
             { Foreground, TokenName.Builtin_Console_Foreground },
             { Clear,      TokenName.Builtin_Console_Clear },
+            { ReadKey,    TokenName.Builtin_Console_ReadKey },
             { Reset,      TokenName.Builtin_Console_Reset }
         };
 
