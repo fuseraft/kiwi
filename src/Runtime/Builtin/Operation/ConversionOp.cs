@@ -35,6 +35,16 @@ public struct ConversionOp
         throw new ConversionError(t, message);
     }
 
+    public static string GetString(Token t, Value v, string message = "Expected a string value.")
+    {
+        if (!v.IsString())
+        {
+            throw new ConversionError(t, message);
+        }
+
+        return v.GetString();
+    }
+
     public static List<Value> GetList(Value v)
     {
         if (!v.IsList())

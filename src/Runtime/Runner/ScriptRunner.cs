@@ -76,6 +76,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
 
             Interpreter.ExecutionPath = ExecutionPath;
             SocketManager.Instance.Start();
+            TlsSocketManager.Instance.Start();
             Interpreter.Interpret(ast);
             AwaitTasksAndShutdown();
         }
@@ -165,6 +166,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
         }
 
         SocketManager.Instance.Stop();
+        TlsSocketManager.Instance.Stop();
     }
 
     private static bool IsRecognizedScript(string path)

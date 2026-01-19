@@ -47,8 +47,6 @@ public static class MathBuiltin
     public const string RotateLeft  = "__rotl__";
     public const string RotateRight = "__rotr__";
     public const string Divisors    = "__divisors__";
-    public const string ListPrimes  = "__listprimes__";
-    public const string NthPrime    = "__nthprime__";
 
     private static readonly IReadOnlyDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
@@ -80,13 +78,11 @@ public static class MathBuiltin
             { IsNaN,       TokenName.Builtin_Math_IsNaN },
             { IsNormal,    TokenName.Builtin_Math_IsNormal },
             { LGamma,      TokenName.Builtin_Math_LGamma },
-            { ListPrimes,  TokenName.Builtin_Math_ListPrimes },
             { Log,         TokenName.Builtin_Math_Log },
             { Log10,       TokenName.Builtin_Math_Log10 },
             { Log1P,       TokenName.Builtin_Math_Log1P },
             { Log2,        TokenName.Builtin_Math_Log2 },
             { NextAfter,   TokenName.Builtin_Math_NextAfter },
-            { NthPrime,    TokenName.Builtin_Math_NthPrime },
             { Pow,         TokenName.Builtin_Math_Pow },
             { Random,      TokenName.Builtin_Math_Random },
             { Remainder,   TokenName.Builtin_Math_Remainder },
