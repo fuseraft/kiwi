@@ -2528,18 +2528,10 @@ public class Interpreter
         {
             return SocketBuiltinHandler.Execute(node.Token, op, args);
         }
-        
-        // TODO: need to create issues for these in GitHub.
-        /*
-        else if (SignalBuiltin.IsBuiltin(op))
+        else if (TlsSocketBuiltin.IsBuiltin(op))
         {
-            // return InterpretSignalBuiltin(node.Token, op, args);
+            return TlsSocketBuiltinHandler.Execute(node.Token, op, args);
         }
-        else if (FFIBuiltin.IsBuiltin(op))
-        {
-            // return BuiltinDispatch.Execute(ffimgr, node.Token, op, args);
-        }
-        */
 
         return BuiltinDispatch.Execute(node.Token, op, args, CliArgs);
     }

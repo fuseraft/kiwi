@@ -36,10 +36,13 @@ public static class SocketBuiltinHandler
 
         string host = args[0].GetString();
         int port = (int)args[1].GetInteger();
-
-        int backlog = args.Count == 3 
-            ? (int)ConversionOp.GetInteger(token, args[2], "backlog must be integer")
-            : 128;
+        int backlog = 128;
+        
+        if (args.Count == 3)
+        {
+            ParameterTypeMismatchError.ExpectInteger(token, SocketBuiltin.TcpServer, 2, args[2]);
+            backlog = (int)args[2].GetInteger();
+        }
 
         long id = Mgr.TcpServer(host, port, backlog);
         return Value.CreateInteger(id);

@@ -1,3 +1,4 @@
+#region socket
 package socket
   # creates a tcp server socket, returns the socket id
   fn tcpserver(host: string, port: integer, backlog: integer = 128): integer
@@ -24,10 +25,35 @@ package socket
     __socket_recv__(sock_id, max_bytes)
   end
 
-  # enqueues a send  task on a client socket, returns an awaitable task id
+  # enqueues a send task on a client socket, returns an awaitable task id
   fn send(sock_id: integer, data: bytes): integer
     __socket_send__(sock_id, data)
   end
 end
+#endregion
+
+#region tls
+package tls
+  fn tcpconnect(host: string, port: integer = 443, sni: string = ""): integer
+    __tlssocket_tcpconnect__("www.example.com", port, sni)
+  end
+  
+  # closes a socket, faults any pending tasks
+  fn close(sock_id: integer)
+    __tlssocket_close__(sock_id)
+  end
+
+  # enqueues a recv task on a client socket, returns an awaitable task id
+  fn recv(sock_id: integer, max_bytes: integer = 4096): integer
+    __tlssocket_recv__(sock_id, max_bytes)
+  end
+
+  # enqueues a send task on a client socket, returns an awaitable task id
+  fn send(sock_id: integer, data: bytes): integer
+    __tlssocket_send__(sock_id, data)
+  end
+end
+#endregion
 
 export "socket"
+export "tls"

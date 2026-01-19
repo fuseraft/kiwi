@@ -3,7 +3,6 @@ namespace kiwi.Parsing.Keyword;
 public static class ReflectorBuiltin
 {
     public const string RFFlags  = "__rfflags__";
-    public const string RInspect = "__rinspect__";
     public const string RList    = "__rlist__";
     public const string RObject  = "__robject__";
     public const string RStack   = "__rstack__";
@@ -13,7 +12,6 @@ public static class ReflectorBuiltin
         = new Dictionary<string, TokenName>
         {
             { RFFlags,  TokenName.Builtin_Reflector_RFFlags },
-            { RInspect, TokenName.Builtin_Reflector_RInspect },
             { RList,    TokenName.Builtin_Reflector_RList },
             { RObject,  TokenName.Builtin_Reflector_RObject },
             { RStack,   TokenName.Builtin_Reflector_RStack },
