@@ -68,3 +68,17 @@ fn char(code)
 
   eval(lambda_str)
 end
+
+/#
+Awaits a task.
+#/
+fn await(task_id: integer)
+  task::await(task_id)
+end
+
+/#
+Spawns a task.
+#/
+fn spawn(callback: lambda, args: list = [])
+  task::spawn(callback, args)
+end
