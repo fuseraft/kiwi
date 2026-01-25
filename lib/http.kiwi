@@ -385,7 +385,7 @@ package http
       headers["Content-Type"] = headers.get("Content-Type", "application/json")
     end
 
-    __http_putt__(url, content, headers)
+    __http_put__(url, content, headers)
   end
 
   fn delete(url: string, headers: hashmap = {}, opts: hashmap = {})
