@@ -41,6 +41,7 @@ public static class CoreBuiltin
     public const string Millisecond  = "millisecond";
     public const string Minute       = "minute";
     public const string Month        = "month";
+    public const string Ord          = "ord";
     public const string Pop          = "pop";
     public const string Pretty       = "pretty";
     public const string Push         = "push";
@@ -65,6 +66,7 @@ public static class CoreBuiltin
     public const string ToBytes      = "to_bytes";
     public const string ToD          = "to_date";
     public const string ToF          = "to_float";
+    public const string HexBytes     = "hex_bytes";
     public const string ToHex        = "to_hex";
     public const string ToI          = "to_integer";
     public const string Tokens       = "tokens";
@@ -102,6 +104,7 @@ public static class CoreBuiltin
             { Flatten,      TokenName.Builtin_Core_Flatten     },
             { Get,          TokenName.Builtin_Core_Get         },
             { HasKey,       TokenName.Builtin_Core_HasKey      },
+            { HexBytes,     TokenName.Builtin_Core_HexBytes    },
             { Hour,         TokenName.Builtin_Core_Hour        },
             { IndexOf,      TokenName.Builtin_Core_IndexOf     },
             { Insert,       TokenName.Builtin_Core_Insert      },
@@ -116,11 +119,11 @@ public static class CoreBuiltin
             { Match,        TokenName.Builtin_Core_Match       },
             { Matches,      TokenName.Builtin_Core_Matches     },
             { MatchesAll,   TokenName.Builtin_Core_MatchesAll  },
-            { Members,      TokenName.Builtin_Core_Members     },
             { Merge,        TokenName.Builtin_Core_Merge       },
             { Millisecond,  TokenName.Builtin_Core_Millisecond },
             { Minute,       TokenName.Builtin_Core_Minute      },
             { Month,        TokenName.Builtin_Core_Month       },
+            { Ord,          TokenName.Builtin_Core_Ord         },
             { Pop,          TokenName.Builtin_Core_Pop         },
             { Pretty,       TokenName.Builtin_Core_Pretty      },
             { Push,         TokenName.Builtin_Core_Push        },
@@ -146,7 +149,6 @@ public static class CoreBuiltin
             { ToF,          TokenName.Builtin_Core_ToFloat     },
             { ToHex,        TokenName.Builtin_Core_ToHex       },
             { ToI,          TokenName.Builtin_Core_ToInteger   },
-            { Tokens,       TokenName.Builtin_Core_Tokens      },
             { ToList,       TokenName.Builtin_Core_ToList      },
             { ToS,          TokenName.Builtin_Core_ToString    },
             { Trim,         TokenName.Builtin_Core_Trim        },
@@ -188,22 +190,19 @@ public static class CoreBuiltin
         if (ConsoleBuiltin.Map.ContainsKey(arg))    return true;
         if (EncoderBuiltin.Map.ContainsKey(arg))    return true;
         if (EnvBuiltin.Map.ContainsKey(arg))        return true;
-        if (FFIBuiltin.Map.ContainsKey(arg))        return true;
         if (FileIOBuiltin.Map.ContainsKey(arg))     return true;
-        if (HttpBuiltin.Map.ContainsKey(arg))       return true;
         if (KiwiBuiltin.Map.ContainsKey(arg))       return true;
-        if (LoggingBuiltin.Map.ContainsKey(arg))    return true;
+        if (HttpBuiltin.Map.ContainsKey(arg))       return true;
         if (MathBuiltin.Map.ContainsKey(arg))       return true;
         if (ReflectorBuiltin.Map.ContainsKey(arg))  return true;
         if (SerializerBuiltin.Map.ContainsKey(arg)) return true;
-        if (SignalBuiltin.Map.ContainsKey(arg))     return true;
         if (SocketBuiltin.Map.ContainsKey(arg))     return true;
+        if (TlsSocketBuiltin.Map.ContainsKey(arg))  return true;
         if (StdInBuiltin.Map.ContainsKey(arg))      return true;
         if (SysBuiltin.Map.ContainsKey(arg))        return true;
         if (TaskBuiltin.Map.ContainsKey(arg))       return true;
         if (ChannelBuiltin.Map.ContainsKey(arg))    return true;
         if (TimeBuiltin.Map.ContainsKey(arg))       return true;
-        if (WebServerBuiltin.Map.ContainsKey(arg))  return true;
 
         // not a builtin method
         return false;

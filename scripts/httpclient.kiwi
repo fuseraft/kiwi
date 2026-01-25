@@ -1,0 +1,22 @@
+# Basic GET
+r = http::await_get("https://jsonplaceholder.typicode.com/todos/1")
+println("Status:" + r.status)
+println("Title:" + r.json().title)
+
+# POST with auto-JSON
+created = http::await_json_post(
+  "https://jsonplaceholder.typicode.com/posts",
+  { title: "kiwi post", body: "hello", userId: 1 },
+  { "X-Test": "from kiwi" }
+)
+println("New ID:" + created.id)
+
+# Download file
+if http::await_download("https://httpbin.org/image/png", "out.png")
+  println("Downloaded successfully")
+end
+
+# Low-level control
+task = http::post("https://httpbin.org/post", { hello: "world" })
+resp = http::response(await(task))
+println(resp.pretty())

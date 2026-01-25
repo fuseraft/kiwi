@@ -28,10 +28,10 @@ consumer = with (chan: Channel) do
 end
 
 # Producer
-task::spawn(producer, [channel])
+spawn(producer, [channel])
 
 # Consumer
-task::spawn(consumer, [channel])
+spawn(consumer, [channel])
 
 println "Main thread: both tasks running independently - no shared state, no locks"
 task::sleep(3000)

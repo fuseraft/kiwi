@@ -1,0 +1,10 @@
+dummyPng = "89504e470d0a1a0a0000000d49484452".hex_bytes()
+
+resp = await(__http_post__(
+    "https://httpbin.org/post",
+    dummyPng,
+    {"Content-Type": "image/png"}
+))
+
+println("Status: " + resp.status)
+println("Received bytes length: " + resp.body)

@@ -1,4 +1,58 @@
+#region HttpResponse
+struct HttpResponse
+  fn new(raw: hashmap)
+    @status = raw["status"]
+    @ok = raw["ok"]
+    @headers = raw["headers"]
+    @body = raw["body"]
+    @url = raw["url"]
+    @raw = raw
+  end
+
+  fn get_raw(): hashmap
+    @raw
+  end
+
+  fn json()
+    if typeof(@body) == hashmap
+      return @body
+    end
+    if typeof(@body) == string
+      return deserialize(@body)
+    end
+    throw "Response typeof(body) == not JSON-compatible"
+  end
+
+  fn text()
+    if typeof(@body) == string
+      return @body
+    end
+    if typeof(@body) == bytes
+      return @body.to_string()
+    end
+    throw "Cannot convert body to text"
+  end
+
+  fn pretty()
+    json().pretty()
+  end
+
+  fn save(filename: string)
+    if typeof(@body) == bytes
+      fio::write_bytes(filename, @body)
+      return true
+    end
+    if typeof(@body) == string
+      file.write(filename, @body)
+      return true
+    end
+    false
+  end
+end
+#endregion
+
 package http
+#region Helpers
   # Parse hexadecimal string to integer
   fn parse_hex(s: string): integer
     s = s.lowercase()
@@ -216,7 +270,7 @@ package http
       end
       body = form  # Override body with parsed form
     end
-    # TODO: Add multipart/form-data parsing if needed (more complex, requires boundary handling)
+    # TODO: Add multipart/form-data parsing (more complex, requires boundary handling)
 
     {
       method: method,
@@ -234,7 +288,7 @@ package http
   # status: integer (e.g. 200)
   # body: string or bytes
   # headers: optional hash (defaults to reasonable values)
-  fn response(status: integer, body: any = "", headers: hashmap = {}): bytes
+  fn response_bytes(status: integer, body: any = "", headers: hashmap = {}): bytes
     status_texts = {
       "200": "OK",
       "201": "Created",
@@ -293,17 +347,94 @@ package http
   end
 
   # Simple HTML response
-  fn html(status: integer = 200, body: string, headers: hashmap = {}): bytes
+  fn html_response(status: integer = 200, body: string, headers: hashmap = {}): bytes
     headers.set("content-type", "text/html; charset=utf-8")
-    http::response(status, body, headers)
+    http::response_bytes(status, body, headers)
   end
 
   # JSON response
-  fn json(status: integer = 200, data: any, headers: hashmap = {}): bytes
+  fn json_response(status: integer = 200, data: any, headers: hashmap = {}): bytes
     var (json_body: string = serialize(data))
     headers.set("content-type", "application/json; charset=utf-8")
-    http::response(status, json_body, headers)
+    http::response_bytes(status, json_body, headers)
   end
+#endregion
+
+#region Client
+  # Core request functions (returns awaitable task id)
+  fn get(url: string, headers: hashmap = {}, opts: hashmap = {})
+    __http_get__(url, headers)
+  end
+
+  fn post(url: string, body: any = null, headers: hashmap = {}, opts: hashmap = {})
+    var (content = body)
+
+    if typeof(body) == hashmap
+      content = serialize(body)
+      headers["Content-Type"] = headers.get("Content-Type", "application/json")
+    end
+
+    __http_post__(url, content, headers)
+  end
+
+  fn put(url: string, body: any = null, headers: hashmap = {}, opts: hashmap = {})
+    var (content = body)
+
+    if typeof(body) == hashmap
+      content = serialize(body)
+      headers["Content-Type"] = headers.get("Content-Type", "application/json")
+    end
+
+    __http_put__(url, content, headers)
+  end
+
+  fn delete(url: string, headers: hashmap = {}, opts: hashmap = {})
+    var (content = body)
+
+    if typeof(body) == hashmap
+      content = serialize(body)
+      headers["Content-Type"] = headers.get("Content-Type", "application/json")
+    end
+
+    __http_delete__(url, content, headers)
+  end
+
+  # Convenience wrappers that await + wrap result
+  fn await_get(url: string, headers: hashmap = {}, opts: hashmap = {}): HttpResponse
+    task_id = http::get(url, headers, opts)
+    raw = await(task_id)
+    HttpResponse.new(raw)
+  end
+
+  fn await_post(url: string, body: any = null, headers: hashmap = {}, opts: hashmap = {}): HttpResponse
+    task_id = http::post(url, body, headers, opts)
+    raw = await(task_id)
+    HttpResponse.new(raw)
+  end
+
+  # JSON-specific helpers
+  fn await_json_get(url: string, headers: hashmap = {}, opts: hashmap = {}): hashmap
+    resp = http::await_get(url, headers, opts)
+    resp.json()
+  end
+
+  fn await_json_post(url: string, data: hashmap, headers: hashmap = {}, opts: hashmap = {}): hashmap
+    resp = http::await_post(url, data, headers, opts)
+    resp.json()
+  end
+
+  # Download helper
+  fn await_download(url: string, filename: string, headers: hashmap = {}, opts: hashmap = {}): boolean
+    task_id = __http_download__(url, filename, headers)
+    result = await(task_id)
+    result.ok
+  end
+
+  # Utility constructor
+  fn response(raw: hashmap): HttpResponse
+    HttpResponse.new(raw)
+  end
+#endregion
 end
 
 export "http"

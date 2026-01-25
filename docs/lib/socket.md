@@ -1,18 +1,26 @@
-# `socket`
+# `socket` / `tls`
 
 The `socket` package provides low-level asynchronous TCP networking functionality in Kiwi. It allows creating TCP servers and clients, accepting connections, and performing non-blocking send/receive operations that integrate with the [`task`](./task.md) package via awaitable task IDs.
 
+The `tls` package provides the same interface and is designed to work with TLS.
+
 ## Table of Contents
 
-- [Package Functions](#package-functions)
-  - [`tcpserver(host, port, backlog)`](#tcpserverhost-port-backlog)
-  - [`tcpconnect(host, port)`](#tcpconnecthost-port)
-  - [`accept(sock_id)`](#acceptsock_id)
-  - [`close(sock_id)`](#closesock_id)
-  - [`recv(sock_id, max_bytes)`](#recvsock_id-max_bytes)
-  - [`send(sock_id, data)`](#sendsock_id-data)
+- [`socket` Package Functions](#socket-package-functions)
+  - [`socket::tcpserver(host, port, backlog)`](#tcpserverhost-port-backlog)
+  - [`socket::tcpconnect(host, port)`](#tcpconnecthost-port)
+  - [`socket::accept(sock_id)`](#acceptsock_id)
+  - [`socket::close(sock_id)`](#closesock_id)
+  - [`socket::recv(sock_id, max_bytes)`](#recvsock_id-max_bytes)
+  - [`socket::send(sock_id, data)`](#sendsock_id-data)
+- [`tls` Package Functions](#tls-package-functions)
+  - [`tls::tcpconnect(host, port?, sni?)`](#tlstcpconnecthost-port-sni)
+  - [`tls::close(sock_id)`](#tlsclosesock_id)
+  - [`tls::recv(sock_id, max_bytes?)`](#tlsrecvsock_id-max_bytes)
+  - [`tls::send(sock_id, data)`](#tlssendsock_id-data)
 
-## Package Functions
+
+## `socket` Package Functions
 
 ### `tcpserver(host, port, backlog)`
 Creates a TCP server socket and binds it to the specified host and port.
@@ -104,3 +112,73 @@ Enqueues an asynchronous send operation on a client socket. The operation comple
 | Type | Description |
 | :--- | :--- |
 | `integer` | An awaitable task identifier. Use `task::await()` on this ID to obtain the number of bytes sent (`integer`). |
+
+Here is clean, well-structured Markdown documentation for your `tls` package, styled exactly like the `task` and `http` examples you provided.
+
+# `tls` Package Functions
+
+### `tls::tcpconnect(host, port?, sni?)`
+Establishes a TLS-secured TCP connection to the specified host and port.  
+Returns a socket ID that can be used with `recv`, `send`, and `close`.
+
+**Parameters**
+| Type      | Name   | Description                                                                 | Default |
+|-----------|--------|-----------------------------------------------------------------------------|---------|
+| `string`  | `host` | The hostname or IP address to connect to                                   | —       |
+| `integer` | `port` | The port number (typically 443 for HTTPS)                                   | `443`   |
+| `string`  | `sni`  | Server Name Indication (SNI) hostname for virtual hosting; defaults to `host` | `""` (uses `host`) |
+
+**Returns**
+| Type      | Description                          |
+|-----------|--------------------------------------|
+| `integer` | Socket ID (or negative on failure)   |
+
+---
+
+### `tls::close(sock_id)`
+Closes the TLS socket and faults any pending send/receive tasks associated with it.
+
+**Parameters**
+| Type      | Name      | Description                  |
+|-----------|-----------|------------------------------|
+| `integer` | `sock_id` | The socket ID to close       |
+
+**Returns**  
+_None_
+
+**Throws / faults**  
+Any pending tasks on this socket will be faulted with a socket error.
+
+---
+
+### `tls::recv(sock_id, max_bytes?)`
+Enqueues an asynchronous receive operation on the TLS socket.  
+Returns a task ID that you can `await` to get the received bytes.
+
+**Parameters**
+| Type      | Name         | Description                                      | Default |
+|-----------|--------------|--------------------------------------------------|---------|
+| `integer` | `sock_id`    | The socket ID                                    | —       |
+| `integer` | `max_bytes`  | Maximum number of bytes to receive in one call   | `4096`  |
+
+**Returns**
+| Type      | Description                          |
+|-----------|--------------------------------------|
+| `integer` | Task ID (await with `task.await()`)  |
+
+---
+
+### `tls::send(sock_id, data)`
+Enqueues an asynchronous send operation on the TLS socket.  
+Returns a task ID that you can `await` to confirm the send completed.
+
+**Parameters**
+| Type      | Name      | Description                          |
+|-----------|-----------|--------------------------------------|
+| `integer` | `sock_id` | The socket ID                        |
+| `bytes`   | `data`    | The data to send                     |
+
+**Returns**
+| Type      | Description                          |
+|-----------|--------------------------------------|
+| `integer` | Task ID (await with `task.await()`)  |

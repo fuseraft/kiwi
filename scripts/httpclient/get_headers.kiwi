@@ -1,0 +1,10 @@
+headers = {
+  "User-Agent": "Kiwi/1.3.5",
+  "X-Custom-Header": "testing-123",
+  "Accept": "application/json"
+}
+
+resp = await(__http_get__("https://httpbin.org/headers", headers))
+
+println("Status: " + resp.status)
+println(resp.pretty())

@@ -100,13 +100,11 @@ public sealed class SocketManager
             catch (SocketException ex) when (ex.SocketErrorCode == SocketError.WouldBlock ||
                                              ex.SocketErrorCode == SocketError.InProgress)
             {
-                Console.Error.WriteLine($"TcpConnect: {ex.Message}");
-                // Connection in progress — will complete on writable
+                // Connection in progress
                 state.PendingOps.Add(new PendingOp { Type = OpType.Connect, TaskId = taskId });
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"TcpConnect: {ex.Message}");
                 TaskManager.Instance.CompleteWithFault(taskId, ex);
             }
         }
@@ -126,7 +124,6 @@ public sealed class SocketManager
             }
             else
             {
-                Console.Error.WriteLine("EnqueueAccept: Invalid server socket");
                 TaskManager.Instance.CompleteWithFault(taskId, new Exception("Invalid server socket"));
             }
         }
@@ -143,13 +140,14 @@ public sealed class SocketManager
             if (_sockets.TryGetValue(sockId, out var state))
             {
                 if (state.PendingOps.Count > 32)
+                {
                     throw new InvalidOperationException("Too many pending operations");
+                }
 
                 state.PendingOps.Add(new PendingOp { Type = OpType.Recv, TaskId = taskId, MaxBytes = maxBytes });
             }
             else
             {
-                Console.Error.WriteLine("EnqueueRecv: Invalid socket");
                 TaskManager.Instance.CompleteWithFault(taskId, new Exception("Invalid socket"));
             }
         }
@@ -198,6 +196,7 @@ public sealed class SocketManager
 
     private void RunLoop()
     {
+        const int SelectLoopTimeoutMicroseconds = 100000;
         while (_running)
         {
             BuildSelectLists();
@@ -210,7 +209,7 @@ public sealed class SocketManager
 
             try
             {
-                Socket.Select(_readCheck, _writeCheck, _errorCheck, 100000);
+                Socket.Select(_readCheck, _writeCheck, _errorCheck, SelectLoopTimeoutMicroseconds);
             }
             catch
             {
@@ -249,12 +248,19 @@ public sealed class SocketManager
     {
         foreach (var sock in _readCheck)
         {
-            if (!_socketToId.TryGetValue(sock, out long id) || !_sockets.TryGetValue(id, out var state)) continue;
+            if (!_socketToId.TryGetValue(sock, out long id) || !_sockets.TryGetValue(id, out var state))
+            {
+                continue;
+            }
 
             if (state.Role == SocketRole.Listener)
+            {
                 HandleAccept(state);
+            }
             else
+            {
                 HandleRecv(state);
+            }
         }
     }
 
@@ -262,12 +268,19 @@ public sealed class SocketManager
     {
         foreach (var sock in _writeCheck)
         {
-            if (!_socketToId.TryGetValue(sock, out long id) || !_sockets.TryGetValue(id, out var state)) continue;
+            if (!_socketToId.TryGetValue(sock, out long id) || !_sockets.TryGetValue(id, out var state))
+            {
+                continue;
+            }
 
             if (state.ConnectTaskId.HasValue)
+            {
                 HandleConnectComplete(state);
+            }
             else
+            {
                 HandleSend(state);
+            }
         }
     }
 
@@ -275,7 +288,10 @@ public sealed class SocketManager
     {
         foreach (var sock in _errorCheck)
         {
-            if (!_socketToId.TryGetValue(sock, out long id) || !_sockets.TryGetValue(id, out var state)) continue;
+            if (!_socketToId.TryGetValue(sock, out long id) || !_sockets.TryGetValue(id, out var state))
+            {
+                continue;
+            }
 
             FaultAllPendingOps(state, new SocketException((int)SocketError.ConnectionReset));
         }
@@ -291,7 +307,9 @@ public sealed class SocketManager
         }
 
         if (pendingAccepts.Count == 0)
+        {
             return;
+        }
 
         int completedCount = 0;
 
@@ -516,6 +534,8 @@ public class PendingOp
     public int MaxBytes;
     public byte[]? Data;
     public int Offset;
+    public IAsyncResult? AsyncResult;
+    public byte[]? Buffer;
 }
 
 public enum OpType { Accept, Recv, Send, Connect }

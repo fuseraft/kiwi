@@ -59,7 +59,7 @@ if [[ "$RUNTIME_ID" == "win-x64" ]]; then
 fi
 
 BUILD_OUTPUT=""
-echo "Building Kiwi with AOT and trimming for $RUNTIME_ID..."
+echo "Building Kiwi for $RUNTIME_ID..."
 if ! BUILD_OUTPUT=$(dotnet publish "$SOLUTION_PATH" -c Release -r "$RUNTIME_ID" --self-contained true \
   -p:PublishAot=true \
   -p:PublishTrimmed=true \
