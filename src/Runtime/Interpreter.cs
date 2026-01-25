@@ -892,6 +892,18 @@ public class Interpreter
 
             return memberValue;
         }
+        else if (obj.IsObject())
+        {
+            var o = obj.GetObject();
+            
+            if (o.InstanceVariables.TryGetValue("@" + memberName, out Value? v))
+            {
+                if (v != null)
+                {
+                    return v;
+                }
+            }
+        }
 
         return Value.Default;
     }

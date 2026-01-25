@@ -1,30 +1,22 @@
-connect_task = tls::tcpconnect("jsonplaceholder.typicode.com", 443, "jsonplaceholder.typicode.com")
-req = 
-  "GET /todos/1 HTTP/1.1\r\n" +
-  "Host: jsonplaceholder.typicode.com\r\n" +
-  "User-Agent: curl/8.5.0\r\n" +
-  "Accept: application/json\r\n" +
-  "Connection: close\r\n" +
-  "\r\n"
-sock_id = await(connect_task)
+# Basic GET
+r = http::await_get("https://jsonplaceholder.typicode.com/todos/1")
+println("Status:" + r.status)
+println("Title:" + r.json().title)
 
-req_bytes = req.to_bytes()
-send_task = tls::send(sock_id, req_bytes)
-await(send_task)
+# POST with auto-JSON
+created = http::await_json_post(
+  "https://jsonplaceholder.typicode.com/posts",
+  { title: "kiwi post", body: "hello", userId: 1 },
+  { "X-Test": "from kiwi" }
+)
+println("New ID:" + created.id)
 
-response_bytes = [].to_bytes()
-while true do
-  recv_task = tls::recv(sock_id, 8192)
-  chunk = await(recv_task)
-  if chunk.size() == 0
-    break
-  end
-  response_bytes = response_bytes.concat(chunk)
+# Download file
+if http::await_download("https://httpbin.org/image/png", "out.png")
+  println("Downloaded successfully")
 end
 
-response_text = response_bytes.to_string()
-parts = response_text.rsplit("\r\n\r\n", 2)
-println "\nHEADERS:\n${parts[0]}"
-println "\nBODY:\n${parts[1] ?? 'empty'}"
-
-tls::close(sock_id)
+# Low-level control
+task = http::post("https://httpbin.org/post", { hello: "world" })
+resp = http::response(await(task))
+println(resp.pretty())

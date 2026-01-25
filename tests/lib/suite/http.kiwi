@@ -51,7 +51,7 @@ end
 
 fn test_response_basic_html()
   body = "<h1>Hello World</h1>"
-  resp = http::response(200, body)
+  resp = http::response_bytes(200, body)
 
   resp_str = resp.to_string()
 
@@ -63,7 +63,7 @@ end
 
 fn test_response_json()
   data = { message: "success", count: 42 }
-  resp = http::json(201, data)
+  resp = http::json_response(201, data)
 
   resp_str = resp.to_string()
 
@@ -93,7 +93,7 @@ fn test_response_custom_headers_override()
     "Content-Type": "application/xml"
   }
 
-  resp = http::response(200, "<xml/>", custom_headers)
+  resp = http::response_bytes(200, "<xml/>", custom_headers)
 
   resp_str = resp.to_string()
   tester::assert(resp_str.contains("Content-Type: application/xml"))

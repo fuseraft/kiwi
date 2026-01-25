@@ -41,6 +41,7 @@ public static class CoreBuiltin
     public const string Millisecond  = "millisecond";
     public const string Minute       = "minute";
     public const string Month        = "month";
+    public const string Ord          = "ord";
     public const string Pop          = "pop";
     public const string Pretty       = "pretty";
     public const string Push         = "push";
@@ -65,6 +66,7 @@ public static class CoreBuiltin
     public const string ToBytes      = "to_bytes";
     public const string ToD          = "to_date";
     public const string ToF          = "to_float";
+    public const string HexBytes     = "hex_bytes";
     public const string ToHex        = "to_hex";
     public const string ToI          = "to_integer";
     public const string Tokens       = "tokens";
@@ -102,6 +104,7 @@ public static class CoreBuiltin
             { Flatten,      TokenName.Builtin_Core_Flatten     },
             { Get,          TokenName.Builtin_Core_Get         },
             { HasKey,       TokenName.Builtin_Core_HasKey      },
+            { HexBytes,     TokenName.Builtin_Core_HexBytes    },
             { Hour,         TokenName.Builtin_Core_Hour        },
             { IndexOf,      TokenName.Builtin_Core_IndexOf     },
             { Insert,       TokenName.Builtin_Core_Insert      },
@@ -120,6 +123,7 @@ public static class CoreBuiltin
             { Millisecond,  TokenName.Builtin_Core_Millisecond },
             { Minute,       TokenName.Builtin_Core_Minute      },
             { Month,        TokenName.Builtin_Core_Month       },
+            { Ord,          TokenName.Builtin_Core_Ord         },
             { Pop,          TokenName.Builtin_Core_Pop         },
             { Pretty,       TokenName.Builtin_Core_Pretty      },
             { Push,         TokenName.Builtin_Core_Push        },
@@ -188,6 +192,7 @@ public static class CoreBuiltin
         if (EnvBuiltin.Map.ContainsKey(arg))        return true;
         if (FileIOBuiltin.Map.ContainsKey(arg))     return true;
         if (KiwiBuiltin.Map.ContainsKey(arg))       return true;
+        if (HttpBuiltin.Map.ContainsKey(arg))       return true;
         if (MathBuiltin.Map.ContainsKey(arg))       return true;
         if (ReflectorBuiltin.Map.ContainsKey(arg))  return true;
         if (SerializerBuiltin.Map.ContainsKey(arg)) return true;
