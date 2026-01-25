@@ -1,0 +1,23 @@
+payload = {
+  title: "New kiwi task",
+  body: "Testing http_post builtin",
+  userId: 42
+}
+
+headers = {
+  "Content-Type": "application/json",
+  "X-Request-Source": "kiwi-test"
+}
+
+resp = await(__http_post__(
+  "https://jsonplaceholder.typicode.com/posts",
+  serialize(payload),
+  headers
+))
+
+if resp.status == 201
+  println("Created! ID = " + deserialize(resp.body).id)
+else
+  eprintln("POST failed: " + resp.status)
+  println(resp.body)
+end

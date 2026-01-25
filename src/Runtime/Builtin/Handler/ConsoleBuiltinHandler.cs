@@ -47,7 +47,7 @@ public static class ConsoleBuiltinHandler
     {
         if (args.Count > 1)
         {
-            throw new ParameterCountMismatchError(token, ConsoleBuiltin.ReadKey, "0–1", args.Count);
+            throw new ParameterCountMismatchError(token, ConsoleBuiltin.ReadKey, args.Count, [0, 1]);
         }
 
         bool intercept = true;
@@ -71,7 +71,7 @@ public static class ConsoleBuiltinHandler
         resultMap[Value.CreateString("key")] = Value.CreateString(keyInfo.Key.ToString());
 
         char ch = keyInfo.KeyChar;
-        string charStr = char.IsControl(ch) || ch == '\0' ? "" : ch.ToString();
+        string charStr = char.IsControl(ch) || ch == '\0' ? string.Empty : ch.ToString();
         resultMap[Value.CreateString("char")] = Value.CreateString(charStr);
 
         List<Value> mods = [];
@@ -103,7 +103,7 @@ public static class ConsoleBuiltinHandler
     {
         if (args.Count > 3)
         {
-            throw new ParameterCountMismatchError(token, ConsoleBuiltin.Input, "0–3", args.Count);
+            throw new ParameterCountMismatchError(token, ConsoleBuiltin.Input, args.Count, [0, 1, 2, 3]);
         }
 
         string? prompt = null;

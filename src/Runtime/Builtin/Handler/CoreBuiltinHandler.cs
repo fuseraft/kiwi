@@ -65,6 +65,8 @@ public static class CoreBuiltinHandler
             TokenName.Builtin_Core_IsA => IsA(token, value, args),
             TokenName.Builtin_Core_ToBytes => ToBytes(token, value, args),
             TokenName.Builtin_Core_ToHex => ToHex(token, value, args),
+            TokenName.Builtin_Core_HexBytes => HexBytes(token, value, args),
+            TokenName.Builtin_Core_Ord => Ord(token, value, args),
             TokenName.Builtin_Core_ToFloat => ToFloat(token, value, args),
             TokenName.Builtin_Core_ToInteger => ToInteger(token, value, args),
             TokenName.Builtin_Core_ToString => ToString(token, value, args),
@@ -342,6 +344,57 @@ public static class CoreBuiltinHandler
             Typing.ValueType.None => Value.CreateBoolean(typeName.Equals("none")),
             _ => Value.False,
         };
+    }
+
+    private static Value Ord(Token token, Value value, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CoreBuiltin.Ord, 0, args.Count);
+        TypeError.ExpectString(token, value);
+        string s = value.GetString();
+        if (string.IsNullOrEmpty(s))
+        {
+            throw new ValueError(token, "Expected a non-empty string.");
+        }
+        return Value.CreateInteger(char.ConvertToUtf32(s, 0));
+    }
+
+    private static Value HexBytes(Token token, Value value, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CoreBuiltin.HexBytes, 0, args.Count);
+        TypeError.ExpectString(token, value);
+
+        string hex = value.GetString().Trim().Replace(" ", string.Empty).Replace("\t", string.Empty).ToUpper();
+
+        if (hex.Length % 2 != 0)
+        {
+            throw new ValueError(token, "Hex string must have even length (after removing whitespace)");
+        }
+
+        if (hex.Length == 0)
+        {
+            return Value.CreateBytes([]);
+        }
+
+        try
+        {
+            byte[] bytes = new byte[hex.Length / 2];
+
+            for (int i = 0; i < hex.Length; i += 2)
+            {
+                string pair = hex.Substring(i, 2);
+                bytes[i / 2] = Convert.ToByte(pair, 16);
+            }
+
+            return Value.CreateBytes(bytes);
+        }
+        catch (FormatException ex)
+        {
+            throw new ValueError(token, $"Invalid hex character in string: {ex.Message}");
+        }
+        catch (OverflowException)
+        {
+            throw new ValueError(token, "Hex value out of byte range (00–FF)");
+        }
     }
 
     private static Value ToBytes(Token token, Value value, List<Value> args)

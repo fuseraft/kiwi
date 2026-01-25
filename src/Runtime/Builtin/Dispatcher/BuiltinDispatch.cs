@@ -56,6 +56,10 @@ public struct BuiltinDispatch
         {
             return StdinBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (HttpBuiltin.IsBuiltin(builtin))
+        {
+            return HttpBuiltinHandler.Execute(token, builtin, args);
+        }
 
         throw new FunctionUndefinedError(token, token.Text);
     }

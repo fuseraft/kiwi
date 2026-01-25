@@ -39,6 +39,7 @@
    - [`crypto`](lib/crypto.md) - Cryptographic functions like MD5 and SHA-2.
    - [`env`](lib/env.md) - For interacting with environment variables.
    - [`fio`](lib/fio.md) - Functions for file system operations.
+   - [`http`](lib/http.md) - Functions for HTTP/HTTPS requests.
    - [`math`](lib/math.md) - Common mathematical functions and utilities.
    - [`socket`](lib/socket.md) - Low-level asynchronous TCP networking.
    - [`stdin`](lib/stdin.md) - Functions for reading from standard input.

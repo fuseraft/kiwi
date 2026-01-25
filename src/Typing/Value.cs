@@ -729,9 +729,6 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
 
     /// <summary>
     /// Method for comparing two hashmaps.
-    /// This is a simple approach that compares Count first,
-    /// and then tries a structural approach based on sorted keys.
-    /// You may wish to refine this further depending on your needs.
     /// </summary>
     public static int CompareHashmaps(Dictionary<Value, Value> xmap, Dictionary<Value, Value> ymap)
     {
@@ -742,7 +739,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             return countCompare;
         }
 
-        // Next, do a structural comparison. One approach:
+        // Next, do a structural comparison.
         // 1) Sort the keys from each dictionary
         // 2) Compare the keys pairwise
         // 3) Compare the corresponding values pairwise

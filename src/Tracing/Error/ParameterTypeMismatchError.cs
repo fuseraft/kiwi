@@ -10,6 +10,11 @@ public class ParameterTypeMismatchError : KiwiError
         : base(t, "ParameterTypeMismatchError", $"The type for parameter {position} of `{name}` is not an expected type. Expected {expectedType} but received {actualType}.")
     {
     }
+    
+    public ParameterTypeMismatchError(Token t, string name, int position, ValueType actualType, List<ValueType> expectedType)
+        : base(t, "ParameterTypeMismatchError", $"The type for parameter {position} of `{name}` is not an expected type. Expected {string.Join(" or ", expectedType)} but received {actualType}.")
+    {
+    }
 
     public static void ExpectBoolean(Token token, string name, int position, Value value)
     {

@@ -30,7 +30,7 @@ req_handler = with (client: integer) do
     req = http::parse(buffer)
     
     if req != null
-      resp = http::html(200, 
+      resp = http::html_response(200, 
         string::dedent('<!DOCTYPE html>
                         <html lang="en">
                         <head>
