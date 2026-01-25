@@ -63,7 +63,7 @@ Performs an HTTP POST request. If `body` is a hashmap, it is automatically JSON-
 ---
 
 ### `put(url, body?, headers?, opts?)`
-Performs an HTTP PUT request (currently uses `__http_putt__` – typo in your code; fix to `__http_put__` when implemented).
+Performs an HTTP PUT request (currently uses `__http_put__` – typo in your code; fix to `__http_put__` when implemented).
 
 **Parameters**  
 Same as `post`.
