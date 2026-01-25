@@ -2,7 +2,7 @@
 
 fn main()
   server_sock = socket::tcpserver("127.0.0.1", 8080)
-  main_task = task::spawn(accept_loop, [server_sock, req_handler])
+  main_task = spawn(accept_loop, [server_sock, req_handler])
 end
 
 /#
@@ -11,8 +11,8 @@ listens for new requests
 accept_loop = with (server: integer, handler: lambda) do
   while true do
     pending_accept = socket::accept(server)
-    client_sock = task::await(pending_accept)  
-    handler_task = task::spawn(handler, [client_sock])
+    client_sock = await(pending_accept)  
+    handler_task = spawn(handler, [client_sock])
   end
 end
 
@@ -23,14 +23,14 @@ req_handler = with (client: integer) do
   buffer = [].to_bytes()
 
   recv_task = socket::recv(client, 8192)
-  data = task::await(recv_task)
+  data = await(recv_task)
 
   if data.size() > 0
     buffer = buffer.concat(data)
     req = http::parse(buffer)
     
     if req != null
-      resp = http::html(200, 
+      resp = http::html_response(200, 
         string::dedent('<!DOCTYPE html>
                         <html lang="en">
                         <head>
@@ -47,7 +47,7 @@ req_handler = with (client: integer) do
                         '</body>
                         </html>'))
       send = socket::send(client, resp)
-      send_res = task::await(send)
+      send_res = await(send)
     end
   end
   

@@ -892,6 +892,18 @@ public class Interpreter
 
             return memberValue;
         }
+        else if (obj.IsObject())
+        {
+            var o = obj.GetObject();
+            
+            if (o.InstanceVariables.TryGetValue("@" + memberName, out Value? v))
+            {
+                if (v != null)
+                {
+                    return v;
+                }
+            }
+        }
 
         return Value.Default;
     }
@@ -2528,18 +2540,10 @@ public class Interpreter
         {
             return SocketBuiltinHandler.Execute(node.Token, op, args);
         }
-        
-        // TODO: need to create issues for these in GitHub.
-        /*
-        else if (SignalBuiltin.IsBuiltin(op))
+        else if (TlsSocketBuiltin.IsBuiltin(op))
         {
-            // return InterpretSignalBuiltin(node.Token, op, args);
+            return TlsSocketBuiltinHandler.Execute(node.Token, op, args);
         }
-        else if (FFIBuiltin.IsBuiltin(op))
-        {
-            // return BuiltinDispatch.Execute(ffimgr, node.Token, op, args);
-        }
-        */
 
         return BuiltinDispatch.Execute(node.Token, op, args, CliArgs);
     }

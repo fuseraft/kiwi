@@ -14,8 +14,9 @@ public class Lexer : IDisposable
 
     public Lexer(string path)
     {
-        stream = System.IO.File.OpenRead(path);
+        string code = System.IO.File.ReadAllText(path, System.Text.Encoding.UTF8);
         File = FileRegistry.Instance.RegisterFile(path);
+        stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(code));
         CloseOnDispose = true;
     }
 
@@ -106,6 +107,48 @@ public class Lexer : IDisposable
         return TokenizeSymbol(span, c);
     }
 
+    // Returns number of bytes needed for the next UTF-8 character based on first byte
+    private static int Utf8SequenceLength(byte firstByte)
+    {
+        if (firstByte < 0x80) return 1;           // ASCII
+        if ((firstByte & 0xE0) == 0xC0) return 2; // 2-byte
+        if ((firstByte & 0xF0) == 0xE0) return 3; // 3-byte
+        if ((firstByte & 0xF8) == 0xF0) return 4; // 4-byte
+        return 1; // invalid, treat as single byte
+    }
+
+    // Decodes 1 to 4 bytes into a Unicode code point
+    private static char? DecodeUtf8(byte[] bytes, int length)
+    {
+        if (length == 1)
+        {
+            return (char)bytes[0];
+        }
+
+        uint codePoint;
+        switch (length)
+        {
+            case 2:
+                codePoint = (uint)((bytes[0] & 0x1F) << 6 | (bytes[1] & 0x3F));
+                break;
+            case 3:
+                codePoint = (uint)((bytes[0] & 0x0F) << 12 | (bytes[1] & 0x3F) << 6 | (bytes[2] & 0x3F));
+                break;
+            case 4:
+                codePoint = (uint)((bytes[0] & 0x07) << 18 | (bytes[1] & 0x3F) << 12 | (bytes[2] & 0x3F) << 6 | (bytes[3] & 0x3F));
+                break;
+            default:
+                return null; // invalid
+        }
+
+        if (codePoint > 0x10FFFF || (codePoint >= 0xD800 && codePoint <= 0xDFFF))
+        {
+            return null; // invalid surrogate or out of range
+        }
+
+        return (char)codePoint;
+    }
+
     private char? PeekChar()
     {
         if (!stream.CanRead)
@@ -114,16 +157,42 @@ public class Lexer : IDisposable
         }
 
         long origin = stream.Position;
-        int byteValue = stream.ReadByte();
 
-        if (byteValue == -1)
+        int firstByte = stream.ReadByte();
+        if (firstByte == -1)
         {
+            stream.Position = origin;
             return null;
         }
 
-        stream.Position = origin;
+        int seqLen = Utf8SequenceLength((byte)firstByte);
 
-        return (char)byteValue;
+        if (seqLen == 1)
+        {
+            stream.Position = origin;
+            return (char)firstByte;
+        }
+
+        // Read the continuation bytes
+        byte[] buffer = new byte[seqLen];
+        buffer[0] = (byte)firstByte;
+
+        for (int i = 1; i < seqLen; i++)
+        {
+            int b = stream.ReadByte();
+            if (b == -1 || (b & 0xC0) != 0x80)
+            {
+                // Incomplete or invalid sequence...fallback to single byte
+                stream.Position = origin;
+                return (char)firstByte;
+            }
+            buffer[i] = (byte)b;
+        }
+
+        stream.Position = origin; // rewind
+
+        var ch = DecodeUtf8(buffer, seqLen);
+        return ch ?? (char)firstByte; // fallback on decode failure
     }
 
     private char? GetChar()
@@ -133,33 +202,63 @@ public class Lexer : IDisposable
             return null;
         }
 
-        int byteValue = stream.ReadByte();
-        if (byteValue == -1)
+        int firstByte = stream.ReadByte();
+        if (firstByte == -1)
         {
             return null;
         }
 
-        char c = (char)byteValue;
+        int seqLen = Utf8SequenceLength((byte)firstByte);
+
+        if (seqLen == 1)
+        {
+            char cr = (char)firstByte;
+            UpdatePositionAndLine(cr);
+            return cr;
+        }
+
+        byte[] buffer = new byte[seqLen];
+        buffer[0] = (byte)firstByte;
+
+        bool valid = true;
+        for (int i = 1; i < seqLen; i++)
+        {
+            int b = stream.ReadByte();
+            if (b == -1 || (b & 0xC0) != 0x80)
+            {
+                valid = false;
+                break;
+            }
+            buffer[i] = (byte)b;
+        }
+
+        char? decoded = valid ? DecodeUtf8(buffer, seqLen) : null;
+
+        char c = decoded ?? (char)firstByte; // fallback to first byte on failure
+
+        UpdatePositionAndLine(c);
+        return c;
+    }
+
+    private void UpdatePositionAndLine(char c)
+    {
         ++Position;
 
-        // for Windows
         if (c == '\r')
         {
-            // '\r\n'
             char? next = PeekChar();
             if (next == '\n')
             {
-                stream.ReadByte();
-                c = '\n';
-                ++Position;
+                GetChar(); // consume \n
             }
-            else
-            {
-                c = '\n';
-            }
+            c = '\n';
         }
 
-        return c;
+        if (c == '\n')
+        {
+            LineNumber++;
+            Position = 1;
+        }
     }
 
     private void SkipWhitespace()
@@ -484,7 +583,7 @@ public class Lexer : IDisposable
                     case 'f':  text += '\f'; break;
                     case 'u':  // \uXXXX
                     {
-                        string hex = "";
+                        string hex = string.Empty;
                         bool valid = true;
 
                         for (int i = 0; i < 4; i++)
@@ -513,7 +612,7 @@ public class Lexer : IDisposable
 
                     case 'U':  // \UXXXXXXXX
                     {
-                        string hex = "";
+                        string hex = string.Empty;
                         bool valid = true;
 
                         for (int i = 0; i < 8; i++)
@@ -830,7 +929,6 @@ public class Lexer : IDisposable
         else if (ConsoleBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (EnvBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (FileIOBuiltin.Map.TryGetValue(builtin, out name)) { }
-        else if (LoggingBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (ListBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (CallableBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (MathBuiltin.Map.TryGetValue(builtin, out name)) { }
@@ -839,14 +937,12 @@ public class Lexer : IDisposable
         else if (SysBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (TimeBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (StdInBuiltin.Map.TryGetValue(builtin, out name)) { }
-        else if (WebServerBuiltin.Map.TryGetValue(builtin, out name)) { }
-        else if (HttpBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (EncoderBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (SerializerBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (ReflectorBuiltin.Map.TryGetValue(builtin, out name)) { }
-        else if (FFIBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (SocketBuiltin.Map.TryGetValue(builtin, out name)) { }
-        else if (SignalBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (TlsSocketBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (HttpBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);
     }

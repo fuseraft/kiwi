@@ -12,8 +12,9 @@ The standard library is a collection of packages containing useful functions and
 | [`crypto`](crypto.md) | Cryptographic functions like MD5 and SHA-2. |
 | [`env`](env.md) | For interacting with environment variables. |
 | [`fio`](fio.md) | Functions for file system operations. |
+| [`http`](http.md) | Functions for HTTP requests (GET, POST, etc). |
 | [`math`](math.md) | Common mathematical functions and utilities. |
-| [`socket`](socket.md) | Low-level asynchronous TCP networking. |
+| [`socket` / `tls`](socket.md) | Low-level asynchronous TCP and TLS networking. |
 | [`stdin`](stdin.md) | Functions for reading from standard input. |
 | [`string`](string.md) | String manipulation and transformation utilities. |
 | [`sys`](sys.md) | For executing shell commands. |
@@ -21,7 +22,6 @@ The standard library is a collection of packages containing useful functions and
 | [`tester`](tester.md) | A simple unit testing framework. |
 | [`time`](time.md) | Time and date utilities. |
 <!-- | [`ffi`](ffi.md) | A simple Foreign Function Interface package. | -->
-<!-- | [`http`](http.md) | Functions for HTTP requests (GET, POST, etc). | -->
 <!-- | [`log`](log.md) | A minimal logging interface. | -->
 <!-- | [`process`](process.md) | Utilities for interacting with system processes. | -->
 <!-- | [`signal`](signal.md) | Functions and constants for signal handling. | -->

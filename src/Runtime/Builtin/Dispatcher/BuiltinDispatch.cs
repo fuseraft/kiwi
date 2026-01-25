@@ -58,11 +58,7 @@ public struct BuiltinDispatch
         }
         else if (HttpBuiltin.IsBuiltin(builtin))
         {
-            // return HttpBuiltinHandler::execute(token, builtin, args);
-        }
-        else if (LoggingBuiltin.IsBuiltin(builtin))
-        {
-            // return LoggingBuiltinHandler::execute(token, builtin, args);
+            return HttpBuiltinHandler.Execute(token, builtin, args);
         }
 
         throw new FunctionUndefinedError(token, token.Text);

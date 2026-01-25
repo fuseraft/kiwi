@@ -19,8 +19,8 @@ public class ParameterCountMismatchError : KiwiError
     {
     }
 
-    public ParameterCountMismatchError(Token t, string name, string expectedCount, int actualCount)
-        : base(t, "ParameterCountMismatchError", $"The parameter count for function `{name}` does not match parameters passed. Expected {expectedCount} but received {actualCount}.")
+    public ParameterCountMismatchError(Token t, string name, int actualCount, List<int> expectedCount)
+        : base(t, "ParameterCountMismatchError", $"The parameter count for function `{name}` does not match parameters passed. Expected {string.Join(" or ", expectedCount)} but received {actualCount}.")
     {
     }
 

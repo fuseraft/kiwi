@@ -40,7 +40,7 @@ labels = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta", "Theta"]
 
 for label, idx in labels do
   n = 50000 + idx * 10000
-  id = task::spawn(worker, [n, label])
+  id = spawn(worker, [n, label])
   tasks.append({ id: id, label: label, n: n })
 end
 
@@ -51,7 +51,7 @@ println "Main thread: Still alive - no blocking! Awaiting results...\n"
 # Await and collect results
 results = {}
 for t in tasks do
-  count = task::await(t.id)
+  count = await(t.id)
   results[t.label] = count
   println "-> ${t.label} (up to ${t.n}) -> ${count} primes"
 end
