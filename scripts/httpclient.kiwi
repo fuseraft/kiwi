@@ -6,16 +6,16 @@ req =
   "Accept: application/json\r\n" +
   "Connection: close\r\n" +
   "\r\n"
-sock_id = task::await(connect_task)
+sock_id = await(connect_task)
 
 req_bytes = req.to_bytes()
 send_task = tls::send(sock_id, req_bytes)
-task::await(send_task)
+await(send_task)
 
 response_bytes = [].to_bytes()
 while true do
   recv_task = tls::recv(sock_id, 8192)
-  chunk = task::await(recv_task)
+  chunk = await(recv_task)
   if chunk.size() == 0
     break
   end
