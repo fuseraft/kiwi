@@ -8,6 +8,7 @@ var (unit_tests: list = [
   "events",
   "packages",
   "assignments",
+  "compression",
   "var_declaration",
   "operator_overloads",
   "constants",

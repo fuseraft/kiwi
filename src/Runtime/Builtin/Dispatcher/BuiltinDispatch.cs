@@ -60,6 +60,10 @@ public struct BuiltinDispatch
         {
             return HttpBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (CompressionBuiltin.IsBuiltin(builtin))
+        {
+            return CompressionBuiltinHandler.Execute(token, builtin, args);
+        }
 
         throw new FunctionUndefinedError(token, token.Text);
     }
