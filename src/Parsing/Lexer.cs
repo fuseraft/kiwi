@@ -223,8 +223,7 @@ public class Lexer : IDisposable
         if (seqLen == 1)
         {
             char cr = (char)firstByte;
-            UpdatePositionAndLine(cr);
-            return cr;
+            return UpdatePositionAndLine(cr);
         }
 
         byte[] buffer = new byte[seqLen];
@@ -245,12 +244,10 @@ public class Lexer : IDisposable
         char? decoded = valid ? DecodeUtf8(buffer, seqLen) : null;
 
         char c = decoded ?? (char)firstByte; // fallback to first byte on failure
-
-        UpdatePositionAndLine(c);
-        return c;
+        return UpdatePositionAndLine(c);
     }
 
-    private void UpdatePositionAndLine(char c)
+    private char UpdatePositionAndLine(char c)
     {
         ++Position;
 
@@ -269,6 +266,8 @@ public class Lexer : IDisposable
             LineNumber++;
             Position = 1;
         }
+
+        return c;
     }
 
     private void SkipWhitespace()
