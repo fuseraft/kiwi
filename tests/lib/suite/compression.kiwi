@@ -1,0 +1,92 @@
+fn test_compression(algo, data, level: integer = 3)
+  original = data.to_bytes()
+  compressed = []
+  decompressed = []
+
+  if algo == "deflate"
+    compressed = compress::deflate(original)
+    decompressed = compress::inflate(compressed)
+  elsif algo == "gzip"
+    compressed = compress::gzip(original)
+    decompressed = compress::gunzip(compressed)
+  elsif algo == "brotli"
+    compressed = compress::brotli(original)
+    decompressed = compress::unbrotli(compressed)
+  elsif algo == "zstd"
+    compressed = compress::zstd(original, level)
+    decompressed = compress::unzstd(compressed)
+  else
+    return false
+  end
+
+  original == decompressed
+end
+
+# Test ZIP
+fn test_zip()
+  entries = [
+    { name: "file1.txt", content: "Hello, Kiwi!" },
+    { name: "file2.txt", content: "Compression test." }
+  ]
+
+  # Create ZIP with optimal compression
+  zip_data = compress::zip_create(entries, 1)  # 1 = Optimal (0=No, 1=Optimal, 2=Fastest, etc.)
+
+  # Extract
+  extracted = compress::zip_extract(zip_data)
+
+  success = true
+  if (extracted.size() != 2)
+    success = false
+  else
+    # Check contents (assuming order preserved, but ZIP doesn't guarantee order)
+    for entry in extracted do
+      name = entry.get("name")
+      content = entry.get("content")
+
+      # Simple check
+      if name == "file1.txt" && content != "Hello, Kiwi!".to_bytes()
+        success = false
+      end
+
+      if name == "file2.txt" && content != "Compression test.".to_bytes()
+        success = false
+      end
+    end
+  end
+  
+  tester::assert(success, "zip failed")
+end
+
+fn deflate_test()
+  test_data = "This is a test string for compression in Kiwi language.".to_bytes()
+  tester::assert(test_compression("deflate", test_data), "deflate failed")
+end
+
+fn gzip_test()
+  test_data = "This is a test string for compression in Kiwi language.".to_bytes()
+  tester::assert(test_compression("gzip", test_data), "gzip failed")
+end
+
+fn brotli_test()
+  test_data = "This is a test string for compression in Kiwi language.".to_bytes()
+  tester::assert(test_compression("brotli", test_data), "brotli failed")
+end
+
+fn zstd_test()
+  test_data = "This is a test string for compression in Kiwi language.".to_bytes()
+  tester::assert(test_compression("zstd", test_data, 5), "zstd failed")  # custom level
+end
+
+tester::register_test("compress/decompress: deflate", deflate_test.to_lambda())
+tester::register_test("compress/decompress: gzip", gzip_test.to_lambda())
+tester::register_test("compress/decompress: brotli", brotli_test.to_lambda())
+tester::register_test("compress/decompress: zstd", zstd_test.to_lambda())
+
+tester::register_test("zip create/extract", test_zip.to_lambda())
+
+tester::register_test("bytes compression", with do
+  # bytes specific test
+  bytes_data = [0x48, 0x65, 0x6C, 0x6C, 0x6F].to_bytes()  # "Hello" as bytes
+  tester::assert(test_compression("zstd", bytes_data), "zstd byte compression failed")
+end)
