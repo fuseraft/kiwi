@@ -187,22 +187,23 @@ public static class CoreBuiltin
 
     public static bool IsBuiltinMethod(string arg)
     {
-        if (ConsoleBuiltin.Map.ContainsKey(arg))    return true;
-        if (EncoderBuiltin.Map.ContainsKey(arg))    return true;
-        if (EnvBuiltin.Map.ContainsKey(arg))        return true;
-        if (FileIOBuiltin.Map.ContainsKey(arg))     return true;
-        if (KiwiBuiltin.Map.ContainsKey(arg))       return true;
-        if (HttpBuiltin.Map.ContainsKey(arg))       return true;
-        if (MathBuiltin.Map.ContainsKey(arg))       return true;
-        if (ReflectorBuiltin.Map.ContainsKey(arg))  return true;
-        if (SerializerBuiltin.Map.ContainsKey(arg)) return true;
-        if (SocketBuiltin.Map.ContainsKey(arg))     return true;
-        if (TlsSocketBuiltin.Map.ContainsKey(arg))  return true;
-        if (StdInBuiltin.Map.ContainsKey(arg))      return true;
-        if (SysBuiltin.Map.ContainsKey(arg))        return true;
-        if (TaskBuiltin.Map.ContainsKey(arg))       return true;
-        if (ChannelBuiltin.Map.ContainsKey(arg))    return true;
-        if (TimeBuiltin.Map.ContainsKey(arg))       return true;
+        if (ConsoleBuiltin.Map.ContainsKey(arg))     return true;
+        if (EncoderBuiltin.Map.ContainsKey(arg))     return true;
+        if (EnvBuiltin.Map.ContainsKey(arg))         return true;
+        if (FileIOBuiltin.Map.ContainsKey(arg))      return true;
+        if (KiwiBuiltin.Map.ContainsKey(arg))        return true;
+        if (HttpBuiltin.Map.ContainsKey(arg))        return true;
+        if (MathBuiltin.Map.ContainsKey(arg))        return true;
+        if (ReflectorBuiltin.Map.ContainsKey(arg))   return true;
+        if (SerializerBuiltin.Map.ContainsKey(arg))  return true;
+        if (SocketBuiltin.Map.ContainsKey(arg))      return true;
+        if (TlsSocketBuiltin.Map.ContainsKey(arg))   return true;
+        if (StdInBuiltin.Map.ContainsKey(arg))       return true;
+        if (SysBuiltin.Map.ContainsKey(arg))         return true;
+        if (TaskBuiltin.Map.ContainsKey(arg))        return true;
+        if (ChannelBuiltin.Map.ContainsKey(arg))     return true;
+        if (CompressionBuiltin.Map.ContainsKey(arg)) return true;
+        if (TimeBuiltin.Map.ContainsKey(arg))        return true;
 
         // not a builtin method
         return false;
