@@ -235,8 +235,8 @@ package http
     if headers.has_key("transfer-encoding") && headers.get("transfer-encoding").lowercase().contains("chunked")
       try
         body_raw = http::dechunk(body_raw)
-      catch e
-        eprintln "Malformed chunked"
+      catch (e)
+        eprintln "Malformed chunked. Error: ${e}"
         return null  # Malformed chunked
       end
     elsif headers.has_key("content-length")

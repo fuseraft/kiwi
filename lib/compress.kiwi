@@ -1,0 +1,43 @@
+package compress
+  fn deflate(data)
+    __compress_deflate__(data)
+  end
+
+  fn inflate(data)
+    __decompress_deflate__(data)
+  end
+
+  fn gzip(data)
+    __compress_gzip__(data)
+  end
+
+  fn gunzip(data)
+    __decompress_gzip__(data)
+  end
+
+  fn brotli(data)
+    __compress_brotli__(data)
+  end
+
+  fn unbrotli(data)
+    __decompress_brotli__(data)
+  end
+
+  fn zstd(data, level=3)
+    __compress_zstd__(data, level)
+  end
+
+  fn unzstd(data)
+    __decompress_zstd__(data)
+  end
+
+  fn zip_create(entries, level=1)
+    __zip_create__(entries, level)
+  end
+
+  fn zip_extract(data)
+    __zip_extract__(data)
+  end
+end
+
+export "compress"

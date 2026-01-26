@@ -102,13 +102,13 @@ end
 
 # ────────────────────────────────────────────────────────────────
 
-tester::register_test("parse basic GET", test_parse_basic_get.to_lambda())
-tester::register_test("parse with query params", test_parse_with_query_params.to_lambda())
-tester::register_test("parse POST form-urlencoded", test_parse_post_form_urlencoded.to_lambda())
-tester::register_test("parse chunked encoding simple", test_parse_chunked_encoding_simple.to_lambda())
-tester::register_test("incomplete headers -> null", test_parse_incomplete_headers_should_return_null.to_lambda())
+tester::register_test("http: parse basic GET", test_parse_basic_get.to_lambda())
+tester::register_test("http: parse with query params", test_parse_with_query_params.to_lambda())
+tester::register_test("http: parse POST form-urlencoded", test_parse_post_form_urlencoded.to_lambda())
+tester::register_test("http: parse chunked encoding simple", test_parse_chunked_encoding_simple.to_lambda())
+tester::register_test("http: incomplete headers -> null", test_parse_incomplete_headers_should_return_null.to_lambda())
 
-tester::register_test("response basic HTML", test_response_basic_html.to_lambda())
-tester::register_test("response JSON convenience", test_response_json.to_lambda())
-tester::register_test("url_decode behavior", test_url_decode.to_lambda())
-tester::register_test("response custom headers override", test_response_custom_headers_override.to_lambda())
+tester::register_test("http: response basic HTML", test_response_basic_html.to_lambda())
+tester::register_test("http: response JSON convenience", test_response_json.to_lambda())
+tester::register_test("http: url_decode behavior", test_url_decode.to_lambda())
+tester::register_test("http: custom headers override", test_response_custom_headers_override.to_lambda())

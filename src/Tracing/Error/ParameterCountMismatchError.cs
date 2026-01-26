@@ -31,4 +31,12 @@ public class ParameterCountMismatchError : KiwiError
             throw new ParameterCountMismatchError(token, name, expectedCount, actualCount);
         }
     }
+
+    public static void CheckRange(Token token, string name, int minCount, int maxCount, int actualCount)
+    {
+        if (actualCount < minCount || actualCount > maxCount)
+        {
+            throw new ParameterCountMismatchError(token, $"The parameter count for function `{name}` does not match parameters passed. Expected within {minCount} and {maxCount} but received {actualCount}.");
+        }
+    }
 }

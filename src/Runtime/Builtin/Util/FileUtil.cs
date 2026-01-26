@@ -379,7 +379,7 @@ public struct FileUtil
     {
         try
         {
-            return File.ReadAllText(filePath);
+            return File.ReadAllText(filePath, System.Text.Encoding.UTF8);
         }
         catch (Exception)
         {
@@ -391,7 +391,7 @@ public struct FileUtil
     {
         try
         {
-            return [.. File.ReadAllLines(filePath).Select(x => Value.CreateString(x))];
+            return [.. File.ReadAllLines(filePath, System.Text.Encoding.UTF8).Select(x => Value.CreateString(x))];
         }
         catch (Exception)
         {
