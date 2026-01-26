@@ -49,6 +49,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             null => CreateNull(),
             long => CreateInteger(value),
             double => CreateFloat(value),
+            byte[] => CreateBytes(value),
             bool => CreateBoolean(value),
             string => CreateString(value),
             DateTime => CreateDate(value),

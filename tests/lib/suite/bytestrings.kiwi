@@ -1,0 +1,24 @@
+tester::register_test("byte strings", with do
+  # Basic empty bytes
+  empty_bytes = b""
+  tester::assert(empty_bytes.size() == 0, "expected empty bytes")
+
+  # Non-ASCII should fail (enforces ASCII-only in bytestrings)
+  err_c = 0
+  try
+    bad = b"café"   # 'é' is 233 > 127
+    err_c = -1
+  catch (e)
+    err_c = 1
+  end
+
+  tester::assert(err_c == 1, "expected ascii-only bytestring")
+
+  # Comparison with old ways
+  hello = b"hello"
+  old_way_str = "hello".to_bytes()
+  old_way_list = [104, 101, 108, 108, 111].to_bytes()
+
+  tester::assert(hello == old_way_str, "bytestring did not match expected value")
+  tester::assert(hello == old_way_list, "bytestring did not match expected value")
+end)

@@ -1,3 +1,4 @@
+using System.Text;
 using kiwi.Parsing.Keyword;
 using kiwi.Tracing;
 using kiwi.Typing;
@@ -87,6 +88,15 @@ public class Lexer : IDisposable
             return CreateToken(TokenType.Eof, span, string.Empty);
         }
 
+        if (c == 'b')
+        {
+            char? next = PeekChar();
+            if (next == '"' || next == '\'')
+            {
+                return TokenizeByteString(span, next);
+            }
+        }
+        
         if (char.IsAsciiLetter(c) || c == '_')
         {
             return TokenizeKeywordOrIdentifier(span, c);
@@ -557,6 +567,95 @@ public class Lexer : IDisposable
         }
 
         return CreateToken(TokenType.Operator, span, text, name);
+    }
+
+    private Token TokenizeByteString(TokenSpan span, char? quoteChar)
+    {
+        List<byte> bytes = [];
+        bool escape = false;
+
+        GetChar(); // consume opening quote
+
+        StringBuilder sb = new();
+
+        char? c;
+        while ((c = PeekChar()) != null)
+        {
+            if (c == quoteChar)
+            {
+                GetChar(); // consume closing quote
+                break;
+            }
+            else
+            {
+                sb.Append(c);
+                GetChar();
+            }
+        }
+
+        char[] chars = sb.ToString().ToCharArray();
+        int pos = 0;
+
+        while (pos < chars.Length)
+        {
+            c = chars[pos];
+            if (escape)
+            {
+                escape = false;
+
+                switch (c)
+                {
+                    case 'n':  bytes.Add((byte)'\n'); break;
+                    case 'r':  bytes.Add((byte)'\r'); break;
+                    case 't':  bytes.Add((byte)'\t'); break;
+                    case '\\': bytes.Add((byte)'\\'); break;
+                    case '"':  bytes.Add((byte)'"');  break;
+                    case '\'': bytes.Add((byte)'\''); break;
+
+                    case 'x':  // \xHH
+                    case 'X':
+                    {
+                        string hex = "";
+                        for (int i = 0; i < 2; i++)
+                        {
+                            char? h = chars[pos + 1];
+                            if (h == null || !IsHexDigit(h.Value))
+                            {
+                                return CreateToken(TokenType.Error, span, "Invalid \\x escape in byte string");
+                            }
+                            hex += chars[++pos];
+                        }
+                        byte val = Convert.ToByte(hex, 16);
+                        bytes.Add(val);
+                        break;
+                    }
+
+                    default:
+                        bytes.Add((byte)c); // literal char after \
+                        break;
+                }
+            }
+            else if (c == '\\')
+            {
+                escape = true;
+                pos++;
+            }
+            else
+            {
+                // Only allow ASCII in byte strings (0-127)
+                if (c > 127)
+                {
+                    return CreateToken(TokenType.Error, span, $"Non-ASCII character '{c}' in byte literal (use string and .to_bytes() for Unicode)");
+                }
+                bytes.Add((byte)c);
+                pos++;
+            }
+        }
+
+        var byteArray = bytes.ToArray();
+        var value = Value.CreateBytes(byteArray);
+
+        return new Token(TokenType.Bytes, TokenName.Default, span, $"b\"{string.Join("", bytes.Select(b => b.ToString("X2")))}\"", value);
     }
 
     private Token TokenizeString(TokenSpan span)

@@ -136,6 +136,7 @@ public enum TokenType
     Keyword,
     Operator,
     Literal,
+    Bytes,
     String,
     Newline,
     Escape,

@@ -458,8 +458,22 @@ public static class CoreBuiltinHandler
         // value is an integer
         if (value.IsInteger())
         {
+            var width = 2;
+
+            if (args.Count == 1)
+            {
+                ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.ToI, 0, args[0]);
+
+                width = (int)args[0].GetNumber();
+                if (width < 2)
+                {
+                    throw new InvalidOperationError(token, "Width must be >= 2.");
+                }
+            }
+
             var number = value.GetInteger();
-            var hexString = number.ToString("x");
+            var b = (byte)(number & 0xFF);
+            var hexString = b.ToString("x").PadLeft(width, '0');
             return Value.CreateString(hexString);
         }
 

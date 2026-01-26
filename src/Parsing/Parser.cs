@@ -21,6 +21,17 @@ public partial class Parser
         throw new SyntaxError(GetErrorToken(), "Expected if-statement or case-statement.");
     }
 
+    private ASTNode? ParseError()
+    {
+        ThrowNode node = new()
+        {
+            ErrorValue = new LiteralNode(Value.CreateString(token.Text))
+        };
+
+        Next();
+        return node;
+    }
+
     private ASTNode? ParseKeyword()
     {
         switch (GetTokenName())
@@ -324,6 +335,10 @@ public partial class Parser
                 MatchType(TokenType.Comma);
                 return null;
 
+            case TokenType.Error:
+                node = ParseError();
+                break;
+
             case TokenType.Keyword:
                 node = ParseKeyword();
                 break;
@@ -339,6 +354,7 @@ public partial class Parser
             case TokenType.Operator:
             case TokenType.Identifier:
             case TokenType.String:
+            case TokenType.Bytes:
                 node = ParseExpression();
                 break;
 
@@ -355,7 +371,7 @@ public partial class Parser
             return node;
         }
 
-        return null;
+        return node;
     }
 
     private ASTNode? ParseComment()
@@ -2192,6 +2208,10 @@ public partial class Parser
                 node = ParseIdentifier(false, false);
                 break;
 
+            case TokenType.Error:
+                node = ParseError();
+                break;
+
             case TokenType.Keyword:
                 node = ParseKeyword();
                 break;
@@ -2199,6 +2219,7 @@ public partial class Parser
             case TokenType.Literal:
             case TokenType.String:
             case TokenType.Typename:
+            case TokenType.Bytes:
                 node = ParseLiteral();
                 break;
 
