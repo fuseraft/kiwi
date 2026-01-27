@@ -1,0 +1,169 @@
+#!/usr/bin/env kiwi
+
+fn main()
+  args = env::parse_args([], ["c", "x", "o"])
+  cfg = build_config(args)
+  
+  if cfg.create
+    zip(cfg)
+  elsif cfg.extract
+    unzip(cfg)
+  end
+end
+
+fn zip(cfg: hashmap)
+  zip_bytes = b""
+  input_path = fio::abspath(cfg.input_path)
+  output_path_specified = cfg.output_path_specified
+  output_path = output_path_specified ? fio::abspath(cfg.output_path) : ""
+
+  if fio::isdir(input_path)
+    zip_bytes = zip_dir(input_path)
+  else
+    zip_bytes = zip_file(input_path)
+  end
+
+  # if output path is not specified, add .zip to the end of the file
+  output_path = output_path_specified ? output_path : input_path + ".zip"
+  fio::writebytes(output_path, zip_bytes)
+
+  log(cfg, "Created ${output_path} -> ${zip_bytes.size()} bytes")
+end
+
+fn zip_file(input_path: string): bytes
+  file_bytes = fio::readbytes(input_path)
+  compress::zip_create([{ name: input_path, content: file_bytes }])
+end
+
+fn zip_dir(input_path: string): bytes
+  entries = []
+
+  for path in fio::glob(input_path, ["./**/*"]) do
+    file_bytes = fio::readbytes(path)
+    entries.push({
+      name: path,
+      content: file_bytes
+    })
+  end
+
+  compress::zip_create(entries)
+end
+
+fn unzip(cfg: hashmap)
+  file_bytes = fio::readbytes(cfg.input_path)
+  total_files = 0
+  total_bytes = 0
+  
+  for item in compress::zip_extract(file_bytes) do
+    dir_name = fio::parentdir(item.name)
+
+    # create the parent directory if it doesn't exist
+    if !fio::isdir(dir_name)
+      fio::mkdirp(dir_name)
+    end
+
+    fio::writebytes(item.name, item.content)
+    log(cfg, "Extracted ${item.name}: ${item.content.size()}")
+
+    total_files += 1
+    total_bytes += item.content.size()
+  end
+
+  log(cfg, "Extracted ${total_files} file(s) -> ${total_bytes} bytes")
+end
+
+/#
+Logs a message.
+#/
+fn log(cfg: hashmap, message: string)
+  return when cfg.silence
+  println message
+end
+
+/#
+Prints help screen.
+#/
+fn help()
+  banner = "=============================\n"
+         + "=== ziputil.kiwi - v0.0.1 ===\n"
+         + "=============================\n"
+  padlen = "         ".size()
+  padstart = "  "
+  opts = {
+    "-c path": "Create a zip file from the specified path.",
+    "-x path": "Extract a zip file from the specified path.",
+    "-o path": "Specify the output path for the ZIP file.",
+    "-s":      "Perform the operation quietly (suppress output)"
+  }
+
+  println banner
+  println string::padend("Usage:", padlen) + padstart + "./ziputil.kiwi <option(s)>"
+  println "Options:"
+  for k, v in opts do
+    println padstart + string::padend(k, padlen) + v
+  end
+  println ""
+end
+
+/#
+Builds config from args and validates it.
+#/
+fn build_config(args: hashmap): hashmap
+  validate_config({
+    create: args["c"].truthy(),
+    extract: args["x"].truthy(),
+    output_path_specified: args["o"].truthy(),
+    input_path: args["c"] ?? args["x"],
+    output_path: args["o"] ?? "",
+    silence: args["s"].truthy()
+  })
+end
+
+/#
+Validates the config. If any validation errors occur, the program terminates.
+If no validations occur, the config is returned.
+#/
+fn validate_config(cfg: hashmap): hashmap
+  # if we don't have a file to create or extract, quit
+  if cfg.input_path == null || !(cfg.create || cfg.extract)
+    help()
+    exit 0
+  end
+
+  # if the input file does not exist, quit
+  if cfg.extract && !fio::exists(cfg.input_path)
+    println "Input path does not exist: ${cfg.input_path}"
+    exit 1
+  end
+
+  if cfg.create
+    cfg.input_is_dir = fio::isdir(cfg.input_path)
+
+    # if the input is a file which does not exist, quit
+    if !cfg.input_is_dir && !fio::exists(cfg.input_path)
+      println "Input path does not exist: ${cfg.input_path}"
+      exit 1
+    end
+  end
+
+  # if the output path is specified, but we are extracting, quit
+  if cfg.output_path_specified && cfg.extract
+    help()
+    exit 0
+  end
+
+  # if the output file already exists, ask to overwrite, if no then quit
+  if cfg.output_path_specified
+    if fio::exists(cfg.output_path)
+      println "Output path already exists: ${cfg.output_path}"
+      overwrite = console::read("Overwrite? (Y/n): ").lowercase().begins_with("y")
+      if !overwrite
+        exit 0
+      end
+    end
+  end
+
+  cfg
+end
+
+main()
