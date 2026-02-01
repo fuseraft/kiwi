@@ -272,15 +272,28 @@ public partial class Parser
         throw new SyntaxError(GetErrorToken(), "Expected an event handler.");
     }
 
-    private DoNode? ParseDo()
+    private ASTNode? ParseDo()
     {
         MatchName(TokenName.KW_Do);  // Consume 'do'
 
         /*
         do 
           [ statements ]
-        [ when when_condition ];
+        [ when when_condition ]
+        end
+
+        do (params)
+          [ statements ]
+        end
+
+        do (params) -> [ statement ]
         */
+
+        if (GetTokenType() == TokenType.LParen)
+        {
+            return ParseLambda();
+        }
+
 
         List<ASTNode?> body = [];
         ASTNode? condition = null;
@@ -1302,7 +1315,15 @@ public partial class Parser
 
     private LambdaNode? ParseLambda()
     {
-        MatchType(TokenType.Lambda);  // Consume 'with'
+        /*
+        When coming from `with`: consume otherwise assume: do (params) => statement / do (params) statements end
+        This is for backwards compatibility with older syntax.
+        */
+        var assumedDoParse = GetTokenType() != TokenType.Lambda;
+        if (!assumedDoParse)
+        {
+            Next(); // consume
+        }
 
         var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
         Dictionary<string, string> localNames = [];
@@ -1370,23 +1391,43 @@ public partial class Parser
             }
         }
 
-        if (!MatchName(TokenName.KW_Do))
+        // with (params) do ...
+        if (!assumedDoParse && !MatchName(TokenName.KW_Do))
         {
             throw new SyntaxError(GetErrorToken(), "Expected 'do' in lambda expression.");
         }
-
-        // Parse the lambda body
+        
+        // Parse the lambda body    
         List<ASTNode?> body = [];
-        while (GetTokenName() != TokenName.KW_End)
+
+        // Look for the arrow
+        if (GetTokenType() == TokenType.Arrow)
         {
+            Next(); // consume the arrow
+
+            // If there is an arrow, we will only allow a single statement. 
+            // This is the end of the lambda decl.
+            
             var stmt = ParseStatement();
             if (stmt != null)
             {
                 body.Add(stmt);
             }
         }
+        else
+        {
+            // Read until `end`.
+            while (GetTokenName() != TokenName.KW_End)
+            {
+                var stmt = ParseStatement();
+                if (stmt != null)
+                {
+                    body.Add(stmt);
+                }
+            }
 
-        Next();  // Consume 'end'
+            Next();  // Consume 'end'            
+        }
 
         PopNameStack();
 

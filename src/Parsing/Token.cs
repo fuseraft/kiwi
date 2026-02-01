@@ -154,6 +154,7 @@ public enum TokenType
     Typename,
     Lambda,
     Question,
+    Arrow,
     Error,
     Eof
 }
