@@ -3,6 +3,7 @@ namespace kiwi.Parsing;
 public enum TokenName
 {
   Default,
+  Arrow,
   Builtin_Callable_Call,
   Builtin_Callable_Parameters,
   Builtin_Callable_Returns,
