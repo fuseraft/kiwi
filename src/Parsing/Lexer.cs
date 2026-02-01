@@ -515,6 +515,7 @@ public class Lexer : IDisposable
 
             // 2-char
             "=<" => TokenName.Ops_Unpack,
+            "=>" => TokenName.Arrow,
             "+=" => TokenName.Ops_AddAssign,
             "-=" => TokenName.Ops_SubtractAssign,
             "*=" => TokenName.Ops_MultiplyAssign,
@@ -563,6 +564,11 @@ public class Lexer : IDisposable
         {
             // ternary
             return CreateToken(TokenType.Question, span, "?");
+        }
+        else if (name == TokenName.Arrow)
+        {
+            // =>
+            return CreateToken(TokenType.Arrow, span, "=>");
         }
 
         return CreateToken(TokenType.Operator, span, text, name);
