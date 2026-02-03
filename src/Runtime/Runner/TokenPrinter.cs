@@ -17,8 +17,8 @@ public class TokenPrinter : IRunner
     public int Run(string script, List<string> args)
     {
         Console.WriteLine($"Tokenizing: {script}\n");
-        Console.WriteLine($"{"Token #",-10} {"Type",15}  {"Name",-20} {"Text",-20}");
-        Console.WriteLine($"{"-------",-10} {"----",15}  {"----",-20} {"----",-20}");
+        Console.WriteLine($"{"Line #",-7} {"Token #",-7} {"Type",12} {"Name",-20} {"Text",-20}");
+        Console.WriteLine($"{"------",-7} {"-------",-7} {"----",12} {"----",-20} {"----",-20}");
 
         using Lexer lexer = new(script);
         var stream = lexer.GetTokenStream();
@@ -28,7 +28,7 @@ public class TokenPrinter : IRunner
         {
             var token = stream.Current();
 
-            Console.WriteLine($"{++counter,-10} {token.Type,15}  {token.Name,-20} {token.Text,-20}");
+            Console.WriteLine($"{token.Span.Line, -7} {++counter,-7} {token.Type,12} {token.Name,-20} {token.Text.Trim(),-20}");
 
             stream.Next();
         }

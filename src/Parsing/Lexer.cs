@@ -257,8 +257,8 @@ public class Lexer : IDisposable
             if (next == '\n')
             {
                 GetChar(); // consume \n
+                c = '\n';
             }
-            c = '\n';
         }
 
         if (c == '\n')
@@ -829,7 +829,6 @@ public class Lexer : IDisposable
         {
             if (ch == '\n')
             {
-                ++LineNumber;
                 break;
             }
 
