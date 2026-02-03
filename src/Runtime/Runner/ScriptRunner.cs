@@ -1,4 +1,3 @@
-
 using kiwi.Parsing;
 using kiwi.Runtime.Builtin.Util;
 using kiwi.Settings;
@@ -81,7 +80,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
             AwaitTasksAndShutdown();
         }
         catch (KiwiError e)
-        {
+        {   
             ErrorHandler.PrintError(e);
         }
         catch (Exception e)
