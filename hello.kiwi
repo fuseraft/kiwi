@@ -1,3 +1,17 @@
 #!/usr/bin/env kiwi
 
 println "Hello, World!"
+
+/#
+xyz_lambda = do (msg) => throw msg
+
+fn run_xyz(xyz: lambda, msg: string)
+  println "running xyz"
+
+  xyz(msg)
+
+  println "this will not print"
+end
+
+run_xyz(xyz_lambda, "o_O")
+#/

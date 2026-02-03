@@ -8,7 +8,8 @@ public static class ErrorHandler
 {
     public static void PrintError(KiwiError e)
     {
-        PrintError(e.Type, e.Message, e.Token);
+        List<string>? trace = e is RuntimeError error ? error.Trace : [];
+        PrintError(e.Type, e.Message, e.Token, trace);
     }
 
     public static void PrintError(Exception e, Token token)
@@ -16,7 +17,7 @@ public static class ErrorHandler
         PrintError("An unexpected error occurred", e.Message, token);
     }
 
-    public static void PrintError(string type, string message, Token token)
+    public static void PrintError(string type, string message, Token token, List<string>? trace = null)
     {
         var span = token.Span;
         var filePath = FileRegistry.Instance.GetFilePath(span.File);
@@ -40,6 +41,14 @@ public static class ErrorHandler
         if (File.Exists(filePath))
         {
             PrintErrorLine(span);   
+        }
+
+        if (trace != null)
+        {
+            foreach (var traceLine in trace)
+            {
+                Console.Error.WriteLine(traceLine);
+            }
         }
 
         lines.Add(string.Empty);

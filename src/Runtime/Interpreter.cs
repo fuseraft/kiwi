@@ -14,7 +14,8 @@ namespace kiwi.Runtime;
 
 public class Interpreter
 {
-    const int SafemodeMaxIterations = 1000000;
+    private const int MaxStackDepth = 1000;
+    private const int SafemodeMaxIterations = 1000000;
     private readonly Scope _globalScope = new();
 
     public Interpreter()
@@ -32,6 +33,41 @@ public class Interpreter
     private Stack<string> FuncStack { get; set; } = [];
     public long CurrentTaskId { get; set; } = 0; // 0 = main thread
     public void SetContext(KContext context) => Context = context;
+
+    public Value EntryPoint(ASTNode? node)
+    {
+        if (node == null) return Value.Default;
+
+        var rootToken = node?.Token ?? Token.Eof;
+        PushFrame("<entry>", rootToken, new Scope(_globalScope), inLambda: false);
+        
+        try
+        {
+            return Interpret(node);
+        }
+        catch (KiwiError e)
+        {
+            if (e is not RuntimeError)
+            {
+                throw new RuntimeError(e.Token, e.Message ?? "Unknown error", CaptureStackTrace());
+            }
+            throw;
+        }
+        finally
+        {
+            PopFrame();
+        }
+    }
+
+    private List<string> CaptureStackTrace()
+    {
+        var trace = new List<string>();
+        foreach (var frame in CallStack.Reverse())
+        {
+            trace.Add(frame.FormatTraceLine());
+        }
+        return trace;
+    }
 
     public Value Interpret(ASTNode? node)
     {
@@ -106,7 +142,7 @@ public class Interpreter
     public Value InvokeCallable(Callable callable, List<Value> args, Token token, string displayName, InstanceRef? instance = null)
     {
         var scope = new Scope(callable.CapturedScope ?? _globalScope);
-        var frame = new StackFrame(displayName, scope);
+        var frame = new StackFrame(displayName, scope, token);
 
         BindParameters(callable, args, token, displayName, scope);
 
@@ -157,7 +193,7 @@ public class Interpreter
         {
             var lambdaName = lambda.Identifier;
             var scope = CallStack.Count > 0 ? new Scope(CallStack.Peek().Scope) : new Scope();
-            var lambdaFrame = PushFrame(lambdaName, scope, true);
+            var lambdaFrame = PushFrame(lambdaName, token, scope, true);
             var result = Value.Default;
             var targetLambda = lambdaName;
 
@@ -269,7 +305,7 @@ public class Interpreter
         // This is the program root
         if (node.IsEntryPoint && !Initialized)
         {
-            PushFrame("kiwi", _globalScope);
+            PushFrame("<kiwi>", node.Token, _globalScope);
 
             // Add the "global" hashmap.
             _globalScope.Declare("global", Value.CreateHashmap());
@@ -476,7 +512,7 @@ public class Interpreter
                 }
             }
 
-            throw new KiwiError(node.Token, errorType, errorMessage);
+            throw new RuntimeError(node.Token, errorType, errorMessage, CaptureStackTrace());
         }
 
         return Value.Default;
@@ -1635,7 +1671,7 @@ public class Interpreter
         try
         {
             var scope = new Scope(CallStack.Peek().Scope);
-            var tryFrame = PushFrame(tryName, scope);
+            var tryFrame = PushFrame(tryName, node.Token, scope);
             tryFrame.SetFlag(FrameFlags.InTry);
 
             result = ExecuteBody(node.TryBody, tryFrame);
@@ -1658,7 +1694,7 @@ public class Interpreter
             if (node.CatchBody.Count > 0)
             {
                 var catchScope = new Scope(CallStack.Peek().Scope);
-                var catchFrame = PushFrame("catch", catchScope);
+                var catchFrame = PushFrame("catch", node.Token, catchScope);
 
                 if (node.ErrorType != null)
                 {
@@ -2556,7 +2592,7 @@ public class Interpreter
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
         var functionScope = new Scope(CallStack.Peek().Scope);
-        var functionFrame = PushFrame(functionName, functionScope);
+        var functionFrame = PushFrame(functionName, node.Token, functionScope);
         var result = Value.Default;
 
         PrepareFunctionCall(func, node, defaultParameters, typeHints, functionFrame);
@@ -2584,7 +2620,7 @@ public class Interpreter
     private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName)
     {
         var defaultParameters = function.DefaultParameters;
-        var functionFrame = CreateFrame(functionName);
+        var functionFrame = CreateFrame(functionName, token);
         var scope = functionFrame.Scope;
         var typeHints = function.TypeHints;
         var returnTypeHint = function.ReturnTypeHint;
@@ -2645,7 +2681,7 @@ public class Interpreter
     private Value CallLambda(Token token, string lambdaName, List<ASTNode?> args, ref bool doPop)
     {
         var scope = new Scope(CallStack.Peek().Scope);
-        var lambdaFrame = PushFrame(lambdaName, scope, true);
+        var lambdaFrame = PushFrame(lambdaName, token, scope, true);
         var targetLambda = lambdaName;
         var result = Value.Default;
 
@@ -2921,7 +2957,7 @@ public class Interpreter
         var functionName = node.FunctionName;
         var func = strucMethods[functionName];
         var defaultParameters = func.DefaultParameters;
-        var functionFrame = CreateFrame(functionName);
+        var functionFrame = CreateFrame(functionName, node.Token);
         var result = Value.Default;
 
         var typeHints = func.TypeHints;
@@ -4101,9 +4137,9 @@ public class Interpreter
         return frame;
     }
 
-    private StackFrame PushFrame(string name, Scope scope, bool inLambda = false)
+    private StackFrame PushFrame(string name, Token token, Scope scope, bool inLambda = false)
     {
-        var frame = new StackFrame(name, scope);
+        var frame = new StackFrame(name, scope, token);
 
         if (inLambda)
         {
@@ -4151,11 +4187,11 @@ public class Interpreter
         return CallStack.Peek().IsFlagSet(FrameFlags.InTry);
     }
 
-    private StackFrame CreateFrame(string name)
+    private StackFrame CreateFrame(string name, Token token)
     {
         StackFrame frame = CallStack.Peek();
         Scope scope = new(frame.Scope);
-        StackFrame subFrame = new(name, scope);
+        StackFrame subFrame = new(name, scope, token);
 
         if (frame.InObjectContext())
         {

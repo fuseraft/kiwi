@@ -1,3 +1,5 @@
+using kiwi.Parsing;
+using kiwi.Tracing;
 using kiwi.Typing;
 
 namespace kiwi.Runtime;
@@ -23,8 +25,9 @@ public sealed class StackFrame
     public InstanceRef? ObjectContext { get; private set; }
     public FrameFlags Flags { get; private set; } = FrameFlags.None;
     public string Name { get; }
+    public Token? CallSiteToken { get; set; }
 
-    public StackFrame(string name, Scope scope)
+    public StackFrame(string name, Scope scope, Token? callSiteToken = null)
     {
         Name   = name;
         Scope  = scope;
@@ -42,4 +45,14 @@ public sealed class StackFrame
     public void SetFlag(FrameFlags flag)   => Flags |= flag;
     public void ClearFlag(FrameFlags flag) => Flags &= ~flag;
     public bool IsFlagSet(FrameFlags flag) => (Flags & flag) == flag;
+
+    public string FormatTraceLine()
+    {
+        var token = CallSiteToken ?? Token.Eof;
+        var location = CallSiteToken != null 
+            ? $"{FileRegistry.Instance.GetFilePath(token.Span.File)}:{token.Span.Line}:{token.Span.Pos}" 
+            : "<unknown location>";
+        
+        return $"at {Name} in {location}";
+    }
 }
