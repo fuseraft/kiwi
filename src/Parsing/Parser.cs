@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using kiwi.Parsing.AST;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
@@ -375,6 +374,11 @@ public partial class Parser
                 return null;
 
             default:
+                if (nodeToken.Type == TokenType.Eof)
+                {
+                    throw new UnexpectedEndOfFileError(GetErrorToken());
+                }
+                
                 throw new TokenStreamError(GetErrorToken(), $"Unexpected token in statement: {Enum.GetName(nodeToken.Type)}: `{nodeToken.Text}`");
         }
 

@@ -23,6 +23,7 @@ public partial class Parser(bool rethrowErrors = false)
     public ASTNode ParseTokenStreamCollection(List<TokenStream> streams)
     {
         ProgramNode root = new();
+        ASTNode? lastNode = null;
         bool isRootTokenSet = false;
 
         foreach (var stream in streams)
@@ -41,10 +42,10 @@ public partial class Parser(bool rethrowErrors = false)
             {
                 while (GetTokenType() != TokenType.Eof)
                 {
-                    var statement = ParseStatement();
-                    if (statement != null)
+                    lastNode = ParseStatement();
+                    if (lastNode != null)
                     {
-                        root.Statements.Add(statement);
+                        root.Statements.Add(lastNode);
                     }
                 }
             }
@@ -53,6 +54,11 @@ public partial class Parser(bool rethrowErrors = false)
                 if (rethrow)
                 {
                     throw;
+                }
+
+                if (e is UnexpectedEndOfFileError && lastNode != null)
+                {
+                    e.Token = lastNode.Token;
                 }
 
                 ErrorHandler.PrintError(e);

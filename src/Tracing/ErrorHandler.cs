@@ -28,14 +28,14 @@ public static class ErrorHandler
             $"[{type}]: {message}"
         ];
 
-        if (token.Type != TokenType.Default && token.Name != TokenName.Default)
+        if (token.Type != TokenType.Default/* && token.Name != TokenName.Default*/)
         {
-            lines.Add($"{filePath}:{span.Line}:{span.Pos}");
+            lines.Add($"File: {filePath}:{span.Line}:{span.Pos}");
         }
 
         foreach (var line in lines.Skip(1))
         {
-            Console.Error.WriteLine(line);
+            PrintErrorText(line);
         }
 
         if (File.Exists(filePath))
@@ -47,7 +47,7 @@ public static class ErrorHandler
         {
             foreach (var traceLine in trace)
             {
-                Console.Error.WriteLine(traceLine);
+                PrintErrorText(traceLine);
             }
         }
 
@@ -62,7 +62,7 @@ public static class ErrorHandler
         if (lines.Count > span.Line && span.Line != 0)
         {
             var line = lines[span.Line - 1];
-            Console.Error.WriteLine(line);
+            PrintErrorText(line);
             for (int i = 0; i < line.Length; ++i)
             {
                 if (i < span.Pos - 1)
@@ -74,7 +74,7 @@ public static class ErrorHandler
                     Console.Error.Write('^');
                 }
             }
-            Console.Error.WriteLine();
+            PrintErrorText();
         }
     }
 
@@ -92,8 +92,16 @@ public static class ErrorHandler
         lines.Add(string.Empty);
 
         File.AppendAllLines(Kiwi.Settings.CrashDumpPath, lines);
-        Console.Error.WriteLine($"Please check the log: {Kiwi.Settings.CrashDumpPath}");
+        PrintErrorText($"Please check the log: {Kiwi.Settings.CrashDumpPath}");
 
         Environment.Exit(1);
+    }
+
+    private static void PrintErrorText(string message = "")
+    {
+        var prevColor = Console.ForegroundColor;
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.Error.WriteLine(message);
+        Console.ForegroundColor = prevColor;
     }
 }
