@@ -29,8 +29,9 @@ public sealed class StackFrame
 
     public StackFrame(string name, Scope scope, Token? callSiteToken = null)
     {
-        Name   = name;
-        Scope  = scope;
+        Name = name;
+        Scope = scope;
+        CallSiteToken = callSiteToken;
     }
 
     public void SetObjectContext(InstanceRef? obj)
@@ -53,6 +54,11 @@ public sealed class StackFrame
             ? $"{FileRegistry.Instance.GetFilePath(token.Span.File)}:{token.Span.Line}:{token.Span.Pos}" 
             : "<unknown location>";
         
+        if (Name == "<kiwi>")
+        {
+            return "Stack:";
+        }
+
         return $"at {Name} in {location}";
     }
 }
