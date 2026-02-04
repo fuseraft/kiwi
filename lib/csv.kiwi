@@ -1,214 +1,81 @@
 package csv
-  fn parse_csv(csv_file_path: string, delimiter: string = ",", has_header_row: boolean = false): list
-    var (p = CSVParser.new(csv_file_path, delimiter))
-    var (csv_list: list = p.parse_csv())
-    return CSVParser.hashify(csv_list, has_header_row)
+  /#
+  Parses a CSV file into a list of rows.
+  #/
+  fn parse_file(file_path: string, delimiter: string = ","): list
+    if !fio::exists(file_path)
+      throw "File does not exist: ${file_path}"
+    end
+
+    content = fio::read(file_path)
+    csv::parse(content, delimiter)
+  end
+
+  /#
+  Parses a CSV string into a list of rows (each row is a list of string fields).
+  RFC 4180: handles quotes, escaped quotes (""), commas/newlines in fields.
+  #/
+  fn parse(input: string, delimiter: string = ","): list
+    rows = []
+    current_row = []
+    current_field = ""
+    in_quote = false
+    i = 0
+    len = input.size()
+
+    while i < len do
+      c = input[i]
+
+      if in_quote
+        if c == '"'
+          # check if this is an escaped double-quote
+          if i + 1 < len && input[i + 1] == '"'
+            # escaped double-quote
+            current_field += '"'
+            i += 1  # consume second "
+          else
+            # end of quoted field
+            in_quote = false
+          end
+        else
+          # add in-quote char to current_field
+          current_field += c
+        end
+      else
+        if c == '"'
+          # start of quoted field
+          in_quote = true
+        elsif c == delimiter
+          # add current_field to current row
+          current_row.push(current_field)
+          current_field = ""
+        elsif c == "\r" || c == "\n"
+          # carriage-return or line-feed
+          if c == "\r" && i + 1 < len && input[i + 1] == "\n"
+            # skip lf after cr (crlf)
+            i += 1
+          end
+          current_row.push(current_field)
+          rows.push(current_row)
+          current_row = []
+          current_field = ""
+        else
+          # add unquoted char to current_field
+          current_field += c
+        end
+      end
+
+      i += 1
+    end
+
+    # add the last field and row (for files without a trailing newline)
+    if !current_field.empty() || !current_row.empty()
+      current_row.push(current_field)
+      rows.push(current_row)
+    end
+
+    rows
   end
 end
 
 export "csv"
-
-struct CSVParser
-  fn new(input_path: string, delimiter: string = ",")
-    var (lines: list = fio::readlines(input_path))
-    @line_no = -1
-    @lines = lines
-    @max_lines = lines.size()
-    @delimiter = delimiter
-  end
-
-  static fn hashify(csv_list: list = [], header_row: boolean = false): list
-    return {} when csv_list.empty()
-
-    var (cols: list = [])
-    if header_row
-      cols.concat(csv_list.first())
-    else
-      for i in [0 to csv_list.size()] do
-        cols.push(i)
-      end
-    end
-
-    var (res: list = [])
-
-    for row, row_index in csv_list do
-      next when header_row && row_index == 0
-      
-      var (res_row: hashmap = {})
-      
-      for item, col_index in row do
-        key = cols[col_index]
-        res_row.set(key, item)
-      end
-
-      res.push(res_row)
-    end
-
-    return res
-  end
-    
-  # Parse the entire CSV stream into a 2D list of strings.
-  fn parse_csv(): list
-    var (data: list = [])
-    var (raw_line: string = "")
-
-    # Keep reading until EOF
-    while true do
-      var (res: hashmap = fetch_next_record())
-      var (success: boolean = res.success)
-      var (record: string = res.record)
-      break when !success
-      
-      var (row: list = parse_line(record))
-      data.push(row.clone())
-    end
-
-    return data
-  end
-
-  private fn get_line(): string
-    var (lines: list = @lines)
-
-    if can_read()
-      var (line: string = @lines.get(@line_no + 1))
-      @line_no += 1
-      return line
-    end
-  end
-
-  private fn can_read(): boolean
-    return !@lines.empty() && @line_no + 1 < @max_lines
-  end
-
-  private fn csv_error(msg: string = "An error occurred")
-    msg += "\nLine: ${@line_no}"
-    return msg
-  end
-
-  # Reads enough lines to form a complete CSV record if multiline fields are present.
-  # Returns false if no more complete records can be read.
-  private fn fetch_next_record(): hashmap
-    # State to track if we're currently inside quotes (to handle multiline)
-    var (in_quotes: boolean = false)
-    var (buffer: string)
-    var (out_record: string = "")
-
-    while true do
-      var (has_next: boolean = can_read())
-
-      # If we can't read a new line and we're not currently building a record,
-      # it means we've reached EOF.
-      return { "success": false, "record": out_record }
-        when !has_next
-
-      # If we have partially read an in_quotes line and never closed it, it's malformed.
-      throw csv_error("Unterminated quoted field at EOF")
-        when !has_next && in_quotes
-
-      buffer = get_line()
-
-      if out_record.empty()
-        # Start fresh from this line
-        out_record = buffer.clone()
-      else
-        # We're continuing a multiline field
-        out_record += "\n"
-        out_record += buffer.clone()
-      end
-
-      # Check if the current combined line is balanced in terms of quotes
-      # We'll do a quick scan counting quotes that are not doubled.
-
-      var (res: hashmap = line_is_complete(out_record))
-      var (line_complete: boolean = res.complete)
-      in_quotes = res.in_quotes
-
-      # Once we have a line where in_quotes ends as false, we have a complete record
-      break when line_complete && !in_quotes
-    end
-
-    return { "success": true, "record": out_record }
-  end
-
-    # Parses a single "complete" CSV line into fields.
-  fn parse_line(line: string): list
-    var (fields: list = [])
-    var (field: string = "")
-    var (i: integer = 0)
-    var (length: integer = line.chars().size())
-    var (quotes: integer = 0)
-
-    while i < length do
-      var (c = line[i])
-
-      if quotes > 0
-        # If inside quotes
-        if c == "\""
-          # Check if this is an escaped quote
-          if (i + 1 < length && line[i+1] == "\"")
-            # It's an escaped quote, add a literal quote to field
-            field += "\""
-            i += 1 # Skip next quote
-          else
-            # It's a closing quote
-            quotes -= 1
-          end
-        else
-          # Regular character inside quotes
-          field += c
-        end
-      else
-        # Outside quotes
-        if c == @delimiter
-          # End of field
-          fields.push(field.clone())
-          field = ""
-        elsif c == "\""
-          # Starting a quoted field
-          quotes += 1
-        else
-          # Regular character outside quotes
-          field += c
-        end
-      end
-
-      i += 1
-    end
-
-    # Add the last field
-    fields.push(field.clone())
-
-    # If still in quotes at the end, it's malformed.
-    # This should be caught earlier by `fetch_next_record()` logic.
-    # But let's double-check for safety.
-    throw csv_error("Unterminated quoted field.")
-      when quotes > 0
-
-    return fields
-  end
-
-  fn line_is_complete(line: string): hashmap
-    var (in_quotes: boolean = false)
-    var (i: integer = 0)
-    var (length: integer = line.size())
-
-    while i < length do
-      var (c = line[i])
-      if c == "\""
-        if in_quotes
-          # Check if escaped quote
-          if i + 1 < length && line[i + 1] == "\""
-            i += 1
-          else
-            in_quotes = false
-          end
-        else
-          in_quotes = true
-        end
-      end
-      i += 1
-    end
-
-    return { "complete": !in_quotes, "in_quotes": in_quotes }
-  end
-end
