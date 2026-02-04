@@ -6,7 +6,7 @@ fn get_files(path: string, ext: string): list
   cs_files = []
 
   for file in fio::glob(path, ["./**/${ext}"]) do
-    lines = fio::readlines(file).filter(with (l) do not l.trim().empty() end)
+    lines = fio::readlines(file).filter(do (l) => not l.trim().empty())
     
     cs_files.push({
       name: file[path_offset:],
@@ -22,7 +22,7 @@ end
 # print a report
 #/
 fn print_report(cs_files: list)
-  total_loc = cs_files.reduce(0, with (acc, f) do 
+  total_loc = cs_files.reduce(0, do (acc, f) 
     println "${f.name} => ${f.lines.size()} line(s)"
     acc += f.lines.size()
   end)

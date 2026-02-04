@@ -62,7 +62,7 @@ Removes event handlers.
 | `off "event.name" (handler)` | Removes a specific handler for an event |
 
 ```kiwi
-my_handler = with (x) do println "Got ${x}" end
+my_handler = do (x) => println "Got ${x}"
 
 on "data" (my_handler)
 emit "data" (42)          # prints: 42
