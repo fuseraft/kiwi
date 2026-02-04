@@ -34,10 +34,11 @@
 
 4. **Standard Library**
    - [`collections`](lib/collections.md) - Specialized collection types, including `Heap` and `Set`.
-   - [`compress`](compress.md) - Functions for compression and decompression.
+   - [`compress`](lib/compress.md) - Functions for compression and decompression.
    - [`conf`](lib/conf.md) - A package for reading configuration files.
    - [`console`](lib/console.md) - An interface that wraps core I/O operations.
    - [`crypto`](lib/crypto.md) - Cryptographic functions like MD5 and SHA-2.
+   - [`csv`](lib/csv.md) - Functions for parsing CSV data.
    - [`env`](lib/env.md) - For interacting with environment variables.
    - [`fio`](lib/fio.md) - Functions for file system operations.
    - [`http`](lib/http.md) - Functions for HTTP/HTTPS requests.
