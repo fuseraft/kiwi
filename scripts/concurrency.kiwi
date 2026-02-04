@@ -13,11 +13,11 @@ fn is_prime(n)
     i += 2
   end
 
-  return true
+  true
 end
 
 # Worker lambda, each runs in its own thread-pool thread
-worker = with (num, label) do
+worker = do (num, label)
   println "[Task ${label}] Computing primes up to ${num}..."
 
   task::sleep(100 + math::random(0, 400))  # simulate variable work + show interleaving
@@ -31,7 +31,7 @@ worker = with (num, label) do
   end
   
   println "[Task ${label}] Done! Found ${count} primes."
-  return count
+  count
 end
 
 # Spawn 8 tasks with different ranges

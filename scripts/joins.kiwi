@@ -74,13 +74,11 @@ end
 # This is a function for generating n number of users.
 fn add_users(n: integer)
   alpha = "abcdefghijklmnopqrstuvwxyz"
-  max_user_id = tables.users.map(with (u) do u.user_id end).max()
+  max_user_id = tables.users.map(do (u) => u.user_id).max()
   repeat n as i do
     print "\rAdding users... ${((i.to_float() / n.to_float()) * 100).to_integer()}%"
     next_user_id = max_user_id + i
-    next_user_name = [0..4].map(with (n) do
-      alpha[math::random(0, alpha.size() - 1)]
-    end).join()
+    next_user_name = [0..4].map(do (n) => alpha[math::random(0, alpha.size() - 1)]).join()
     tables.users.concat({
       user_id: next_user_id, 
       user_name: next_user_name,
@@ -104,26 +102,20 @@ WHERE u.user_id = 2
 #/
 
 clock_it("pedagogical clarity", with () do
-  println tables.users.filter(with (u) do u.user_id == 2 end)
-    .map(with (u) do
-      tables.group_users.filter(with (gu) do u.user_id == gu.user_id end)
-    end)
+  println tables.users.filter(do (u) => u.user_id == 2)
+    .map(do (u) => tables.group_users.filter(do (gu) => u.user_id == gu.user_id))
     .flatten()
-    .map(with (gu) do
-      tables.groups.filter(with (g) do gu.group_id == g.group_id end)
-    end)
+    .map(do (gu) => tables.groups.filter(do (g) => gu.group_id == g.group_id))
     .flatten()
-    .map(with (g) do { group_id: g.group_id, group_name: g.group_name } end)
+    .map(do (g) => { group_id: g.group_id, group_name: g.group_name })
 end)
 
 clock_it("more like a database engine", with () do
   println tables.group_users
-    .filter(with (gu) do gu.user_id == 2 end)
-    .map(with (gu) do
-      tables.groups.filter(with (g) do g.group_id == gu.group_id end)
-    end)
+    .filter(do (gu) => gu.user_id == 2)
+    .map(do (gu) => tables.groups.filter(do (g) => g.group_id == gu.group_id))
     .flatten()
-    .map(with (g) do { group_id: g.group_id, group_name: g.group_name } end)
+    .map(do (g) => { group_id: g.group_id, group_name: g.group_name })
 end)
 
 /#
