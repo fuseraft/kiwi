@@ -142,7 +142,7 @@ public struct BitwiseOp
         }
         else if (right.IsFloat())
         {
-            return lhs & (long)(right.GetFloat());
+            return lhs & (long)right.GetFloat();
         }
         else if (right.IsBoolean())
         {
@@ -169,7 +169,7 @@ public struct BitwiseOp
         }
         else if (right.IsFloat())
         {
-            return lhs | (long)(right.GetFloat());
+            return lhs | (long)right.GetFloat();
         }
         else if (right.IsBoolean())
         {
@@ -196,7 +196,7 @@ public struct BitwiseOp
         }
         else if (right.IsFloat())
         {
-            return lhs ^ (long)(right.GetFloat());
+            return lhs ^ (long)right.GetFloat();
         }
         else if (right.IsBoolean())
         {
@@ -217,7 +217,7 @@ public struct BitwiseOp
         }
         else if (left.IsFloat())
         {
-            return ~(long)(left.GetFloat());
+            return ~(long)left.GetFloat();
         }
         else if (left.IsBoolean())
         {
