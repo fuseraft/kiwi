@@ -379,8 +379,21 @@ public sealed class TlsSocketManager
                 WriteTimeout = 0
             };
 
-            // accept any server cert for testing
-            var sslStream = new SslStream(networkStream, false, (sender, cert, chain, errors) => true);
+            var sslStream = new SslStream(networkStream, false, (sender, cert, chain, errors) => {
+                if (errors == SslPolicyErrors.None)
+                {
+                    return true;
+                }
+
+                // Only continue if the only problem is that it's self-signed or untrusted
+                if ((errors & ~SslPolicyErrors.RemoteCertificateChainErrors) == SslPolicyErrors.None)
+                {
+                    // WIP: thumbprint, subject name, validity period, issuer, etc
+                    return true;
+                }
+
+                return false;
+            });
 
             var clientState = new TlsState
             {

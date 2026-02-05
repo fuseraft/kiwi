@@ -7,14 +7,16 @@ The `tls` package provides the same interface and is designed to work with TLS.
 ## Table of Contents
 
 - [`socket` Package Functions](#socket-package-functions)
-  - [`socket::tcpserver(host, port, backlog)`](#tcpserverhost-port-backlog)
-  - [`socket::tcpconnect(host, port)`](#tcpconnecthost-port)
-  - [`socket::accept(sock_id)`](#acceptsock_id)
-  - [`socket::close(sock_id)`](#closesock_id)
-  - [`socket::recv(sock_id, max_bytes)`](#recvsock_id-max_bytes)
-  - [`socket::send(sock_id, data)`](#sendsock_id-data)
+  - [`socket::tcpserver(host, port, backlog)`](#sockettcpserverhost-port-backlog)
+  - [`socket::tcpconnect(host, port)`](#sockettcpconnecthost-port)
+  - [`socket::accept(sock_id)`](#socketacceptsock_id)
+  - [`socket::close(sock_id)`](#socketclosesock_id)
+  - [`socket::recv(sock_id, max_bytes)`](#socketrecvsock_id-max_bytes)
+  - [`socket::send(sock_id, data)`](#socketsendsock_id-data)
 - [`tls` Package Functions](#tls-package-functions)
-  - [`tls::tcpconnect(host, port?, sni?)`](#tlstcpconnecthost-port-sni)
+  - [`tls::tcpserver(host, port, backlog)`](#tlstcpserverhost-port-backlog)
+  - [`tls::tcpconnect(host, port, sni)`](#tlstcpconnecthost-port-sni)
+  - [`tls::accept(sock_id)`](#tlsacceptsock_id)
   - [`tls::close(sock_id)`](#tlsclosesock_id)
   - [`tls::recv(sock_id, max_bytes?)`](#tlsrecvsock_id-max_bytes)
   - [`tls::send(sock_id, data)`](#tlssendsock_id-data)
@@ -22,13 +24,13 @@ The `tls` package provides the same interface and is designed to work with TLS.
 
 ## `socket` Package Functions
 
-### `tcpserver(host, port, backlog)`
+### `socket::tcpserver(host, port, backlog)`
 Creates a TCP server socket and binds it to the specified host and port.
 
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `string` | `host` | The host address to bind to (e.g., `"127.0.0.1"`. |
+| `string` | `host` | The host address to bind to (e.g., `"127.0.0.1"`). |
 | `integer` | `port` | The port number to listen on. |
 | `integer` | `backlog` | The maximum length of the pending connections queue (optional, default `128`). |
 
@@ -39,7 +41,7 @@ Creates a TCP server socket and binds it to the specified host and port.
 
 ---
 
-### `tcpconnect(host, port)`
+### `socket::tcpconnect(host, port)`
 Creates a TCP client socket and connects to the remote host and port.
 
 **Parameters**
@@ -55,7 +57,7 @@ Creates a TCP client socket and connects to the remote host and port.
 
 ---
 
-### `accept(sock_id)`
+### `socket::accept(sock_id)`
 Enqueues an asynchronous accept operation on a server socket. The operation completes when a new client connection is available.
 
 **Parameters**
@@ -70,7 +72,7 @@ Enqueues an asynchronous accept operation on a server socket. The operation comp
 
 ---
 
-### `close(sock_id)`
+### `socket::close(sock_id)`
 Closes the socket and cancels/faults any pending asynchronous operations on it.
 
 **Parameters**
@@ -83,7 +85,7 @@ _None_
 
 ---
 
-### `recv(sock_id, max_bytes)`
+### `socket::recv(sock_id, max_bytes)`
 Enqueues an asynchronous receive operation on a client socket. The operation completes when data is available or the connection is closed.
 
 **Parameters**
@@ -99,7 +101,7 @@ Enqueues an asynchronous receive operation on a client socket. The operation com
 
 ---
 
-### `send(sock_id, data)`
+### `socket::send(sock_id, data)`
 Enqueues an asynchronous send operation on a client socket. The operation completes when the data has been fully sent (or the connection is closed).
 
 **Parameters**
@@ -117,6 +119,23 @@ Here is clean, well-structured Markdown documentation for your `tls` package, st
 
 # `tls` Package Functions
 
+### `tls::tcpserver(host, port, backlog)`
+Creates a TCP server socket and binds it to the specified host and port.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `host` | The host address to bind to (e.g., `"127.0.0.1"`). |
+| `integer` | `port` | The port number to listen on. |
+| `integer` | `backlog` | The maximum length of the pending connections queue (optional, default `128`). |
+
+**Returns**
+| Type | Description |
+| :--- | :--- |
+| `integer` | The socket identifier for the server socket. |
+
+---
+
 ### `tls::tcpconnect(host, port?, sni?)`
 Establishes a TLS-secured TCP connection to the specified host and port.  
 Returns a socket ID that can be used with `recv`, `send`, and `close`.
@@ -132,6 +151,21 @@ Returns a socket ID that can be used with `recv`, `send`, and `close`.
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `integer` | Socket ID (or negative on failure)   |
+
+---
+
+### `tls::accept(sock_id)`
+Enqueues an asynchronous accept operation on a server socket. The operation completes when a new client connection is available.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer` | `sock_id` | The server socket identifier. |
+
+**Returns**
+| Type | Description |
+| :--- | :--- |
+| `integer` | An awaitable task identifier. Use `task::await()` on this ID to obtain the new client socket identifier (`integer`). |
 
 ---
 
