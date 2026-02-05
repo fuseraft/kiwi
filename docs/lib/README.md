@@ -8,7 +8,6 @@ The standard library is a collection of packages containing useful functions and
 | --- | --- |
 | [`collections`](collections.md) | Specialized collection types, including `Heap` and `Set`. |
 | [`compress`](compress.md) | Functions for compression and decompression. |
-| [`conf`](conf.md) | A package for reading configuration files. |
 | [`console`](console.md) | An interface that wraps core I/O operations. |
 | [`crypto`](crypto.md) | Cryptographic functions like MD5 and SHA-2. |
 | [`csv`](csv.md) | Functions for parsing CSV data. |
