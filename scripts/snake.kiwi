@@ -106,7 +106,7 @@ fn main()
     # Non-blocking-ish read (we'll check every frame)
     key = console::read_key(true)
 
-    if key.key == "q" || key.key == "Q"
+    if key.key.lowercase() == "q"
       game_over = true
       break
     elsif directions.has_key(key.key)
