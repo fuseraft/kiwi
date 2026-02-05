@@ -1,7 +1,7 @@
 /#
 This is a script for migrating Git repositories from ADO to GitLab.
 
-Configure the script, then run it with `./bin/kiwi scripts/ado2gitlab`
+Configure the script, then run it with `kiwi ado2gitlab`
 #/
 
 # configuration source (ADO) and destination (GitLab) information

@@ -1,5 +1,5 @@
-# curl -s https://httpbin.org/image/jpeg | ./bin/kiwi scripts/filetype
-# curl -s https://httpbin.org/image/png | ./bin/kiwi scripts/filetype
+# curl -s https://httpbin.org/image/jpeg | kiwi filetype
+# curl -s https://httpbin.org/image/png | kiwi filetype
 
 byte_data = stdin::readbytes()
 

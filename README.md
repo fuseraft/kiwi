@@ -48,6 +48,8 @@ ext install fuseraft.kiwi-lang
 
 The [docs](docs/README.md) provide comprehensive information on language features, usage, and the [standard library](docs/lib/README.md).
 
+There are also some [examples](/examples/) you can run!
+
 ## Test Suite
 
 Explore the [test suite](tests/lib/suite) for a variety of test cases. To run the test suite:
