@@ -420,7 +420,7 @@ public class Lexer : IDisposable
             ',' => CreateToken(TokenType.Comma, span, ","),
             '@' => CreateToken(TokenType.Keyword, span, "@", TokenName.KW_This),
             ':' when PeekChar() == ':' => CreateToken(TokenType.Qualifier, span, $":{GetChar()}"),
-            '.' when PeekChar() == '.' => CreateToken(TokenType.Range, span, $".{GetChar()}"),
+            '.' when PeekChar() == '.' => TokenizeDoubleDot(span),
             ':' => CreateToken(TokenType.Colon, span, ":"),
             '.' => CreateToken(TokenType.Dot, span, "."),
             '\\' => TokenizeEscaped(span),
@@ -431,6 +431,20 @@ public class Lexer : IDisposable
             '/' when PeekChar() == '#' => TokenizeBlockComment(span),
             _ => TokenizeOperator(span, c),
         };
+    }
+
+    private Token TokenizeDoubleDot(TokenSpan span)
+    {
+        var text = $".{GetChar()}";
+
+        // ...
+        if (PeekChar() == '.')
+        {
+            GetChar(); // consume the third dot
+            return CreateToken(TokenType.Keyword, span, "...", TokenName.KW_Pass);
+        }
+
+        return CreateToken(TokenType.Range, span, text);
     }
 
     private Token TokenizeEscaped(TokenSpan span)
@@ -1264,7 +1278,6 @@ public class Lexer : IDisposable
             "once" => TokenName.KW_Once,
             "override" => TokenName.KW_Override,
             "eval" => TokenName.KW_Eval, // eval is evil
-            "pass" => TokenName.KW_Pass,
             "print" => TokenName.KW_Print,
             "println" => TokenName.KW_PrintLn,
             "printxy" => TokenName.KW_PrintXy,

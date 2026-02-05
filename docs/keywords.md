@@ -54,7 +54,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`go`](#go)
   - [`null`](#null)
   - [`parse`](#parse)
-  - [`pass`](#pass)
+  - [`...`](#-no-op)
   - [`true`](#true)
   - [`false`](#false)
 
@@ -285,8 +285,8 @@ The `parse` keyword is used to parse a string expression as Kiwi.
 parse('println("hello, world!")') // prints: hello, world!
 ```
 
-### `pass`
-The `pass` keyword is used as a placeholder/no-op.
+### `...` (no-op)
+The `...` keyword is used as a placeholder/no-op.
 
 ### `true`
 The `true` keyword is inverse of `false` and is a Boolean value.
