@@ -2798,7 +2798,7 @@ public class Interpreter
 
             if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(node.Token, argValue, expectedType))
             {
-                throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {(1 + i)} of `{node.FunctionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
+                throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {1 + i} of `{node.FunctionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
             }
 
             if (argValue.IsLambda())
@@ -2816,7 +2816,7 @@ public class Interpreter
     {
         if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(token, argValue, expectedType))
         {
-            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {(1 + i)} of `{functionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
+            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {1 + i} of `{functionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
         if (argValue.IsLambda())
@@ -2884,7 +2884,7 @@ public class Interpreter
     {
         if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(token, argValue, expectedType))
         {
-            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {(1 + i)} of `{lambdaName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
+            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {1 + i} of `{lambdaName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
         if (argValue.IsLambda())

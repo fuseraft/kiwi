@@ -170,7 +170,7 @@ public static class CompressionBuiltinHandler
                 byte[] contentBytes = GetInputBytes(token, contentVal);
 
                 var entry = archive.CreateEntry(entryName);
-                entry.ExternalAttributes = (int)(FileAttributes.Normal);
+                entry.ExternalAttributes = (int)FileAttributes.Normal;
 
                 using var entryStream = entry.Open();
                 entryStream.Write(contentBytes, 0, contentBytes.Length);
