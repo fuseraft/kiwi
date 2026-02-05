@@ -221,7 +221,7 @@ public struct BitwiseOp
         }
         else if (left.IsBoolean())
         {
-            return ~(long)(left.GetBoolean() ? 1 : 0);
+            return ~(left.GetBoolean() ? 1 : 0);
         }
 
         throw new ConversionError(token, "Conversion error in bitwise ~ operation.");

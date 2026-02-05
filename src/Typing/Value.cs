@@ -101,7 +101,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     {
         if (IsInteger())
         {
-            return (double)GetInteger();
+            return GetInteger();
         }
         else if (IsFloat())
         {

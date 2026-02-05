@@ -609,7 +609,7 @@ public static class CoreBuiltinHandler
                 // char to byte
                 if (stringValue.Length == 1)
                 {
-                    return Value.CreateInteger((long)stringValue[0]);
+                    return Value.CreateInteger(stringValue[0]);
                 }
                 else
                 {
@@ -1887,7 +1887,7 @@ public static class CoreBuiltinHandler
                 return Value.CreateList([]);
             }
 
-            var bytes = value.GetBytes().ToList().Select(x => Value.CreateInteger((int)x)).ToList();
+            var bytes = value.GetBytes().ToList().Select(x => Value.CreateInteger(x)).ToList();
             return Value.CreateList(bytes);
         }
 
