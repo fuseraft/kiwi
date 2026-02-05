@@ -356,7 +356,7 @@ public static class TimeBuiltinHandler
     private static double GetTicks()
     {
         var rawTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();        
-        return (double)rawTimestamp * (1e9 / System.Diagnostics.Stopwatch.Frequency);
+        return rawTimestamp * (1e9 / System.Diagnostics.Stopwatch.Frequency);
     }
 
     private static Value TicksToMilliseconds(Token token, List<Value> args)
