@@ -16,7 +16,7 @@ end
 
 fn print_grid(grid: list)
   for row in grid do
-    row_str = row.map(with (cell) do cell ? "O" : " " end).join()
+    row_str = row.map(do (cell) => cell ? "O" : " ").join()
     println row_str
   end
 end
