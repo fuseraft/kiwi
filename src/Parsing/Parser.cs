@@ -1538,9 +1538,10 @@ public partial class Parser
         {
             if (GetTokenType() is not TokenType.String and
                 not TokenType.Identifier and
-                not TokenType.Literal)
+                not TokenType.Literal and
+                not TokenType.Operator)
             {
-                throw new SyntaxError(GetErrorToken(), "Expected a string, literal, or identifier for hashmap key.");
+                throw new SyntaxError(GetErrorToken(), "Invalid expression for hashmap key.");
             }
 
             var keyString = token.Text;
