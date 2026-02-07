@@ -1,0 +1,90 @@
+package conway
+  fn randomize(grid: list, rows: integer, cols: integer)
+    for x in [0 to cols - 1] do
+      for y in [0 to rows - 1] do
+        grid[x][y] = math::random(0, 1)
+      end
+    end
+  end
+  
+  fn run(grid: list, rows: integer, cols: integer, delay_ms: integer = 0)
+    var (last_res: string)
+
+    while true do
+      var (res: string = conway::display(grid, rows))
+    
+      println res
+
+      task::sleep(delay_ms)
+
+      if res != last_res
+        grid = conway::update(grid, rows, cols)
+      else
+        exit
+      end
+
+      last_res = res.clone()
+    end
+  end
+
+  fn display(grid: list, rows: integer): string
+    console::clear()
+
+    var (len: integer = rows - 1,
+        disp: list = [0] * len)
+
+    repeat len as i do
+      disp.set(i - 1, grid[i - 1].join(" "))
+    end
+
+    disp.join("\n").replace("0", " ").replace("1", "O")
+  end
+
+  fn count_neighbors(grid: list, rows: integer, cols: integer, x: integer, y: integer): integer
+    directions = [
+      [x - 1, y - 1],
+      [x - 1, y],
+      [x - 1, y + 1],
+      [x, y - 1],
+      [x, y + 1],
+      [x + 1, y - 1],
+      [x + 1, y],
+      [x + 1, y + 1]
+    ]
+
+    res = 0
+    nx = null
+    ny = null
+
+    for direction in directions do
+      nx = direction[0], ny = direction[1]
+      if nx >= 0 && nx < rows && ny >= 0 && ny < cols
+        res += grid[nx][ny]
+      end
+    end
+
+    res
+  end
+
+  fn update(grid: list, rows: integer, cols: integer): list
+    new_grid = grid.clone()
+
+    for x in [0 to cols - 1] do
+      for y in [0 to rows - 1] do
+        live_neighbors = conway::count_neighbors(grid, rows, cols, x, y)
+
+        if grid[x][y] == 1 && (live_neighbors == 2 || live_neighbors == 3)
+          new_grid[x][y] = 1
+        elsif grid[x][y] == 0 && live_neighbors == 3
+          new_grid[x][y] = 1
+        else
+          new_grid[x][y] = 0
+        end
+      end
+    end
+
+    new_grid
+  end
+end
+
+export "conway"
