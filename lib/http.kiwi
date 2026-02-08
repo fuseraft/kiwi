@@ -362,11 +362,15 @@ package http
 
 #region Client
   # Core request functions (returns awaitable task id)
-  fn get(url: string, headers: hashmap = {}, opts: hashmap = {})
+  fn set_timeout(timeout_ms: integer)
+    __http_timeout__(timeout_ms)
+  end
+
+  fn get(url: string, headers: hashmap = {})
     __http_get__(url, headers)
   end
 
-  fn post(url: string, body: any = null, headers: hashmap = {}, opts: hashmap = {})
+  fn post(url: string, body: any = null, headers: hashmap = {})
     var (content = body)
 
     if typeof(body) == hashmap
@@ -377,7 +381,7 @@ package http
     __http_post__(url, content, headers)
   end
 
-  fn put(url: string, body: any = null, headers: hashmap = {}, opts: hashmap = {})
+  fn put(url: string, body: any = null, headers: hashmap = {})
     var (content = body)
 
     if typeof(body) == hashmap
@@ -388,7 +392,7 @@ package http
     __http_put__(url, content, headers)
   end
 
-  fn delete(url: string, headers: hashmap = {}, opts: hashmap = {})
+  fn delete(url: string, headers: hashmap = {})
     var (content = body)
 
     if typeof(body) == hashmap
@@ -400,31 +404,31 @@ package http
   end
 
   # Convenience wrappers that await + wrap result
-  fn await_get(url: string, headers: hashmap = {}, opts: hashmap = {}): HttpResponse
-    task_id = http::get(url, headers, opts)
+  fn await_get(url: string, headers: hashmap = {}): HttpResponse
+    task_id = http::get(url, headers)
     raw = await(task_id)
     HttpResponse.new(raw)
   end
 
-  fn await_post(url: string, body: any = null, headers: hashmap = {}, opts: hashmap = {}): HttpResponse
-    task_id = http::post(url, body, headers, opts)
+  fn await_post(url: string, body: any = null, headers: hashmap = {}): HttpResponse
+    task_id = http::post(url, body, headers)
     raw = await(task_id)
     HttpResponse.new(raw)
   end
 
   # JSON-specific helpers
-  fn await_json_get(url: string, headers: hashmap = {}, opts: hashmap = {}): hashmap
-    resp = http::await_get(url, headers, opts)
+  fn await_json_get(url: string, headers: hashmap = {}): hashmap
+    resp = http::await_get(url, headers)
     resp.json()
   end
 
-  fn await_json_post(url: string, data: hashmap, headers: hashmap = {}, opts: hashmap = {}): hashmap
-    resp = http::await_post(url, data, headers, opts)
+  fn await_json_post(url: string, data: hashmap, headers: hashmap = {}): hashmap
+    resp = http::await_post(url, data, headers)
     resp.json()
   end
 
   # Download helper
-  fn await_download(url: string, filename: string, headers: hashmap = {}, opts: hashmap = {}): boolean
+  fn await_download(url: string, filename: string, headers: hashmap = {}): boolean
     task_id = __http_download__(url, filename, headers)
     result = await(task_id)
     result.ok

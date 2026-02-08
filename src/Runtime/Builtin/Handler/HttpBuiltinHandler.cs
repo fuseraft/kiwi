@@ -30,11 +30,22 @@ public static class HttpBuiltinHandler
             TokenName.Builtin_Http_Delete   => HttpRequest(token, HttpMethod.Delete, args),
             TokenName.Builtin_Http_Head     => HttpRequest(token, HttpMethod.Head, args),
             TokenName.Builtin_Http_Options  => HttpRequest(token, HttpMethod.Options, args),
-
+            TokenName.Builtin_Http_Timeout  => SetTimeout(token, args),
             TokenName.Builtin_Http_Download => HttpDownload(token, args),
 
             _ => throw new FunctionUndefinedError(token, token.Text)
         };
+    }
+
+    private static Value SetTimeout(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, HttpBuiltin.HttpTimeout, 1, args.Count);
+        ParameterTypeMismatchError.ExpectInteger(token, HttpBuiltin.HttpTimeout, 0, args[0]);
+
+        var timeoutMilliseconds = new long[] {1L, args[0].GetInteger()}.Max();
+        Client.Timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds);
+
+        return Value.CreateInteger(timeoutMilliseconds);
     }
 
     private static Value HttpRequest(Token token, HttpMethod method, List<Value> args)
@@ -248,12 +259,21 @@ public static class HttpBuiltinHandler
 
         if (isTextLike)
         {
-            string body = await resp.Content.ReadAsStringAsync();
+            using Stream stream = await resp.Content.ReadAsStreamAsync();
+            using StreamReader reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 8192);
+            string body = await reader.ReadToEndAsync();
             respMap[Value.CreateString("body")] = Value.CreateString(body);
         }
         else
         {
-            byte[] bodyBytes = await resp.Content.ReadAsByteArrayAsync();
+            await using var responseStream = await resp.Content.ReadAsStreamAsync();
+            string tempFile = Path.GetTempFileName();
+            await using (var fileStream = File.Create(tempFile))
+            {
+                await responseStream.CopyToAsync(fileStream);
+            }
+
+            byte[] bodyBytes = await File.ReadAllBytesAsync(tempFile);
             respMap[Value.CreateString("body")] = Value.CreateBytes(bodyBytes);
         }
 
