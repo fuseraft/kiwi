@@ -73,6 +73,8 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
                 return 1;
             }
 
+            streams.Clear();
+
             Interpreter.ExecutionPath = ExecutionPath;
             SocketManager.Instance.Start();
             TlsSocketManager.Instance.Start();
