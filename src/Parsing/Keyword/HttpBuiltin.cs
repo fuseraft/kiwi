@@ -10,6 +10,7 @@ public static class HttpBuiltin
     public const string HttpPatch = "__http_patch__";
     public const string HttpPost = "__http_post__";
     public const string HttpPut = "__http_put__";
+    public const string HttpTimeout= "__http_timeout__";
 
     private static readonly IReadOnlyDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
@@ -22,6 +23,7 @@ public static class HttpBuiltin
             { HttpPatch,    TokenName.Builtin_Http_Patch    },
             { HttpPost,     TokenName.Builtin_Http_Post     },
             { HttpPut,      TokenName.Builtin_Http_Put      },
+            { HttpTimeout,  TokenName.Builtin_Http_Timeout  },
         };
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();

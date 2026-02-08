@@ -161,6 +161,7 @@ public enum TokenName
   Builtin_Http_Patch,
   Builtin_Http_Post,
   Builtin_Http_Put,
+  Builtin_Http_Timeout,
   Builtin_Kiwi_TypeOf,
   Builtin_List_All,
   Builtin_List_Each,
