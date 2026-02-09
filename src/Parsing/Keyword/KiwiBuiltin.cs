@@ -3,7 +3,7 @@ namespace kiwi.Parsing.Keyword;
 public static class KiwiBuiltin
 {
     public const string ExecPath = "__execpath__";
-    public const string Main = "__main__";
+    public const string Main = "__entrypath__";
     public const string Tokenize = "__tokenize__";
     public const string TypeOf = "typeof";
 

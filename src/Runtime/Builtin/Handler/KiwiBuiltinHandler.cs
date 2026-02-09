@@ -1,5 +1,6 @@
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
+using kiwi.Runtime.Builtin.Util;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
 
@@ -21,7 +22,13 @@ public static class KiwiBuiltinHandler
     private static Value ExecPath(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, KiwiBuiltin.ExecPath, 0, args.Count);
-        return Value.CreateString(Interpreter.Current?.ExecutionPath ?? string.Empty);
+        var execPath = Interpreter.Current?.ExecutionPath ?? string.Empty;
+        if (string.IsNullOrEmpty(execPath))
+        {
+            return Value.EmptyString;
+        }
+
+        return Value.CreateString(FileUtil.GetAbsolutePath(token, execPath));
     }
 
     private static Value Main(Token token, List<Value> args)
