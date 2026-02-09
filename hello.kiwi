@@ -1,3 +1,5 @@
 #!/usr/bin/env kiwi
 
 println "Hello, World!"
+
+# println __tokenize__(fio::read(__execpath__())).pretty()
