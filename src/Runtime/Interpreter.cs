@@ -27,6 +27,7 @@ public class Interpreter
     public Dictionary<string, string> CliArgs { get; set; } = [];
     public KContext Context { get; private set; } = new();
     public string ExecutionPath { get; set; } = string.Empty;
+    public string EntryPath { get; set; } = string.Empty;
     private Stack<StackFrame> CallStack { get; set; } = [];
     private Stack<string> PackageStack { get; set; } = [];
     private Stack<string> StructStack { get; set; } = [];

@@ -11,15 +11,23 @@ public static class KiwiBuiltinHandler
         return builtin switch
         {
             TokenName.Builtin_Kiwi_ExecPath => ExecPath(token, args),
+            TokenName.Builtin_Kiwi_Main => Main(token, args),
             TokenName.Builtin_Kiwi_Tokenize => Tokenize(token, args),
             TokenName.Builtin_Kiwi_TypeOf => TypeOf(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
+    
     private static Value ExecPath(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, KiwiBuiltin.ExecPath, 0, args.Count);
         return Value.CreateString(Interpreter.Current?.ExecutionPath ?? string.Empty);
+    }
+
+    private static Value Main(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, KiwiBuiltin.Main, 0, args.Count);
+        return Value.CreateString(Interpreter.Current?.EntryPath ?? string.Empty);
     }
 
     private static Value Tokenize(Token token, List<Value> args)
