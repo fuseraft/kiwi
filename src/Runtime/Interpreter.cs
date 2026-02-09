@@ -2558,7 +2558,7 @@ public class Interpreter
 
         if (KiwiBuiltin.IsBuiltin(op))
         {
-            return InterpretKiwiBuiltin(node.Token, op, args);
+            return KiwiBuiltinHandler.Execute(node.Token, op, args);
         }
         else if (ReflectorBuiltin.IsBuiltin(op))
         {
@@ -3443,23 +3443,6 @@ public class Interpreter
         }
 
         return result;
-    }
-
-    private Value InterpretKiwiBuiltin(Token token, TokenName op, List<Value> args)
-    {
-        return op switch
-        {
-            TokenName.Builtin_Kiwi_TypeOf => TypeOf(token, args),
-            _ => throw new InvalidOperationError(token, "Invalid builtin invocation."),
-        };
-    }
-
-    private Value TypeOf(Token token, List<Value> args)
-    {
-        ParameterCountMismatchError.Check(token, KiwiBuiltin.TypeOf, 1, args.Count);
-        var target = args[0];
-
-        return Value.CreateString(TypeRegistry.GetTypeName(target));
     }
 
     private Value InterpretCallableBuiltin(MethodCallNode node, List<Value> args)
