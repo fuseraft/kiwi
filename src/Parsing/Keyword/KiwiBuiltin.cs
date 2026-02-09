@@ -2,12 +2,14 @@ namespace kiwi.Parsing.Keyword;
 
 public static class KiwiBuiltin
 {
+    public const string Tokenize = "__tokenize__";
     public const string TypeOf = "typeof";
 
     private static readonly IReadOnlyDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
         {
-            { TypeOf, TokenName.Builtin_Kiwi_TypeOf },
+            { Tokenize, TokenName.Builtin_Kiwi_Tokenize },
+            { TypeOf,   TokenName.Builtin_Kiwi_TypeOf   },
         };
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();
