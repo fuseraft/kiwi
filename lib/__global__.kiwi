@@ -82,3 +82,7 @@ Spawns a task.
 fn spawn(callback: lambda, args: list = [])
   task::spawn(callback, args)
 end
+
+fn __main__()
+  __entrypath__() == __execpath__()
+end
