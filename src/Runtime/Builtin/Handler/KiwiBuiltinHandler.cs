@@ -10,10 +10,16 @@ public static class KiwiBuiltinHandler
     {
         return builtin switch
         {
+            TokenName.Builtin_Kiwi_ExecPath => ExecPath(token, args),
             TokenName.Builtin_Kiwi_Tokenize => Tokenize(token, args),
             TokenName.Builtin_Kiwi_TypeOf => TypeOf(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
+    }
+    private static Value ExecPath(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, KiwiBuiltin.ExecPath, 0, args.Count);
+        return Value.CreateString(Interpreter.Current?.ExecutionPath ?? string.Empty);
     }
 
     private static Value Tokenize(Token token, List<Value> args)
@@ -24,14 +30,14 @@ public static class KiwiBuiltinHandler
 
         if (string.IsNullOrWhiteSpace(code))
         {
-            return Value.CreateList();
+            return Value.CreateHashmap();
         }
         
         Dictionary<Value, Value> res = [];
 
         try
         {
-            using Lexer lexer = new(code);
+            using Lexer lexer = new(0, code);
             var stream = lexer.GetTokenStream();
             var counter = 0;
             List<Value> tokens = [];
@@ -41,14 +47,14 @@ public static class KiwiBuiltinHandler
                 var t = stream.Current();
                 Dictionary<Value, Value> hash = [];
                 hash.Add(Value.CreateString("token"), Value.CreateInteger(++counter));
-                hash.Add(Value.CreateString("text"), Value.CreateString($"{token.Text}"));
+                hash.Add(Value.CreateString("text"), Value.CreateString($"{t.Text}"));
                 hash.Add(Value.CreateString("span"), Value.CreateHashmap(new Dictionary<Value, Value>()
                 {
-                    { Value.CreateString("line"), Value.CreateInteger(token.Span.Line) },
-                    { Value.CreateString("pos"), Value.CreateInteger(token.Span.Pos) }
+                    { Value.CreateString("line"), Value.CreateInteger(t.Span.Line) },
+                    { Value.CreateString("pos"), Value.CreateInteger(t.Span.Pos) }
                 }));
-                hash.Add(Value.CreateString("type"), Value.CreateString($"{token.Type}"));
-                // hash.Add(Value.CreateString("name"), Value.CreateString($"{token.Name}"));
+                hash.Add(Value.CreateString("type"), Value.CreateString($"{t.Type}"));
+                // hash.Add(Value.CreateString("name"), Value.CreateString($"{t.Name}"));
 
                 tokens.Add(Value.CreateHashmap(hash));
 
@@ -62,7 +68,7 @@ public static class KiwiBuiltinHandler
             res.Add(Value.CreateString("error"), Value.CreateString(ex.Message));
         }
 
-        return Value.CreateList(res);
+        return Value.CreateHashmap(res);
     }
 
     private static Value TypeOf(Token token, List<Value> args)
