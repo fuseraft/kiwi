@@ -23,8 +23,7 @@
       "cli_args": [
         "--stdlib-path",
         "~/github/kiwi/lib",
-        "~/github/kiwi/hello",
-        "20"
+        "-i"
       ]
     },
     "environment_variables": {

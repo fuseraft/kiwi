@@ -71,13 +71,12 @@ public class REPLRunner(Interpreter interpreter) : IRunner
                 }
                 else
                 {
-                    code.Append(input);
+                    code.AppendLine(input);
                 }
 
                 // Parse and clear the string builder.
                 Parser parser = new(rethrowErrors);
                 using Lexer lexer = new(replId, code.ToString());
-                code.Clear();
 
                 var ast = parser.ParseTokenStreamCollection([lexer.GetTokenStream()]);
                 if (parser.HasError)
@@ -85,8 +84,14 @@ public class REPLRunner(Interpreter interpreter) : IRunner
                     continue;
                 }
 
+                code.Clear();
+
                 // If we have a valid AST, walk it.
                 Interpreter.Interpret(ast);
+            }
+            catch (UnexpectedEndOfFileError)
+            {
+                // assume the user is writing a multi-line block
             }
             catch (KiwiError e)
             {
