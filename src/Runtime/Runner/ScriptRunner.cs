@@ -76,6 +76,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
             streams.Clear();
 
             Interpreter.ExecutionPath = ExecutionPath;
+            Interpreter.EntryPath = ExecutionPath;
             SocketManager.Instance.Start();
             TlsSocketManager.Instance.Start();
             Interpreter.Interpret(ast);
