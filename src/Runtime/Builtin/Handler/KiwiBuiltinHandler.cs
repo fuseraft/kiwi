@@ -12,7 +12,7 @@ public static class KiwiBuiltinHandler
         return builtin switch
         {
             TokenName.Builtin_Kiwi_ExecPath => ExecPath(token, args),
-            TokenName.Builtin_Kiwi_Main => Main(token, args),
+            TokenName.Builtin_Kiwi_Main => Main_(token, args),
             TokenName.Builtin_Kiwi_Tokenize => Tokenize(token, args),
             TokenName.Builtin_Kiwi_TypeOf => TypeOf(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
@@ -31,7 +31,7 @@ public static class KiwiBuiltinHandler
         return Value.CreateString(FileUtil.GetAbsolutePath(token, execPath));
     }
 
-    private static Value Main(Token token, List<Value> args)
+    private static Value Main_(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, KiwiBuiltin.Main, 0, args.Count);
         return Value.CreateString(Interpreter.Current?.EntryPath ?? string.Empty);
