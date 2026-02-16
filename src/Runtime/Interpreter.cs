@@ -9,6 +9,7 @@ using kiwi.Runtime.Builtin.Handler;
 using kiwi.Settings;
 using kiwi.Runtime.Builtin.Dispatcher;
 using kiwi.Runtime.Builtin.Util;
+using System.Security.Cryptography.X509Certificates;
 
 namespace kiwi.Runtime;
 
@@ -28,7 +29,7 @@ public class Interpreter
     public KContext Context { get; private set; } = new();
     public string ExecutionPath { get; set; } = string.Empty;
     public string EntryPath { get; set; } = string.Empty;
-    private Stack<StackFrame> CallStack { get; set; } = [];
+    public Stack<StackFrame> CallStack { get; set; } = [];
     private Stack<string> PackageStack { get; set; } = [];
     private Stack<string> StructStack { get; set; } = [];
     private Stack<string> FuncStack { get; set; } = [];
@@ -1987,11 +1988,11 @@ public class Interpreter
         }
         else if (ListBuiltin.IsBuiltin(node.Op))
         {
-            return InterpretListBuiltin(node.Token, ref obj, node.Op, GetMethodCallArguments(node.Arguments));
+            return ListBuiltinHandler.HandleListBuiltin(node.Token, ref obj, node.Op, GetMethodCallArguments(node.Arguments));
         }
         else if (CallableBuiltin.IsBuiltin(node.Op))
         {
-            return InterpretCallableBuiltin(node, GetMethodCallArguments(node.Arguments));
+            return HandleCallableBuiltin(node, GetMethodCallArguments(node.Arguments));
         }
         else if (CoreBuiltin.IsBuiltin(node.Op))
         {
@@ -2535,18 +2536,16 @@ public class Interpreter
                 throw new UnimplementedMethodError(node.Token, struc.Identifier, methodName);
             }
 
-            if (!isCtor)
+
+            var baseStruct = Context.Structs[kstruct.BaseStruct];
+            var baseStructMethods = baseStruct.Methods;
+
+            if (!baseStructMethods.ContainsKey(methodName))
             {
-                var baseStruct = Context.Structs[kstruct.BaseStruct];
-                var baseStructMethods = baseStruct.Methods;
-
-                if (!baseStructMethods.ContainsKey(methodName))
-                {
-                    throw new UnimplementedMethodError(node.Token, struc.Identifier, methodName);
-                }
-
-                return ExecuteStructMethod(baseStructMethods, methodName, frame, node, struc);
+                throw new UnimplementedMethodError(node.Token, struc.Identifier, methodName);
             }
+
+            return ExecuteStructMethod(baseStructMethods, methodName, frame, node, struc);
         }
 
         return ExecuteStructMethod(methods, methodName, frame, node, struc);
@@ -2728,7 +2727,7 @@ public class Interpreter
     private Value CallObjectBaseMethod(MethodCallNode node, InstanceRef obj, string baseStruct, string methodName)
     {
         var struc = Context.Structs[baseStruct];
-        var function = struc.Methods[methodName];
+        struc.Methods.TryGetValue(methodName, out KFunction? function);
         var isCtor = methodName == "new";
 
         var frame = CallStack.Peek();
@@ -2745,31 +2744,39 @@ public class Interpreter
 
         if (function == null)
         {
+            // check if it's a builtin.
+            if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName builtin))
+            {
+                return HandleObjectBuiltin(node, obj, baseStruct, builtin);
+            }
+
             throw new UnimplementedMethodError(node.Token, obj.StructName, methodName);
-        }
-
-        if (function.IsPrivate)
-        {
-            throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
-        }
-
-        var result = CallFunction(function, node.Arguments, node.Token, methodName);
-
-        if (contextSwitch)
-        {
-            frame.SetObjectContext(objContext);
         }
         else
         {
-            frame.ClearFlag(FrameFlags.InObject);
-        }
+            if (function.IsPrivate)
+            {
+                throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
+            }
 
-        if (isCtor)
-        {
-            return Value.CreateObject(obj);
-        }
+            var result = CallFunction(function, node.Arguments, node.Token, methodName);
 
-        return result;
+            if (contextSwitch)
+            {
+                frame.SetObjectContext(objContext);
+            }
+            else
+            {
+                frame.ClearFlag(FrameFlags.InObject);
+            }
+
+            if (isCtor)
+            {
+                return Value.CreateObject(obj);
+            }
+
+            return result;
+        }
     }
 
     private void PrepareFunctionCall(KFunction func, FunctionCallNode node, HashSet<string> defaultParameters, Dictionary<string, int> typeHints, StackFrame functionFrame)
@@ -3446,7 +3453,101 @@ public class Interpreter
         return result;
     }
 
-    private Value InterpretCallableBuiltin(MethodCallNode node, List<Value> args)
+    private Value HandleObjectBuiltin(MethodCallNode node, InstanceRef obj, string baseStruct, TokenName builtin)
+    {
+        var token = node.Token;
+        List<Value> args = [];
+        foreach (var arg in node.Arguments)
+        {
+            var value = Interpret(arg);
+            args.Add(value);
+        }
+
+        var instVars = obj.InstanceVariables;
+
+        switch (builtin)
+        {
+            case TokenName.Builtin_Core_Clone:
+                return Value.CreateObject(new InstanceRef
+                {
+                    StructName = obj.StructName,
+                    InstanceVariables = obj.InstanceVariables.ToDictionary()
+                });
+
+            case TokenName.Builtin_Core_HasKey:
+                ParameterCountMismatchError.Check(token, CoreBuiltin.HasKey, 1, args.Count);
+                ParameterTypeMismatchError.ExpectString(token, CoreBuiltin.HasKey, 0, args[0]);
+                return Value.CreateBoolean(obj.HasVariable(args[0].GetString()));
+
+            case TokenName.Builtin_Core_Get:
+                ParameterCountMismatchError.CheckRange(token, CoreBuiltin.Get, 1, 2, args.Count);
+                ParameterTypeMismatchError.ExpectString(token, CoreBuiltin.Get, 0, args[0]);
+                var getKey = $"@{args[0].GetString()}";
+                var defaultValue = args.Count == 2 ? args[1] : Value.CreateNull();
+                return obj.HasVariable(getKey) ? obj.InstanceVariables[getKey] : defaultValue;
+
+            case TokenName.Builtin_Core_IsA:
+                ParameterCountMismatchError.Check(token, CoreBuiltin.IsA, 1, args.Count);
+                string? type = null;
+                
+                if (args[0].IsStruct())
+                {
+                    type = args[0].GetStruct().Identifier;
+                }
+                else if (args[0].IsString())
+                {
+                    type = args[0].GetString();
+                }
+
+                if (string.IsNullOrEmpty(type))
+                {
+                    throw new ParameterTypeMismatchError(token, CoreBuiltin.IsA, 0, args[0].Type, [Typing.ValueType.Struct, Typing.ValueType.String]);
+                }
+
+                List<string> hierarchy = [obj.StructName];
+                if (!string.IsNullOrEmpty(baseStruct))
+                {
+                    var baseStructName = Context.Structs[baseStruct].Name;
+                    while (!string.IsNullOrEmpty(baseStructName))
+                    {
+                        hierarchy.Add(baseStructName);
+                        if (!string.IsNullOrEmpty(Context.Structs[baseStructName].BaseStruct))
+                        {
+                            baseStructName = Context.Structs[baseStructName].BaseStruct;
+                            continue;
+                        }
+                        break;
+                    }
+                }
+
+                return Value.CreateBoolean(hierarchy.Contains(type));
+
+            case TokenName.Builtin_Core_Keys:
+                ParameterCountMismatchError.Check(token, CoreBuiltin.Keys, 0, args.Count);
+                List<Value> keys = [.. obj.InstanceVariables.Keys.Select(key => Value.CreateString(key[1..]))];
+                return Value.CreateList(keys);
+
+            case TokenName.Builtin_Core_Set:
+                ParameterCountMismatchError.Check(token, CoreBuiltin.Set, 2, args.Count);
+                ParameterTypeMismatchError.ExpectString(token, CoreBuiltin.Set, 0, args[0]);
+                var setKey = $"@{args[0].GetString()}";
+                if (!obj.HasVariable(setKey))
+                {
+                    throw new VariableUndefinedError(token, args[0].GetString());
+                }
+                obj.InstanceVariables[setKey] = args[1];
+                break;
+
+            case TokenName.Builtin_Core_Values:
+                ParameterCountMismatchError.Check(token, CoreBuiltin.Values, 0, args.Count);
+                List<Value> values = [.. obj.InstanceVariables.Values];
+                return Value.CreateList(values);
+        }
+
+        return Value.Default;
+    }
+
+    private Value HandleCallableBuiltin(MethodCallNode node, List<Value> args)
     {
         var result = Value.Default;
         var obj = Interpret(node.Object);
@@ -3494,232 +3595,7 @@ public class Interpreter
         return CallableBuiltinHandler.Execute(this, node.Token, node.Op, callable, callableName, args);
     }
 
-    private Value InterpretListBuiltin(Token token, ref Value obj, TokenName op, List<Value> args)
-    {
-        if (!obj.IsList())
-        {
-            throw new InvalidOperationError(token, "Expected a list for specialized list builtin.");
-        }
-
-        var list = obj.GetList();
-
-        switch (op)
-        {
-            case TokenName.Builtin_List_Max:
-                return ListMax(token, list);
-
-            case TokenName.Builtin_List_Min:
-                return ListMin(token, list);
-
-            case TokenName.Builtin_List_Sort:
-                // perform a simple sort, otherwise expect a lambda.
-                if (args.Count == 0)
-                {
-                    return ListSort(list);
-                }
-                break;
-
-            case TokenName.Builtin_List_Sum:
-                return ListSum(list);
-
-            default:
-                break;
-        }
-
-        if (args.Count == 1 && args[0].IsInteger())
-        {
-            switch (op)
-            {
-                case TokenName.Builtin_List_Skip:
-                    return ListSkip(ref obj, (int)args[0].GetInteger());
-                case TokenName.Builtin_List_Take:
-                    return ListTake(ref obj, (int)args[0].GetInteger());
-            }
-        }
-
-        if (args.Count == 1 && args[0].IsLambda())
-        {
-            var arg = args[0];
-
-            var lambdaRef = arg.GetLambda();
-
-            if (!Context.HasLambda(lambdaRef.Identifier))
-            {
-                throw new InvalidOperationError(token, $"Unrecognized lambda '{lambdaRef.Identifier}'.");
-            }
-
-            var lambda = Context.Lambdas[lambdaRef.Identifier];
-            var isReturnSet = CallStack.Peek().IsFlagSet(FrameFlags.Return);
-            var result = Value.Default;
-
-            switch (op)
-            {
-                case TokenName.Builtin_List_Sort:
-                    result = LambdaSort(lambda, list);
-                    break;
-
-                case TokenName.Builtin_List_Each:
-                    result = LambdaEach(lambda, list);
-                    break;
-
-                case TokenName.Builtin_List_Map:
-                    result = LambdaMap(lambda, list);
-                    break;
-
-                case TokenName.Builtin_List_None:
-                    result = LambdaNone(lambda, list);
-                    break;
-
-                case TokenName.Builtin_List_Filter:
-                    result = LambdaFilter(lambda, list);
-                    break;
-
-                case TokenName.Builtin_List_All:
-                    result = LambdaAll(lambda, list);
-                    break;
-
-                default:
-                    break;
-            }
-
-            var frame = CallStack.Peek();
-            if (!isReturnSet && frame.IsFlagSet(FrameFlags.Return) && frame.ReturnValue != null)
-            {
-                if (!BooleanOp.IsSame(frame.ReturnValue, result))
-                {
-                    frame.ReturnValue = result;
-                }
-            }
-
-            return result;
-        }
-        
-        if (args.Count == 2 && op == TokenName.Builtin_List_Reduce)
-        {
-            var arg = args[1];
-
-            if (!arg.IsLambda())
-            {
-                throw new InvalidOperationError(token, "Expected a lambda in specialized list builtin.");
-            }
-            var lambdaRef = arg.GetLambda();
-
-            if (!Context.HasLambda(lambdaRef.Identifier))
-            {
-                throw new InvalidOperationError(token, $"Unrecognized lambda '{lambdaRef.Identifier}'.");
-            }
-
-            var lambda = Context.Lambdas[lambdaRef.Identifier];
-
-            return LambdaReduce(lambda, args[0], list);
-        }
-
-        throw new InvalidOperationError(token, "Invalid specialized list builtin invocation.");
-    }
-
-    private static Value ListSkip(ref Value obj, int count)
-    {
-        var lst = obj.GetList();
-
-        try
-        {
-            return Value.CreateList([.. lst.Skip(count)]);
-        }
-        catch {}
-
-        return Value.CreateList();
-    }
-
-    private static Value ListTake(ref Value obj, int count)
-    {
-        var lst = obj.GetList();
-
-        try
-        {
-            return Value.CreateList([.. lst.Take(count)]);
-        }
-        catch {}
-
-        return Value.CreateList();
-    }
-
-    private static Value ListSum(List<Value> list)
-    {
-        var sum = 0D;
-        var isFloatResult = false;
-
-        foreach (var val in list)
-        {
-            if (val.IsInteger())
-            {
-                sum += val.GetInteger();
-            }
-            else if (val.IsFloat())
-            {
-                sum += val.GetFloat();
-                isFloatResult = true;
-            }
-        }
-
-        if (isFloatResult)
-        {
-            return Value.CreateFloat(sum);
-        }
-
-        return Value.CreateInteger((long)sum);
-    }
-
-    private static Value ListMin(Token token, List<Value> list)
-    {
-        if (list.Count == 0)
-        {
-            return Value.CreateNull();
-        }
-
-        var minValue = list[0];
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            var val = list[i];
-
-            if (ComparisonOp.GetLtResult(ref val, ref minValue))
-            {
-                minValue = val;
-            }
-        }
-
-        return minValue;
-    }
-
-    private static Value ListMax(Token token, List<Value> list)
-    {
-        if (list.Count == 0)
-        {
-            return Value.CreateNull();
-        }
-
-        var maxValue = list[0];
-
-        for (var i = 0; i < list.Count; i++)
-        {
-            var val = list[i];
-
-            if (ComparisonOp.GetGtResult(ref val, ref maxValue))
-            {
-                maxValue = val;
-            }
-        }
-
-        return maxValue;
-    }
-
-    private static Value ListSort(List<Value> list)
-    {
-        list.Sort();
-        return Value.CreateList(list);
-    }
-
-        private static bool RequiresSigCheck(ASTNodeType type)
+    private static bool RequiresSigCheck(ASTNodeType type)
     {
         return type is ASTNodeType.Program
             or ASTNodeType.Export
@@ -3749,365 +3625,6 @@ public class Interpreter
     }
 
     private static Value Visit(LiteralNode node) => node.Value;
-
-    private Value LambdaSort(KLambda lambda, List<Value> list)
-    {
-        var frame = CallStack.Peek();
-        var scope = frame.Scope;
-
-        if (lambda.Parameters.Count != 2)
-        {
-            return Value.CreateList(list);
-        }
-
-        var lhsVar = lambda.Parameters[0].Key;
-        var rhsVar = lambda.Parameters[1].Key;
-
-        scope.Declare(lhsVar, Value.Default);
-        scope.Declare(rhsVar, Value.Default);
-
-        var decl = lambda.Decl;
-
-        list.Sort((a, b) =>
-        {
-            scope.Assign(lhsVar, a);
-            scope.Assign(rhsVar, b);
-
-            Value result = Value.Default;
-
-            foreach (var stmt in decl.Body)
-            {
-                result = Interpret(stmt);
-                if (frame.IsFlagSet(FrameFlags.Return))
-                {
-                    frame.ClearFlag(FrameFlags.Return);
-                }
-            }
-
-            bool isLess = BooleanOp.IsTruthy(result);
-
-            if (isLess) return -1;
-
-            scope.Assign(lhsVar, b);
-            scope.Assign(rhsVar, a);
-
-            result = Value.Default;
-
-            foreach (var stmt in decl.Body)
-            {
-                result = Interpret(stmt);
-                if (frame.IsFlagSet(FrameFlags.Return))
-                {
-                    frame.ClearFlag(FrameFlags.Return);
-                }
-            }
-
-            bool isGreater = BooleanOp.IsTruthy(result);
-
-            if (isGreater)
-            {
-                return 1;
-            }
-
-            return 0;
-        });
-
-        scope.Remove(lhsVar);
-        scope.Remove(rhsVar);
-
-        return Value.CreateList(list);
-    }
-
-    private Value LambdaEach(KLambda lambda, List<Value> list)
-    {
-        var defaultParameters = lambda.DefaultParameters;
-        var scope = CallStack.Peek().Scope;
-
-        var valueVariable = string.Empty;
-        var indexVariable = string.Empty;
-        var hasIndexVariable = false;
-
-        if (lambda.Parameters.Count == 0)
-        {
-            return Value.Default;
-        }
-
-        for (var i = 0; i < lambda.Parameters.Count; ++i)
-        {
-            var param = lambda.Parameters[i];
-            if (i == 0)
-            {
-                valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
-            }
-            else if (i == 1)
-            {
-                indexVariable = param.Key;
-                hasIndexVariable = true;
-                scope.Assign(indexVariable, Value.Default);
-            }
-        }
-
-        var result = Value.Default;
-        var indexValue = Value.Default;
-        var decl = lambda.Decl;
-
-        for (var i = 0; i < list.Count; ++i)
-        {
-            scope.Assign(valueVariable, list[i]);
-
-            if (hasIndexVariable)
-            {
-                indexValue.SetValue(i);
-                scope.Assign(indexVariable, indexValue);
-            }
-
-            foreach (var stmt in decl.Body)
-            {
-                result = Interpret(stmt);
-            }
-        }
-
-        scope.Remove(valueVariable);
-        if (hasIndexVariable)
-        {
-            scope.Remove(indexVariable);
-        }
-
-        return result;
-    }
-
-    private Value LambdaNone(KLambda lambda, List<Value> list)
-    {
-        var filtered = LambdaFilter(lambda, list);
-        var noneFound = Value.False;
-
-        if (filtered.IsList())
-        {
-            var isEmpty = filtered.GetList().Count == 0;
-            noneFound.SetValue(isEmpty);
-        }
-
-        return noneFound;
-    }
-
-    private Value LambdaMap(KLambda lambda, List<Value> list)
-    {
-        var defaultParameters = lambda.DefaultParameters;
-        var frame = CallStack.Peek();
-        var scope = frame.Scope;
-
-        var mapVariable = string.Empty;
-
-        if (lambda.Parameters.Count == 0)
-        {
-            return Value.CreateList(list);
-        }
-
-        for (var i = 0; i < lambda.Parameters.Count; ++i)
-        {
-            var param = lambda.Parameters[i];
-            if (i == 0)
-            {
-                mapVariable = param.Key;
-                scope.Assign(mapVariable, Value.Default);
-            }
-        }
-
-        var decl = lambda.Decl;
-        List<Value> resultList = [];
-        Value result = Value.Default;
-
-        for (var i = 0; i < list.Count; ++i)
-        {
-            scope.Assign(mapVariable, list[i]);
-
-            foreach (var stmt in decl.Body)
-            {
-                result = Interpret(stmt);
-                if (frame.IsFlagSet(FrameFlags.Return))
-                {
-                    frame.ClearFlag(FrameFlags.Return);
-                }
-                resultList.Add(result);
-            }
-        }
-
-        scope.Remove(mapVariable);
-
-        return Value.CreateList(resultList);
-    }
-
-    private Value LambdaReduce(KLambda lambda, Value accumulator, List<Value> list)
-    {
-        var defaultParameters = lambda.DefaultParameters;
-        var scope = CallStack.Peek().Scope;
-
-        var accumVariable = string.Empty;
-        var valueVariable = string.Empty;
-
-        if (lambda.Parameters.Count != 2)
-        {
-            return accumulator;
-        }
-
-        for (var i = 0; i < lambda.Parameters.Count; ++i)
-        {
-            var param = lambda.Parameters[i];
-            if (i == 0)
-            {
-                accumVariable = param.Key;
-                scope.Assign(accumVariable, accumulator);
-            }
-            else if (i == 1)
-            {
-                valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
-            }
-        }
-
-        var decl = lambda.Decl;
-        Value result;
-
-        for (var i = 0; i < list.Count; ++i)
-        {
-            scope.Assign(valueVariable, list[i]);
-
-            foreach (var stmt in decl.Body)
-            {
-                result = Interpret(stmt);
-            }
-        }
-
-        result = scope.GetBinding(accumVariable);
-
-        scope.Remove(accumVariable);
-        scope.Remove(valueVariable);
-
-        return result;
-    }
-
-    private Value LambdaAll(KLambda lambda, List<Value> list)
-    {
-        var defaultParameters = lambda.DefaultParameters;
-        var scope = CallStack.Peek().Scope;
-
-        var valueVariable = string.Empty;
-        var indexVariable = string.Empty;
-        var hasIndexVariable = false;
-
-        var listSize = list.Count;
-        var newListSize = 0;
-
-        for (var i = 0; i < lambda.Parameters.Count; ++i)
-        {
-            var param = lambda.Parameters[i];
-            if (i == 0)
-            {
-                valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
-            }
-            else if (i == 1)
-            {
-                indexVariable = param.Key;
-                hasIndexVariable = true;
-                scope.Assign(indexVariable, Value.Default);
-            }
-        }
-
-        var result = Value.Default;
-        var indexValue = Value.Default;
-        var decl = lambda.Decl;
-
-        for (var i = 0; i < list.Count; ++i)
-        {
-            scope.Assign(valueVariable, list[i]);
-
-            if (hasIndexVariable)
-            {
-                indexValue.SetValue(i);
-                scope.Assign(indexVariable, indexValue);
-            }
-
-            foreach (var stmt in decl.Body)
-            {
-                result = Interpret(stmt);
-
-                if (BooleanOp.IsTruthy(result))
-                {
-                    ++newListSize;
-                }
-            }
-        }
-
-        scope.Remove(valueVariable);
-        if (hasIndexVariable)
-        {
-            scope.Remove(indexVariable);
-        }
-
-        return Value.CreateBoolean(newListSize == listSize);
-    }
-
-    private Value LambdaFilter(KLambda lambda, List<Value> list)
-    {
-        var defaultParameters = lambda.DefaultParameters;
-        var scope = CallStack.Peek().Scope;
-
-        var valueVariable = string.Empty;
-        var indexVariable = string.Empty;
-        var hasIndexVariable = false;
-
-        for (var i = 0; i < lambda.Parameters.Count; ++i)
-        {
-            var param = lambda.Parameters[i];
-            if (i == 0)
-            {
-                valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
-            }
-            else if (i == 1)
-            {
-                indexVariable = param.Key;
-                hasIndexVariable = true;
-                scope.Assign(indexVariable, Value.Default);
-            }
-        }
-
-        var result = Value.Default;
-        var indexValue = Value.Default;
-        var decl = lambda.Decl;
-        List<Value> resultList = [];
-
-        for (var i = 0; i < list.Count; ++i)
-        {
-            scope.Assign(valueVariable, list[i]);
-
-            if (hasIndexVariable)
-            {
-                indexValue.SetValue(i);
-                scope.Assign(indexVariable, indexValue);
-            }
-
-            foreach (var stmt in decl.Body)
-            {
-                result = Interpret(stmt);
-
-                if (BooleanOp.IsTruthy(result))
-                {
-                    resultList.Add(list[i]);
-                }
-            }
-        }
-
-        scope.Remove(valueVariable);
-        if (hasIndexVariable)
-        {
-            scope.Remove(indexVariable);
-        }
-
-        return Value.CreateList(resultList);
-    }
 
     private StackFrame PushFrame(StackFrame frame, bool inLambda = false)
     {
