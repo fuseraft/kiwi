@@ -358,20 +358,20 @@ public partial class Serializer
     {
         if (string.IsNullOrEmpty(obj.Identifier))
         {
-            return $"[Struct(Name={obj.StructName})]";
+            return $"<struct(name={obj.StructName})>";
         }
 
-        return $"[Struct(Name={obj.StructName}, Identifier={obj.Identifier}]";
+        return $"<struct(name={obj.StructName}, identifier={obj.Identifier}>";
     }
 
     public static string BasicSerializeLambda(LambdaRef lambda)
     {
         if (string.IsNullOrEmpty(lambda.Identifier))
         {
-            return "[Lambda]";
+            return "<lambda>";
         }
 
-        return $"[Lambda(Identifier={lambda.Identifier})]";
+        return $"<lambda(identifier={lambda.Identifier})>";
     }
     
     public static string GetOperatorString(TokenName name)
