@@ -26,7 +26,7 @@ fn generate_markdown(output_name: string = "output.md", ext: string = ".cs", lan
     fio::writeln(output_path, markdown.flatten())
 
     throw "could not generate ${output_path}" 
-      when !fio::exists(output_path)
+      when !fio::isfile(output_path)
     
     println "generated ${output_path}"
   catch (err)
