@@ -26,6 +26,7 @@ public static class FileIOBuiltin
     public const string GetFileAbsolutePath = "__fio_fileabspath__";
     public const string GetFileInfo = "__fio_fileinfo__";
     public const string Glob = "__fio_glob__";
+    public const string PathParts = "__fio_pathparts__";
 
     // Directory operations
     public const string ListDirectory = "__fio_listdir__";
@@ -62,6 +63,7 @@ public static class FileIOBuiltin
             { MakeDirectory,       TokenName.Builtin_FileIO_MakeDirectory },
             { MakeDirectoryP,      TokenName.Builtin_FileIO_MakeDirectoryP },
             { MoveFile,            TokenName.Builtin_FileIO_MoveFile },
+            { PathParts,           TokenName.Builtin_FileIO_PathParts },
             { ReadBytes,           TokenName.Builtin_FileIO_ReadBytes },
             { ReadFile,            TokenName.Builtin_FileIO_ReadFile },
             { ReadLines,           TokenName.Builtin_FileIO_ReadLines },
