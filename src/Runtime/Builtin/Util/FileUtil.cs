@@ -227,6 +227,20 @@ public struct FileUtil
         }
     }
 
+    public static List<string> GetPathParts(Token token, string path)
+    {
+        try
+        {
+            char[] seps = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+            var parts = path.Split(seps, StringSplitOptions.RemoveEmptyEntries);
+            return [.. parts];
+        }
+        catch (Exception)
+        {
+            throw new FileSystemError(token, $"Could not get path parts from: {path}");
+        }
+    }
+
     public static string GetParentPath(Token token, string path)
     {
         try

@@ -3,7 +3,7 @@ package csv
   Parses a CSV file into a list of rows.
   #/
   fn parse_file(file_path: string, delimiter: string = ","): list
-    if !fio::exists(file_path)
+    if !fio::isfile(file_path)
       throw "File does not exist: ${file_path}"
     end
 

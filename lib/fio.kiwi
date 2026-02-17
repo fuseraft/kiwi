@@ -72,8 +72,8 @@ package fio
   @param _path The path to a file or directory.
   @return Boolean
   #/
-  fn exists(_path)
-    return __fio_isfile__(_path)
+  fn exists(_path: string): boolean
+    return __fio_isfile__(_path) || __fio_isdir__(_path)
   end
 
   /#
@@ -119,12 +119,21 @@ package fio
   end
 
   /#
-  @summary Check if a path exists.
+  @summary Check if a directory exists.
   @param _path The path to a directory.
   @return Boolean
   #/
-  fn isdir(_path)
+  fn isdir(_path: string): boolean
     return __fio_isdir__(_path)
+  end
+
+  /#
+  @summary Check if a file exists.
+  @param _path The path to a file.
+  @return Boolean
+  #/
+  fn isfile(_path: string): boolean
+    return __fio_isfile__(_path)
   end
 
   /#
@@ -292,6 +301,15 @@ package fio
   #/
   fn writeslice(_path: string, _offset: integer, _data: bytes): integer
     __fio_writeslice__(_path, _offset, _data)
+  end
+
+  # TODO: we should build a kiwi pathlib <.<
+  fn dirname(_path)
+    return __fio_filepath__(_path)
+  end
+
+  fn pathparts(_path): list
+    return __fio_pathparts__(_path)
   end
 end
 

@@ -270,14 +270,14 @@ public class Lexer : IDisposable
         return c;
     }
 
-    private void SkipWhitespace()
+    private void SkipWhitespace(bool skipNewlines = true)
     {
         int byteValue;
         while ((byteValue = stream.ReadByte()) != -1)
         {
             var c = (char)byteValue;
 
-            if (c == '\n' || c == '\r')
+            if (skipNewlines && (c == '\n' || c == '\r'))
             {
                 ++LineNumber;
                 Position = 1;
@@ -287,7 +287,7 @@ public class Lexer : IDisposable
                 ++Position;
             }
 
-            if (!char.IsWhiteSpace(c) && c != '\n')
+            if (!char.IsWhiteSpace(c) || (!skipNewlines && (c == '\r' || c == '\n')))
             {
                 --stream.Position;
                 --Position;
@@ -836,7 +836,7 @@ public class Lexer : IDisposable
     {
         var text = string.Empty;
 
-        SkipWhitespace();
+        SkipWhitespace(false);
         char? ch;
 
         while ((ch = GetChar()) != null)

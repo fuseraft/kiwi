@@ -324,7 +324,6 @@ public static class CoreBuiltinHandler
     private static Value IsA(Token token, Value value, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.IsA, 1, args.Count);
-
         ParameterTypeMismatchError.ExpectString(token, CoreBuiltin.IsA, 0, args[0]);
         
         var typeName = args[0].GetString();

@@ -131,7 +131,7 @@ fn validate_config(cfg: hashmap): hashmap
   end
 
   # if the input file does not exist, quit
-  if cfg.extract && !fio::exists(cfg.input_path)
+  if cfg.extract && !fio::isfile(cfg.input_path)
     println "Input path does not exist: ${cfg.input_path}"
     exit 1
   end
@@ -140,7 +140,7 @@ fn validate_config(cfg: hashmap): hashmap
     cfg.input_is_dir = fio::isdir(cfg.input_path)
 
     # if the input is a file which does not exist, quit
-    if !cfg.input_is_dir && !fio::exists(cfg.input_path)
+    if !cfg.input_is_dir && !fio::isfile(cfg.input_path)
       println "Input path does not exist: ${cfg.input_path}"
       exit 1
     end
@@ -154,7 +154,7 @@ fn validate_config(cfg: hashmap): hashmap
 
   # if the output file already exists, ask to overwrite, if no then quit
   if cfg.output_path_specified
-    if fio::exists(cfg.output_path)
+    if fio::isfile(cfg.output_path)
       println "Output path already exists: ${cfg.output_path}"
       overwrite = console::read("Overwrite? (Y/n): ").lowercase().begins_with("y")
       if !overwrite

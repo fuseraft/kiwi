@@ -34,6 +34,7 @@ public static class FileIOBuiltinHandler
             TokenName.Builtin_FileIO_MakeDirectory => MakeDirectory(token, args),
             TokenName.Builtin_FileIO_MakeDirectoryP => MakeDirectoryP(token, args),
             TokenName.Builtin_FileIO_MoveFile => MoveFile(token, args),
+            TokenName.Builtin_FileIO_PathParts => PathParts(token, args),
             TokenName.Builtin_FileIO_ReadBytes => ReadBytes(token, args),
             TokenName.Builtin_FileIO_ReadFile => ReadFile(token, args),
             TokenName.Builtin_FileIO_ReadLines => ReadLines(token, args),
@@ -433,6 +434,16 @@ public static class FileIOBuiltinHandler
 
         var fileName = args[0].GetString();
         return Value.CreateString(FileUtil.GetAbsolutePath(token, fileName));
+    }
+
+    private static Value PathParts(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, FileIOBuiltin.PathParts, 1, args.Count);
+        ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.PathParts, 0, args[0]);
+
+        var path = args[0].GetString();
+        var parts = FileUtil.GetPathParts(token, path).Select(p => Value.CreateString(p)).ToList();
+        return Value.CreateList(parts);
     }
 
     private static Value CreateFile(Token token, List<Value> args)

@@ -129,6 +129,11 @@ public static class TypeBuiltins
             builtins[type] = map;
         }
 
+        if (map.ContainsKey(name))
+        {
+            return;
+        }
+
         map.Add(name, func);
     }
 
