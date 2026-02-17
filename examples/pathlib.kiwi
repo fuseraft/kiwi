@@ -1,0 +1,35 @@
+/#
+This is a work in progress... would like to add a pathlib-like experience to kiwi.
+#/
+
+# get the path to kiwi
+kiwi_path = env::bin().to_path()
+
+# find the bin/ path (its parent)
+bin_path = kiwi_path.find("bin")
+
+# find the folder where kiwi is installed
+base_path = bin_path.parent()
+
+# build the lib path
+lib_path = base_path / "lib"
+
+println kiwi_path.to_hash()         # {"path": "/home/scs/github/kiwi/bin/kiwi"}
+println bin_path.to_hash()          # {"path": "/home/scs/github/kiwi/bin"}
+println base_path.to_hash()         # {"path": "/home/scs/github/kiwi"}
+println lib_path.to_hash()          # {"path": "/home/scs/github/kiwi/lib"}
+
+println kiwi_path.is_dir()          # false
+println kiwi_path.is_file()         # true
+println lib_path.exists()           # true
+
+p = Path.new('/etc')
+q = p / 'init.d' / 'reboot'
+println q.to_hash()                 # {"path": "/etc/init.d/reboot"}
+
+x = Path.new('baz') / 'qux'
+x = q.joinpath(['foo', x, 'bar'])
+println x.to_hash()                 # {"path": "/etc/init.d/reboot/foo/baz/qux/bar"}
+
+println kiwi_path.parents().map(do (p) => p.to_string())
+# ["/home/scs/github/kiwi/bin", "/home/scs/github/kiwi", "/home/scs/github", "/home/scs", "/home", "/"]
