@@ -1,15 +1,8 @@
 using kiwi.Parsing.AST;
 
-public class PackageNode : ASTNode
+public class PackageNode(ASTNode? packageName) : ASTNode(ASTNodeType.Package)
 {
-    public PackageNode() : base(ASTNodeType.Package) { }
-    public PackageNode(ASTNode? packageName)
-        : base(ASTNodeType.Package)
-    {
-        PackageName = packageName;
-    }
-
-    public ASTNode? PackageName { get; }
+    public ASTNode? PackageName { get; } = packageName;
     public List<ASTNode?> Body { get; set; } = [];
 
     public override void Print(int depth)

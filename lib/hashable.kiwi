@@ -1,0 +1,14 @@
+package hashable
+
+/#
+A generally useful struct. 
+
+When inherited, structs receive a to_hash() function that returns their instance variables as a hashmap.
+#/
+struct Hashable
+  fn to_hash(): hashmap
+    (@).keys().reduce({}, do (acc, k) => acc[k] = (@).get(k))
+  end
+end
+
+end

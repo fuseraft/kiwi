@@ -1,10 +1,7 @@
 namespace kiwi.Parsing.AST;
 
-public class RepeatLoopNode : ASTNode
+public class RepeatLoopNode() : ASTNode(ASTNodeType.RepeatLoop)
 {
-    public RepeatLoopNode()
-        : base(ASTNodeType.RepeatLoop) { }
-
     public ASTNode? Count { get; set; }
     public ASTNode? Alias { get; set; }
     public List<ASTNode?> Body { get; set; } = [];

@@ -1,12 +1,8 @@
 namespace kiwi.Parsing.AST;
 
-public class SelfNode : ASTNode
+public class SelfNode(string name = "") : ASTNode(ASTNodeType.Self)
 {
-    public SelfNode() : base(ASTNodeType.Self) { }
-    public SelfNode(string name)
-        : base(ASTNodeType.Self) => Name = name;
-
-    public string Name { get; } = string.Empty;
+    public string Name { get; } = name;
 
     public override void Print(int depth)
     {

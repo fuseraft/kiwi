@@ -32,6 +32,7 @@ The `fio` package contains functionality for working with files and directories.
   - [`rmdirf(_path)`](#rmdirf_path)
   - [`touch(_path)`](#touch_path)
   - [`tmpdir()`](#tmpdir)
+  - [`tmpfile()`](#tmpfile)
   - [`write(_path, _text)`](#write_path-_text)
   - [`writeln(_path, _text)`](#writeln_path-_text)
   - [`writebytes(_path, _data)`](#writebytes_path-_data)
@@ -409,6 +410,20 @@ Create an empty file.
 ### `tmpdir()`
 
 Gets the path to the temporary directory.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `string` | The temporary directory path. |
+
+### `tmpfile()`
+
+Creates a 0 byte temporary file and returns its path as a string.
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `string` | The temporary file path. |
 
 **Returns**
 | Type | Description |

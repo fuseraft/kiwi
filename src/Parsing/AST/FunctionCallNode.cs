@@ -1,20 +1,11 @@
 namespace kiwi.Parsing.AST;
 
-public class FunctionCallNode : ASTNode
+public class FunctionCallNode(string functionName, TokenName op, List<ASTNode?> arguments) 
+    : ASTNode(ASTNodeType.FunctionCall)
 {
-    public FunctionCallNode() : base(ASTNodeType.FunctionCall) { }
-    public FunctionCallNode(string functionName, TokenName op,
-                     List<ASTNode?> arguments)
-          : base(ASTNodeType.FunctionCall)
-    {
-        FunctionName = functionName;
-        Op = op;
-        Arguments = arguments;
-    }
-
-    public string FunctionName { get; set; } = string.Empty;
-    public TokenName Op { get; set; } = TokenName.Default;
-    public List<ASTNode?> Arguments { get; set; } = [];
+    public string FunctionName { get; set; } = functionName;
+    public TokenName Op { get; set; } = op;
+    public List<ASTNode?> Arguments { get; set; } = arguments;
 
     public override void Print(int depth)
     {

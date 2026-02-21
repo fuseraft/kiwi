@@ -1,18 +1,9 @@
 namespace kiwi.Parsing.AST;
 
-public class ThrowNode : ASTNode
+public class ThrowNode(ASTNode? errorValue, ASTNode? condition) : ASTNode(ASTNodeType.Throw)
 {
-    public ThrowNode()
-        : base(ASTNodeType.Throw) { }
-    public ThrowNode(ASTNode? errorValue, ASTNode? condition)
-        : base(ASTNodeType.Throw)
-    {
-        ErrorValue = errorValue;
-        Condition = condition;
-    }
-
-    public ASTNode? ErrorValue { get; set; }
-    public ASTNode? Condition { get; set; }
+    public ASTNode? ErrorValue { get; set; } = errorValue;
+    public ASTNode? Condition { get; set; } = condition;
 
     public override void Print(int depth)
     {

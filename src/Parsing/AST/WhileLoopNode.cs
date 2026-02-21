@@ -1,10 +1,7 @@
 namespace kiwi.Parsing.AST;
 
-public class WhileLoopNode : ASTNode
+public class WhileLoopNode() : ASTNode(ASTNodeType.WhileLoop)
 {
-    public WhileLoopNode()
-        : base(ASTNodeType.WhileLoop) { }
-
     public ASTNode? Condition { get; set; }
     public List<ASTNode?> Body { get; set; } = [];
 

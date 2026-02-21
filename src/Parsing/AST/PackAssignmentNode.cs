@@ -3,9 +3,7 @@ namespace kiwi.Parsing.AST;
 public class PackAssignmentNode : ASTNode
 {
     public PackAssignmentNode() : base(ASTNodeType.PackAssignment) { }
-    public PackAssignmentNode(List<ASTNode?> left,
-                       List<ASTNode?> right,
-                       TokenName op)
+    public PackAssignmentNode(List<ASTNode?> left, List<ASTNode?> right, TokenName op)
         : base(ASTNodeType.PackAssignment)
     {
         Left = left;

@@ -1,10 +1,7 @@
 namespace kiwi.Parsing.AST;
 
-public class CaseWhenNode : ASTNode
+public class CaseWhenNode() : ASTNode(ASTNodeType.CaseWhen)
 {
-    public CaseWhenNode()
-        : base(ASTNodeType.CaseWhen) { }
-
     public ASTNode? Condition { get; set; }
     public List<ASTNode?> Body { get; set; } = [];
 

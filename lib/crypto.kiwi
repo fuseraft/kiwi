@@ -473,5 +473,3 @@ struct SHA224 < SHA256
     @_sha = sha
   end
 end
-
-export "crypto"

@@ -1,0 +1,201 @@
+package path
+  /#
+  I wanted a pathlib-like experience in kiwi.
+  #/
+  struct Path < Hashable
+    fn new(path: string)
+      # wip: path is not collapsed (which is fine for now)
+      @path = path
+    end
+
+    fn abspath(): string
+      var (path: string = @path)
+      fio::abspath(path)
+    end
+
+    fn combine(new_path): Path
+      var (paths: list = [@path, Path.path_string(new_path)])
+      Path.new(fio::combine(paths))
+    end
+
+    fn contains(path_part: string): boolean
+      parts().contains(path_part)
+    end
+
+    fn copy(new_path): boolean
+      var (
+        path: string = @path, 
+        copy_to: Path = Path.path_string(new_path).to_path(),
+      )
+
+      return false 
+        when not exists()
+
+      if is_dir()
+        if copy_to.is_dir()
+          fio::copyr(path, copy_to.path)
+        elsif not copy_to.exists()
+          fio::copyr(path, copy_to.path)
+        end
+      elsif is_file()
+        if copy_to.is_dir()
+          fio::copy(path, (copy_to / name()).path)
+        elsif not copy_to.exists()
+          fio::copy(path, copy_to.path)
+        end
+      end
+    end
+
+    fn exists(): boolean
+      var (path: string = @path)
+      fio::exists(path)
+    end
+
+    fn ext(): string
+      var (path: string = @path)
+      fio::ext(path)
+    end
+
+    fn find(path_part: string): Path
+      var (path: string = @path)
+      find_path = Path.new(path)
+      
+      while find_path.name() != path_part do
+        find_path = find_path.parent()
+      end
+
+      find_path
+    end
+
+    fn is_dir(): boolean
+      var (path: string = @path)
+      fio::isdir(path)
+    end
+
+    fn is_file(): boolean
+      var (path: string = @path)
+      fio::isfile(path)
+    end
+
+    fn joinpath(path_parts: list): Path
+      var (path: string = @path)
+      Path.new(
+        fio::combine(
+          [path].concat(
+            path_parts.map(do (part) => Path.path_string(part))
+          )
+        )
+      )
+    end
+
+    fn name(): string
+      parts().last()
+    end
+
+    fn parent(): Path
+      var (path: string = @path)
+      Path.new(fio::parentdir(path))
+    end
+
+    fn parents(): list
+      var (find_root: Path = (@).clone(), found: boolean = false, paths: list = [])
+      while not found do
+        try
+          find_root = find_root.parent()
+          paths.push(find_root.clone())
+        catch
+          found = true
+        end
+      end
+      paths
+    end
+
+    fn parts(): list
+      var (path: string = @path)
+      fio::pathparts(path)
+    end
+
+    fn remove(): boolean
+      var (path: string  = @path,
+        is_path: boolean = exists())
+
+      if is_file()
+        fio::remove(path)
+      elsif is_dir()
+        fio::rmdir(path)
+      end
+
+      is_path and not exists()
+    end
+
+    fn rmdir(): boolean
+      var (path: string  = @path,
+        is_path: boolean = exists())
+
+      if is_dir()
+        fio::rmdirf(path)
+      end
+
+      is_path and not exists()
+    end
+
+    fn root(): Path
+      var (find_root: Path = (@).clone(), found: boolean = false)
+      while not found do
+        try
+          find_root = find_root.parent()
+        catch
+          found = true
+        end
+      end
+      find_root
+    end
+
+    fn readbytes(): bytes
+      read_bytes()
+    end
+
+    fn readlines(): list
+      read_lines()
+    end
+
+    fn read(): string
+      var (path: string = @path)
+      is_file() ? fio::read(path) : ""
+    end
+    
+    fn read_bytes(): bytes
+      var (path: string = @path)
+      is_file() ? fio::readbytes(path) : [].to_bytes()
+    end
+
+    fn read_lines(): list
+      var (path: string = @path)
+      is_file() ? fio::readlines(path) : []
+    end
+
+    fn to_string(): string
+      "${@path}"
+    end
+
+    fn /(new_path): Path
+      combine(new_path)
+    end
+
+    static fn cwd(): Path
+      '.'.to_path().abspath().to_path()
+    end
+
+    static fn path_string(new_path): string
+      new_path.is_a("Path") ? new_path.path : new_path
+    end
+
+    static fn temp_dir(): Path
+      fio::tmpdir().to_path()
+    end
+
+    static fn temp_file(): Path
+      fio::tmpfile().to_path()
+    end
+  end
+end

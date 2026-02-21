@@ -51,7 +51,7 @@ public class KiwiSettings
         return new KiwiSettings
         {
             Name = "kiwi",
-            Version = "1.3.6",
+            Version = "1.3.7",
             SafeMode = true,
             Extensions = new FileExtensions
             {

@@ -84,5 +84,3 @@ package console
     println msg
   end
 end
-
-export "console"
