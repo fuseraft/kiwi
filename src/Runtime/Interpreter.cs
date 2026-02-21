@@ -1395,8 +1395,8 @@ public class Interpreter
         {
             var whenCondition = Interpret(whenNode);
 
-            if ((isSwitch && BooleanOp.IsTruthy(whenCondition))
-                || (!isSwitch && ComparisonOp.Equal(ref testValue, ref whenCondition)))
+            if ((!isSwitch && BooleanOp.IsTruthy(whenCondition))
+                || (isSwitch && ComparisonOp.Equal(ref testValue, ref whenCondition)))
             {
                 var frame = CallStack.Peek();
                 foreach (var stmt in whenNode.Body)
