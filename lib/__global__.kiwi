@@ -153,6 +153,11 @@ struct Path < Hashable
     fio::exists(path)
   end
 
+  fn ext(): string
+    var (path: string = @path)
+    fio::ext(path)
+  end
+
   fn find(path_part: string): Path
     var (path: string = @path)
     find_path = Path.new(path)
@@ -214,7 +219,6 @@ struct Path < Hashable
 
   fn remove(): boolean
     var (path: string  = @path,
-      removed: boolean = false, 
       is_path: boolean = exists())
 
     if is_file()
@@ -223,7 +227,18 @@ struct Path < Hashable
       fio::rmdir(path)
     end
 
-    is_path and not fio::exists(path)
+    is_path and not exists()
+  end
+
+  fn rmdir(): boolean
+    var (path: string  = @path,
+      is_path: boolean = exists())
+
+    if is_dir()
+      fio::rmdirf(path)
+    end
+
+    is_path and not exists()
   end
 
   fn root(): Path
