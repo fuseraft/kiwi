@@ -1,18 +1,9 @@
 namespace kiwi.Parsing.AST;
 
-public class LambdaCallNode : ASTNode
+public class LambdaCallNode(ASTNode? lambdaNode, List<ASTNode?> arguments) : ASTNode(ASTNodeType.LambdaCall)
 {
-    public LambdaCallNode() : base(ASTNodeType.LambdaCall) { }
-    public LambdaCallNode(ASTNode? lambdaNode,
-                     List<ASTNode?> arguments)
-          : base(ASTNodeType.LambdaCall)
-    {
-        LambdaNode = lambdaNode;
-        Arguments = arguments;
-    }
-
-    public ASTNode? LambdaNode { get; set; }
-    public List<ASTNode?> Arguments { get; set; } = [];
+    public ASTNode? LambdaNode { get; set; } = lambdaNode;
+    public List<ASTNode?> Arguments { get; set; } = arguments;
 
     public override void Print(int depth)
     {

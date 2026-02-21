@@ -2,11 +2,8 @@ using kiwi.Typing;
 
 namespace kiwi.Parsing.AST;
 
-public class FunctionNode : ASTNode
+public class FunctionNode() : ASTNode(ASTNodeType.Function)
 {
-    public FunctionNode()
-        : base(ASTNodeType.Function) { }
-
     public string Name { get; set; } = string.Empty;
     public List<KeyValuePair<string, ASTNode?>> Parameters { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];

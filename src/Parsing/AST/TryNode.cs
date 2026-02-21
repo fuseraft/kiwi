@@ -1,14 +1,12 @@
 namespace kiwi.Parsing.AST;
 
-public class TryNode : ASTNode
+public class TryNode() : ASTNode(ASTNodeType.Try)
 {
     public List<ASTNode?> TryBody { get; set; } = [];
     public List<ASTNode?> CatchBody { get; set; } = [];
     public List<ASTNode?> FinallyBody { get; set; } = [];
     public ASTNode? ErrorType { get; set; }
     public ASTNode? ErrorMessage { get; set; }
-
-    public TryNode() : base(ASTNodeType.Try) { }
 
     public override void Print(int depth)
     {

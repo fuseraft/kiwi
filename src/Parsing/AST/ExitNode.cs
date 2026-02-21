@@ -1,18 +1,9 @@
 namespace kiwi.Parsing.AST;
 
-public class ExitNode : ASTNode
+public class ExitNode(ASTNode? exitValue, ASTNode? condition) : ASTNode(ASTNodeType.Exit)
 {
-    public ExitNode()
-        : base(ASTNodeType.Exit) { }
-    public ExitNode(ASTNode? exitValue, ASTNode? condition)
-        : base(ASTNodeType.Exit)
-    {
-        ExitValue = exitValue;
-        Condition = condition;
-    }
-
-    public ASTNode? ExitValue { get; set; }
-    public ASTNode? Condition { get; set; }
+    public ASTNode? ExitValue { get; set; } = exitValue;
+    public ASTNode? Condition { get; set; } = condition;
 
     public override void Print(int depth)
     {

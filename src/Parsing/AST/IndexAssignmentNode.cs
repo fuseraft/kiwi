@@ -1,19 +1,11 @@
 namespace kiwi.Parsing.AST;
 
-public class IndexAssignmentNode : ASTNode
+public class IndexAssignmentNode(ASTNode? obj, TokenName op, ASTNode? initializer) 
+    : ASTNode(ASTNodeType.IndexAssignment)
 {
-    public IndexAssignmentNode() : base(ASTNodeType.IndexAssignment) { }
-    public IndexAssignmentNode(ASTNode? obj, TokenName op, ASTNode? initializer)
-          : base(ASTNodeType.IndexAssignment)
-    {
-        Object = obj;
-        Initializer = initializer;
-        Op = op;
-    }
-
-    public ASTNode? Object { get; set; }
-    public TokenName Op { get; set; } = TokenName.Default;
-    public ASTNode? Initializer { get; set; }
+    public ASTNode? Object { get; set; } = obj;
+    public TokenName Op { get; set; } = op;
+    public ASTNode? Initializer { get; set; } = initializer;
 
     public override void Print(int depth)
     {

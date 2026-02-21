@@ -2,18 +2,10 @@ using kiwi.Typing;
 
 namespace kiwi.Parsing.AST;
 
-public class UnaryOperationNode : ASTNode
+public class UnaryOperationNode(TokenName op, ASTNode? operand) : ASTNode(ASTNodeType.UnaryOperation)
 {
-    public UnaryOperationNode() : base(ASTNodeType.UnaryOperation) { }
-    public UnaryOperationNode(TokenName op, ASTNode? operand)
-        : base(ASTNodeType.UnaryOperation)
-    {
-        Op = op;
-        Operand = operand;
-    }
-
-    public TokenName Op { get; }
-    public ASTNode? Operand { get; }
+    public TokenName Op { get; } = op;
+    public ASTNode? Operand { get; } = operand;
 
     public override void Print(int depth)
     {

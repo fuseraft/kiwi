@@ -1,15 +1,8 @@
 namespace kiwi.Parsing.AST;
 
-public class ImportNode : ASTNode
+public class ImportNode(ASTNode? packageName) : ASTNode(ASTNodeType.Import)
 {
-    public ImportNode() : base(ASTNodeType.Import) { }
-    public ImportNode(ASTNode? packageName)
-        : base(ASTNodeType.Import)
-    {
-        PackageName = packageName;
-    }
-
-    public ASTNode? PackageName { get; }
+    public ASTNode? PackageName { get; } = packageName;
 
     public override void Print(int depth)
     {

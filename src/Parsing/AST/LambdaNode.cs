@@ -2,11 +2,8 @@ using kiwi.Typing;
 
 namespace kiwi.Parsing.AST;
 
-public class LambdaNode : ASTNode
+public class LambdaNode() : ASTNode(ASTNodeType.Lambda)
 {
-    public LambdaNode()
-        : base(ASTNodeType.Lambda) { }
-
     public List<KeyValuePair<string, ASTNode?>> Parameters { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];
     public Dictionary<string, int> TypeHints { get; set; } = [];

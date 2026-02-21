@@ -2,8 +2,7 @@ namespace kiwi.Parsing.AST;
 
 public class ReturnNode : ASTNode
 {
-    public ReturnNode()
-        : base(ASTNodeType.Return) { }
+    public ReturnNode() : base(ASTNodeType.Return) { }
     public ReturnNode(ASTNode? returnValue, ASTNode? condition)
         : base(ASTNodeType.Return)
     {

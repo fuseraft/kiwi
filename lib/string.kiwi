@@ -1,8 +1,118 @@
+require "path"
 
 /#
 A package with interesting string operations.
 #/
 package string
+  struct StringIterator
+    fn new(s)
+      @chars = s.chars()
+      @len = @chars.size()
+      @pos = 0
+    end
+
+    fn consume()
+      @pos += 1
+    end
+
+    fn skip(n)
+      if @pos + n < @len
+        @pos = @len
+      else
+        @pos += n
+      end
+    end
+
+    fn can_read()
+      return @pos + 1 < @len
+    end
+
+    fn current()
+      if @pos < @len
+        return @chars.get(@pos)
+      end
+      return ""
+    end
+
+    fn peek()
+      if @pos + 1 < @len
+        return @chars.get(@pos + 1)
+      end
+
+      return ""
+    end
+
+    fn position()
+      return @pos
+    end
+
+    fn length()
+      return @len
+    end
+
+    fn rewind(n)
+      @pos -= n
+    end
+
+    fn grab(n)
+      if n < @len && n >= 0
+        return @chars.get(n)
+      end
+      return ""
+    end
+
+    fn reach(n)
+      if @len + n < @len && @len + n >= 0
+        return @chars.get(@len + n)
+      end
+      return ""
+    end
+
+    fn look_ahead()
+      return "" when !can_read()
+      tmp_chars = []
+
+      try
+        tmp_chars = (@chars)[@pos: :]
+      end
+
+      c = tmp_chars.get(i)
+      i = 0
+
+      while c == " " && i + 1 < tmp_chars.size() do
+        c = tmp_chars.get(i)
+        i += 1
+      end
+
+      return c
+    end
+
+    fn count_ahead()
+      return 0 when !can_read()
+      tmp_chars = []
+
+      try
+        tmp_chars = (@chars)[@pos: :]
+      end
+
+      c = tmp_chars.get(i)
+      i = 0
+
+      while c == " " && i + 1 < tmp_chars.size() do
+        c = tmp_chars.get(i)
+        i += 1
+      end
+
+      return i - 1
+    end
+
+    fn skip_whitespace()
+      while can_read() && current() == " " do
+        consume()
+      end
+    end
+  end
+
   /#
   @summary Returns `true` if `str` contains any values in `matches`.
   @param   String  str      : The input string. 
@@ -378,113 +488,13 @@ package string
     output = result.join("\n")
     return text.ends_with("\n") ? output + "\n" : output
   end
-end
 
-struct StringIterator
-  fn new(s)
-    @chars = s.chars()
-    @len = @chars.size()
-    @pos = 0
-  end
-
-  fn consume()
-    @pos += 1
-  end
-
-  fn skip(n)
-    if @pos + n < @len
-      @pos = @len
-    else
-      @pos += n
-    end
-  end
-
-  fn can_read()
-    return @pos + 1 < @len
-  end
-
-  fn current()
-    if @pos < @len
-      return @chars.get(@pos)
-    end
-    return ""
-  end
-
-  fn peek()
-    if @pos + 1 < @len
-      return @chars.get(@pos + 1)
-    end
-
-    return ""
-  end
-
-  fn position()
-    return @pos
-  end
-
-  fn length()
-    return @len
-  end
-
-  fn rewind(n)
-    @pos -= n
-  end
-
-  fn grab(n)
-    if n < @len && n >= 0
-      return @chars.get(n)
-    end
-    return ""
-  end
-
-  fn reach(n)
-    if @len + n < @len && @len + n >= 0
-      return @chars.get(@len + n)
-    end
-    return ""
-  end
-
-  fn look_ahead()
-    return "" when !can_read()
-    tmp_chars = []
-
-    try
-      tmp_chars = (@chars)[@pos: :]
-    end
-
-    c = tmp_chars.get(i)
-    i = 0
-
-    while c == " " && i + 1 < tmp_chars.size() do
-      c = tmp_chars.get(i)
-      i += 1
-    end
-
-    return c
-  end
-
-  fn count_ahead()
-    return 0 when !can_read()
-    tmp_chars = []
-
-    try
-      tmp_chars = (@chars)[@pos: :]
-    end
-
-    c = tmp_chars.get(i)
-    i = 0
-
-    while c == " " && i + 1 < tmp_chars.size() do
-      c = tmp_chars.get(i)
-      i += 1
-    end
-
-    return i - 1
-  end
-
-  fn skip_whitespace()
-    while can_read() && current() == " " do
-      consume()
-    end
+  /#
+  @summary Gives the string type a function that returns itself as an instance of Path.
+  @param   string path : The path.
+  @return  Path        : The path as a Path.
+  #/
+  fn to_path(path: string): Path
+    Path.new(path)
   end
 end

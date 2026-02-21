@@ -15,8 +15,9 @@ public partial class Parser(bool rethrowErrors = false)
     private Token token = Token.Eof;
     private TokenStream stream = new([]);
     private Stack<string> structStack = new();
-    private List<string> structsDefined = [];
     private Stack<Dictionary<string, string>> mangledNameStack = new();
+    private static HashSet<string> StructsDefined = [];
+    private static HashSet<string> PackagesDefined = [];
     
     public bool HasError { get; set; } = false;
 
@@ -25,6 +26,7 @@ public partial class Parser(bool rethrowErrors = false)
         ProgramNode root = new();
         ASTNode? lastNode = null;
         bool isRootTokenSet = false;
+        Dictionary<string, List<TokenStream>> revisitStreams = [];
 
         foreach (var stream in streams)
         {
@@ -38,43 +40,95 @@ public partial class Parser(bool rethrowErrors = false)
                 isRootTokenSet = true;
             }
 
-            try
+            // check for requirements
+            string requirement;
+            (lastNode, requirement) = ParseNode(root, lastNode);
+
+            if (string.IsNullOrEmpty(requirement))
             {
-                while (GetTokenType() != TokenType.Eof)
+                List<string> packagesDefined = [];
+                foreach (var (key, waitingStreams) in revisitStreams)
                 {
-                    lastNode = ParseStatement();
-                    if (lastNode != null)
+                    if (!PackagesDefined.Contains(key))
                     {
-                        root.Statements.Add(lastNode);
+                        continue;
                     }
+
+                    foreach (var waitingStream in waitingStreams)
+                    {
+                        this.stream = waitingStream;
+                        token = waitingStream.Current();
+                        (lastNode, requirement) = ParseNode(root, lastNode);
+                    }
+
+                    packagesDefined.Add(key);
                 }
+
+                foreach (var package in packagesDefined)
+                {
+                    revisitStreams.Remove(package);
+                }
+
+                continue;
             }
-            catch (KiwiError e)
+            
+            if (!revisitStreams.TryGetValue(requirement, out List<TokenStream>? value))
             {
-                if (rethrow)
-                {
-                    throw;
-                }
-
-                if (e is UnexpectedEndOfFileError && lastNode != null)
-                {
-                    e.Token = lastNode.Token;
-                }
-
-                ErrorHandler.PrintError(e);
+                value = [];
+                revisitStreams.Add(requirement, value);
             }
-            catch (Exception e)
-            {
-                if (rethrow)
-                {
-                    throw;
-                }
 
-                ErrorHandler.PrintError(e, GetErrorToken());
-            }
+            value.Add(stream);
         }
 
         return root;
+    }
+
+    private (ASTNode?, string) ParseNode(ProgramNode root, ASTNode? lastNode)
+    {
+        var requires = string.Empty;
+        try
+        {
+            while (GetTokenType() != TokenType.Eof)
+            {
+                lastNode = ParseStatement();
+                if (lastNode != null)
+                {
+                    if (lastNode is RequireNode requirement && !requirement.Satisfied)
+                    {
+                        requires = requirement.PackageName;
+                        break;
+                    }
+
+                    root.Statements.Add(lastNode);
+                }
+            }
+        }
+        catch (KiwiError e)
+        {
+            if (rethrow)
+            {
+                throw;
+            }
+
+            if (e is UnexpectedEndOfFileError && lastNode != null)
+            {
+                e.Token = lastNode.Token;
+            }
+
+            ErrorHandler.PrintError(e);
+        }
+        catch (Exception e)
+        {
+            if (rethrow)
+            {
+                throw;
+            }
+
+            ErrorHandler.PrintError(e, GetErrorToken());
+        }
+
+        return (lastNode, requires);
     }
 
     public ASTNode ParseTokenStream(TokenStream stream, bool isEntryPoint)
@@ -228,7 +282,7 @@ public partial class Parser(bool rethrowErrors = false)
 
     private TokenName GetTokenName() => token.Name;
 
-    private bool IsValidTypeName() => GetTokenType() == TokenType.Typename || structsDefined.Contains(GetTokenText());
+    private bool IsValidTypeName() => GetTokenType() == TokenType.Typename || StructsDefined.Contains(GetTokenText());
 
     private int GetTypeName()
     {
