@@ -38,6 +38,7 @@ public static class FileIOBuiltin
     public const string ChangeDirectory = "__fio_chdir__";
     public const string GetCurrentDirectory = "__fio_cwd__";
     public const string TempDir = "__fio_tmpdir__";
+    public const string TempFile = "__fio_tmpfile__";
 
     private static readonly IReadOnlyDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
@@ -71,6 +72,7 @@ public static class FileIOBuiltin
             { RemoveDirectory,     TokenName.Builtin_FileIO_RemoveDirectory },
             { RemoveDirectoryF,    TokenName.Builtin_FileIO_RemoveDirectoryF },
             { TempDir,             TokenName.Builtin_FileIO_TempDir },
+            { TempFile,            TokenName.Builtin_FileIO_TempFile },
             { WriteBytes,          TokenName.Builtin_FileIO_WriteBytes },
             { WriteLine,           TokenName.Builtin_FileIO_WriteLine },
             { WriteSlice,          TokenName.Builtin_FileIO_WriteSlice },

@@ -150,6 +150,7 @@ public enum TokenName
   Builtin_FileIO_RemoveDirectory,
   Builtin_FileIO_RemoveDirectoryF,
   Builtin_FileIO_TempDir,
+  Builtin_FileIO_TempFile,
   Builtin_FileIO_WriteBytes,
   Builtin_FileIO_WriteLine,
   Builtin_FileIO_WriteSlice,

@@ -310,6 +310,11 @@ public struct FileUtil
         }
     }
 
+    public static string GetTempFileName()
+    {
+        return Path.GetTempFileName();
+    }
+
     public static string GetTempDirectory()
     {
         return Path.GetTempPath();
