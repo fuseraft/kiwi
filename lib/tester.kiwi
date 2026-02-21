@@ -59,5 +59,3 @@ package tester
     return results
   end
 end
-
-export "tester"

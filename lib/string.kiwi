@@ -488,5 +488,3 @@ struct StringIterator
     end
   end
 end
-
-export "string"

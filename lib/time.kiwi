@@ -249,5 +249,3 @@ package time
     return __time_ticksms__(_ticks)
   end
 end
-
-export "time"

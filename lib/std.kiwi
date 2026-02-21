@@ -46,6 +46,3 @@ package std::error
     return std::error::create("InvalidOperation", msg)
   end
 end
-
-export "std"
-export "std::error"
