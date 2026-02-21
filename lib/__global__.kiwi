@@ -276,9 +276,17 @@ struct Path < Hashable
   static fn path_string(new_path): string
     new_path.is_a("Path") ? new_path.path : new_path
   end
+
+  static fn temp_dir(): Path
+    fio::tmpdir().to_path()
+  end
+
+  static fn temp_file(): Path
+    fio::tmpfile().to_path()
+  end
 end
 
-# gives strings a to_path() method that turns them into instances of Path
+# gives the string type a to_path() method that turns it as an instance of Path
 package string
   fn to_path(path: string): Path
     Path.new(path)

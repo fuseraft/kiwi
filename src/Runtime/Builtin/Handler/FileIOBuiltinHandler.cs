@@ -42,6 +42,7 @@ public static class FileIOBuiltinHandler
             TokenName.Builtin_FileIO_RemoveDirectory => RemovePath(token, args),
             TokenName.Builtin_FileIO_RemoveDirectoryF => RemovePathF(token, args),
             TokenName.Builtin_FileIO_TempDir => GetTempDirectory(token, args),
+            TokenName.Builtin_FileIO_TempFile => GetTempFile(token, args),
             TokenName.Builtin_FileIO_WriteBytes => WriteBytes(token, args),
             TokenName.Builtin_FileIO_WriteLine => WriteLine(token, args),
             TokenName.Builtin_FileIO_WriteSlice => WriteSlice(token, args),
@@ -295,28 +296,42 @@ public static class FileIOBuiltinHandler
 
     private static Value MoveFile(Token token, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, FileIOBuiltin.MoveFile, 2, args.Count);
+        ParameterCountMismatchError.CheckRange(token, FileIOBuiltin.MoveFile, 2, 3, args.Count);
 
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.MoveFile, 0, args[0]);
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.MoveFile, 1, args[1]);
 
         var src = args[0].GetString();
         var dst = args[1].GetString();
+        var overwrite = true;
 
-        return Value.CreateBoolean(FileUtil.MoveFile(token, src, dst));
+        if (args.Count == 3)
+        {
+            ParameterTypeMismatchError.ExpectBoolean(token, FileIOBuiltin.MoveFile, 2, args[2]);
+            overwrite = args[2].GetBoolean();
+        }
+
+        return Value.CreateBoolean(FileUtil.MoveFile(token, src, dst, overwrite));
     }
 
     private static Value CopyFile(Token token, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, FileIOBuiltin.CopyFile, 2, args.Count);
+        ParameterCountMismatchError.CheckRange(token, FileIOBuiltin.CopyFile, 2, 3, args.Count);
 
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.CopyFile, 0, args[0]);
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.CopyFile, 1, args[1]);
 
         var src = args[0].GetString();
         var dst = args[1].GetString();
+        var overwrite = true;
 
-        return Value.CreateBoolean(FileUtil.CopyFile(token, src, dst));
+        if (args.Count == 3)
+        {
+            ParameterTypeMismatchError.ExpectBoolean(token, FileIOBuiltin.CopyFile, 2, args[2]);
+            overwrite = args[2].GetBoolean();
+        }
+
+        return Value.CreateBoolean(FileUtil.CopyFile(token, src, dst, overwrite));
     }
 
     private static Value CopyR(Token token, List<Value> args)
@@ -347,6 +362,13 @@ public static class FileIOBuiltinHandler
         ParameterCountMismatchError.Check(token, FileIOBuiltin.TempDir, 0, args.Count);
 
         return Value.CreateString(FileUtil.GetTempDirectory());
+    }
+
+    private static Value GetTempFile(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, FileIOBuiltin.TempFile, 0, args.Count);
+
+        return Value.CreateString(FileUtil.GetTempFileName());
     }
 
     private static Value MakeDirectory(Token token, List<Value> args)
