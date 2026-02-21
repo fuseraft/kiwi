@@ -39,5 +39,3 @@ package compress
     __zip_extract__(data)
   end
 end
-
-export "compress"

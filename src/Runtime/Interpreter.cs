@@ -380,7 +380,7 @@ public class Interpreter
             var funcDecl = (FunctionNode)method;
             var methodName = funcDecl.Name;
 
-            Visit(funcDecl);
+            Visit(funcDecl, inStruct: true);
 
             if (methodName == "new")
             {
@@ -1787,11 +1787,11 @@ public class Interpreter
         return Value.CreateLambda(new LambdaRef { Identifier = internalName });
     }
 
-    private Value Visit(FunctionNode node)
+    private Value Visit(FunctionNode node, bool inStruct = false)
     {
         var name = node.Name;
 
-        if (PackageStack.Count > 0)
+        if (PackageStack.Count > 0 && !inStruct)
         {
             Stack<string> tmpStack = new([.. PackageStack]);
             var prefix = string.Empty;

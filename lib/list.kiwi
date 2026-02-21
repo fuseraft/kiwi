@@ -182,5 +182,3 @@ package list
   - `drop_while(_list: list, _predicate: lambda): list`
   #/
 end
-
-export "list"

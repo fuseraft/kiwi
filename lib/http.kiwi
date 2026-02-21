@@ -440,5 +440,3 @@ package http
   end
 #endregion
 end
-
-export "http"
