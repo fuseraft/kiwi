@@ -110,6 +110,11 @@ struct Path < Hashable
     @path = path
   end
 
+  fn abspath(): string
+    var (path: string = @path)
+    fio::abspath(path)
+  end
+
   fn combine(new_path): Path
     var (paths: list = [@path, Path.path_string(new_path)])
     Path.new(fio::combine(paths))
@@ -117,6 +122,30 @@ struct Path < Hashable
 
   fn contains(path_part: string): boolean
     parts().contains(path_part)
+  end
+
+  fn copy(new_path): boolean
+    var (
+      path: string = @path, 
+      copy_to: Path = Path.path_string(new_path).to_path(),
+    )
+
+    return false 
+      when not exists()
+
+    if is_dir()
+      if copy_to.is_dir()
+        fio::copyr(path, copy_to.path)
+      elsif not copy_to.exists()
+        fio::copyr(path, copy_to.path)
+      end
+    elsif is_file()
+      if copy_to.is_dir()
+        fio::copy(path, (copy_to / name()).path)
+      elsif not copy_to.exists()
+        fio::copy(path, copy_to.path)
+      end
+    end
   end
 
   fn exists(): boolean
@@ -127,9 +156,11 @@ struct Path < Hashable
   fn find(path_part: string): Path
     var (path: string = @path)
     find_path = Path.new(path)
+    
     while find_path.name() != path_part do
       find_path = find_path.parent()
     end
+
     find_path
   end
 
@@ -181,6 +212,20 @@ struct Path < Hashable
     fio::pathparts(path)
   end
 
+  fn remove(): boolean
+    var (path: string  = @path,
+      removed: boolean = false, 
+      is_path: boolean = exists())
+
+    if is_file()
+      fio::remove(path)
+    elsif is_dir()
+      fio::rmdir(path)
+    end
+
+    is_path and not fio::exists(path)
+  end
+
   fn root(): Path
     var (find_root: Path = (@).clone(), found: boolean = false)
     while not found do
@@ -193,12 +238,39 @@ struct Path < Hashable
     find_root
   end
 
+  fn readbytes(): bytes
+    read_bytes()
+  end
+
+  fn readlines(): list
+    read_lines()
+  end
+
+  fn read(): string
+    var (path: string = @path)
+    is_file() ? fio::read(path) : ""
+  end
+  
+  fn read_bytes(): bytes
+    var (path: string = @path)
+    is_file() ? fio::readbytes(path) : [].to_bytes()
+  end
+
+  fn read_lines(): list
+    var (path: string = @path)
+    is_file() ? fio::readlines(path) : []
+  end
+
   fn to_string(): string
     "${@path}"
   end
 
   fn /(new_path): Path
     combine(new_path)
+  end
+
+  static fn cwd(): Path
+    '.'.to_path().abspath().to_path()
   end
 
   static fn path_string(new_path): string
