@@ -1,16 +1,8 @@
 namespace kiwi.Parsing.AST;
 
-public class BreakNode : ASTNode
+public class BreakNode(ASTNode? condition) : ASTNode(ASTNodeType.Break)
 {
-    public BreakNode()
-        : base(ASTNodeType.Break) { }
-    public BreakNode(ASTNode? condition)
-        : base(ASTNodeType.Break)
-    {
-        Condition = condition;
-    }
-
-    public ASTNode? Condition { get; set; }
+    public ASTNode? Condition { get; set; } = condition;
 
     public override void Print(int depth)
     {

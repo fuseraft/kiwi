@@ -1283,6 +1283,7 @@ public class Lexer : IDisposable
             "printxy" => TokenName.KW_PrintXy,
             "private" => TokenName.KW_Private,
             "repeat" => TokenName.KW_Repeat,
+            "require" => TokenName.KW_Require,
             "return" => TokenName.KW_Return,
             "static" => TokenName.KW_Static,
             "struct" => TokenName.KW_Struct,

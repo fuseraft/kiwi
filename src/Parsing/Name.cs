@@ -319,6 +319,7 @@ public enum TokenName
   KW_PrintXy,
   KW_Private,
   KW_Repeat,
+  KW_Require,
   KW_Return,
   KW_Static,
   KW_Struct,

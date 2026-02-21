@@ -1,21 +1,11 @@
 namespace kiwi.Parsing.AST;
 
-public class StructNode : ASTNode
+public class StructNode(string name, string baseStruct, List<string> interfaces, List<ASTNode?> methods) : ASTNode(ASTNodeType.Struct)
 {
-    public StructNode() : base(ASTNodeType.Struct) { }
-    public StructNode(string name, string baseStruct, List<string> interfaces, List<ASTNode?> methods)
-        : base(ASTNodeType.Struct)
-    {
-        this.Name = name;
-        this.BaseStruct = baseStruct;
-        this.Interfaces.AddRange(interfaces);
-        this.Methods.AddRange(methods);
-    }
-
-    public string Name { get; } = string.Empty;
-    public string BaseStruct { get; } = string.Empty;
-    public List<string> Interfaces { get; } = [];
-    public List<ASTNode?> Methods { get; } = [];
+    public string Name { get; } = name;
+    public string BaseStruct { get; } = baseStruct;
+    public List<string> Interfaces { get; } = interfaces;
+    public List<ASTNode?> Methods { get; } = methods;
 
     public override void Print(int depth)
     {

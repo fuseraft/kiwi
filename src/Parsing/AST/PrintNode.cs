@@ -1,19 +1,10 @@
 namespace kiwi.Parsing.AST;
 
-public class PrintNode : ASTNode
+public class PrintNode(ASTNode? expression, bool printNewline, bool printStdError) : ASTNode(ASTNodeType.Print)
 {
-    public PrintNode() : base(ASTNodeType.Print) { }
-    public PrintNode(ASTNode? expression, bool printNewline, bool printStdError)
-        : base(ASTNodeType.Print)
-    {
-        Expression = expression;
-        PrintNewline = printNewline;
-        PrintStdError = printStdError;
-    }
-
-    public ASTNode? Expression { get; }
-    public bool PrintNewline { get; }
-    public bool PrintStdError { get; }
+    public ASTNode? Expression { get; } = expression;
+    public bool PrintNewline { get; } = printNewline;
+    public bool PrintStdError { get; } = printStdError;
 
     public override void Print(int depth)
     {

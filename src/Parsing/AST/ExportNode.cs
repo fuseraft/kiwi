@@ -1,15 +1,8 @@
 namespace kiwi.Parsing.AST;
 
-public class ExportNode : ASTNode
+public class ExportNode(ASTNode? packageName) : ASTNode(ASTNodeType.Export)
 {
-    public ExportNode() : base(ASTNodeType.Export) { }
-    public ExportNode(ASTNode? packageName)
-        : base(ASTNodeType.Export)
-    {
-        PackageName = packageName;
-    }
-
-    public ASTNode? PackageName { get; }
+    public ASTNode? PackageName { get; } = packageName;
 
     public override void Print(int depth)
     {

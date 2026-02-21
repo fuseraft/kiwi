@@ -1,8 +1,7 @@
 namespace kiwi.Parsing.AST;
 
-public class CaseNode : ASTNode
+public class CaseNode() : ASTNode(ASTNodeType.Case)
 {
-    public CaseNode() : base(ASTNodeType.Case) { }
     public ASTNode? TestValue { get; set; }
     public ASTNode? TestValueAlias { get; set; }
     public List<ASTNode?> ElseBody { get; set; } = [];

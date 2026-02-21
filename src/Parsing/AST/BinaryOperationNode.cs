@@ -2,20 +2,11 @@ using kiwi.Typing;
 
 namespace kiwi.Parsing.AST;
 
-public class BinaryOperationNode : ASTNode
+public class BinaryOperationNode(ASTNode? left, TokenName op, ASTNode? right) : ASTNode(ASTNodeType.BinaryOperation)
 {
-    public BinaryOperationNode() : base(ASTNodeType.BinaryOperation) { }
-    public BinaryOperationNode(ASTNode? left, TokenName op, ASTNode? right)
-        : base(ASTNodeType.BinaryOperation)
-    {
-        Left = left;
-        Op = op;
-        Right = right;
-    }
-
-    public ASTNode? Left { get; }
-    public TokenName Op { get; }
-    public ASTNode? Right { get; }
+    public ASTNode? Left { get; } = left;
+    public TokenName Op { get; } = op;
+    public ASTNode? Right { get; } = right;
 
     public override void Print(int depth)
     {

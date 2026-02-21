@@ -1,15 +1,8 @@
 namespace kiwi.Parsing.AST;
 
-public class EvalNode : ASTNode
+public class EvalNode(ASTNode? parseValue) : ASTNode(ASTNodeType.Eval)
 {
-    public EvalNode() : base(ASTNodeType.Eval) { }
-    public EvalNode(ASTNode? parseValue)
-        : base(ASTNodeType.Eval)
-    {
-        ParseValue = parseValue;
-    }
-
-    public ASTNode? ParseValue { get; }
+    public ASTNode? ParseValue { get; } = parseValue;
 
     public override void Print(int depth)
     {
