@@ -1,16 +1,8 @@
 namespace kiwi.Parsing.AST;
 
-public class IdentifierNode : ASTNode
+public class IdentifierNode(string name) : ASTNode(ASTNodeType.Identifier)
 {
-    public IdentifierNode() : base(ASTNodeType.Identifier) { }
-    public IdentifierNode(string name)
-        : base(ASTNodeType.Identifier)
-    {
-        Name = name;
-    }
-
-    public string Name { get; } = string.Empty;
-    public string Package { get; set; } = string.Empty;
+    public string Name { get; } = name;
 
     public override void Print(int depth)
     {
@@ -20,7 +12,6 @@ public class IdentifierNode : ASTNode
 
     public override ASTNode Clone() => new IdentifierNode(Name)
     {
-        Package = Package,
         Token = Token
     };
 }

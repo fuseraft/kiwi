@@ -1,20 +1,11 @@
 namespace kiwi.Parsing.AST;
 
-public class TernaryOperationNode : ASTNode
+public class TernaryOperationNode(ASTNode? evalExpression, ASTNode? trueExpression, ASTNode? falseExpression)
+    : ASTNode(ASTNodeType.TernaryOperation)
 {
-    public TernaryOperationNode()
-        : base(ASTNodeType.TernaryOperation) { }
-    public TernaryOperationNode(ASTNode? evalExpression, ASTNode? trueExpression, ASTNode? falseExpression)
-      : base(ASTNodeType.TernaryOperation)
-    {
-        EvalExpression = evalExpression;
-        TrueExpression = trueExpression;
-        FalseExpression = falseExpression;
-    }
-
-    public ASTNode? EvalExpression { get; }
-    public ASTNode? TrueExpression { get; }
-    public ASTNode? FalseExpression { get; }
+    public ASTNode? EvalExpression { get; } = evalExpression;
+    public ASTNode? TrueExpression { get; } = trueExpression;
+    public ASTNode? FalseExpression { get; } = falseExpression;
 
     public override void Print(int depth)
     {

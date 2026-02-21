@@ -1,9 +1,7 @@
 namespace kiwi.Parsing.AST;
 
-public class NoOpNode : ASTNode
+public class NoOpNode() : ASTNode(ASTNodeType.NoOp)
 {
-    public NoOpNode() : base(ASTNodeType.NoOp) { }
-
     public override void Print(int depth)
     {
         ASTTracer.PrintDepth(depth);

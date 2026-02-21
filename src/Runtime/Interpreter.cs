@@ -380,7 +380,7 @@ public class Interpreter
             var funcDecl = (FunctionNode)method;
             var methodName = funcDecl.Name;
 
-            Visit(funcDecl);
+            Visit(funcDecl, inStruct: true);
 
             if (methodName == "new")
             {
@@ -1395,8 +1395,8 @@ public class Interpreter
         {
             var whenCondition = Interpret(whenNode);
 
-            if ((isSwitch && BooleanOp.IsTruthy(whenCondition))
-                || (!isSwitch && ComparisonOp.Equal(ref testValue, ref whenCondition)))
+            if ((!isSwitch && BooleanOp.IsTruthy(whenCondition))
+                || (isSwitch && ComparisonOp.Equal(ref testValue, ref whenCondition)))
             {
                 var frame = CallStack.Peek();
                 foreach (var stmt in whenNode.Body)
@@ -1787,11 +1787,11 @@ public class Interpreter
         return Value.CreateLambda(new LambdaRef { Identifier = internalName });
     }
 
-    private Value Visit(FunctionNode node)
+    private Value Visit(FunctionNode node, bool inStruct = false)
     {
         var name = node.Name;
 
-        if (PackageStack.Count > 0)
+        if (PackageStack.Count > 0 && !inStruct)
         {
             Stack<string> tmpStack = new([.. PackageStack]);
             var prefix = string.Empty;

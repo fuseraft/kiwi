@@ -1,5 +1,5 @@
 headers = {
-  "User-Agent": "Kiwi/1.3.6",
+  "User-Agent": "Kiwi/1.3.7",
   "X-Custom-Header": "testing-123",
   "Accept": "application/json"
 }

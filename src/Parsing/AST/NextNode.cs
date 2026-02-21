@@ -1,16 +1,8 @@
 namespace kiwi.Parsing.AST;
 
-public class NextNode : ASTNode
+public class NextNode(ASTNode? condition) : ASTNode(ASTNodeType.Next)
 {
-    public NextNode()
-        : base(ASTNodeType.Next) { }
-    public NextNode(ASTNode? condition)
-        : base(ASTNodeType.Next)
-    {
-        Condition = condition;
-    }
-
-    public ASTNode? Condition { get; set; }
+    public ASTNode? Condition { get; set; } = condition;
 
     public override void Print(int depth)
     {

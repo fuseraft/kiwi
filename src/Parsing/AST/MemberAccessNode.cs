@@ -1,17 +1,9 @@
 namespace kiwi.Parsing.AST;
 
-public class MemberAccessNode : ASTNode
+public class MemberAccessNode(ASTNode? obj, string memberName) : ASTNode(ASTNodeType.MemberAccess)
 {
-    public MemberAccessNode() : base(ASTNodeType.MemberAccess) { }
-    public MemberAccessNode(ASTNode? obj, string memberName)
-        : base(ASTNodeType.MemberAccess)
-    {
-        Object = obj;
-        MemberName = memberName;
-    }
-
-    public ASTNode? Object { get; }
-    public string MemberName { get; } = string.Empty;
+    public ASTNode? Object { get; } = obj;
+    public string MemberName { get; } = memberName;
 
     public override void Print(int depth)
     {

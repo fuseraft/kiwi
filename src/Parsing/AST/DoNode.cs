@@ -1,8 +1,7 @@
 namespace kiwi.Parsing.AST;
 
-public class DoNode : ASTNode
+public class DoNode() : ASTNode(ASTNodeType.Do)
 {
-    public DoNode() : base(ASTNodeType.Do) { }
     public ASTNode? Condition { get; set; }
     public List<ASTNode?> Body { get; set; } = [];
     

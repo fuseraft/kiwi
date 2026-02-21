@@ -19,5 +19,3 @@ package stdin
     __stdin_empty__()
   end
 end
-
-export "stdin"

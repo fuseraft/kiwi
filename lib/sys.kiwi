@@ -70,5 +70,3 @@ package sys
     return arg
   end
 end
-
-export "sys"

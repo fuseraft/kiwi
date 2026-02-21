@@ -1,20 +1,10 @@
 namespace kiwi.Parsing.AST;
 
-public class ConstAssignmentNode : ASTNode
+public class ConstAssignmentNode(string name, TokenName op, ASTNode? initializer) : ASTNode(ASTNodeType.ConstAssignment)
 {
-    public ConstAssignmentNode() : base(ASTNodeType.ConstAssignment) { }
-    public ConstAssignmentNode(string name, TokenName op,
-                        ASTNode? initializer)
-        : base(ASTNodeType.ConstAssignment)
-    {
-        Name = name;
-        Op = op;
-        Initializer = initializer;
-    }
-
-    public string Name { get; set; } = string.Empty;
-    public TokenName Op { get; set; } = TokenName.Default;
-    public ASTNode? Initializer { get; set; }
+    public string Name { get; set; } = name;
+    public TokenName Op { get; set; } = op;
+    public ASTNode? Initializer { get; set; } = initializer;
 
     public override void Print(int depth)
     {

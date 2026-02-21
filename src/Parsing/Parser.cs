@@ -6,35 +6,13 @@ namespace kiwi.Parsing;
 
 public partial class Parser
 {
-    private ASTNode? ParseConditional()
-    {
-        if (GetTokenName() == TokenName.KW_If)
-        {
-            return ParseIf();
-        }
-        else if (GetTokenName() == TokenName.KW_Case)
-        {
-            return ParseCase();
-        }
-
-        throw new SyntaxError(GetErrorToken(), "Expected if-statement or case-statement.");
-    }
-
-    private ASTNode? ParseError()
-    {
-        ThrowNode node = new()
-        {
-            ErrorValue = new LiteralNode(Value.CreateString(token.Text))
-        };
-
-        Next();
-        return node;
-    }
-
     private ASTNode? ParseKeyword()
     {
         switch (GetTokenName())
         {
+            case TokenName.KW_Require:
+                return ParseRequire();
+
             case TokenName.KW_Const:
                 return ParseConstAssignment();
 
@@ -124,6 +102,101 @@ public partial class Parser
             default:
                 throw new SyntaxError(GetErrorToken(), $"Unexpected keyword '{token.Text}'.");
         }
+    }
+
+    private ASTNode? ParseStatement()
+    {
+        var nodeToken = token.Clone();
+        ASTNode? node;
+
+        switch (nodeToken.Type)
+        {
+            case TokenType.Comment:
+                node = ParseComment();
+                break;
+
+            case TokenType.Comma:
+                MatchType(TokenType.Comma);
+                return null;
+
+            case TokenType.Error:
+                node = ParseError();
+                break;
+
+            case TokenType.Keyword:
+                node = ParseKeyword();
+                break;
+
+            case TokenType.Conditional:
+                node = ParseConditional();
+                break;
+
+            case TokenType.LBrace:
+            case TokenType.LBracket:
+            case TokenType.LParen:
+            case TokenType.Literal:
+            case TokenType.Operator:
+            case TokenType.Identifier:
+            case TokenType.String:
+            case TokenType.Bytes:
+                node = ParseExpression();
+                break;
+
+            case TokenType.Newline:
+                return null;
+
+            default:
+                if (nodeToken.Type == TokenType.Eof)
+                {
+                    throw new UnexpectedEndOfFileError(GetErrorToken());
+                }
+                
+                throw new TokenStreamError(GetErrorToken(), $"Unexpected token in statement: {Enum.GetName(nodeToken.Type)}: `{nodeToken.Text}`");
+        }
+
+        if (node != null)
+        {
+            node.Token = nodeToken;
+            return node;
+        }
+
+        return node;
+    }
+
+    private ASTNode? ParseConditional()
+    {
+        if (GetTokenName() == TokenName.KW_If)
+        {
+            return ParseIf();
+        }
+        else if (GetTokenName() == TokenName.KW_Case)
+        {
+            return ParseCase();
+        }
+
+        throw new SyntaxError(GetErrorToken(), "Expected if-statement or case-statement.");
+    }
+
+    private ThrowNode? ParseError()
+    {
+        var errorValue = new LiteralNode(Value.CreateString(token.Text));
+        Next();
+        return new ThrowNode(errorValue, null);
+    }
+
+    private RequireNode? ParseRequire()
+    {
+        MatchName(TokenName.KW_Require);
+
+        if (!HasValue())
+        {
+            throw new SyntaxError(GetErrorToken(), "Expected a package name.");
+        }
+
+        var packageName = GetTokenText();
+        Next();
+
+        return new RequireNode(packageName, PackagesDefined.Contains(packageName));
     }
 
     private OffNode ParseOff()
@@ -332,65 +405,6 @@ public partial class Parser
         };
     }
 
-    private ASTNode? ParseStatement()
-    {
-        var nodeToken = token.Clone();
-        ASTNode? node;
-
-        switch (nodeToken.Type)
-        {
-            case TokenType.Comment:
-                node = ParseComment();
-                break;
-
-            case TokenType.Comma:
-                MatchType(TokenType.Comma);
-                return null;
-
-            case TokenType.Error:
-                node = ParseError();
-                break;
-
-            case TokenType.Keyword:
-                node = ParseKeyword();
-                break;
-
-            case TokenType.Conditional:
-                node = ParseConditional();
-                break;
-
-            case TokenType.LBrace:
-            case TokenType.LBracket:
-            case TokenType.LParen:
-            case TokenType.Literal:
-            case TokenType.Operator:
-            case TokenType.Identifier:
-            case TokenType.String:
-            case TokenType.Bytes:
-                node = ParseExpression();
-                break;
-
-            case TokenType.Newline:
-                return null;
-
-            default:
-                if (nodeToken.Type == TokenType.Eof)
-                {
-                    throw new UnexpectedEndOfFileError(GetErrorToken());
-                }
-                
-                throw new TokenStreamError(GetErrorToken(), $"Unexpected token in statement: {Enum.GetName(nodeToken.Type)}: `{nodeToken.Text}`");
-        }
-
-        if (node != null)
-        {
-            node.Token = nodeToken;
-            return node;
-        }
-
-        return node;
-    }
-
     private ASTNode? ParseComment()
     {
         MatchType(TokenType.Comment);
@@ -440,7 +454,7 @@ public partial class Parser
         structStack.Push(structName);
 
         // Eagerly mark as defined so that the type can be used in typehints within the struct definition
-        structsDefined.Add(structName);
+        StructsDefined.Add(structName);
 
         List<ASTNode?> methods = [];
         bool isStatic = false, isPrivate = false;
@@ -870,11 +884,12 @@ public partial class Parser
     private ThrowNode? ParseThrow()
     {
         MatchName(TokenName.KW_Throw);
-        var node = new ThrowNode();
+        ASTNode? errorValue = null;
+        ASTNode? condition = null;
 
         if (HasValue())
         {
-            node.ErrorValue = ParseExpression();
+            errorValue = ParseExpression();
         }
 
         if (MatchName(TokenName.KW_When))
@@ -884,20 +899,21 @@ public partial class Parser
                 throw new SyntaxError(GetErrorToken(), "Expected condition after 'when'.");
             }
 
-            node.Condition = ParseExpression();
+            condition = ParseExpression();
         }
 
-        return node;
+        return new ThrowNode(errorValue, condition);
     }
 
     private ExitNode? ParseExit()
     {
         MatchName(TokenName.KW_Exit);
-        var node = new ExitNode();
+        ASTNode? exitValue = null;
+        ASTNode? condition = null;
 
         if (HasValue())
         {
-            node.ExitValue = ParseExpression();
+            exitValue = ParseExpression();
         }
 
         if (MatchName(TokenName.KW_When))
@@ -907,16 +923,16 @@ public partial class Parser
                 throw new SyntaxError(GetErrorToken(), "Expected condition after 'when'.");
             }
 
-            node.Condition = ParseExpression();
+            condition = ParseExpression();
         }
 
-        return node;
+        return new ExitNode(exitValue, condition);
     }
 
     private BreakNode? ParseBreak()
     {
         MatchName(TokenName.KW_Break);
-        var node = new BreakNode();
+        ASTNode? condition = null;
 
         if (MatchName(TokenName.KW_When))
         {
@@ -925,16 +941,16 @@ public partial class Parser
                 throw new SyntaxError(GetErrorToken(), "Expected condition after 'when'.");
             }
 
-            node.Condition = ParseExpression();
+            condition = ParseExpression();
         }
 
-        return node;
+        return new BreakNode(condition);
     }
 
     private NextNode? ParseNext()
     {
         MatchName(TokenName.KW_Next);
-        var node = new NextNode();
+        ASTNode? condition = null;
 
         if (MatchName(TokenName.KW_When))
         {
@@ -943,10 +959,10 @@ public partial class Parser
                 throw new SyntaxError(GetErrorToken(), "Expected condition after 'when'.");
             }
 
-            node.Condition = ParseExpression();
+            condition = ParseExpression();
         }
 
-        return node;
+        return new NextNode(condition);
     }
 
     private EvalNode? ParseEval()
@@ -1021,6 +1037,11 @@ public partial class Parser
         }
 
         Next();  // Consume 'end'
+
+        if (packageName != null && packageName is IdentifierNode idNode)
+        {
+            PackagesDefined.Add(idNode.Name);
+        }
 
         return new PackageNode(packageName)
         {
@@ -1446,7 +1467,6 @@ public partial class Parser
 
     private PrintNode? ParsePrint()
     {
-        var printNode = new PrintNode();
         var name = GetTokenName();
 
         // Consume 'print', 'println', 'eprint', 'eprintln'
@@ -1522,9 +1542,9 @@ public partial class Parser
             return ParseIdentifier(false, false);
         }
 
-        LiteralNode literalNode = new(Value.Create(token.Value));
+        var value = Value.Create(token.Value);
         Next();  // Consume literal
-        return literalNode;
+        return new LiteralNode(value);
     }
 
     private HashLiteralNode? ParseHashLiteral()
@@ -1751,9 +1771,7 @@ public partial class Parser
         return left;
     }
 
-    private MethodCallNode? ParseMethodCall(
-        ASTNode? obj, string methodName,
-        TokenName type)
+    private MethodCallNode? ParseMethodCall(ASTNode? obj, string methodName, TokenName type)
     {
         Next();  // Consume '('
 
@@ -1775,12 +1793,10 @@ public partial class Parser
 
         Next();  // Consume the closing parenthesis ')'
 
-        return new MethodCallNode(obj, methodName, type,
-                                                arguments);
+        return new MethodCallNode(obj, methodName, type, arguments);
     }
 
-    private MemberAssignmentNode? ParseMemberAssignment(
-        ASTNode? obj, string memberName)
+    private MemberAssignmentNode? ParseMemberAssignment(ASTNode? obj, string memberName)
     {
         var type = GetTokenName();
         Next();

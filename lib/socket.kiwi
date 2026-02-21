@@ -62,6 +62,3 @@ package tls
   end
 end
 #endregion
-
-export "socket"
-export "tls"

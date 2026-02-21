@@ -43,6 +43,7 @@ public enum ASTNodeType
     Program,
     RangeLiteral,
     RepeatLoop,
+    Require,
     Return,
     Self,
     Slice,

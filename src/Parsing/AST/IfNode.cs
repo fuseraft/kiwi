@@ -1,8 +1,7 @@
 namespace kiwi.Parsing.AST;
 
-public class IfNode : ASTNode
+public class IfNode() : ASTNode(ASTNodeType.If)
 {
-    public IfNode() : base(ASTNodeType.If) { }
     public ASTNode? Condition { get; set; }
     public List<ASTNode?> Body { get; set; } = [];
     public List<ASTNode?> ElseBody { get; set; } = [];

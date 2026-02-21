@@ -1,11 +1,7 @@
 package iter
-  /#
-  An implementation of the iterator pattern.
-  #/
-  fn __version__()
-    return "0.0.2"
-  end
-end
+/#
+An implementation of the iterator pattern.
+#/
 
 struct ListIterator
   # Creates a new iterator over a list
@@ -137,4 +133,4 @@ struct ListIterator
   end
 end
 
-export "iter"
+end

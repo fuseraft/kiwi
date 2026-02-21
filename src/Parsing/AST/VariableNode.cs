@@ -2,11 +2,8 @@ using kiwi.Typing;
 
 namespace kiwi.Parsing.AST;
 
-public class VariableNode : ASTNode
+public class VariableNode() : ASTNode(ASTNodeType.Variable)
 {
-    public VariableNode()
-        : base(ASTNodeType.Variable) { }
-
     public List<KeyValuePair<string, ASTNode?>> Variables { get; set; } = [];
     public Dictionary<string, int> TypeHints { get; set; } = [];
 

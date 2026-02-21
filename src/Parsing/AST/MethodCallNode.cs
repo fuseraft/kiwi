@@ -1,22 +1,12 @@
 namespace kiwi.Parsing.AST;
 
-public class MethodCallNode : ASTNode
+public class MethodCallNode(ASTNode? obj, string methodName, TokenName op, List<ASTNode?> arguments) 
+    : ASTNode(ASTNodeType.MethodCall)
 {
-    public MethodCallNode() : base(ASTNodeType.MethodCall) { }
-    public MethodCallNode(ASTNode? obj, string methodName, TokenName op,
-                     List<ASTNode?> arguments)
-          : base(ASTNodeType.MethodCall)
-    {
-        Object = obj;
-        MethodName = methodName;
-        Op = op;
-        Arguments = arguments;
-    }
-
-    public ASTNode? Object { get; set; }
-    public string MethodName { get; set; } = string.Empty;
-    public TokenName Op { get; set; } = TokenName.Default;
-    public List<ASTNode?> Arguments { get; set; } = [];
+    public ASTNode? Object { get; set; } = obj;
+    public string MethodName { get; set; } = methodName;
+    public TokenName Op { get; set; } = op;
+    public List<ASTNode?> Arguments { get; set; } = arguments;
 
     public override void Print(int depth)
     {
