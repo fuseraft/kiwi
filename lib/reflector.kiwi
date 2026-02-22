@@ -2,12 +2,25 @@
 @summary Reflection tools.
 #/
 package reflector
+  /#
+  @summary A struct representing a callable function or lambda.
+  #/
   struct Callable < Hashable
+    /#
+    @summary Creates a new Callable instance.
+    @param string name : The name of the callable.
+    @param lambda func : The lambda representing the callable.
+    #/
     fn new(name: string, func: lambda)
       @name = name
       @callable = func
     end
 
+    /#
+    @summary Static method to create a Callable from a function name.
+    @param string func_name : The name of the function.
+    @return Callable : Returns a new Callable instance wrapping the function.
+    #/
     static fn from_function(func_name: string): Callable
       var (func: lambda = reflector::getfunc(func_name) ?? (do () => ...))
       Callable.new(func_name, func)

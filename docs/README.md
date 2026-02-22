@@ -42,6 +42,8 @@
    - [`fio`](lib/fio.md) - Functions for file system operations.
    - [`http`](lib/http.md) - Functions for HTTP/HTTPS requests.
    - [`math`](lib/math.md) - Common mathematical functions and utilities.
+   - [`path`](lib/path.md) - Contains the definition for the `Path` struct.
+   - [`reflector`](lib/reflector.md) - Reflection tools, including `Callable`.
    - [`socket`](lib/socket.md) - Low-level asynchronous TCP networking.
    - [`stdin`](lib/stdin.md) - Functions for reading from standard input.
    - [`string`](lib/string.md) - String manipulation and transformation utilities.
