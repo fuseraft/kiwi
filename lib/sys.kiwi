@@ -21,9 +21,9 @@ package sys
     # Choose execution method based on capture_output flag.
     if capture_output
       return sys::execout(cmd_text)
-    else
-      return sys::exec(cmd_text)
     end
+      
+    sys::exec(cmd_text)
   end
 
   /#
@@ -33,7 +33,7 @@ package sys
   Returns: Integer containing exit code of external process.
   #/
   fn open(_command)
-    return __sys_open__(_command)
+    __sys_open__(_command)
   end
 
   /#
@@ -43,7 +43,7 @@ package sys
   Returns: Integer containing exit code of external process.
   #/
   fn exec(_command)
-    return __sys_exec__(_command)
+    __sys_exec__(_command)
   end
 
   /#
@@ -53,7 +53,7 @@ package sys
   Returns: String containing standard output from external process.
   #/
   fn execout(_command)
-    return __sys_execout__(_command)
+    __sys_execout__(_command)
   end
 
   /#
@@ -62,11 +62,11 @@ package sys
     - arg: An command-line argument. 
   Returns: The argument wrapped in quotes if it contains spaces or special characters.
   #/
-  fn escape_argument(arg)
-    if arg.contains(" ") || string::contains_any(arg, "!@#$%^&*()[]{}|;:<>,.?/~`")
+  fn escape_argument(arg: string)
+    if arg.contains(" ") || arg.contains_any("!@#$%^&*()[]{}|;:<>,.?/~`")
       return "\"" + arg + "\""
     end
 
-    return arg
+    arg
   end
 end
