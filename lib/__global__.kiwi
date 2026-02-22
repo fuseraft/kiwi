@@ -91,6 +91,10 @@ fn spawn(callback: lambda, args: list = [])
   task::spawn(callback, args)
 end
 
+fn input(msg: string = "")
+  __console_readline__()
+end
+
 /#
 Used to check if the script is the entrypoint.
 #/
