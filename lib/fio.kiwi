@@ -8,7 +8,7 @@ package fio
   @return string
   #/
   fn abspath(_path)
-    return __fio_fileabspath__(_path)
+    __fio_fileabspath__(_path)
   end
 
   /#
@@ -18,7 +18,7 @@ package fio
   @return boolean
   #/
   fn append(_path, _text)
-    return __fio_appendtext__(_path, _text)
+    __fio_appendtext__(_path, _text)
   end
 
   /#
@@ -27,7 +27,7 @@ package fio
   @return boolean
   #/
   fn chdir(_path)
-    return __fio_chdir__(_path)
+    __fio_chdir__(_path)
   end
 
   /#
@@ -36,7 +36,7 @@ package fio
   @return string
   #/
   fn combine(_path_parts: list = []): string
-    return __fio_combine__(_path_parts)
+    __fio_combine__(_path_parts)
   end
 
   /#
@@ -47,25 +47,26 @@ package fio
   @return boolean
   #/
   fn copy(source: string, dest: string, overwrite: boolean = true)
-    return __fio_copyfile__(source, dest, overwrite)
+    __fio_copyfile__(source, dest, overwrite)
   end
 
   /#
   @summary Copy a directory recursively.
-  @param source The source path.
-  @param dest The destination path.
-  @return boolean
+  @param string source The source path.
+  @param string dest The destination path.
+  @throws FileSystemError : When copying fails.
+  @return boolean : Returns  `true` when the copy operation succeeds.
   #/
   fn copyr(source: string, dest: string)
-    return __fio_copyr__(source, dest)
+    __fio_copyr__(source, dest)
   end
 
   /#
   @summary Get the current working directory.
-  @return boolean
+  @return string : The current working directory as a string.
   #/
-  fn cwd()
-    return __fio_cwd__()
+  fn cwd(): string
+    __fio_cwd__()
   end
 
   /#
