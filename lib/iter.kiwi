@@ -1,136 +1,191 @@
 package iter
-/#
-An implementation of the iterator pattern.
-#/
-
-struct ListIterator
-  # Creates a new iterator over a list
-  # list_data: the list to iterate
-  # default: value returned when out of bounds (default: null)
-  fn new(list_data: list, default: any = null)
-    @list_data = list_data
-    @len       = list_data.size()
-    @pos       = 0
-    @default   = default
-  end
-
-  # Advance the cursor by n
-  fn consume(n: integer = 0)
-    var (val: any = @.current())
-    @pos += n + 1
-    val
-  end
-
-  # Skip forward n elements (clamped to end)
-  fn skip(n: integer = 1)
-    @pos = [@pos + n, @len].min()
-  end
-
-  # Rewind backward n elements (clamped to 0)
-  fn rewind(n: integer = 1)
-    @pos = [@pos - n, 0].max()
-  end
-
-  # Can we read current position?
-  fn can_read()
-    return @pos < @len
-  end
-
-  # Are we at the end?
-  fn eof()
-    return !can_read()
-  end
-
-  # Current value (or default if out of bounds)
-  fn current()
-    return @pos < @len ? @list_data[@pos] : @default
-  end
-
-  # Next value without consuming
-  fn peek()
-    return @pos + 1 < @len ? @list_data[@pos + 1] : @default
-  end
-
-    # Reset to beginning
-  fn reset()
-    @pos = 0
-  end
-
-  # Remaining elements as list
-  fn remaining()
-    return can_read() ? @list_data[@pos::] : []
-  end
-
-  # Get value at absolute index (safe)
-  fn grab(index: integer)
-    return (index >= 0 && index < @len) ? @list_data[index] : @default
-  end
-
-  # Get value relative to end: reach(-1) = last element
-  fn reach(offset: integer)
-    index = offset
-
-    # Handle negative offsets: convert to positive index from end
-    if offset < 0
-      index = @len + offset
+  /#
+  @summary An implementation of the iterator pattern.
+  #/
+  struct ListIterator
+    /#
+    @summary Creates a new iterator over a list.
+    @param list list_data : The list to iterate.
+    @param any default : Value returned when out of bounds (default: null)
+    #/
+    fn new(list_data: list, default: any = null)
+      @list_data = list_data
+      @len       = list_data.size()
+      @pos       = 0
+      @default   = default
     end
 
-    # Bounds check
-    if index >= 0 && index < @len
-      return @list_data[index]
-    else
-      return @default
-    end
-  end
-
-  # Current position (0-based)
-  fn position()
-    return @pos
-  end
-
-  # Total length of list
-  fn length()
-    return @len
-  end
-
-  # Skip over consecutive default values
-  fn skip_defaults()
-    while can_read() && current() == @default do
-      consume()
-    end
-  end
-
-  # Look ahead: first non-default value from current position
-  fn look_ahead()
-    if !can_read()
-      return @default
+    /#
+    @summary Advance the cursor by n.
+    @param integer n : The number of values to advance.
+    @return any : Returns the item before advancing.
+    #/
+    fn consume(n: integer = 0): any
+      var (val: any = @.current())
+      @pos += [n, 0].max() + 1
+      val
     end
 
-    for i in [@pos .. @len - 1] do
-      var (val: any = @list_data[i])
-      if val != @default
-        return val
+    /#
+    @summary Skip forward n elements (clamped to end).
+    @param integer n : The number of values to skip.
+    #/
+    fn skip(n: integer = 1)
+      @pos = [@pos + [n, 0].max(), @len].min()
+    end
+
+    /#
+    @summary Rewind backward n elements (clamped to 0).
+    @param integer n : The number of values to skip.
+    #/
+    fn rewind(n: integer = 1)
+      @pos = [@pos - n, 0].max()
+    end
+
+    /#
+    @summary Checks if not at the end of the list.
+    @return boolean : Returns `true` when the position is before the end.
+    #/
+    fn can_read(): boolean
+      (@pos < @len)
+    end
+
+    /#
+    @summary Checks if at the end of the list.
+    @return boolean : Returns `true` when the position is the end.
+    #/
+    fn eof(): boolean
+      !can_read()
+    end
+
+    /#
+    @summary Current value (or default if out of bounds).
+    @return any : Returns the current value, or the default if out of bounds.
+    #/
+    fn current(): any
+      (@pos < @len ? @list_data[@pos] : @default)
+    end
+
+    /#
+    @summary Peek the next value without consuming.
+    @return any : Returns the next value in the list, or the default if out of bounds.
+    #/
+    fn peek(): any
+      (@pos + 1 < @len ? @list_data[@pos + 1] : @default)
+    end
+
+    /#
+    @summary Resets position to 0.
+    #/
+    fn reset()
+      @pos = 0
+    end
+
+    /#
+    @summary Gets remaining values as a new list.
+    @return list : The remaining values at the current position onward, or an empty list if at the end.
+    #/
+    fn remaining(): list
+      (can_read() ? @list_data[@pos::] : [])
+    end
+
+    /#
+    @summary Gets value at absolute index (safe).
+    @param integer index : The index of the list to grab.
+    @return any : Returns the value at the specified index, or default if index out of bounds.
+    #/
+    fn grab(index: integer): any
+      ((index >= 0 && index < @len) ? @list_data[index] : @default)
+    end
+
+    /#
+    @summary Gets value relative to end: reach(-1) = last element.
+    @param integer offset : The offset.
+    @return any : Returns the value relative to the end. Default if out of bounds.
+    #/
+    fn reach(offset: integer): any
+      index = offset
+
+      # Handle negative offsets: convert to positive index from end
+      if offset < 0
+        index = @len + offset
+      end
+
+      # Bounds check
+      if index >= 0 && index < @len
+        return @list_data[index]
+      end
+      
+      @default
+    end
+
+    /#
+    @summary Gets the current position (0-based).
+    @return integer : The current position in the list.
+    #/
+    fn position(): integer
+      @pos
+    end
+
+    /#
+    @summary Gets the total length of list.
+    @return integer : Returns the length of the list.
+    #/
+    fn length(): integer
+      (@len)
+    end
+
+    /#
+    @summary Gets the total length of list.
+    @return integer : Returns the length of the list.
+    #/
+    fn size(): integer
+      length()
+    end
+
+    /#
+    @summary Skips over consecutive default values.
+    #/
+    fn skip_defaults()
+      while can_read() && current() == @default do
+        consume()
       end
     end
-    return @default
-  end
 
-  # Count how many default values are ahead
-  fn count_ahead()
-    if !can_read()
-      return 0
-    end
+    /#
+    @summary Look ahead: first non-default value from current position.
+    @return any : The first non-default value from the current position, or default if out of bounds.
+    #/
+    fn look_ahead(): any
+      return @default when !can_read()
 
-    var (count: integer = 0)
-    for i in [@pos .. @len - 1] do
-      if @list_data[i] == @default
-        count += 1
-      else
-        break
+      for i in [@pos .. @len - 1] do
+        var (val: any = @list_data[i])
+        if val != @default
+          return val
+        end
       end
+      
+      @default
     end
-    return count
-  end
-end
 
+    /#
+    @summary Counts how many default values are ahead.
+    @return integer : Returns how many default values are ahead.
+    #/
+    fn count_ahead(): integer
+      return 0 when !can_read()
+
+      var (count: integer = 0)
+      for i in [@pos .. @len - 1] do
+        if @list_data[i] == @default
+          count += 1
+        else
+          break
+        end
+      end
+      
+      count
+    end
+  end
 end
