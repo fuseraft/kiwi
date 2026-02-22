@@ -33,6 +33,7 @@ Use `@tag` syntax for structured metadata. Tags start with `@` and are followed 
     - **Format:** `@param Type name : Description`.
 - **@return** (Optional, for functions/methods)
     - Describes the return value.
+    - Use `any` for dynamic types.
     - **Format:** `@return Type : Description`.
 - **@throws** (Optional)
     - Lists potential errors or exceptions. 
@@ -87,8 +88,8 @@ end
 ```kiwi
 /#
 @summary Converts all characters in the string to lowercase.
-@param String _input : The input string to convert.
-@return String : The lowercase version of the input.
+@param string _input : The input string to convert.
+@return string : The lowercase version of the input.
 @example
 ---
 println(string::tolower("Hello, World!"))  # Outputs: "hello, world!"

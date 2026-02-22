@@ -8,6 +8,7 @@ const STDLIB_PACKAGES = [
   "hashable", "compress", "console", "crypto", "csv",
   "env", "fio", "http", "iter", "list", "path", "math", "socket", "tls",
   "std", "std::error", "stdin", "string", "sys", "task", "tester", "time",
+  "reflector"
 ]
 
 for pkg in STDLIB_PACKAGES do
