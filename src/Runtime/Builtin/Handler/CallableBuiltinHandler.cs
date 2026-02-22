@@ -18,6 +18,22 @@ public static class CallableBuiltinHandler
         };
     }
 
+    public static Value ToLambda(Interpreter interp, Token token, Callable callable, string callableName, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CallableBuiltin.ToLambda, 0, args.Count);
+        
+        if (callable is KFunction func)
+        {
+            return interp.FuncToLambda(func);
+        }
+        else if (callable is KLambda)
+        {
+            return Value.CreateLambda(new LambdaRef { Identifier = callableName });
+        }
+        
+        throw new InvalidOperationError(token, "Expected a function or a lambda as a callable.");
+    }
+
     private static Value Call(Interpreter interp, Token token, Callable callable, string callableName, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CallableBuiltin.Call, 1, args.Count);
@@ -52,21 +68,5 @@ public static class CallableBuiltinHandler
     {
         ParameterCountMismatchError.Check(token, CallableBuiltin.Returns, 0, args.Count);
         return Value.CreateString(TypeRegistry.GetTypeName(callable.ReturnTypeHint));
-    }
-
-    private static Value ToLambda(Interpreter interp, Token token, Callable callable, string callableName, List<Value> args)
-    {
-        ParameterCountMismatchError.Check(token, CallableBuiltin.ToLambda, 0, args.Count);
-        
-        if (callable is KFunction func)
-        {
-            return interp.FuncToLambda(func);
-        }
-        else if (callable is KLambda)
-        {
-            return Value.CreateLambda(new LambdaRef { Identifier = callableName });
-        }
-        
-        throw new InvalidOperationError(token, "Expected a function or a lambda as a callable.");
     }
 }

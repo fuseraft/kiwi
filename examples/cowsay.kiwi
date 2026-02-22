@@ -14,7 +14,7 @@ def main(argv: list)
   phrase = argv.join(" ")
   topbar = "_" * (phrase.size() + 2)
   bottombar = "-" * (phrase.size() + 2)
-  output = string::dedent
+  output =
   (
     "
      ${topbar}
@@ -28,7 +28,7 @@ def main(argv: list)
                     ||----w |
                     ||     ||
     '
-  )
+  ).dedent()
 
   print output
 end

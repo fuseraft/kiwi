@@ -12,12 +12,12 @@ public static class ConsoleBuiltinHandler
     {
         return builtin switch
         {
-            TokenName.Builtin_Console_Input => Input(token, args),
             TokenName.Builtin_Console_Foreground => Foreground(token, args),
             TokenName.Builtin_Console_Background => Background(token, args),
             TokenName.Builtin_Console_Clear => Clear(token, args),
             TokenName.Builtin_Console_CursorVisible => CursorVisible(token, args),
             TokenName.Builtin_Console_ReadKey => ReadKey(token, args),
+            TokenName.Builtin_Console_ReadLine => ReadLine(token, args),
             TokenName.Builtin_Console_Reset => Reset(token, args),
             TokenName.Builtin_Console_Title => Title(token, args),
             TokenName.Builtin_Console_WindowSize => WindowSize(token, args),
@@ -99,11 +99,11 @@ public static class ConsoleBuiltinHandler
         return Value.CreateHashmap(resultMap);
     }
 
-    private static Value Input(Token token, List<Value> args)
+    private static Value ReadLine(Token token, List<Value> args)
     {
         if (args.Count > 3)
         {
-            throw new ParameterCountMismatchError(token, ConsoleBuiltin.Input, args.Count, [0, 1, 2, 3]);
+            throw new ParameterCountMismatchError(token, ConsoleBuiltin.ReadLine, args.Count, [0, 1, 2, 3]);
         }
 
         string? prompt = null;
@@ -113,19 +113,19 @@ public static class ConsoleBuiltinHandler
         // Parse arguments
         if (args.Count >= 1)
         {
-            ParameterTypeMismatchError.ExpectString(token, ConsoleBuiltin.Input, 0, args[0]);
+            ParameterTypeMismatchError.ExpectString(token, ConsoleBuiltin.ReadLine, 0, args[0]);
             prompt = args[0].GetString();
         }
 
         if (args.Count >= 2)
         {
-            ParameterTypeMismatchError.ExpectBoolean(token, ConsoleBuiltin.Input, 1, args[1]);
+            ParameterTypeMismatchError.ExpectBoolean(token, ConsoleBuiltin.ReadLine, 1, args[1]);
             noEcho = args[1].GetBoolean();
         }
 
         if (args.Count == 3)
         {
-            ParameterTypeMismatchError.ExpectString(token, ConsoleBuiltin.Input, 2, args[2]);
+            ParameterTypeMismatchError.ExpectString(token, ConsoleBuiltin.ReadLine, 2, args[2]);
             var maskStr = args[2].GetString();
             // take first char only
             mask = string.IsNullOrEmpty(maskStr) ? null : maskStr[0].ToString();

@@ -1,0 +1,116 @@
+/#
+@summary Reflection tools.
+#/
+package reflector
+  /#
+  @summary A struct representing a callable function or lambda.
+  #/
+  struct Callable < Hashable
+    /#
+    @summary Creates a new Callable instance.
+    @param string name : The name of the callable.
+    @param lambda func : The lambda representing the callable.
+    #/
+    fn new(name: string, func: lambda)
+      @name = name
+      @callable = func
+    end
+
+    /#
+    @summary Static method to create a Callable from a function name.
+    @param string func_name : The name of the function.
+    @return Callable : Returns a new Callable instance wrapping the function.
+    #/
+    static fn from_function(func_name: string): Callable
+      var (func: lambda = reflector::getfunc(func_name) ?? (do () => ...))
+      Callable.new(func_name, func)
+    end
+
+    /#
+    @summary Invokes the callable with a set of parameters and returns its value.
+    @param list params : A list of parameters to pass to the callable.
+    @return any : The return value of the callable after invocation.
+    #/
+    fn call(params: list = []): any
+      var (callable: lambda = @callable)
+      callable.call(params)
+    end
+
+    /#
+    @summary Returns a list of hashmaps containing parameter information.
+    @return list : 
+    A list of hashmaps, each containing:
+      - `name`: A string representing the name of the parameter.
+      - `default_value`: The default value.
+      - `type`: If a type annotation was used, then the type name as a string.
+      - `position`: The integer position of the parameter.
+    #/
+    fn parameters(): list
+      (@callable).parameters()
+    end
+
+    /#
+    @summary Returns the type name of the return type of the callable.
+    @return string : A string containing the type name of the return type.
+    #/
+    fn returns(): any
+      (@callable).returns()
+    end
+  end
+
+  /#
+  @summary Returns a list of frame names.
+  @return list : A list containing the names of each stack frame in the callstack.
+  #/
+  fn callstack(): list
+    __reflector_callstack__()
+  end
+
+  /#
+  @summary Returns a list of frame flags at a specified index.
+  @param integer frame_index : The frame index. Defaults to 0 (top of the stack).
+  @return list : The frame flags at specific frame index.
+  #/
+  fn fflags(frame_index: integer = 0): list
+    __reflector_fflags__(frame_index)
+  end
+
+  /#
+  @summary Returns a specified function as a lambda.
+  @param string func_name : The name of the function.
+  @return any : The function as a lambda. Returns `null` when not found.
+  #/
+  fn getfunc(func_name: string): any
+    __reflector_getfunc__(func_name)
+  end
+
+  /#
+  @summary Returns a hashmap representing the state of the program.
+  @return any : Returns the current object reference. Returns `null` when not in an object context.
+  #/
+  fn objcontext(): any
+    __reflector_objectcontext__()
+  end
+
+  /#
+  @summary Returns the current stack frame return value.
+  @return any : The return value at the top of the stack.
+  #/
+  fn retval(): any
+    __reflector_retval__()
+  end
+
+  /#
+  @summary Returns a hashmap representing the state of the program.
+  @return hashmap : 
+  A hashmap containing four keys: 
+    - `packages`: A list containing names of packages imported.
+    - `structs`: The list containing names of structs defined.
+    - `functions`: The list containing names of functions defined.
+    - `stack`: The list of hashmaps containing frame variables.
+      - Each hashmap contains `variables` containing a hashmap of variable names to values.
+  #/
+  fn state(): hashmap
+    __reflector_state__()
+  end
+end

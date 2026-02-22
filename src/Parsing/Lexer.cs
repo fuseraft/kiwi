@@ -1127,67 +1127,54 @@ public class Lexer : IDisposable
         switch (text)
         {
             case "integer":
-            case "Integer":
                 name = TokenName.Types_Integer;
                 break;
 
             case "float":
-            case "Float":
                 name = TokenName.Types_Float;
                 break;
 
             case "boolean":
-            case "Boolean":
                 name = TokenName.Types_Boolean;
                 break;
 
             case "date":
-            case "Date":
                 name = TokenName.Types_Date;
                 break;
 
             case "any":
-            case "Any":
                 name = TokenName.Types_Any;
                 break;
 
             case "hashmap":
-            case "Hashmap":
                 name = TokenName.Types_Hashmap;
                 break;
 
             case "lambda":
-            case "Lambda":
                 name = TokenName.Types_Lambda;
                 break;
 
             case "string":
-            case "String":
                 name = TokenName.Types_String;
                 break;
 
             case "list":
-            case "List":
                 name = TokenName.Types_List;
                 break;
 
             case "object":
-            case "Object":
                 name = TokenName.Types_Object;
                 break;
 
             case "none":
-            case "None":
                 name = TokenName.Types_None;
                 break;
 
             case "pointer":
-            case "Pointer":
                 name = TokenName.Types_Pointer;
                 break;
 
             case "bytes":
-            case "Bytes":
                 name = TokenName.Types_Bytes;
                 break;
         }

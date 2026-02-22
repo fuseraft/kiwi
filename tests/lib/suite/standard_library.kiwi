@@ -3,5 +3,5 @@
     tests at the end use the `crypto` package from the standard library.
    ============================================================================== #/
 tester::register_test("standard library", with do
-  tester::assert(string::mirror("hello") == "helloolleh", "A1")
+  tester::assert("hello".mirror() == "helloolleh", "A1")
 end)

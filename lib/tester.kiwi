@@ -24,7 +24,7 @@ package tester
   end
   
   fn run_test(name: string, test: lambda, results: list = [])
-    print string::padend("Running test: ${name} ", 55, " ")
+    print ("Running test: ${name} ").padend(55, " ")
     tester::initialize()
   
     test_start = time::ticks()

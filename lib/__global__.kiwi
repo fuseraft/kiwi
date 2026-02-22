@@ -8,6 +8,7 @@ const STDLIB_PACKAGES = [
   "hashable", "compress", "console", "crypto", "csv",
   "env", "fio", "http", "iter", "list", "path", "math", "socket", "tls",
   "std", "std::error", "stdin", "string", "sys", "task", "tester", "time",
+  "reflector"
 ]
 
 for pkg in STDLIB_PACKAGES do
@@ -26,24 +27,21 @@ fn d
   minute:       integer = 0,
   second:       integer = 0,
   millisecond:  integer = 0
-) #: date
+): date
   return year.to_date() when year.is_a(string)
 
   var
   (
-    y:          string = year.to_string(),
-    m:          string = string::padstart(month.to_string(), 2, "0"),
-    d:          string = string::padstart(day.to_string(), 2, "0"),
-    h:          string = string::padstart(hour.to_string(), 2, "0"),
-    mi:         string = string::padstart(minute.to_string(), 2, "0"),
-    s:          string = string::padstart(second.to_string(), 2, "0"),
-    ms:         string = string::padstart(millisecond.to_string(), 3, "0"),
-    date_part:  string = "${y}/${m}/${d}",
-    time_part:  string = "${h}:${mi}:${s}.${ms}",
-    new_date:   date   = ("${date_part} ${time_part}").to_date()
+    y:          string = "${year}",
+    m:          string = ("${month}").padstart(2, "0"),
+    d:          string = ("${day}").padstart(2, "0"),
+    h:          string = ("${hour}").padstart(2, "0"),
+    mi:         string = ("${minute}").padstart(2, "0"),
+    s:          string = ("${second}").padstart(2, "0"),
+    ms:         string = ("${millisecond}").padstart(3, "0")
   )
 
-  return new_date
+  ("${y}/${m}/${d} ${h}:${mi}:${s}.${ms}").to_date()
 end
 
 /#
@@ -76,6 +74,7 @@ fn char(code)
   code_str = "\"\\U${hex}\""  
   lambda_str = "(with () do ${code_str} end)()"
 
+  # I know.
   eval(lambda_str)
 end
 
@@ -91,6 +90,10 @@ Spawns a task.
 #/
 fn spawn(callback: lambda, args: list = [])
   task::spawn(callback, args)
+end
+
+fn input(msg: string = "")
+  __console_readline__()
 end
 
 /#
