@@ -31,21 +31,21 @@ req_handler = with (client: integer) do
     
     if req != null
       resp = http::html_response(200, 
-        string::dedent('<!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                          <meta charset="UTF-8">
-                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                          <meta http-equiv="X-UA-Compatible" content="ie=edge">
-                          <title>from kiwi</title>
-                        </head>
-                        <body>' +
-                          "
-                          <h1>Sockets are working!</h1>
-                          <p>You sent: ${req.method} ${req.path}</p>
-                          " +
-                        '</body>
-                        </html>'))
+        ('<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <title>from kiwi</title>
+          </head>
+          <body>' +
+            "
+            <h1>Sockets are working!</h1>
+            <p>You sent: ${req.method} ${req.path}</p>
+            " +
+          '</body>
+          </html>').dedent())
       send = socket::send(client, resp)
       send_res = await(send)
     end

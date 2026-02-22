@@ -97,10 +97,10 @@ fn help()
   }
 
   println banner
-  println string::padend("Usage:", padlen) + padstart + "./ziputil.kiwi <option(s)>"
+  println "Usage:".padend(padlen) + padstart + "./ziputil.kiwi <option(s)>"
   println "Options:"
   for k, v in opts do
-    println padstart + string::padend(k, padlen) + v
+    println padstart + k.padend(padlen) + v
   end
   println ""
 end

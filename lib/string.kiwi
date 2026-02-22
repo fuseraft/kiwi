@@ -24,14 +24,15 @@ package string
     end
 
     fn can_read()
-      return @pos + 1 < @len
+      (@pos + 1 < @len)
     end
 
     fn current()
       if @pos < @len
         return @chars.get(@pos)
       end
-      return ""
+      
+      ""
     end
 
     fn peek()
@@ -39,15 +40,15 @@ package string
         return @chars.get(@pos + 1)
       end
 
-      return ""
+      ""
     end
 
     fn position()
-      return @pos
+      @pos
     end
 
     fn length()
-      return @len
+      @len
     end
 
     fn rewind(n)
@@ -58,14 +59,14 @@ package string
       if n < @len && n >= 0
         return @chars.get(n)
       end
-      return ""
+      ""
     end
 
     fn reach(n)
       if @len + n < @len && @len + n >= 0
         return @chars.get(@len + n)
       end
-      return ""
+      ""
     end
 
     fn look_ahead()
@@ -84,7 +85,7 @@ package string
         i += 1
       end
 
-      return c
+      c
     end
 
     fn count_ahead()
@@ -103,7 +104,7 @@ package string
         i += 1
       end
 
-      return i - 1
+      i - 1
     end
 
     fn skip_whitespace()
@@ -129,7 +130,7 @@ package string
       end
     end
 
-    return false
+    false
   end
 
   /#
@@ -138,7 +139,7 @@ package string
   @return  String           : The base64 encoded string.
   #/
   fn base64encode(_input)
-    return __base64encode__("${_input}")
+    __base64encode__("${_input}")
   end
 
   /#
@@ -147,7 +148,7 @@ package string
   @return  String           : The plaintext string.
   #/
   fn base64decode(_input)
-    return __base64decode__("${_input}")
+    __base64decode__("${_input}")
   end
 
   /#
@@ -156,7 +157,7 @@ package string
   @return  String           : The URL encoded string.
   #/
   fn urlencode(_input)
-    return __urlencode__("${_input}")
+    __urlencode__("${_input}")
   end
 
   /#
@@ -165,7 +166,7 @@ package string
   @return  String           : The plaintext string.
   #/
   fn urldecode(_input)
-    return __urldecode__("${_input}")
+    __urldecode__("${_input}")
   end
 
   /#
@@ -180,7 +181,7 @@ package string
     _padding = " " when _padding.size() != 1
     _padding_size = _size - ("${_input}").size()
     _pad = _padding * _padding_size
-    return _pad + "${_input}"
+    _pad + "${_input}"
   end
 
   /#
@@ -195,7 +196,7 @@ package string
     _padding = " " when _padding.size() != 1
     _padding_size = _size - ("${_input}").size()
     _pad = _padding * _padding_size
-    return "${_input}" + _pad
+    "${_input}" + _pad
   end
 
   /#
@@ -213,7 +214,7 @@ package string
     _right_padding_size = _total_padding - _left_padding_size
     _left_pad = _padding * _left_padding_size
     _right_pad = _padding * _right_padding_size
-    return _left_pad + ("${_input}") + _right_pad
+    _left_pad + ("${_input}") + _right_pad
   end
 
   /#
@@ -227,7 +228,7 @@ package string
     for char in ("${_input}").chars() do
       _output = _output + (char * _count)
     end
-    return _output
+    _output
   end
 
   /#
@@ -243,7 +244,7 @@ package string
       _output = _output + ("${_input1}")[i] when i < ("${_input1}").size()
       _output = _output + ("${_input2}")[i] when i < ("${_input2}").size()
     end
-    return _output
+    _output
   end
 
   /#
@@ -253,7 +254,7 @@ package string
   @return  String            : The mirrored string.
   #/
   fn mirror(_input, _delimiter = "")
-    return ("${_input}") + _delimiter + ("${_input}").reverse()
+    ("${_input}") + _delimiter + ("${_input}").reverse()
   end
 
   /#
@@ -271,7 +272,7 @@ package string
       _array.swap(_k, _n)
     end
 
-    return _array.join("")
+    _array.join("")
   end
 
   /#
@@ -291,7 +292,7 @@ package string
       end
     end
 
-    return _slug
+    _slug
   end
   
   /#
@@ -304,11 +305,11 @@ package string
     
     first = _input[0].uppercase()
     rest = _input[1:].lowercase()
-    return first + rest
+    first + rest
   end
 
   fn capitalise(_input: string): string
-    return string::capitalize(_input)
+    _input.capitalize()
   end
 
   /#
@@ -325,7 +326,7 @@ package string
   end
 
   fn title(s: string): string
-    return string::titleize(s)
+    s.titleize()
   end
 
   fn smart_titleize(
@@ -355,7 +356,7 @@ package string
   @param   String  _input : The input string.
   @return  Boolean        : True if the string is numeric, otherwise false.
   #/
-  fn isnumeric(_input)
+  fn isnumeric(_input): boolean
     _isnumeric = true
     
     for char in ("${_input}").chars() do
@@ -365,7 +366,7 @@ package string
       end
     end
 
-    return _isnumeric
+    _isnumeric
   end
 
   /#
@@ -380,7 +381,7 @@ package string
       end
     end
 
-    return true
+    true
   end
 
   /#
@@ -395,7 +396,7 @@ package string
       end
     end
 
-    return true
+    true
   end
 
   /#
@@ -410,7 +411,7 @@ package string
         return false
       end
     end
-    return true
+    true
   end
 
   /#
@@ -425,7 +426,7 @@ package string
         return false
       end
     end
-    return true
+    true
   end
 
   /#
@@ -434,7 +435,7 @@ package string
   @return  String           : The string converted to uppercase.
   #/
   fn toupper(_input)
-    return ("${_input}").uppercase()
+    ("${_input}").uppercase()
   end
 
   /#
@@ -443,7 +444,7 @@ package string
   @return  String           : The string converted to lowercase.
   #/
   fn tolower(_input)
-    return ("${_input}").lowercase()
+    ("${_input}").lowercase()
   end
 
   /#
@@ -486,7 +487,7 @@ package string
 
     # Join and restore final newline if original had one
     output = result.join("\n")
-    return text.ends_with("\n") ? output + "\n" : output
+    text.ends_with("\n") ? output + "\n" : output
   end
 
   /#
