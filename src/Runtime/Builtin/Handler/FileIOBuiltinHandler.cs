@@ -92,11 +92,7 @@ public static class FileIOBuiltinHandler
 
     private static Value ListDirectory(Token token, List<Value> args)
     {
-        if (args.Count != 1 && args.Count != 2)
-        {
-            throw new ParameterCountMismatchError(token, FileIOBuiltin.ListDirectory);
-        }
-
+        ParameterCountMismatchError.CheckRange(token, FileIOBuiltin.ListDirectory, 1, 2, args.Count);
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.ListDirectory, 0, args[0]);
 
         var path = args[0].GetString();
@@ -114,11 +110,7 @@ public static class FileIOBuiltinHandler
 
     private static Value Glob(Token token, List<Value> args)
     {
-        if (args.Count != 2 && args.Count != 3)
-        {
-            throw new ParameterCountMismatchError(token, FileIOBuiltin.Glob);
-        }
-
+        ParameterCountMismatchError.CheckRange(token, FileIOBuiltin.Glob, 2, 3, args.Count);
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.Glob, 0, args[0]);
 
         if (!args[1].IsList() || args[1].GetList().Count == 0)
@@ -177,8 +169,8 @@ public static class FileIOBuiltinHandler
     private static Value WriteBytes(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, FileIOBuiltin.WriteBytes, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.WriteBytes, 0, args[0]);
+
         var path = args[0].GetString();
 
         if (args[1].IsList())
@@ -394,7 +386,6 @@ public static class FileIOBuiltinHandler
     private static Value RemovePath(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, FileIOBuiltin.RemoveDirectory, 1, args.Count);
-
         ParameterTypeMismatchError.ExpectString(token, FileIOBuiltin.RemoveDirectory, 0, args[0]);
         
         var fileName = args[0].GetString();
@@ -423,7 +414,7 @@ public static class FileIOBuiltinHandler
 
     private static Value GetCurrentDirectory(Token token, List<Value> args)
     {
-        ParameterCountMismatchError.Check(token, FileIOBuiltin.CreateFile, 0, args.Count);
+        ParameterCountMismatchError.Check(token, FileIOBuiltin.GetCurrentDirectory, 0, args.Count);
 
         return Value.CreateString(FileUtil.GetCurrentDirectory());
     }

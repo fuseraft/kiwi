@@ -95,7 +95,9 @@ public struct FileUtil
         try
         {
             var searchOption = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            return [.. Directory.EnumerateFiles(path, "*.*", searchOption).Select(x => Value.CreateString(x))];
+            var files = Directory.EnumerateFiles(path, "*", searchOption).Select(x => Value.CreateString(x));
+            var directories = Directory.EnumerateDirectories(path, "*", searchOption).Select(x => Value.CreateString(x));
+            return [.. files, .. directories];
         }
         catch (Exception)
         {
@@ -434,7 +436,7 @@ public struct FileUtil
     {
         if (start < 0 || length <= 0)
         {
-            throw new FileReadError(token, "Start must be non-negative and length must be positive.");
+            throw new IndexError(token, "Start must be non-negative and length must be positive.");
         }
 
         try
