@@ -50,7 +50,7 @@ public class ListBuiltinHandler
             }
         }
 
-        var interp = Interpreter.Current ?? throw new RuntimeError(token, "", []);
+        var interp = Interpreter.Current ?? throw new RuntimeError(token, $"{op}", []);
 
         if (args.Count == 1 && args[0].IsLambda())
         {

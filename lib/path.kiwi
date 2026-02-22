@@ -1,27 +1,106 @@
 package path
   /#
-  I wanted a pathlib-like experience in kiwi.
+  @summary A struct representing a filesystem path.
   #/
   struct Path < Hashable
+    /#
+    @summary Creates a new Path instance.
+    @param string path : The path as a string.
+    #/
     fn new(path: string)
       # wip: path is not collapsed (which is fine for now)
       @path = path
     end
 
+    /#
+    @summary Returns the absolute path to the current working directory.
+    @return Path : Returns a path representing the absolute path of the current working directory.
+    #/
+    static fn cwd(): Path
+      '.'.to_path().abspath().to_path()
+    end
+
+    /#
+    @summary Coerces a path into a string.
+    @param any new_path : A new path (or path part) either as a string or a Path.
+    @return string : Returns a string representing a path.
+    @throws TypeError : Expects new_path to be a string or a Path.
+    #/
+    static fn path_string(new_path): string
+      new_path.is_a("Path") ? new_path.path : new_path
+    end
+
+    /#
+    @summary Returns a path to the temp directory.
+    @return Path : Returns a path to the temp directory.
+    #/
+    static fn temp_dir(): Path
+      fio::tmpdir().to_path()
+    end
+
+    /#
+    @summary Creates a 0 byte file and returns its path.
+    @return Path : Returns a path to the file.
+    #/
+    static fn temp_file(): Path
+      fio::tmpfile().to_path()
+    end
+
+    /#
+    @summary Overrides the `to_string()` method to return the path as a string.
+    @return string : Returns a string representing the path.
+    #/
+    fn to_string(): string
+      var (path: string = @path)
+      path
+    end
+
+    /#
+    @summary Operator overload to combine (join) paths.
+    @param any new_path : A new path (or path part) either as a string or a Path.
+    @return Path : Returns a path containing this path and the new path.
+    @throws TypeError : Expects new_path to be a string or a Path.
+    #/
+    fn /(new_path): Path
+      combine(new_path)
+    end
+
+    /#
+    @summary Returns the absolute path as a string.
+    @return string : A string containing the absolute path.
+    #/
     fn abspath(): string
       var (path: string = @path)
       fio::abspath(path)
     end
 
+    /#
+    @summary Combines (joins) this path with another.
+    @param any new_path : A new path (or path part) either as a string or a Path.
+    @return Path : Returns a path containing this path and the new path.
+    @throws TypeError : Expects new_path to be a string or a Path.
+    #/
     fn combine(new_path): Path
       var (paths: list = [@path, Path.path_string(new_path)])
       Path.new(fio::combine(paths))
     end
 
+    /#
+    @summary Checks if the parts contains a given part.
+    @param string path_part : The path part as a string.
+    @return boolean : Returns `true` when the path contains the given path part.
+    #/
     fn contains(path_part: string): boolean
       parts().contains(path_part)
     end
 
+    /#
+    @summary Copies data from one path to another. 
+             If the path is a directory, all subdirectory contents are copied as well.
+    @param any new_path : A new path either as a string or a Path.
+    @return boolean : Returns `true` when the data was copied.
+    @throws TypeError : Expects new_path to be a string or a Path.
+    #/
     fn copy(new_path): boolean
       var (
         path: string = @path, 
@@ -46,16 +125,29 @@ package path
       end
     end
 
+    /#
+    @summary Checks if the path exists.
+    @return boolean : Returns `true` when the path exists on the filesystem.
+    #/
     fn exists(): boolean
       var (path: string = @path)
       fio::exists(path)
     end
 
+    /#
+    @summary Gets the file extension of the path.
+    @return string : Returns a string containing the file extension of the path.
+    #/
     fn ext(): string
       var (path: string = @path)
       fio::ext(path)
     end
 
+    /#
+    @summary Gets a new path from a path part.
+    @param string path_part : A part of a path as a string.
+    @return Path : Returns the path at the given path part.
+    #/
     fn find(path_part: string): Path
       var (path: string = @path)
       find_path = Path.new(path)
@@ -67,16 +159,29 @@ package path
       find_path
     end
 
+    /#
+    @summary Checks if the path is a directory.
+    @return boolean : Returns `true` when the path is a directory.
+    #/
     fn is_dir(): boolean
       var (path: string = @path)
       fio::isdir(path)
     end
-
+    
+    /#
+    @summary Checks if the path is a file.
+    @return boolean : Returns `true` when the path is a file.
+    #/
     fn is_file(): boolean
       var (path: string = @path)
       fio::isfile(path)
     end
 
+    /#
+    @summary Combines (joins) multiple path parts to this path.
+    @param list path_parts : A list of path parts.
+    @return Path : Returns a new path by combining this path with a list of path parts.
+    #/
     fn joinpath(path_parts: list): Path
       var (path: string = @path)
       Path.new(
@@ -88,15 +193,27 @@ package path
       )
     end
 
+    /#
+    @summary Gets the last part of the path as a string.
+    @return string : Returns a string containing the last part of the path.
+    #/
     fn name(): string
       parts().last()
     end
 
+    /#
+    @summary Gets the parent path.
+    @return Path : Returns a Path containing the parent of this path.
+    #/
     fn parent(): Path
       var (path: string = @path)
       Path.new(fio::parentdir(path))
     end
 
+    /#
+    @summary Gets a list of paths containing all parents of this path.
+    @return list : Returns a list of paths containing all parents of this path.
+    #/
     fn parents(): list
       var (find_root: Path = (@).clone(), found: boolean = false, paths: list = [])
       while not found do
@@ -110,11 +227,20 @@ package path
       paths
     end
 
+    /#
+    @summary Gets the list of path parts in this path.
+    @return list : Returns a list of path parts in this path.
+    #/
     fn parts(): list
       var (path: string = @path)
       fio::pathparts(path)
     end
 
+    /#
+    @summary Removes this path from the file system.
+    @return boolean : Returns `true` when the path was successfully removed from the file system.
+    @throws FileSystemError : Throws when the path is a non-empty directory. Use `rmdir()` instead.
+    #/
     fn remove(): boolean
       var (path: string  = @path,
         is_path: boolean = exists())
@@ -128,6 +254,10 @@ package path
       is_path and not exists()
     end
 
+    /#
+    @summary Removes the path from the file system, and all of its subpaths.
+    @return boolean : Returns `true` when the path was successfully removed from the file system.
+    #/
     fn rmdir(): boolean
       var (path: string  = @path,
         is_path: boolean = exists())
@@ -139,6 +269,10 @@ package path
       is_path and not exists()
     end
 
+    /#
+    @summary Gets the path root.
+    @return Path : Returns a Path representing the root of this path.
+    #/
     fn root(): Path
       var (find_root: Path = (@).clone(), found: boolean = false)
       while not found do
@@ -151,51 +285,47 @@ package path
       find_root
     end
 
+    /#
+    @summary Gets all content from the path as bytes.
+    @return bytes : Returns bytes containing the content of the file this path points to.
+    #/
     fn readbytes(): bytes
       read_bytes()
     end
 
+    /#
+    @summary Gets all content from the path as a list of strings representing the lines in the file.
+    @return list : Returns a list of stirngs containing the line content of the file this path points to.
+    #/
     fn readlines(): list
       read_lines()
     end
 
+    /#
+    @summary Gets all content from the path as a string.
+    @return bytes : Returns bytes containing the content of the file this path points to.
+    #/
     fn read(): string
       var (path: string = @path)
       is_file() ? fio::read(path) : ""
     end
     
+    /#
+    @summary Gets all content from the path as bytes.
+    @return bytes : Returns bytes containing the content of the file this path points to.
+    #/
     fn read_bytes(): bytes
       var (path: string = @path)
       is_file() ? fio::readbytes(path) : [].to_bytes()
     end
 
+    /#
+    @summary Gets all content from the path as a list of strings representing the lines in the file.
+    @return list : Returns a list of stirngs containing the line content of the file this path points to.
+    #/
     fn read_lines(): list
       var (path: string = @path)
       is_file() ? fio::readlines(path) : []
-    end
-
-    fn to_string(): string
-      "${@path}"
-    end
-
-    fn /(new_path): Path
-      combine(new_path)
-    end
-
-    static fn cwd(): Path
-      '.'.to_path().abspath().to_path()
-    end
-
-    static fn path_string(new_path): string
-      new_path.is_a("Path") ? new_path.path : new_path
-    end
-
-    static fn temp_dir(): Path
-      fio::tmpdir().to_path()
-    end
-
-    static fn temp_file(): Path
-      fio::tmpfile().to_path()
     end
   end
 end

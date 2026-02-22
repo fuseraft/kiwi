@@ -2,7 +2,7 @@ fn main(args)
   default_n = 100, n = default_n
   
   if !args.empty()
-    n = string::isnumeric(args[0]) ? args[0].to_integer() : default_n
+    n = args[0].isnumeric() ? args[0].to_integer() : default_n
   end
 
   fizzbuzz([n, default_n].max())

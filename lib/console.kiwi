@@ -53,23 +53,23 @@ package console
   end
 
   fn read(msg: string = "")
-    return input(msg)
+    __console_readline__(msg)
   end
 
   fn readline(msg: string = "")
-    return input(msg)
+    __console_readline__(msg)
   end
 
   fn read_secret(msg: string = "", mask: string = "")
-    return input(msg, true, mask)
+    __console_readline__(msg, true, mask)
   end
 
   fn readkey(intercept: boolean = true)
-    return __console_readkey__(intercept)
+    __console_readkey__(intercept)
   end
 
   fn read_key(intercept: boolean = true)
-    return __console_readkey__(intercept)
+    __console_readkey__(intercept)
   end
 
   fn write(msg: string = "")

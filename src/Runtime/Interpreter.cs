@@ -549,9 +549,19 @@ public class Interpreter
 
             if (value.IsLambda())
             {
-                // WIP: need to work on this.
+                if (frame.InObjectContext() && (node.Left?.Type == ASTNodeType.Self || name[0] == '@'))
+                {
+                    var obj = frame.GetObjectContext();
+                    if (obj != null)
+                    {
+                        obj.InstanceVariables[name] = value;
+                        return obj.InstanceVariables[name];
+                    }
+                }
+
                 var lambdaId = value.GetLambda().Identifier;
                 Context.Lambdas.Add(name, Context.Lambdas[lambdaId]);
+
                 return value;
             }
             else

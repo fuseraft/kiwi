@@ -13,12 +13,14 @@ The standard library is a collection of packages containing useful functions and
 | [`csv`](csv.md) | Functions for parsing CSV data. |
 | [`env`](env.md) | For interacting with environment variables. |
 | [`fio`](fio.md) | Functions for file system operations. |
-| [`http`](http.md) | Functions for HTTP requests (GET, POST, etc). |
+| [`http`](http.md) | Functions for HTTP requests (GET, POST, etc), including `HttpResponse`. |
 | [`math`](math.md) | Common mathematical functions and utilities. |
+| [`path`](path.md) | Contains the definition for the `Path` struct. |
+| [`reflector`](reflector.md) | Reflection tools, including `Callable`. |
 | [`socket` / `tls`](socket.md) | Low-level asynchronous TCP and TLS networking. |
 | [`stdin`](stdin.md) | Functions for reading from standard input. |
 | [`string`](string.md) | String manipulation and transformation utilities. |
 | [`sys`](sys.md) | For executing shell commands. |
-| [`task`](task.md) | Asynchronous task management. |
+| [`task`](task.md) | Asynchronous task management, including `Channel`. |
 | [`tester`](tester.md) | A simple unit testing framework. |
 | [`time`](time.md) | Time and date utilities. |
