@@ -16,7 +16,15 @@ for pkg in STDLIB_PACKAGES do
 end
 
 /#
-@summary Easy access to the date type.
+@summary Creates a date value.
+@param any year : A year as an integer, or a string representing a date.
+@param integer month : The month. Defaults to 1 (January).
+@param integer day : The day. Defaults to 1 (first of the month).
+@param integer hour : The hour. Defaults to 0 (midnight).
+@param integer minute : The minute. Defaults to 0.
+@param integer second : The second. Defaults to 0.
+@param integer millisecond : The millisecond. Defaults to 0.
+@return date : Returns a date value.
 #/
 fn d
 (
@@ -45,16 +53,16 @@ fn d
 end
 
 /#
-Returns a unicode character without requiring escaping.
-
-Usage:
-```kiwi
+@summary Returns a unicode character without requiring escaping.
+@param any code : A code (either an integer or a hex string).
+@example
+---
 println char(0x1F95D)          # 🥝
 println char("U+1F40D")        # 🐍
 println char(0x2764)           # ❤️
 println char(0x25A0)           # ■ 
 println char("1F600")          # 😊
-```
+---
 #/
 fn char(code)
   # code can be integer or hex string
@@ -79,25 +87,36 @@ fn char(code)
 end
 
 /#
-Awaits a task.
+@summary Awaits a task.
+@param integer task_id : The task identifier.
+@return any : Returns the result of the task.
 #/
-fn await(task_id: integer)
+fn await(task_id: integer): any
   task::await(task_id)
 end
 
 /#
-Spawns a task.
+@summary Spawns a task.
+@param lambda async_task : The task to execute as a lambda.
+@param list args : The arguments for the task.
+@return integer : Returns a task identifier.
 #/
-fn spawn(callback: lambda, args: list = [])
-  task::spawn(callback, args)
+fn spawn(async_task: lambda, args: list = []): integer
+  task::spawn(async_task, args)
 end
 
-fn input(msg: string = "")
+/#
+@summary Prompts for user input.
+@param string msg : The prompt.
+@return string : Returns the user input.
+#/
+fn input(msg: string = ""): string
   __console_readline__()
 end
 
 /#
-Used to check if the script is the entrypoint.
+@summary Used to check if the script is the entrypoint.
+@return boolean : Returns `true` when the code is executed as a script.
 #/
 fn __main__(): boolean
   __entrypath__() == __execpath__()

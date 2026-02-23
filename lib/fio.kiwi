@@ -4,321 +4,372 @@
 package fio
   /#
   @summary Get the absolute path of a file.
-  @param _path The path to a file or a filename.
-  @return string
+  @param string _path : The path to a file or a filename.
+  @throws FileSystemError : When unable to determine absolute path.
+  @return string : The absolute path of a file.
   #/
-  fn abspath(_path)
-    return __fio_fileabspath__(_path)
+  fn abspath(_path): string
+    __fio_fileabspath__(_path)
   end
 
   /#
-  @summary Append text to a file.
-  @param _path The path to a file or a filename.
-  @param _text The text to append.
-  @return boolean
+  @summary Appends text to a file.
+  @param string _path : The path to a file or a filename.
+  @param string _text : The text to append.
+  @throws FileSystemError : When file writing fails.
+  @return boolean : Returns `true` when the file is written to.
   #/
-  fn append(_path, _text)
-    return __fio_appendtext__(_path, _text)
+  fn append(_path: string, _text: string = "")
+    __fio_appendtext__(_path, _text)
   end
 
   /#
   @summary Changes the current directory.
-  @param _path The path to a directory.
-  @return boolean
+  @param string _path : The path to a directory.
+  @throws FileSystemError : When changing to the directory fails.
+  @return boolean : Returns `true` when the directory is changed.
   #/
-  fn chdir(_path)
-    return __fio_chdir__(_path)
+  fn chdir(_path: string): boolean
+    __fio_chdir__(_path)
   end
 
   /#
   @summary Combine two paths.
-  @param _path_parts A list of path parts.
-  @return string
+  @param list _path_parts : A list of path parts.
+  @return string : A string from the list of parts.
   #/
   fn combine(_path_parts: list = []): string
-    return __fio_combine__(_path_parts)
+    __fio_combine__(_path_parts)
   end
 
   /#
   @summary Copy a file.
-  @param source The source path.
-  @param dest The destination path.
-  @param overwrite A flag to indicate whether to overwrite the file (defaults to true).
-  @return boolean
+  @param string source : The source path.
+  @param string dest : The destination path.
+  @param boolean overwrite : A flag to indicate whether to overwrite the file (defaults to true).
+  @throws FileSystemError : When copying fails.
+  @return boolean : Returns `true` when copied successfully.
   #/
   fn copy(source: string, dest: string, overwrite: boolean = true)
-    return __fio_copyfile__(source, dest, overwrite)
+    __fio_copyfile__(source, dest, overwrite)
   end
 
   /#
   @summary Copy a directory recursively.
-  @param source The source path.
-  @param dest The destination path.
-  @return boolean
+  @param string source : The source path.
+  @param string dest : The destination path.
+  @throws FileSystemError : When copying fails.
+  @return boolean : Returns `true` when the copy operation succeeds.
   #/
   fn copyr(source: string, dest: string)
-    return __fio_copyr__(source, dest)
+    __fio_copyr__(source, dest)
+  end
+
+  /#
+  @summary Creates an empty file.
+  @param string _path : The path to the file.
+  @throws FileSystemError : When file creation fails.
+  @return boolean : Returns `true` when the file creation succeeds.
+  #/
+  fn create(_path: string)
+    __fio_createfile__(_path)
   end
 
   /#
   @summary Get the current working directory.
-  @return boolean
+  @return string : The current working directory as a string.
   #/
-  fn cwd()
-    return __fio_cwd__()
+  fn cwd(): string
+    __fio_cwd__()
   end
 
   /#
   @summary Check if a path exists.
-  @param _path The path to a file or directory.
-  @return boolean
+  @param string _path : The path to a file or directory.
+  @return boolean : Returns `true` when the path exists on the filesystem.
   #/
   fn exists(_path: string): boolean
     return __fio_isfile__(_path) || __fio_isdir__(_path)
   end
 
   /#
-  @summary Get a file extension.
-  @param _path The path to a file or a filename.
-  @return string
+  @summary Gets the file extension of the path.
+  @param string _path : The path to a file or a filename.
+  @return string : Returns a string containing the file extension of the path.
   #/
-  fn ext(_path)
-    return __fio_fileext__(_path)
+  fn ext(_path: string)
+    __fio_fileext__(_path)
   end
 
   /#
   @summary Get the filename from a file path.
-  @param _path The path to a file or a filename.
-  @return string
+  @param string _path : The path to a file or a filename.
+  @return string : The filename as a string.
   #/
-  fn filename(_path)
-    return __fio_filename__(_path)
+  fn filename(_path: string): string
+    __fio_filename__(_path)
   end
 
   /#
-  @summary Get size of a file in bytes.
-  @param _path The path to a file or a filename.
-  @return Float
+  @summary Get the size of a file in bytes.
+  @param string _path : The path to a file.
+  @throws FileReadError : When unable to determine file size.
+  @return integer : Returns the number of bytes in the file as an integer.
   #/
-  fn filesize(_path)
-    return __fio_filesize__(_path)
+  fn filesize(_path: string): integer
+    __fio_filesize__(_path)
   end
 
   /#
   @summary Get a list of files from glob patterns.
-  @param _path The path to search.
-  @param _include_patterns A list of glob patterns to match against paths.
-  @param _exclude_patterns A list of glob patterns for filtering matches.
-  @return string
+  @param string _path : The path to search.
+  @param list _include_patterns : A list of glob patterns to match against paths.
+  @param list _exclude_patterns : A list of glob patterns for filtering matches. Defaults to no exclusions.
+  @throws FileSystemError : When unable to glob a path.
+  @return list : Returns a list of matched file paths.
   #/
   fn glob(_path: string, _include_patterns: list, _exclude_patterns: list = []): list
-    return __fio_glob__(_path, _include_patterns, _exclude_patterns)
+    __fio_glob__(_path, _include_patterns, _exclude_patterns)
   end
 
+  /#
+  @summary Get a fileinfo hashmap for a file.
+  @param string _path : The file path.
+  @throws FileSystemError : When unable to glob a path.
+  @return hashmap : 
+  Returns a hashmap with the following keys:
+    - `creation_time`: The creation time as a date.
+    - `name`: The name as a string.
+    - `extension`: The file extension as a string.
+    - `full_name`: The full name as a string.
+    - `last_access_time`: The last access timestamp as a date.
+    - `last_write_time`: The last write timestamp as a date.
+    - `attributes`: A hashmap of file attributes mapped to booleans representing whether they are set.
+  #/
   fn fileinfo(_path: string): hashmap
-    return __fio_fileinfo__(_path)
+    __fio_fileinfo__(_path)
   end
 
   /#
   @summary Check if a directory exists.
-  @param _path The path to a directory.
-  @return boolean
+  @param string _path : The path to a directory.
+  @return boolean : Returns `true` when the directory exists.
   #/
   fn isdir(_path: string): boolean
-    return __fio_isdir__(_path)
+    __fio_isdir__(_path)
   end
 
   /#
   @summary Check if a file exists.
-  @param _path The path to a file.
-  @return boolean
+  @param string _path : The path to a file.
+  @return boolean : Returns `true` when the file exists.
   #/
   fn isfile(_path: string): boolean
-    return __fio_isfile__(_path)
+    __fio_isfile__(_path)
   end
 
   /#
-  @summary Retrieve a List of directory entries.
-  @param _path The directory path.
-  @return List
+  @summary Retrieve a list of directory entries for a given path.
+  @param string _path : The directory path.
+  @param boolean _recursive : A flag to control recursive retrieval. Defaults to false.
+  @return list : Returns a list of strings containing the directory entries.
   #/
-  fn listdir(_path)
-    return __fio_listdir__(_path)
+  fn listdir(_path: string, _recursive: boolean = false): list
+    __fio_listdir__(_path, _recursive)
   end
 
   /#
   @summary Creates a directory.
-  @param _path The directory path.
-  @return boolean
+  @param string _path : The directory path.
+  @throws FileSystemError : When directory creation fails.
+  @return boolean : Returns `true` when directory creation succeeds.
   #/
-  fn mkdir(_path)
-    return __fio_mkdir__(_path)
+  fn mkdir(_path: string): boolean
+    __fio_mkdir__(_path)
   end
 
   /#
   @summary Creates a directory and all subdirectories specified in the path.
-  @param _path The directory path.
-  @return boolean
+  @param string _path : The directory path.
+  @throws FileSystemError : When directory creation fails.
+  @return boolean : Returns `true` when directory creation succeeds.
   #/
-  fn mkdirp(_path)
-    return __fio_mkdirp__(_path)
+  fn mkdirp(_path: string): boolean
+    __fio_mkdirp__(_path)
   end
 
   /#
   @summary Move or rename a file.
-  @param source The source path.
-  @param dest The destination path.
-  @param overwrite A flag to indicate whether to overwrite the file (defaults to true).
-  @return boolean
+  @param string source : The source path.
+  @param string dest : The destination path.
+  @param boolean overwrite : A flag to indicate whether to overwrite the file (defaults to false).
+  @throws FileSystemError : When the file move fails.
+  @return boolean : Returns `true` when the file move succeeds.
   #/
-  fn move(source: string, dest: string, overwrite: boolean = true)
-    return __fio_movefile__(source, dest)
+  fn move(source: string, dest: string, overwrite: boolean = false)
+    __fio_movefile__(source, dest)
   end
 
   /#
   @summary Get the parent directory of an absolute path.
-  @param _path The path to a file.
-  @return string
+  @param string _path : The path to a file.
+  @return string : Returns a string containing the parent path.
   #/
-  fn parentdir(_path)
-    return __fio_filepath__(_path)
+  fn parentdir(_path: string): string
+    __fio_filepath__(_path)
   end
 
   /#
   @summary Get the content of a file as a string.
-  @param _path The path to a file.
-  @return string
+  @param string _path : The path to a file.
+  @throws FileReadError : When unable to read the file.
+  @return string : Returns the contents of the file as a string.
   #/
-  fn read(_path)
-    return __fio_readfile__(_path)
+  fn read(_path: string): string
+    __fio_readfile__(_path)
   end
 
   /#
   @summary Get the content of a file as a list of strings.
-  @param _path The path to a file.
-  @return List
+  @param string _path : The path to a file.
+  @throws FileReadError : When unable to read the file.
+  @return list : Returns the contents of the file as a list of strings.
   #/
-  fn readlines(_path)
-    return __fio_readlines__(_path)
+  fn readlines(_path: string): list
+    __fio_readlines__(_path)
   end
 
   /#
-  @summary Get the content of a file as a list of strings.
-  @param _path The path to a file.
-  @param _offset The position in the file to read from.
-  @param _size  The number of bytes to read from the file.
-  @return List
+  @summary Get a slice of a file as bytes.
+  @param string _path : The path to a file.
+  @param integer _offset : The position in the file to read from.
+  @param integer _size : The number of bytes to read from the file.
+  @throws IndexError : When the index is invalid.
+  @throws FileReadError : When the file cannot be read.
+  @return list : Returns bytes containing a slice of the file.
   #/
   fn readslice(_path: string, _offset: integer, _size: integer): bytes
-    return __fio_readslice__(_path, _offset, _size)
+    __fio_readslice__(_path, _offset, _size)
   end
 
   /#
-  @summary Get the content of a file as a list of bytes.
-  @param _path The path to a file.
-  @return bytes
+  @summary Gets all content from the path as bytes.
+  @param string _path : The path to a file.
+  @throws FileReadError : When the file cannot be read.
+  @return bytes : Returns bytes containing the content of the file this path points to.
   #/
-  fn readbytes(_path)
-    return __fio_readbytes__(_path)
+  fn readbytes(_path: string): bytes
+    __fio_readbytes__(_path)
   end
 
   /#
   @summary Delete a file.
-  @param _path The path to a file or a filename.
-  @return boolean
+  @param string _path : The file path.
+  @throws FileSystemError : When the file cannot be removed.
+  @return boolean : Returns `true` when the file is removed.
   #/
-  fn remove(_path)
-    return __fio_deletefile__(_path)
+  fn remove(_path: string): boolean
+    __fio_deletefile__(_path)
   end
 
   /#
   @summary Delete a directory.
-  @param _path The path to a directory.
-  @return boolean
+  @param string _path : The directory path.
+  @throws FileSystemError : When the directory cannot be removed.
+  @return boolean : Returns `true` when the directory is removed.
   #/
-  fn rmdir(_path)
-    return __fio_rmdir__(_path)
+  fn rmdir(_path: string): boolean
+    __fio_rmdir__(_path)
   end
 
   /#
   @summary Delete a directory and all of its contents recursively.
-  @param _path The path to a directory.
-  @return boolean
+  @param string _path : The directory path.
+  @throws FileSystemError : When the directory cannot be removed.
+  @return boolean : Returns `true` when the directory is removed.
   #/
   fn rmdirf(_path)
-    return __fio_rmdirf__(_path)
+    __fio_rmdirf__(_path)
   end
 
   /#
-  @summary Create an empty file.
-  @param _path The path to a file or a filename.
-  @return boolean
+  @summary Create an empty file or updates the timestamp on a file.
+  @param string _path : The path to a file.
+  @throws FileSystemError : When file writing fails.
+  @return boolean : Returns `true` when the file is touched.
   #/
   fn touch(_path)
-    return __fio_createfile__(_path)
+    __fio_appendtext__(_path, "")
   end
   
   /#
   @summary Gets the path to the temporary directory.
-  @return string
+  @return string : Returns the temp directory path as a string.
   #/
-  fn tmpdir()
-    return __fio_tmpdir__()
+  fn tmpdir(): string
+    __fio_tmpdir__()
   end
   
   /#
-  @summary Creates and returns a 0 byte temporary file path.
-  @return string
+  @summary Creates and returns an empty temporary file and returns its path.
+  @return string : Returns the path to a newly created empty file.
   #/
-  fn tmpfile()
-    return __fio_tmpfile__()
+  fn tmpfile(): string
+    __fio_tmpfile__()
   end
 
   /#
   @summary Write text to a file. This overwrites the file if it exists.
-  @param _path The path to a file or a filename.
-  @param _text The text to write.
-  @return boolean
+  @param string _path : The path to a file or a filename.
+  @param string _text : The text to write.
+  @throws FileSystemError : When the file write fails.
+  @return boolean : Returns `true` when the file write succeeds.
   #/
-  fn write(_path, _text = "")
-    return __fio_writetext__(_path, _text)
+  fn write(_path: string, _text = ""): boolean
+    __fio_writetext__(_path, _text)
   end
 
   /#
   @summary Write a line of text to a file. This always appends to a file.
-  @param _path The path to a file or a filename.
-  @param _text The text to append.
-  @return boolean
+  @param string _path : The path to a file or a filename.
+  @param string _text : The text to append.
+  @throws FileSystemError : When the file write fails.
+  @return boolean : Returns `true` when the file write succeeds.
   #/
-  fn writeln(_path, _text)
-    return __fio_writeline__(_path, _text)
+  fn writeln(_path: string, _text: string): boolean
+    __fio_writeline__(_path, _text)
   end
 
   /#
   @summary Write a list of bytes to a file. This overwrites the file if it exists.
-  @param _path The path to a file or a filename.
-  @param _bytes The list of bytes to write.
+  @param string _path : The path to a file or a filename.
+  @param bytes _bytes : The list of bytes to write.
+  @throws FileSystemError : When the file write fails.
+  @return integer : Returns the number of bytes written.
   #/
-  fn writebytes(_path: string, _data: bytes)
+  fn writebytes(_path: string, _data: bytes): integer
     __fio_writebytes__(_path, _data)
   end
 
   /#
   @summary Write a list of bytes to a file at an offset.
-  @param _path The path to a file or a filename.
-  @param _offset The zero based position to begin writing.
-  @param _data The list of bytes to write.
+  @param string _path : The path to a file or a filename.
+  @param integer _offset : The zero based position to begin writing.
+  @param bytes _data : The list of bytes to write.
+  @throws FileSystemError : When the file write fails.
+  @return integer : Returns the number of bytes written.
   #/
   fn writeslice(_path: string, _offset: integer, _data: bytes): integer
     __fio_writeslice__(_path, _offset, _data)
   end
 
-  # TODO: we should build a kiwi pathlib <.<
-  fn dirname(_path)
-    return __fio_filepath__(_path)
-  end
-
-  fn pathparts(_path): list
-    return __fio_pathparts__(_path)
+  /#
+  @summary Get path parts from a path.
+  @param string _path : The path.
+  @return list : Returns a list of strings containing all path parts.
+  #/
+  fn pathparts(_path: string): list
+    __fio_pathparts__(_path)
   end
 end
+
