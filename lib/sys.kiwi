@@ -1,72 +1,43 @@
 /#
-Summary: A package for working with external processes.
+@summary A package for working with external processes.
 #/
 package sys
   /#
-  Summary: Executes a command by building it from provided arguments.
-  Params:
-    - `cmd`: The base command to run (e.g., "ls", "echo").
-    - `args`: A list of arguments to append to the command.
-    - `capture_output`: Boolean flag indicating if output should be captured (default is false).
-  Returns: The command output as a string if `capture_output` is true, or the return code otherwise.
+  @summary Open an external process without waiting for its completion.
+  @param string _program : The program.
+  @param list _args : The program arguments. Defaults to an empty list.
+  @throws TypeError : Expects _args to contain a list of strings.
+  @return boolean : Returns `true` process start succeeds.
   #/
-  fn command(cmd, args, capture_output = false)
-    cmd_text = cmd.clone()
-
-    # Append each argument, making sure to properly escape/quote as needed.
-    for arg in args do
-      cmd_text += " " + sys::escape_argument(arg)
-    end
-
-    # Choose execution method based on capture_output flag.
-    if capture_output
-      return sys::execout(cmd_text)
-    end
-      
-    sys::exec(cmd_text)
+  fn open(_program: string, _args: list = []): boolean
+    __sys_open__(_program, _args)
   end
 
   /#
-  Summary: Run an external process or open a file.
-  Params:
-    - _command: String containing the command text.
-  Returns: Integer containing exit code of external process.
+  @summary Start an external process and capture its exit code.
+  @param string _program : The program.
+  @param list _args : The program arguments. Defaults to an empty list.
+  @throws SystemError : When unable to start the process.
+  @throws TypeError : Expects _args to contain a list of strings.
+  @return integer : Returns the exit code of the external process.
   #/
-  fn open(_command)
-    __sys_open__(_command)
+  fn exec(_program: string, _args: list = []): integer
+    __sys_exec__(_program, _args)
   end
 
   /#
-  Summary: Run an external process and capture its exit code.
-  Params:
-    - _command: String containing the command text.
-  Returns: Integer containing exit code of external process.
+  @summary Run an external process and capture its output.
+  @param string _program : The program.
+  @param list _args : The program arguments. Defaults to an empty list.
+  @throws SystemError : When unable to start the process.
+  @throws TypeError : Expects _args to contain a list of strings.
+  @return hashmap :
+  Returns a hashmap with the following keys:
+    - `stdout`: Data from the standard output stream as a string.
+    - `stderr`: Data from the standard error stream as a string.
+    - `exit_code`: The exit code of the process as an integer.
   #/
-  fn exec(_command)
-    __sys_exec__(_command)
-  end
-
-  /#
-  Summary: Run an external process and capture its standard output.
-  Params:
-    - _command: String containing the command text.
-  Returns: String containing standard output from external process.
-  #/
-  fn execout(_command)
-    __sys_execout__(_command)
-  end
-
-  /#
-  Summary: Escapes an argument to prevent command injection and ensure safe passing.
-  Params:
-    - arg: An command-line argument. 
-  Returns: The argument wrapped in quotes if it contains spaces or special characters.
-  #/
-  fn escape_argument(arg: string)
-    if arg.contains(" ") || arg.contains_any("!@#$%^&*()[]{}|;:<>,.?/~`")
-      return "\"" + arg + "\""
-    end
-
-    arg
+  fn execout(_program: string, _args: list = []): hashmap
+    __sys_execout__(_program, _args)
   end
 end
