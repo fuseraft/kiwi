@@ -39,7 +39,6 @@ public static class TimeBuiltinHandler
     private static Value AddHour(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.AddHour, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.AddHour, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.AddHour, 1, args[1]);
 
@@ -49,7 +48,6 @@ public static class TimeBuiltinHandler
     private static Value AddMinute(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.AddMinute, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.AddMinute, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.AddMinute, 1, args[1]);
 
@@ -59,7 +57,6 @@ public static class TimeBuiltinHandler
     private static Value AddSecond(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.AddSecond, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.AddSecond, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.AddSecond, 1, args[1]);
 
@@ -69,7 +66,6 @@ public static class TimeBuiltinHandler
     private static Value AddMillisecond(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.AddMillisecond, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.AddMillisecond, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.AddMillisecond, 1, args[1]);
 
@@ -79,7 +75,6 @@ public static class TimeBuiltinHandler
     private static Value AddDay(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.AddDay, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.AddDay, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.AddDay, 1, args[1]);
 
@@ -89,7 +84,6 @@ public static class TimeBuiltinHandler
     private static Value AddMonth(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.AddMonth, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.AddMonth, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.AddMonth, 1, args[1]);
 
@@ -99,7 +93,6 @@ public static class TimeBuiltinHandler
     private static Value AddYear(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.AddYear, 2, args.Count);
-
         ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.AddYear, 0, args[0]);
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.AddYear, 1, args[1]);
 
@@ -109,16 +102,12 @@ public static class TimeBuiltinHandler
     private static Value Now(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.Now, 0, args.Count);
-
         return Value.CreateDate(DateTime.Now);
     }
 
     private static Value IsDST(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.IsDST);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.IsDST, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -135,10 +124,7 @@ public static class TimeBuiltinHandler
 
     private static Value AMPM(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.AMPM);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.AMPM, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -155,10 +141,7 @@ public static class TimeBuiltinHandler
 
     private static Value Hour(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.Hour);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.Hour, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -175,10 +158,7 @@ public static class TimeBuiltinHandler
 
     private static Value Minute(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.Minute);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.Minute, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -195,10 +175,7 @@ public static class TimeBuiltinHandler
 
     private static Value Second(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.Second);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.Second, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -215,10 +192,7 @@ public static class TimeBuiltinHandler
 
     private static Value Millisecond(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.Millisecond);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.Millisecond, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -235,10 +209,7 @@ public static class TimeBuiltinHandler
 
     private static Value MonthDay(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.MonthDay);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.MonthDay, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -255,19 +226,16 @@ public static class TimeBuiltinHandler
 
     private static Value WeekDay(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.WeekDay);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.WeekDay, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
-            return Value.CreateInteger(DateTime.Now.DayOfWeek);
+            return Value.CreateInteger((int)DateTime.Now.DayOfWeek);
         }
         else if (args.Count == 1)
         {
             ParameterTypeMismatchError.ExpectDate(token, TimeBuiltin.WeekDay, 0, args[0]);
-            return Value.CreateInteger(args[0].GetDate().DayOfWeek);
+            return Value.CreateInteger((int)args[0].GetDate().DayOfWeek);
         }
 
         throw new InvalidOperationError(token);
@@ -275,10 +243,7 @@ public static class TimeBuiltinHandler
 
     private static Value YearDay(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.YearDay);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.YearDay, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -295,10 +260,7 @@ public static class TimeBuiltinHandler
 
     private static Value Month(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.Month);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.Month, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -315,10 +277,7 @@ public static class TimeBuiltinHandler
 
     private static Value Year(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.Year);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.Year, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -335,10 +294,7 @@ public static class TimeBuiltinHandler
 
     private static Value Ticks(Token token, List<Value> args)
     {
-        if (args.Count > 1)
-        {
-            throw new ParameterCountMismatchError(token, TimeBuiltin.Ticks);
-        }
+        ParameterCountMismatchError.CheckRange(token, TimeBuiltin.Ticks, 0, 1, args.Count);
 
         if (args.Count == 0)
         {
@@ -362,7 +318,6 @@ public static class TimeBuiltinHandler
     private static Value TicksToMilliseconds(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, TimeBuiltin.TicksToMilliseconds, 1, args.Count);
-
         ParameterTypeMismatchError.ExpectNumber(token, TimeBuiltin.TicksToMilliseconds, 0, args[0]);
 
         if (args[0].IsInteger())
