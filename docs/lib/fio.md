@@ -1,482 +1,404 @@
 # `fio`
 
-The `fio` package contains functionality for working with files and directories.
+The `fio` package (short for **file I/O**) provides low-level, procedural filesystem operations in Kiwi.  
+It serves as the foundation for higher-level abstractions like the `path` module. Most functions accept plain strings as paths and return simple values (usually booleans for success/failure, or the expected data type).
 
 ## Table of Contents
 
 - [Package Functions](#package-functions)
-  - [`abspath(_path)`](#abspath_path)
-  - [`append(_path, _text)`](#append_path-_text)
-  - [`chdir(_path)`](#chdir_path)
-  - [`combine(_parts)`](#combine_first-_second)
-  - [`copy(_source, _dest)`](#copy_source-_dest)
-  - [`copyr(_source, _dest)`](#copyr_source-_dest)
-  - [`cwd()`](#cwd)
-  - [`exists(_path)`](#exists_path)
-  - [`ext(_path)`](#ext_path)
-  - [`filename(_path)`](#filename_path)
-  - [`filesize(_path)`](#filesize_path)
-  - [`glob(_path, _include, _exclude)`](#glob_path-_include-_exclude)
-  - [`isdir(_path)`](#isdir_path)
-  - [`listdir(_path)`](#listdir_path)
-  - [`mkdir(_path)`](#mkdir_path)
-  - [`mkdirp(_path)`](#mkdirp_path)
-  - [`move(_source, _dest)`](#move_source-_dest)
-  - [`parentdir(_path)`](#parentdir_path)
-  - [`read(_path)`](#read_path)
-  - [`readbytes(_path)`](#readbytes_path)
-  - [`readlines(_path)`](#readlines_path)
-  - [`readslice(_path, _offset, _size)`](#readslice_path-_offset-_size)
-  - [`remove(_path)`](#remove_path)
-  - [`rmdir(_path)`](#rmdir_path)
-  - [`rmdirf(_path)`](#rmdirf_path)
-  - [`touch(_path)`](#touch_path)
-  - [`tmpdir()`](#tmpdir)
-  - [`tmpfile()`](#tmpfile)
-  - [`write(_path, _text)`](#write_path-_text)
-  - [`writeln(_path, _text)`](#writeln_path-_text)
-  - [`writebytes(_path, _data)`](#writebytes_path-_data)
-  - [`writeslice(_path, _offset, _data)`](#writeslice_path-_offset-_data)
+  - Path manipulation
+    - [`abspath(_path)`](#abspath_path)
+    - [`combine(_path_parts)`](#combine_path_parts)
+    - [`ext(_path)`](#ext_path)
+    - [`filename(_path)`](#filename_path)
+    - [`parentdir(_path)`](#parentdir_path)
+    - [`pathparts(_path)`](#pathparts_path)
+  - Directory operations
+    - [`chdir(_path)`](#chdir_path)
+    - [`cwd()`](#cwd)
+    - [`isdir(_path)`](#isdir_path)
+    - [`mkdir(_path)`](#mkdir_path)
+    - [`mkdirp(_path)`](#mkdirp_path)
+    - [`listdir(_path, _recursive)`](#listdir_path-_recursive)
+    - [`rmdir(_path)`](#rmdir_path)
+    - [`rmdirf(_path)`](#rmdirf_path)
+  - File operations
+    - [`create(_path)`](#create_path)
+    - [`touch(_path)`](#touch_path)
+    - [`exists(_path)`](#exists_path)
+    - [`isfile(_path)`](#isfile_path)
+    - [`filesize(_path)`](#filesize_path)
+    - [`fileinfo(_path)`](#fileinfo_path)
+    - [`copy(source, dest, overwrite)`](#copysource-dest-overwrite)
+    - [`copyr(source, dest)`](#copyrsource-dest)
+    - [`move(source, dest, overwrite)`](#movesource-dest-overwrite)
+    - [`remove(_path)`](#remove_path)
+  - Reading
+    - [`read(_path)`](#read_path)
+    - [`readbytes(_path)`](#readbytes_path)
+    - [`readlines(_path)`](#readlines_path)
+    - [`readslice(_path, _offset, _size)`](#readslice_path-_offset-_size)
+  - Writing
+    - [`write(_path, _text)`](#write_path-_text)
+    - [`writeln(_path, _text)`](#writeln_path-_text)
+    - [`append(_path, _text)`](#append_path-_text)
+    - [`writebytes(_path, _data)`](#writebytes_path-_data)
+    - [`writeslice(_path, _offset, _data)`](#writeslice_path-_offset-_data)
+  - Pattern matching
+    - [`glob(_path, _include_patterns, _exclude_patterns)`](#glob_path-_include_patterns-_exclude_patterns)
+  - Temporary files / directories
+    - [`tmpdir()`](#tmpdir)
+    - [`tmpfile()`](#tmpfile)
 
 ## Package Functions
 
-### `abspath(_path)`
+### Path manipulation
+
+#### `abspath(_path)`
+Returns the absolute (fully resolved) path.
 
-Get the absolute path of a file.
+**Parameters**  
+| Type     | Name     | Description                  |
+|----------|----------|------------------------------|
+| `string` | `_path`  | Relative or absolute path    |
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Absolute path                |
+
+#### `combine(_path_parts)`
+Joins path components using the platform-appropriate separator.
+
+**Parameters**  
+| Type  | Name            | Description                       |
+|-------|-----------------|-----------------------------------|
+| `list`| `_path_parts`   | List of path segments (strings)   |
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Combined path                |
+
+#### `ext(_path)`
+Extracts the file extension (including the dot).
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Extension or `""`            |
+
+#### `filename(_path)`
+Returns only the final component (filename or last directory name).
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Basename                     |
 
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The relative path to a file or a filename. |
+#### `parentdir(_path)`
+Returns the parent directory of the given path.
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Parent path                  |
 
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The absolute path. |
+#### `pathparts(_path)`
+Splits the path into its components.
+
+**Returns**  
+| Type  | Description                      |
+|-------|----------------------------------|
+| `list`| List of path parts (strings)     |
 
-### `append(_path, _text)`
+### Directory operations
+
+#### `chdir(_path)`
+Changes the current working directory.
 
-Append text to a file.
+**Parameters**  
+| Type     | Name     | Description                  |
+|----------|----------|------------------------------|
+| `string` | `_path`  | Target directory             |
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
 
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The relative path to a file or a filename. |
-| `string` | `_text` | The text to append. |
+#### `cwd()`
+Returns the current working directory.
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Current directory path       |
 
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
+#### `isdir(_path)`
+Checks if the path points to an existing directory.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | `true` if it is a directory  |
 
-### `chdir(_path)`
-
-Changes the current directory.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a directory. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `combine(_parts)`
-
-Combine a list of path parts into a full path.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_parts` | The list of path parts. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The combined path. |
-
-### `copy(_source, _dest)`
-
-Copy a file.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_source` | The source path. |
-| `string` | `_dest` | The destination path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `copyr(_source, _dest)`
-
-Copy a directory recursively.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_source` | The source path. |
-| `string` | `_dest` | The destination path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `cwd()`
-
-Gets the path of the current working directory.
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The path of the current working directory. |
-
-### `exists(_path)`
-
-Check if a path exists.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to check. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates whether the file exists. |
-
-### `ext(_path)`
-
-Get a file extension.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to check. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The file extension. |
-
-### `filename(_path)`
-
-Get the filename from a path.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a file. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The filename. |
-
-### `filesize(_path)`
-
-Get size of a file in bytes.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a file. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `float` | The file size in number of bytes. |
-
-### `glob(_path, _include, _exclude)`
-
-Get a list of files from a glob pattern.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to search. |
-| `list` | `_include` | A list of glob patterns to match against paths. |
-| `list` | `_exclude` | A list of glob patterns to filter out matches. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `list` | File paths matched by glob pattern. |
-
-### `isdir(_path)`
-
-Check if a path exists and is a directory.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to check. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates whether the path exists and is a directory. |
-
-### `listdir(_path)`
-
-Retrieve a list of directory entries.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The directory path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `list` | Directory entries. |
-
-### `mkdir(_path)`
-
-Create a directory.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The directory path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `mkdirp(_path)`
-
-Creates a directory and all subdirectories specified in the path.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The directory path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `move(_source, _dest)`
-
-Move or rename a file.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_source` | The source path. |
-| `string` | `_dest` | The destination path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `parentdir(_path)`
-
-Get the parent directory of an absolute path.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a file. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The parent directory. |
-
-### `read(_path)`
-
-Get the content of a file as a string.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a file. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The file content. |
-
-### `readbytes(_path)`
-
-Get the content of a file as bytes.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a file. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `bytes` | Bytes from a file. |
-
-### `readlines(_path)`
-
-Get the content of a file as a list of strings.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a file. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `list` | The file lines. |
-
-### `readslice(_path, _offset, _size)`
-
-Get the content of a file as bytes at a specified offset.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The path to a file. |
-| `integer` | `_offset` | The position in the file to read from.
-| `integer` | `_size` | The number of bytes to read from the file.
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `bytes` | Bytes from a file. |
-
-### `remove(_path)`
-
-Delete a file.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The file path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `rmdir(_path)`
-
-Delete a directory.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The directory path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `rmdirf(_path)`
-
-Delete a directory and all of its contents recursively.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The directory path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `integer` | Number of objects deleted. |
-
-### `touch(_path)`
-
-Create an empty file.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The file path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `tmpdir()`
-
-Gets the path to the temporary directory.
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The temporary directory path. |
-
-### `tmpfile()`
-
-Creates a 0 byte temporary file and returns its path as a string.
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The temporary file path. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `string` | The temporary directory path. |
-
-### `write(_path, _text)`
-
-Write text to a file. This overwrites the file if it exists.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The file path. |
-| `string` | `_text` | The text to write. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `writeln(_path, _text)`
-
-Write a line of text to a file. This always appends to a file.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The file path. |
-| `string` | `_text` | The text to append. |
-
-**Returns**
-| Type | Description |
-| :--- | :---|
-| `boolean` | Indicates success or failure. |
-
-### `writebytes(_path, _data)`
-
-Write bytes to a file. This overwrites the file if it exists.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The file path. |
-| `bytes` | `_data` | The bytes to write. |
-
-### `writeslice(_path, _offset, _data)`
-
-Write bytes to a file at a specified offset.
-
-**Parameters**
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_path` | The file path. |
-| `integer` | `_offset` | The offset to begin writing. |
-| `bytes` | `_data` | The bytes to write. |
+#### `mkdir(_path)`
+Creates a single directory (fails if parent directories don't exist).
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `mkdirp(_path)`
+Creates a directory and all necessary parent directories (`mkdir -p` style).
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `listdir(_path, _recursive)`
+Lists directory contents.
+
+**Parameters**  
+| Type      | Name          | Description                         | Default |
+|-----------|---------------|-------------------------------------|---------|
+| `string`  | `_path`       | Directory to list                   | —       |
+| `boolean` | `_recursive`  | Include subdirectories recursively  | `false` |
+
+**Returns**  
+| Type  | Description                      |
+|-------|----------------------------------|
+| `list`| List of file/directory names     |
+
+#### `rmdir(_path)`
+Removes an **empty** directory.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `rmdirf(_path)`
+Recursively deletes a directory and everything inside it.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+### File operations
+
+#### `create(_path)`
+Creates an empty file (equivalent to `touch` but may behave differently on some platforms).
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `touch(_path)`
+Creates an empty file or updates the access/modification time of an existing file.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `exists(_path)`
+Checks whether a file **or** directory exists at the path.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | `true` if path exists        |
+
+#### `isfile(_path)`
+Checks if the path points to a regular file.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | `true` if it is a file       |
+
+#### `filesize(_path)`
+Returns the size of a file in bytes.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `integer` | File size in bytes           |
+
+#### `fileinfo(_path)`
+Returns detailed metadata about a file.
+
+**Returns**  
+| Type      | Description                                                                 |
+|-----------|-----------------------------------------------------------------------------|
+| `hashmap` | `{ creation_time, name, extension, full_name, last_access_time, last_write_time, attributes }` |
+
+#### `copy(source, dest, overwrite)`
+Copies a single file.
+
+**Parameters**  
+| Type      | Name        | Description                  | Default |
+|-----------|-------------|------------------------------|---------|
+| `string`  | `source`    | Source file                  | —       |
+| `string`  | `dest`      | Destination                  | —       |
+| `boolean` | `overwrite` | Overwrite if exists          | `true`  |
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `copyr(source, dest)`
+Recursively copies a directory (and all contents).
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `move(source, dest, overwrite)`
+Moves or renames a file/directory.
+
+**Parameters**  
+| Type      | Name        | Description                  | Default |
+|-----------|-------------|------------------------------|---------|
+| `string`  | `source`    | Source path                  | —       |
+| `string`  | `dest`      | Destination path             | —       |
+| `boolean` | `overwrite` | Overwrite if exists          | `false` |
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `remove(_path)`
+Deletes a file (not directories).
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+### Reading
+
+#### `read(_path)`
+Reads entire file content as UTF-8 string.
+
+**Returns**  
+| Type     | Description          |
+|----------|----------------------|
+| `string` | File content         |
+
+#### `readbytes(_path)`
+Reads entire file as raw bytes.
+
+**Returns**  
+| Type   | Description          |
+|--------|----------------------|
+| `bytes`| File content         |
+
+#### `readlines(_path)`
+Reads file and splits it into lines.
+
+**Returns**  
+| Type  | Description                  |
+|-------|------------------------------|
+| `list`| List of strings (lines)      |
+
+#### `readslice(_path, _offset, _size)`
+Reads a portion of the file as bytes.
+
+**Parameters**  
+| Type      | Name       | Description                  |
+|-----------|------------|------------------------------|
+| `string`  | `_path`    | File path                    |
+| `integer` | `_offset`  | Starting position            |
+| `integer` | `_size`    | Number of bytes to read      |
+
+**Returns**  
+| Type   | Description          |
+|--------|----------------------|
+| `bytes`| Requested slice      |
+
+### Writing
+
+#### `write(_path, _text)`
+Overwrites file with new text content.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `writeln(_path, _text)`
+**Appends** one line (adds newline).
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `append(_path, _text)`
+Appends text without adding a newline.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `boolean` | Success                      |
+
+#### `writebytes(_path, _data)`
+Overwrites file with raw bytes.
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `integer` | Number of bytes written      |
+
+#### `writeslice(_path, _offset, _data)`
+Writes bytes at a specific position (seeks + writes).
+
+**Returns**  
+| Type      | Description                  |
+|-----------|------------------------------|
+| `integer` | Number of bytes written      |
+
+### Pattern matching
+
+#### `glob(_path, _include_patterns, _exclude_patterns)`
+Finds files matching glob patterns.
+
+**Parameters**  
+| Type  | Name                 | Description                              | Default |
+|-------|----------------------|------------------------------------------|---------|
+| `string` | `_path`           | Base directory                           | —       |
+| `list`   | `_include_patterns`| Glob patterns to match (e.g. `["*.txt"]`) | —       |
+| `list`   | `_exclude_patterns`| Patterns to exclude                      | `[]`    |
+
+**Returns**  
+| Type  | Description                      |
+|-------|----------------------------------|
+| `list`| Matching absolute paths          |
+
+### Temporary files / directories
+
+#### `tmpdir()`
+Returns path to system temporary directory.
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Temp directory path          |
+
+#### `tmpfile()`
+Creates a new empty temporary file and returns its path.
+
+**Returns**  
+| Type     | Description                  |
+|----------|------------------------------|
+| `string` | Path to new temp file        |
