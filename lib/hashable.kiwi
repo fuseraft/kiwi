@@ -14,5 +14,4 @@ package hashable
       (@).keys().reduce({}, do (acc, k) => acc[k] = (@).get(k))
     end
   end
-
 end
