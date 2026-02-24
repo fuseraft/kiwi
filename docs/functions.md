@@ -1,10 +1,6 @@
 # Functions and Methods
 
-Use the `fn` keyword to define a function.
-
-Use the `def` keyword to define a method (a function of a [`struct`](structs.md)). 
-
-The distinction between a function and a method in Kiwi is purely semantic.
+Use the `fn` keyword to define a function or a method (a function of a [`struct`](structs.md)). 
 
 ```kiwi
 fn greet(name = "Kiwi")
