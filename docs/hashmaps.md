@@ -1,75 +1,202 @@
-# Hashmaps
+# Hashmaps in Kiwi
 
-Hashmaps in Kiwi are similar to hashmaps and dictionaries in other languages.
+Hashmaps (also called dictionaries) are unordered, mutable collections of key-value pairs.  
+Keys must be unique and are typically strings (or other hashable types). Values can be any Kiwi type.
 
-A hashmap contains a series of key-value pairs and can easily be serialized into JSON and vice-versa.
+Hashmaps are the natural way to represent structured data and are directly serializable to/from JSON.
 
-# Table of Contents
-- [Builtins](#hashmap-builtins)
-- [Defining a `hashmap`](#defining-a-hashmap)
-- [Accessing Elements](#accessing-hashmap-elements)
-- [Adding Elements](#adding-elements-to-a-hashmap)
-- [Removing Elements](#removing-elements-from-a-hashmap)
-- [Iterating a `hashmap`](#iterating-a-hashmap)
+## Quick Reference – Common Operations
 
-### Builtins
+| Operation                  | Syntax / Method                          | Returns          | Mutates? |
+|----------------------------|------------------------------------------|------------------|----------|
+| Create                     | `{}`, `{"a": 1, "b": true}`              | `hashmap`        | —        |
+| Get value                  | `map["key"]`, `map.key`                  | value or `null`  | No       |
+| Set value                  | `map["key"] = val`, `map.key = val`      | —                | Yes      |
+| Check key exists           | `map.contains("key")`, `"key" in map`    | `boolean`        | No       |
+| Get with default           | `map.get("key", default)`                | value            | No       |
+| Remove key                 | `map.remove("key")` or `map.delete("key")`| removed value    | Yes      |
+| Size                       | `map.size()` or `map.length()`           | integer          | No       |
+| Iterate pairs              | `for k, v in map do …`                   | —                | —        |
+| Iterate keys               | `for k in map.keys() do …`               | —                | —        |
+| Iterate values             | `for v in map.values() do …`             | —                | —        |
 
-For documentation on `hashmap` builtins, take a look at the [`hashmap` builtins](builtins.md#hashmap-builtins).
+For the complete list of built-in methods, see [Hashmap Builtins](builtins.md#hashmap-builtins).
 
-### Defining a Hashmap
+## Creating Hashmaps
 
-The keys in a hashmap must be unique.
+### Literal syntax
 
 ```kiwi
-myHashmap = {"key1": true, "key2": 1, "key2": [1, 2, 3, 4]}
+empty   = {}
+person  = {
+  name:    "Alice",
+  age:     28,
+  active:  true,
+  hobbies: ["reading", "hiking", "coding"]
+}
 ```
 
-### Accessing Hashmap Elements
-
-Bracket notation can be used to access elements by key.
+**Note:** Duplicate keys in a literal are **not allowed** — the last one wins (but avoid this).
 
 ```kiwi
-println(myHashmap["key2"])  # Outputs: [1, 2, 3, 4]
+# Bad (last value overwrites)
+bad = {"a": 1, "a": 2}   # -> {"a": 2}
 ```
 
-Dot notation can be used to access elements by key.
+## Accessing Values
+
+### Bracket notation (always works)
 
 ```kiwi
-println(myHashmap.key2)  # Outputs: [1, 2, 3, 4]
+println person["name"]     # "Alice"
+println person["age"]      # 28
 ```
 
-### Adding Elements to a Hashmap
+### Dot notation (only for valid identifier keys)
 
 ```kiwi
-myHashmap = {}
-myHashmap["key1"] = [1, 2, 3]
-myHashmap.key2 = { "nested": "hashmap" }
-
-# myHashmap now contains {"key1": [1, 2, 3]}
+println person.name        # "Alice"
+println person.age         # 28
 ```
 
-### Removing Elements from a Hashmap
-
-You can use the `delete` keyword to remove an element of a hashmap by key.
+**Dot notation limitations**
+- Cannot be used for keys with spaces, hyphens, numbers at start, or special characters.
+- Cannot be used when the key is stored in a variable.
 
 ```kiwi
-hashmap = {"key1": 1, "key2": true, "key3": [1, 2, 3]}
-delete hashmap["key2"]
-println(hashmap) # prints: {"key1": 1, "key3": [1, 2, 3]}
+key = "favorite-color"
+println person[key]        # works
+# println person.favorite-color   # syntax error
 ```
 
-### Iterating a Hashmap
-
-Use the `for` keyword and the `.keys()` Hashmap-builtin to iterate a hashmap.
+**Missing keys**  
+Both notations return `null` if the key doesn't exist (safe access).
 
 ```kiwi
-# Iterate the values in the list.
-for key in myHashmap.keys() do
-  println(myHashmap[key])
+println person["height"]   # null
+println person.height      # null
+```
+
+**Safe access with default**
+
+```kiwi
+level = person.get("level", "beginner")   # "beginner" if missing
+```
+
+## Adding / Updating Entries
+
+```kiwi
+settings = {}
+
+# Bracket (most flexible)
+settings["theme"] = "dark"
+settings["font-size"] = 14
+
+# Dot (clean for simple keys)
+settings.autoSave = true
+settings.maxRetries = 3
+
+println settings
+# -> {"theme": "dark", "font-size": 14, "autoSave": true, "maxRetries": 3}
+```
+
+## Removing Entries
+
+```kiwi
+config = {
+  apiKey:    "abc123",
+  debug:     true,
+  timeout:   30000,
+  logLevel:  "info"
+}
+
+config.remove("debug")
+# config is now {"apiKey": "abc123", "timeout": 30000, "logLevel": "info"}
+```
+
+## Checking for Keys
+
+```kiwi
+user = { name: "Bob", email: "bob@example.com" }
+
+println user.has_key("name")      # true
+println "email" in user            # true (alternative syntax)
+println user.has_key("phone")     # false
+```
+
+## Iterating Hashmaps
+
+### Key-value pairs (most common)
+
+```kiwi
+scores = { alice: 95, bob: 82, carol: 100 }
+
+for name, score in scores do
+  println "${name}: ${score}"
+end
+```
+
+### Only keys
+
+```kiwi
+for name in scores.keys() do
+  println name
+end
+```
+
+### Only values
+
+```kiwi
+for score in scores.values() do
+  println score
+end
+```
+
+### With index (if order matters — insertion order is preserved)
+
+```kiwi
+for name, score, idx in scores do
+  println "${idx + 1}. ${name} -> ${score}"
+end
+```
+
+## Full Example – Simple Config Manager
+
+```kiwi
+config = {
+  server:   "localhost",
+  port:     8080,
+  debug:    false,
+  retries:  3
+}
+
+fn load_config(file)
+  # Simulate loading from file
+  return { debug: true, logLevel: "verbose" }
 end
 
-# Iterate the values in the list, with an index.
-for key, index in myHashmap.keys() do
-  println("Key ${index}: ${key}")
+# Merge defaults + overrides
+overrides = load_config("config.json")
+for k, v in overrides do
+  config[k] = v
+end
+
+println "Final config:"
+for k, v in config do
+  println "  ${k}: ${v}"
 end
 ```
+
+## Best Practices & Tips
+
+- Use **dot notation** when keys are simple identifiers -> cleaner code
+- Use **bracket notation** when keys are dynamic/variables or contain special chars
+- Prefer `.get(key, default)` over direct access when absence is expected
+- Avoid very large keys or deeply nested structures without good reason
+- Hashmaps preserve **insertion order** (since Kiwi 1.x) — useful for config files, JSON round-tripping
+- To merge two maps: loop with `for k, v in source do target[k] = v`
+
+See also:
+- [Hashmap Builtins](builtins.md#hashmap-builtins)
+- [Loops – `for` on hashmaps](loops.md#hashmaps)
+- [Control Flow](control_structures.md#3-when--guard-clauses--conditional-modifiers) (guards with `when`)
