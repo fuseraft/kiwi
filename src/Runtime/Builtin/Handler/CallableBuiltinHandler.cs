@@ -54,7 +54,7 @@ public static class CallableBuiltinHandler
 
             if (callable.TypeHints.TryGetValue(kvp.Key, out var hint))
             {
-                param[Value.CreateString("type")] = Value.CreateString(TypeRegistry.GetTypeName(hint));
+                param[Value.CreateString("type")] = Value.CreateString(string.Join("|", hint.Select(TypeRegistry.GetTypeName)));
             }
 
             param[Value.CreateString("position")] = Value.CreateInteger(pos++);

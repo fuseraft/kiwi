@@ -5,7 +5,7 @@ namespace kiwi.Parsing.AST;
 public class VariableNode() : ASTNode(ASTNodeType.Variable)
 {
     public List<KeyValuePair<string, ASTNode?>> Variables { get; set; } = [];
-    public Dictionary<string, int> TypeHints { get; set; } = [];
+    public Dictionary<string, List<int>> TypeHints { get; set; } = [];
 
     public override void Print(int depth = 0)
     {
@@ -21,11 +21,10 @@ public class VariableNode() : ASTNode(ASTNodeType.Variable)
 
             Print($"Identifier: `{ASTTracer.Unmangle(v.Key)}`");
 
-            if (TypeHints.TryGetValue(v.Key, out int value))
+            if (TypeHints.TryGetValue(v.Key, out List<int>? value))
             {
                 ASTTracer.PrintDepth(2 + depth);
-                var typeHint = value;
-                Print($"Type: {TypeRegistry.GetTypeName(typeHint)}");
+                Print($"Type: {string.Join("|", value.Select(TypeRegistry.GetTypeName))}");
             }
 
             if (v.Value == null)

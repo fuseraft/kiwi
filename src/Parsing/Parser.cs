@@ -535,7 +535,7 @@ public partial class Parser
         List<KeyValuePair<string, ASTNode?>> variables = [];
 
         // a container for type-hints, mapped to variable names.
-        Dictionary<string, int> typeHints = [];
+        Dictionary<string, List<int>> typeHints = [];
 
         // collect variable declarations
         while (GetTokenType() != TokenType.RParen)
@@ -568,7 +568,7 @@ public partial class Parser
             if (MatchType(TokenType.Colon))
             {
                 // register type-hint for the variable
-                typeHints[mangledName] = GetTypeName();
+                typeHints[mangledName] = GetTypeNames();
             }
 
             // check for default value
@@ -628,7 +628,7 @@ public partial class Parser
 
         // Parse parameters
         List<KeyValuePair<string, ASTNode?>> parameters = [];
-        Dictionary<string, int> typeHints = [];
+        Dictionary<string, List<int>> typeHints = [];
         int returnTypeHint = 0; // 0 is any
 
         if (isTypeName && GetTokenType() != TokenType.LParen)
@@ -663,7 +663,7 @@ public partial class Parser
 
                 if (MatchType(TokenType.Colon))
                 {
-                    typeHints[mangledName] = GetTypeName();
+                    typeHints[mangledName] = GetTypeNames();
                 }
 
                 // Check for default value
@@ -1352,7 +1352,7 @@ public partial class Parser
 
         var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
         Dictionary<string, string> localNames = [];
-        Dictionary<string, int> typeHints = [];
+        Dictionary<string, List<int>> typeHints = [];
         var returnTypeHint = TypeRegistry.GetType("any");
         var mangledNames = PushNameStack();
 
@@ -1384,8 +1384,7 @@ public partial class Parser
                 // Check for type hint.
                 if (MatchType(TokenType.Colon))
                 {
-                    var typeName = GetTypeName();
-                    typeHints[mangledName] = typeName;
+                    typeHints[mangledName] = GetTypeNames();
                 }
 
                 // Check for default value
