@@ -111,6 +111,10 @@ end
 @return string : Returns the user input.
 #/
 fn input(msg: string = ""): string
+  if !msg.empty()
+    print msg
+  end
+
   __console_readline__()
 end
 

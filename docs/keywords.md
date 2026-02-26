@@ -12,6 +12,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`else`](#else)
   - [`elsif`](#elsif)
   - [`end`](#end)
+  - [`exit`](#exit)
   - [`for`](#for)
   - [`if`](#if)
   - [`in`](#in)
@@ -89,6 +90,11 @@ See [Conditionals](conditionals.md) and [Control Structures](control_structures.
 
 ### `end`
 The `end` keyword is used to terminate a code-block.
+
+### `exit`
+The `exit` keyword is used to terminate the program. It accepts an integer parameter to represent the exit code.
+
+See [Control Structures](control_structures.md).
 
 ### `for`
 The `for` keyword is used to define a for-loop.
