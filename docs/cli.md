@@ -91,7 +91,7 @@ Note: If a file with the same name already exists, the CLI will notify you to pr
 Runs Kiwi in safe mode. This disables access to web, filesystem, and system shell functionality.
 
 ```
-kiwi -t filename         # Prints tokens from the file in a minified way.
+kiwi -sm filename        # Runs the file in safe mode.
 ```
 
 ### `-ns`, `--no-stdlib`

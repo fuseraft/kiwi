@@ -2,6 +2,7 @@
 
 1. **Getting Started**
    - [Using the Kiwi CLI](cli.md)
+   - [REPL](repl.md)
    - **[Running Scripts & Execution Modes](runners.md)**
 
 2. **Language Basics**
@@ -13,10 +14,12 @@
    - [Variables](variables.md)
    - [Functions](functions.md)
    - [Lambdas](lambdas.md)
+   - [Docstrings](docstrings.md)
 
 3. **Advanced Language Features**
    - [Packages](packages.md)
    - [Error Handling](error_handling.md)
+   - [Events](events.md)
    - **Control Flow and Loops**
      - [Conditionals](conditionals.md)
      - [Control Structures](control_structures.md)
@@ -25,11 +28,15 @@
      - [Lists](lists.md)
      - [Ranges](ranges.md)
      - [Hashmaps](hashmaps.md)
+   - **Strings and Dates**
+     - [Strings](strings.md)
+     - [Dates](dates.md)
    - **Core Functions**
      - [Builtins](builtins.md)
      - [Console I/O](console_io.md)
    - **Object-Oriented Programming**
      - [Structs](structs.md)
+     - [Abstract Structs](abstract_structs.md)
      - [Methods](functions.md)
 
 4. **Standard Library**
@@ -41,6 +48,7 @@
    - [`env`](lib/env.md) - For interacting with environment variables.
    - [`fio`](lib/fio.md) - Functions for file system operations.
    - [`http`](lib/http.md) - Functions for HTTP/HTTPS requests.
+   - [`iter`](lib/iter.md) - An explicit iterator pattern for safely traversing lists.
    - [`math`](lib/math.md) - Common mathematical functions and utilities.
    - [`path`](lib/path.md) - Contains the definition for the `Path` struct.
    - [`reflector`](lib/reflector.md) - Reflection tools, including `Callable`.

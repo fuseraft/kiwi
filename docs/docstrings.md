@@ -1,8 +1,17 @@
-### Docstrings
+# Docstrings
 
 Docstrings are a way to add documentation to your code.
 
-#### 1. **Syntax Basics**
+## Table of Contents
+
+- [Syntax Basics](#1-syntax-basics)
+- [Placement](#2-placement)
+- [Required and Optional Tags](#3-required-and-optional-tags)
+- [Examples](#4-examples)
+- [Best Practices](#5-best-practices)
+
+## 1. Syntax Basics
+
 - Use multi-line comments starting with `/#` and ending with `#/`. This is Kiwi's native multi-line (block) comment syntax.
 - Docstrings should immediately precede the item they document (e.g., package, struct, function, or constant).
 - Keep docstrings concise but informative. Aim for 1-3 sentences in the summary, with details in structured tags.
@@ -14,20 +23,22 @@ Docstrings are a way to add documentation to your code.
     - `code`
     - `-` (for lists)
 
-#### 2. **Placement**
+## 2. Placement
+
 - **Package/Module Level**: At the top of the file, before any code.
 - **Struct Level**: Before the `struct` declaration.
 - **Function/Method Level**: Before the `fn` declaration.
 - **Constant Level**: Before the `const` declaration.
 - **Inline/Variable**: Rare, but possible before variable declarations if needed.
 
-#### 3. **Required and Optional Tags**
+## 3. Required and Optional Tags
+
 Use `@tag` syntax for structured metadata. Tags start with `@` and are followed by a space-separated description. Multi-line tags are allowed.
 
 - **@summary** (Required for non-trivial items): A brief one-sentence description of the item's purpose.
     - **Format:** `@summary Description`.
 - **@param** (Optional, for functions/methods)
-    - Describes each parameter. 
+    - Describes each parameter.
     - List one per parameter, in declaration order.
     - Use `any` for dynamic types.
     - **Format:** `@param Type name : Description`.
@@ -36,23 +47,24 @@ Use `@tag` syntax for structured metadata. Tags start with `@` and are followed 
     - Use `any` for dynamic types.
     - **Format:** `@return Type : Description`.
 - **@throws** (Optional)
-    - Lists potential errors or exceptions. 
+    - Lists potential errors or exceptions.
     - **Format:** `@throws ErrorType : Description`.
 - **@example** (Optional)
     - Provides a usage example.
     - Use code blocks with triple dashes (`---`)
 - **@see** (Optional)
-    - References related items. 
+    - References related items.
     - **Format:** `@see other::function : Brief note`.
 - **@deprecated** (Optional)
-    - Marks as obsolete. 
+    - Marks as obsolete.
     - **Format:** `@deprecated : Use alternative instead`.
 - **@author** or **@version** (Rare, for packages)
     - Metadata like `@author Name` or `@version 1.0`.
 
-#### 4. **Examples**
+## 4. Examples
 
-##### Package Docstring
+### Package Docstring
+
 ```kiwi
 /#
 @summary A package for working with strings, including iterators and utility functions.
@@ -64,7 +76,8 @@ package string
 end
 ```
 
-##### Struct Docstring
+### Struct Docstring
+
 ```kiwi
 /#
 @summary An iterator for traversing and manipulating strings character by character.
@@ -84,7 +97,8 @@ struct StringIterator
 end
 ```
 
-##### Function Docstring
+### Function Docstring
+
 ```kiwi
 /#
 @summary Converts all characters in the string to lowercase.
@@ -100,7 +114,8 @@ fn tolower(_input)
 end
 ```
 
-##### Constant Docstring
+### Constant Docstring
+
 ```kiwi
 /#
 @summary The version of the Kiwi standard library.
@@ -109,7 +124,8 @@ end
 const KIWI_STDLIB_VERSION = "1.3.7"
 ```
 
-#### 5. **Best Practices**
+## 5. Best Practices
+
 - **Consistency**: Always use `@summary` for discoverability. Omit tags if irrelevant (e.g., no params means no `@param`).
 - **Types**: Use Kiwi type names (e.g., `string`, `integer`, `list`, `hashmap`, `any`, `boolean`). For custom types, reference them (e.g., `Path`).
 - **Errors/Exceptions**: If a function can `throw`, document it with `@throws`.
