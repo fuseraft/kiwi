@@ -1050,7 +1050,13 @@ public class Interpreter
         return Value.CreateNull();
     }
 
-    private bool AssertTypeMatch(Token t, Value v, int type)
+    private bool AssertTypeMatch(Token t, Value v, List<int> types) =>
+        types.Any(type => AssertSingleTypeMatch(t, v, type));
+
+    private bool AssertTypeMatch(Token t, Value v, int type) =>
+        AssertSingleTypeMatch(t, v, type);
+
+    private bool AssertSingleTypeMatch(Token t, Value v, int type)
     {
         string typeName = TypeRegistry.GetTypeName(type);
 
@@ -1082,7 +1088,7 @@ public class Interpreter
                 var struc = Context.Structs[structName];
                 var baseStruct = struc.BaseStruct;
 
-                isTypeMatch = TypeRegistry.GetType(t, baseStruct) == type;   
+                isTypeMatch = TypeRegistry.GetType(t, baseStruct) == type;
             }
         }
 
@@ -1099,11 +1105,11 @@ public class Interpreter
                         throw new ParameterCountMismatchError(token, name, callable.Parameters.Count, args.Count);
 
             // Type hint check
-            if (callable.TypeHints.TryGetValue(param.Key, out var hint) &&
-                !AssertTypeMatch(token, argValue, hint))
+            if (callable.TypeHints.TryGetValue(param.Key, out var hints) &&
+                !AssertTypeMatch(token, argValue, hints))
             {
                 throw new TypeError(token,
-                    $"Parameter {i + 1} of `{name}` expected `{TypeRegistry.GetTypeName(hint)}`, " +
+                    $"Parameter {i + 1} of `{name}` expected `{string.Join("|", hints.Select(TypeRegistry.GetTypeName))}`, " +
                     $"got `{TypeRegistry.GetTypeName(argValue)}`.");
             }
 
@@ -1857,12 +1863,13 @@ public class Interpreter
             }
 
             // check for a type-hint
-            if (typeHints.TryGetValue(name, out int expectedType))
+            if (typeHints.TryGetValue(name, out List<int>? expectedTypes))
             {
+                var expectedType = expectedTypes[0];
                 // if a default value was supplied, expect it to match the type
-                if (hasDefaultValue && !AssertTypeMatch(node.Token, value, expectedType))
+                if (hasDefaultValue && !AssertTypeMatch(node.Token, value, expectedTypes))
                 {
-                    throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for variable  `{ASTTracer.Unmangle(name)}` but received `{TypeRegistry.GetTypeName(value)}`.");
+                    throw new TypeError(node.Token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for variable  `{ASTTracer.Unmangle(name)}` but received `{TypeRegistry.GetTypeName(value)}`.");
                 }
                 else if (!hasDefaultValue)
                 {
@@ -2170,11 +2177,11 @@ public class Interpreter
             {
                 paramValue = Interpret(pair.Value);
 
-                if (typeHints.TryGetValue(paramName, out int expectedType))
+                if (typeHints.TryGetValue(paramName, out List<int>? expectedTypes))
                 {
-                    if (!AssertTypeMatch(node.Token, paramValue, expectedType))
+                    if (!AssertTypeMatch(node.Token, paramValue, expectedTypes))
                     {
-                        throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {paramCount} of `{name}` but received `{TypeRegistry.GetTypeName(paramValue)}`.");
+                        throw new TypeError(node.Token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for parameter {paramCount} of `{name}` but received `{TypeRegistry.GetTypeName(paramValue)}`.");
                     }
                 }
 
@@ -2662,7 +2669,7 @@ public class Interpreter
         return result;
     }
 
-    private void ProcessFunctionParameters(KFunction function, List<ASTNode?> args, Token token, string functionName, HashSet<string> defaultParameters, Scope scope, Dictionary<string, int> typeHints)
+    private void ProcessFunctionParameters(KFunction function, List<ASTNode?> args, Token token, string functionName, HashSet<string> defaultParameters, Scope scope, Dictionary<string, List<int>> typeHints)
     {
         for (var i = 0; i < function.Parameters.Count; ++i)
         {
@@ -2787,7 +2794,7 @@ public class Interpreter
         }
     }
 
-    private void PrepareFunctionCall(KFunction func, FunctionCallNode node, HashSet<string> defaultParameters, Dictionary<string, int> typeHints, StackFrame functionFrame)
+    private void PrepareFunctionCall(KFunction func, FunctionCallNode node, HashSet<string> defaultParameters, Dictionary<string, List<int>> typeHints, StackFrame functionFrame)
     {
         var parms = func.Parameters;
         var nodeArguments = node.Arguments;
@@ -2812,9 +2819,9 @@ public class Interpreter
                 throw new ParameterCountMismatchError(node.Token, node.FunctionName, parms.Count, nodeArguments.Count);
             }
 
-            if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(node.Token, argValue, expectedType))
+            if (typeHints.TryGetValue(param.Key, out List<int>? expectedTypes) && !AssertTypeMatch(node.Token, argValue, expectedTypes))
             {
-                throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {1 + i} of `{node.FunctionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
+                throw new TypeError(node.Token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for parameter {1 + i} of `{node.FunctionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
             }
 
             if (argValue.IsLambda())
@@ -2828,11 +2835,11 @@ public class Interpreter
         }
     }
 
-    private void PrepareFunctionVariables(Dictionary<string, int> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string functionName, Scope scope)
+    private void PrepareFunctionVariables(Dictionary<string, List<int>> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string functionName, Scope scope)
     {
-        if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(token, argValue, expectedType))
+        if (typeHints.TryGetValue(param.Key, out List<int>? expectedTypes) && !AssertTypeMatch(token, argValue, expectedTypes))
         {
-            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {1 + i} of `{functionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
+            throw new TypeError(token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for parameter {1 + i} of `{functionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
         if (argValue.IsLambda())
@@ -2846,7 +2853,7 @@ public class Interpreter
         }
     }
 
-    private void PrepareLambdaCall(KLambda func, List<ASTNode?> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, int> typeHints, string lambdaName, Scope scope)
+    private void PrepareLambdaCall(KLambda func, List<ASTNode?> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, List<int>> typeHints, string lambdaName, Scope scope)
     {
         var parms = func.Parameters;
         for (var i = 0; i < parms.Count; ++i)
@@ -2870,7 +2877,7 @@ public class Interpreter
         }
     }
 
-    private void PrepareLambdaCall(KLambda func, List<Value> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, int> typeHints, string lambdaName, Scope scope)
+    private void PrepareLambdaCall(KLambda func, List<Value> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, List<int>> typeHints, string lambdaName, Scope scope)
     {
         var parms = func.Parameters;
         for (var i = 0; i < parms.Count; ++i)
@@ -2896,11 +2903,11 @@ public class Interpreter
         }
     }
 
-    private void PrepareLambdaVariables(Dictionary<string, int> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string lambdaName, Scope scope)
+    private void PrepareLambdaVariables(Dictionary<string, List<int>> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string lambdaName, Scope scope)
     {
-        if (typeHints.TryGetValue(param.Key, out int expectedType) && !AssertTypeMatch(token, argValue, expectedType))
+        if (typeHints.TryGetValue(param.Key, out List<int>? expectedTypes) && !AssertTypeMatch(token, argValue, expectedTypes))
         {
-            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(expectedType)}` for parameter {1 + i} of `{lambdaName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
+            throw new TypeError(token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for parameter {1 + i} of `{lambdaName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
         if (argValue.IsLambda())

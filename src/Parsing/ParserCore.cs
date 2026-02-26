@@ -299,6 +299,26 @@ public partial class Parser(bool rethrowErrors = false)
         return TypeRegistry.GetType(typeName);
     }
 
+    private List<int> GetTypeNames()
+    {
+        var types = new List<int> { GetTypeName() };
+
+        // support union types: type1|type2|...
+        while (GetTokenName() == TokenName.Ops_BitwiseOr && IsValidTypeNameAhead())
+        {
+            Next();  // consume '|'
+            types.Add(GetTypeName());
+        }
+
+        return types;
+    }
+
+    private bool IsValidTypeNameAhead()
+    {
+        var next = Peek();
+        return next.Type == TokenType.Typename || StructsDefined.Contains(next.Text);
+    }
+
     private bool IsUnaryOperator() => token.Name switch
     {
         TokenName.Ops_Not or TokenName.Ops_Subtract or TokenName.Ops_BitwiseNot => true,

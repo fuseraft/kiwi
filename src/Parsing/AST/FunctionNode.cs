@@ -7,7 +7,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
     public string Name { get; set; } = string.Empty;
     public List<KeyValuePair<string, ASTNode?>> Parameters { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];
-    public Dictionary<string, int> TypeHints { get; set; } = [];
+    public Dictionary<string, List<int>> TypeHints { get; set; } = [];
     public int ReturnTypeHint { get; set; }
     public bool IsOperatorOverload { get; set; }
     public bool IsStatic { get; set; }
@@ -61,11 +61,10 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
             ASTTracer.PrintDepth(2 + depth);
             Print($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
 
-            if (TypeHints.TryGetValue(param.Key, out int value))
+            if (TypeHints.TryGetValue(param.Key, out List<int>? value))
             {
                 ASTTracer.PrintDepth(3 + depth);
-                var typeHint = value;
-                Print($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
+                Print($"ParameterType: {string.Join("|", value.Select(TypeRegistry.GetTypeName))}");
             }
 
             if (param.Value == null)

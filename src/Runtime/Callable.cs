@@ -18,7 +18,7 @@ public class Callable(CallableType type)
     public List<KeyValuePair<string, Value>> Parameters { get; set; } = [];
     public HashSet<string> DefaultParameters { get; set; } = [];
     public int ReturnTypeHint { get; set; }
-    public Dictionary<string, int> TypeHints { get; set; } = [];
+    public Dictionary<string, List<int>> TypeHints { get; set; } = [];
     public Scope? CapturedScope { get; set; }
 }
 

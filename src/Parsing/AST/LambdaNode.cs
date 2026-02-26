@@ -6,7 +6,7 @@ public class LambdaNode() : ASTNode(ASTNodeType.Lambda)
 {
     public List<KeyValuePair<string, ASTNode?>> Parameters { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];
-    public Dictionary<string, int> TypeHints { get; set; } = [];
+    public Dictionary<string, List<int>> TypeHints { get; set; } = [];
     public int ReturnTypeHint { get; set; } = TypeRegistry.GetType("any");
 
     public override void Print(int depth = 0)
@@ -24,11 +24,10 @@ public class LambdaNode() : ASTNode(ASTNodeType.Lambda)
             ASTTracer.PrintDepth(2 + depth);
             Print($"Identifier: `{ASTTracer.Unmangle(param.Key)}`");
 
-            if (TypeHints.TryGetValue(param.Key, out int value))
+            if (TypeHints.TryGetValue(param.Key, out List<int>? value))
             {
                 ASTTracer.PrintDepth(2 + depth);
-                var typeHint = value;
-                Print($"ParameterType: {TypeRegistry.GetTypeName(typeHint)}");
+                Print($"ParameterType: {string.Join("|", value.Select(TypeRegistry.GetTypeName))}");
             }
 
             if (param.Value == null)
