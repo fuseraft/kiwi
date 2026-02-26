@@ -7,7 +7,7 @@ Kiwi supports the following builtin types. To build your own type, see [Structs]
 | [`boolean`](#boolean) | A `true` or `false` value. | See below for an example. |
 | [`bytes`](#bytes) | A byte array. | See below for an example. |
 | [`date`](#date) | A date-time object. | See [Dates](dates.md). |
-| [`float`](#Float) | A floating point number. | See below for an example. |
+| [`float`](#float) | A floating point number. | See below for an example. |
 | [`hashmap`](#hashmap) | A dictionary of key-value pairs. | See [Hashmaps](hashmaps.md). |
 | [`integer`](#integer) | A 64-bit integer. | See below for an example. |
 | [`lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
@@ -90,7 +90,7 @@ println(hashmap.language) # prints: kiwi
 
 ### `integer`
 
-An 64-bit integer.
+A 64-bit integer.
 
 ```kiwi
 # A whole number.

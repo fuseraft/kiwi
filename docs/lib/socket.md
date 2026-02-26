@@ -115,9 +115,7 @@ Enqueues an asynchronous send operation on a client socket. The operation comple
 | :--- | :--- |
 | `integer` | An awaitable task identifier. Use `task::await()` on this ID to obtain the number of bytes sent (`integer`). |
 
-Here is clean, well-structured Markdown documentation for your `tls` package, styled exactly like the `task` and `http` examples you provided.
-
-# `tls` Package Functions
+## `tls` Package Functions
 
 ### `tls::tcpserver(host, port, backlog)`
 Creates a TCP server socket and binds it to the specified host and port.

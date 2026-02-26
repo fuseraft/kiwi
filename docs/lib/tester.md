@@ -7,6 +7,7 @@ The `tester` package contains functionality for registering and running tests wi
 - [Package Functions](#package-functions)
   - [`initialize()`](#initialize)
   - [`assert(condition, msg)`](#assertcondition-msg--assertion-failed)
+  - [`assert_eq(actual, expected, msg)`](#assert_eqactual-expected-msg--)
   - [`register_test(name, t)`](#register_testname-t)
   - [`run_test(name, test, results)`](#run_testname-test-results--)
   - [`run_tests()`](#run_tests)
@@ -38,6 +39,21 @@ _None_
 
 ---
 
+### `assert_eq(actual, expected, msg = "")`
+Checks if `actual` equals `expected`. If they are not equal, an error is thrown with an informative message.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `any` | `actual` | The actual value. |
+| `any` | `expected` | The expected value. |
+| `string` | `msg` | An optional message to include in the failure output. |
+
+**Returns**
+_None_
+
+---
+
 ### `register_test(name, t)`
 Registers a test function to the global test list.
 
@@ -45,7 +61,7 @@ Registers a test function to the global test list.
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `name` | The name of the test. |
-| `Function` | `t` | The test function. |
+| `lambda` | `t` | The test function. |
 
 **Returns**
 _None_
@@ -59,7 +75,7 @@ Runs a specific test, measures its duration, and adds the result to the `results
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `name` | The name of the test. |
-| `Function` | `test` | The test function to execute. |
+| `lambda` | `test` | The test function to execute. |
 | `list` | `results` | The list where test results are stored (optional, defaults to an empty list). |
 
 **Returns**

@@ -2,7 +2,7 @@
 
 Kiwi provides a lightweight, zero-allocation, built-in event bus.
 
-# Table of Contents
+## Table of Contents
 - [Event Keywords](#event-keywords)
   - [`on`](#on)
   - [`once`](#once)

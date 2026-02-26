@@ -7,8 +7,10 @@ The `string` package contains specialized functions for strings.
 - [Package Functions](#package-functions)
   - [`base64decode(_input)`](#base64decode_input)
   - [`base64encode(_input)`](#base64encode_input)
+  - [`capitalize(_input)`](#capitalize_input)
   - [`center(_input, _size, _padding = " ")`](#center_input-_size-_padding)
   - [`contains_any(str, matches = [])`](#contains_anystr-matches--)
+  - [`dedent(text)`](#dedenttext)
   - [`echo(_input, _count)`](#echo_input-_count)
   - [`interweave(_input1, _input2)`](#interweave_input1-_input2)
   - [`isalpha(_input)`](#isalpha_input)
@@ -21,6 +23,9 @@ The `string` package contains specialized functions for strings.
   - [`padend(_input, _size, _padding = " ")`](#padend_input-_size-_padding)
   - [`shuffle(_input)`](#shuffle_input)
   - [`slug(_input)`](#slug_input)
+  - [`smart_titleize(s, keep_lowercase?)`](#smart_titleizes-keep_lowercase)
+  - [`titleize(_input)`](#titleize_input)
+  - [`to_path(path)`](#to_pathpath)
   - [`tolower(_input)`](#tolower_input)
   - [`toupper(_input)`](#toupper_input)
   - [`urldecode(_input)`](#urldecode_input)
@@ -72,7 +77,7 @@ Pads both sides of a string, centering it.
 | :--- | :---|
 | `string` | The centered string. |
 
-### contains_any(str, matches = [])
+### `contains_any(str, matches = [])`
 
 Returns `true` if `str` contains any values in `matches`.
 
@@ -103,6 +108,8 @@ Repeats each character in the string a specified number of times.
 | `string` | The string with characters echoed. |
 
 ### `interweave(_input1, _input2)`
+
+Interweaves characters from two strings, alternating one character from each.
 
 **Parameters**
 | Type | Name | Description |
@@ -315,3 +322,98 @@ Encodes a string as a URL encoded string.
 | Type | Description |
 | :--- | :---|
 | `string` | The URL encoded string. |
+
+### `capitalize(_input)`
+
+Returns a copy of the string with the first character uppercased and the rest lowercased. Also available as `capitalise(_input)`.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `string` | The capitalized string. |
+
+### `titleize(_input)`
+
+Returns a copy of the string with the first character of every word uppercased and the rest lowercased. Also available as `title(_input)`.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `_input` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `string` | The title-cased string. |
+
+### `smart_titleize(s, keep_lowercase?)`
+
+Title-cases a string while keeping common short words (articles, prepositions, conjunctions) lowercase — unless they are the first word.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `s` | The input string. |
+| `list` | `keep_lowercase` | A list of words to keep lowercase (e.g. `["a", "an", "the", "of"]`). Defaults to a standard English set. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `string` | The smart title-cased string. |
+
+**Example**
+```kiwi
+println string::smart_titleize("the lord of the rings")
+# prints: The Lord of the Rings
+```
+
+### `dedent(text)`
+
+Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `text` | The input string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `string` | The dedented string. |
+
+**Example**
+```kiwi
+s = "
+  hello
+  world
+"
+println string::dedent(s)
+# prints:
+# hello
+# world
+```
+
+### `to_path(path)`
+
+Converts a string to a `Path` instance from the `path` package.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `path` | The path string. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `Path` | A new `Path` instance. |
+
+**Example**
+```kiwi
+p = string::to_path("/home/user/docs")
+println p.is_dir()  # prints: true (if directory exists)
+```

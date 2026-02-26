@@ -14,6 +14,7 @@ The standard library is a collection of packages containing useful functions and
 | [`env`](env.md) | For interacting with environment variables. |
 | [`fio`](fio.md) | Functions for file system operations. |
 | [`http`](http.md) | Functions for HTTP requests (GET, POST, etc), including `HttpResponse`. |
+| [`iter`](iter.md) | An explicit iterator pattern for safely traversing lists. |
 | [`math`](math.md) | Common mathematical functions and utilities. |
 | [`path`](path.md) | Contains the definition for the `Path` struct. |
 | [`reflector`](reflector.md) | Reflection tools, including `Callable`. |

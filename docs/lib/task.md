@@ -7,11 +7,14 @@ The `task` package contains functionality for concurrency in Kiwi.
 - [Package Functions](#package-functions)
   - [`await(task_id)`](#awaittask_id)
   - [`busy()`](#busy)
+  - [`channel(cap)`](#channelcap)
+  - [`interval(ms, callback)`](#intervalms-callback)
   - [`spawn(callback, args)`](#spawncallback-args)
   - [`list()`](#list)
   - [`result(task_id)`](#resulttask_id)
   - [`sleep(ms)`](#sleepms)
   - [`status(task_id)`](#statustask_id)
+  - [`timer(ms, callback)`](#timerms-callback)
   - [`wait()`](#wait)
 - [`Channel` struct](#channel)
   - [Constructor](#constructor)
@@ -47,7 +50,38 @@ _None_
 **Returns**
 | Type | Description |
 | :--- | :--- |
-| `boolean` | Boolean indicating business. |
+| `boolean` | `true` if there are active tasks. |
+
+---
+
+### `channel(cap)`
+Creates and returns a new `Channel` with the given capacity.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer` | `cap` | Channel capacity. `0` means unbounded. |
+
+**Returns**
+| Type | Description |
+| :--- | :--- |
+| `Channel` | A new channel instance. |
+
+---
+
+### `interval(ms, callback)`
+Spawns a background task that calls `callback` repeatedly every `ms` milliseconds. Runs indefinitely until the task is cancelled or the program exits.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer` | `ms` | Interval duration in milliseconds. |
+| `lambda` | `callback` | The lambda to invoke on each interval tick. |
+
+**Returns**
+| Type | Description |
+| :--- | :--- |
+| `integer` | The task identifier of the spawned interval task. |
 
 ---
 
@@ -119,7 +153,21 @@ Returns the status of a given task.
 **Returns**
 | Type | Description |
 | :--- | :--- |
-| `string` | The status of the task as a string. |
+| `hashmap` | A hashmap containing task status information. |
+
+---
+
+### `timer(ms, callback)`
+Waits `ms` milliseconds and then invokes `callback` once. Blocks until the timer completes.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer` | `ms` | Delay in milliseconds before invoking the callback. |
+| `lambda` | `callback` | The lambda to invoke after the delay. |
+
+**Returns**
+_None_
 
 ---
 

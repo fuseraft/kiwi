@@ -193,7 +193,8 @@ Computes the tangent of a number.
 
 Computes the arc sine of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -207,7 +208,8 @@ Computes the arc sine of a number.
 
 Computes the arc cosine of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -221,7 +223,8 @@ Computes the arc cosine of a number.
 
 Computes the arc tangent of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -235,7 +238,8 @@ Computes the arc tangent of a number.
 
 Computes the arc tangent of `y / x`, handling quadrants correctly.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueY` | The y-coordinate. |
@@ -250,7 +254,8 @@ Computes the arc tangent of `y / x`, handling quadrants correctly.
 
 Computes the hyperbolic sine of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -264,7 +269,8 @@ Computes the hyperbolic sine of a number.
 
 Computes the hyperbolic cosine of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -278,7 +284,8 @@ Computes the hyperbolic cosine of a number.
 
 Computes the hyperbolic tangent of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -292,7 +299,8 @@ Computes the hyperbolic tangent of a number.
 
 Computes the natural logarithm (base e) of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -306,7 +314,8 @@ Computes the natural logarithm (base e) of a number.
 
 Computes the logarithm to base 2 of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -321,7 +330,8 @@ Computes the logarithm to base 2 of a number.
 
 Computes the logarithm to base 10 of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -336,7 +346,8 @@ Computes the logarithm to base 10 of a number.
 
 Computes `log(1 + x)`.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number x. |
@@ -351,7 +362,8 @@ Computes `log(1 + x)`.
 
 Computes the square root of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -365,7 +377,8 @@ Computes the square root of a number.
 
 Computes the cube root of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -379,7 +392,8 @@ Computes the cube root of a number.
 
 Gets the floating-point remainder of `x / y`.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number x. |
@@ -394,7 +408,8 @@ Gets the floating-point remainder of `x / y`.
 
 Computes `sqrt(x^2 + y^2)` without undue overflow or underflow.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number x. |
@@ -409,7 +424,8 @@ Computes `sqrt(x^2 + y^2)` without undue overflow or underflow.
 
 Checks if a number is a finite value.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -423,7 +439,8 @@ Checks if a number is a finite value.
 
 Checks if a number is an infinite value.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -437,7 +454,8 @@ Checks if a number is an infinite value.
 
 Checks if a number is NaN (Not a Number).
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -451,7 +469,8 @@ Checks if a number is NaN (Not a Number).
 
 Checks if a number is a normal floating-point number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -465,7 +484,8 @@ Checks if a number is a normal floating-point number.
 
 Rounds a number to the largest integer not greater than the number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -479,7 +499,8 @@ Rounds a number to the largest integer not greater than the number.
 
 Rounds a number to the smallest integer not less than the number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -493,7 +514,8 @@ Rounds a number to the smallest integer not less than the number.
 
 Rounds a number to the nearest integer, away from zero in halfway cases.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -507,7 +529,8 @@ Rounds a number to the nearest integer, away from zero in halfway cases.
 
 Truncates a number to the integer part, towards zero.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -521,7 +544,8 @@ Truncates a number to the integer part, towards zero.
 
 Computes the IEEE 754 floating-point remainder of `x / y`.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number x. |
@@ -536,7 +560,8 @@ Computes the IEEE 754 floating-point remainder of `x / y`.
 
 Computes `e^x`, where `e` is the base of the natural logarithm.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number x. |
@@ -550,7 +575,8 @@ Computes `e^x`, where `e` is the base of the natural logarithm.
 
 Computes `e^x - 1`.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number x. |
@@ -564,7 +590,8 @@ Computes `e^x - 1`.
 
 Error function.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -578,7 +605,8 @@ Error function.
 
 Complementary error function.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -592,7 +620,8 @@ Complementary error function.
 
 The natural logarithm of the absolute value of the gamma function.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -606,7 +635,8 @@ The natural logarithm of the absolute value of the gamma function.
 
 The gamma function.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |
@@ -620,7 +650,8 @@ The gamma function.
 
 Copies the sign of `y` to `x`.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number. |
@@ -635,7 +666,8 @@ Copies the sign of `y` to `x`.
 
 Get the next representable value after x towards y.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number x. |
@@ -650,7 +682,8 @@ Get the next representable value after x towards y.
 
 Get the maximum of x and y.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number x. |
@@ -665,7 +698,8 @@ Get the maximum of x and y.
 
 Get the minimum of `x` and `y`.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number x. |
@@ -680,7 +714,8 @@ Get the minimum of `x` and `y`.
 
 Get the positive difference between x and y.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The number x. |
@@ -695,7 +730,8 @@ Get the positive difference between x and y.
 
 Get `x` raised to the power of `y`.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_valueX` | The base. |
@@ -710,7 +746,8 @@ Get `x` raised to the power of `y`.
 
 Get the absolute value of a number.
 
-**Parameters**: 
+**Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The number. |

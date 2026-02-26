@@ -38,7 +38,7 @@ Generates a SHA-224 hash string.
 | `string` | A SHA-224 hash. |
 
 ### `sha256_hash(input = "")`
-Generates a SHA-56 hash string.
+Generates a SHA-256 hash string.
 
 **Parameters**
 | Type | Name | Description |

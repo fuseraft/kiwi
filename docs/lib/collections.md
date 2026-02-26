@@ -1,165 +1,275 @@
 # `collections`
 
-The `collections` package provides data structures for handling heaps and sets. This documentation covers the available structures and their functionalities.
+The `collections` package provides specialized data structures for Kiwi programs.
 
-This is WIP and we will continue to add new definitions to this package over time.
+It includes:
+- `Heap` — a min-heap or max-heap backed by an array
+- `Set` — an unordered collection of unique values with set-algebra operations
 
-## Overview
+## Table of Contents
 
-This package contains two primary structures:
-1. **Heap**: An implementation for managing heaps, supporting both min-heaps and max-heaps.
-2. **Set**: An implementation for managing unique collections of data with various set operations.
-
-## Heap Structure
-
-The `Heap` structure allows for the creation of either a min-heap or a max-heap. The heap supports basic operations such as inserting elements, extracting the root, and peeking at the root.
-
-### Constructor
-
-```kiwi
-fn new(type = "min")
-```
-
-- **Parameters**:
-  - `type`: A string specifying the type of heap. It can be either `"min"` or `"max"`. The default is `"min"`. If an invalid type is provided, it defaults to `"min"`.
-
-### Public Methods
-
-#### `fn insert(value)`
-Inserts a new value into the heap and maintains the heap property.
-
-- **Parameters**:
-  - `value`: The value to be inserted into the heap.
-
-#### `fn extract_root()`
-Removes and returns the root element of the heap. Throws an error if the heap is empty.
-
-- **Returns**: 
-  - The root element of the heap.
-
-#### `fn peek()`
-Returns the root element without removing it. Throws an error if the heap is empty.
-
-#### `fn size()`
-Returns the number of elements in the heap.
-
-#### `fn is_empty()`
-Returns whether the heap is empty.
-
-### Private Methods
-
-#### `fn heapify_up(index)`
-Ensures the heap property is maintained after inserting a new element.
-
-- **Parameters**:
-  - `index`: The index of the newly inserted element.
-
-#### `fn heapify_down(index)`
-Ensures the heap property is maintained after removing the root element.
-
-- **Parameters**:
-  - `index`: The index of the element being moved down the heap.
-
-#### `fn swap(i, j)`
-Swaps the elements at positions `i` and `j` in the heap.
-
-- **Parameters**:
-  - `i`: The index of the first element.
-  - `j`: The index of the second element.
+- [`Heap` struct](#heap-struct)
+  - [Constructor](#heap-constructor)
+  - [`insert(value)`](#insertvalue)
+  - [`extract_root()`](#extract_root)
+  - [`peek()`](#peek)
+  - [`size()`](#heap-size)
+  - [`is_empty()`](#is_empty)
+- [`Set` struct](#set-struct)
+  - [Constructor](#set-constructor)
+  - [`add(item)`](#additem)
+  - [`remove(item)`](#removeitem)
+  - [`contains(item)`](#containsitem)
+  - [`size()`](#set-size)
+  - [`clear()`](#clear)
+  - [`difference(data)`](#differencedata)
+  - [`disjoint(data)`](#disjointdata)
+  - [`intersect(data)`](#intersectdata)
+  - [`merge(data)`](#mergedata)
+  - [`union(data)`](#uniondata)
+  - [`subset(data)`](#subsetdata)
+  - [`superset(data)`](#supersetdata)
+  - [`to_list()`](#to_list)
+  - [`to_string()`](#to_string)
 
 ---
 
-## Set Structure
+## `Heap` struct
 
-The `Set` structure provides a way to manage collections of unique elements. It supports various set operations such as union, intersection, and difference.
+An array-backed binary heap that can operate as either a **min-heap** (root is smallest) or a **max-heap** (root is largest).
 
-### Constructor
+### Heap Constructor
 
+**Parameters**
+| Type | Name | Description | Default |
+|------|------|-------------|---------|
+| `string` | `type` | `"min"` for a min-heap, `"max"` for a max-heap | `"min"` |
+
+**Example**
 ```kiwi
-fn new(data = [])
+h = Heap.new("min")
+h.insert(5)
+h.insert(2)
+h.insert(8)
+println h.extract_root()  # prints: 2
 ```
 
-- **Parameters**:
-  - `data`: A list of initial values for the set. The values are automatically made unique.
+### `insert(value)`
 
-### Public Methods
+Inserts a value into the heap and restores the heap property.
 
-#### `fn add(item)`
-Adds a new item to the set, ensuring that the set remains unique.
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `any` | `value` | The value to insert. |
 
-- **Parameters**:
-  - `item`: The item to be added to the set.
+---
 
-#### `fn remove(item)`
-Removes the specified item from the set.
+### `extract_root()`
 
-- **Parameters**:
-  - `item`: The item to be removed.
+Removes and returns the root element (minimum or maximum depending on heap type).
 
-#### `fn contains(item)`
-Checks whether the set contains the specified item.
+**Returns** `any`
 
-- **Returns**: 
-  - `true` if the set contains the item, `false` otherwise.
+**Throws**
+If the heap is empty.
 
-#### `fn size()`
+---
+
+### `peek()`
+
+Returns the root element without removing it.
+
+**Returns** `any`
+
+**Throws**
+If the heap is empty.
+
+---
+
+### `size()` {#heap-size}
+
+Returns the number of elements in the heap.
+
+**Returns** `integer`
+
+---
+
+### `is_empty()`
+
+Checks whether the heap has no elements.
+
+**Returns** `boolean`
+
+---
+
+## `Set` struct
+
+An unordered collection of unique values. Accepts a `list` or another `Set` for all set-algebra operations.
+
+### Set Constructor
+
+**Parameters**
+| Type | Name | Description | Default |
+|------|------|-------------|---------|
+| `list` | `data` | Initial values (duplicates are removed). | `[]` |
+
+**Example**
+```kiwi
+s = Set.new([1, 2, 2, 3])
+println s.to_list()  # prints: [1, 2, 3]
+```
+
+---
+
+### `add(item)`
+
+Adds an item to the set. Has no effect if the item is already present.
+
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `any` | `item` | The value to add. |
+
+---
+
+### `remove(item)`
+
+Removes an item from the set. Has no effect if the item is not present.
+
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `any` | `item` | The value to remove. |
+
+---
+
+### `contains(item)`
+
+Checks whether the set contains the given item.
+
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `any` | `item` | The value to look for. |
+
+**Returns** `boolean`
+
+---
+
+### `size()` {#set-size}
+
 Returns the number of elements in the set.
 
-#### `fn clear()`
+**Returns** `integer`
+
+---
+
+### `clear()`
+
 Removes all elements from the set.
 
-#### `fn difference(data)`
-Returns a new set containing elements that are in the current set but not in the provided data.
+---
 
-- **Parameters**:
-  - `data`: A list or another set to compare with.
+### `difference(data)`
 
-#### `fn disjoint(data)`
-Returns `true` if the set has no elements in common with the provided data.
+Returns a new `Set` containing elements that are in this set but **not** in `data`.
 
-#### `fn intersect(data)`
-Checks if the set shares any elements with the provided data.
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `list` or `Set` | `data` | The set or list to subtract. |
 
-- **Returns**: 
-  - `true` if the sets intersect, `false` otherwise.
+**Returns** `Set`
 
-#### `fn merge(data)`
-Merges the provided data into the current set.
+---
 
-- **Parameters**:
-  - `data`: A list or set to merge with the current set.
+### `disjoint(data)`
 
-#### `fn union(data)`
-Returns a new set that is the union of the current set and the provided data.
+Returns `true` if this set shares no elements with `data`.
 
-- **Parameters**:
-  - `data`: A list or set to combine with the current set.
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `list` or `Set` | `data` | The set or list to compare. |
 
-#### `fn subset(data)`
-Checks whether the current set is a subset of the provided data.
+**Returns** `boolean`
 
-- **Returns**: 
-  - `true` if the current set is a subset of the provided data, `false` otherwise.
+---
 
-#### `fn superset(data)`
-Checks whether the current set is a superset of the provided data.
+### `intersect(data)`
 
-- **Returns**: 
-  - `true` if the current set is a superset, `false` otherwise.
+Returns `true` if this set shares at least one element with `data`.
 
-#### `fn to_list()`
-Returns a list of the set's elements.
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `list` or `Set` | `data` | The set or list to compare. |
 
-#### `fn to_string()`
+**Returns** `boolean`
+
+---
+
+### `merge(data)`
+
+Adds all elements from `data` into this set (mutates in place).
+
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `list` or `Set` | `data` | The set or list to merge in. |
+
+---
+
+### `union(data)`
+
+Returns a **new** `Set` that is the union of this set and `data`.
+
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `list` or `Set` | `data` | The set or list to union with. |
+
+**Returns** `Set`
+
+---
+
+### `subset(data)`
+
+Returns `true` if every element of this set is contained in `data`.
+
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `list` or `Set` | `data` | The set or list to check against. |
+
+**Returns** `boolean`
+
+---
+
+### `superset(data)`
+
+Returns `true` if this set contains every element of `data`.
+
+**Parameters**
+| Type | Name | Description |
+|------|------|-------------|
+| `list` or `Set` | `data` | The set or list to check against. |
+
+**Returns** `boolean`
+
+---
+
+### `to_list()`
+
+Returns a copy of the set's elements as a list.
+
+**Returns** `list`
+
+---
+
+### `to_string()`
+
 Returns a string representation of the set.
 
-#### `fn type()`
-Returns the string `"Set"` to identify the type of the structure.
-
-### Private Methods
-
-#### `fn get_input_data(data)`
-Extracts the input data from the provided data. It handles both sets and lists, throwing an error if the data is not valid.
-
-- **Parameters**:
-  - `data`: The input data, either a set or a list.
+**Returns** `string`

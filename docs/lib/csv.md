@@ -8,7 +8,7 @@ The algorithm conforms to RFC 4180.
 
 - [Package Functions](#package-functions)
   - [`parse(input, delimiter)`](#parseinput-delimiter)
-  - [`parse_file(file_path, msg)`](#parse_filefile_path-delimiter)
+  - [`parse_file(file_path, delimiter)`](#parse_filefile_path-delimiter)
 
 ## Package Functions
 

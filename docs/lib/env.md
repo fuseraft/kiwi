@@ -8,6 +8,7 @@ The `env` package contains functionality for working with environment variables.
   - [`all()`](#all)
   - [`argv()`](#argv)
   - [`opt(_key)`](#opt_key)
+  - [`parse_args(args, value_opts)`](#parse_argsargs-value_opts)
   - [`get(_varname)`](#get_varname)
   - [`set(_varname, _varvalue)`](#set_varname-_varvalue)
   - [`bin()`](#bin)
@@ -61,6 +62,34 @@ You can pull these values using this package.
 ```kiwi
 println(env::opt("key")) # prints: value
 ```
+
+### `parse_args(args, value_opts)`
+
+Parses a list of command-line argument strings into a hashmap of key-value pairs. Arguments listed in `value_opts` consume the next argument as their value; all other arguments are mapped to `true`.
+
+**Parameters**
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `list` | `args` | A list of argument strings. Defaults to `env::argv().keys()` if empty. |
+| `list` | `value_opts` | A list of option names that expect a following value argument. |
+
+**Returns**
+| Type | Description |
+| :--- | :---|
+| `hashmap` | A hashmap of parsed options. |
+
+**Example**
+```kiwi
+# kiwi myscript.kiwi --output result.txt --verbose
+cfg = env::parse_args([], ["--output"])
+println cfg["--output"]   # prints: result.txt
+println cfg["--verbose"]  # prints: true
+```
+
+**Throws**
+If a value option is listed in `value_opts` but no following argument exists.
+
+---
 
 ### `get(_varname)`
 
