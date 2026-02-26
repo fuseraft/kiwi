@@ -36,6 +36,7 @@ Kiwi’s type hint system supports the following builtin types:
 - **lambda**: Represents a lambda.
 - **bytes**: Represents a byte array.
 - **pointer**: Represents a pointer to a managed reference.
+- **none**: Represents a `null` value.
 - **any**: Accepts any type. Useful for parameters or return values where the type is flexible.
 
 ## Function Parameters with Type Hints
@@ -53,6 +54,59 @@ println concatenate_strings("Hello, ", "World!") # Output: Hello, World!
 ```
 
 If the arguments passed to `concatenate_strings` are not `string` types, Kiwi will raise a type error.
+
+## Union Types
+
+A parameter can accept more than one type by separating types with `|`. Kiwi accepts a value if it matches **any** of the listed types.
+
+### Syntax
+
+```kiwi
+fn function_name(parameter: type1|type2|...): return_type
+  # function body
+end
+```
+
+### Nullable Parameters
+
+The most common use case is allowing `null` alongside a concrete type:
+
+```kiwi
+fn greet(name: string|none = null)
+  if name == null
+    println("Hello, stranger!")
+  else
+    println("Hello, ${name}!")
+  end
+end
+
+greet()          # Hello, stranger!
+greet("Scotty")  # Hello, Scotty!
+```
+
+### Multiple Types
+
+```kiwi
+fn process(val: integer|float = 0)
+  println("value: ${val}")
+end
+
+process()      # value: 0
+process(42)    # value: 42
+process(3.14)  # value: 3.14
+```
+
+### Type Mismatch
+
+If the argument matches none of the listed types, Kiwi raises a type error showing the full union:
+
+```kiwi
+fn strict(x: integer|string = 0)
+  println(x)
+end
+
+strict(true)  # Error: Expected type `integer|string` for parameter 1 of `strict` but received `boolean`.
+```
 
 ## Default Values with Type Hints
 

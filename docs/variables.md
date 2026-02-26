@@ -25,6 +25,7 @@ Each declaration can take one of the following forms:
    var_name: type = value
    ```
    - Specifies the variable type explicitly with an initializer.
+   - Union types are supported: `var_name: type1|type2 = value`.
 
 3. **Type-hinted declaration without initialization:**
    ```kiwi
