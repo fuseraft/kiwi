@@ -9,13 +9,11 @@ using kiwi.Runtime.Builtin.Handler;
 using kiwi.Settings;
 using kiwi.Runtime.Builtin.Dispatcher;
 using kiwi.Runtime.Builtin.Util;
-using System.Security.Cryptography.X509Certificates;
 
 namespace kiwi.Runtime;
 
 public class Interpreter
 {
-    private const int MaxStackDepth = 1000;
     private const int SafemodeMaxIterations = 1000000;
     private readonly Scope _globalScope = new();
 
