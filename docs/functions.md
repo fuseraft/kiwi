@@ -63,6 +63,7 @@ greet("Scotty")                     # Hello, Scotty!
 greet(name="Scotty")                # Hello, Scotty!
 greet(greeting="Hi", name="Scotty") # Hi, Scotty!
 greet("Scotty", greeting="Hey")     # Hey, Scotty!
+greet(greeting: "Hola", name: "Scotty") # Hola, Scotty!
 ```
 
 Passing an unknown parameter name or specifying the same parameter more than once is an error.

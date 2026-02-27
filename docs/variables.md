@@ -4,10 +4,19 @@ Variables are by default dynamically typed, meaning they do not require explicit
 
 # `var` Keyword
 
-The `var` keyword in Kiwi simplifies variable declaration, supporting multiple styles of initialization with optional type hints. It offers a clear, compact syntax for declaring one or more variables at once.
+The `var` keyword in Kiwi simplifies variable declaration, supporting multiple styles of initialization with optional type hints.
 
 ## Syntax
 
+**Single variable:**
+```kiwi
+var var_name
+var var_name = value
+var var_name: type
+var var_name: type = value
+```
+
+**Multiple variables (grouped with parentheses):**
 ```kiwi
 var (<declaration_1>, <declaration_2>, ..., <declaration_n>)
 ```
@@ -16,26 +25,26 @@ var (<declaration_1>, <declaration_2>, ..., <declaration_n>)
 Each declaration can take one of the following forms:
 1. **Regular declaration with initialization:**
    ```kiwi
-   var_name = value
+   var greeting = "Hello"
    ```
    - Infers the variable type from the assigned value.
 
 2. **Type-hinted declaration with initialization:**
    ```kiwi
-   var_name: type = value
+   var count: integer = 0
    ```
    - Specifies the variable type explicitly with an initializer.
-   - Union types are supported: `var_name: type1|type2 = value`.
+   - Union types are supported: `var name: type1|type2 = value`.
 
 3. **Type-hinted declaration without initialization:**
    ```kiwi
-   var_name: type
+   var label: string
    ```
-   - Defaults to the type’s default value (e.g., `0` for integers, `false` for booleans, `null` for others).
+   - Defaults to the type’s default value (e.g., `0` for integers, `false` for booleans, `""` for strings, `null` for others).
 
 4. **Uninitialized declaration:**
    ```kiwi
-   var_name
+   var name
    ```
    - Defaults to `null`.
 
@@ -51,9 +60,9 @@ var (x = 10, y: float = 3.14, z: string, w)
 
 ### Single Declaration
 ```kiwi
-var (x = 42)            # `x` is an integer with the value 42
-var (name: string)       # `name` is a string initialized to null
-var (flag: boolean = true) # `flag` is a boolean with the value true
+var x = 42              # `x` is an integer with the value 42
+var name: string        # `name` is a string, defaults to ""
+var flag: boolean = true  # `flag` is a boolean with the value true
 ```
 
 ### Multiple Declarations
@@ -62,20 +71,18 @@ var (
   age: integer = 25,    # `age` is an integer with value 25
   name = "Kiwi",        # `name` is a string with value "Kiwi"
   is_active: boolean,   # `is_active` is a boolean, defaults to false
-  count                # `count` is uninitialized, defaults to null
+  count                 # `count` is uninitialized, defaults to null
 )
 ```
 
 ### Practical Example
 ```kiwi
 fn initialize_variables()
-  var (
-    counter: integer = 0,
-    name: string = "Test",
-    active: boolean = true,
-    data: list = [1, 2, 3],
-    metadata: hashmap = {"key": "value"}
-  )
+  var counter: integer = 0
+  var name: string = "Test"
+  var active: boolean = true
+  var data: list = [1, 2, 3]
+  var metadata: hashmap = {"key": "value"}
 
   return [counter, name, active, data, metadata]
 end
@@ -85,8 +92,8 @@ end
 
 ## Key Features
 1. **Type Hints:** Declare variables with explicit types for clarity and error prevention.
-2. **Initialization Flexibility:** Mix initialized and uninitialized variables within a single declaration.
-3. **Compact Syntax:** Group related variable declarations for cleaner, more maintainable code.
+2. **Initialization Flexibility:** Mix initialized and uninitialized variables.
+3. **Compact Syntax:** Group related variable declarations with `var (...)` for cleaner, more maintainable code.
 
 ---
 

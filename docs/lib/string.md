@@ -49,12 +49,12 @@ Decodes a base64 string to plaintext.
 
 ### `base64encode(_input)`
 
-Encodes a string as a base64 string.
+Encodes data as a base64 string.
 
 **Parameters**
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+| `string`\|`list`\|`bytes` | `_input` | The input data. |
 
 **Returns**
 | Type | Description |

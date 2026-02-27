@@ -518,13 +518,6 @@ public partial class Parser
         )
         */
 
-        // syntax check
-        if (GetTokenType() != TokenType.LParen)
-        {
-            throw new SyntaxError(GetErrorToken(), "Expected '(' after 'var'.");
-        }
-        Next();  // next token please
-
         // create a mangler (for preventing name collisions)
         var mangler = $"_{Guid.NewGuid().ToString().Substring(0, 8)}_";
 
@@ -536,6 +529,41 @@ public partial class Parser
 
         // a container for type-hints, mapped to variable names.
         Dictionary<string, List<int>> typeHints = [];
+
+        // support single-variable syntax: var name, var name: type, var name: type = value
+        if (GetTokenType() != TokenType.LParen)
+        {
+            if (GetTokenType() != TokenType.Identifier)
+            {
+                throw new SyntaxError(GetErrorToken(), "Expected variable name or '(' after 'var'.");
+            }
+
+            var varName = token.Text;
+            if (mangledNames.ContainsKey(varName))
+            {
+                throw new SyntaxError(GetErrorToken(), $"The variable name `{varName}` is already declared.");
+            }
+            var mangledName = mangler + varName;
+            mangledNames[varName] = mangledName;
+            ASTNode? defaultValue = null;
+            Next();  // next token please
+
+            if (MatchType(TokenType.Colon))
+            {
+                typeHints[mangledName] = GetTypeNames();
+            }
+
+            if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Assign)
+            {
+                Next();  // consume '='
+                defaultValue = ParseExpression();
+            }
+
+            variables.Add(new KeyValuePair<string, ASTNode?>(mangledName, defaultValue));
+            return new VariableNode { Variables = variables, TypeHints = typeHints };
+        }
+
+        Next();  // consume '('
 
         // collect variable declarations
         while (GetTokenType() != TokenType.RParen)
@@ -1091,7 +1119,12 @@ public partial class Parser
                     throw new SyntaxError(GetErrorToken(), "Expected condition or value for case-when.");
                 }
 
-                caseWhen.Condition = ParseExpression();
+                caseWhen.Conditions.Add(ParseExpression());
+                while (GetTokenType() == TokenType.Comma)
+                {
+                    Next();  // consume ','
+                    caseWhen.Conditions.Add(ParseExpression());
+                }
 
                 while (GetTokenName() is not TokenName.KW_When and not TokenName.KW_Else and
                        not TokenName.KW_End)
@@ -1322,12 +1355,12 @@ public partial class Parser
         List<ASTNode?> arguments = [];
         while (GetTokenType() != TokenType.RParen)
         {
-            if (GetTokenType() == TokenType.Identifier && Peek().Name == TokenName.Ops_Assign)
+            if (GetTokenType() == TokenType.Identifier && (Peek().Name == TokenName.Ops_Assign || Peek().Type == TokenType.Colon))
             {
                 var argToken = token;
                 var name = GetTokenText();
                 Next();  // consume identifier
-                Next();  // consume '='
+                Next();  // consume '=' or ':'
                 var namedArg = new NamedArgumentNode(name, ParseExpression()) { Token = argToken };
                 arguments.Add(namedArg);
             }

@@ -16,6 +16,7 @@ public static class MathBuiltinHandler
             TokenName.Builtin_Math_Epsilon => Eps(token, args),
             TokenName.Builtin_Math_Floor => Floor(token, args),
             TokenName.Builtin_Math_Random => Random(token, args),
+            TokenName.Builtin_Math_Round => Round(token, args),
             TokenName.Builtin_Math_Sqrt => Sqrt(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
@@ -104,6 +105,20 @@ public static class MathBuiltinHandler
         }
 
         return Value.CreateFloat(System.Random.Shared.NextDouble());
+    }
+
+    private static Value Round(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.CheckRange(token, MathBuiltin.Round, 1, 2, args.Count);
+        ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.Round, 0, args[0]);
+        
+        if (args.Count == 2)
+        {
+            ParameterTypeMismatchError.ExpectInteger(token, MathBuiltin.Round, 1, args[1]);
+            return Value.CreateFloat(Math.Round(args[0].GetFloat(), (int)args[1].GetInteger()));
+        }
+
+        return Value.CreateFloat(Math.Round(args[0].GetFloat()));
     }
 
     private static Value Sqrt(Token token, List<Value> args)

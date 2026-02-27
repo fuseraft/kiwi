@@ -2,7 +2,7 @@ namespace kiwi.Parsing.AST;
 
 public class CaseWhenNode() : ASTNode(ASTNodeType.CaseWhen)
 {
-    public ASTNode? Condition { get; set; }
+    public List<ASTNode?> Conditions { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];
 
     public override void Print(int depth = 0)
@@ -11,8 +11,11 @@ public class CaseWhenNode() : ASTNode(ASTNodeType.CaseWhen)
         PrintASTNodeType();
 
         ASTTracer.PrintDepth(1 + depth);
-        Print("Condition:");
-        Condition?.Print(2 + depth);
+        Print("Conditions:");
+        foreach (var cond in Conditions)
+        {
+            cond?.Print(2 + depth);
+        }
 
         ASTTracer.PrintDepth(1 + depth);
         Print("Statements:");
@@ -24,6 +27,12 @@ public class CaseWhenNode() : ASTNode(ASTNodeType.CaseWhen)
 
     public override ASTNode Clone()
     {
+        List<ASTNode?> clonedConditions = [];
+        foreach (var cond in Conditions)
+        {
+            clonedConditions.Add(cond?.Clone());
+        }
+
         List<ASTNode?> clonedBody = [];
         foreach (var stmt in Body)
         {
@@ -32,7 +41,7 @@ public class CaseWhenNode() : ASTNode(ASTNodeType.CaseWhen)
 
         return new CaseWhenNode
         {
-            Condition = Condition?.Clone(),
+            Conditions = clonedConditions,
             Body = clonedBody,
             Token = Token
         };

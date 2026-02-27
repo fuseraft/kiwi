@@ -450,7 +450,7 @@ package http
   @param hashmap headers : Optional request headers (default `{}`).
   @return integer : An awaitable task ID that resolves to a raw response hashmap.
   #/
-  fn get(url: string, headers: hashmap = {})
+  fn __get__(url: string, headers: hashmap = {})
     __http_get__(url, headers)
   end
 
@@ -514,9 +514,19 @@ package http
   @return HttpResponse : The wrapped HTTP response.
   #/
   fn await_get(url: string, headers: hashmap = {}): HttpResponse
-    task_id = http::get(url, headers)
+    task_id = http::__get__(url, headers)
     raw = await(task_id)
     HttpResponse.new(raw)
+  end
+
+  /#
+  @summary Sends a GET request and awaits the result as an `HttpResponse`.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return HttpResponse : The wrapped HTTP response.
+  #/
+  fn get(url: string, headers: hashmap = {}): HttpResponse
+    http::await_get(url, headers)
   end
 
   /#
