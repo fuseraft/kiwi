@@ -1,15 +1,20 @@
 /#
-Summary: A package containing functionality for working with common math operations.
+@summary A package containing functionality for working with common math operations.
 #/
 package math
   /#
-  Summary: Gets the smallest difference from 1.0 that a FP type can accurately represent.
-  Returns: Float
+  @summary Gets the smallest difference from 1.0 that a floating-point type can accurately represent.
+  @return float : The machine epsilon value.
   #/
   fn epsilon()
     return __eps__()
   end
 
+  /#
+  @summary Returns a decimal epsilon value of the form `1e-n`.
+  @param integer n : The exponent (must be between 1 and 15, default `9`).
+  @return float : A floating-point value of `0.1 ** n`.
+  #/
   fn eps(n = 9)
     n = n.type() == "integer" && n > 0 && n < 16 ? n : 9
     epsilon = 1.0
@@ -22,21 +27,21 @@ package math
   end
 
   /#
-  @summary: Gets a random number between x and y.
-  @param   Integer|Float  _valueX   : The number x. 
-  @param   Integer|Float  _valueY   : The number y. 
-  @return  Integer|Float            : A random number.
+  @summary Gets a random number between x and y.
+  @param integer|float _valueX : The lower bound.
+  @param integer|float _valueY : The upper bound.
+  @return integer|float : A random number in the range `[_valueX, _valueY]`.
   #/
   fn random(_valueX, _valueY)
     return __random__(_valueX, _valueY)
   end
 
   /#
-  Summary: Gets a random set of numbers of a given size.
-  @param   Integer|Float  _range_start   : The lower bound. 
-  @param   Integer|Float  _range_end     : The upper bound. 
-  @param   Integer         _size          : The size of the set.
-  @return  List                           : A set of random numbers.
+  @summary Gets a random set of unique numbers within a given range.
+  @param integer|float _range_start : The lower bound.
+  @param integer|float _range_end : The upper bound.
+  @param integer _size : The number of unique values to generate.
+  @return list : A list of `_size` unique random numbers, or `[]` if the range is invalid.
   #/
   fn random_set(_range_start, _range_end, _size)
     _min = [_range_start, _range_end].min()
@@ -46,7 +51,7 @@ package math
     if _size == 0 || _range_start == _range_end || (_max - _min) < _size
       return []
     end
-    
+
     _set = []
     _count = 0
 
@@ -63,430 +68,388 @@ package math
   end
 
   /#
-  Summary: Get a list of prime numbers up to a limit.
-  Params:
-    - _limit: The limit.
-  Returns: List
+  @summary Gets a list of prime numbers up to a limit.
+  @param integer _limit : The upper bound (inclusive).
+  @return list : A list of prime numbers up to `_limit`.
   #/
   fn listprimes(_limit)
     return __listprimes__(_limit)
   end
 
   /#
-  Summary: Get the n-th prime number.
-  Params:
-    - _n: The n-th prime number.
-  Returns: Integer
+  @summary Gets the n-th prime number.
+  @param integer _n : The 1-based index of the prime to retrieve.
+  @return integer : The n-th prime number.
   #/
   fn nthprime(_n)
     return __nthprime__(_n)
   end
 
   /#
-  Summary: Computes the sine of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the sine of a number.
+  @param integer|float _value : The angle in radians.
+  @return float : The sine of `_value`.
   #/
   fn sin(_value)
     return __sin__(_value)
   end
 
   /#
-  Summary: Computes the cosine of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the cosine of a number.
+  @param integer|float _value : The angle in radians.
+  @return float : The cosine of `_value`.
   #/
   fn cos(_value)
     return __cos__(_value)
   end
 
   /#
-  Summary: Computes the tangent of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the tangent of a number.
+  @param integer|float _value : The angle in radians.
+  @return float : The tangent of `_value`.
   #/
   fn tan(_value)
     return __tan__(_value)
   end
 
   /#
-  Summary: Computes the arc sine of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the arc sine of a number.
+  @param integer|float _value : A value in the range `[-1, 1]`.
+  @return float : The arc sine of `_value` in radians.
   #/
   fn asin(_value)
     return __asin__(_value)
   end
 
   /#
-  Summary: Computes the arc cosine of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the arc cosine of a number.
+  @param integer|float _value : A value in the range `[-1, 1]`.
+  @return float : The arc cosine of `_value` in radians.
   #/
   fn acos(_value)
     return __acos__(_value)
   end
 
   /#
-  Summary: Computes the arc tangent of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the arc tangent of a number.
+  @param integer|float _value : The number.
+  @return float : The arc tangent of `_value` in radians.
   #/
   fn atan(_value)
     return __atan__(_value)
   end
 
   /#
-  Summary: Computes the arc tangent of y / x, handling quadrants correctly.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Computes the arc tangent of y / x, handling quadrants correctly.
+  @param integer|float _valueY : The y coordinate.
+  @param integer|float _valueX : The x coordinate.
+  @return float : The angle in radians between the positive x-axis and the point `(x, y)`.
   #/
   fn atan2(_valueY, _valueX)
     return __atan2__(_valueY, _valueX)
   end
 
   /#
-  Summary: Computes the hyperbolic sine of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the hyperbolic sine of a number.
+  @param integer|float _value : The number.
+  @return float : The hyperbolic sine of `_value`.
   #/
   fn sinh(_value)
     return __sinh__(_value)
   end
 
   /#
-  Summary: Computes the hyperbolic cosine of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the hyperbolic cosine of a number.
+  @param integer|float _value : The number.
+  @return float : The hyperbolic cosine of `_value`.
   #/
   fn cosh(_value)
     return __cosh__(_value)
   end
 
   /#
-  Summary: Computes the hyperbolic tangent of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the hyperbolic tangent of a number.
+  @param integer|float _value : The number.
+  @return float : The hyperbolic tangent of `_value`.
   #/
   fn tanh(_value)
     return __tanh__(_value)
   end
 
   /#
-  Summary: Computes the natural logarithm (base e) of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the natural logarithm (base e) of a number.
+  @param integer|float _value : The number.
+  @return float : The natural logarithm of `_value`.
   #/
   fn log(_value)
     return __log__(_value)
   end
 
   /#
-  Summary: Computes the logarithm to base 2 of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the base-2 logarithm of a number.
+  @param integer|float _value : The number.
+  @return float : The base-2 logarithm of `_value`.
   #/
   fn log2(_value)
     return __log2__(_value)
   end
 
   /#
-  Summary: Computes the logarithm to base 10 of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the base-10 logarithm of a number.
+  @param integer|float _value : The number.
+  @return float : The base-10 logarithm of `_value`.
   #/
   fn log10(_value)
     return __log10__(_value)
   end
 
   /#
-  Summary: Computes log(1 + x).
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Computes log(1 + x) accurately for small values of x.
+  @param integer|float _value : The number x.
+  @return float : The value of `log(1 + x)`.
   #/
   fn log1p(_value)
     return __log1p__(_value)
   end
 
   /#
-  Summary: Computes the square root of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the square root of a number.
+  @param integer|float _value : The number.
+  @return float : The square root of `_value`.
   #/
   fn sqrt(_value)
     return __sqrt__(_value)
   end
 
   /#
-  Summary: Computes the cube root of a number.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the cube root of a number.
+  @param integer|float _value : The number.
+  @return float : The cube root of `_value`.
   #/
   fn cbrt(_value)
     return __cbrt__(_value)
   end
 
   /#
-  Summary: Gets the FP remainder of x / y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Computes the floating-point remainder of x / y.
+  @param integer|float _valueX : The dividend x.
+  @param integer|float _valueY : The divisor y.
+  @return float : The remainder of `x / y`.
   #/
   fn fmod(_valueX, _valueY)
     return __fmod__(_valueX, _valueY)
   end
 
   /#
-  Summary: Computes sqrt(x**2 + y**2) without undue overflow or underflow.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Computes `sqrt(x**2 + y**2)` without undue overflow or underflow.
+  @param integer|float _valueX : The number x.
+  @param integer|float _valueY : The number y.
+  @return float : The Euclidean distance from the origin to `(x, y)`.
   #/
   fn hypot(_valueX, _valueY)
     return __hypot__(_valueX, _valueY)
   end
 
   /#
-  Summary: Checks if x is a finite value.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Checks if a value is a finite floating-point number.
+  @param integer|float _value : The number to test.
+  @return boolean : `true` if `_value` is finite.
   #/
   fn isfinite(_value)
     return __isfinite__(_value)
   end
 
   /#
-  Summary: Checks if x is a finite value.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Checks if a value is positive or negative infinity.
+  @param integer|float _value : The number to test.
+  @return boolean : `true` if `_value` is infinite.
   #/
   fn isinf(_value)
     return __isinf__(_value)
   end
 
   /#
-  Summary: Checks if x is NaN.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Checks if a value is NaN (Not a Number).
+  @param integer|float _value : The number to test.
+  @return boolean : `true` if `_value` is NaN.
   #/
   fn isnan(_value)
     return __isnan__(_value)
   end
 
   /#
-  Summary: Checks if x is a normal FP number.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Checks if a value is a normal floating-point number.
+  @param integer|float _value : The number to test.
+  @return boolean : `true` if `_value` is a normal FP number (not zero, subnormal, infinite, or NaN).
   #/
   fn isnormal(_value)
     return __isnormal__(_value)
   end
 
   /#
-  Summary: Rounds x to the nearest integer, away from zero in halfway cases.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Rounds x down to the largest integer not greater than x.
+  @param integer|float _value : The number x.
+  @return float : The floor of `_value`.
   #/
   fn floor(_value)
     return __floor__(_value)
   end
 
   /#
-  Summary: Rounds x to the largest integer not greater than x.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Rounds x up to the smallest integer not less than x.
+  @param integer|float _value : The number x.
+  @return float : The ceiling of `_value`.
   #/
   fn ceil(_value)
     return __ceil__(_value)
   end
 
   /#
-  Summary: Rounds x to the nearest integer, away from zero in halfway cases.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Rounds x to the nearest integer, with halfway cases rounding away from zero.
+  @param integer|float _value : The number x.
+  @return float : The rounded value.
   #/
   fn round(_value)
     return __round__(_value)
   end
 
   /#
-  Summary: Truncates x to the integer part, towards zero.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Truncates x to the integer part, rounding towards zero.
+  @param integer|float _value : The number x.
+  @return float : The truncated value.
   #/
   fn trunc(_value)
     return __trunc__(_value)
   end
 
   /#
-  Summary: IEEE 754 FP remainder of x / y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Computes the IEEE 754 floating-point remainder of x / y.
+  @param integer|float _valueX : The dividend x.
+  @param integer|float _valueY : The divisor y.
+  @return float : The IEEE 754 remainder of `x / y`.
   #/
   fn remainder(_valueX, _valueY)
     return __remainder__(_valueX, _valueY)
   end
 
   /#
-  Summary: Computes e**x.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Computes e raised to the power of x.
+  @param integer|float _value : The exponent x.
+  @return float : The value of `e ** x`.
   #/
   fn exp(_value)
     return __exp__(_value)
   end
 
   /#
-  Summary: Computes e**x - 1.
-  Params:
-    - _value: The number x.
-  Returns: Float
+  @summary Computes e raised to the power of x, minus 1.
+  @param integer|float _value : The exponent x.
+  @return float : The value of `e ** x - 1`, accurate for small `x`.
   #/
   fn expm1(_value)
     return __expm1__(_value)
   end
 
   /#
-  Summary: Error function.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the error function of a number.
+  @param integer|float _value : The number.
+  @return float : The error function value `erf(_value)`.
   #/
   fn erf(_value)
     return __erf__(_value)
   end
 
   /#
-  Summary: Complementary error function.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the complementary error function of a number.
+  @param integer|float _value : The number.
+  @return float : The complementary error function value `1 - erf(_value)`.
   #/
   fn erfc(_value)
     return __erfc__(_value)
   end
 
   /#
-  Summary: The natural logarithm of the absolute value of the gamma function.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the natural logarithm of the absolute value of the gamma function.
+  @param integer|float _value : The number.
+  @return float : The value of `log(|gamma(_value)|)`.
   #/
   fn lgamma(_value)
     return __lgamma__(_value)
   end
 
   /#
-  Summary: The gamma function.
-  Params:
-    - _value: The number.
-  Returns: Float
+  @summary Computes the gamma function of a number.
+  @param integer|float _value : The number.
+  @return float : The gamma function value `gamma(_value)`.
   #/
   fn tgamma(_value)
     return __tgamma__(_value)
   end
 
   /#
-  Summary: Copies the sign of y to x.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Copies the sign of y to x.
+  @param integer|float _valueX : The magnitude source.
+  @param integer|float _valueY : The sign source.
+  @return float : A value with the magnitude of `x` and the sign of `y`.
   #/
   fn copysign(_valueX, _valueY)
     return __copysign__(_valueX, _valueY)
   end
 
   /#
-  Summary: Get the next representable value after x towards y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Gets the next representable floating-point value after x towards y.
+  @param integer|float _valueX : The starting value.
+  @param integer|float _valueY : The direction.
+  @return float : The next representable FP value from `x` towards `y`.
   #/
   fn nextafter(_valueX, _valueY)
     return __nextafter__(_valueX, _valueY)
   end
 
   /#
-  Summary: Get the maximum of x and y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Returns the larger of two numbers.
+  @param integer|float _valueX : The first number.
+  @param integer|float _valueY : The second number.
+  @return integer|float : The maximum of `x` and `y`.
   #/
   fn fmax(_valueX, _valueY)
     return __fmax__(_valueX, _valueY)
   end
 
   /#
-  Summary: Get the minimum of x and y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Returns the smaller of two numbers.
+  @param integer|float _valueX : The first number.
+  @param integer|float _valueY : The second number.
+  @return integer|float : The minimum of `x` and `y`.
   #/
   fn fmin(_valueX, _valueY)
     return __fmin__(_valueX, _valueY)
   end
 
   /#
-  Summary: Get the positive difference between x and y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Returns the positive difference between x and y.
+  @param integer|float _valueX : The first number.
+  @param integer|float _valueY : The second number.
+  @return float : `max(x - y, 0)`.
   #/
   fn fdim(_valueX, _valueY)
     return __fdim__(_valueX, _valueY)
   end
 
   /#
-  Summary: Get x raised to the power of y.
-  Params:
-    - _valueX: The number x.
-    - _valueY: The number y.
-  Returns: Float
+  @summary Raises x to the power of y.
+  @param integer|float _valueX : The base.
+  @param integer|float _valueY : The exponent.
+  @return float : The value of `x ** y`.
   #/
   fn pow(_valueX, _valueY)
     return __pow__(_valueX, _valueY)
   end
 
   /#
-  Summary: Get the absolute value of a number.
-  Params:
-    - _value: The number.
-  Returns: Integer|Float
+  @summary Returns the absolute value of a number.
+  @param integer|float _value : The number.
+  @return integer|float : The absolute value of `_value`.
   #/
   fn abs(_value)
     return __abs__(_value)

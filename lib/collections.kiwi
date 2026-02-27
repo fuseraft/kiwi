@@ -1,24 +1,51 @@
+/#
+@summary A package providing collection data structures including `Heap` and `Set`.
+@see list : For general list utilities.
+#/
 package collections
 end
 
-/# An implementation for working with heaps. #/
+/#
+@summary A binary heap data structure supporting min-heap and max-heap ordering.
+@example
+---
+h = Heap.new("min")
+h.insert(5)
+h.insert(1)
+h.insert(3)
+println h.extract_root()  # 1
+---
+#/
 
 struct Heap
+  /#
+  @summary Creates a new heap.
+  @param string type : The heap ordering — `"min"` for a min-heap or `"max"` for a max-heap (default `"min"`).
+  #/
   fn new(type: string = "min")
     @heap = []
     @heap_type = ["min", "max"].contains(type) ? type : "min"
   end
 
+  /#
+  @summary Inserts a value into the heap.
+  @param any value : The value to insert.
+  #/
   fn insert(value: any)
     @heap.push(value)
     heapify_up(@heap.size() - 1)
   end
 
+  /#
+  @summary Removes and returns the root element (minimum for min-heap, maximum for max-heap).
+  @return any : The root element.
+  @throws string : If the heap is empty.
+  #/
   fn extract_root(): any
     throw "Heap is empty" when @heap.empty()
 
     var (root: any = @heap.get(0))
-    
+
     if @heap.size() > 1
       @heap.set(0, @heap.pop())  # Move the last element to the root
       heapify_down(0)
@@ -29,15 +56,28 @@ struct Heap
     return root
   end
 
+  /#
+  @summary Returns the root element without removing it.
+  @return any : The root element.
+  @throws string : If the heap is empty.
+  #/
   fn peek(): any
     throw "Heap is empty" when @heap.empty()
     return @heap.get(0)
   end
 
+  /#
+  @summary Returns the number of elements in the heap.
+  @return integer : The heap size.
+  #/
   fn size(): integer
     return @heap.size()
   end
 
+  /#
+  @summary Returns true if the heap contains no elements.
+  @return boolean : `true` if the heap is empty.
+  #/
   fn is_empty(): boolean
     return @heap.empty()
   end
@@ -71,26 +111,26 @@ struct Heap
       if left_child_index < size && @heap.get(left_child_index) < @heap.get(smallest)
         smallest = left_child_index
       end
-      
+
       if right_child_index < size && @heap.get(right_child_index) < @heap.get(smallest)
         smallest = right_child_index
       end
-      
+
       if smallest != index
         swap(index, smallest)
         heapify_down(smallest)
       end
     else
       var (largest: integer = index)
-      
+
       if left_child_index < size && @heap.get(left_child_index) > @heap.get(largest)
         largest = left_child_index
       end
-      
+
       if right_child_index < size && @heap.get(right_child_index) > @heap.get(largest)
         largest = right_child_index
       end
-      
+
       if largest != index
         swap(index, largest)
         heapify_down(largest)
@@ -103,52 +143,104 @@ struct Heap
   end
 end
 
-/# An implementation for working with sets. #/
+/#
+@summary An unordered collection of unique values with set-algebra operations.
+@example
+---
+s = Set.new([1, 2, 3])
+s.add(4)
+println s.contains(2)  # true
+println s.size()       # 4
+---
+#/
 
 struct Set
+  /#
+  @summary Creates a new set, optionally initialized from a list.
+  @param list data : Initial values; duplicates are removed (default `[]`).
+  #/
   fn new(data: list = [])
     @data = data.unique()
   end
 
+  /#
+  @summary Adds an item to the set (no-op if already present).
+  @param any item : The value to add.
+  #/
   fn add(item: any)
     new_data = (@data).clone()
     new_data.push(item)
     @data = new_data.flatten().unique()
   end
 
+  /#
+  @summary Removes an item from the set.
+  @param any item : The value to remove.
+  #/
   fn remove(item: any)
     new_data = to_list().filter(with (n) do return n != item end)
     @data = new_data
   end
 
+  /#
+  @summary Returns true if the set contains the given item.
+  @param any item : The value to check.
+  @return boolean : `true` if the item is present.
+  #/
   fn contains(item: any): boolean
     return to_list().contains(item)
   end
 
+  /#
+  @summary Returns the number of elements in the set.
+  @return integer : The set size.
+  #/
   fn size(): integer
     return to_list().size()
   end
 
+  /#
+  @summary Removes all elements from the set.
+  #/
   fn clear()
     @data = []
   end
 
+  /#
+  @summary Returns a new set containing elements in this set but not in `data`.
+  @param Set|list data : The set or list to subtract.
+  @return Set : The difference set.
+  #/
   fn difference(data: any)
     var (input_data: any = get_input_data(data))
     var (new_data: list = to_list())
     return Set.new(new_data.filter(with (n: any) do return !input_data.contains(n) end))
   end
 
+  /#
+  @summary Returns true if this set and `data` share no common elements.
+  @param Set|list data : The set or list to compare against.
+  @return boolean : `true` if the sets are disjoint.
+  #/
   fn disjoint(data: any)
     return !intersect(data)
   end
 
+  /#
+  @summary Returns true if this set and `data` share at least one common element.
+  @param Set|list data : The set or list to compare against.
+  @return boolean : `true` if the sets intersect.
+  #/
   fn intersect(data: any)
     var (input_data: any = get_input_data(data))
     var (new_data: list = to_list())
     return !new_data.filter(with (n: any) do return input_data.contains(n) end).empty()
   end
 
+  /#
+  @summary Merges `data` into this set in place (modifies the set).
+  @param Set|list data : The set or list to merge in.
+  #/
   fn merge(data: any)
     var (input_data: any = get_input_data(data))
     var (new_data: list = to_list())
@@ -156,6 +248,11 @@ struct Set
     @data = new_data.flatten().unique()
   end
 
+  /#
+  @summary Returns a new set containing all elements from both this set and `data`.
+  @param Set|list data : The set or list to union with.
+  @return Set : A new set with all unique elements from both.
+  #/
   fn union(data: any): object
     var (input_data: any = get_input_data(data))
     var (new_data: list = to_list())
@@ -163,26 +260,48 @@ struct Set
     return Set.new(new_data.flatten())
   end
 
+  /#
+  @summary Returns true if this set is a subset of `data`.
+  @param Set|list data : The potential superset.
+  @return boolean : `true` if every element of this set is in `data`.
+  #/
   fn subset(data: any): boolean
     var (input_data: any = get_input_data(data))
     var (new_data: list = to_list())
     return input_data.filter(with (n) do return new_data.contains(n) end).size() == new_data.size()
   end
 
+  /#
+  @summary Returns true if this set is a superset of `data`.
+  @param Set|list data : The potential subset.
+  @return boolean : `true` if every element of `data` is in this set.
+  #/
   fn superset(data: any): boolean
     var (input_data: any = get_input_data(data))
     var (new_data: list = to_list())
     return input_data.filter(with (n) do return new_data.contains(n) end).size() == input_data.size()
   end
 
+  /#
+  @summary Returns the set contents as a list.
+  @return list : A list of all elements in the set.
+  #/
   fn to_list(): list
     return ((@data).clone())
   end
 
+  /#
+  @summary Returns a string representation of the set.
+  @return string : The set contents as a string.
+  #/
   fn to_string(): string
     return to_list().to_string()
   end
 
+  /#
+  @summary Returns the type name of this object.
+  @return string : Always `"Set"`.
+  #/
   fn type(): string
     return "Set"
   end

@@ -1,52 +1,79 @@
 
+/#
+@summary A package for making HTTP requests via the system `curl` command.
+@see http : For async HTTP client operations.
+#/
 package curl
   /#
-  Summary: Executes a curl command to perform HTTP requests.
-  Params:
-    - `url`: The URL to which the request will be sent.
-    - `method`: HTTP method (e.g., "GET", "POST").
-    - `headers`: A dictionary of headers to include in the request.
-    - `data`: Optional data to send with the request (useful for POST, PUT).
-    - `capture_output`: Boolean flag to capture the output (default true).
-  Returns: The command output as a string if `capture_output` is true, or the return code otherwise.
+  @summary Executes a curl command to perform an HTTP request.
+  @param string url : The URL to which the request will be sent.
+  @param string method : The HTTP method (e.g., `"GET"`, `"POST"`) (default `"GET"`).
+  @param hashmap headers : A hashmap of headers to include in the request (default `{}`).
+  @param string data : Optional data to send with the request, used for POST and PUT (default `""`).
+  @param boolean capture_output : If `true`, returns the response body as a string; otherwise returns the exit code (default `true`).
+  @return string|integer : The response body if `capture_output` is `true`, or the exit code otherwise.
   #/
   fn request(url: string, method: string = "GET", headers: hashmap = {}, data: string = "", capture_output: boolean = true)
     cmd_args = ["-s", "-X", method, url]
-    
+
     # Add headers as curl arguments
     for header_key, header_value in headers do
       cmd_args.append("-H")
       cmd_args.append(header_key + ": " + header_value)
     end
-    
+
     # Add data if provided and if the method allows it
     if data != "" && (method == "POST" || method == "PUT")
       cmd_args.append("-d")
       cmd_args.append(data)
     end
-    
+
     # Run the command and capture output if specified
     return sys::command("curl", cmd_args, capture_output)
   end
 
-  # Convenience functions for common HTTP methods
-
-  # Sends a GET request to the specified URL with optional headers.
+  /#
+  @summary Sends a GET request to the specified URL.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional headers (default `{}`).
+  @param boolean capture_output : If `true`, returns the response body (default `true`).
+  @return string|integer : The response body or exit code.
+  #/
   fn get(url: string, headers: hashmap = {}, capture_output: boolean = true)
     return curl::request(url, "GET", headers, "", capture_output)
   end
 
-  # Sends a POST request to the specified URL with optional headers and data.
+  /#
+  @summary Sends a POST request to the specified URL.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional headers (default `{}`).
+  @param string data : The request body (default `""`).
+  @param boolean capture_output : If `true`, returns the response body (default `true`).
+  @return string|integer : The response body or exit code.
+  #/
   fn post(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
     return curl::request(url, "POST", headers, data, capture_output)
   end
 
-  # Sends a PUT request to the specified URL with optional headers and data.
+  /#
+  @summary Sends a PUT request to the specified URL.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional headers (default `{}`).
+  @param string data : The request body (default `""`).
+  @param boolean capture_output : If `true`, returns the response body (default `true`).
+  @return string|integer : The response body or exit code.
+  #/
   fn put(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
     return curl::request(url, "PUT", headers, data, capture_output)
   end
 
-  # Sends a DELETE request to the specified URL with optional headers.
+  /#
+  @summary Sends a DELETE request to the specified URL.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional headers (default `{}`).
+  @param boolean capture_output : If `true`, returns the response body (default `true`).
+  @return string|integer : The response body or exit code.
+  #/
   fn delete(url: string, headers: hashmap = {}, capture_output: boolean = true)
     return curl::request(url, "DELETE", headers, "", capture_output)
   end

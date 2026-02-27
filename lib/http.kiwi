@@ -1,5 +1,14 @@
 #region HttpResponse
+/#
+@summary A structured HTTP response object wrapping the raw response hashmap.
+@see http::await_get : Returns an `HttpResponse` after a GET request.
+@see http::await_post : Returns an `HttpResponse` after a POST request.
+#/
 struct HttpResponse
+  /#
+  @summary Creates an `HttpResponse` from a raw response hashmap.
+  @param hashmap raw : A hashmap with `status`, `ok`, `headers`, `body`, and `url` keys.
+  #/
   fn new(raw: hashmap)
     @status = raw["status"]
     @ok = raw["ok"]
@@ -9,10 +18,19 @@ struct HttpResponse
     @raw = raw
   end
 
+  /#
+  @summary Returns the underlying raw response hashmap.
+  @return hashmap : The raw response data.
+  #/
   fn get_raw(): hashmap
     @raw
   end
 
+  /#
+  @summary Parses and returns the response body as a hashmap (JSON).
+  @return hashmap : The parsed JSON body.
+  @throws string : If the body cannot be interpreted as JSON.
+  #/
   fn json()
     if typeof(@body) == hashmap
       return @body
@@ -23,6 +41,11 @@ struct HttpResponse
     throw "Response typeof(body) == not JSON-compatible"
   end
 
+  /#
+  @summary Returns the response body as a string.
+  @return string : The body as text.
+  @throws string : If the body cannot be converted to a string.
+  #/
   fn text()
     if typeof(@body) == string
       return @body
@@ -33,10 +56,18 @@ struct HttpResponse
     throw "Cannot convert body to text"
   end
 
+  /#
+  @summary Pretty-prints the response body as formatted JSON.
+  #/
   fn pretty()
     json().pretty()
   end
 
+  /#
+  @summary Saves the response body to a file.
+  @param string filename : The path to write the body to.
+  @return boolean : `true` if the body was written successfully, `false` otherwise.
+  #/
   fn save(filename: string)
     if typeof(@body) == bytes
       fio::write_bytes(filename, @body)
@@ -51,9 +82,20 @@ struct HttpResponse
 end
 #endregion
 
+/#
+@summary A package for async HTTP client operations and raw HTTP request/response parsing.
+@see tls : For TLS-encrypted socket operations.
+@see task : For awaiting async HTTP task results.
+@see HttpResponse : The response wrapper returned by await helpers.
+#/
 package http
 #region Helpers
-  # Parse hexadecimal string to integer
+  /#
+  @summary Parses a hexadecimal string to an integer.
+  @param string s : A lowercase hexadecimal string (e.g., `"1f"`).
+  @return integer : The integer value.
+  @throws string : If an invalid hex character is encountered.
+  #/
   fn parse_hex(s: string): integer
     s = s.lowercase()
     val = 0
@@ -71,7 +113,12 @@ package http
     val
   end
 
-  # URL decode a string (handles %XX and + for spaces in forms)
+  /#
+  @summary Decodes a percent-encoded URL string.
+  @param string s : The URL-encoded string to decode.
+  @param boolean decode_plus : If `true`, decodes `+` as a space (default `true`).
+  @return string : The decoded string.
+  #/
   fn url_decode(s: string, decode_plus: boolean = true): string
     if decode_plus
       s = s.replace("+", " ")
@@ -97,7 +144,12 @@ package http
     result.join("")
   end
 
-  # Read a CRLF-terminated line from byte iterator (returns string without CRLF)
+  /#
+  @summary Reads a CRLF-terminated line from a byte iterator.
+  @param object iter : A `ListIterator` over the raw bytes.
+  @return string : The line contents, without the trailing CRLF.
+  @throws string : If no CRLF terminator is found before the iterator is exhausted.
+  #/
   fn read_crlf_line(iter): string
     sb = []
     while iter.can_read() do
@@ -110,7 +162,12 @@ package http
     throw "Incomplete line: no CRLF found"
   end
 
-  # Dechunk a chunked-encoded body
+  /#
+  @summary Decodes a chunked transfer-encoded byte sequence.
+  @param bytes data : The raw chunked-encoded bytes.
+  @return bytes : The decoded body bytes.
+  @throws string : If a chunk size or terminator is malformed or the data is incomplete.
+  #/
   fn dechunk(data: bytes): bytes
     list_data = data.to_list()
     iter = ListIterator.new(list_data)
@@ -152,8 +209,11 @@ package http
     result.to_bytes()
   end
 
-  # Parses raw bytes from socket into a request hashmap
-  # Returns null on malformed/incomplete request
+  /#
+  @summary Parses raw socket bytes into a request hashmap.
+  @param bytes raw : The raw bytes received from a socket.
+  @return hashmap|none : A hashmap with `method`, `path`, `query`, `version`, `headers`, `body`, `form`, and `raw` keys, or `null` if the request is malformed or incomplete.
+  #/
   fn parse(raw: bytes)
     text = raw.to_string()
     header_end = text.index("\r\n\r\n")
@@ -284,10 +344,13 @@ package http
     }
   end
 
-  # Creates a minimal HTTP response
-  # status: integer (e.g. 200)
-  # body: string or bytes
-  # headers: optional hash (defaults to reasonable values)
+  /#
+  @summary Builds a raw HTTP/1.1 response as bytes.
+  @param integer status : The HTTP status code (e.g., `200`, `404`).
+  @param any body : The response body — a string or bytes (default `""`).
+  @param hashmap headers : Additional headers to include or override defaults (default `{}`).
+  @return bytes : The fully-formed HTTP response bytes, including headers and body.
+  #/
   fn response_bytes(status: integer, body: any = "", headers: hashmap = {}): bytes
     status_texts = {
       "200": "OK",
@@ -346,13 +409,25 @@ package http
     response_bytes
   end
 
-  # Simple HTML response
+  /#
+  @summary Builds an HTTP response with `Content-Type: text/html`.
+  @param integer status : The HTTP status code (default `200`).
+  @param string body : The HTML body string.
+  @param hashmap headers : Additional headers (default `{}`).
+  @return bytes : The fully-formed HTTP response bytes.
+  #/
   fn html_response(status: integer = 200, body: string, headers: hashmap = {}): bytes
     headers.set("content-type", "text/html; charset=utf-8")
     http::response_bytes(status, body, headers)
   end
 
-  # JSON response
+  /#
+  @summary Builds an HTTP response with `Content-Type: application/json`.
+  @param integer status : The HTTP status code (default `200`).
+  @param any data : The data to serialize as JSON.
+  @param hashmap headers : Additional headers (default `{}`).
+  @return bytes : The fully-formed HTTP response bytes.
+  #/
   fn json_response(status: integer = 200, data: any, headers: hashmap = {}): bytes
     var (json_body: string = serialize(data))
     headers.set("content-type", "application/json; charset=utf-8")
@@ -361,15 +436,31 @@ package http
 #endregion
 
 #region Client
-  # Core request functions (returns awaitable task id)
+  /#
+  @summary Sets the global HTTP client timeout.
+  @param integer timeout_ms : The timeout in milliseconds.
+  #/
   fn set_timeout(timeout_ms: integer)
     __http_timeout__(timeout_ms)
   end
 
+  /#
+  @summary Enqueues an async GET request and returns an awaitable task ID.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return integer : An awaitable task ID that resolves to a raw response hashmap.
+  #/
   fn get(url: string, headers: hashmap = {})
     __http_get__(url, headers)
   end
 
+  /#
+  @summary Enqueues an async POST request and returns an awaitable task ID.
+  @param string url : The URL to request.
+  @param any body : The request body — string, bytes, or hashmap (auto-serialized to JSON) (default `null`).
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return integer : An awaitable task ID that resolves to a raw response hashmap.
+  #/
   fn post(url: string, body: any = null, headers: hashmap = {})
     var (content = body)
 
@@ -381,6 +472,13 @@ package http
     __http_post__(url, content, headers)
   end
 
+  /#
+  @summary Enqueues an async PUT request and returns an awaitable task ID.
+  @param string url : The URL to request.
+  @param any body : The request body — string, bytes, or hashmap (auto-serialized to JSON) (default `null`).
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return integer : An awaitable task ID that resolves to a raw response hashmap.
+  #/
   fn put(url: string, body: any = null, headers: hashmap = {})
     var (content = body)
 
@@ -392,6 +490,12 @@ package http
     __http_put__(url, content, headers)
   end
 
+  /#
+  @summary Enqueues an async DELETE request and returns an awaitable task ID.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return integer : An awaitable task ID that resolves to a raw response hashmap.
+  #/
   fn delete(url: string, headers: hashmap = {})
     var (content = body)
 
@@ -403,38 +507,72 @@ package http
     __http_delete__(url, content, headers)
   end
 
-  # Convenience wrappers that await + wrap result
+  /#
+  @summary Sends a GET request and awaits the result as an `HttpResponse`.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return HttpResponse : The wrapped HTTP response.
+  #/
   fn await_get(url: string, headers: hashmap = {}): HttpResponse
     task_id = http::get(url, headers)
     raw = await(task_id)
     HttpResponse.new(raw)
   end
 
+  /#
+  @summary Sends a POST request and awaits the result as an `HttpResponse`.
+  @param string url : The URL to request.
+  @param any body : The request body (default `null`).
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return HttpResponse : The wrapped HTTP response.
+  #/
   fn await_post(url: string, body: any = null, headers: hashmap = {}): HttpResponse
     task_id = http::post(url, body, headers)
     raw = await(task_id)
     HttpResponse.new(raw)
   end
 
-  # JSON-specific helpers
+  /#
+  @summary Sends a GET request, awaits the result, and returns the JSON body.
+  @param string url : The URL to request.
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return hashmap : The parsed JSON response body.
+  #/
   fn await_json_get(url: string, headers: hashmap = {}): hashmap
     resp = http::await_get(url, headers)
     resp.json()
   end
 
+  /#
+  @summary Sends a POST request with JSON data, awaits the result, and returns the JSON body.
+  @param string url : The URL to request.
+  @param hashmap data : The data to send as JSON.
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return hashmap : The parsed JSON response body.
+  #/
   fn await_json_post(url: string, data: hashmap, headers: hashmap = {}): hashmap
     resp = http::await_post(url, data, headers)
     resp.json()
   end
 
-  # Download helper
+  /#
+  @summary Downloads a URL to a file and returns whether it succeeded.
+  @param string url : The URL to download.
+  @param string filename : The local file path to save the download to.
+  @param hashmap headers : Optional request headers (default `{}`).
+  @return boolean : `true` if the download succeeded.
+  #/
   fn await_download(url: string, filename: string, headers: hashmap = {}): boolean
     task_id = __http_download__(url, filename, headers)
     result = await(task_id)
     result.ok
   end
 
-  # Utility constructor
+  /#
+  @summary Wraps a raw response hashmap in an `HttpResponse` object.
+  @param hashmap raw : The raw response hashmap.
+  @return HttpResponse : The wrapped response.
+  #/
   fn response(raw: hashmap): HttpResponse
     HttpResponse.new(raw)
   end

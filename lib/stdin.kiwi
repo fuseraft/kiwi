@@ -1,20 +1,43 @@
+/#
+@summary A package for reading data from standard input.
+#/
 package stdin
+  /#
+  @summary Reads all of standard input as a string.
+  @return string : The full stdin contents.
+  #/
   fn read(): string
     __stdin_read__()
   end
 
+  /#
+  @summary Reads all of standard input as a byte array.
+  @return bytes : The full stdin contents as bytes.
+  #/
   fn readbytes(): bytes
     __stdin_readbytes__()
   end
 
+  /#
+  @summary Reads a single line from standard input.
+  @return string : The next line from stdin, without a trailing newline.
+  #/
   fn readline(): string
     __stdin_readline__()
   end
 
+  /#
+  @summary Reads all lines from standard input into a list.
+  @return list : A list of strings, one per line.
+  #/
   fn lines(): list
     __stdin_lines__()
   end
 
+  /#
+  @summary Returns true if standard input has no data available.
+  @return boolean : `true` if stdin is empty, `false` otherwise.
+  #/
   fn empty(): boolean
     __stdin_empty__()
   end

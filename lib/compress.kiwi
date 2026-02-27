@@ -1,40 +1,96 @@
+/#
+@summary A package for compressing and decompressing data using multiple algorithms.
+@see fio : For reading and writing compressed files.
+#/
 package compress
+  /#
+  @summary Compresses data using the Deflate algorithm.
+  @param any data : The data to compress.
+  @return bytes : The compressed data.
+  #/
   fn deflate(data)
     __compress_deflate__(data)
   end
 
+  /#
+  @summary Decompresses Deflate-compressed data.
+  @param bytes data : The compressed data.
+  @return any : The decompressed data.
+  #/
   fn inflate(data)
     __decompress_deflate__(data)
   end
 
+  /#
+  @summary Compresses data using the gzip algorithm.
+  @param any data : The data to compress.
+  @return bytes : The gzip-compressed data.
+  #/
   fn gzip(data)
     __compress_gzip__(data)
   end
 
+  /#
+  @summary Decompresses gzip-compressed data.
+  @param bytes data : The compressed data.
+  @return any : The decompressed data.
+  #/
   fn gunzip(data)
     __decompress_gzip__(data)
   end
 
+  /#
+  @summary Compresses data using the Brotli algorithm.
+  @param any data : The data to compress.
+  @return bytes : The Brotli-compressed data.
+  #/
   fn brotli(data)
     __compress_brotli__(data)
   end
 
+  /#
+  @summary Decompresses Brotli-compressed data.
+  @param bytes data : The compressed data.
+  @return any : The decompressed data.
+  #/
   fn unbrotli(data)
     __decompress_brotli__(data)
   end
 
+  /#
+  @summary Compresses data using the Zstandard (zstd) algorithm.
+  @param any data : The data to compress.
+  @param integer level : Compression level (default 3).
+  @return bytes : The zstd-compressed data.
+  #/
   fn zstd(data, level=3)
     __compress_zstd__(data, level)
   end
 
+  /#
+  @summary Decompresses Zstandard-compressed data.
+  @param bytes data : The compressed data.
+  @return any : The decompressed data.
+  #/
   fn unzstd(data)
     __decompress_zstd__(data)
   end
 
+  /#
+  @summary Creates a ZIP archive from a list of entries.
+  @param list entries : A list of file entries to include in the archive.
+  @param integer level : Compression level (default 1).
+  @return bytes : The ZIP archive as bytes.
+  #/
   fn zip_create(entries, level=1)
     __zip_create__(entries, level)
   end
 
+  /#
+  @summary Extracts entries from a ZIP archive.
+  @param bytes data : The ZIP archive as bytes.
+  @return list : A list of extracted entries.
+  #/
   fn zip_extract(data)
     __zip_extract__(data)
   end

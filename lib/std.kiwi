@@ -1,47 +1,104 @@
 /#
-A work in progress.
+@summary A package of general-purpose utility functions and structured error helpers.
+@see std::error : For creating structured error hashmaps.
 #/
-
 package std
+  /#
+  @summary Returns the number of elements or characters in a value.
+  @param any n : A string, list, hashmap, or any value with a `size()` method.
+  @return integer : The size of the value.
+  #/
   fn len(n)
     return n.size()
   end
 
+  /#
+  @summary Returns the type name of a value.
+  @param any n : Any value.
+  @return string : The type name (e.g., `"integer"`, `"string"`, `"list"`).
+  #/
   fn type(n)
     return n.type()
   end
 
+  /#
+  @summary Returns true if the value is an integer.
+  @param any n : Any value.
+  @return boolean : `true` if `n` is an integer.
+  #/
   fn is_int(n)
     return std::type(n) == integer
   end
 
+  /#
+  @summary Returns true if the value is a float.
+  @param any n : Any value.
+  @return boolean : `true` if `n` is a float.
+  #/
   fn is_float(n)
     return std::type(n) == float
   end
 
+  /#
+  @summary Returns true if the value is a string.
+  @param any s : Any value.
+  @return boolean : `true` if `s` is a string.
+  #/
   fn is_string(s)
     return std::type(s) == string
   end
 
+  /#
+  @summary Returns true if the value is a hashmap.
+  @param any s : Any value.
+  @return boolean : `true` if `s` is a hashmap.
+  #/
   fn is_hashmap(s)
     return std::type(s) == hashmap
   end
 
+  /#
+  @summary Returns an integer range `[x, y)` as a list.
+  @param integer x : The inclusive start of the range.
+  @param integer y : The exclusive end of the range.
+  @return list : A list of integers from `x` to `y - 1`.
+  @throws InvalidRange : If either argument is not an integer.
+  #/
   fn range(x, y)
     throw std::error::InvalidRange() when ![x, y].all(with (n) do std::is_int(n) end)
     return [x to y - 1]
   end
 end
 
+/#
+@summary A package of helpers for constructing structured error hashmaps.
+@see std : For general utility functions.
+#/
 package std::error
+  /#
+  @summary Creates a structured error hashmap.
+  @param string error_type : The error type name (default `"KiwiError"`).
+  @param string error_message : The error message (default `"An error occurred."`).
+  @return hashmap : A hashmap with `error` and `message` keys.
+  #/
   fn create(error_type: string = "KiwiError", error_message: string = "An error occurred."): hashmap
     return { error: error_type, message: error_message }
   end
 
+  /#
+  @summary Creates an `InvalidRange` error hashmap.
+  @param string msg : An optional message (default `"Invalid range."`).
+  @return hashmap : A structured error hashmap.
+  #/
   fn InvalidRange(msg = "Invalid range.")
     return std::error::create("InvalidRange", msg)
   end
 
+  /#
+  @summary Creates an `InvalidOperation` error hashmap.
+  @param string msg : An optional message (default `"Invalid operation."`).
+  @return hashmap : A structured error hashmap.
+  #/
   fn InvalidOperation(msg = "Invalid operation.")
     return std::error::create("InvalidOperation", msg)
   end

@@ -1,29 +1,59 @@
+/#
+@summary A package providing cryptographic hash functions.
+@see MD5 : For direct MD5 hashing.
+@see SHA256 : For SHA-256 hashing.
+@see SHA224 : For SHA-224 hashing.
+#/
 package crypto
+  /#
+  @summary Computes the MD5 hex digest of a string.
+  @param string input : The input string to hash (default `""`).
+  @return string : A 32-character lowercase hexadecimal MD5 digest.
+  #/
   fn md5_hash(input = "")
     return MD5.hexdigest(input)
   end
 
+  /#
+  @summary Computes the SHA-224 hex digest of a string.
+  @param string input : The input string to hash (default `""`).
+  @return string : A 56-character lowercase hexadecimal SHA-224 digest.
+  #/
   fn sha224_hash(input = "")
     return SHA224.new(input).hexdigest()
   end
 
+  /#
+  @summary Computes the SHA-256 hex digest of a string.
+  @param string input : The input string to hash (default `""`).
+  @return string : A 64-character lowercase hexadecimal SHA-256 digest.
+  #/
   fn sha256_hash(input = "")
     return SHA256.new(input).hexdigest()
   end
 end
 
+/#
+@summary A pure-Kiwi implementation of the MD5 message-digest algorithm.
+@see crypto::md5_hash : For a convenient one-call interface.
+#/
 struct MD5
+  /#
+  @summary Computes the MD5 hex digest of a string.
+  @param string input : The input string to hash.
+  @return string : A 32-character lowercase hexadecimal MD5 digest.
+  #/
   static fn hexdigest(input)
     # All variables wrap modulo 2^32 when calculating:
     s = [0] * 64
     K = [0] * 64
-    
+
     # s specifies the per-round shift amounts
     s[ 0:15] = [7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22]
     s[16:31] = [5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20]
     s[32:47] = [4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23]
     s[48:63] = [6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21]
-    
+
     # Use binary integer part of the sines of integers (Radians) as constants:
     K[ 0: 3] = [ 0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee ]
     K[ 4: 7] = [ 0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501 ]
@@ -41,39 +71,39 @@ struct MD5
     K[52:55] = [ 0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1 ]
     K[56:59] = [ 0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1 ]
     K[60:63] = [ 0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391 ]
-    
+
     a0 = 0x67452301   # A
     b0 = 0xefcdab89   # B
     c0 = 0x98badcfe   # C
     d0 = 0x10325476   # D
-    
+
     message = input.to_bytes().to_list()
-    
+
     # Original message length in bits, mod 2^64
     original_bitlength = input.size() * 8
-  
+
     # Append 0x80 (128 in decimal, 10000000 in binary) to the message
     message.push(0x80)
-    
+
     # Pad with zeros until the message length in bytes is 56 mod 64
     while message.size() % 64 != 56 do
       message.push(0x00)
     end
-    
+
     # Append the length in bits at the end of the buffer.
     for i in [0 to 7] do
       message.push(original_bitlength >>> (i * 8))
     end
-    
+
     chunk_size = 64  # 64 bytes = 512 bits
     num_chunks = message.size() / chunk_size
-    
+
     for chunk_index in [0 to num_chunks - 1] do
       # Extract the current chunk:
       start_index = chunk_index * chunk_size
       stop_index = start_index + chunk_size
       chunk = message[start_index:stop_index]
-    
+
       # Break chunk into sixteen 32-bit words M[j], 0 ≤ j ≤ 15
       M = [0] * 16
       for j in [0 to 15] do
@@ -83,18 +113,18 @@ struct MD5
         sub_chunk = chunk[start_chunk_index:stop_chunk_index]
         M[j] = (sub_chunk[3] << 24) | (sub_chunk[2] << 16) | (sub_chunk[1] << 8) | sub_chunk[0]
       end
-    
+
       # Initialize hash value for this chunk:
       A = a0
       B = b0
       C = c0
       D = d0
-    
+
       # Main loop:
       for i in [0 to 63] do
         F = 0
         g = 0
-        
+
         if 0 <= i && i <= 15
           F = (B & C) | (~B & D)
           g = i
@@ -108,7 +138,7 @@ struct MD5
           F = C ^ (B | ~D)
           g = (7 * i) % 16
         end
-    
+
         # Update the hash values
         temp = D
         D = C
@@ -116,28 +146,28 @@ struct MD5
         B = B + MD5.left_rotate(A + F + K[i] + M[g], s[i])
         A = temp
       end
-  
+
       # Add this chunk's hash to result so far:
       a0 += A
       b0 += B
       c0 += C
       d0 += D
     end
-  
+
     digest        = [0] * 16
     digest[ 0: 3] = MD5.int_to_bytes(a0)
     digest[ 4: 7] = MD5.int_to_bytes(b0)
     digest[ 8:11] = MD5.int_to_bytes(c0)
     digest[12:15] = MD5.int_to_bytes(d0)
-  
+
     return digest.to_hex()
   end
-  
+
   static fn left_rotate(value, count)
     adjusted_value = value & 0xFFFFFFFF
     return (adjusted_value << count | adjusted_value >>> (32 - count)) & 0xFFFFFFFF
   end
-  
+
   static fn int_to_bytes(num)
     num &= 0xFFFFFFFF
     return [num & 0xFF, (num >>> 8) & 0xFF, (num >>> 16) & 0xFF, (num >>> 24) & 0xFF]
@@ -148,10 +178,10 @@ end
 A SHA-2 implementation based on the implementation in PyPy https://foss.heptapod.net/pypy/pypy/-/blob/branch/default/lib_pypy/_sha256.py
 #/
 struct SHA
-  static fn BLOCKSIZE() 
+  static fn BLOCKSIZE()
     return 64
   end
-  
+
   static fn DIGESTSIZE()
     return 32
   end
@@ -199,7 +229,7 @@ struct SHA
   static fn Gamma1(x)
     return (SHA.S(x, 17) ^ SHA.S(x, 19) ^ SHA.R(x, 10))
   end
-    
+
   static fn RND(a,b,c,d,e,f,g,h,i,ki,W)
     t0 = (h + SHA.Sigma1(e) + SHA.Ch(e, f, g) + ki + W[i]) % (1 << 32)
     t1 = (SHA.Sigma0(a) + SHA.Maj(a, b, c)) % (1 << 32)
@@ -211,18 +241,18 @@ struct SHA
 
   static fn transform(sha_info)
     W = []
-    
+
     d = sha_info.data
     for i in std::range(0,16) do
       W.push((d[4 * i] << 24) + (d[4 * i + 1] << 16) + (d[4 * i + 2] << 8) + d[4 * i + 3])
     end
-    
+
     for i in std::range(16,64) do
       W.push((SHA.Gamma1(W[i - 2]) + W[i - 7] + SHA.Gamma0(W[i - 15]) + W[i - 16]) & 0xffffffff)
     end
 
     ss = sha_info.digest[:]
-    
+
     r = SHA.RND(ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],ss[7],0,0x428a2f98,W), ss[3] = r[0], ss[7] = r[1]
     r = SHA.RND(ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],ss[6],1,0x71374491,W), ss[2] = r[0], ss[6] = r[1]
     r = SHA.RND(ss[6],ss[7],ss[0],ss[1],ss[2],ss[3],ss[4],ss[5],2,0xb5c0fbcf,W), ss[1] = r[0], ss[5] = r[1]
@@ -331,21 +361,21 @@ struct SHA
 
     sha_info.count_lo = clo
     sha_info.count_hi += (count >>> 29)
-    
+
     if sha_info.local
       i = SHA.BLOCKSIZE() - sha_info.local
       if i > count
         i = count
       end
-      
+
       # copy buffer
       for x, j in buffer[buffer_idx:buffer_idx+i] do
         sha_info.data.set(sha_info.local + j, x)
       end
-      
+
       count -= i
       buffer_idx += i
-      
+
       sha_info.local += i
       if sha_info.local == SHA.BLOCKSIZE()
         sha_info = SHA.transform(sha_info)
@@ -354,7 +384,7 @@ struct SHA
         return sha_info.clone()
       end
     end
-    
+
     while count >= SHA.BLOCKSIZE() do
       # copy buffer
       sha_info.data = buffer[buffer_idx:buffer_idx + SHA.BLOCKSIZE()]
@@ -362,7 +392,7 @@ struct SHA
       buffer_idx += SHA.BLOCKSIZE()
       sha_info = SHA.transform(sha_info)
     end
-    
+
     # copy buffer
     pos = sha_info.local
     for i in std::range(pos, pos + count) do
@@ -399,9 +429,9 @@ struct SHA
     sha_info.data.set(61, (lo_bit_count >>> 16) & 0xff)
     sha_info.data.set(62, (lo_bit_count >>>  8) & 0xff)
     sha_info.data.set(63, (lo_bit_count >>>  0) & 0xff)
-    
+
     sha_info = SHA.transform(sha_info)
-    
+
     dig = []
     for i in sha_info.digest do
       dig.concat([ ((i>>>24) & 0xff), ((i>>>16) & 0xff), ((i>>>8) & 0xff), (i & 0xff) ])
@@ -411,7 +441,16 @@ struct SHA
   end
 end
 
+/#
+@summary A pure-Kiwi SHA-256 hasher supporting incremental updates.
+@see SHA224 : For SHA-224, which inherits from this struct.
+@see crypto::sha256_hash : For a convenient one-call interface.
+#/
 struct SHA256
+  /#
+  @summary Creates a new SHA-256 hasher, optionally hashing an initial string.
+  @param string|none s : An optional initial input string (default `null`).
+  #/
   fn new(s = null)
     @_sha = SHA.sha_init()
 
@@ -419,19 +458,35 @@ struct SHA256
       @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
     end
   end
-    
+
+  /#
+  @summary Feeds additional data into the hasher.
+  @param string s : The data to hash.
+  #/
   fn update(s)
     @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
   end
-    
+
+  /#
+  @summary Returns the raw digest as a list of bytes.
+  @return list : A list of integers representing the digest bytes.
+  #/
   fn digest()
     return SHA.sha_final(@_sha.clone())[:@_sha.digestsize]
   end
-    
+
+  /#
+  @summary Returns the hex-encoded digest string.
+  @return string : A 64-character lowercase hexadecimal SHA-256 digest.
+  #/
   fn hexdigest()
     return digest().to_hex()
   end
 
+  /#
+  @summary Returns a copy of this hasher with the same internal state.
+  @return SHA256 : A new independent SHA256 instance.
+  #/
   fn copy()
     new_sha256 = SHA256.new()
     new_sha256.set_sha(@_sha.clone())
@@ -443,26 +498,51 @@ struct SHA256
   end
 end
 
+/#
+@summary A pure-Kiwi SHA-224 hasher. Inherits from `SHA256` with a 224-bit digest.
+@see SHA256 : The parent struct.
+@see crypto::sha224_hash : For a convenient one-call interface.
+#/
 struct SHA224 < SHA256
+  /#
+  @summary Creates a new SHA-224 hasher, optionally hashing an initial string.
+  @param string|none s : An optional initial input string (default `null`).
+  #/
   fn new(s = null)
     @_sha = SHA.sha224_init()
     if s
       @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
     end
   end
-    
+
+  /#
+  @summary Feeds additional data into the hasher.
+  @param string s : The data to hash.
+  #/
   fn update(s)
     @_sha = SHA.sha_update(@_sha, SHA.getbuf(s))
   end
-    
+
+  /#
+  @summary Returns the raw digest as a list of bytes.
+  @return list : A list of integers representing the digest bytes.
+  #/
   fn digest()
     return SHA.sha_final(@_sha.clone())[:@_sha.digestsize]
   end
-    
+
+  /#
+  @summary Returns the hex-encoded digest string.
+  @return string : A 56-character lowercase hexadecimal SHA-224 digest.
+  #/
   fn hexdigest()
     return digest().to_hex()
   end
 
+  /#
+  @summary Returns a copy of this hasher with the same internal state.
+  @return SHA224 : A new independent SHA224 instance.
+  #/
   fn copy()
     new_sha224 = SHA224.new()
     new_sha224.set_sha(@_sha.clone())

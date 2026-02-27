@@ -1,31 +1,64 @@
 #region socket
+/#
+@summary A package for asynchronous TCP socket operations.
+@see tls : For TLS-encrypted socket operations.
+@see task : For awaiting async socket task results.
+#/
 package socket
-  # creates a tcp server socket, returns the socket id
+  /#
+  @summary Creates a TCP server socket bound to the given host and port.
+  @param string host : The host address to bind to.
+  @param integer port : The port number to listen on.
+  @param integer backlog : Maximum number of queued connections (default 128).
+  @return integer : The socket ID.
+  #/
   fn tcpserver(host: string, port: integer, backlog: integer = 128): integer
     __socket_tcpserver__(host, port, backlog)
   end
 
-  # creates a tcp client socket, returns the socket id
+  /#
+  @summary Creates a TCP client socket connected to the given host and port.
+  @param string host : The host to connect to.
+  @param integer port : The port to connect to.
+  @return integer : The socket ID.
+  #/
   fn tcpconnect(host: string, port: integer): integer
     __socket_tcpconnect__(host, port)
   end
 
-  # enqueues an accept task on a server socket, returns an awaitable task id
+  /#
+  @summary Enqueues an accept task on a server socket.
+  @param integer sock_id : The server socket ID returned by `tcpserver()`.
+  @return integer : An awaitable task ID that resolves to a client socket ID.
+  #/
   fn accept(sock_id: integer): integer
     __socket_accept__(sock_id)
   end
 
-  # closes a socket, faults any pending tasks
+  /#
+  @summary Closes a socket and faults any pending tasks on it.
+  @param integer sock_id : The socket ID to close.
+  #/
   fn close(sock_id: integer)
     __socket_close__(sock_id)
   end
 
-  # enqueues a recv task on a client socket, returns an awaitable task id
+  /#
+  @summary Enqueues a receive task on a client socket.
+  @param integer sock_id : The client socket ID.
+  @param integer max_bytes : Maximum number of bytes to receive (default 4096).
+  @return integer : An awaitable task ID that resolves to the received bytes.
+  #/
   fn recv(sock_id: integer, max_bytes: integer = 4096): integer
     __socket_recv__(sock_id, max_bytes)
   end
 
-  # enqueues a send task on a client socket, returns an awaitable task id
+  /#
+  @summary Enqueues a send task on a client socket.
+  @param integer sock_id : The client socket ID.
+  @param bytes data : The data to send.
+  @return integer : An awaitable task ID.
+  #/
   fn send(sock_id: integer, data: bytes): integer
     __socket_send__(sock_id, data)
   end
@@ -33,30 +66,67 @@ end
 #endregion
 
 #region tls
+/#
+@summary A package for asynchronous TLS-encrypted TCP socket operations.
+@see socket : For unencrypted TCP socket operations.
+@see task : For awaiting async socket task results.
+#/
 package tls
+  /#
+  @summary Creates a TLS server socket bound to the given host and port.
+  @param string host : The host address to bind to.
+  @param integer port : The port number to listen on.
+  @param integer backlog : Maximum number of queued connections (default 128).
+  @return integer : The socket ID.
+  #/
   fn tcpserver(host: string, port: integer, backlog: integer = 128): integer
     __tlssocket_tcpserver__(host, port, backlog)
   end
 
+  /#
+  @summary Creates a TLS client socket connected to the given host and port.
+  @param string host : The host to connect to.
+  @param integer port : The port to connect to (default 443).
+  @param string sni : The Server Name Indication hostname (default empty).
+  @return integer : The socket ID.
+  #/
   fn tcpconnect(host: string, port: integer = 443, sni: string = ""): integer
     __tlssocket_tcpconnect__(host, port, sni)
   end
 
+  /#
+  @summary Enqueues an accept task on a TLS server socket.
+  @param integer sock_id : The server socket ID returned by `tcpserver()`.
+  @return integer : An awaitable task ID that resolves to a client socket ID.
+  #/
   fn accept(sock_id: integer): integer
     __tlssocket_accept__(sock_id)
   end
-  
-  # closes a socket, faults any pending tasks
+
+  /#
+  @summary Closes a TLS socket and faults any pending tasks on it.
+  @param integer sock_id : The socket ID to close.
+  #/
   fn close(sock_id: integer)
     __tlssocket_close__(sock_id)
   end
 
-  # enqueues a recv task on a client socket, returns an awaitable task id
+  /#
+  @summary Enqueues a receive task on a TLS client socket.
+  @param integer sock_id : The client socket ID.
+  @param integer max_bytes : Maximum number of bytes to receive (default 4096).
+  @return integer : An awaitable task ID that resolves to the received bytes.
+  #/
   fn recv(sock_id: integer, max_bytes: integer = 4096): integer
     __tlssocket_recv__(sock_id, max_bytes)
   end
 
-  # enqueues a send task on a client socket, returns an awaitable task id
+  /#
+  @summary Enqueues a send task on a TLS client socket.
+  @param integer sock_id : The client socket ID.
+  @param bytes data : The data to send.
+  @return integer : An awaitable task ID.
+  #/
   fn send(sock_id: integer, data: bytes): integer
     __tlssocket_send__(sock_id, data)
   end

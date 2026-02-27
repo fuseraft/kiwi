@@ -1,9 +1,23 @@
+/#
+@summary A package of higher-order list utilities and predicate helpers.
+@see iter : For iterator-based traversal utilities.
+#/
 package list
+  /#
+  @summary Creates an iterator over a list.
+  @param list _list : The list to iterate over.
+  @return object : A `ListIterator` instance.
+  #/
   fn iterator(_list: list)
     ListIterator.new(_list)
   end
 
-  # returns true if every element satisfies predicate
+  /#
+  @summary Returns true if every element in the list satisfies the predicate.
+  @param list _list : The list to test.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return boolean : `true` if all elements satisfy the predicate, `false` otherwise.
+  #/
   fn all(_list: list, _predicate: lambda): boolean
     var (_all_satisfied: boolean = true)
 
@@ -17,7 +31,12 @@ package list
     _all_satisfied
   end
 
-  # returns true if any element satisfies predicate
+  /#
+  @summary Returns true if any element in the list satisfies the predicate.
+  @param list _list : The list to test.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return boolean : `true` if at least one element satisfies the predicate.
+  #/
   fn _any(_list: list, _predicate: lambda): boolean
     var (_any_satisfied: boolean = false)
 
@@ -31,12 +50,22 @@ package list
     _any_satisfied
   end
 
-  # returns count of elements satisfying the predicate.
+  /#
+  @summary Returns the count of elements satisfying the predicate.
+  @param list _list : The list to test.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return integer : The number of matching elements.
+  #/
   fn _count(_list: list, _predicate: lambda): integer
     _list.filter(_predicate).size()
   end
 
-  # finds first index matching predicate (or -1)
+  /#
+  @summary Finds the index of the first element satisfying the predicate.
+  @param list _list : The list to search.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return integer : The index of the first matching element, or `-1` if not found.
+  #/
   fn find(_list: list, _predicate: lambda): integer
     var (_index_of: integer = -1)
 
@@ -50,7 +79,12 @@ package list
     _index_of
   end
 
-  # returns first element matching predicate (or null)
+  /#
+  @summary Returns the first element satisfying the predicate, or null.
+  @param list _list : The list to search.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return any : The first matching element, or `null` if none found.
+  #/
   fn first_where(_list: list, _predicate: lambda): any
     var (_first_match: any = null)
 
@@ -64,22 +98,41 @@ package list
     _first_match
   end
 
-  # returns first index of a given value (-1 if missing)
+  /#
+  @summary Returns the first index of a given value in the list.
+  @param list _list : The list to search.
+  @param any _value : The value to find.
+  @return integer : The index of the first occurrence, or `-1` if not found.
+  #/
   fn index_of(_list: list, _value: any): integer
     _list.index(_value)
   end
 
-  # returns last index of a given value (-1 if missing)
+  /#
+  @summary Returns the last index of a given value in the list.
+  @param list _list : The list to search.
+  @param any _value : The value to find.
+  @return integer : The index of the last occurrence, or `-1` if not found.
+  #/
   fn last_index_of(_list: list, _value: any): integer
     _list.lastindex(_value)
   end
 
-  # returns true if every element in the list is unique
+  /#
+  @summary Returns true if every element in the list is unique.
+  @param list _list : The list to check.
+  @return boolean : `true` if all elements are distinct.
+  #/
   fn is_unique(_list: list): boolean
     _list.size() == _list.unique().size()
   end
 
-  # returns last element matching predicate (or null)
+  /#
+  @summary Returns the last element satisfying the predicate, or null.
+  @param list _list : The list to search.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return any : The last matching element, or `null` if none found.
+  #/
   fn last_where(_list: list, _predicate: lambda): any
     var (_last_match: any = null,
          _val: any = null)
@@ -95,20 +148,35 @@ package list
     _last_match
   end
 
-  # returns true if no element satisfies predicate
+  /#
+  @summary Returns true if no element satisfies the predicate.
+  @param list _list : The list to test.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return boolean : `true` if no elements satisfy the predicate.
+  #/
   fn _none(_list: list, _predicate: lambda): boolean
     not list::_any(_list, _predicate)
   end
-  
-  # returns true if exactly one element matches
+
+  /#
+  @summary Returns true if exactly one element satisfies the predicate.
+  @param list _list : The list to test.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return boolean : `true` if exactly one element matches.
+  #/
   fn one(_list: list, _predicate: lambda): boolean
     _list.filter(_predicate).size() == 1
   end
 
-  # returns a list of elements that do not satisfy the predicate
+  /#
+  @summary Returns a list of elements that do not satisfy the predicate.
+  @param list _list : The source list.
+  @param lambda _predicate : A single-argument lambda returning a boolean.
+  @return list : A new list of elements for which the predicate returned `false`.
+  #/
   fn reject(_list: list, _predicate: lambda): list
     var (_rejected: list = [])
-    
+
     for _val in _list do
       if not _predicate(_val)
         _rejected.append(_val)
@@ -118,12 +186,16 @@ package list
     _rejected
   end
 
-  # computes the sum (as an integer) of a numeric list (non-integer values are discarded)
+  /#
+  @summary Computes the integer sum of all integer elements in the list.
+  @param list _list : A list of mixed values (non-integer values are discarded).
+  @return integer : The sum of all integer elements.
+  #/
   fn sum_integer(_list: list): integer
     [0].concat(
       _list.filter(
-        with (_n) do 
-          _n.is_a(integer) 
+        with (_n) do
+          _n.is_a(integer)
         end
       )
     ).sum()

@@ -1,4 +1,11 @@
+/#
+@summary A package for writing and running unit tests.
+@see time : Used internally to measure test duration.
+#/
 package tester
+  /#
+  @summary Initializes the global unit test registry if not already set up.
+  #/
   fn initialize()
     if !global.has_key("unit_tests")
       global.unit_tests = {}
@@ -6,48 +13,76 @@ package tester
     end
   end
 
+  /#
+  @summary Asserts that two values are equal, throwing on mismatch.
+  @param any actual : The value produced by the code under test.
+  @param any expected : The expected value.
+  @param string msg : An optional message to include on failure.
+  @throws string : A failure message if `actual != expected`.
+  #/
   fn assert_eq(actual: any, expected: any, msg: string = "")
     if serialize(actual) != serialize(expected)
       throw "FAIL: " + (msg.empty() ? "" : " ${msg}") + "\nexpected ${expected},\ngot ${actual}"
     end
   end
 
+  /#
+  @summary Asserts that a condition is true, throwing on failure.
+  @param boolean condition : The condition to check.
+  @param string msg : The failure message (default `"assertion failed"`).
+  @throws string : A failure message if `condition` is `false`.
+  #/
   fn assert(condition: boolean, msg: string = "assertion failed")
     if !condition
       throw "FAIL: ${msg}"
     end
   end
-  
+
+  /#
+  @summary Registers a named test lambda for later execution by `run_tests()`.
+  @param string name : The display name of the test.
+  @param lambda t : A no-argument lambda containing the test body.
+  #/
   fn register_test(name: string, t: lambda)
     tester::initialize()
     global.unit_tests.set(name, t)
   end
-  
+
+  /#
+  @summary Runs a single named test and prints the result.
+  @param string name : The display name of the test.
+  @param lambda test : The test lambda to execute.
+  @param list results : A list to append the result hashmap to.
+  #/
   fn run_test(name: string, test: lambda, results: list = [])
     print ("Running test: ${name} ").padend(55, " ")
     tester::initialize()
-  
+
     test_start = time::ticks()
     passed = false
     error_message = ""
-  
+
     try
       test()
       passed = true
     catch (err)
       error_message = err
     end
-    
+
     test_stop = time::ticks()
     duration = time::ticksms(test_stop - test_start)
     results.push({ name: t, result: passed, duration: duration })
-  
+
     println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
     if !error_message.empty()
       println "  " + error_message
     end
   end
-  
+
+  /#
+  @summary Runs all registered tests and returns a summary list.
+  @return list : A list of result hashmaps, each with `name`, `result`, and `duration` keys.
+  #/
   fn run_tests()
     tester::initialize()
     results = []
@@ -55,7 +90,7 @@ package tester
     for name, t in global.unit_tests do
       tester::run_test(name, t, results)
     end
-  
+
     return results
   end
 end
