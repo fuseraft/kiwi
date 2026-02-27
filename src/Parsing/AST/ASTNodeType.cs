@@ -30,6 +30,7 @@ public enum ASTNodeType
     Literal,
     MemberAccess,
     MemberAssignment,
+    NamedArgument,
     MethodCall,
     Next,
     NoOp,
