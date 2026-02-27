@@ -67,6 +67,6 @@ public static class CallableBuiltinHandler
     private static Value Returns(Token token, Callable callable, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CallableBuiltin.Returns, 0, args.Count);
-        return Value.CreateString(TypeRegistry.GetTypeName(callable.ReturnTypeHint));
+        return Value.CreateString(string.Join("|", callable.ReturnTypeHint.Select(TypeRegistry.GetTypeName)));
     }
 }

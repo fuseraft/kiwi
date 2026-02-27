@@ -173,7 +173,7 @@ public class Interpreter
             if (!AssertTypeMatch(token, result, callable.ReturnTypeHint))
             {
                 throw new TypeError(token,
-                    $"Expected `{TypeRegistry.GetTypeName(callable.ReturnTypeHint)}` " +
+                    $"Expected `{string.Join("|", callable.ReturnTypeHint.Select(TypeRegistry.GetTypeName))}` " +
                     $"from `{displayName}` but got `{TypeRegistry.GetTypeName(result)}`.");
             }
 
@@ -230,7 +230,7 @@ public class Interpreter
 
             if (!AssertTypeMatch(token, result, returnTypeHint))
             {
-                throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
+                throw new TypeError(token, $"Expected type `{string.Join("|", returnTypeHint.Select(TypeRegistry.GetTypeName))}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
             }
 
             return result;
@@ -1052,9 +1052,6 @@ public class Interpreter
 
     private bool AssertTypeMatch(Token t, Value v, List<int> types) =>
         types.Any(type => AssertSingleTypeMatch(t, v, type));
-
-    private bool AssertTypeMatch(Token t, Value v, int type) =>
-        AssertSingleTypeMatch(t, v, type);
 
     private bool AssertSingleTypeMatch(Token t, Value v, int type)
     {
@@ -2626,7 +2623,7 @@ public class Interpreter
 
         if (!AssertTypeMatch(node.Token, result, returnTypeHint))
         {
-            throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
+            throw new TypeError(node.Token, $"Expected type `{string.Join("|", returnTypeHint.Select(TypeRegistry.GetTypeName))}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;
@@ -2663,7 +2660,7 @@ public class Interpreter
 
         if (!AssertTypeMatch(token, result, returnTypeHint))
         {
-            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
+            throw new TypeError(token, $"Expected type `{string.Join("|", returnTypeHint.Select(TypeRegistry.GetTypeName))}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;
@@ -2733,7 +2730,7 @@ public class Interpreter
 
         if (!AssertTypeMatch(token, result, returnTypeHint))
         {
-            throw new TypeError(token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
+            throw new TypeError(token, $"Expected type `{string.Join("|", returnTypeHint.Select(TypeRegistry.GetTypeName))}` for return type of `{lambdaName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;
@@ -3003,7 +3000,7 @@ public class Interpreter
 
         if (!AssertTypeMatch(node.Token, result, returnTypeHint))
         {
-            throw new TypeError(node.Token, $"Expected type `{TypeRegistry.GetTypeName(returnTypeHint)}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
+            throw new TypeError(node.Token, $"Expected type `{string.Join("|", returnTypeHint.Select(TypeRegistry.GetTypeName))}` for return type of `{functionName}` but received `{TypeRegistry.GetTypeName(result)}`.");
         }
 
         return result;

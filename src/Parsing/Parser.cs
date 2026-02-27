@@ -320,7 +320,7 @@ public partial class Parser
                 Parameters = [],
                 Body = body,
                 TypeHints = [],
-                ReturnTypeHint = 0,
+                ReturnTypeHint = [TypeRegistry.GetType("any")],
                 Token = t
             };
         }
@@ -629,7 +629,7 @@ public partial class Parser
         // Parse parameters
         List<KeyValuePair<string, ASTNode?>> parameters = [];
         Dictionary<string, List<int>> typeHints = [];
-        int returnTypeHint = 0; // 0 is any
+        List<int> returnTypeHint = [TypeRegistry.GetType("any")];
 
         if (isTypeName && GetTokenType() != TokenType.LParen)
         {
@@ -690,7 +690,7 @@ public partial class Parser
 
             if (MatchType(TokenType.Colon))
             {
-                returnTypeHint = GetTypeName();
+                returnTypeHint = GetTypeNames();
             }
         }
 
@@ -1353,7 +1353,7 @@ public partial class Parser
         var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
         Dictionary<string, string> localNames = [];
         Dictionary<string, List<int>> typeHints = [];
-        var returnTypeHint = TypeRegistry.GetType("any");
+        List<int> returnTypeHint = [TypeRegistry.GetType("any")];
         var mangledNames = PushNameStack();
 
         // Parse parameters
@@ -1411,7 +1411,7 @@ public partial class Parser
 
             if (MatchType(TokenType.Colon))
             {
-                returnTypeHint = GetTypeName();
+                returnTypeHint = GetTypeNames();
             }
         }
 
