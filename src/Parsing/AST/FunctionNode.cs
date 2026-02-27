@@ -8,7 +8,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
     public List<KeyValuePair<string, ASTNode?>> Parameters { get; set; } = [];
     public List<ASTNode?> Body { get; set; } = [];
     public Dictionary<string, List<int>> TypeHints { get; set; } = [];
-    public int ReturnTypeHint { get; set; }
+    public List<int> ReturnTypeHint { get; set; } = [TypeRegistry.GetType("any")];
     public bool IsOperatorOverload { get; set; }
     public bool IsStatic { get; set; }
     public bool IsPrivate { get; set; }
@@ -52,7 +52,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
         }
 
         ASTTracer.PrintDepth(1 + depth);
-        Print($"ReturnType: {TypeRegistry.GetTypeName(ReturnTypeHint)}");
+        Print($"ReturnType: {string.Join("|", ReturnTypeHint.Select(TypeRegistry.GetTypeName))}");
 
         ASTTracer.PrintDepth(1 + depth);
         Print("Parameters: ");

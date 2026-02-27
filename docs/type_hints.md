@@ -57,12 +57,12 @@ If the arguments passed to `concatenate_strings` are not `string` types, Kiwi wi
 
 ## Union Types
 
-A parameter can accept more than one type by separating types with `|`. Kiwi accepts a value if it matches **any** of the listed types.
+A parameter or return type can accept more than one type by separating types with `|`. Kiwi accepts a value if it matches **any** of the listed types.
 
 ### Syntax
 
 ```kiwi
-fn function_name(parameter: type1|type2|...): return_type
+fn function_name(parameter: type1|type2|...): return_type1|return_type2|...
   # function body
 end
 ```
@@ -96,9 +96,29 @@ process(42)    # value: 42
 process(3.14)  # value: 3.14
 ```
 
+### Union Return Types
+
+A function can declare multiple valid return types:
+
+```kiwi
+fn divide(a: integer, b: integer): integer|float
+  if b == 0
+    return 0
+  end
+  return a / b
+end
+
+fn maybe(flag: boolean): string|none
+  if flag
+    return "hello"
+  end
+  return null
+end
+```
+
 ### Type Mismatch
 
-If the argument matches none of the listed types, Kiwi raises a type error showing the full union:
+If a value matches none of the listed types, Kiwi raises a type error showing the full union. This applies to both parameters and return values:
 
 ```kiwi
 fn strict(x: integer|string = 0)
@@ -106,6 +126,12 @@ fn strict(x: integer|string = 0)
 end
 
 strict(true)  # Error: Expected type `integer|string` for parameter 1 of `strict` but received `boolean`.
+
+fn bad(): integer|float
+  return "oops"
+end
+
+bad()  # Error: Expected type `integer|float` for return type of `bad` but received `string`.
 ```
 
 ## Default Values with Type Hints
