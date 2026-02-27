@@ -1380,8 +1380,7 @@ public class Interpreter
 
     private Value Visit(CaseWhenNode node)
     {
-        var testValue = Interpret(node.Condition);
-        return testValue;
+        return node.Conditions.Count > 0 ? Interpret(node.Conditions[0]) : Value.Default;
     }
 
     private Value Visit(CaseNode node)
@@ -1404,10 +1403,19 @@ public class Interpreter
 
         foreach (var whenNode in node.WhenNodes)
         {
-            var whenCondition = Interpret(whenNode);
+            var matched = false;
+            foreach (var condNode in whenNode.Conditions)
+            {
+                var condValue = Interpret(condNode);
+                if ((!isSwitch && BooleanOp.IsTruthy(condValue))
+                    || (isSwitch && ComparisonOp.Equal(ref testValue, ref condValue)))
+                {
+                    matched = true;
+                    break;
+                }
+            }
 
-            if ((!isSwitch && BooleanOp.IsTruthy(whenCondition))
-                || (isSwitch && ComparisonOp.Equal(ref testValue, ref whenCondition)))
+            if (matched)
             {
                 var frame = CallStack.Peek();
                 foreach (var stmt in whenNode.Body)

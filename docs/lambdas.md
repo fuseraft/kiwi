@@ -133,5 +133,5 @@ end
 add = with (a, b) do a + b end
 
 println apply(f=add, x=3, y=4) # 7
-println apply(add, y=10, x=2)  # 12
+println apply(add, y: 10, x: 2)  # 12
 ```

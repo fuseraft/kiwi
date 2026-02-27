@@ -30,7 +30,7 @@ end
 
 Two common styles:
 
-### !. Condition-only `case` (when conditions are unrelated)
+### A. Condition-only `case` (when conditions are unrelated)
 
 ```kiwi
 hour = time::now().hour()
@@ -51,6 +51,29 @@ greeting = case time_of_day
   when 'evening'    'Good evening.'
   when 'night'      'Hello, night owl!'
   else              'What time is it again?'
+end
+```
+
+### C. Multiple values per `when` (comma-separated)
+
+A `when` clause can match against multiple values by separating them with commas. The branch fires if the test value equals **any** of them.
+
+```kiwi
+mood = case day
+  when "Monday"               "Here we go again."
+  when "Friday"               "Almost there!"
+  when "Saturday", "Sunday"   "Enjoy the weekend!"
+  else                        "Just another day."
+end
+```
+
+This also works in condition-only `case`:
+
+```kiwi
+label = case
+  when x == 1, x == 2   "one or two"
+  when x == 5, x == 6   "five or six"
+  else                  "other"
 end
 ```
 

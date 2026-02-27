@@ -305,12 +305,14 @@ package math
   end
 
   /#
-  @summary Rounds x to the nearest integer, with halfway cases rounding away from zero.
-  @param integer|float _value : The number x.
+  @summary Rounds a double-precision floating-point value to a specified number of fractional digits, and rounds midpoint values to the nearest even number.
+  @param float _value : The value.
+  @param integer _digits : The fractional digits.
   @return float : The rounded value.
   #/
-  fn round(_value)
-    return __round__(_value)
+  fn round(_value: float, _digits: integer = 0)
+    return __round__(_value, _digits) when _digits != 0
+    __round__(_value)
   end
 
   /#

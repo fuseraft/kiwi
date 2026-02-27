@@ -28,19 +28,39 @@ public static class EncoderBuiltinHandler
 
         if (string.IsNullOrEmpty(base64))
         {
-            return Value.CreateList([]);
+            return Value.CreateBytes([]);
         }
 
-        var bytes = Convert.FromBase64String(base64).Select(x => Value.CreateInteger(x)).ToList();
-        return Value.CreateList(bytes);
+        try
+        {
+            var bytes = Convert.FromBase64String(base64);
+            return Value.CreateBytes(bytes);
+        }
+        catch
+        {
+            throw new InvalidOperationError(token, "Invalid base64 string.");
+        }
     }
 
     private static Value Base64Encode(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, EncoderBuiltin.Base64Encode, 1, args.Count);        
-        ParameterTypeMismatchError.ExpectList(token, EncoderBuiltin.Base64Encode, 0, args[0]);
 
-        if (args[0].IsList())
+        if (args[0].IsString())
+        {
+            var stringValue = args[0].GetString();
+            var bytes = System.Text.Encoding.UTF8.GetBytes(stringValue);
+            var byteList = new List<byte>(bytes.Length);
+
+            foreach (var b in bytes)
+            {
+                byteList.Add(b);
+            }
+
+            var res = Convert.ToBase64String([.. byteList]);
+            return Value.CreateString(res);
+        }
+        else if (args[0].IsList())
         {
             List<byte> resultBytes = [];
 

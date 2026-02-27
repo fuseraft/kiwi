@@ -134,21 +134,21 @@ package string
   end
 
   /#
-  @summary Encodes a string as a base64 string.
-  @param   String  _input   : The input string. 
-  @return  String           : The base64 encoded string.
+  @summary Encodes data as a base64 string.
+  @param string|list|bytes _input : The input string.
+  @return string : The base64 encoded string.
   #/
-  fn base64encode(_input)
-    __base64encode__("${_input}")
+  fn base64encode(_input: string|list|bytes): string
+    __base64encode__(_input)
   end
 
   /#
-  @summary Decodes a base64 string to plaintext.
-  @param   String  _input   : The input string. 
-  @return  String           : The plaintext string.
+  @summary Decodes a base64 string.
+  @param   string  _input   : The input string. 
+  @return  string : The decoded string.
   #/
-  fn base64decode(_input)
-    __base64decode__("${_input}")
+  fn base64decode(_input: string): string
+    __base64decode__(_input).to_string()
   end
 
   /#

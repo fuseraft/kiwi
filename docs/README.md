@@ -1,6 +1,7 @@
 # Kiwi Docs
 
 1. **Getting Started**
+   - **[Introduction to Kiwi](introduction.md)**
    - [Using the Kiwi CLI](cli.md)
    - [REPL](repl.md)
    - **[Running Scripts & Execution Modes](runners.md)**
