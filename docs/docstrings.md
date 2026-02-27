@@ -68,7 +68,7 @@ Use `@tag` syntax for structured metadata. Tags start with `@` and are followed 
 ```kiwi
 /#
 @summary A package for working with strings, including iterators and utility functions.
-@version 1.3.7
+@version 1.3.8
 @see list.kiwi : For complementary list operations.
 #/
 package string
@@ -121,7 +121,7 @@ end
 @summary The version of the Kiwi standard library.
 @deprecated : Use env::get("KIWI_VERSION") instead.
 #/
-const KIWI_STDLIB_VERSION = "1.3.7"
+const KIWI_STDLIB_VERSION = "1.3.8"
 ```
 
 ## 5. Best Practices
