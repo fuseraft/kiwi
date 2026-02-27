@@ -1,16 +1,41 @@
+/#
+@summary A package for terminal color, cursor, and I/O control.
+#/
 package console
+  /#
+  @summary Sets the terminal background color.
+  @param string color : The color name (e.g., `"RED"`, `"BLUE"`). See `console::get_colors()`.
+  #/
   fn bg(color: string)
     __console_background__(console::map_color(color))
   end
 
+  /#
+  @summary Sets the terminal foreground (text) color.
+  @param string color : The color name (e.g., `"GREEN"`, `"WHITE"`). See `console::get_colors()`.
+  #/
   fn fg(color: string)
     __console_foreground__(console::map_color(color))
   end
 
+  /#
+  @summary Maps a color name to its integer code.
+  @param string name : The color name (case-insensitive).
+  @return integer : The color code, or `0` (black) if the name is not recognized.
+  #/
   fn map_color(name: string): integer
     console::get_colors().get(name.uppercase(), 0)
   end
 
+  /#
+  @summary Returns a hashmap of supported color names to their integer codes.
+  @return hashmap : A map of color name strings to integer codes.
+  @example
+  ---
+  colors = console::get_colors()
+  println(colors["RED"])  # 12
+  ---
+  #/
   fn get_colors(): hashmap
     {
       BLACK: 0,
@@ -32,54 +57,113 @@ package console
     }
   end
 
+  /#
+  @summary Resets the terminal foreground and background colors to their defaults.
+  #/
   fn reset()
     __console_reset__()
   end
 
+  /#
+  @summary Clears the terminal screen.
+  #/
   fn clear()
     __console_clear__()
   end
-  
+
+  /#
+  @summary Shows or hides the terminal cursor.
+  @param boolean is_visible : Pass `true` to show the cursor, `false` to hide it.
+  #/
   fn cursor_visible(is_visible: boolean)
     __console_cursorvisible__(is_visible)
   end
 
+  /#
+  @summary Returns the current terminal window size.
+  @return hashmap : A hashmap with `width` and `height` keys.
+  #/
   fn size()
     __console_windowsize__()
   end
-  
+
+  /#
+  @summary Sets the terminal window title.
+  @param string new_title : The title to display in the terminal window.
+  #/
   fn title(new_title: string)
     __console_title__(new_title)
   end
 
+  /#
+  @summary Reads a line of input from the console with an optional prompt.
+  @param string msg : An optional prompt to display before reading input.
+  @return string : The input entered by the user.
+  #/
   fn read(msg: string = "")
     __console_readline__(msg)
   end
 
+  /#
+  @summary Reads a line of input from the console with an optional prompt.
+  @param string msg : An optional prompt to display before reading input.
+  @return string : The input entered by the user.
+  @see console::read : Alias for this function.
+  #/
   fn readline(msg: string = "")
     __console_readline__(msg)
   end
 
+  /#
+  @summary Reads a line of secret input (e.g., a password) without echoing characters.
+  @param string msg : An optional prompt to display.
+  @param string mask : An optional mask character to display in place of input (default none).
+  @return string : The secret input entered by the user.
+  #/
   fn read_secret(msg: string = "", mask: string = "")
     __console_readline__(msg, true, mask)
   end
 
+  /#
+  @summary Reads a single keypress from the console.
+  @param boolean intercept : If `true`, the key is not echoed to the console (default `true`).
+  @return hashmap : A hashmap with key info (e.g., `key`, `modifiers`).
+  #/
   fn readkey(intercept: boolean = true)
     __console_readkey__(intercept)
   end
 
+  /#
+  @summary Reads a single keypress from the console.
+  @param boolean intercept : If `true`, the key is not echoed to the console (default `true`).
+  @return hashmap : A hashmap with key info (e.g., `key`, `modifiers`).
+  @see console::readkey : Alias for this function.
+  #/
   fn read_key(intercept: boolean = true)
     __console_readkey__(intercept)
   end
 
+  /#
+  @summary Writes a message to the console without a trailing newline.
+  @param string msg : The message to write.
+  #/
   fn write(msg: string = "")
     print msg
   end
 
+  /#
+  @summary Writes a message to the console followed by a newline.
+  @param string msg : The message to write.
+  #/
   fn writeln(msg: string = "")
     println msg
   end
 
+  /#
+  @summary Writes a message to the console followed by a newline.
+  @param string msg : The message to write.
+  @see console::writeln : Alias for this function.
+  #/
   fn writeline(msg: string = "")
     println msg
   end

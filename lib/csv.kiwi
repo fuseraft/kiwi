@@ -1,6 +1,13 @@
+/#
+@summary A package for parsing CSV data.
+#/
 package csv
   /#
-  Parses a CSV file into a list of rows.
+  @summary Parses a CSV file into a list of rows.
+  @param string file_path : The path to the CSV file.
+  @param string delimiter : The field delimiter (default `","`).
+  @return list : A list of rows, each row being a list of string fields.
+  @throws string : If the file does not exist.
   #/
   fn parse_file(file_path: string, delimiter: string = ","): list
     if !fio::isfile(file_path)
@@ -12,8 +19,11 @@ package csv
   end
 
   /#
-  Parses a CSV string into a list of rows (each row is a list of string fields).
-  RFC 4180: handles quotes, escaped quotes (""), commas/newlines in fields.
+  @summary Parses a CSV string into a list of rows.
+  @description Conforms to RFC 4180: handles quoted fields, escaped double-quotes (`""`), and embedded commas or newlines.
+  @param string input : The CSV-formatted string to parse.
+  @param string delimiter : The field delimiter (default `","`).
+  @return list : A list of rows, each row being a list of string fields.
   #/
   fn parse(input: string, delimiter: string = ","): list
     rows = []
