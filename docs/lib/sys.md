@@ -114,7 +114,7 @@ This is the most commonly used function when you need to:
 result = sys::execout("curl", [
   "-X", "POST",
   "-H", "Content-Type: application/json",
-  "-d", '{"name": "Kiwi", "version": "1.3.7"}',
+  "-d", '{"name": "Kiwi", "version": "1.3.8"}',
   "https://httpbin.org/post"
 ])
 
