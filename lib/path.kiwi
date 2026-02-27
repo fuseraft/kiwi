@@ -1,3 +1,5 @@
+requires "hashable"
+
 package path
   /#
   @summary A struct representing a filesystem path.
