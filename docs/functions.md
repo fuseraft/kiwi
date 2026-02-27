@@ -50,6 +50,31 @@ data = configure({ "name": "Scott" }, { "favorite_os": "Fedora" })
 println(data) # prints: {"name": "Scott", "favorite_os": "Fedora"}
 ```
 
+### Named Parameters
+
+Arguments can be passed by name, in any order. Named and positional arguments can be mixed — positional arguments fill the first available unfilled slot from left to right.
+
+```kiwi
+fn greet(name: string, greeting: string = "Hello")
+  println "${greeting}, ${name}!"
+end
+
+greet("Scotty")                     # Hello, Scotty!
+greet(name="Scotty")                # Hello, Scotty!
+greet(greeting="Hi", name="Scotty") # Hi, Scotty!
+greet("Scotty", greeting="Hey")     # Hey, Scotty!
+```
+
+Passing an unknown parameter name or specifying the same parameter more than once is an error.
+
+```kiwi
+fn add(a: integer, b: integer): integer
+  return a + b
+end
+
+println add(b=3, a=7) # 10
+```
+
 ### Scope
 
 You can access all global variables from within a method.
