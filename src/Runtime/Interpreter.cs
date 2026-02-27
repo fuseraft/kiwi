@@ -2668,24 +2668,11 @@ public class Interpreter
 
     private void ProcessFunctionParameters(KFunction function, List<ASTNode?> args, Token token, string functionName, HashSet<string> defaultParameters, Scope scope, Dictionary<string, List<int>> typeHints)
     {
+        var slots = ResolveArguments(function.Parameters, args, defaultParameters, token, functionName);
         for (var i = 0; i < function.Parameters.Count; ++i)
         {
             var param = function.Parameters[i];
-            var argValue = Value.Default;
-
-            if (i < args.Count)
-            {
-                argValue = Interpret(args[i]);
-            }
-            else if (defaultParameters.Contains(param.Key))
-            {
-                argValue = param.Value;
-            }
-            else
-            {
-                throw new ParameterCountMismatchError(token, functionName, function.Parameters.Count, args.Count);
-            }
-
+            var argValue = slots[i]!;
             PrepareFunctionVariables(typeHints, param, ref argValue, token, i, functionName, scope);
         }
     }
@@ -2796,25 +2783,12 @@ public class Interpreter
         var parms = func.Parameters;
         var nodeArguments = node.Arguments;
         var scope = functionFrame.Scope;
+        var slots = ResolveArguments(parms, nodeArguments, defaultParameters, node.Token, node.FunctionName);
 
         for (var i = 0; i < parms.Count; ++i)
         {
             var param = parms[i];
-            var argValue = Value.Default;
-
-            if (i < nodeArguments.Count)
-            {
-                var arg = nodeArguments[i];
-                argValue = Interpret(arg);
-            }
-            else if (defaultParameters.Contains(param.Key))
-            {
-                argValue = param.Value;
-            }
-            else
-            {
-                throw new ParameterCountMismatchError(node.Token, node.FunctionName, parms.Count, nodeArguments.Count);
-            }
+            var argValue = slots[i]!;
 
             if (typeHints.TryGetValue(param.Key, out List<int>? expectedTypes) && !AssertTypeMatch(node.Token, argValue, expectedTypes))
             {
@@ -2830,6 +2804,58 @@ public class Interpreter
                 scope.Declare(param.Key, argValue);
             }
         }
+    }
+
+    private static int FindParameterIndexByName(List<KeyValuePair<string, Value>> parms, string name)
+    {
+        for (int i = 0; i < parms.Count; i++)
+            if (parms[i].Key.Substring(10) == name) return i;
+        return -1;
+    }
+
+    private Value[] ResolveArguments(
+        List<KeyValuePair<string, Value>> parms,
+        List<ASTNode?> nodeArguments,
+        HashSet<string> defaultParameters,
+        Token token, string callableName)
+    {
+        var slots = new Value?[parms.Count];
+
+        // 1. Fill named args
+        foreach (var arg in nodeArguments.OfType<NamedArgumentNode>())
+        {
+            int idx = FindParameterIndexByName(parms, arg.Name);
+            if (idx < 0)
+                throw new TypeError(token, $"Unknown parameter `{arg.Name}` in call to `{callableName}`.");
+            if (slots[idx] != null)
+                throw new TypeError(token, $"Parameter `{arg.Name}` specified more than once in call to `{callableName}`.");
+            slots[idx] = Interpret(arg.Value);
+        }
+
+        // 2. Fill positional args into unfilled slots left-to-right
+        int pos = 0;
+        foreach (var arg in nodeArguments.Where(a => a is not NamedArgumentNode))
+        {
+            while (pos < slots.Length && slots[pos] != null) pos++;
+            if (pos >= slots.Length)
+                throw new ParameterCountMismatchError(token, callableName, parms.Count, nodeArguments.Count);
+            slots[pos] = Interpret(arg);
+            pos++;
+        }
+
+        // 3. Fill remaining slots with defaults; error on missing
+        for (int i = 0; i < parms.Count; i++)
+        {
+            if (slots[i] == null)
+            {
+                if (defaultParameters.Contains(parms[i].Key))
+                    slots[i] = parms[i].Value;
+                else
+                    throw new ParameterCountMismatchError(token, callableName, parms.Count, nodeArguments.Count);
+            }
+        }
+
+        return slots!;
     }
 
     private void PrepareFunctionVariables(Dictionary<string, List<int>> typeHints, KeyValuePair<string, Value> param, ref Value argValue, Token token, int i, string functionName, Scope scope)
@@ -2853,23 +2879,11 @@ public class Interpreter
     private void PrepareLambdaCall(KLambda func, List<ASTNode?> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, List<int>> typeHints, string lambdaName, Scope scope)
     {
         var parms = func.Parameters;
+        var slots = ResolveArguments(parms, args, defaultParameters, token, targetLambda);
         for (var i = 0; i < parms.Count; ++i)
         {
             var param = parms[i];
-            var argValue = Value.Default;
-            if (i < args.Count)
-            {
-                argValue = Interpret(args[i]);
-            }
-            else if (defaultParameters.Contains(param.Key))
-            {
-                argValue = param.Value;
-            }
-            else
-            {
-                throw new ParameterCountMismatchError(token, targetLambda, parms.Count, args.Count);
-            }
-
+            var argValue = slots[i]!;
             PrepareLambdaVariables(typeHints, param, ref argValue, token, i, lambdaName, scope);
         }
     }

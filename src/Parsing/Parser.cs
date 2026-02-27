@@ -1322,7 +1322,19 @@ public partial class Parser
         List<ASTNode?> arguments = [];
         while (GetTokenType() != TokenType.RParen)
         {
-            arguments.Add(ParseExpression());
+            if (GetTokenType() == TokenType.Identifier && Peek().Name == TokenName.Ops_Assign)
+            {
+                var argToken = token;
+                var name = GetTokenText();
+                Next();  // consume identifier
+                Next();  // consume '='
+                var namedArg = new NamedArgumentNode(name, ParseExpression()) { Token = argToken };
+                arguments.Add(namedArg);
+            }
+            else
+            {
+                arguments.Add(ParseExpression());
+            }
 
             if (GetTokenType() == TokenType.Comma)
             {
@@ -1772,26 +1784,7 @@ public partial class Parser
 
     private MethodCallNode? ParseMethodCall(ASTNode? obj, string methodName, TokenName type)
     {
-        Next();  // Consume '('
-
-        // Parse function arguments
-        List<ASTNode?> arguments = [];
-        while (GetTokenType() != TokenType.RParen)
-        {
-            arguments.Add(ParseExpression());
-
-            if (GetTokenType() == TokenType.Comma)
-            {
-                Next();  // Consume ','
-            }
-            else if (GetTokenType() != TokenType.RParen)
-            {
-                throw new SyntaxError(GetErrorToken(), "Expected ')' or ',' in function call.");
-            }
-        }
-
-        Next();  // Consume the closing parenthesis ')'
-
+        var arguments = CollectCallArguments();
         return new MethodCallNode(obj, methodName, type, arguments);
     }
 
