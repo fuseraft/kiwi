@@ -351,7 +351,7 @@ public partial class Parser(bool rethrowErrors = false)
 
     private bool IsComparisonOperator() => token.Name switch
     {
-        TokenName.Ops_GreaterThan or TokenName.Ops_GreaterThanOrEqual or TokenName.Ops_LessThan or TokenName.Ops_LessThanOrEqual => true,
+        TokenName.Ops_GreaterThan or TokenName.Ops_GreaterThanOrEqual or TokenName.Ops_LessThan or TokenName.Ops_LessThanOrEqual or TokenName.KW_In => true,
         _ => false,
     };
 

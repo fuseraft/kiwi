@@ -1,9 +1,41 @@
 using kiwi.Typing;
+using kiwi.Parsing;
+using kiwi.Tracing.Error;
 
 namespace kiwi.Runtime.Builtin.Operation;
 
 public struct ComparisonOp
 {
+    public static Value In(Token token, ref Value left, ref Value right)
+    {
+        if (right.IsList())
+        {
+            var leftValue = left;
+            return Value.CreateBoolean(right.GetList().Any(item => BooleanOp.IsSame(leftValue, item)));
+        }
+        if (right.IsString())
+        {
+            if (!left.IsString())
+            {
+                throw new ConversionError(token, "Left operand must be a string when right operand is a string for 'in' operator.");
+            }
+            return Value.CreateBoolean(right.GetString().Contains(left.GetString()));
+        }
+        if (right.IsHashmap())
+        {
+            return Value.CreateBoolean(right.GetHashmap().ContainsKey(left));
+        }
+        if (right.IsBytes())
+        {
+            if (!left.IsInteger() || left.GetInteger() < 0 || left.GetInteger() > 255)
+            {
+                throw new ConversionError(token, "Left operand must be an integer between 0 and 255 when right operand is bytes for 'in' operator.");
+            }
+            return Value.CreateBoolean(Array.IndexOf(right.GetBytes(), (byte)left.GetInteger()) >= 0);
+        }
+        throw new InvalidOperationError(token, "The 'in' operator is not supported for the provided types.");
+    }
+
     public static bool Equal(ref Value v1, ref Value v2) => BooleanOp.IsSame(v1, v2);
 
     public static Value NotEqual(ref Value left, ref Value right) => Value.CreateBoolean(!BooleanOp.IsSame(left, right));

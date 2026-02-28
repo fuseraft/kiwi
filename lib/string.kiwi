@@ -27,6 +27,10 @@ package string
       (@pos + 1 < @len)
     end
 
+    fn eof(): boolean
+      !can_read()
+    end
+
     fn current()
       if @pos < @len
         return @chars.get(@pos)
