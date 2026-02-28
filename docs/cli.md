@@ -15,6 +15,7 @@ kiwi [--flags] <script|args>
   - [`-s`, `--settings`](#-s---settings)
   - [`-n`, `--new <file_path>`](#-n---new-file_path)
   - [`-i`, `--interactive`](#-i---interactive)
+  - [`-d`, `--debug <input_file_path>`](#-d---debug-input_file_path)
   - [`-a`, `--ast <input_file_path>`](#-a---ast-input_file_path)
   - [`-t`, `--tokenize <input_file_path>`](#-t---tokenize-input_file_path)
   - [`-ns`, `--no-stdlib`](#-ns---no-stdlib)
@@ -56,6 +57,16 @@ To learn more about the REPL, please see [REPL](repl.md).
 
 ```
 kiwi -i
+```
+
+### `-d`, `--debug <input_file_path>`
+
+Runs a script under the `kdb` interactive debugger. Execution pauses at the first statement and presents a `(kdb)` prompt where you can step through the program, inspect variables, set breakpoints, and evaluate expressions.
+
+To learn more, see [kdb — Kiwi Debugger](kdb.md).
+
+```
+kiwi -d filename         # Debug the file with kdb.
 ```
 
 ### `-a`, `--ast <input_file_path>`

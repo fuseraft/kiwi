@@ -5,6 +5,7 @@
    - [Using the Kiwi CLI](cli.md)
    - [REPL](repl.md)
    - **[Running Scripts & Execution Modes](runners.md)**
+   - [kdb — Kiwi Debugger](kdb.md)
 
 2. **Language Basics**
    - [Comments](comments.md)
