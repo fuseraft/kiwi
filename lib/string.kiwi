@@ -121,8 +121,8 @@ package string
   @return  Boolean          : True if found.
   #/
   fn contains_any(str, matches = [])
-    matches = matches.chars() when matches.type() == "string"
-    throw "matches must be a list" when matches.type() != "list"
+    matches = matches.chars() when typeof(matches) == "string"
+    throw "matches must be a list" when typeof(matches) != "list"
 
     for m in matches do
       if str.contains(m)

@@ -308,7 +308,7 @@ struct Set
 
   private fn get_input_data(data: any): list
     input_data = []
-    if data.type() == "Set"
+    if typeof(data) == "Set"
       input_data = data.to_list()
     elsif data.is_a(list)
       input_data = data

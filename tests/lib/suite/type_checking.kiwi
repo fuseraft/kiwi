@@ -26,5 +26,4 @@ tester::register_test("type checks", with do
   tester::assert(h.a.is_a(list), "A7")
   tester::assert(typeof(h) == "hashmap", "A8")
   tester::assert(typeof(ss) == "SS", "A9")
-  tester::assert(h.type() == "hashmap", "A10")
 end)
