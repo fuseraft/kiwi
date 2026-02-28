@@ -1,0 +1,312 @@
+/#
+@summary A package for parsing T-SQL queries.
+@description This is a basic T-SQL parser implemented in pure Kiwi. It supports simple SELECT statements with columns, FROM clause, optional WHERE clause with basic conditions (AND/OR, comparisons, literals). It does not support joins, subqueries, aggregates, or advanced features. The parser produces an Abstract Syntax Tree (AST) as a hashmap.
+@version 0.1.0
+@see string.kiwi : For StringIterator used in tokenization.
+#/
+package tsql
+  /#
+  @summary List of T-SQL keywords (uppercase).
+  #/
+  const KEYWORDS = [
+    "SELECT", "FROM", "WHERE", "AND", "OR", "AS", "TOP", "DISTINCT",
+    "ORDER", "BY", "ASC", "DESC", "GROUP", "HAVING", "UNION", "ALL"
+  ]
+
+  /#
+  @summary List of operators.
+  #/
+  const OPERATORS = ["=", "<>", "!=", "<", ">", "<=", ">=", "LIKE", "IN", "NOT"]
+
+  struct TSqlParser
+    /#
+    @summary Initializes the parser with a T-SQL query string.
+    @param string input : The T-SQL query to parse.
+    #/
+    fn new(input: string)
+      @input = input.trim().replace(";", "")  # Normalize: trim and remove trailing ;
+      @iter = StringIterator.new(input)
+      @tokens = []
+      @pos = 0
+      (@).tokenize()  # Pre-tokenize the input
+    end
+
+    /#
+    @summary Tokenizes the entire input string into a list of tokens.
+    @description Tokens are either strings (for keywords/operators/symbols) or hashmaps {type: "literal", value: ...} for identifiers/numbers/strings.
+    #/
+    fn tokenize()
+      while !@iter.eof() do
+        @iter.skip_whitespace()
+        break when @iter.eof()
+
+        c = @iter.current()
+
+        if c.isalpha() || c == "_"
+          @tokens.push((@).read_identifier())
+        elsif c.isnumeric() || (c == "-" && @iter.peek().isnumeric())
+          @tokens.push((@).read_number())
+        elsif c == "'"
+          @tokens.push((@).read_string())
+        elsif c == "\""
+          @tokens.push((@).read_quoted_identifier())  # For quoted identifiers like "table"
+        elsif c in [",", "*", "(", ")", ".", ";"]
+          @tokens.push(c)
+          @iter.consume()
+        elsif c in ["=", "<", ">", "!", "~"]
+          @tokens.push((@).read_operator())
+        else
+          throw "Unexpected character: ${c} at position ${@iter.position()}"
+        end
+      end
+    end
+
+    /#
+    @summary Reads an identifier or keyword.
+    @return string|hashmap : Keyword as uppercase string, or {type: "identifier", value: id}.
+    #/
+    fn read_identifier(): any
+      id = ""
+      while !@iter.eof() && (@iter.current().isalphanumeric() || @iter.current() in ["_", "@", "#"]) do
+        id += @iter.current()
+        @iter.consume()
+      end
+      upper = id.uppercase()
+      return upper when tsql::KEYWORDS.contains(upper) || tsql::OPERATORS.contains(upper)
+      {type: "identifier", value: id}
+    end
+
+    /#
+    @summary Reads a number literal (integer or float).
+    @return hashmap : {type: "number", value: num}.
+    #/
+    fn read_number(): hashmap
+      num_str = ""
+      while !@iter.eof() && (@iter.current().isnumeric() || @iter.current() in [".", "-", "e", "E"]) do
+        num_str += @iter.current()
+        @iter.consume()
+      end
+      {type: "number", value: num_str.contains(".") ? num_str.to_float() : num_str.to_integer()}
+    end
+
+    /#
+    @summary Reads a single-quoted string literal.
+    @return hashmap : {type: "string", value: str}.
+    #/
+    fn read_string(): hashmap
+      str = ""
+      @iter.consume()  # consume opening '
+      while !@iter.eof() && @iter.current() != "'" do
+        if @iter.current() == "\\"
+          @iter.consume()
+          str += @iter.current()  # escaped char
+        else
+          str += @iter.current()
+        end
+        @iter.consume()
+      end
+      @iter.consume()  # consume closing '
+      {type: "string", value: str}
+    end
+
+    /#
+    @summary Reads a double-quoted identifier (e.g., "table name").
+    @return hashmap : {type: "identifier", value: str}.
+    #/
+    fn read_quoted_identifier(): hashmap
+      str = ""
+      @iter.consume()  # consume opening "
+      while !@iter.eof() && @iter.current() != "\"" do
+        str += @iter.current()
+        @iter.consume()
+      end
+      @iter.consume()  # consume closing "
+      {type: "identifier", value: str}
+    end
+
+    /#
+    @summary Reads an operator (may be multi-char like <=, <>).
+    @return string : The operator.
+    #/
+    fn read_operator(): string
+      op = @iter.current()
+      @iter.consume()
+      next_c = @iter.current()
+      if (op == "<" && next_c in [">", "="]) || (op == ">" && next_c == "=") || (op == "!" && next_c == "=")
+        op += next_c
+        @iter.consume()
+      end
+      op
+    end
+
+    /#
+    @summary Peeks the next token without consuming.
+    @return any : The next token or null if EOF.
+    #/
+    fn peek(): any
+      (@pos < @tokens.size() ? @tokens[@pos] : null)
+    end
+
+    /#
+    @summary Consumes and returns the next token.
+    @return any : The next token.
+    @throws string : If unexpected EOF.
+    #/
+    fn consume(): any
+      if @pos >= @tokens.size()
+        throw "Unexpected EOF"
+      end
+      token = @tokens[@pos]
+      @pos += 1
+      token
+    end
+
+    /#
+    @summary Expects and consumes a specific token.
+    @param string expected : The expected token value.
+    @throws string : If mismatch.
+    #/
+    fn expect(expected: string)
+      token = (@).consume()
+      throw "Expected ${expected} but got ${token}" when token != expected
+    end
+
+    /#
+    @summary Parses the entire query.
+    @return hashmap : AST as {type: "select", columns: [...], from: ..., where: ...}.
+    @throws string : On parse error.
+    #/
+    fn parse(): hashmap
+      @pos = 0  # Reset position
+      if (@).peek() == "SELECT"
+        return (@).parse_select()
+      else
+        throw "Unsupported query type; only SELECT supported"
+      end
+    end
+
+    /#
+    @summary Parses a SELECT statement.
+    @return hashmap : {type: "select", columns: list, from: hashmap, where: hashmap?}.
+    #/
+    fn parse_select(): hashmap
+      (@).expect("SELECT")
+      columns = (@).parse_column_list()
+      (@).expect("FROM")
+      from = (@).parse_from()
+      where = null
+      if (@).peek() == "WHERE"
+        (@).consume()  # WHERE
+        where = (@).parse_condition()
+      end
+      # TODO: Add support for ORDER BY, GROUP BY, etc.
+      {type: "select", columns: columns, from: from, where: where}
+    end
+
+    /#
+    @summary Parses the column list (e.g., col1, col2 AS alias, *).
+    @return list : List of hashmaps {type: "column", name: id, alias?: id} or {type: "star"}.
+    #/
+    fn parse_column_list(): list
+      columns = []
+      while true do
+        if (@).peek() == "*"
+          columns.push({type: "star"})
+          (@).consume()
+        else
+          col = (@).parse_identifier()
+          alias = null
+          if (@).peek() == "AS"
+            (@).consume()
+            alias = (@).parse_identifier()
+          end
+          columns.push({type: "column", name: col, alias: alias})
+        end
+        break when (@).peek() != ","
+        (@).consume()  # ,
+      end
+      columns
+    end
+
+    /#
+    @summary Parses the FROM clause (simple table name or alias).
+    @return hashmap : {type: "table", name: id, alias?: id}.
+    #/
+    fn parse_from(): hashmap
+      table = (@).parse_identifier()
+      alias = null
+      if (@).peek() == "AS"
+        (@).consume()
+        alias = (@).parse_identifier()
+      elsif (@).peek().is_a(hashmap) && (@).peek().type == "identifier"  # Implicit alias without AS
+        alias = (@).parse_identifier()
+      end
+      {type: "table", name: table, alias: alias}
+    end
+
+    /#
+    @summary Parses a condition (e.g., col = value AND col > value).
+    @return hashmap : Tree of conditions {type: "and"|"or", left: ..., right: ...} or {type: "comparison", left: ..., op: ..., right: ...}.
+    #/
+    fn parse_condition(): hashmap
+      left = (@).parse_comparison()
+      while (@).peek() in ["AND", "OR"] do
+        op = (@).consume()
+        right = (@).parse_comparison()
+        left = {type: op.lowercase(), left: left, right: right}
+      end
+      left
+    end
+
+    /#
+    @summary Parses a single comparison (e.g., col = 'value').
+    @return hashmap : {type: "comparison", left: id, op: str, right: literal}.
+    #/
+    fn parse_comparison(): hashmap
+      left = (@).parse_identifier()
+      op = (@).consume()  # operator
+      throw "Expected operator but got ${op}" when !tsql::OPERATORS.contains(op)
+      right = (@).parse_literal()
+      {type: "comparison", left: left, op: op, right: right}
+    end
+
+    /#
+    @summary Parses an identifier.
+    @return hashmap : {type: "identifier", value: str}.
+    #/
+    fn parse_identifier(): hashmap
+      token = (@).consume()
+      if token.is_a(hashmap) && token.type == "identifier"
+        return token
+      end
+      throw "Expected identifier but got ${token}"
+    end
+
+    /#
+    @summary Parses a literal (number, string, or identifier for unquoted literals).
+    @return hashmap : {type: "number"|"string"|"identifier", value: ...}.
+    #/
+    fn parse_literal(): hashmap
+      token = (@).consume()
+      if token.is_a(hashmap) && token.type in ["number", "string", "identifier"]
+        return token
+      end
+      throw "Expected literal but got ${token}"
+    end
+  end
+
+  /#
+  @summary Parses a T-SQL query string.
+  @param string query : The T-SQL query.
+  @return hashmap : The AST.
+  @throws string : On parse error.
+  #/
+  fn parse(query: string): hashmap
+    TSqlParser.new(query).parse()
+  end
+end
+
+export "tsql"
+query = "SELECT id, name AS full_name FROM users u WHERE age > 18 AND status = 'active'"
+ast = tsql::parse(query)
+println(serialize(ast))  # For inspection; assumes a to_json() extension or similar
