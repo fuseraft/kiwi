@@ -121,6 +121,7 @@ public class Interpreter
             ASTNodeType.Program => Visit((ProgramNode)node),
             ASTNodeType.RangeLiteral => Visit((RangeLiteralNode)node),
             ASTNodeType.RepeatLoop => Visit((RepeatLoopNode)node),
+            ASTNodeType.Require => Visit((RequireNode)node),
             ASTNodeType.Return => Visit((ReturnNode)node),
             ASTNodeType.Self => Visit((SelfNode)node),
             ASTNodeType.Slice => Visit((SliceNode)node),
@@ -403,7 +404,43 @@ public class Interpreter
     private Value Visit(PackageNode node)
     {
         var packageName = Id(node.PackageName ?? throw new PackageUndefinedError(node.Token, string.Empty));
-        Context.Packages[packageName] = new KPackage(node.Clone());
+
+        if (Context.Packages.TryGetValue(packageName, out var existing))
+        {
+            foreach (var stmt in node.Body)
+            {
+                existing.Decl.Body.Add(stmt?.Clone());
+            }
+        }
+        else
+        {
+            Context.Packages[packageName] = new KPackage(node.Clone());
+        }
+
+        PackageStack.Push(packageName);
+        bool activationSucceeded = true;
+        try
+        {
+            foreach (var stmt in node.Body)
+            {
+                Interpret(stmt);
+            }
+        }
+        catch (KiwiError)
+        {
+            activationSucceeded = false;
+        }
+        finally
+        {
+            if (PackageStack.Count > 0)
+                PackageStack.Pop();
+        }
+
+        if (activationSucceeded)
+        {
+            RegisterTypeBuiltins(packageName);
+            Context.ImportedPackages.Add(packageName);
+        }
 
         return Value.Default;
     }
@@ -420,6 +457,28 @@ public class Interpreter
     {
         var packageName = Interpret(node.PackageName);
         ImportPackage(node.Token, packageName);
+
+        return Value.Default;
+    }
+
+    private Value Visit(RequireNode node)
+    {
+        var packageName = node.PackageName;
+
+        if (Context.ImportedPackages.Contains(packageName))
+            return Value.Default;
+
+        if (Context.HasPackage(packageName))
+        {
+            ImportPackage(node.Token, Value.CreateString(packageName));
+            return Value.Default;
+        }
+
+        var packagePath = FileUtil.TryGetExtensionless(node.Token, packageName, ExecutionPath);
+        if (FileUtil.IsScript(node.Token, packagePath))
+        {
+            ImportExternal(node.Token, packagePath);
+        }
 
         return Value.Default;
     }
@@ -3092,6 +3151,19 @@ public class Interpreter
         return result;
     }
 
+    private void RegisterTypeBuiltins(string packageName)
+    {
+        if (TypeRegistry.TryGetPrimitiveType(packageName, out int type))
+        {
+            var prefix = packageName + "::";
+            var funcs = Context.Functions.Where(x => x.Key.StartsWith(prefix)).ToList();
+            foreach (var func in funcs)
+            {
+                TypeBuiltins.Register(type, func.Key.Replace(prefix, string.Empty), func.Value);
+            }
+        }
+    }
+
     private void ImportPackage(Token token, Value packageName)
     {
         if (!packageName.IsString())
@@ -3100,6 +3172,9 @@ public class Interpreter
         }
 
         var packageNameValue = packageName.GetString();
+
+        if (Context.ImportedPackages.Contains(packageNameValue))
+            return;
 
         if (!Context.HasPackage(packageNameValue))
         {
@@ -3115,29 +3190,20 @@ public class Interpreter
         }
 
         PackageStack.Push(packageNameValue);
-        var package = Context.Packages[packageNameValue];
-        var decl = package.Decl;
+        var decl = Context.Packages[packageNameValue].Decl;
 
         foreach (var stmt in decl.Body)
         {
             Interpret(stmt);
         }
 
-        // detect type builtin definitions
-        if (TypeRegistry.TryGetPrimitiveType(packageNameValue, out int type))
-        {
-            var prefix = packageNameValue + "::";
-            var funcs = Context.Functions.Where(x => x.Key.StartsWith(prefix)).ToList();
-            foreach (var func in funcs)
-            {
-                TypeBuiltins.Register(type, func.Key.Replace(prefix, string.Empty), func.Value);
-            }
-        }
-
         if (PackageStack.Count > 0)
         {
             PackageStack.Pop();
         }
+
+        RegisterTypeBuiltins(packageNameValue);
+        Context.ImportedPackages.Add(packageNameValue);
     }
 
     private void ImportExternal(Token token, string packageName)

@@ -5,6 +5,7 @@ namespace kiwi.Runtime;
 public class KContext
 {
     public HashSet<string> Includes { get; set; } = [];
+    public HashSet<string> ImportedPackages { get; set; } = [];
     public Dictionary<string, KPackage> Packages { get; set; } = [];
     public Dictionary<string, KFunction> Functions { get; set; } = [];
     public Dictionary<string, KFunction> Methods { get; set; } = [];
@@ -49,6 +50,7 @@ public class KContext
         }
 
         cloned.LambdaTable = LambdaTable;
+        cloned.ImportedPackages = [.. ImportedPackages];
 
         return cloned;
     }
