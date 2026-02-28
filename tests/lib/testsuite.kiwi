@@ -36,7 +36,10 @@ var (unit_tests: list = [
   "md5",
   "sha224",
   "sha256",
-  "iterators"
+  "iterators",
+  "scoping",
+  "chained_access",
+  "xml"
 ])
 
 for unit_test in unit_tests do

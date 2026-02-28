@@ -1,0 +1,57 @@
+/# ==============================================================================
+   Testing chained member/index access: a[i].field, a[i].field[j],
+   expr.method()[i], and deeper chains.
+  ============================================================================== #/
+tester::register_test("chained access", with do
+  # Basic: list[i][key]
+  items = [{"name": "alpha"}, {"name": "beta"}, {"name": "gamma"}]
+  tester::assert(items[0]["name"] == "alpha", "A1: list[i][key] first")
+  tester::assert(items[2]["name"] == "gamma", "A2: list[i][key] last")
+
+  # Method returns list, then index: expr.method()[i]
+  nums = [3, 1, 4, 1, 5]
+  tester::assert(nums.sort()[0] == 1, "A3: method()[i] first")
+  tester::assert(nums.sort()[4] == 5, "A4: method()[i] last")
+
+  # list[i].method()[j]
+  words = [["c", "a", "b"], ["z", "x", "y"]]
+  tester::assert(words[0].sort()[0] == "a", "A5: list[i].method()[j] first")
+  tester::assert(words[1].sort()[2] == "z", "A6: list[i].method()[j] last")
+
+  # list[i].field[j] via struct
+  struct ItemList
+    fn new(items)
+      @items = items
+    end
+  end
+
+  nodes = [ItemList.new([10, 20, 30]), ItemList.new([40, 50, 60])]
+  tester::assert(nodes[0].items[0] == 10, "A7: list[i].field[j] first node, first item")
+  tester::assert(nodes[0].items[2] == 30, "A8: list[i].field[j] first node, last item")
+  tester::assert(nodes[1].items[1] == 50, "A9: list[i].field[j] second node, mid item")
+
+  # Deeper: list[i].field[j].field
+  struct Wrapper
+    fn new(children)
+      @children = children
+    end
+  end
+
+  struct Leaf
+    fn new(v)
+      @v = v
+    end
+  end
+
+  leaves = [Leaf.new("x"), Leaf.new("y"), Leaf.new("z")]
+  wrappers = [Wrapper.new(leaves)]
+  tester::assert(wrappers[0].children[0].v == "x", "A10: list[i].field[j].field first")
+  tester::assert(wrappers[0].children[2].v == "z", "A11: list[i].field[j].field last")
+
+  # String method returns list, then index
+  tester::assert("hello".chars()[0] == "h", "A12: string.method()[i] first")
+  tester::assert("hello".chars()[4] == "o", "A13: string.method()[i] last")
+
+  # Chained string ops: string.method()[i].method()
+  tester::assert("hello world".split(" ")[1].uppercase() == "WORLD", "A14: str.method()[i].method()")
+end)

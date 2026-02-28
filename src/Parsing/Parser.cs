@@ -2347,14 +2347,20 @@ public partial class Parser
                 break;
         }
 
-        switch (GetTokenType())
+        while (true)
         {
-            case TokenType.Dot:
+            if (GetTokenType() == TokenType.Dot)
+            {
                 node = ParseMemberAccess(node);
-                break;
-            case TokenType.LBracket:
+            }
+            else if (GetTokenType() == TokenType.LBracket)
+            {
                 node = ParseIndexing(node);
+            }
+            else
+            {
                 break;
+            }
         }
 
         if (node != null)
