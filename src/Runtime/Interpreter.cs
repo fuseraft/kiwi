@@ -33,6 +33,7 @@ public class Interpreter
     private Stack<string> FuncStack { get; set; } = [];
     public long CurrentTaskId { get; set; } = 0; // 0 = main thread
     public void SetContext(KContext context) => Context = context;
+    public Action<ASTNode>? DebugHook { get; set; }
 
     public Value EntryPoint(ASTNode? node)
     {
@@ -75,6 +76,8 @@ public class Interpreter
         {
             return Value.Default;
         }
+
+        DebugHook?.Invoke(node);
 
         var result = node.Type switch
         {

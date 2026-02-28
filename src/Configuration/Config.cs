@@ -8,6 +8,7 @@ public class Config
     public bool PrintTokens { get; set; } = false;
     public bool PrintAST { get; set; } = false;
     public bool UseREPL { get; set; } = false;
+    public bool UseDebugger { get; set; } = false;
     public List<string> Args { get; set; } = [];
     public List<string> Scripts { get; set; } = [];
     public bool HasScripts => Scripts.Count > 0;
@@ -171,6 +172,20 @@ public class Config
                     }
                     break;
 
+                case "-d":
+                case "--debug":
+                    if (!config.HasScripts)
+                    {
+                        var filename = GetFilename(ref iter);
+                        config.Scripts.Add(filename);
+                        config.UseDebugger = true;
+                    }
+                    else
+                    {
+                        config.Args.Add(current);
+                    }
+                    break;
+
                 default:
                     if (!config.HasScripts && IsScript(ref current))
                     {
@@ -256,6 +271,7 @@ public class Config
             ("-ns, --no-stdlib", "run without standard library"),
             ("-sm, --safemode", "run in safemode"),
             ("-p, --stdlib-path", "specify an alternative standard library path"),
+            ("-d, --debug <input_path>", "run script in the kdb debugger"),
             ("-<key>=<value>", "pass an argument to a program as a key-value pair")
         ];
 
