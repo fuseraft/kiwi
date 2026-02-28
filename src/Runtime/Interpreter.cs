@@ -2517,7 +2517,7 @@ public class Interpreter
             throw new UnimplementedMethodError(node.Token, obj.StructName, methodName);
         }
 
-        if (function.IsPrivate)
+        if (function.IsPrivate && !(contextSwitch && oldObjContext?.StructName == obj.StructName))
         {
             throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
         }
@@ -2766,7 +2766,7 @@ public class Interpreter
         }
         else
         {
-            if (function.IsPrivate)
+            if (function.IsPrivate && !(contextSwitch && objContext?.StructName == obj.StructName))
             {
                 throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
             }
