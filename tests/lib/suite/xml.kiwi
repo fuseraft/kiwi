@@ -1,0 +1,80 @@
+/# ==============================================================================
+   Testing the xml stdlib module: parsing, querying, and serialization.
+  ============================================================================== #/
+require "xml"
+
+tester::register_test("xml", with do
+  # Basic parse: root tag and attributes
+  doc = xml::parse('<root lang="en" version="2"/>')
+  tester::assert(doc.tag == "root",               "A1: root tag")
+  tester::assert(doc.get_attr("lang") == "en",    "A2: get_attr present")
+  tester::assert(doc.get_attr("version") == "2",  "A3: get_attr string value")
+  tester::assert(doc.get_attr("missing") == "",   "A4: get_attr default empty string")
+  tester::assert(doc.get_attr("missing", "fb") == "fb", "A5: get_attr custom default")
+  tester::assert(doc.children.empty(),            "A6: self-closing tag has no children")
+
+  # Text content
+  doc2 = xml::parse('<msg>Hello World</msg>')
+  tester::assert(doc2.tag == "msg",                   "A7: text element tag")
+  tester::assert(doc2.text() == "Hello World",        "A8: text()")
+  tester::assert(doc2.text_content() == "Hello World","A9: text_content() leaf")
+
+  # find and find_all (with chained index access)
+  doc3 = xml::parse('<root><a>1</a><b>2</b><a>3</a></root>')
+  tester::assert(doc3.find("a").text() == "1",      "A10: find() returns first match")
+  tester::assert(doc3.find("b").text() == "2",      "A11: find() by tag name")
+  tester::assert(doc3.find("z") == null,            "A12: find() returns null when not found")
+  tester::assert(doc3.find_all("a").size() == 2,    "A13: find_all() count")
+  tester::assert(doc3.find_all("a")[0].text() == "1","A14: find_all()[0]")
+  tester::assert(doc3.find_all("a")[1].text() == "3","A15: find_all()[1]")
+
+  # find_all_deep
+  doc4 = xml::parse('<root><outer><inner>deep</inner></outer><inner>shallow</inner></root>')
+  all_inner = doc4.find_all_deep("inner")
+  tester::assert(all_inner.size() == 2,             "A16: find_all_deep() count")
+  tester::assert(all_inner[0].text() == "deep",     "A17: find_all_deep() first (depth-first)")
+  tester::assert(all_inner[1].text() == "shallow",  "A18: find_all_deep() second")
+
+  # text_content() — recursive concatenation
+  doc5 = xml::parse('<root><a>foo</a><b>bar</b></root>')
+  tester::assert(doc5.text_content() == "foobar", "A19: text_content() recursive")
+
+  # elements() — filters out #text, #comment, #cdata, #pi nodes
+  doc6 = xml::parse('<root>text<a/><b/></root>')
+  elems = doc6.elements()
+  tester::assert(elems.size() == 2,       "A20: elements() count")
+  tester::assert(elems[0].tag == "a",     "A21: elements()[0] tag")
+  tester::assert(elems[1].tag == "b",     "A22: elements()[1] tag")
+
+  # Comment node does not block find()
+  doc7 = xml::parse('<root><!-- a comment --><val>42</val></root>')
+  tester::assert(doc7.find("val").text() == "42", "A23: element after comment node")
+
+  # CDATA node
+  doc8 = xml::parse('<root><![CDATA[raw & <content>]]></root>')
+  cdata = doc8.children[0]
+  tester::assert(cdata.tag == "#cdata",                   "A24: CDATA tag name")
+  tester::assert(cdata.content == "raw & <content>",      "A25: CDATA content preserved verbatim")
+
+  # XML entity unescaping in attribute values
+  doc9 = xml::parse('<el title="a &amp; b &lt; c &gt; d &quot;e&quot;"/>')
+  tester::assert(doc9.get_attr("title") == "a & b < c > d \"e\"", "A26: attr entity unescaping")
+
+  # Serialize round-trip (spot checks)
+  src = '<root lang="en"><item>hello</item><empty/></root>'
+  doc10 = xml::parse(src)
+  out = doc10.serialize()
+  tester::assert(out.contains("<root"),              "A27: serialize contains root open tag")
+  tester::assert(out.contains("lang=\"en\""),        "A28: serialize contains attribute")
+  tester::assert(out.contains("<item>hello</item>"), "A29: serialize inline text element")
+  tester::assert(out.contains("<empty/>"),           "A30: serialize self-closing element")
+
+  # parse_file throws on missing file
+  caught = false
+  try
+    xml::parse_file("/no/such/file.xml")
+  catch (err)
+    caught = true
+  end
+  tester::assert(caught, "A31: parse_file throws on missing file")
+end)

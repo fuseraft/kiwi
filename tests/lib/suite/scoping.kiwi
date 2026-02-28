@@ -1,0 +1,98 @@
+/# ==============================================================================
+   Testing lexical scoping: inner function calls must not clobber the caller's
+   local variables, and recursion must work correctly.
+  ============================================================================== #/
+tester::register_test("scoping", with do
+  # Two structs with identically-named locals — must not interfere
+  struct ScopeA
+    fn new(v)
+      @v = v
+    end
+    fn compute()
+      x = "from_A_${@v}"
+      b = ScopeB.new("b1")
+      result = b.compute()
+      # x must still be from_A, not clobbered by b.compute()
+      "${x}|${result}"
+    end
+  end
+
+  struct ScopeB
+    fn new(v)
+      @v = v
+    end
+    fn compute()
+      x = "from_B_${@v}"
+      x
+    end
+  end
+
+  tester::assert(ScopeA.new("a1").compute() == "from_A_a1|from_B_b1", "A1: cross-struct local isolation")
+
+  # Recursive struct method — each call gets fresh locals
+  struct Fib
+    fn new() end
+    fn calc(n)
+      if n <= 1
+        return n
+      end
+      Fib.new().calc(n - 1) + Fib.new().calc(n - 2)
+    end
+  end
+
+  tester::assert(Fib.new().calc(0) == 0,  "A2: fib(0)")
+  tester::assert(Fib.new().calc(1) == 1,  "A3: fib(1)")
+  tester::assert(Fib.new().calc(7) == 13, "A4: fib(7)")
+  tester::assert(Fib.new().calc(10) == 55, "A5: fib(10)")
+
+  # Instance vars remain per-object across nested serialize calls
+  struct SNode
+    fn new(val, child)
+      @val = val
+      @child = child
+    end
+    fn serialize()
+      @_buf = "v=${@val}"
+      if @child != null
+        child_str = @child.serialize()
+      else
+        child_str = ""
+      end
+      "${@_buf}[${child_str}]"
+    end
+  end
+
+  leaf = SNode.new("leaf", null)
+  mid  = SNode.new("mid",  leaf)
+  root = SNode.new("root", mid)
+  tester::assert(root.serialize() == "v=root[v=mid[v=leaf[]]]", "A6: instance var isolation across recursive calls")
+
+  # Package-level function: caller's locals not visible in callee
+  package scoping_test_pkg
+    fn inner()
+      result = "inner_result"
+      result
+    end
+    fn outer()
+      result = "outer_result"
+      inner_val = scoping_test_pkg::inner()
+      "${result}|${inner_val}"
+    end
+  end
+  export "scoping_test_pkg"
+
+  tester::assert(scoping_test_pkg::outer() == "outer_result|inner_result", "A7: package function local isolation")
+
+  # Top-level function recursion: each activation gets its own locals
+  fn countdown(n)
+    if n == 0
+      return "done"
+    end
+    prefix = "n=${n}"
+    rest = countdown(n - 1)
+    # prefix must still be "n=${n}", not clobbered by inner call
+    "${prefix}:${rest}"
+  end
+
+  tester::assert(countdown(3) == "n=3:n=2:n=1:done", "A8: top-level recursive function isolation")
+end)

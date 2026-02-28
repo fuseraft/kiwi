@@ -1688,6 +1688,7 @@ public class Interpreter
         Value result = Value.Default;
         var tryName = $"try-{Guid.NewGuid()}";
         var setReturnValue = false;
+        var stackDepthBeforeTry = CallStack.Count;
 
         try
         {
@@ -1706,8 +1707,9 @@ public class Interpreter
         }
         catch (KiwiError e)
         {
-            // Ensure try frame is cleaned up
-            if (CallStack.Count > 0 && CallStack.Peek().Name == tryName)
+            // Pop ALL frames pushed during the try block (the try frame itself plus any
+            // orphaned callee frames whose C# stack was unwound by the exception).
+            while (CallStack.Count > stackDepthBeforeTry)
             {
                 PopFrame();
             }
@@ -2611,11 +2613,14 @@ public class Interpreter
         var typeHints = func.TypeHints;
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
-        var functionScope = new Scope(CallStack.Peek().Scope);
-        var functionFrame = PushFrame(functionName, node.Token, functionScope);
+        var functionScope = new Scope(func.CapturedScope ?? _globalScope);
+        var functionFrame = new StackFrame(functionName, functionScope, node.Token);
         var result = Value.Default;
 
+        // Evaluate arguments while caller's frame is still on top of the stack,
+        // then push the callee's frame so argument expressions resolve correctly.
         PrepareFunctionCall(func, node, defaultParameters, typeHints, functionFrame);
+        PushFrame(functionFrame);
 
         var decl = func.Decl.Body;
         foreach (var stmt in decl)
@@ -2640,7 +2645,7 @@ public class Interpreter
     private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName)
     {
         var defaultParameters = function.DefaultParameters;
-        var functionFrame = CreateFrame(functionName, token);
+        var functionFrame = CreateFrame(functionName, token, function.CapturedScope);
         var scope = functionFrame.Scope;
         var typeHints = function.TypeHints;
         var returnTypeHint = function.ReturnTypeHint;
@@ -2999,7 +3004,7 @@ public class Interpreter
         var functionName = node.FunctionName;
         var func = strucMethods[functionName];
         var defaultParameters = func.DefaultParameters;
-        var functionFrame = CreateFrame(functionName, node.Token);
+        var functionFrame = CreateFrame(functionName, node.Token, func.CapturedScope);
         var result = Value.Default;
 
         var typeHints = func.TypeHints;
@@ -3641,10 +3646,10 @@ public class Interpreter
         return CallStack.Peek().IsFlagSet(FrameFlags.InTry);
     }
 
-    private StackFrame CreateFrame(string name, Token token)
+    private StackFrame CreateFrame(string name, Token token, Scope? parentScope = null)
     {
         StackFrame frame = CallStack.Peek();
-        Scope scope = new(frame.Scope);
+        Scope scope = new(parentScope ?? _globalScope);
         StackFrame subFrame = new(name, scope, token);
 
         if (frame.InObjectContext())

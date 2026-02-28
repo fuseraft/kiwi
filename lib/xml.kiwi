@@ -1,0 +1,465 @@
+/#
+@summary A package for parsing and serializing XML data.
+#/
+package xml
+  /#
+  @summary Represents a parsed XML node (element, text, comment, CDATA, or PI).
+  @field string   tag      : Node type — element name, or `#text`, `#comment`, `#cdata`, `#pi`.
+  @field hashmap  attrs    : Attribute map (empty for non-element nodes).
+  @field list     children : Child nodes (empty for leaf nodes).
+  @field string   content  : Text payload for `#text`, `#comment`, `#cdata`, and `#pi` nodes.
+  #/
+  struct XmlNode
+    fn new(tag, attrs, children, content)
+      @tag      = tag
+      @attrs    = attrs
+      @children = children
+      @content  = content
+    end
+
+    /#
+    @summary Returns the value of an attribute, or a default if not present.
+    @param string name    : The attribute name.
+    @param string default : The fallback value (default `""`).
+    @return string        : The attribute value or default.
+    #/
+    fn get_attr(name, default = "")
+      @attrs.get(name, default)
+    end
+
+    /#
+    @summary Returns the first direct child element with the given tag name.
+    @param string tag_name : The tag to search for.
+    @return XmlNode|null   : The first matching child, or null.
+    #/
+    fn find(tag_name)
+      for child in @children do
+        return child when child.tag == tag_name
+      end
+      null
+    end
+
+    /#
+    @summary Returns all direct child elements with the given tag name.
+    @param string tag_name : The tag to search for.
+    @return list           : Matching child nodes.
+    #/
+    fn find_all(tag_name)
+      @children.filter(with (c) do c.tag == tag_name end)
+    end
+
+    /#
+    @summary Recursively searches all descendants for nodes with the given tag name.
+    @param string tag_name : The tag to search for.
+    @return list           : All matching nodes in depth-first order.
+    #/
+    fn find_all_deep(tag_name)
+      @_fad_result = []
+      for fad_child in @children do
+        if fad_child.tag == tag_name
+          @_fad_result.push(fad_child)
+        end
+        @_fad_result = @_fad_result.concat(fad_child.find_all_deep(tag_name))
+      end
+      @_fad_result
+    end
+
+    /#
+    @summary Returns only element children (excludes `#text`, `#comment`, `#cdata`, `#pi`).
+    @return list : Element child nodes.
+    #/
+    fn elements()
+      @children.filter(with (c) do c.tag != "#text" && c.tag != "#comment" && c.tag != "#cdata" && c.tag != "#pi" end)
+    end
+
+    /#
+    @summary Returns the concatenated text of all direct `#text` children.
+    @return string : Joined text content.
+    #/
+    fn text()
+      @children.filter(with (c) do c.tag == "#text" end).map(with (c) do c.content end).join("")
+    end
+
+    /#
+    @summary Returns the concatenated text of all descendant `#text` nodes (deep).
+    @return string : Full recursive text content.
+    #/
+    fn text_content()
+      @_tc_parts = []
+      for tc_child in @children do
+        if tc_child.tag == "#text"
+          @_tc_parts.push(tc_child.content)
+        else
+          tc_sub = tc_child.text_content()
+          @_tc_parts.push(tc_sub)
+        end
+      end
+      @_tc_parts.join("")
+    end
+
+    /#
+    @summary Serializes the node back to an XML string.
+    @param integer indent : The current indentation level (default `0`).
+    @return string        : The XML string representation.
+    #/
+    fn serialize(indent = 0)
+      @_s_pad = "  " * indent
+
+      if @tag == "#text"
+        return xn_escape(@content)
+      end
+
+      if @tag == "#comment"
+        return "${@_s_pad}<!--${@content}-->"
+      end
+
+      if @tag == "#cdata"
+        return "${@_s_pad}<![CDATA[${@content}]]>"
+      end
+
+      if @tag == "#pi"
+        xn_pi_name = @attrs.get("name", "")
+        xn_pi_body = @content.empty() ? "" : " ${@content}"
+        return "${@_s_pad}<?${xn_pi_name}${xn_pi_body}?>"
+      end
+
+      @_s_attr_parts = []
+      for xn_k, xn_v in @attrs do
+        @_s_attr_parts.push("${xn_k}=\"${xn_escape_attr(xn_v)}\"")
+      end
+      @_s_attr_str = @_s_attr_parts.empty() ? "" : " " + @_s_attr_parts.join(" ")
+
+      if @children.empty()
+        return "${@_s_pad}<${@tag}${@_s_attr_str}/>"
+      end
+
+      xn_only_text = @children.all(with (c) do c.tag == "#text" end)
+
+      if xn_only_text
+        xn_inline = @children.map(with (c) do c.content end).join("")
+        return "${@_s_pad}<${@tag}${@_s_attr_str}>${xn_inline}</${@tag}>"
+      end
+
+      @_s_head = "${@_s_pad}<${@tag}${@_s_attr_str}>"
+      @_s_tail = "${@_s_pad}</${@tag}>"
+
+      xn_child_strs = @children.map(with (c) do c.serialize(indent + 1) end)
+
+      xn_h = @_s_head
+      xn_t = @_s_tail
+      xn_h + "\n" + xn_child_strs.join("\n") + "\n" + xn_t
+    end
+
+    fn to_string()
+      serialize(0)
+    end
+
+    private fn xn_escape(s)
+      xn_r = s.replace("&", "&amp;")
+      xn_r = xn_r.replace("<", "&lt;")
+      xn_r.replace(">", "&gt;")
+    end
+
+    private fn xn_escape_attr(s)
+      xn_ra = xn_escape(s)
+      xn_ra.replace('"', "&quot;")
+    end
+  end
+
+  /#
+  @summary Internal iterative XML parser using an explicit element stack.
+  #/
+  struct XmlParser
+    fn new(input)
+      @input    = input
+      @pos      = 0
+      @len      = input.size()
+      @tag_stk  = []
+      @attr_stk = []
+      @kids_stk = []
+    end
+
+    /#
+    @summary Parses the input and returns the document root element.
+    @return XmlNode|null : The document root, or null if no element was found.
+    #/
+    fn parse()
+      @tag_stk  = [""]
+      @attr_stk = [{}]
+      @kids_stk = [[]]
+
+      while !xp_at_end() do
+        if xp_current() == "<"
+          if xp_peek() == "/"
+            xp_close_element()
+          elsif xp_peek() == "?"
+            xp_pi_node = xp_parse_pi()
+            xp_par_ch = @kids_stk.pop()
+            xp_par_ch.push(xp_pi_node)
+            @kids_stk.push(xp_par_ch)
+          elsif xp_peek() == "!" && xp_peek(2) == "-" && xp_peek(3) == "-"
+            xp_cmt_node = xp_parse_comment()
+            xp_par_ch = @kids_stk.pop()
+            xp_par_ch.push(xp_cmt_node)
+            @kids_stk.push(xp_par_ch)
+          elsif xp_is_cdata_start()
+            xp_cdt_node = xp_parse_cdata()
+            xp_par_ch = @kids_stk.pop()
+            xp_par_ch.push(xp_cdt_node)
+            @kids_stk.push(xp_par_ch)
+          elsif xp_peek() == "!"
+            xp_skip_doctype()
+          else
+            xp_open_element()
+          end
+        else
+          xp_raw = xp_parse_text()
+          if !xp_raw.trim().empty()
+            xp_txt_node = XmlNode.new("#text", {}, [], xp_raw)
+            xp_par_ch = @kids_stk.pop()
+            xp_par_ch.push(xp_txt_node)
+            @kids_stk.push(xp_par_ch)
+          end
+        end
+      end
+
+      xp_root_ch = @kids_stk[0]
+      for xp_kid in xp_root_ch do
+        if xp_kid.tag != "#text" && xp_kid.tag != "#comment" && xp_kid.tag != "#pi"
+          return xp_kid
+        end
+      end
+      null
+    end
+
+    private fn xp_current()
+      return "" when @pos >= @len
+      @input[@pos]
+    end
+
+    private fn xp_peek(offset = 1)
+      xp_p = @pos + offset
+      return "" when xp_p >= @len
+      @input[xp_p]
+    end
+
+    private fn xp_at_end()
+      (@pos >= @len)
+    end
+
+    private fn xp_is_ws(c)
+      c == " " || c == "\t" || c == "\n" || c == "\r"
+    end
+
+    private fn xp_skip_ws()
+      while !xp_at_end() && xp_is_ws(xp_current()) do
+        @pos += 1
+      end
+    end
+
+    private fn xp_is_name_char(c)
+      (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9") || c == "_" || c == "-" || c == "." || c == ":"
+    end
+
+    private fn xp_read_name()
+      xp_ns = @pos
+      while !xp_at_end() && xp_is_name_char(xp_current()) do
+        @pos += 1
+      end
+      @input[xp_ns:@pos]
+    end
+
+    private fn xp_read_attr_value()
+      xp_q = xp_current()
+
+      if xp_q != '"' && xp_q != "'"
+        xp_vs = @pos
+        while !xp_at_end() && !xp_is_ws(xp_current()) && xp_current() != ">" do
+          @pos += 1
+        end
+        return xp_unescape(@input[xp_vs:@pos])
+      end
+
+      @pos += 1
+      xp_vs = @pos
+
+      while !xp_at_end() && xp_current() != xp_q do
+        @pos += 1
+      end
+
+      xp_val = @input[xp_vs:@pos]
+      @pos += 1
+      xp_unescape(xp_val)
+    end
+
+    private fn xp_parse_attrs()
+      xp_pa = {}
+      xp_skip_ws()
+
+      while !xp_at_end() && xp_current() != ">" && xp_current() != "/" do
+        xp_an = xp_read_name()
+        if xp_an.empty()
+          break
+        end
+
+        xp_skip_ws()
+
+        if xp_current() == "="
+          @pos += 1
+          xp_skip_ws()
+          xp_pa[xp_an] = xp_read_attr_value()
+        else
+          xp_pa[xp_an] = ""
+        end
+
+        xp_skip_ws()
+      end
+
+      xp_pa
+    end
+
+    private fn xp_unescape(s)
+      xp_u = s.replace("&amp;", "&")
+      xp_u = xp_u.replace("&lt;", "<")
+      xp_u = xp_u.replace("&gt;", ">")
+      xp_u = xp_u.replace("&quot;", '"')
+      xp_u.replace("&apos;", "'")
+    end
+
+    private fn xp_parse_text()
+      xp_ts = @pos
+      while !xp_at_end() && xp_current() != "<" do
+        @pos += 1
+      end
+      xp_unescape(@input[xp_ts:@pos])
+    end
+
+    private fn xp_parse_comment()
+      @pos += 4
+      xp_cs = @pos
+
+      while !xp_at_end() do
+        if xp_current() == "-" && xp_peek() == "-" && xp_peek(2) == ">"
+          xp_cc = @input[xp_cs:@pos]
+          @pos += 3
+          return XmlNode.new("#comment", {}, [], xp_cc)
+        end
+        @pos += 1
+      end
+
+      XmlNode.new("#comment", {}, [], @input[xp_cs:])
+    end
+
+    private fn xp_is_cdata_start()
+      xp_peek() == "!" && xp_peek(2) == "[" && xp_peek(3) == "C" && xp_peek(4) == "D" && xp_peek(5) == "A" && xp_peek(6) == "T" && xp_peek(7) == "A" && xp_peek(8) == "["
+    end
+
+    private fn xp_parse_cdata()
+      @pos += 9
+      xp_cds = @pos
+
+      while !xp_at_end() do
+        if xp_current() == "]" && xp_peek() == "]" && xp_peek(2) == ">"
+          xp_cdc = @input[xp_cds:@pos]
+          @pos += 3
+          return XmlNode.new("#cdata", {}, [], xp_cdc)
+        end
+        @pos += 1
+      end
+
+      XmlNode.new("#cdata", {}, [], @input[xp_cds:])
+    end
+
+    private fn xp_parse_pi()
+      @pos += 2
+      xp_pn = xp_read_name()
+      xp_skip_ws()
+      xp_ps = @pos
+
+      while !xp_at_end() do
+        if xp_current() == "?" && xp_peek() == ">"
+          xp_pc = @input[xp_ps:@pos]
+          @pos += 2
+          return XmlNode.new("#pi", { "name": xp_pn }, [], xp_pc.trim())
+        end
+        @pos += 1
+      end
+
+      XmlNode.new("#pi", { "name": xp_pn }, [], @input[xp_ps:].trim())
+    end
+
+    private fn xp_skip_doctype()
+      xp_dd = 0
+      while !xp_at_end() do
+        xp_dc = xp_current()
+        @pos += 1
+        if xp_dc == "["
+          xp_dd += 1
+        elsif xp_dc == "]"
+          xp_dd -= 1
+        elsif xp_dc == ">" && xp_dd == 0
+          break
+        end
+      end
+    end
+
+    private fn xp_open_element()
+      @pos += 1
+      xp_oe_tag = xp_read_name()
+      xp_skip_ws()
+      xp_oe_attrs = xp_parse_attrs()
+      xp_skip_ws()
+
+      if xp_current() == "/"
+        @pos += 2
+        xp_sc_node = XmlNode.new(xp_oe_tag, xp_oe_attrs, [], "")
+        xp_oe_ch = @kids_stk.pop()
+        xp_oe_ch.push(xp_sc_node)
+        @kids_stk.push(xp_oe_ch)
+      else
+        @pos += 1
+        @tag_stk.push(xp_oe_tag)
+        @attr_stk.push(xp_oe_attrs)
+        @kids_stk.push([])
+      end
+    end
+
+    private fn xp_close_element()
+      @pos += 2
+      xp_read_name()
+      xp_skip_ws()
+      @pos += 1
+
+      xp_ce_tag   = @tag_stk.pop()
+      xp_ce_attrs = @attr_stk.pop()
+      xp_ce_kids  = @kids_stk.pop()
+      xp_ce_node  = XmlNode.new(xp_ce_tag, xp_ce_attrs, xp_ce_kids, "")
+
+      xp_ce_par = @kids_stk.pop()
+      xp_ce_par.push(xp_ce_node)
+      @kids_stk.push(xp_ce_par)
+    end
+  end
+
+  /#
+  @summary Parses an XML string and returns the root element.
+  @param string input : The XML-formatted string to parse.
+  @return XmlNode     : The document root element.
+  #/
+  fn parse(input)
+    XmlParser.new(input).parse()
+  end
+
+  /#
+  @summary Parses an XML file and returns the root element.
+  @param string file_path : The path to the XML file.
+  @return XmlNode         : The document root element.
+  @throws string          : If the file does not exist.
+  #/
+  fn parse_file(file_path)
+    throw "File does not exist: ${file_path}" when !fio::isfile(file_path)
+    xml::parse(fio::read(file_path))
+  end
+end
+
+export "xml"

@@ -1,0 +1,83 @@
+/#
+A demonstration of the xml stdlib package.
+#/
+
+require "xml"
+
+doc = xml::parse('
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A simple bookstore catalog -->
+<bookstore country="US">
+  <book id="b1" genre="fiction">
+    <title>The Great Gatsby</title>
+    <author>F. Scott Fitzgerald</author>
+    <price>12.99</price>
+    <tags>
+      <tag>classic</tag>
+      <tag>american</tag>
+      <tag>novel</tag>
+    </tags>
+  </book>
+  <book id="b2" genre="science">
+    <title>A Brief History of Time</title>
+    <author>Stephen Hawking</author>
+    <price>9.99</price>
+    <tags>
+      <tag>physics</tag>
+      <tag>cosmology</tag>
+    </tags>
+  </book>
+  <book id="b3" genre="fiction">
+    <title lang="en">1984</title>
+    <author>George Orwell</author>
+    <price>8.50</price>
+    <description><![CDATA[A dystopian novel about a totalitarian society & surveillance state.]]></description>
+    <tags>
+      <tag>dystopian</tag>
+      <tag>classic</tag>
+    </tags>
+  </book>
+</bookstore>
+')
+
+println "=== Root element ==="
+println "tag:     ${doc.tag}"
+println "country: ${doc.get_attr('country')}"
+println ""
+
+println "=== All books ==="
+for book in doc.find_all("book") do
+  title  = book.find("title").text()
+  author = book.find("author").text()
+  price  = book.find("price").text()
+  id     = book.get_attr("id")
+  genre  = book.get_attr("genre")
+  println "  [${id}] ${title} by ${author}  ($" + price + ", ${genre})"
+end
+println ""
+
+println "=== Fiction books ==="
+for book in doc.find_all("book") do
+  if book.get_attr("genre") == "fiction"
+    println "  " + book.find("title").text()
+  end
+end
+println ""
+
+println "=== All tags (deep search) ==="
+tags = doc.find_all_deep("tag")
+tag_names = tags.map(with (t) do t.text() end)
+println "  " + tag_names.join(", ")
+println ""
+
+println "=== CDATA content ==="
+desc = doc.find_all_deep("description")
+if !desc.empty()
+  cdata_node = desc[0].children[0]
+  println "  type:    ${cdata_node.tag}"
+  println "  content: ${cdata_node.content}"
+end
+println ""
+
+println "=== Serialize back to XML ==="
+println doc.serialize()
