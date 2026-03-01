@@ -11,7 +11,7 @@ package hashable
     @return hashmap : Returns a hashmap containing instance variables as key-value pairs.
     #/
     fn to_hash(): hashmap
-      (@).keys().reduce({}, do (acc, k) => acc[k] = (@).get(k))
+      @.keys().reduce({}, do (acc, k) => acc[k] = (@).get(k))
     end
   end
 end

@@ -2804,12 +2804,16 @@ public class Interpreter
         // if the struct does not have the method, check the base struct
         if (!methods.ContainsKey(methodName))
         {
-            // if there is no base, throw if not a constructor
-            if (string.IsNullOrEmpty(kstruct.BaseStruct) && !isCtor)
+            if (string.IsNullOrEmpty(kstruct.BaseStruct))
             {
-                throw new UnimplementedMethodError(node.Token, struc.Identifier, methodName);
-            }
+                // No base struct: non-constructors are undefined; constructors use default.
+                if (!isCtor)
+                {
+                    throw new UnimplementedMethodError(node.Token, struc.Identifier, methodName);
+                }
 
+                return ExecuteStructMethod(methods, methodName, frame, node, struc);
+            }
 
             var baseStruct = Context.Structs[kstruct.BaseStruct];
             var baseStructMethods = baseStruct.Methods;

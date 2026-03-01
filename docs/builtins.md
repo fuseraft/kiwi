@@ -85,7 +85,6 @@ In Kiwi, builtins are accessed using dot-notation and can be used to query or ma
   - [`pretty()`](#pretty)
   - [`serialize(value)`](#serializevalue)
   - [`to_float()`](#to_float)
-  - [`to_hashmap()`](#to_hashmap)
   - [`to_integer()`](#to_integer)
   - [`to_string()`](#to_string)
   - [`truthy()`](#truthy)
@@ -833,32 +832,6 @@ Converts a numeric value to a double.
 pi = "3.14159".to_float()
 tau = pi * 2
 println(tau) # 6.28318
-```
-
-### `to_hashmap()`
-
-Converts an object instance or a JSON string into a hashmap.
-
-```kiwi
-struct SerializeMe
-  fn new()
-    @name = "Kiwi"
-  end
-end
-
-inst = SerializeMe.new()
-
-println(inst.to_hashmap()) # prints: {"name": "Kiwi"}
-```
-
-```kiwi
-json = "{
-  \"boolean\": true, 
-  \"float\": 3.14159, 
-  \"integer\": 100, 
-  \"string\": \"Kiwi\"
-}"
-println(json.to_hashmap()) # prints: {"boolean": true, "float": 3.14159, "integer": 100, "string": "Kiwi"}
 ```
 
 ### `to_integer()`
