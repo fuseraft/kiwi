@@ -5,6 +5,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 ## Table of Contents
 - [Variables](#variables)
   - [`var`](#var)
+  - [`const`](#const)
 - [Control Structures](#control-structures)
   - [`break`](#break)
   - [`case`](#case)
@@ -18,6 +19,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`in`](#in)
   - [`next`](#next)
   - [`repeat`](#repeat)
+  - [`to`](#to)
   - [`while`](#while)
   - [`when`](#when)
 - [Error Handling](#error-handling)
@@ -38,24 +40,32 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`struct`](#struct)
   - [`new`](#new)
   - [`override`](#override)
-  - [`this`](#this)
+  - [`@` (self)](#-self)
 - [Packages](#packages)
   - [`as`](#as)
   - [`export`](#export)
   - [`import`](#import)
+  - [`include`](#include)
   - [`package`](#package)
+  - [`require`](#require)
+- [Events](#events)
+  - [`emit`](#emit)
+  - [`off`](#off)
+  - [`on`](#on)
+  - [`once`](#once)
 - [Console I/O](#console-io)
   - [`eprint`](#eprint)
   - [`eprintln`](#eprintln)
   - [`input`](#input)
   - [`print`](#print)
   - [`println`](#println)
+  - [`printxy`](#printxy)
 - [Miscellaneous](#miscellaneous)
   - [`delete`](#delete)
+  - [`eval`](#eval)
   - [`global`](#global)
   - [`go`](#go)
   - [`null`](#null)
-  - [`parse`](#parse)
   - [`...`](#-no-op)
   - [`true`](#true)
   - [`false`](#false)
@@ -66,6 +76,16 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
 The `var` keyword is used to declare a variable.
 
 See [Variables](variables.md) and [`var`](variables.md#var-keyword).
+
+### `const`
+The `const` keyword declares an immutable constant. Constant names must be all uppercase with underscores.
+
+```kiwi
+const MAX_RETRIES = 3
+const API_URL = "https://example.com"
+
+println(MAX_RETRIES)  # 3
+```
 
 ## Control Structures
 
@@ -127,6 +147,16 @@ The `repeat` keyword is used to define a repeat-loop.
 
 See [Loops](loops.md).
 
+### `to`
+The `to` keyword is used in range expressions to define an inclusive range of integers.
+
+```kiwi
+println [1 to 5]    # [1, 2, 3, 4, 5]
+println [10 to 7]   # [10, 9, 8, 7]
+```
+
+See [Ranges](ranges.md).
+
 ### `while`
 The `while` keyword is used to define a while-loop.
 
@@ -162,12 +192,10 @@ See [Error Handling](error_handling.md).
 ## Functions and Methods
 
 ### `def`
-The `def` keyword is used to define a method.
-
-See [Functions and Methods](functions.md).
+The `def` keyword is an alias for [`fn`](#fn).
 
 ### `fn`
-The `fn` keyword is used to define a function.
+The `fn` keyword is used to define a function or method.
 
 See [Functions and Methods](functions.md).
 
@@ -234,9 +262,7 @@ See [Generators](generators.md).
 ## Structs
 
 ### `abstract`
-The `abstract` keyword is used to declare a [struct](#struct) as being abstract, meaning it cannot be instantiated directly, but is intended to be used as a base struct.
-
-See [Abstract Structs](abstract_structs.md).
+Reserved for future use.
 
 ### `struct`
 The `struct` keyword is used to define a struct.
@@ -249,12 +275,26 @@ The `new` keyword is used to instantiate a struct.
 See [Structs](structs.md).
 
 ### `override`
-The `override` keyword is used to provide an implementation to an abstract method.
+Reserved for future use.
 
-See [Abstract Structs](abstract_structs.md).
+### `@` (self)
+The `@` symbol is used inside a struct method to access or assign instance variables.
 
-### `this`
-The `this` keyword is used for struct member-access.
+```kiwi
+struct Point
+  fn new(x, y)
+    @x = x
+    @y = y
+  end
+
+  fn to_string(): string
+    "(${@x}, ${@y})"
+  end
+end
+
+p = Point.new(3, 4)
+println(p.to_string())  # (3, 4)
+```
 
 See [Structs](structs.md).
 
@@ -275,10 +315,64 @@ The `import` keyword is used to import a script or a package.
 
 See [Packages](packages.md).
 
+### `include`
+The `include` keyword executes another Kiwi file inline in the current scope, making its definitions immediately available.
+
+```kiwi
+include "lib/helpers"
+
+# functions and variables from helpers.kiwi are now in scope
+```
+
 ### `package`
 The `package` keyword is used to define a package.
 
 See [Packages](packages.md).
+
+### `require`
+The `require` keyword loads a package by name if it has not already been imported. Unlike `include`, it looks up the package by name rather than file path.
+
+```kiwi
+require "xml"
+
+doc = xml::parse("<root><item>hello</item></root>")
+```
+
+## Events
+
+### `emit`
+The `emit` keyword fires a named event, optionally passing arguments to registered handlers.
+
+```kiwi
+emit "user.login", { name: "Scotty" }
+```
+
+### `off`
+The `off` keyword removes all handlers registered for a named event.
+
+```kiwi
+off "user.login"
+```
+
+### `on`
+The `on` keyword registers a handler that runs every time the named event is emitted.
+
+```kiwi
+on "user.login" with (user) do
+  println("Welcome, ${user.name}!")
+end
+```
+
+### `once`
+The `once` keyword registers a handler that runs only the first time the named event is emitted.
+
+```kiwi
+once "app.start" do
+  println("Application started.")
+end
+```
+
+See [Events](events.md).
 
 ## Console I/O
 
@@ -305,6 +399,13 @@ The `println` keyword is used to print output to the standard output stream. The
 
 See [Console I/O](console_io.md).
 
+### `printxy`
+The `printxy` keyword prints output at a specific terminal cursor position.
+
+```kiwi
+printxy(10, 5, "Hello!")  # prints "Hello!" at column 10, row 5
+```
+
 ## Miscellaneous
 
 ### `delete`
@@ -313,6 +414,16 @@ The `delete` keyword is used to remove elements from collections.
 It can also be used to delete objects.
 
 See [Hashmaps](hashmaps.md) and [Lists](lists.md).
+
+### `eval`
+The `eval` keyword parses and executes a string as Kiwi code.
+
+```kiwi
+eval 'println("hello, world!")'  # prints: hello, world!
+
+code = "1 + 2"
+println(eval code)  # 3
+```
 
 ### `global`
 The `global` variable is a hashmap used to share data between scripts.
@@ -324,13 +435,6 @@ The `go` keyword is used in the Kiwi REPL to execute statements.
 The `null` keyword is a None value.
 
 See [Types](types.md).
-
-### `parse`
-The `parse` keyword is used to parse a string expression as Kiwi. 
-
-```kiwi
-parse('println("hello, world!")') // prints: hello, world!
-```
 
 ### `...` (no-op)
 The `...` keyword is used as a placeholder/no-op.
