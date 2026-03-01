@@ -2,15 +2,7 @@
 
 The `tester` package contains functionality for registering and running tests with assertions.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`initialize()`](#initialize)
-  - [`assert(condition, msg)`](#assertcondition-msg--assertion-failed)
-  - [`assert_eq(actual, expected, msg)`](#assert_eqactual-expected-msg--)
-  - [`register_test(name, t)`](#register_testname-t)
-  - [`run_test(name, test, results)`](#run_testname-test-results--)
-  - [`run_tests()`](#run_tests)
+---
 
 ## Package Functions
 
@@ -29,6 +21,7 @@ _None_
 Checks if a condition is true. If the condition is `false`, an error is thrown with the specified message.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `boolean` | `condition` | The condition to evaluate. |
@@ -43,6 +36,7 @@ _None_
 Checks if `actual` equals `expected`. If they are not equal, an error is thrown with an informative message.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `any` | `actual` | The actual value. |
@@ -58,6 +52,7 @@ _None_
 Registers a test function to the global test list.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `name` | The name of the test. |
@@ -72,6 +67,7 @@ _None_
 Runs a specific test, measures its duration, and adds the result to the `results` list.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `name` | The name of the test. |
@@ -90,6 +86,7 @@ Executes all registered tests and returns a list of test results, including the 
 _None_
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `list` | A list of test result objects, each containing the `name`, `result` (boolean), and `duration` (milliseconds). |

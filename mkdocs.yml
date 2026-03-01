@@ -1,0 +1,133 @@
+site_name: Kiwi
+site_description: A high-level, dynamically-typed scripting language designed to make everyday programming tasks feel natural and expressive.
+site_url: https://fuseraft.github.io/kiwi
+repo_url: https://github.com/fuseraft/kiwi
+repo_name: fuseraft/kiwi
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: green
+      accent: light green
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: green
+      accent: light green
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - tables
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/fuseraft/kiwi
+
+nav:
+  - Home: README.md
+  - Getting Started:
+    - Introduction: introduction.md
+    - CLI: cli.md
+    - REPL: repl.md
+    - Running Scripts: runners.md
+    - Debugger (kdb): kdb.md
+  - Language Reference:
+    - Variables: variables.md
+    - Types: types.md
+    - Type Hints: type_hints.md
+    - Operators: operators.md
+    - Keywords: keywords.md
+    - Comments: comments.md
+    - Docstrings: docstrings.md
+  - Functions:
+    - Functions: functions.md
+    - Lambdas: lambdas.md
+  - Control Flow:
+    - Control Structures: control_structures.md
+    - Loops: loops.md
+    - Generators: generators.md
+    - Error Handling: error_handling.md
+  - Collections:
+    - Lists: lists.md
+    - Ranges: ranges.md
+    - Hashmaps: hashmaps.md
+    - Strings: strings.md
+    - Dates: dates.md
+  - Object-Oriented:
+    - Structs: structs.md
+    - Abstract Structs: abstract_structs.md
+  - Modules & I/O:
+    - Packages: packages.md
+    - Events: events.md
+    - Builtins: builtins.md
+    - Console I/O: console_io.md
+  - Standard Library:
+    - Overview: lib/README.md
+    - bench: lib/bench.md
+    - collections: lib/collections.md
+    - compress: lib/compress.md
+    - console: lib/console.md
+    - crypto: lib/crypto.md
+    - csv: lib/csv.md
+    - env: lib/env.md
+    - fio: lib/fio.md
+    - http: lib/http.md
+    - iter: lib/iter.md
+    - math: lib/math.md
+    - path: lib/path.md
+    - reflector: lib/reflector.md
+    - socket: lib/socket.md
+    - stdin: lib/stdin.md
+    - string: lib/string.md
+    - sys: lib/sys.md
+    - task: lib/task.md
+    - tester: lib/tester.md
+    - time: lib/time.md

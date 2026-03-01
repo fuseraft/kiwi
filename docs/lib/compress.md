@@ -4,19 +4,7 @@ The `compress` package provides a clean, idiomatic interface to Kiwi's built-in 
 
 It wraps the low-level builtins (`__compress_*__`, `__decompress_*__`, `__zip_*__`) with shorter/human-friendly names and sensible defaults, making compression and decompression tasks feel natural in Kiwi.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`deflate(data)`](#deflatedata)
-  - [`inflate(data)`](#inflatedata)
-  - [`gzip(data)`](#gzipdata)
-  - [`gunzip(data)`](#gunzipdata)
-  - [`brotli(data)`](#brotlidata)
-  - [`unbrotli(data)`](#unbrotlidata)
-  - [`zstd(data, level=3)`](#zstddata-level3)
-  - [`unzstd(data)`](#unzstddata)
-  - [`zip_create(entries, level=1)`](#zip_createentries-level1)
-  - [`zip_extract(data)`](#zip_extractdata)
+---
 
 ## Package Functions
 
@@ -27,12 +15,14 @@ They return `bytes` containing the compressed / decompressed / archived data.
 ### `deflate(data)`
 Compresses data using the raw **DEFLATE** algorithm (zlib without header/trailer).
 
-**Parameters**  
+**Parameters**
+
 | Type          | Name   | Description                          | Default |
 |---------------|--------|--------------------------------------|---------|
 | `string` or `bytes` | `data` | Data to compress                     | —       |
 
 **Returns**  
+
 | Type   | Description                     |
 |--------|---------------------------------|
 | `bytes` | Compressed data (DEFLATE format) |
@@ -46,6 +36,7 @@ Decompresses raw **DEFLATE** data.
 Same as `deflate`.
 
 **Returns**  
+
 | Type   | Description                       |
 |--------|-----------------------------------|
 | `bytes` | Decompressed original data        |
@@ -59,6 +50,7 @@ Compresses data using **GZip** (DEFLATE + gzip header + CRC).
 Same as `deflate`.
 
 **Returns**  
+
 | Type   | Description                     |
 |--------|---------------------------------|
 | `bytes` | GZip-compressed data            |
@@ -72,6 +64,7 @@ Decompresses **GZip** data.
 Same as `deflate`.
 
 **Returns**  
+
 | Type   | Description                       |
 |--------|-----------------------------------|
 | `bytes` | Original decompressed data        |
@@ -85,6 +78,7 @@ Compresses data using **Brotli**.
 Same as `deflate`.
 
 **Returns**  
+
 | Type   | Description                       |
 |--------|-----------------------------------|
 | `bytes` | Brotli-compressed data            |
@@ -98,6 +92,7 @@ Decompresses **Brotli** data.
 Same as `deflate`.
 
 **Returns**  
+
 | Type   | Description                       |
 |--------|-----------------------------------|
 | `bytes` | Original decompressed data        |
@@ -107,13 +102,15 @@ Same as `deflate`.
 ### `zstd(data, level=3)`
 Compresses data using **Zstandard** (modern, very fast + good ratio).
 
-**Parameters**  
+**Parameters**
+
 | Type          | Name     | Description                                      | Default |
 |---------------|----------|--------------------------------------------------|---------|
 | `string` or `bytes` | `data`   | Data to compress                                 | —       |
 | `integer`     | `level`  | Compression level (1–22; higher = better ratio, slower) | `3`     |
 
 **Returns**  
+
 | Type   | Description                       |
 |--------|-----------------------------------|
 | `bytes` | Zstandard-compressed data         |
@@ -129,6 +126,7 @@ Decompresses **Zstandard** data.
 Same as `deflate` (no level needed for decompression).
 
 **Returns**  
+
 | Type   | Description                       |
 |--------|-----------------------------------|
 | `bytes` | Original decompressed data        |
@@ -138,7 +136,8 @@ Same as `deflate` (no level needed for decompression).
 ### `zip_create(entries, level=1)`
 Creates a **ZIP** archive from a list of file entries.
 
-**Parameters**  
+**Parameters**
+
 | Type                | Name      | Description                                                                 | Default       |
 |---------------------|-----------|-----------------------------------------------------------------------------|---------------|
 | `list<hashmap>`     | `entries` | List of maps: each must have keys `"name"` (string) and `"content"` (string/bytes) | —             |
@@ -150,6 +149,7 @@ Creates a **ZIP** archive from a list of file entries.
 ```
 
 **Returns**  
+
 | Type   | Description                     |
 |--------|---------------------------------|
 | `bytes` | ZIP archive data                |
@@ -162,12 +162,14 @@ If any entry is missing `"name"` or `"content"`, or if types are invalid.
 ### `zip_extract(data)`
 Extracts all files from a **ZIP** archive.
 
-**Parameters**  
+**Parameters**
+
 | Type          | Name   | Description                     | Default |
 |---------------|--------|---------------------------------|---------|
 | `bytes`       | `data` | ZIP archive bytes               | —       |
 
 **Returns**  
+
 | Type              | Description                                      |
 |-------------------|--------------------------------------------------|
 | `list<hashmap>`   | List of `{name: string, content: bytes}` entries |

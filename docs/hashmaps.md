@@ -5,18 +5,6 @@ Keys must be unique and are typically strings (or other hashable types). Values 
 
 Hashmaps are the natural way to represent structured data and are directly serializable to/from JSON.
 
-## Table of Contents
-
-- [Quick Reference – Common Operations](#quick-reference--common-operations)
-- [Creating Hashmaps](#creating-hashmaps)
-- [Accessing Values](#accessing-values)
-- [Adding / Updating Entries](#adding--updating-entries)
-- [Removing Entries](#removing-entries)
-- [Checking for Keys](#checking-for-keys)
-- [Iterating Hashmaps](#iterating-hashmaps)
-- [Full Example – Simple Config Manager](#full-example--simple-config-manager)
-- [Best Practices & Tips](#best-practices--tips)
-
 ## Quick Reference – Common Operations
 
 | Operation                  | Syntax / Method                          | Returns          | Mutates? |

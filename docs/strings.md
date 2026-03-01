@@ -4,12 +4,7 @@ The `string` type in Kiwi is used to represent text data.
 
 Strings in Kiwi are wrapped with either double-quotes or single-quotes.
 
-# Table of Contents
-- [Builtins](#builtins)
-- [Defining a `string`](#defining-a-string)
-- [Defining a Raw `string`](#defining-raw-strings)
-- [String Interpolation](#string-interpolation)
-- [String Multiplication](#string-multiplication)
+---
 
 ### Builtins
 

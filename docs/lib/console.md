@@ -4,34 +4,15 @@ The `console` package provides idiomatic access to terminal/console manipulation
 
 It wraps low-level console builtins with friendly names and sensible defaults, making interactive CLI scripts and tools easier to write in Kiwi.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - Color & Appearance
-    - [`fg(color)`](#fgcolor)
-    - [`bg(color)`](#bgcolor)
-    - [`reset()`](#reset)
-  - Screen Control
-    - [`clear()`](#clear)
-    - [`cursor_visible(is_visible)`](#cursor_visibleis_visible)
-    - [`size()`](#size)
-    - [`title(new_title)`](#titlenew_title)
-  - Input
-    - [`read(msg = "")` / `readline(msg = "")`](#readmsg----readlinemsg--)
-    - [`read_secret(msg = "", mask = "")`](#read_secretmsg---mask--)
-    - [`readkey(intercept = true)` / `read_key(intercept = true)`](#readkeyintercept--true--read_keyintercept--true)
-  - Output Helpers
-    - [`write(msg = "")`](#writemsg--)
-    - [`writeln(msg = "")` / `writeline(msg = "")`](#writelnmsg----writelinemsg--)
-- [Color Names](#color-names)
-- [Usage Examples](#usage-examples)
+---
 
 ## Package Functions
 
 ### `fg(color)`
 Sets the **foreground** (text) color.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name    | Description                                      | Default |
 |----------|---------|--------------------------------------------------|---------|
 | `string` | `color` | Case-insensitive color name (see [Color Names](#color-names)) | —       |
@@ -69,7 +50,8 @@ Clears the entire console screen.
 ### `cursor_visible(is_visible)`
 Shows or hides the text cursor.
 
-**Parameters**  
+**Parameters**
+
 | Type      | Name         | Description                 | Default |
 |-----------|--------------|-----------------------------|---------|
 | `boolean` | `is_visible` | `true` = show, `false` = hide | —       |
@@ -96,7 +78,8 @@ Returns the current console window dimensions.
 ### `title(new_title)`
 Sets the title of the terminal window (supported on Windows and many Unix terminals).
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name        | Description          | Default |
 |----------|-------------|----------------------|---------|
 | `string` | `new_title` | Window title text    | —       |
@@ -108,7 +91,8 @@ Sets the title of the terminal window (supported on Windows and many Unix termin
 ### `read(msg = "")` / `readline(msg = "")`
 Prints an optional prompt and reads a line of input (echoed normally).
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name   | Description               | Default |
 |----------|--------|---------------------------|---------|
 | `string` | `msg`  | Prompt to display         | `""`    |
@@ -122,7 +106,8 @@ Prints an optional prompt and reads a line of input (echoed normally).
 ### `read_secret(msg = "", mask = "")`
 Reads a line of input without echoing characters (ideal for passwords).
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name   | Description                                    | Default |
 |----------|--------|------------------------------------------------|---------|
 | `string` | `msg`  | Prompt to display                              | `""`    |
@@ -137,7 +122,8 @@ Reads a line of input without echoing characters (ideal for passwords).
 ### `readkey(intercept = true)` / `read_key(intercept = true)`
 Reads a single key press and returns detailed information.
 
-**Parameters**  
+**Parameters**
+
 | Type      | Name        | Description                                            | Default |
 |-----------|-------------|--------------------------------------------------------|---------|
 | `boolean` | `intercept` | `true` = key is not echoed/displayed                   | `true`  |
@@ -160,7 +146,8 @@ Reads a single key press and returns detailed information.
 ### `write(msg = "")`
 Writes text without adding a newline.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name   | Description     | Default |
 |----------|--------|-----------------|---------|
 | `string` | `msg`  | Text to output  | `""`    |

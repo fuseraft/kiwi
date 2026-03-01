@@ -2,17 +2,10 @@
 
 Kiwi provides a rich set of operators with modern syntax and predictable precedence.
 
-# Table of Contents
-- [Arithmetic Operators](#arithmetic-operators)
-- [Comparison Operators](#comparison-operators)
-- [Null-Coalescing Operator](#null-coalescing-operator)
-- [Logical Operators](#logical-operators)
-- [Bitwise Operators](#bitwise-operators)
-- [Assignment Operators](#assignment-operators)
-- [Logical Assignment Operators](#logical-assignment-operators)
-- [Bitwise Assignment Operators](#bitwise-assignment-operators)
+---
 
-### Arithmetic Operators
+## Arithmetic Operators
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Subtract | `-` | Binary | `a - b` |
@@ -22,7 +15,8 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 | Multiply | `*` | Binary  | `a * b` |
 | Exponent | `**` | Binary  | `a ** b` |
 
-### Comparison Operators
+## Comparison Operators
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Equal | `==` | Comparison | `a == b` |
@@ -32,19 +26,22 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 | Greater Than | `>` | Comparison | `a > b` |
 | Greater Than Or Equal | `>=` | Comparison | `a >= b` |
 
-### Null-Coalescing Operator
+## Null-Coalescing Operator
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Null-Coalesce | `??` | Binary | `a ?? b` |
 
-### Logical Operators
+## Logical Operators
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Logical OR | `\|\|`  | Binary | `a \|\| b` |
 | Logical AND | `&&` | Binary | `a && b` |
 | Logical NOT | `!` | Unary | `!a` |
 
-### Bitwise Operators
+## Bitwise Operators
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Bitwise OR | `\|`  | Binary | `a \| b` |
@@ -55,7 +52,8 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 | Bitwise Right Shift | `>>` | Binary | `a >> b` |
 | Logical (Unsigned) Right Shift | `>>>` | Binary | `a >>> b` |
 
-### Assignment Operators
+## Assignment Operators
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Assign | `=` | Assignment  | `a = 5` |
@@ -67,13 +65,15 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 | Multiply Assign | `*=` | Assignment | `a *= 5` |
 | Exponent Assign | `**=` | Assignment | `a **= 5` |
 
-### Logical Assignment Operators
+## Logical Assignment Operators
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Logical OR Assign | `\|\|=`  | Assignment | `a \|\|= b` |
 | Logical AND Assign | `&&=` | Assignment | `a &&= b` |
 
-### Bitwise Assignment Operators
+## Bitwise Assignment Operators
+
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
 | Bitwise OR Assignment | `\|=` | Assignment | `a \|= b` |

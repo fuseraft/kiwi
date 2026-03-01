@@ -3,38 +3,7 @@
 The `path` package provides a clean, object-oriented way to work with filesystem paths in Kiwi, inspired by Python's `pathlib`.  
 It defines a single main struct `Path` that wraps a path string and offers convenient methods for path manipulation, filesystem queries, and file/directory operations.
 
-## Table of Contents
-
-- [`Path` struct](#path-struct)
-  - [Constructor](#constructor)
-  - [Static Methods](#static-methods)
-    - [`cwd()`](#cwd)
-    - [`path_string(new_path)`](#path_stringnew_path)
-    - [`temp_dir()`](#temp_dir)
-    - [`temp_file()`](#temp_file)
-  - [Instance Methods](#instance-methods)
-    - [`to_string()`](#to_string)
-    - [`/(new_path)`](#new_path)
-    - [`abspath()`](#abspath)
-    - [`combine(new_path)`](#combinenew_path)
-    - [`contains(path_part)`](#containspath_part)
-    - [`copy(new_path)`](#copynew_path)
-    - [`exists()`](#exists)
-    - [`ext()`](#ext)
-    - [`find(path_part)`](#findpath_part)
-    - [`is_dir()`](#is_dir)
-    - [`is_file()`](#is_file)
-    - [`joinpath(path_parts)`](#joinpathpath_parts)
-    - [`name()`](#name)
-    - [`parent()`](#parent)
-    - [`parents()`](#parents)
-    - [`parts()`](#parts)
-    - [`remove()`](#remove)
-    - [`rmdir()`](#rmdir)
-    - [`root()`](#root)
-    - [`read()`](#read)
-    - [`readbytes()` / `read_bytes()`](#readbytes--read_bytes)
-    - [`readlines()` / `read_lines()`](#readlines--read_lines)
+---
 
 ## `Path` struct
 
@@ -44,7 +13,8 @@ Represents a filesystem path. Inherits from `Hashable`, so it has a `.to_hash()`
 
 Creates a new `Path` instance from a string.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name  | Description                      |
 |----------|-------|----------------------------------|
 | `string` | `path`| The filesystem path as a string  |
@@ -63,6 +33,7 @@ Returns a `Path` representing the current working directory.
 _None_
 
 **Returns**  
+
 | Type  | Description                              |
 |-------|------------------------------------------|
 | `Path`| Absolute path to the current directory   |
@@ -70,12 +41,14 @@ _None_
 #### `path_string(new_path)`
 Helper that converts any path-like value (string or `Path`) to a plain string.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name       | Description                          |
 |----------|------------|--------------------------------------|
 | `any`    | `new_path` | String or `Path` object              |
 
 **Returns**  
+
 | Type     | Description      |
 |----------|------------------|
 | `string` | Path as string   |
@@ -87,6 +60,7 @@ Helper that converts any path-like value (string or `Path`) to a plain string.
 Returns a `Path` pointing to the system temporary directory.
 
 **Returns**  
+
 | Type  | Description                  |
 |-------|------------------------------|
 | `Path`| Path to temporary directory  |
@@ -95,6 +69,7 @@ Returns a `Path` pointing to the system temporary directory.
 Creates a new temporary file (0 bytes) and returns its `Path`.
 
 **Returns**  
+
 | Type  | Description                  |
 |-------|------------------------------|
 | `Path`| Path to the new temp file    |
@@ -105,6 +80,7 @@ Creates a new temporary file (0 bytes) and returns its `Path`.
 Returns the path as a plain string (used when printing or interpolating).
 
 **Returns**  
+
 | Type     | Description      |
 |----------|------------------|
 | `string` | The path string  |
@@ -112,12 +88,14 @@ Returns the path as a plain string (used when printing or interpolating).
 #### `/(new_path)`
 Convenience operator for joining paths.
 
-**Parameters**  
+**Parameters**
+
 | Type  | Name       | Description                  |
 |-------|------------|------------------------------|
 | `any` | `new_path` | String or `Path` to append   |
 
 **Returns**  
+
 | Type  | Description                  |
 |-------|------------------------------|
 | `Path`| New combined path            |
@@ -132,6 +110,7 @@ conf = base / "nginx" / "nginx.conf"
 Returns the absolute version of the path as a string.
 
 **Returns**  
+
 | Type     | Description              |
 |----------|--------------------------|
 | `string` | Absolute path string     |
@@ -139,12 +118,14 @@ Returns the absolute version of the path as a string.
 #### `combine(new_path)`
 Joins this path with another path or path component.
 
-**Parameters**  
+**Parameters**
+
 | Type  | Name       | Description                  |
 |-------|------------|------------------------------|
 | `any` | `new_path` | String or `Path`             |
 
 **Returns**  
+
 | Type  | Description                  |
 |-------|------------------------------|
 | `Path`| Combined path                |
@@ -152,12 +133,14 @@ Joins this path with another path or path component.
 #### `contains(path_part)`
 Checks whether the given path component appears in this path's parts.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name        | Description           |
 |----------|-------------|-----------------------|
 | `string` | `path_part` | Part to search for    |
 
 **Returns**  
+
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `boolean` | `true` if the part is present        |
@@ -165,12 +148,14 @@ Checks whether the given path component appears in this path's parts.
 #### `copy(new_path)`
 Copies the file or directory (recursively) to the destination.
 
-**Parameters**  
+**Parameters**
+
 | Type  | Name       | Description                  |
 |-------|------------|------------------------------|
 | `any` | `new_path` | Destination (string or Path) |
 
 **Returns**  
+
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `boolean` | `true` if copy succeeded             |
@@ -184,6 +169,7 @@ Copies the file or directory (recursively) to the destination.
 Checks if the path exists on the filesystem.
 
 **Returns**  
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `boolean` | `true` if path exists        |
@@ -192,6 +178,7 @@ Checks if the path exists on the filesystem.
 Returns the file extension (including the dot) or empty string.
 
 **Returns**  
+
 | Type     | Description              |
 |----------|--------------------------|
 | `string` | Extension (e.g. ".txt")  |
@@ -199,12 +186,14 @@ Returns the file extension (including the dot) or empty string.
 #### `find(path_part)`
 Walks upward from this path until it finds a directory/file with the given name.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name        | Description           |
 |----------|-------------|-----------------------|
 | `string` | `path_part` | Name to search for    |
 
 **Returns**  
+
 | Type  | Description                              |
 |-------|------------------------------------------|
 | `Path`| Path where the part was found            |
@@ -213,6 +202,7 @@ Walks upward from this path until it finds a directory/file with the given name.
 Checks if the path points to a directory.
 
 **Returns**  
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `boolean` | `true` if it is a directory  |
@@ -221,6 +211,7 @@ Checks if the path points to a directory.
 Checks if the path points to a regular file.
 
 **Returns**  
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `boolean` | `true` if it is a file       |
@@ -228,12 +219,14 @@ Checks if the path points to a regular file.
 #### `joinpath(path_parts)`
 Joins multiple path components to the current path.
 
-**Parameters**  
+**Parameters**
+
 | Type  | Name         | Description                      |
 |-------|--------------|----------------------------------|
 | `list`| `path_parts` | List of strings or `Path`s       |
 
 **Returns**  
+
 | Type  | Description                  |
 |-------|------------------------------|
 | `Path`| Combined path                |
@@ -242,6 +235,7 @@ Joins multiple path components to the current path.
 Returns the final component of the path (filename or last directory).
 
 **Returns**  
+
 | Type     | Description              |
 |----------|--------------------------|
 | `string` | Last path component      |
@@ -250,6 +244,7 @@ Returns the final component of the path (filename or last directory).
 Returns the parent directory of this path.
 
 **Returns**  
+
 | Type  | Description                  |
 |-------|------------------------------|
 | `Path`| Parent path                  |
@@ -258,6 +253,7 @@ Returns the parent directory of this path.
 Returns a list of all ancestor directories, from closest to root.
 
 **Returns**  
+
 | Type  | Description                              |
 |-------|------------------------------------------|
 | `list`| List of `Path` objects (parent → root)   |
@@ -266,6 +262,7 @@ Returns a list of all ancestor directories, from closest to root.
 Splits the path into its components.
 
 **Returns**  
+
 | Type  | Description                      |
 |-------|----------------------------------|
 | `list`| List of path parts (strings)     |
@@ -274,6 +271,7 @@ Splits the path into its components.
 Deletes the file or **empty** directory.
 
 **Returns**  
+
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `boolean` | `true` if removal succeeded          |
@@ -285,6 +283,7 @@ Error if trying to remove non-empty directory (use `rmdir()` instead)
 Recursively deletes a directory and all its contents.
 
 **Returns**  
+
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `boolean` | `true` if removal succeeded          |
@@ -293,6 +292,7 @@ Recursively deletes a directory and all its contents.
 Returns the root directory of the filesystem this path belongs to.
 
 **Returns**  
+
 | Type  | Description          |
 |-------|----------------------|
 | `Path`| Root path (e.g. `/`) |
@@ -301,6 +301,7 @@ Returns the root directory of the filesystem this path belongs to.
 Reads the entire file content as a string (empty string if not a file).
 
 **Returns**  
+
 | Type     | Description              |
 |----------|--------------------------|
 | `string` | File content             |
@@ -309,6 +310,7 @@ Reads the entire file content as a string (empty string if not a file).
 Reads the entire file as bytes.
 
 **Returns**  
+
 | Type   | Description              |
 |--------|--------------------------|
 | `bytes`| File content as bytes    |
@@ -317,6 +319,7 @@ Reads the entire file as bytes.
 Reads the file and returns its lines as a list of strings.
 
 **Returns**  
+
 | Type  | Description                  |
 |-------|------------------------------|
 | `list`| List of lines (strings)      |

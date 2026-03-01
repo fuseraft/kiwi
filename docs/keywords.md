@@ -2,74 +2,6 @@
 
 This document provides an overview of reserved keywords in Kiwi, along with explanations and usage examples.
 
-## Table of Contents
-- [Variables](#variables)
-  - [`var`](#var)
-  - [`const`](#const)
-- [Control Structures](#control-structures)
-  - [`break`](#break)
-  - [`case`](#case)
-  - [`do`](#do)
-  - [`else`](#else)
-  - [`elsif`](#elsif)
-  - [`end`](#end)
-  - [`exit`](#exit)
-  - [`for`](#for)
-  - [`if`](#if)
-  - [`in`](#in)
-  - [`next`](#next)
-  - [`repeat`](#repeat)
-  - [`to`](#to)
-  - [`while`](#while)
-  - [`when`](#when)
-- [Error Handling](#error-handling)
-  - [`catch`](#catch)
-  - [`finally`](#finally)
-  - [`throw`](#throw)
-  - [`try`](#try)
-- [Functions and Methods](#functions-and-methods)
-  - [`def`](#def)
-  - [`fn`](#fn)
-  - [`private`](#private)
-  - [`return`](#return)
-  - [`static`](#static)
-  - [`with`](#with)
-  - [`yield`](#yield)
-- [Structs](#structs)
-  - [`abstract`](#abstract)
-  - [`struct`](#struct)
-  - [`new`](#new)
-  - [`override`](#override)
-  - [`@` (self)](#-self)
-- [Packages](#packages)
-  - [`as`](#as)
-  - [`export`](#export)
-  - [`import`](#import)
-  - [`include`](#include)
-  - [`package`](#package)
-  - [`require`](#require)
-- [Events](#events)
-  - [`emit`](#emit)
-  - [`off`](#off)
-  - [`on`](#on)
-  - [`once`](#once)
-- [Console I/O](#console-io)
-  - [`eprint`](#eprint)
-  - [`eprintln`](#eprintln)
-  - [`input`](#input)
-  - [`print`](#print)
-  - [`println`](#println)
-  - [`printxy`](#printxy)
-- [Miscellaneous](#miscellaneous)
-  - [`delete`](#delete)
-  - [`eval`](#eval)
-  - [`global`](#global)
-  - [`go`](#go)
-  - [`null`](#null)
-  - [`...`](#-no-op)
-  - [`true`](#true)
-  - [`false`](#false)
-
 ## Variables
 
 ### `var`
@@ -125,12 +57,12 @@ See [Loops](loops.md).
 ### `case`
 The `case` keyword is used to define a `case` statement.
 
-See [Conditionals](conditionals.md) and [Control Structures](control_structures.md#case).
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md#2-case--when--else).
 
 ### `if`
 The `if` keyword is used to define the `if` branch in a conditional statement.
 
-See [Conditionals](conditionals.md) and [Control Structures](control_structures.md#if).
+See [Conditionals](conditionals.md) and [Control Structures](control_structures.md#1-if--elsif--else).
 
 ### `in`
 The `in` keyword is used to specify the collection to iterate in a for-loop.
@@ -160,7 +92,7 @@ See [Ranges](ranges.md).
 ### `while`
 The `while` keyword is used to define a while-loop.
 
-See [Loops](loops.md#while), [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
+See [Loops](loops.md#2-while--condition-based-loop), [Conditionals](conditionals.md) and [Control Structures](control_structures.md).
 
 ### `when`
 The `when` keyword is used to define a condition for `break`, `exit`, `next`, `return`, and `throw`.

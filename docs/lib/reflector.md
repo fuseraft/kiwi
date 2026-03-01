@@ -2,21 +2,7 @@
 
 The `reflector` package contains functionality for reflection in Kiwi.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`callstack()`](#callstack)
-  - [`fflags(frame_index)`](#fflagsframe_index)
-  - [`getfunc(func_name)`](#getfuncfunc_name)
-  - [`objcontext()`](#objcontext)
-  - [`retval()`](#retval)
-  - [`state()`](#state)
-- [`Callable` struct](#callable)
-  - [Constructor](#constructor)
-  - [`from_function(func_name)`](#from_functionfunc_name)
-  - [`call(params)`](#callparams)
-  - [`parameters()`](#parameters)
-  - [`returns()`](#returns)
+---
 
 ## Package Functions
 
@@ -27,6 +13,7 @@ Returns a list of frame names.
 _None_
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `list` | A list containing the names of each stack frame in the callstack. |
@@ -36,12 +23,14 @@ _None_
 ### `fflags(frame_index)`
 Returns a list of frame flags at a specified index.
 
-**Parameters**  
+**Parameters**
+
 | Type | Name | Description |  
 | :--- | :--- | :--- |  
 | `integer` | `frame_index` | The frame index. Defaults to 0 (top of the stack). |
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `list` | The frame flags at specific frame index. |
@@ -51,12 +40,14 @@ Returns a list of frame flags at a specified index.
 ### `getfunc(func_name)`
 Returns a specified function as a lambda.
 
-**Parameters**  
+**Parameters**
+
 | Type | Name | Description |  
 | :--- | :--- | :--- |  
 | `string` | `func_name` | The name of the function. |
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `any` | The function as a lambda. Returns `null` when not found. |
@@ -70,6 +61,7 @@ Returns a hashmap representing the state of the program.
 _None_
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `any` | Returns the current object reference. Returns `null` when not in an object context. |
@@ -83,6 +75,7 @@ Returns the current stack frame return value.
 _None_
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `any` | The return value at the top of the stack. |
@@ -96,6 +89,7 @@ Returns a hashmap representing the state of the program.
 _None_
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `hashmap` | A hashmap containing four keys: `packages` (a list containing names of packages imported), `structs` (a list containing names of structs defined), `functions` (a list containing names of functions defined), `stack` (a list of hashmaps containing frame variables, each with `variables` as a hashmap of variable names to values). |
@@ -110,7 +104,8 @@ A struct representing a callable function or lambda, providing reflection capabi
 
 Creates a new Callable instance.
 
-**Parameters**  
+**Parameters**
+
 | Type | Name | Description |  
 | :--- | :--- | :--- |  
 | `string` | `name` | The name of the callable. |  
@@ -120,12 +115,14 @@ Creates a new Callable instance.
 
 Static method to create a Callable from a function name.
 
-**Parameters**  
+**Parameters**
+
 | Type | Name | Description |  
 | :--- | :--- | :--- |  
 | `string` | `func_name` | The name of the function. |
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `Callable` | A new Callable instance wrapping the function. |
@@ -134,12 +131,14 @@ Static method to create a Callable from a function name.
 
 Invokes the callable with a set of parameters and returns its value.
 
-**Parameters**  
+**Parameters**
+
 | Type | Name | Description |  
 | :--- | :--- | :--- |  
 | `list` | `params` | A list of parameters to pass to the callable. |
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `any` | The return value of the callable after invocation. |
@@ -152,6 +151,7 @@ Returns a list of hashmaps containing parameter information.
 _None_
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `list` | A list of hashmaps, each containing: `name` (a string representing the name of the parameter), `default_value` (the default value), `type` (if a type annotation was used, the type name as a string), `position` (the integer position of the parameter). |
@@ -164,6 +164,7 @@ Returns the type name of the return type of the callable.
 _None_
 
 **Returns**  
+
 | Type | Description |  
 | :--- | :--- |  
 | `string` | A string containing the type name of the return type. |

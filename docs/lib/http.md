@@ -4,26 +4,7 @@ The `http` package provides a high-level, idiomatic HTTP client for Kiwi.
 
 It builds on the low-level `__http_get__`, `__http_post__`, and `__http_download__` builtins, adding conveniences such as automatic JSON handling, response wrapping, and utility functions for common use cases.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`get(url, headers?, opts?)`](#geturl-headers-opts)
-  - [`post(url, body?, headers?, opts?)`](#posturl-body-headers-opts)
-  - [`put(url, body?, headers?, opts?)`](#puturl-body-headers-opts)
-  - [`delete(url, headers?, opts?)`](#deleteurl-headers-opts)
-  - [`await_get(url, headers?, opts?)`](#await_geturl-headers-opts)
-  - [`await_post(url, body?, headers?, opts?)`](#await_posturl-body-headers-opts)
-  - [`await_json_get(url, headers?, opts?)`](#await_json_geturl-headers-opts)
-  - [`await_json_post(url, data, headers?, opts?)`](#await_json_posturl-data-headers-opts)
-  - [`await_download(url, filename, headers?, opts?)`](#await_downloadurl-filename-headers-opts)
-  - [`response(raw)`](#responsraw)
-- [`HttpResponse` struct](#httpresponse)
-  - [Constructor](#constructor)
-  - [`get_raw()`](#get_raw)
-  - [`json()`](#json)
-  - [`text()`](#text)
-  - [`pretty()`](#pretty)
-  - [`save(filename)`](#savefilename)
+---
 
 ## Package Functions
 
@@ -31,6 +12,7 @@ It builds on the low-level `__http_get__`, `__http_post__`, and `__http_download
 Performs an HTTP GET request. Returns a task ID that can be awaited.
 
 **Parameters**
+
 | Type      | Name      | Description                                      | Default |
 |-----------|-----------|--------------------------------------------------|---------|
 | `string`  | `url`     | The target URL                                   | —       |
@@ -38,6 +20,7 @@ Performs an HTTP GET request. Returns a task ID that can be awaited.
 | `hashmap` | `opts`    | Optional settings (not yet used)                 | `{}`    |
 
 **Returns**
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `integer` | Task ID (await with `task.await()`) |
@@ -48,6 +31,7 @@ Performs an HTTP GET request. Returns a task ID that can be awaited.
 Performs an HTTP POST request. If `body` is a hashmap, it is automatically JSON-encoded and the `Content-Type` header is set accordingly.
 
 **Parameters**
+
 | Type      | Name      | Description                                      | Default |
 |-----------|-----------|--------------------------------------------------|---------|
 | `string`  | `url`     | The target URL                                   | —       |
@@ -56,6 +40,7 @@ Performs an HTTP POST request. If `body` is a hashmap, it is automatically JSON-
 | `hashmap` | `opts`    | Optional settings (not yet used)                 | `{}`    |
 
 **Returns**
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `integer` | Task ID (await with `task.await()`) |
@@ -91,6 +76,7 @@ Convenience: performs GET and awaits the result, wrapped in `HttpResponse`.
 Same as `get`.
 
 **Returns**
+
 | Type           | Description                     |
 |----------------|---------------------------------|
 | `HttpResponse` | The response object             |
@@ -115,6 +101,7 @@ Performs GET, awaits, and returns the parsed JSON body (calls `.json()` on respo
 Same as `get`.
 
 **Returns**
+
 | Type      | Description              |
 |-----------|--------------------------|
 | `hashmap` | Decoded JSON object      |
@@ -125,6 +112,7 @@ Same as `get`.
 Performs POST with JSON body, awaits, and returns parsed JSON response.
 
 **Parameters**
+
 | Type      | Name      | Description                     |
 |-----------|-----------|---------------------------------|
 | `string`  | `url`     | Target URL                      |
@@ -141,6 +129,7 @@ Performs POST with JSON body, awaits, and returns parsed JSON response.
 Downloads the response body to a file and returns whether it succeeded.
 
 **Parameters**
+
 | Type      | Name       | Description                     |
 |-----------|------------|---------------------------------|
 | `string`  | `url`      | Source URL                      |
@@ -149,6 +138,7 @@ Downloads the response body to a file and returns whether it succeeded.
 | `hashmap` | `opts`     | Optional settings               |
 
 **Returns**
+
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `boolean` | `true` if download succeeded         |
@@ -159,11 +149,13 @@ Downloads the response body to a file and returns whether it succeeded.
 Constructs an `HttpResponse` from a raw response hashmap.
 
 **Parameters**
+
 | Type      | Name   | Description                     |
 |-----------|--------|---------------------------------|
 | `hashmap` | `raw`  | Raw response from `__http_*__`  |
 
 **Returns**
+
 | Type           | Description             |
 |----------------|-------------------------|
 | `HttpResponse` | Wrapped response object |
@@ -196,6 +188,7 @@ Creates a new response object from the raw hashmap returned by `__http_*__`.
 Returns the original raw response hashmap.
 
 **Returns**
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `hashmap` | The raw response data        |
@@ -206,6 +199,7 @@ Returns the original raw response hashmap.
 Parses the body as JSON if possible.
 
 **Returns**
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `hashmap` | Decoded JSON object          |
@@ -219,6 +213,7 @@ If body is not JSON-compatible.
 Returns the body as a string.
 
 **Returns**
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `string`  | Body as text                 |
@@ -232,6 +227,7 @@ If body cannot be converted to text.
 Returns a pretty-printed JSON string of the parsed body.
 
 **Returns**
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `string`  | Pretty-printed JSON          |
@@ -242,11 +238,13 @@ Returns a pretty-printed JSON string of the parsed body.
 Saves the response body to a file.
 
 **Parameters**
+
 | Type     | Name       | Description             |
 |----------|------------|-------------------------|
 | `string` | `filename` | Path to save to         |
 
 **Returns**
+
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `boolean` | `true` if save succeeded, `false` otherwise |

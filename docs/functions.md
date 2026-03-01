@@ -11,14 +11,6 @@ greet("world") # prints: Hello, world!
 greet()        # prints: Hello, Kiwi!
 ```
 
-## Table of Contents
-
-- [Return Value](#return-value)
-- [Optional Parameters](#optional-parameters)
-- [Named Parameters](#named-parameters)
-- [Scope](#scope)
-- [Generator Functions](#generator-functions)
-
 ### Return Value
 
 Use the `return` keyword to return a value from a method, or to exit a method early.

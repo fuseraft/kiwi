@@ -4,12 +4,6 @@ The `date` type in Kiwi is used to represent a date and a time.
 
 There is no Date literal syntax in Kiwi, but the language provides methods to access and use the type.
 
-# Table of Contents
-- [Builtins](#builtins)
-- [Get Current Date and Time](#get-current-date-and-time)
-- [`string`s to `date`s](#strings-to-dates)
-- [`date`s to `string`s](#dates-to-strings)
-
 ### Builtins
 
 For documentation on `date` builtins, take a look at the [`date` builtins](builtins.md#date-builtins).

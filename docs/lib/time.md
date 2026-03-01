@@ -10,40 +10,6 @@ It includes:
 - Current time / timestamp helpers
 - Low-level tick-based timing
 
-## Table of Contents
-
-- [Date arithmetic](#date-arithmetic)
-  - [`add_days(dt, n)`](#add_daysdt-n)
-  - [`add_months(dt, n)`](#add_monthsdt-n)
-  - [`add_years(dt, n)`](#add_yearsdt-n)
-  - [`add_hours(dt, n)`](#add_hoursdt-n-add_minutesdt-n-add_secondsdt-n-add_millisecondsdt-n)
-  - [`add_minutes(dt, n)`](#add_hoursdt-n-add_minutesdt-n-add_secondsdt-n-add_millisecondsdt-n)
-  - [`add_seconds(dt, n)`](#add_hoursdt-n-add_minutesdt-n-add_secondsdt-n-add_millisecondsdt-n)
-  - [`add_milliseconds(dt, n)`](#add_hoursdt-n-add_minutesdt-n-add_secondsdt-n-add_millisecondsdt-n)
-- [Current time & components](#current-time--components)
-  - [`now()`](#now)
-  - [`hour(dt?)`](#hourdt-minutedt-seconddt-milliseconddt)
-  - [`minute(dt?)`](#hourdt-minutedt-seconddt-milliseconddt)
-  - [`second(dt?)`](#hourdt-minutedt-seconddt-milliseconddt)
-  - [`millisecond(dt?)`](#hourdt-minutedt-seconddt-milliseconddt)
-  - [`ampm(dt?)`](#ampmdt)
-  - [`day(dt?)`](#daydt-monthdt-yeardt)
-  - [`month(dt?)`](#daydt-monthdt-yeardt)
-  - [`year(dt?)`](#daydt-monthdt-yeardt)
-  - [`weekday(dt?)`](#weekdaydt)
-  - [`yearday(dt?)`](#yeardaydt)
-- [Calendar utilities](#calendar-utilities)
-  - [`leapyear(_year)`](#leapyear_year)
-  - [`monthdays(_year, _month)`](#monthdays_year-_month)
-  - [`valid_day(_year, _month, _day)`](#valid_day_year-_month-_day)
-  - [`first_day()`](#first_day)
-  - [`last_day()`](#last_day)
-- [Other helpers](#other-helpers)
-  - [`isdst(dt?)`](#isdstdt)
-  - [`timestamp(format?)`](#timestampformat)
-  - [`ticks()`](#ticks)
-  - [`ticksms(_ticks)`](#ticksms_ticks)
-
 ## Date arithmetic
 
 All `add_*` functions return a **new** `date` object — they do **not** mutate the input.
@@ -52,6 +18,7 @@ All `add_*` functions return a **new** `date` object — they do **not** mutate 
 Adds/subtracts whole days (handles month/year rollover).
 
 **Parameters**  
+
 | Type    | Name | Description          |
 |---------|------|----------------------|
 | `date`  | `dt` | Base date            |
@@ -63,6 +30,7 @@ Adds/subtracts whole days (handles month/year rollover).
 Adds/subtracts months (preserves day-of-month when possible).
 
 **Parameters**  
+
 | Type    | Name | Description          |
 |---------|------|----------------------|
 | `date`  | `dt` | Base date            |
@@ -73,7 +41,8 @@ Adds/subtracts months (preserves day-of-month when possible).
 ### `add_years(dt, n)`
 Adds/subtracts whole years.
 
-**Parameters**  
+**Parameters**
+
 | Type    | Name | Description          |
 |---------|------|----------------------|
 | `date`  | `dt` | Base date            |
@@ -135,7 +104,8 @@ Day of year (1 = Jan 1, up to 365 or 366).
 ### `leapyear(_year)`
 Checks whether a year is a leap year (Gregorian rules).
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name     |
 |----------|----------|
 | `integer`| `_year`  |
@@ -145,7 +115,8 @@ Checks whether a year is a leap year (Gregorian rules).
 ### `monthdays(_year, _month)`
 Returns number of days in the specified month/year.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name      |
 |----------|-----------|
 | `integer`| `_year`   |
@@ -156,7 +127,8 @@ Returns number of days in the specified month/year.
 ### `valid_day(_year, _month, _day)`
 Checks if the day is valid in the given month/year.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name      |
 |----------|-----------|
 | `integer`| `_year`   |
@@ -185,7 +157,8 @@ Checks whether the time is in Daylight Saving Time.
 ### `timestamp(format?)`
 Formats the current time using the `date` type’s `to_string()` rules.
 
-**Parameters**  
+**Parameters**
+
 | Type    | Name     | Default |
 |---------|----------|---------|
 | `string`| `format` | `'u'`   |
@@ -202,7 +175,8 @@ Nanoseconds since Unix epoch (1970-01-01 00:00:00 UTC).
 ### `ticksms(_ticks)`
 Converts ticks (nanoseconds) to milliseconds.
 
-**Parameters**  
+**Parameters**
+
 | Type   | Name      |
 |--------|-----------|
 | `float`| `_ticks`  |
