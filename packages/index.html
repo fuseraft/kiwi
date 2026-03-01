@@ -1708,6 +1708,89 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#extending-built-in-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending Built-in Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extending Built-in Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extending-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extending-integer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending integer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extending-date" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending date
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#standard-library-type-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Standard library type extensions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2527,6 +2610,89 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#extending-built-in-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending Built-in Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extending Built-in Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extending-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extending-integer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending integer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extending-date" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extending date
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#standard-library-type-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Standard library type extensions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2624,6 +2790,111 @@
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>app::utils::greet(&quot;World&quot;)
 </span></code></pre></div>
+<hr />
+<h2 id="extending-built-in-types">Extending Built-in Types<a class="headerlink" href="#extending-built-in-types" title="Permanent link">&para;</a></h2>
+<p>When a package's name matches a built-in type name <strong>and</strong> a function's first parameter is typed as that type, Kiwi automatically makes the function callable as a method on any value of that type.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>package list
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  fn sum_positive(_list: list): integer
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    _list.filter(do (n) =&gt; n &gt; 0).sum()
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  end
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>end
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>export &quot;list&quot;
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>nums = [-3, 1, -1, 4, 2]
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>println nums.sum_positive()   # 7
+</span></code></pre></div>
+<p>The function is reachable both ways:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>nums.sum_positive()              # method syntax
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>list::sum_positive(nums)         # package syntax
+</span></code></pre></div>
+<h3 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<p>The dispatch rule has three parts:</p>
+<ol>
+<li><strong>Package name</strong> matches a built-in type: <code>list</code>, <code>string</code>, <code>date</code>, <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>hashmap</code>, or <code>bytes</code>.</li>
+<li><strong>First parameter</strong> carries a matching type hint (e.g. <code>_s: string</code>).</li>
+<li><strong>Caller</strong> invokes it as <code>value.func(args...)</code> — Kiwi routes this to <code>package::func(value, args...)</code>.</li>
+</ol>
+<p>If the first parameter has no type hint, or the package name does not match a type, the function is only reachable via the <code>package::func(...)</code> form.</p>
+<h3 id="extending-string">Extending <code>string</code><a class="headerlink" href="#extending-string" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>package string
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  fn word_count(_s: string): integer
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    _s.trim().split(&quot; &quot;).size()
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  end
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  fn shout(_s: string): string
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    _s.uppercase() + &quot;!!!&quot;
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>  end
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>end
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>export &quot;string&quot;
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>println &quot;hello world&quot;.word_count()   # 2
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>println &quot;kiwi&quot;.shout()               # KIWI!!!
+</span></code></pre></div>
+<h3 id="extending-integer">Extending <code>integer</code><a class="headerlink" href="#extending-integer" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>package integer
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  fn factorial(_n: integer): integer
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    return 1 when _n &lt;= 1
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    _n * (_n - 1).factorial()
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>  end
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>end
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>export &quot;integer&quot;
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>println (5).factorial()   # 120
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>println (10).factorial()  # 3628800
+</span></code></pre></div>
+<h3 id="extending-date">Extending <code>date</code><a class="headerlink" href="#extending-date" title="Permanent link">&para;</a></h3>
+<p>The standard library's <code>date</code> package uses this pattern to add arithmetic and accessors to every <code>date</code> value:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># lib/date.kiwi (stdlib)
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>package date
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  fn add_days(_dt: date, n: integer): date
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    time::add_days(_dt, n)
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>  end
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>end
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>export &quot;date&quot;
+</span></code></pre></div>
+<p>After loading, any <code>date</code> value gains <code>.add_days()</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>today     = time::now()
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>next_week = today.add_days(7)
+</span></code></pre></div>
+<h3 id="standard-library-type-extensions">Standard library type extensions<a class="headerlink" href="#standard-library-type-extensions" title="Permanent link">&para;</a></h3>
+<p>The following stdlib packages use this pattern:</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Extends</th>
+<th>Key additions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list</code></td>
+<td><code>list</code></td>
+<td><code>all</code>, <code>_any</code>, <code>_none</code>, <code>one</code>, <code>reject</code>, <code>find</code>, <code>first_where</code>, <code>last_where</code>, <code>sum_integer</code>, <code>sum_float</code>, <code>iterator</code></td>
+</tr>
+<tr>
+<td><code>string</code></td>
+<td><code>string</code></td>
+<td><code>base64encode</code>, <code>base64decode</code>, <code>slug</code>, <code>padstart</code>, <code>padend</code>, <code>center</code>, <code>mirror</code>, <code>isalpha</code>, <code>isnumeric</code>, <code>islower</code>, <code>isupper</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td><code>date</code></td>
+<td><code>add_days</code>, <code>add_months</code>, <code>add_years</code>, <code>add_hours</code>, <code>year</code>, <code>month</code>, <code>day</code>, <code>weekday</code>, and more</td>
+</tr>
+</tbody>
+</table>
+<h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The first parameter name is conventional — it is not special. <code>_list</code>, <code>lst</code>, <code>self</code> all work equally.</li>
+<li>If two loaded packages extend the same type with the same function name, the last one loaded wins.</li>
+<li>Type extension only applies to built-in types. Struct methods are defined inside the struct body using <code>fn</code>.</li>
+<li>Functions with no type hint on the first parameter are still callable as <code>pkg::func(value)</code> but will <strong>not</strong> be dispatched as instance methods.</li>
+</ul>
 
 
 
