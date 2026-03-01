@@ -144,7 +144,7 @@ public struct MathOp
         else if (leftIsFloat && rightIsFloat)
         {
             type = Typing.ValueType.Float;
-            return new(left.GetFloat() + right.GetFloat());
+            return new(left.GetFloat() + right.GetFloat(), type);
         }
         else if ((leftIsInt && rightIsFloat) || (leftIsFloat && rightIsInt))
         {

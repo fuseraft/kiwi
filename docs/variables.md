@@ -2,6 +2,16 @@
 
 Variables are by default dynamically typed, meaning they do not require explicit type declarations. The type of a variable is inferred from the value assigned to it. For more information on types, please see [Types](types.md).
 
+## Table of Contents
+
+- [`var` Keyword](#var-keyword)
+  - [Syntax](#syntax)
+  - [Examples](#examples)
+  - [Key Features](#key-features)
+  - [Use Cases](#use-cases)
+- [Assigning Variables](#assigning-variables)
+- [Variable Scope](#variable-scope)
+
 # `var` Keyword
 
 The `var` keyword in Kiwi simplifies variable declaration, supporting multiple styles of initialization with optional type hints.

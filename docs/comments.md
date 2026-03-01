@@ -1,5 +1,10 @@
 # Comments
 
+## Table of Contents
+
+- [Single-line Comments](#single-line-comments)
+- [Block Comments](#block-comments)
+
 ## Single line comments
 
 Single line comments begin with a `#`.

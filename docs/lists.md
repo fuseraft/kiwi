@@ -1,7 +1,19 @@
 # Lists in Kiwi
 
-Lists are dynamic, ordered, mutable sequences that can hold values of any type (including other lists, hashmaps, etc.).  
+Lists are dynamic, ordered, mutable sequences that can hold values of any type (including other lists, hashmaps, etc.).
 They grow automatically as needed and support slicing, and many useful built-in methods.
+
+## Table of Contents
+
+- [Quick Reference – Common Operations](#quick-reference--common-operations)
+- [Creating Lists](#creating-lists)
+- [Accessing & Modifying Elements](#accessing--modifying-elements)
+- [Adding Elements](#adding-elements)
+- [Removing Elements](#removing-elements)
+- [Transforming Lists](#transforming-lists-non-destructive)
+- [Iterating Lists](#iterating-lists)
+- [Full Example – Word Frequency](#full-example--word-frequency)
+- [Best Practices & Tips](#best-practices--tips)
 
 ## Quick Reference – Common Operations
 

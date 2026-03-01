@@ -2,6 +2,22 @@
 
 Kiwi supports the following builtin types. To build your own type, see [Structs](structs.md).
 
+## Table of Contents
+
+- [`boolean`](#boolean)
+- [`bytes`](#bytes)
+- [`date`](#date)
+- [`float`](#float)
+- [`generator`](#generator)
+- [`hashmap`](#hashmap)
+- [`integer`](#integer)
+- [`lambda`](#lambda)
+- [`list`](#list)
+- [`none`](#none)
+- [`object`](#object)
+- [`pointer`](#pointer)
+- [`string`](#string)
+
 | Type | Description | Documentation |
 | :--- | :--- | :--- |
 | [`boolean`](#boolean) | A `true` or `false` value. | See below for an example. |

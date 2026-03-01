@@ -1,0 +1,75 @@
+#!/usr/bin/env kiwi
+/#
+A demonstration of the bench package.
+
+Registers several benchmarks covering:
+  - Recursive function call overhead (Fibonacci)
+  - Tight loop performance (iterative Fibonacci)
+  - Built-in sort
+  - String concatenation
+  - List comprehension pipeline (map + filter)
+  - Arithmetic (sum of squares)
+
+Usage:
+  kiwi examples/bench_demo.kiwi
+#/
+
+fn rfib(n: integer): integer
+  if n <= 1
+    return n
+  end
+  rfib(n - 1) + rfib(n - 2)
+end
+
+fn ifib(n: integer): integer
+  a = 0
+  b = 1
+  repeat n do
+    tmp = a + b
+    a = b
+    b = tmp
+  end
+  a
+end
+
+fn main()
+  bench::register("fibonacci recursive (n=20)", with do
+    rfib(20)
+  end)
+
+  bench::register("fibonacci iterative (n=50000)", with do
+    ifib(50000)
+  end)
+
+  bench::register("list sort (1000 random items)", with do
+    math::random_set(0, 10000, 1000).sort()
+  end)
+
+  bench::register("string concat (500 appends)", with do
+    s = ""
+    repeat 500 do
+      s += "kiwi"
+    end
+    s
+  end)
+
+  bench::register("list map + filter (0..2000)", with do
+    [0 to 2000].map(with (n) do n * n end).filter(with (n) do n % 3 == 0 end)
+  end)
+
+  bench::register("sum of squares (0..5000)", with do
+    total = 0
+    for n in [0 to 5000] do
+      total += n * n
+    end
+    total
+  end)
+
+  println "Kiwi Benchmark Suite"
+  println "=" * 52
+  println ""
+
+  bench::run_all(50, 3)
+end
+
+main()

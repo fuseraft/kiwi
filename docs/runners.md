@@ -2,6 +2,19 @@
 
 Kiwi supports **multiple execution modes** via the `IRunner` interface. Each mode is designed for a specific workflow — from running scripts to debugging syntax to interactive development.
 
+## Table of Contents
+
+- [Execution Modes](#execution-modes)
+- [How They Work](#how-they-work)
+- [`ScriptRunner` – Run a File](#scriptrunner--run-a-file)
+- [`StdInRunner` – Run from Pipe](#stdinrunner--run-from-pipe)
+- [`REPLRunner` – Interactive Mode](#replrunner--interactive-mode)
+- [`ASTPrinter` – Debug the Parser](#astprinter--debug-the-parser)
+- [`TokenPrinter` – Debug the Lexer](#tokenprinter--debug-the-lexer)
+- [Standard Library](#standard-library)
+- [Error Handling](#error-handling)
+- [Quick Testing](#quick-testing)
+
 ## Execution Modes
 
 | Runner | Purpose | Input | Example |
