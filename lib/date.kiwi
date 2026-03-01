@@ -1,0 +1,179 @@
+requires "time"
+
+/#
+@summary A package that extends the built-in `date` type with arithmetic and component methods.
+         After importing this package, all `date` values gain these as instance methods.
+@see time : For the underlying date/time functions and `time::now()`.
+#/
+package date
+  /#
+  @summary Adds `n` days to the date. Use a negative value to subtract.
+  @param date _dt : The date.
+  @param integer n : Number of days to add (negative to subtract).
+  @return date : The new date.
+  #/
+  fn add_days(_dt: date, n: integer): date
+    time::add_days(_dt, n)
+  end
+
+  /#
+  @summary Adds `n` months to the date. Use a negative value to subtract.
+  @param date _dt : The date.
+  @param integer n : Number of months to add (negative to subtract).
+  @return date : The new date.
+  #/
+  fn add_months(_dt: date, n: integer): date
+    time::add_months(_dt, n)
+  end
+
+  /#
+  @summary Adds `n` years to the date. Use a negative value to subtract.
+  @param date _dt : The date.
+  @param integer n : Number of years to add (negative to subtract).
+  @return date : The new date.
+  #/
+  fn add_years(_dt: date, n: integer): date
+    time::add_years(_dt, n)
+  end
+
+  /#
+  @summary Adds `n` hours to the date. Use a negative value to subtract.
+  @param date _dt : The date.
+  @param integer n : Number of hours to add (negative to subtract).
+  @return date : The new date.
+  #/
+  fn add_hours(_dt: date, n: integer): date
+    time::add_hours(_dt, n)
+  end
+
+  /#
+  @summary Adds `n` minutes to the date. Use a negative value to subtract.
+  @param date _dt : The date.
+  @param integer n : Number of minutes to add (negative to subtract).
+  @return date : The new date.
+  #/
+  fn add_minutes(_dt: date, n: integer): date
+    time::add_minutes(_dt, n)
+  end
+
+  /#
+  @summary Adds `n` seconds to the date. Use a negative value to subtract.
+  @param date _dt : The date.
+  @param integer n : Number of seconds to add (negative to subtract).
+  @return date : The new date.
+  #/
+  fn add_seconds(_dt: date, n: integer): date
+    time::add_seconds(_dt, n)
+  end
+
+  /#
+  @summary Adds `n` milliseconds to the date. Use a negative value to subtract.
+  @param date _dt : The date.
+  @param integer n : Number of milliseconds to add (negative to subtract).
+  @return date : The new date.
+  #/
+  fn add_milliseconds(_dt: date, n: integer): date
+    time::add_milliseconds(_dt, n)
+  end
+
+  /#
+  @summary Returns the year component of the date.
+  @param date _dt : The date.
+  @return integer : The year.
+  #/
+  fn year(_dt: date): integer
+    time::year(_dt)
+  end
+
+  /#
+  @summary Returns the month component of the date (1–12).
+  @param date _dt : The date.
+  @return integer : The month.
+  #/
+  fn month(_dt: date): integer
+    time::month(_dt)
+  end
+
+  /#
+  @summary Returns the day-of-month component of the date (1–31).
+  @param date _dt : The date.
+  @return integer : The day.
+  #/
+  fn day(_dt: date): integer
+    time::day(_dt)
+  end
+
+  /#
+  @summary Returns the hour component of the date (0–23).
+  @param date _dt : The date.
+  @return integer : The hour.
+  #/
+  fn hour(_dt: date): integer
+    time::hour(_dt)
+  end
+
+  /#
+  @summary Returns the minute component of the date (0–59).
+  @param date _dt : The date.
+  @return integer : The minute.
+  #/
+  fn minute(_dt: date): integer
+    time::minute(_dt)
+  end
+
+  /#
+  @summary Returns the second component of the date (0–60).
+  @param date _dt : The date.
+  @return integer : The second.
+  #/
+  fn second(_dt: date): integer
+    time::second(_dt)
+  end
+
+  /#
+  @summary Returns the millisecond component of the date (0–999).
+  @param date _dt : The date.
+  @return integer : The millisecond.
+  #/
+  fn millisecond(_dt: date): integer
+    time::millisecond(_dt)
+  end
+
+  /#
+  @summary Returns the day of the week (0 = Sunday … 6 = Saturday).
+  @param date _dt : The date.
+  @return integer : The weekday index.
+  #/
+  fn weekday(_dt: date): integer
+    time::weekday(_dt)
+  end
+
+  /#
+  @summary Returns the day of the year (1–366).
+  @param date _dt : The date.
+  @return integer : The day of the year.
+  #/
+  fn yearday(_dt: date): integer
+    time::yearday(_dt)
+  end
+
+  /#
+  @summary Returns `true` if the date falls within Daylight Saving Time.
+  @param date _dt : The date.
+  @return boolean : `true` if DST is in effect.
+  #/
+  fn isdst(_dt: date): boolean
+    time::isdst(_dt)
+  end
+
+  /#
+  @summary Returns `"AM"` or `"PM"` for the date's time.
+  @param date _dt : The date.
+  @return string : `"AM"` or `"PM"`.
+  #/
+  fn ampm(_dt: date): string
+    time::ampm(_dt)
+  end
+end
+
+export "date"

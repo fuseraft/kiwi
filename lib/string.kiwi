@@ -125,7 +125,9 @@ package string
   @return  Boolean          : True if found.
   #/
   fn contains_any(str, matches = [])
-    matches = matches.chars() when typeof(matches) == "string"
+    if typeof(matches) == "string"
+      matches = matches.chars()
+    end
     throw "matches must be a list" when typeof(matches) != "list"
 
     for m in matches do
@@ -410,8 +412,8 @@ package string
   #/
   fn isupper(_input)
     for char in ("${_input}").chars() do
-      # If any character is lowercase, return false
-      if char >= "a" && char <= "z"
+      # If any character has a lowercase form, it is not uppercase
+      if char != char.uppercase()
         return false
       end
     end
@@ -425,8 +427,8 @@ package string
   #/
   fn islower(_input)
     for char in ("${_input}").chars() do
-      # If any character is uppercase, return false
-      if char >= "A" && char <= "Z"
+      # If any character has an uppercase form, it is not lowercase
+      if char != char.lowercase()
         return false
       end
     end

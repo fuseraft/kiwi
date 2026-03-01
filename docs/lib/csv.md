@@ -25,6 +25,26 @@ Parses a CSV string into a list of rows (each row is a list of string fields).
 | :--- | :--- |
 | `list` | A list of lists representing rows and columns. |
 
+**Example**
+
+```kiwi
+import "csv"
+
+var data = "name,age\nAlice,30\nBob,25"
+var rows = csv::parse(data)
+
+# rows[0] is the header row
+println rows[0]
+# ["name", "age"]
+
+# iterate over data rows, skipping the header
+for row in rows[1:]
+  println row[0] + " is " + row[1] + " years old"
+end
+# Alice is 30 years old
+# Bob is 25 years old
+```
+
 ---
 
 ### `parse_file(file_path, delimiter)`
@@ -43,3 +63,23 @@ Parses a CSV file into a list of rows.
 | Type | Description |
 | :--- | :--- |
 | `list` | A list of lists representing rows and columns. |
+
+**Example**
+
+```kiwi
+import "csv"
+
+# Parse a comma-delimited file
+var rows = csv::parse_file("/data/employees.csv")
+
+var headers = rows[0]
+println "Columns: " + headers.join(", ")
+
+for row in rows[1:]
+  println row.join(" | ")
+end
+
+# Parse a tab-delimited file
+var tsv_rows = csv::parse_file("/data/report.tsv", "\t")
+println "Row count: " + (tsv_rows.size() - 1).to_string()
+```

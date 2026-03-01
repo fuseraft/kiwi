@@ -16,6 +16,15 @@ Get environment variables as a hashmap.
 | :--- | :---|
 | `hashmap` | A hashmap representing system environment variables. |
 
+**Example**
+```kiwi
+import "env"
+
+vars = env::all()
+println vars["HOME"]   # /home/user
+println vars["PATH"]
+```
+
 ### `argv()`
 
 Get the list of command-line arguments supplied to the program.
@@ -25,6 +34,15 @@ Get the list of command-line arguments supplied to the program.
 | Type | Description |
 | :--- | :---|
 | `list` | A list of command-line arguments. |
+
+**Example**
+```kiwi
+import "env"
+
+# kiwi myscript.kiwi foo bar
+args = env::argv()
+println args   # { foo: "", bar: "" }
+```
 
 ### `opt(_key)`
 Get a KVP command-line option value by key.
@@ -103,6 +121,14 @@ Get an environment variable.
 | :--- | :---|
 | `string` | The environment variable value, an empty string if not found. |
 
+**Example**
+```kiwi
+import "env"
+
+home = env::get("HOME")
+println home   # /home/user
+```
+
 ### `set(_varname, _varvalue)`
 
 Set an environment variable.
@@ -120,6 +146,14 @@ Set an environment variable.
 | :--- | :---|
 | `boolean` | `true` on success. |
 
+**Example**
+```kiwi
+import "env"
+
+env::set("APP_ENV", "production")
+println env::get("APP_ENV")   # production
+```
+
 ### `bin()`
 
 Returns a string containing the path to the Kiwi executable.
@@ -130,6 +164,13 @@ Returns a string containing the path to the Kiwi executable.
 | :--- | :---|
 | `string` | Path to Kiwi. |
 
+**Example**
+```kiwi
+import "env"
+
+println env::bin()   # /usr/local/bin/kiwi
+```
+
 ### `lib()`
 
 Returns a string containing the path to the Kiwi Standard Library.
@@ -139,3 +180,10 @@ Returns a string containing the path to the Kiwi Standard Library.
 | Type | Description |
 | :--- | :---|
 | `string` | Path to Kiwi Standard Library. |
+
+**Example**
+```kiwi
+import "env"
+
+println env::lib()   # /usr/local/lib/kiwi
+```

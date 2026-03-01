@@ -260,3 +260,89 @@ Returns a copy of the set's elements as a list.
 Returns a string representation of the set.
 
 **Returns** `string`
+
+---
+
+## Examples
+
+### Heap — priority queue (min-heap)
+
+```kiwi
+import "collections"
+
+h = Heap.new("min")
+[5, 1, 8, 3, 2].each(with (v) do h.insert(v) end)
+
+println h.peek()          # 1 — smallest, not removed
+println h.size()          # 5
+
+sorted = []
+while not h.is_empty() do
+  sorted.push(h.extract_root())
+end
+println sorted   # [1, 2, 3, 5, 8]
+```
+
+### Heap — max-heap
+
+```kiwi
+import "collections"
+
+h = Heap.new("max")
+[5, 1, 8, 3, 2].each(with (v) do h.insert(v) end)
+
+println h.extract_root()  # 8
+println h.extract_root()  # 5
+println h.extract_root()  # 3
+```
+
+### Set — basic operations
+
+```kiwi
+import "collections"
+
+s = Set.new([1, 2, 2, 3])
+println s.size()          # 3 (duplicates removed)
+println s.contains(2)     # true
+
+s.add(4)
+println s.to_list()       # [1, 2, 3, 4]
+
+s.remove(2)
+println s.contains(2)     # false
+
+s.clear()
+println s.size()          # 0
+```
+
+### Set — algebra
+
+```kiwi
+import "collections"
+
+a = Set.new([1, 2, 3, 4])
+b = Set.new([3, 4, 5, 6])
+
+println a.intersect(b)              # true  (share 3 and 4)
+println a.disjoint(Set.new([7, 8])) # true  (no overlap)
+
+diff = a.difference(b)
+println diff.to_list()   # [1, 2]
+
+u = a.union(b)
+println u.to_list()      # [1, 2, 3, 4, 5, 6]
+
+c = Set.new([1, 2])
+println c.subset(a)      # true  (c ⊆ a)
+println a.superset(c)    # true  (a ⊇ c)
+```
+
+### Set — merge in place
+
+```kiwi
+import "collections"
+
+s = Set.new([1, 2, 3])
+s.merge([3, 4, 5])
+println s.to_list()   # [1, 2, 3, 4, 5]
+```

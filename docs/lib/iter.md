@@ -150,3 +150,144 @@ Returns the first **non-default** value ahead of current position
 Counts how many consecutive `default` values are ahead starting from current position.
 
 **Returns** `integer`
+
+---
+
+## Examples
+
+### Basic traversal
+
+```kiwi
+import "iter"
+
+tokens = ["fn", "greet", "(", "name", ")", "end"]
+it = ListIterator.new(tokens)
+
+while it.can_read() do
+  println it.consume()
+end
+# fn  greet  (  name  )  end
+```
+
+### Peek-ahead parsing
+
+```kiwi
+import "iter"
+
+nums = [1, 2, 3, 4, 5]
+it = ListIterator.new(nums)
+
+while it.can_read() do
+  cur  = it.current()
+  next = it.peek()
+  println "${cur} -> ${next}"
+  it.consume()
+end
+# 1 -> 2
+# 2 -> 3
+# 3 -> 4
+# 4 -> 5
+# 5 -> null
+```
+
+### Skip and rewind
+
+```kiwi
+import "iter"
+
+letters = ["a", "b", "c", "d", "e"]
+it = ListIterator.new(letters)
+
+it.skip(2)           # jump to "c"
+println it.current() # c
+
+it.rewind(1)         # back to "b"
+println it.current() # b
+
+it.reset()           # back to start
+println it.current() # a
+```
+
+### Absolute and relative access
+
+```kiwi
+import "iter"
+
+data = [10, 20, 30, 40, 50]
+it = ListIterator.new(data)
+
+println it.grab(0)    # 10  — first element
+println it.grab(4)    # 50  — last element
+println it.grab(99)   # null — out of bounds → default
+
+println it.reach(-1)  # 50  — last element
+println it.reach(-2)  # 40  — second-to-last
+```
+
+### Remaining elements
+
+```kiwi
+import "iter"
+
+items = ["x", "y", "z"]
+it = ListIterator.new(items)
+
+it.skip(1)
+println it.remaining()  # ["y", "z"]
+```
+
+### Default-value helpers (token stream with nulls)
+
+```kiwi
+import "iter"
+
+# Padded stream where null represents "empty slot"
+stream = [null, null, "hello", null, "world", null]
+it = ListIterator.new(stream)
+
+it.skip_defaults()           # skip leading nulls
+println it.current()         # "hello"
+
+it.consume()                 # consume "hello"
+println it.count_ahead()     # 1  (one null before "world")
+println it.look_ahead()      # "world"
+```
+
+### Stateful tokenizer pattern
+
+```kiwi
+import "iter"
+
+source = "let x = 42 + y"
+tokens = source.split(" ")
+it = ListIterator.new(tokens, default: "")
+
+while it.can_read() do
+  tok = it.consume()
+
+  if tok == "let"
+    name = it.consume()
+    it.consume()   # skip "="
+    val  = it.consume()
+    println "binding: ${name} = ${val}"
+  end
+end
+# binding: x = 42
+```
+
+### Position introspection
+
+```kiwi
+import "iter"
+
+words = ["one", "two", "three", "four"]
+it = ListIterator.new(words)
+
+it.skip(2)
+println it.position()  # 2
+println it.length()    # 4
+println it.eof()       # false
+
+it.skip(10)            # clamps to end
+println it.eof()       # true
+```
