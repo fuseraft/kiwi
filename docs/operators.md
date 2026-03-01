@@ -36,7 +36,7 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
-| Logical OR | `\|\|`  | Binary | `a \|\| b` |
+| Logical OR | `&#124;&#124;`  | Binary | `a &#124;&#124; b` |
 | Logical AND | `&&` | Binary | `a && b` |
 | Logical NOT | `!` | Unary | `!a` |
 
@@ -44,7 +44,7 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
-| Bitwise OR | `\|`  | Binary | `a \| b` |
+| Bitwise OR | `&#124;`  | Binary | `a &#124; b` |
 | Bitwise AND | `&` | Binary | `a & b` |
 | Bitwise XOR | `^` | Binary | `a ^ b` |
 | Bitwise NOT | `~` | Unary | `~a` |
@@ -69,14 +69,14 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
-| Logical OR Assign | `\|\|=`  | Assignment | `a \|\|= b` |
+| Logical OR Assign | `&#124;&#124;=`  | Assignment | `a &#124;&#124;= b` |
 | Logical AND Assign | `&&=` | Assignment | `a &&= b` |
 
 ## Bitwise Assignment Operators
 
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
 | ------------ | -------- | --------------- | -------- |
-| Bitwise OR Assignment | `\|=` | Assignment | `a \|= b` |
+| Bitwise OR Assignment | `&#124;=` | Assignment | `a &#124;= b` |
 | Bitwise AND Assignment | `&=` | Assignment | `a &= b` |
 | Bitwise XOR Assignment | `^=` | Assignment | `a ^= b` |
 | Bitwise NOT Assignment | `~=` | Assignment | `a ~= b` |

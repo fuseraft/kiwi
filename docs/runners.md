@@ -9,7 +9,7 @@ Kiwi supports **multiple execution modes** via the `IRunner` interface. Each mod
 | Runner | Purpose | Input | Example |
 |--------|--------|-------|--------|
 | `ScriptRunner` | Run `.kiwi` files | File path | `kiwi script.kiwi` |
-| `StdInRunner` | Run from piped input | `stdin` | `cat script.kiwi \| kiwi` |
+| `StdInRunner` | Run from piped input | `stdin` | `cat script.kiwi &#124; kiwi` |
 | `REPLRunner` | Interactive shell | Keyboard | `kiwi --interactive` |
 | `ASTPrinter` | Print AST for debugging | File | `kiwi --ast script.kiwi` |
 | `TokenPrinter` | Print tokens for debugging | File | `kiwi --tokenize script.kiwi` |
