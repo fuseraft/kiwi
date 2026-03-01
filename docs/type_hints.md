@@ -36,6 +36,7 @@ Kiwi’s type hint system supports the following builtin types:
 - **lambda**: Represents a lambda.
 - **bytes**: Represents a byte array.
 - **pointer**: Represents a pointer to a managed reference.
+- **generator**: Represents a generator object (returned by a generator function).
 - **none**: Represents a `null` value.
 - **any**: Accepts any type. Useful for parameters or return values where the type is flexible.
 

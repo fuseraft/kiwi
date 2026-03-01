@@ -26,6 +26,7 @@
      - [Conditionals](conditionals.md)
      - [Control Structures](control_structures.md)
      - [Loops](loops.md)
+     - [Generators](generators.md)
    - **Collections**
      - [Lists](lists.md)
      - [Ranges](ranges.md)

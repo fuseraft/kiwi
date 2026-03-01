@@ -1,0 +1,244 @@
+/# ==============================================================================
+    Testing generator functions (functions containing `yield`).
+   ============================================================================== #/
+tester::register_test("generators", with do
+
+  # ── A: basic yield sequence ────────────────────────────────────────────────
+  fn gen_abc()
+    yield "a"
+    yield "b"
+    yield "c"
+  end
+
+  result = []
+  for v in gen_abc() do
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 3, "A1")
+  tester::assert(result.join() == "abc", "A2")
+
+  # ── B: finite generator – all values collected ─────────────────────────────
+  fn counter(n)
+    var i = 0
+    while i < n do
+      yield i
+      i += 1
+    end
+  end
+
+  result = []
+  for v in counter(5) do
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 5, "B1")
+  tester::assert(result.sum() == 10, "B2")    # 0+1+2+3+4
+  tester::assert(result[0] == 0, "B3")
+  tester::assert(result[4] == 4, "B4")
+
+  # ── C: index variable ──────────────────────────────────────────────────────
+  result = []
+  indices = []
+  for v, i in counter(4) do
+    result.push(v)
+    indices.push(i)
+  end
+
+  tester::assert(indices.size() == 4, "C1")
+  tester::assert(indices[0] == 0, "C2")
+  tester::assert(indices[3] == 3, "C3")
+  tester::assert(indices.sum() == result.sum(), "C4")   # both are 0+1+2+3
+
+  # ── D: infinite generator stopped with break ───────────────────────────────
+  fn naturals()
+    var n = 0
+    while true do
+      yield n
+      n += 1
+    end
+  end
+
+  result = []
+  for n in naturals() do
+    result.push(n)
+    break when n >= 9
+  end
+
+  tester::assert(result.size() == 10, "D1")   # 0..9
+  tester::assert(result[9] == 9, "D2")
+  tester::assert(result.sum() == 45, "D3")
+
+  # ── E: fibonacci (classic infinite generator) ──────────────────────────────
+  fn fibonacci()
+    var a = 0
+    var b = 1
+    while true do
+      yield a
+      var tmp = a + b
+      a = b
+      b = tmp
+    end
+  end
+
+  result = []
+  for f in fibonacci() do
+    result.push(f)
+    break when result.size() >= 8
+  end
+
+  tester::assert(result.size() == 8, "E1")
+  tester::assert(result[0] == 0, "E2")
+  tester::assert(result[1] == 1, "E3")
+  tester::assert(result[7] == 13, "E4")
+
+  # ── F: generator with parameters ──────────────────────────────────────────
+  fn range_step(start, stop, step)
+    var i = start
+    while i < stop do
+      yield i
+      i += step
+    end
+  end
+
+  result = []
+  for x in range_step(0, 10, 2) do
+    result.push(x)
+  end
+
+  tester::assert(result.size() == 5, "F1")
+  tester::assert(result[0] == 0, "F2")
+  tester::assert(result[4] == 8, "F3")
+  tester::assert(result.sum() == 20, "F4")
+
+  # ── G: typeof ─────────────────────────────────────────────────────────────
+  var g = counter(3)
+  tester::assert(typeof(g) == "generator", "G1")
+
+  # ── H: multiple independent instances ─────────────────────────────────────
+  var g1 = counter(3)
+  var g2 = counter(3)
+
+  r1 = []
+  r2 = []
+
+  for v in g1 do r1.push(v) end
+  for v in g2 do r2.push(v) end
+
+  tester::assert(r1 == r2, "H1")
+  tester::assert(r1.sum() == 3, "H2")   # 0+1+2
+
+  # ── I: next (skip iteration) inside generator loop ─────────────────────────
+  result = []
+  for v in counter(10) do
+    next when v % 2 == 0    # skip even values
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 5, "I1")
+  tester::assert(result[0] == 1, "I2")
+  tester::assert(result[4] == 9, "I3")
+
+  # ── J: generator with conditional yield ───────────────────────────────────
+  fn evens(n)
+    var i = 0
+    while i < n do
+      if i % 2 == 0
+        yield i
+      end
+      i += 1
+    end
+  end
+
+  result = []
+  for v in evens(10) do
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 5, "J1")
+  tester::assert(result.sum() == 20, "J2")   # 0+2+4+6+8
+
+  # ── K: generator yields values of different types ─────────────────────────
+  fn mixed()
+    yield 42
+    yield "hello"
+    yield true
+    yield [1, 2, 3]
+  end
+
+  result = []
+  for v in mixed() do
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 4, "K1")
+  tester::assert(result[0] == 42, "K2")
+  tester::assert(result[1] == "hello", "K3")
+  tester::assert(result[2] == true, "K4")
+  tester::assert(result[3].size() == 3, "K5")
+
+  # ── L: empty generator (no yields reached) ────────────────────────────────
+  fn empty_gen()
+    if false
+      yield 1
+    end
+  end
+
+  result = []
+  for v in empty_gen() do
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 0, "L1")
+
+  # ── M: early return inside generator stops iteration ─────────────────────
+  fn early_stop(limit)
+    var i = 0
+    while true do
+      if i >= limit
+        return
+      end
+      yield i
+      i += 1
+    end
+  end
+
+  result = []
+  for v in early_stop(3) do
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 3, "M1")
+  tester::assert(result.sum() == 3, "M2")   # 0+1+2
+
+  # ── N: nested generator calls ─────────────────────────────────────────────
+  fn squares(n)
+    var i = 1
+    while i <= n do
+      yield i * i
+      i += 1
+    end
+  end
+
+  result = []
+  for v in squares(5) do
+    result.push(v)
+  end
+
+  tester::assert(result.size() == 5, "N1")
+  tester::assert(result.sum() == 55, "N2")   # 1+4+9+16+25
+  tester::assert(result[0] == 1, "N3")
+  tester::assert(result[4] == 25, "N4")
+
+  # ── O: generator type hint ────────────────────────────────────────────────
+  fn collect(g: generator): list
+    result = []
+    for v in g do
+      result.push(v)
+    end
+    return result
+  end
+
+  tester::assert(collect(counter(4)) == [0, 1, 2, 3], "O1")
+  tester::assert(collect(squares(3)) == [1, 4, 9], "O2")
+end)

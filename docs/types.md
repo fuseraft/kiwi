@@ -8,6 +8,7 @@ Kiwi supports the following builtin types. To build your own type, see [Structs]
 | [`bytes`](#bytes) | A byte array. | See below for an example. |
 | [`date`](#date) | A date-time object. | See [Dates](dates.md). |
 | [`float`](#float) | A floating point number. | See below for an example. |
+| [`generator`](#generator) | A lazy sequence produced by a generator function. | See [Generators](generators.md). |
 | [`hashmap`](#hashmap) | A dictionary of key-value pairs. | See [Hashmaps](hashmaps.md). |
 | [`integer`](#integer) | A 64-bit integer. | See below for an example. |
 | [`lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
@@ -70,6 +71,30 @@ pi = 3.14159
 tau = pi * 2
 
 println(tau) # prints: 6.28318
+```
+
+---
+
+### `generator`
+
+A lazy sequence produced by a [generator function](generators.md) — a function that contains one or more `yield` statements. Calling a generator function does not execute its body; instead it returns a `generator` object that produces values on demand when iterated with `for`.
+
+```kiwi
+fn countdown(n)
+  while n >= 0 do
+    yield n
+    n -= 1
+  end
+end
+
+for x in countdown(3) do
+  print "${x} "
+end
+# 3 2 1 0
+
+# typeof returns "generator"
+g = countdown(5)
+println typeof(g)   # generator
 ```
 
 ---

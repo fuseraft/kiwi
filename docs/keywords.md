@@ -32,6 +32,7 @@ This document provides an overview of reserved keywords in Kiwi, along with expl
   - [`return`](#return)
   - [`static`](#static)
   - [`with`](#with)
+  - [`yield`](#yield)
 - [Structs](#structs)
   - [`abstract`](#abstract)
   - [`struct`](#struct)
@@ -189,6 +190,11 @@ See [Structs](structs.md).
 The `with` keyword is used to define a lambda.
 
 See [Lambdas](lambdas.md).
+
+### `yield`
+The `yield` keyword is used inside a generator function to produce a value and suspend execution until the next value is requested.
+
+See [Generators](generators.md).
 
 ## Structs
 

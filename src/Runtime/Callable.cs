@@ -46,6 +46,7 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     public bool IsStatic { get; set; }
     public bool IsPrivate { get; set; }
     public bool IsCtor { get; set; }
+    public bool IsGenerator { get; set; }
 
     public KFunction Clone()
     {
@@ -55,6 +56,7 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
             IsStatic        = IsStatic,
             IsPrivate       = IsPrivate,
             IsCtor          = IsCtor,
+            IsGenerator     = IsGenerator,
             Parameters      = Parameters,
             DefaultParameters = DefaultParameters,
             TypeHints       = TypeHints,

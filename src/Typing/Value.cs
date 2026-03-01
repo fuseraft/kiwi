@@ -24,6 +24,99 @@ public class StructRef
 
 public class NullRef { }
 
+public class GeneratorCloseException : Exception { }
+
+public class GeneratorRef : IDisposable
+{
+    private readonly SemaphoreSlim _ready = new(0, 1);
+    private readonly SemaphoreSlim _advance = new(0, 1);
+    private Value? _yieldedValue;
+    private volatile bool _done;
+    private bool _closed;
+    private Exception? _exception;
+
+    public bool IsDone => _done;
+
+    public void Start(Action generatorBody)
+    {
+        var thread = new Thread(() =>
+        {
+            _advance.Wait();
+
+            if (_closed)
+            {
+                _done = true; _ready.Release(); return;
+            }
+            
+            try
+            {
+                generatorBody(); 
+            }
+            catch (GeneratorCloseException) { /* normal close */ }
+            catch (Exception e) { _exception = e; }
+            finally
+            {
+                _done = true;
+                _ready.Release();
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "kiwi-generator"
+        };
+
+        thread.Start();
+    }
+
+    // Called from the generator thread when a yield statement is hit
+    public void Yield(Value value)
+    {
+        _yieldedValue = value;
+        _ready.Release();   // signal consumer that a value is ready
+        _advance.Wait();    // wait for the next Next() call
+        
+        if (_closed) 
+        {
+            throw new GeneratorCloseException();
+        }
+    }
+
+    // Called from the consumer (main) thread to advance the generator
+    public (bool hasValue, Value value) Next()
+    {
+        if (_done)
+        {
+            return (false, Value.Default);
+        }
+
+        _advance.Release(); // allow generator to run
+        _ready.Wait();      // wait for yield or completion
+        
+        if (_exception != null)
+        {
+            var ex = _exception;
+            _exception = null;
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex).Throw();
+        }
+        
+        if (_done)
+        {
+            return (false, Value.Default);
+        }
+
+        return (true, _yieldedValue!);
+    }
+
+    public void Dispose()
+    {
+        if (!_done)
+        {
+            _closed = true;
+            _advance.Release(); // unblock generator thread so it can exit
+        }
+    }
+}
+
 public class SliceIndex(Value indexOrStart, Value stopIndex, Value stepValue)
 {
     public Value IndexOrStart { get; set; } = indexOrStart;
@@ -96,6 +189,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static Value CreatePointer(IntPtr value) => new(value, ValueType.Pointer);
     public static Value CreateBytes(byte[] value) => new(value, ValueType.Bytes);
     public static Value CreateBytes(object value) => new(value, ValueType.Bytes);
+    public static Value CreateGenerator(GeneratorRef value) => new(value, ValueType.Generator);
 
     public double GetNumber()
     {
@@ -145,6 +239,8 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public bool IsStruct() => Type == ValueType.Struct;
     public bool IsPointer() => Type == ValueType.Pointer;
     public bool IsBytes() => Type == ValueType.Bytes;
+    public bool IsGenerator() => Type == ValueType.Generator;
+    public GeneratorRef GetGenerator() => (GeneratorRef)Value_;
 
     public static List<Value> Clone(List<Value> list)
     {
@@ -187,6 +283,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             ValueType.Struct => CreateStruct(GetStruct()),
             ValueType.Pointer => CreatePointer(GetPointer()),
             ValueType.Bytes => CreateBytes(GetBytes()),
+            ValueType.Generator => this, // generators are stateful references, not cloned
             _ => throw new Exception("Unsupported type for cloning"),
         };
     }
@@ -840,6 +937,7 @@ public enum ValueType
     Pointer = 10,
     Date = 11,
     Bytes = 12,
+    Generator = 13,
     Unset = 20,
     Number = 21
 };

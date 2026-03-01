@@ -15,14 +15,27 @@ namespace kiwi.Runtime;
 public class Interpreter
 {
     private const int SafemodeMaxIterations = 1000000;
-    private readonly Scope _globalScope = new();
+    private Scope _globalScope = new();
 
     public Interpreter()
     {
-        Current = this;
+        _threadCurrent = this;
     }
 
-    public static Interpreter? Current { get; private set; }
+    // Used by generator threads to share the global scope and context
+    internal Interpreter(Scope globalScope, KContext context)
+    {
+        _globalScope = globalScope;
+        Context = context;
+        _threadCurrent = this;
+    }
+
+    [ThreadStatic]
+    private static Interpreter? _threadCurrent;
+    public static Interpreter? Current => _threadCurrent;
+
+    private GeneratorRef? _activeGenerator;
+
     public Dictionary<string, string> CliArgs { get; set; } = [];
     public KContext Context { get; private set; } = new();
     public string ExecutionPath { get; set; } = string.Empty;
@@ -132,6 +145,7 @@ public class Interpreter
             ASTNodeType.UnaryOperation => Visit((UnaryOperationNode)node),
             ASTNodeType.Variable => Visit((VariableNode)node),
             ASTNodeType.WhileLoop => Visit((WhileLoopNode)node),
+            ASTNodeType.Yield => Visit((YieldNode)node),
             _ => PrintNode(node),
         };
 
@@ -1127,6 +1141,7 @@ public class Interpreter
             "hashmap" => v.IsHashmap(),
             "integer" => v.IsInteger(),
             "date" => v.IsDate(),
+            "generator" => v.IsGenerator(),
             "lambda" => v.IsLambda(),
             "list" => v.IsList(),
             "none" => v.IsNull(),
@@ -1528,6 +1543,10 @@ public class Interpreter
         {
             return BytesLoop(node, dataSetValue.GetBytes());
         }
+        else if (dataSetValue.IsGenerator())
+        {
+            return GeneratorLoop(node, dataSetValue.GetGenerator());
+        }
 
         throw new InvalidOperationError(node.Token, "Expected a list value in for-loop.");
     }
@@ -1904,7 +1923,6 @@ public class Interpreter
 
         // we're going to be injecting these into the stack frame
         var scope = CallStack.Peek().Scope;
-
         // for each declared variable
         foreach (var pair in node.Variables)
         {
@@ -1921,7 +1939,7 @@ public class Interpreter
             }
             else
             {
-                value = Interpret(pair.Value);
+                value = Interpret(pair.Value).Clone();
 
                 // if the value is a lambda, register to the lambda map
                 if (value.IsLambda())
@@ -2031,8 +2049,16 @@ public class Interpreter
                     break;
 
                 case CallableType.Function:
-                    result = CallFunction(node);
-                    doPop = true;
+                    var func = Context.Functions[node.FunctionName];
+                    if (func.IsGenerator)
+                    {
+                        result = CreateGenerator(func, node.Arguments, node.Token);
+                    }
+                    else
+                    {
+                        result = CallFunction(node);
+                        doPop = true;
+                    }
                     break;
 
                 case CallableType.Lambda:
@@ -2117,6 +2143,169 @@ public class Interpreter
         }
 
         return returnValue;
+    }
+
+    private Value Visit(YieldNode node)
+    {
+        if (_activeGenerator == null)
+        {
+            throw new RuntimeError(node.Token, "'yield' used outside of a generator function.", CaptureStackTrace());
+        }
+
+        var value = node.YieldValue != null ? Interpret(node.YieldValue) : Value.Default;
+        _activeGenerator.Yield(value);
+        return Value.Default;
+    }
+
+    private Value CreateGenerator(KFunction func, List<ASTNode?> argNodes, Token token)
+    {
+        // Evaluate arguments in the caller's context before starting the generator thread
+        var args = argNodes.Select(arg => arg != null ? Interpret(arg) : Value.Default).ToList();
+
+        var generatorRef = new GeneratorRef();
+        var capturedGlobal = _globalScope;
+        var capturedContext = Context;
+        var capturedExecPath = ExecutionPath;
+        var capturedEntryPath = EntryPath;
+        var capturedFunc = func;
+        var capturedToken = token;
+
+        generatorRef.Start(() =>
+        {
+            var genInterp = new Interpreter(capturedGlobal, capturedContext)
+            {
+                ExecutionPath = capturedExecPath,
+                EntryPath = capturedEntryPath
+            };
+            genInterp.RunGeneratorBody(capturedFunc, args, capturedToken, generatorRef);
+        });
+
+        return Value.CreateGenerator(generatorRef);
+    }
+
+    internal void RunGeneratorBody(KFunction func, List<Value> args, Token token, GeneratorRef generatorRef)
+    {
+        _activeGenerator = generatorRef;
+
+        // Push a root frame so the call stack is not empty
+        PushFrame("<generator>", token, new Scope(_globalScope));
+
+        var functionScope = new Scope(func.CapturedScope ?? _globalScope);
+        var functionFrame = new StackFrame(func.Name, functionScope, token);
+
+        BindParameters(func, args, token, func.Name, functionScope);
+        PushFrame(functionFrame);
+
+        try
+        {
+            foreach (var stmt in func.Decl.Body)
+            {
+                if (stmt == null) continue;
+                Interpret(stmt);
+                if (functionFrame.IsFlagSet(FrameFlags.Return))
+                    break;
+            }
+        }
+        finally
+        {
+            PopFrame(); // function frame
+            PopFrame(); // root frame
+        }
+    }
+
+    private Value GeneratorLoop(ForLoopNode node, GeneratorRef genRef)
+    {
+        var frame = CallStack.Peek();
+        var scope = frame.Scope;
+        frame.SetFlag(FrameFlags.InLoop);
+
+        var valueName = Id(node.ValueIterator);
+        string? indexName = null;
+        if (node.IndexIterator != null)
+            indexName = Id(node.IndexIterator);
+
+        scope.Declare(valueName, Value.Default);
+        if (indexName != null)
+            scope.Declare(indexName, Value.Default);
+
+        var result = Value.Default;
+        var fallOut = false;
+        long index = 0;
+
+        try
+        {
+            while (true)
+            {
+                var (hasValue, value) = genRef.Next();
+                if (!hasValue) break;
+
+                scope.Assign(valueName, value);
+                if (indexName != null)
+                    scope.Assign(indexName, Value.CreateInteger(index));
+                index++;
+
+                var skip = false;
+
+                foreach (var stmt in node.Body)
+                {
+                    if (skip || fallOut) break;
+                    if (stmt == null) continue;
+
+                    var stmtType = stmt.Type;
+                    if (stmtType != ASTNodeType.Next && stmtType != ASTNodeType.Break)
+                    {
+                        result = Interpret(stmt);
+
+                        if (frame.IsFlagSet(FrameFlags.Break))
+                        {
+                            frame.ClearFlag(FrameFlags.Break);
+                            fallOut = true;
+                            break;
+                        }
+
+                        if (frame.IsFlagSet(FrameFlags.Next))
+                        {
+                            frame.ClearFlag(FrameFlags.Next);
+                            skip = true;
+                            break;
+                        }
+                    }
+
+                    if (frame.IsFlagSet(FrameFlags.Return))
+                        return frame.ReturnValue ?? result;
+
+                    if (stmtType == ASTNodeType.Next)
+                    {
+                        var condition = ((NextNode)stmt).Condition;
+                        if (condition == null || BooleanOp.IsTruthy(Interpret(condition)))
+                        {
+                            skip = true;
+                            break;
+                        }
+                    }
+                    else if (stmtType == ASTNodeType.Break)
+                    {
+                        var condition = ((BreakNode)stmt).Condition;
+                        if (condition == null || BooleanOp.IsTruthy(Interpret(condition)))
+                        {
+                            fallOut = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (fallOut) break;
+            }
+        }
+        finally
+        {
+            frame.ClearFlag(FrameFlags.InLoop);
+            genRef.Dispose();
+            scope.Remove(valueName);
+            if (indexName != null) scope.Remove(indexName);
+        }
+
+        return result;
     }
 
     private Value Visit(IndexingNode node)
@@ -2268,6 +2457,7 @@ public class Interpreter
             IsPrivate = node.IsPrivate,
             IsStatic = node.IsStatic,
             IsCtor = node.Name == "new",
+            IsGenerator = node.IsGenerator,
             TypeHints = node.TypeHints,
             ReturnTypeHint = node.ReturnTypeHint,
             CapturedScope = CallStack.Peek().Scope
