@@ -3529,7 +3529,7 @@
 
 
 <h1 id="fio"><code>fio</code><a class="headerlink" href="#fio" title="Permanent link">&para;</a></h1>
-<p>The <code>fio</code> package (short for <strong>file I/O</strong>) provides low-level, procedural filesystem operations in Kiwi.<br />
+<p>The <code>fio</code> package (short for <strong>file I/O</strong>) provides low-level, procedural filesystem operations in Kiwi.
 It serves as the foundation for higher-level abstractions like the <code>path</code> module. Most functions accept plain strings as paths and return simple values (usually booleans for success/failure, or the expected data type).</p>
 <hr />
 <h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
@@ -3553,7 +3553,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3568,6 +3568,13 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;fio&quot;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>abs = fio::abspath(&quot;./data&quot;)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>println &quot;Absolute path: ${abs}&quot;
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a># e.g. /home/user/project/data
+</span></code></pre></div>
 <h4 id="combine_path_parts"><code>combine(_path_parts)</code><a class="headerlink" href="#combine_path_parts" title="Permanent link">&para;</a></h4>
 <p>Joins path components using the platform-appropriate separator.</p>
 <p><strong>Parameters</strong></p>
@@ -3587,7 +3594,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3602,9 +3609,16 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;fio&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>p = fio::combine([&quot;home&quot;, &quot;user&quot;, &quot;file.txt&quot;])
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>println p
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a># home/user/file.txt
+</span></code></pre></div>
 <h4 id="ext_path"><code>ext(_path)</code><a class="headerlink" href="#ext_path" title="Permanent link">&para;</a></h4>
 <p>Extracts the file extension (including the dot).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3619,9 +3633,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;fio&quot;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>println fio::ext(&quot;report.pdf&quot;)   # .pdf
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>println fio::ext(&quot;Makefile&quot;)     # (empty string)
+</span></code></pre></div>
 <h4 id="filename_path"><code>filename(_path)</code><a class="headerlink" href="#filename_path" title="Permanent link">&para;</a></h4>
 <p>Returns only the final component (filename or last directory name).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3636,9 +3656,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;fio&quot;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>println fio::filename(&quot;/home/user/data.csv&quot;)
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># data.csv
+</span></code></pre></div>
 <h4 id="parentdir_path"><code>parentdir(_path)</code><a class="headerlink" href="#parentdir_path" title="Permanent link">&para;</a></h4>
 <p>Returns the parent directory of the given path.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3653,9 +3679,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;fio&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>println fio::parentdir(&quot;/home/user/data.csv&quot;)
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a># /home/user
+</span></code></pre></div>
 <h4 id="pathparts_path"><code>pathparts(_path)</code><a class="headerlink" href="#pathparts_path" title="Permanent link">&para;</a></h4>
 <p>Splits the path into its components.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3670,6 +3702,13 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;fio&quot;
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>parts = fio::pathparts(&quot;/home/user/data&quot;)
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>println parts
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a># [&quot;home&quot;, &quot;user&quot;, &quot;data&quot;]
+</span></code></pre></div>
 <h3 id="directory-operations">Directory operations<a class="headerlink" href="#directory-operations" title="Permanent link">&para;</a></h3>
 <h4 id="chdir_path"><code>chdir(_path)</code><a class="headerlink" href="#chdir_path" title="Permanent link">&para;</a></h4>
 <p>Changes the current working directory.</p>
@@ -3690,7 +3729,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3705,9 +3744,17 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;fio&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>ok = fio::chdir(&quot;/tmp&quot;)
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>println &quot;Changed to /tmp: ${ok}&quot;
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>println fio::cwd()
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a># /tmp
+</span></code></pre></div>
 <h4 id="cwd"><code>cwd()</code><a class="headerlink" href="#cwd" title="Permanent link">&para;</a></h4>
 <p>Returns the current working directory.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3722,9 +3769,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;fio&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>println fio::cwd()
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a># /home/user/project
+</span></code></pre></div>
 <h4 id="isdir_path"><code>isdir(_path)</code><a class="headerlink" href="#isdir_path" title="Permanent link">&para;</a></h4>
 <p>Checks if the path points to an existing directory.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3739,9 +3792,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;fio&quot;
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>println fio::isdir(&quot;/tmp&quot;)    # true
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>println fio::isdir(&quot;/tmp/nonexistent&quot;)  # false
+</span></code></pre></div>
 <h4 id="mkdir_path"><code>mkdir(_path)</code><a class="headerlink" href="#mkdir_path" title="Permanent link">&para;</a></h4>
 <p>Creates a single directory (fails if parent directories don't exist).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3756,9 +3815,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>import &quot;fio&quot;
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>ok = fio::mkdir(&quot;output&quot;)
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>println &quot;Created output/: ${ok}&quot;
+</span></code></pre></div>
 <h4 id="mkdirp_path"><code>mkdirp(_path)</code><a class="headerlink" href="#mkdirp_path" title="Permanent link">&para;</a></h4>
 <p>Creates a directory and all necessary parent directories (<code>mkdir -p</code> style).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3773,6 +3838,13 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>import &quot;fio&quot;
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a># Creates a/, a/b/, and a/b/c/ as needed
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>ok = fio::mkdirp(&quot;a/b/c&quot;)
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>println &quot;Deep mkdir: ${ok}&quot;
+</span></code></pre></div>
 <h4 id="listdir_path-_recursive"><code>listdir(_path, _recursive)</code><a class="headerlink" href="#listdir_path-_recursive" title="Permanent link">&para;</a></h4>
 <p>Lists directory contents.</p>
 <p><strong>Parameters</strong></p>
@@ -3800,7 +3872,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3815,9 +3887,22 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>import &quot;fio&quot;
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a># Shallow listing
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>entries = fio::listdir(&quot;.&quot;, false)
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>for entry in entries do
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>  println entry
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>end
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a># Recursive listing — every file under the current directory
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>all_files = fio::listdir(&quot;.&quot;, true)
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>println &quot;Total entries: ${all_files.size()}&quot;
+</span></code></pre></div>
 <h4 id="rmdir_path"><code>rmdir(_path)</code><a class="headerlink" href="#rmdir_path" title="Permanent link">&para;</a></h4>
 <p>Removes an <strong>empty</strong> directory.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3832,9 +3917,16 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>import &quot;fio&quot;
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>fio::mkdir(&quot;empty_folder&quot;)
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>ok = fio::rmdir(&quot;empty_folder&quot;)
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>println &quot;Removed: ${ok}&quot;
+</span></code></pre></div>
 <h4 id="rmdirf_path"><code>rmdirf(_path)</code><a class="headerlink" href="#rmdirf_path" title="Permanent link">&para;</a></h4>
 <p>Recursively deletes a directory and everything inside it.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3849,10 +3941,18 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>import &quot;fio&quot;
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>fio::mkdirp(&quot;trash/a/b&quot;)
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>fio::write(&quot;trash/a/b/file.txt&quot;, &quot;bye&quot;)
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>ok = fio::rmdirf(&quot;trash&quot;)
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>println &quot;Deleted trash/: ${ok}&quot;
+</span></code></pre></div>
 <h3 id="file-operations">File operations<a class="headerlink" href="#file-operations" title="Permanent link">&para;</a></h3>
 <h4 id="create_path"><code>create(_path)</code><a class="headerlink" href="#create_path" title="Permanent link">&para;</a></h4>
 <p>Creates an empty file (equivalent to <code>touch</code> but may behave differently on some platforms).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3867,9 +3967,16 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>import &quot;fio&quot;
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>ok = fio::create(&quot;new.txt&quot;)
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>println &quot;Created: ${ok}&quot;
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>println &quot;Size: ${fio::filesize(&quot;new.txt&quot;)}&quot;  # 0
+</span></code></pre></div>
 <h4 id="touch_path"><code>touch(_path)</code><a class="headerlink" href="#touch_path" title="Permanent link">&para;</a></h4>
 <p>Creates an empty file or updates the access/modification time of an existing file.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3884,9 +3991,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>import &quot;fio&quot;
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>fio::touch(&quot;log.txt&quot;)        # creates if absent, updates mtime if present
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>println fio::exists(&quot;log.txt&quot;)  # true
+</span></code></pre></div>
 <h4 id="exists_path"><code>exists(_path)</code><a class="headerlink" href="#exists_path" title="Permanent link">&para;</a></h4>
 <p>Checks whether a file <strong>or</strong> directory exists at the path.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3901,9 +4014,18 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>import &quot;fio&quot;
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>if fio::exists(&quot;config.json&quot;)
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>  println &quot;Config found&quot;
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>else
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>  println &quot;No config — using defaults&quot;
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>end
+</span></code></pre></div>
 <h4 id="isfile_path"><code>isfile(_path)</code><a class="headerlink" href="#isfile_path" title="Permanent link">&para;</a></h4>
 <p>Checks if the path points to a regular file.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3918,9 +4040,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>import &quot;fio&quot;
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>println fio::isfile(&quot;report.pdf&quot;)   # true (if it exists as a file)
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>println fio::isfile(&quot;/tmp&quot;)         # false (directory)
+</span></code></pre></div>
 <h4 id="filesize_path"><code>filesize(_path)</code><a class="headerlink" href="#filesize_path" title="Permanent link">&para;</a></h4>
 <p>Returns the size of a file in bytes.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3935,9 +4063,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>import &quot;fio&quot;
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>bytes = fio::filesize(&quot;data.csv&quot;)
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>println &quot;Size: ${bytes} bytes&quot;
+</span></code></pre></div>
 <h4 id="fileinfo_path"><code>fileinfo(_path)</code><a class="headerlink" href="#fileinfo_path" title="Permanent link">&para;</a></h4>
 <p>Returns detailed metadata about a file.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -3952,6 +4086,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>import &quot;fio&quot;
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>info = fio::fileinfo(&quot;report.pdf&quot;)
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>println &quot;Name:      ${info[&quot;name&quot;]}&quot;
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>println &quot;Extension: ${info[&quot;extension&quot;]}&quot;
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>println &quot;Modified:  ${info[&quot;last_write_time&quot;]}&quot;
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>println &quot;Created:   ${info[&quot;creation_time&quot;]}&quot;
+</span></code></pre></div>
 <h4 id="copysource-dest-overwrite"><code>copy(source, dest, overwrite)</code><a class="headerlink" href="#copysource-dest-overwrite" title="Permanent link">&para;</a></h4>
 <p>Copies a single file.</p>
 <p><strong>Parameters</strong></p>
@@ -3985,7 +4128,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4000,9 +4143,19 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>import &quot;fio&quot;
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>ok = fio::copy(&quot;a.txt&quot;, &quot;b.txt&quot;)
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>println &quot;Copied: ${ok}&quot;
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a># Prevent overwrite
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>ok = fio::copy(&quot;a.txt&quot;, &quot;b.txt&quot;, false)
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>println &quot;Overwrite prevented: ${!ok}&quot;
+</span></code></pre></div>
 <h4 id="copyrsource-dest"><code>copyr(source, dest)</code><a class="headerlink" href="#copyrsource-dest" title="Permanent link">&para;</a></h4>
 <p>Recursively copies a directory (and all contents).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4017,6 +4170,12 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>import &quot;fio&quot;
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>ok = fio::copyr(&quot;src_dir&quot;, &quot;backup_dir&quot;)
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>println &quot;Directory copied: ${ok}&quot;
+</span></code></pre></div>
 <h4 id="movesource-dest-overwrite"><code>move(source, dest, overwrite)</code><a class="headerlink" href="#movesource-dest-overwrite" title="Permanent link">&para;</a></h4>
 <p>Moves or renames a file/directory.</p>
 <p><strong>Parameters</strong></p>
@@ -4050,7 +4209,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4065,9 +4224,18 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>import &quot;fio&quot;
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a># Rename a file
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>fio::move(&quot;old.txt&quot;, &quot;new.txt&quot;)
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a># Move into a directory (overwrite allowed)
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>fio::move(&quot;new.txt&quot;, &quot;archive/new.txt&quot;, true)
+</span></code></pre></div>
 <h4 id="remove_path"><code>remove(_path)</code><a class="headerlink" href="#remove_path" title="Permanent link">&para;</a></h4>
 <p>Deletes a file (not directories).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4082,10 +4250,18 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>import &quot;fio&quot;
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>fio::write(&quot;temp.txt&quot;, &quot;delete me&quot;)
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>ok = fio::remove(&quot;temp.txt&quot;)
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>println &quot;Deleted: ${ok}&quot;
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>println &quot;Still exists: ${fio::exists(&quot;temp.txt&quot;)}&quot;  # false
+</span></code></pre></div>
 <h3 id="reading">Reading<a class="headerlink" href="#reading" title="Permanent link">&para;</a></h3>
 <h4 id="read_path"><code>read(_path)</code><a class="headerlink" href="#read_path" title="Permanent link">&para;</a></h4>
 <p>Reads entire file content as UTF-8 string.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4100,9 +4276,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>import &quot;fio&quot;
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>content = fio::read(&quot;notes.txt&quot;)
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>println content
+</span></code></pre></div>
 <h4 id="readbytes_path"><code>readbytes(_path)</code><a class="headerlink" href="#readbytes_path" title="Permanent link">&para;</a></h4>
 <p>Reads entire file as raw bytes.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4117,9 +4299,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>import &quot;fio&quot;
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>raw = fio::readbytes(&quot;image.png&quot;)
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>println &quot;Read ${raw.size()} bytes&quot;
+</span></code></pre></div>
 <h4 id="readlines_path"><code>readlines(_path)</code><a class="headerlink" href="#readlines_path" title="Permanent link">&para;</a></h4>
 <p>Reads file and splits it into lines.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4134,6 +4322,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>import &quot;fio&quot;
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>lines = fio::readlines(&quot;data.csv&quot;)
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>for line in lines do
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>  cols = line.split(&quot;,&quot;)
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>  println cols[0]
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>end
+</span></code></pre></div>
 <h4 id="readslice_path-_offset-_size"><code>readslice(_path, _offset, _size)</code><a class="headerlink" href="#readslice_path-_offset-_size" title="Permanent link">&para;</a></h4>
 <p>Reads a portion of the file as bytes.</p>
 <p><strong>Parameters</strong></p>
@@ -4163,7 +4360,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4178,10 +4375,17 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>import &quot;fio&quot;
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a># Read the first 4 bytes (e.g. to check a file magic number)
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>header = fio::readslice(&quot;archive.zip&quot;, 0, 4)
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>println header.to_list()
+</span></code></pre></div>
 <h3 id="writing">Writing<a class="headerlink" href="#writing" title="Permanent link">&para;</a></h3>
 <h4 id="write_path-_text"><code>write(_path, _text)</code><a class="headerlink" href="#write_path-_text" title="Permanent link">&para;</a></h4>
 <p>Overwrites file with new text content.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4196,9 +4400,16 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>import &quot;fio&quot;
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>fio::write(&quot;out.txt&quot;, &quot;Hello, world!&quot;)
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>println fio::read(&quot;out.txt&quot;)
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a># Hello, world!
+</span></code></pre></div>
 <h4 id="writeln_path-_text"><code>writeln(_path, _text)</code><a class="headerlink" href="#writeln_path-_text" title="Permanent link">&para;</a></h4>
 <p><strong>Appends</strong> one line (adds newline).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4213,9 +4424,21 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>import &quot;fio&quot;
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>fio::write(&quot;log.txt&quot;, &quot;&quot;)   # start fresh
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>fio::writeln(&quot;log.txt&quot;, &quot;Line 1&quot;)
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>fio::writeln(&quot;log.txt&quot;, &quot;Line 2&quot;)
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>fio::writeln(&quot;log.txt&quot;, &quot;Line 3&quot;)
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>println fio::read(&quot;log.txt&quot;)
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a># Line 1
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a># Line 2
+</span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a># Line 3
+</span></code></pre></div>
 <h4 id="append_path-_text"><code>append(_path, _text)</code><a class="headerlink" href="#append_path-_text" title="Permanent link">&para;</a></h4>
 <p>Appends text without adding a newline.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4230,9 +4453,17 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>import &quot;fio&quot;
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>fio::write(&quot;out.txt&quot;, &quot;Hello&quot;)
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>fio::append(&quot;out.txt&quot;, &quot;, world!&quot;)
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>println fio::read(&quot;out.txt&quot;)
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a># Hello, world!
+</span></code></pre></div>
 <h4 id="writebytes_path-_data"><code>writebytes(_path, _data)</code><a class="headerlink" href="#writebytes_path-_data" title="Permanent link">&para;</a></h4>
 <p>Overwrites file with raw bytes.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4247,9 +4478,16 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>import &quot;fio&quot;
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>raw = fio::readbytes(&quot;original.bin&quot;)
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>n = fio::writebytes(&quot;copy.bin&quot;, raw)
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>println &quot;Wrote ${n} bytes&quot;
+</span></code></pre></div>
 <h4 id="writeslice_path-_offset-_data"><code>writeslice(_path, _offset, _data)</code><a class="headerlink" href="#writeslice_path-_offset-_data" title="Permanent link">&para;</a></h4>
 <p>Writes bytes at a specific position (seeks + writes).</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4264,6 +4502,14 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>import &quot;fio&quot;
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a># Patch bytes starting at offset 16
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>patch = &quot;PATCHED&quot;.to_bytes()
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>n = fio::writeslice(&quot;binary.dat&quot;, 16, patch)
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>println &quot;Patched ${n} bytes at offset 16&quot;
+</span></code></pre></div>
 <h3 id="pattern-matching">Pattern matching<a class="headerlink" href="#pattern-matching" title="Permanent link">&para;</a></h3>
 <h4 id="glob_path-_include_patterns-_exclude_patterns"><code>glob(_path, _include_patterns, _exclude_patterns)</code><a class="headerlink" href="#glob_path-_include_patterns-_exclude_patterns" title="Permanent link">&para;</a></h4>
 <p>Finds files matching glob patterns.</p>
@@ -4298,7 +4544,7 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4313,10 +4559,23 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>import &quot;fio&quot;
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a># All .kiwi files under the current directory
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>kiwi_files = fio::glob(&quot;.&quot;, [&quot;**/*.kiwi&quot;])
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>for f in kiwi_files do
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>  println f
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>end
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>
+</span><span id="__span-33-9"><a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a># All .txt files, excluding anything in a temp/ folder
+</span><span id="__span-33-10"><a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>txt_files = fio::glob(&quot;.&quot;, [&quot;**/*.txt&quot;], [&quot;**/temp*&quot;])
+</span><span id="__span-33-11"><a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>println &quot;Found ${txt_files.size()} non-temp text files&quot;
+</span></code></pre></div>
 <h3 id="temporary-files-directories">Temporary files / directories<a class="headerlink" href="#temporary-files-directories" title="Permanent link">&para;</a></h3>
 <h4 id="tmpdir"><code>tmpdir()</code><a class="headerlink" href="#tmpdir" title="Permanent link">&para;</a></h4>
 <p>Returns path to system temporary directory.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4331,9 +4590,15 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>import &quot;fio&quot;
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>println fio::tmpdir()
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a># /tmp  (on Linux/macOS)
+</span></code></pre></div>
 <h4 id="tmpfile"><code>tmpfile()</code><a class="headerlink" href="#tmpfile" title="Permanent link">&para;</a></h4>
 <p>Creates a new empty temporary file and returns its path.</p>
-<p><strong>Returns</strong>  </p>
+<p><strong>Returns</strong></p>
 <table>
 <thead>
 <tr>
@@ -4348,6 +4613,17 @@ It serves as the foundation for higher-level abstractions like the <code>path</c
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>import &quot;fio&quot;
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>tmp = fio::tmpfile()
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>println &quot;Temp file: ${tmp}&quot;
+</span><span id="__span-35-5"><a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>
+</span><span id="__span-35-6"><a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>fio::write(tmp, &quot;scratch data&quot;)
+</span><span id="__span-35-7"><a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a>println fio::read(tmp)
+</span><span id="__span-35-8"><a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a>
+</span><span id="__span-35-9"><a id="__codelineno-35-9" name="__codelineno-35-9" href="#__codelineno-35-9"></a>fio::remove(tmp)
+</span></code></pre></div>
 
 
 

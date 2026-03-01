@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/csv/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/list/">
       
       
-        <link rel="prev" href="../crypto/">
-      
-      
-        <link rel="next" href="../env/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>csv - Kiwi</title>
+        <title>list - Kiwi</title>
       
     
     
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#csv" class="md-skip">
+        <a href="#list" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              csv
+              list
             
           </span>
         </div>
@@ -380,12 +376,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../" class="md-tabs__link">
           
   
@@ -1718,31 +1712,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -1760,7 +1751,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1943,37 +1934,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    csv
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../csv/" class="md-nav__link">
         
   
   
@@ -1989,65 +1953,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Package Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Package Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parseinput-delimiter" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse(input, delimiter)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parse_filefile_path-delimiter" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse_file(file_path, delimiter)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2491,10 +2396,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#parseinput-delimiter" class="md-nav__link">
+  <a href="#iterator_list" class="md-nav__link">
     <span class="md-ellipsis">
       
-        parse(input, delimiter)
+        iterator(_list)
       
     </span>
   </a>
@@ -2502,10 +2407,153 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse_filefile_path-delimiter" class="md-nav__link">
+  <a href="#all_list-_predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        parse_file(file_path, delimiter)
+        all(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_any_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _any(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_count_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _count(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#first_where_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        first_where(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index_of_list-_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        index_of(_list, _value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#last_index_of_list-_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        last_index_of(_list, _value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_unique_list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        is_unique(_list)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#last_where_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        last_where(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_none_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _none(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        one(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reject_list-_predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reject(_list, _predicate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sum_integer_list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sum_integer(_list)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sum_float_list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sum_float(_list)
       
     </span>
   </a>
@@ -2514,6 +2562,17 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-on-underscore-prefixed-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes on Underscore-Prefixed Functions
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2534,7 +2593,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/csv.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/list.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2542,70 +2601,14 @@
   
 
 
-<h1 id="csv"><code>csv</code><a class="headerlink" href="#csv" title="Permanent link">&para;</a></h1>
-<p>The <code>csv</code> package provides functions for parsing CSV (comma-separated value) data.</p>
-<p>The algorithm conforms to RFC 4180.</p>
-<hr />
-<h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
-<h3 id="parseinput-delimiter"><code>parse(input, delimiter)</code><a class="headerlink" href="#parseinput-delimiter" title="Permanent link">&para;</a></h3>
-<p>Parses a CSV string into a list of rows (each row is a list of string fields).</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>input</code></td>
-<td style="text-align: left;">The CSV data.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>delimiter</code></td>
-<td style="text-align: left;">The delimiter to use. (optional, defaults to <code>,</code>).</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">A list of lists representing rows and columns.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;csv&quot;
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>var data = &quot;name,age\nAlice,30\nBob,25&quot;
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>var rows = csv::parse(data)
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a># rows[0] is the header row
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>println rows[0]
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a># [&quot;name&quot;, &quot;age&quot;]
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a># iterate over data rows, skipping the header
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>for row in rows[1:]
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  println row[0] + &quot; is &quot; + row[1] + &quot; years old&quot;
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>end
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a># Alice is 30 years old
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a># Bob is 25 years old
+<h1 id="list"><code>list</code><a class="headerlink" href="#list" title="Permanent link">&para;</a></h1>
+<p>The <code>list</code> package provides higher-order utility functions for working with lists. All functions take a list as their first argument and are called via the <code>list::</code> namespace.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;list&quot;
 </span></code></pre></div>
 <hr />
-<h3 id="parse_filefile_path-delimiter"><code>parse_file(file_path, delimiter)</code><a class="headerlink" href="#parse_filefile_path-delimiter" title="Permanent link">&para;</a></h3>
-<p>Parses a CSV file into a list of rows.</p>
+<h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
+<h3 id="iterator_list"><code>iterator(_list)</code><a class="headerlink" href="#iterator_list" title="Permanent link">&para;</a></h3>
+<p>Creates a <code>ListIterator</code> instance wrapping the given list. See the <a href="../iter/"><code>iter</code></a> documentation for the full <code>ListIterator</code> API.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -2617,14 +2620,557 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>file_path</code></td>
-<td style="text-align: left;">The path to a file.</td>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to iterate over.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ListIterator</code></td>
+<td style="text-align: left;">An iterator over the list.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;list&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>it = list::iterator([10, 20, 30])
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>while it.can_read() do
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  println it.consume()
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>end
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a># prints: 10, 20, 30
+</span></code></pre></div>
+<hr />
+<h3 id="all_list-_predicate"><code>all(_list, _predicate)</code><a class="headerlink" href="#all_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns <code>true</code> if every element in the list satisfies the predicate. Short-circuits on the first failure.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to test.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>delimiter</code></td>
-<td style="text-align: left;">The delimiter to use. (optional, defaults to <code>,</code>).</td>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if all elements satisfy the predicate, <code>false</code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;list&quot;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>println list::all([2, 4, 6], do (n) =&gt; n % 2 == 0)  # prints: true
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>println list::all([2, 3, 6], do (n) =&gt; n % 2 == 0)  # prints: false
+</span></code></pre></div>
+<hr />
+<h3 id="_any_list-_predicate"><code>_any(_list, _predicate)</code><a class="headerlink" href="#_any_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns <code>true</code> if at least one element in the list satisfies the predicate. Short-circuits on the first match.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to test.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if at least one element satisfies the predicate.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;list&quot;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>println list::_any([1, 3, 4], do (n) =&gt; n % 2 == 0)  # prints: true
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>println list::_any([1, 3, 5], do (n) =&gt; n % 2 == 0)  # prints: false
+</span></code></pre></div>
+<hr />
+<h3 id="_count_list-_predicate"><code>_count(_list, _predicate)</code><a class="headerlink" href="#_count_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns the number of elements in the list that satisfy the predicate.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to test.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The number of elements for which the predicate returns <code>true</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;list&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>println list::_count([1, 2, 3, 4, 5], do (n) =&gt; n &gt; 2)  # prints: 3
+</span></code></pre></div>
+<hr />
+<h3 id="find_list-_predicate"><code>find(_list, _predicate)</code><a class="headerlink" href="#find_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns the index of the first element that satisfies the predicate, or <code>-1</code> if no match is found.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to search.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The zero-based index of the first matching element, or <code>-1</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;list&quot;
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>println list::find([&quot;a&quot;, &quot;bb&quot;, &quot;ccc&quot;], do (s) =&gt; s.size() &gt; 1)  # prints: 1
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>println list::find([&quot;a&quot;, &quot;b&quot;], do (s) =&gt; s.size() &gt; 5)          # prints: -1
+</span></code></pre></div>
+<hr />
+<h3 id="first_where_list-_predicate"><code>first_where(_list, _predicate)</code><a class="headerlink" href="#first_where_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns the first element that satisfies the predicate, or <code>null</code> if none is found.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to search.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The first matching element, or <code>null</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;list&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>result = list::first_where([1, 2, 3, 4], do (n) =&gt; n &gt; 2)
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>println result  # prints: 3
+</span></code></pre></div>
+<hr />
+<h3 id="index_of_list-_value"><code>index_of(_list, _value)</code><a class="headerlink" href="#index_of_list-_value" title="Permanent link">&para;</a></h3>
+<p>Returns the index of the first occurrence of <code>_value</code> in the list, or <code>-1</code> if not found.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to search.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>_value</code></td>
+<td style="text-align: left;">The value to look for.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The zero-based index of the first occurrence, or <code>-1</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;list&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>println list::index_of([&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], &quot;y&quot;)  # prints: 1
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>println list::index_of([&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], &quot;w&quot;)  # prints: -1
+</span></code></pre></div>
+<hr />
+<h3 id="last_index_of_list-_value"><code>last_index_of(_list, _value)</code><a class="headerlink" href="#last_index_of_list-_value" title="Permanent link">&para;</a></h3>
+<p>Returns the index of the last occurrence of <code>_value</code> in the list, or <code>-1</code> if not found.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to search.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>_value</code></td>
+<td style="text-align: left;">The value to look for.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The zero-based index of the last occurrence, or <code>-1</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;list&quot;
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>println list::last_index_of([1, 2, 1, 3, 1], 1)  # prints: 4
+</span></code></pre></div>
+<hr />
+<h3 id="is_unique_list"><code>is_unique(_list)</code><a class="headerlink" href="#is_unique_list" title="Permanent link">&para;</a></h3>
+<p>Returns <code>true</code> if every element in the list is distinct (no duplicates).</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to check.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if all elements are unique.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>import &quot;list&quot;
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>println list::is_unique([1, 2, 3])     # prints: true
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>println list::is_unique([1, 2, 2, 3])  # prints: false
+</span></code></pre></div>
+<hr />
+<h3 id="last_where_list-_predicate"><code>last_where(_list, _predicate)</code><a class="headerlink" href="#last_where_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns the last element that satisfies the predicate, or <code>null</code> if none is found. Searches the list in reverse order.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to search.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">The last matching element, or <code>null</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>import &quot;list&quot;
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>result = list::last_where([1, 2, 3, 4], do (n) =&gt; n % 2 == 0)
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>println result  # prints: 4
+</span></code></pre></div>
+<hr />
+<h3 id="_none_list-_predicate"><code>_none(_list, _predicate)</code><a class="headerlink" href="#_none_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns <code>true</code> if no element in the list satisfies the predicate.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to test.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if no elements satisfy the predicate.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>import &quot;list&quot;
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>println list::_none([1, 3, 5], do (n) =&gt; n % 2 == 0)  # prints: true
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>println list::_none([1, 2, 5], do (n) =&gt; n % 2 == 0)  # prints: false
+</span></code></pre></div>
+<hr />
+<h3 id="one_list-_predicate"><code>one(_list, _predicate)</code><a class="headerlink" href="#one_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns <code>true</code> if exactly one element in the list satisfies the predicate.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The list to test.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if exactly one element matches.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>import &quot;list&quot;
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>println list::one([1, 2, 3], do (n) =&gt; n % 2 == 0)  # prints: true  (only 2)
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>println list::one([1, 2, 4], do (n) =&gt; n % 2 == 0)  # prints: false (two matches)
+</span></code></pre></div>
+<hr />
+<h3 id="reject_list-_predicate"><code>reject(_list, _predicate)</code><a class="headerlink" href="#reject_list-_predicate" title="Permanent link">&para;</a></h3>
+<p>Returns a new list containing only the elements for which the predicate returns <code>false</code>. This is the inverse of the built-in <code>.filter()</code> method.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">The source list.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>_predicate</code></td>
+<td style="text-align: left;">A single-argument lambda returning a boolean.</td>
 </tr>
 </tbody>
 </table>
@@ -2639,26 +3185,102 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">A list of lists representing rows and columns.</td>
+<td style="text-align: left;">A new list of elements that did not match the predicate.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;csv&quot;
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a># Parse a comma-delimited file
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>var rows = csv::parse_file(&quot;/data/employees.csv&quot;)
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>var headers = rows[0]
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>println &quot;Columns: &quot; + headers.join(&quot;, &quot;)
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>for row in rows[1:]
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  println row.join(&quot; | &quot;)
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>end
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a># Parse a tab-delimited file
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>var tsv_rows = csv::parse_file(&quot;/data/report.tsv&quot;, &quot;\t&quot;)
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>println &quot;Row count: &quot; + (tsv_rows.size() - 1).to_string()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>import &quot;list&quot;
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>result = list::reject([1, 2, 3, 4, 5], do (n) =&gt; n % 2 == 0)
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>println result  # prints: [1, 3, 5]
+</span></code></pre></div>
+<hr />
+<h3 id="sum_integer_list"><code>sum_integer(_list)</code><a class="headerlink" href="#sum_integer_list" title="Permanent link">&para;</a></h3>
+<p>Computes the sum of all elements in the list that are of type <code>integer</code>. Non-integer values are silently ignored.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">A list of mixed values.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The sum of all integer elements.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>import &quot;list&quot;
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>println list::sum_integer([1, 2.5, 3, &quot;x&quot;, 4])  # prints: 8
+</span></code></pre></div>
+<hr />
+<h3 id="sum_float_list"><code>sum_float(_list)</code><a class="headerlink" href="#sum_float_list" title="Permanent link">&para;</a></h3>
+<p>Computes the sum of all elements in the list that are of type <code>float</code>. Non-float values are silently ignored.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;"><code>_list</code></td>
+<td style="text-align: left;">A list of mixed values.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;">The sum of all float elements.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>import &quot;list&quot;
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>println list::sum_float([1, 1.5, 2.5, &quot;x&quot;, 3])  # prints: 4.0
+</span></code></pre></div>
+<hr />
+<h2 id="notes-on-underscore-prefixed-functions">Notes on Underscore-Prefixed Functions<a class="headerlink" href="#notes-on-underscore-prefixed-functions" title="Permanent link">&para;</a></h2>
+<p>The functions <code>_any</code>, <code>_count</code>, and <code>_none</code> have underscore prefixes in their names to avoid conflicts with Kiwi built-in keywords or reserved identifiers. They are called exactly as written, including the underscore:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>list::_any(data, predicate)
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>list::_count(data, predicate)
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>list::_none(data, predicate)
 </span></code></pre></div>
 
 

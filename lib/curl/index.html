@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/csv/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/curl/">
       
       
-        <link rel="prev" href="../crypto/">
-      
-      
-        <link rel="next" href="../env/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>csv - Kiwi</title>
+        <title>curl - Kiwi</title>
       
     
     
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#csv" class="md-skip">
+        <a href="#curl" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              csv
+              curl
             
           </span>
         </div>
@@ -380,12 +376,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../" class="md-tabs__link">
           
   
@@ -1718,31 +1712,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -1760,7 +1751,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1943,37 +1934,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    csv
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../csv/" class="md-nav__link">
         
   
   
@@ -1989,65 +1953,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Package Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Package Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parseinput-delimiter" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse(input, delimiter)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parse_filefile_path-delimiter" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse_file(file_path, delimiter)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2491,10 +2396,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#parseinput-delimiter" class="md-nav__link">
+  <a href="#curlrequesturl-method-headers-data-capture_output" class="md-nav__link">
     <span class="md-ellipsis">
       
-        parse(input, delimiter)
+        curl::request(url, method?, headers?, data?, capture_output?)
       
     </span>
   </a>
@@ -2502,10 +2407,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse_filefile_path-delimiter" class="md-nav__link">
+  <a href="#curlgeturl-headers-capture_output" class="md-nav__link">
     <span class="md-ellipsis">
       
-        parse_file(file_path, delimiter)
+        curl::get(url, headers?, capture_output?)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curlposturl-headers-data-capture_output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        curl::post(url, headers?, data?, capture_output?)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curlputurl-headers-data-capture_output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        curl::put(url, headers?, data?, capture_output?)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curldeleteurl-headers-capture_output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        curl::delete(url, headers?, capture_output?)
       
     </span>
   </a>
@@ -2514,6 +2452,28 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
   
 </li>
       
@@ -2534,7 +2494,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/csv.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/curl.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2542,13 +2502,15 @@
   
 
 
-<h1 id="csv"><code>csv</code><a class="headerlink" href="#csv" title="Permanent link">&para;</a></h1>
-<p>The <code>csv</code> package provides functions for parsing CSV (comma-separated value) data.</p>
-<p>The algorithm conforms to RFC 4180.</p>
+<h1 id="curl"><code>curl</code><a class="headerlink" href="#curl" title="Permanent link">&para;</a></h1>
+<p>The <code>curl</code> package provides a thin wrapper around the system <code>curl</code> command for making HTTP requests from Kiwi programs. It requires <code>curl</code> to be installed and available on the system <code>PATH</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;curl&quot;
+</span></code></pre></div>
+<p>All functions return the response body as a <code>string</code> when <code>capture_output</code> is <code>true</code> (the default), or the <code>curl</code> process exit code as an <code>integer</code> when <code>capture_output</code> is <code>false</code>.</p>
 <hr />
 <h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
-<h3 id="parseinput-delimiter"><code>parse(input, delimiter)</code><a class="headerlink" href="#parseinput-delimiter" title="Permanent link">&para;</a></h3>
-<p>Parses a CSV string into a list of rows (each row is a list of string fields).</p>
+<h3 id="curlrequesturl-method-headers-data-capture_output"><code>curl::request(url, method?, headers?, data?, capture_output?)</code><a class="headerlink" href="#curlrequesturl-method-headers-data-capture_output" title="Permanent link">&para;</a></h3>
+<p>Executes a <code>curl</code> command to perform an arbitrary HTTP request. This is the underlying function used by all other helpers in this package.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -2556,18 +2518,39 @@
 <th style="text-align: left;">Type</th>
 <th style="text-align: left;">Name</th>
 <th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>input</code></td>
-<td style="text-align: left;">The CSV data.</td>
+<td style="text-align: left;"><code>url</code></td>
+<td style="text-align: left;">The URL to request.</td>
+<td style="text-align: left;">—</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>delimiter</code></td>
-<td style="text-align: left;">The delimiter to use. (optional, defaults to <code>,</code>).</td>
+<td style="text-align: left;"><code>method</code></td>
+<td style="text-align: left;">The HTTP method (<code>"GET"</code>, <code>"POST"</code>, <code>"PUT"</code>, <code>"DELETE"</code>, etc.).</td>
+<td style="text-align: left;"><code>"GET"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hashmap</code></td>
+<td style="text-align: left;"><code>headers</code></td>
+<td style="text-align: left;">Request headers as a hashmap of name → value pairs.</td>
+<td style="text-align: left;"><code>{}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;">Request body. Only sent for <code>POST</code> and <code>PUT</code> requests.</td>
+<td style="text-align: left;"><code>""</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>capture_output</code></td>
+<td style="text-align: left;">If <code>true</code>, return the response body. If <code>false</code>, return the exit code.</td>
+<td style="text-align: left;"><code>true</code></td>
 </tr>
 </tbody>
 </table>
@@ -2581,31 +2564,24 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">A list of lists representing rows and columns.</td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The response body when <code>capture_output</code> is <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The <code>curl</code> process exit code when <code>capture_output</code> is <code>false</code>.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;csv&quot;
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>var data = &quot;name,age\nAlice,30\nBob,25&quot;
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>var rows = csv::parse(data)
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a># rows[0] is the header row
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>println rows[0]
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a># [&quot;name&quot;, &quot;age&quot;]
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a># iterate over data rows, skipping the header
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>for row in rows[1:]
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  println row[0] + &quot; is &quot; + row[1] + &quot; years old&quot;
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>end
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a># Alice is 30 years old
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a># Bob is 25 years old
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;curl&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>response = curl::request(&quot;https://httpbin.org/get&quot;, &quot;GET&quot;, {&quot;Accept&quot;: &quot;application/json&quot;})
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>println response
 </span></code></pre></div>
 <hr />
-<h3 id="parse_filefile_path-delimiter"><code>parse_file(file_path, delimiter)</code><a class="headerlink" href="#parse_filefile_path-delimiter" title="Permanent link">&para;</a></h3>
-<p>Parses a CSV file into a list of rows.</p>
+<h3 id="curlgeturl-headers-capture_output"><code>curl::get(url, headers?, capture_output?)</code><a class="headerlink" href="#curlgeturl-headers-capture_output" title="Permanent link">&para;</a></h3>
+<p>Sends an HTTP <code>GET</code> request to the specified URL.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -2613,18 +2589,27 @@
 <th style="text-align: left;">Type</th>
 <th style="text-align: left;">Name</th>
 <th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>file_path</code></td>
-<td style="text-align: left;">The path to a file.</td>
+<td style="text-align: left;"><code>url</code></td>
+<td style="text-align: left;">The URL to request.</td>
+<td style="text-align: left;">—</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>delimiter</code></td>
-<td style="text-align: left;">The delimiter to use. (optional, defaults to <code>,</code>).</td>
+<td style="text-align: left;"><code>hashmap</code></td>
+<td style="text-align: left;"><code>headers</code></td>
+<td style="text-align: left;">Optional request headers.</td>
+<td style="text-align: left;"><code>{}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>capture_output</code></td>
+<td style="text-align: left;">If <code>true</code>, return the response body. If <code>false</code>, return the exit code.</td>
+<td style="text-align: left;"><code>true</code></td>
 </tr>
 </tbody>
 </table>
@@ -2638,28 +2623,262 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">A list of lists representing rows and columns.</td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The response body when <code>capture_output</code> is <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The <code>curl</code> process exit code when <code>capture_output</code> is <code>false</code>.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;csv&quot;
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a># Parse a comma-delimited file
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>var rows = csv::parse_file(&quot;/data/employees.csv&quot;)
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>var headers = rows[0]
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>println &quot;Columns: &quot; + headers.join(&quot;, &quot;)
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>for row in rows[1:]
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  println row.join(&quot; | &quot;)
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>end
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a># Parse a tab-delimited file
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>var tsv_rows = csv::parse_file(&quot;/data/report.tsv&quot;, &quot;\t&quot;)
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>println &quot;Row count: &quot; + (tsv_rows.size() - 1).to_string()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;curl&quot;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a># Simple GET request
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>body = curl::get(&quot;https://httpbin.org/get&quot;)
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>println body
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># GET with custom headers
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>body = curl::get(&quot;https://api.example.com/data&quot;, {&quot;Authorization&quot;: &quot;Bearer token123&quot;})
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>println body
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a># Check only that the request succeeded (exit code 0 = success)
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>code = curl::get(&quot;https://example.com&quot;, {}, false)
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>println code  # prints: 0
 </span></code></pre></div>
+<hr />
+<h3 id="curlposturl-headers-data-capture_output"><code>curl::post(url, headers?, data?, capture_output?)</code><a class="headerlink" href="#curlposturl-headers-data-capture_output" title="Permanent link">&para;</a></h3>
+<p>Sends an HTTP <code>POST</code> request with an optional body.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>url</code></td>
+<td style="text-align: left;">The URL to request.</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hashmap</code></td>
+<td style="text-align: left;"><code>headers</code></td>
+<td style="text-align: left;">Optional request headers.</td>
+<td style="text-align: left;"><code>{}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;">The request body to send.</td>
+<td style="text-align: left;"><code>""</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>capture_output</code></td>
+<td style="text-align: left;">If <code>true</code>, return the response body. If <code>false</code>, return the exit code.</td>
+<td style="text-align: left;"><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The response body when <code>capture_output</code> is <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The <code>curl</code> process exit code when <code>capture_output</code> is <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;curl&quot;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>headers = {&quot;Content-Type&quot;: &quot;application/json&quot;}
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>payload = &quot;{\&quot;name\&quot;: \&quot;kiwi\&quot;, \&quot;version\&quot;: \&quot;1.0\&quot;}&quot;
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>response = curl::post(&quot;https://httpbin.org/post&quot;, headers, payload)
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>println response
+</span></code></pre></div>
+<hr />
+<h3 id="curlputurl-headers-data-capture_output"><code>curl::put(url, headers?, data?, capture_output?)</code><a class="headerlink" href="#curlputurl-headers-data-capture_output" title="Permanent link">&para;</a></h3>
+<p>Sends an HTTP <code>PUT</code> request with an optional body.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>url</code></td>
+<td style="text-align: left;">The URL to request.</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hashmap</code></td>
+<td style="text-align: left;"><code>headers</code></td>
+<td style="text-align: left;">Optional request headers.</td>
+<td style="text-align: left;"><code>{}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;">The request body to send.</td>
+<td style="text-align: left;"><code>""</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>capture_output</code></td>
+<td style="text-align: left;">If <code>true</code>, return the response body. If <code>false</code>, return the exit code.</td>
+<td style="text-align: left;"><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The response body when <code>capture_output</code> is <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The <code>curl</code> process exit code when <code>capture_output</code> is <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;curl&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>headers = {&quot;Content-Type&quot;: &quot;application/json&quot;, &quot;Authorization&quot;: &quot;Bearer mytoken&quot;}
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>payload = &quot;{\&quot;status\&quot;: \&quot;active\&quot;}&quot;
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>response = curl::put(&quot;https://api.example.com/resource/42&quot;, headers, payload)
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>println response
+</span></code></pre></div>
+<hr />
+<h3 id="curldeleteurl-headers-capture_output"><code>curl::delete(url, headers?, capture_output?)</code><a class="headerlink" href="#curldeleteurl-headers-capture_output" title="Permanent link">&para;</a></h3>
+<p>Sends an HTTP <code>DELETE</code> request to the specified URL.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>url</code></td>
+<td style="text-align: left;">The URL to request.</td>
+<td style="text-align: left;">—</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>hashmap</code></td>
+<td style="text-align: left;"><code>headers</code></td>
+<td style="text-align: left;">Optional request headers.</td>
+<td style="text-align: left;"><code>{}</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>capture_output</code></td>
+<td style="text-align: left;">If <code>true</code>, return the response body. If <code>false</code>, return the exit code.</td>
+<td style="text-align: left;"><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The response body when <code>capture_output</code> is <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The <code>curl</code> process exit code when <code>capture_output</code> is <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;curl&quot;
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>headers = {&quot;Authorization&quot;: &quot;Bearer mytoken&quot;}
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>response = curl::delete(&quot;https://api.example.com/resource/42&quot;, headers)
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>println response
+</span></code></pre></div>
+<hr />
+<h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;curl&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>base = &quot;https://httpbin.org&quot;
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a># GET request
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>println &quot;-- GET --&quot;
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>println curl::get(base + &quot;/get&quot;)
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a># POST JSON
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>println &quot;-- POST --&quot;
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>headers = {&quot;Content-Type&quot;: &quot;application/json&quot;}
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>body = &quot;{\&quot;lang\&quot;: \&quot;kiwi\&quot;}&quot;
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>println curl::post(base + &quot;/post&quot;, headers, body)
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a># PUT
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>println &quot;-- PUT --&quot;
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>println curl::put(base + &quot;/put&quot;, headers, &quot;{\&quot;status\&quot;: \&quot;ok\&quot;}&quot;)
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a># DELETE
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>println &quot;-- DELETE --&quot;
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>println curl::delete(base + &quot;/delete&quot;)
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a># Check exit code only (no output capture)
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>code = curl::get(base + &quot;/status/200&quot;, {}, false)
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>println &quot;Exit code: &quot; + code  # prints: Exit code: 0
+</span></code></pre></div>
+<hr />
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>All requests are made silently (<code>-s</code> flag) — <code>curl</code>'s progress meter and error output are suppressed.</li>
+<li>The <code>data</code> parameter is only sent when the method is <code>POST</code> or <code>PUT</code>. For <code>GET</code> and <code>DELETE</code> requests, any <code>data</code> argument is ignored.</li>
+<li>To send form-encoded data, set the <code>Content-Type</code> header to <code>"application/x-www-form-urlencoded"</code> and format <code>data</code> accordingly (e.g., <code>"key1=val1&amp;key2=val2"</code>).</li>
+<li>For non-blocking or async HTTP, see the <a href="../http/"><code>http</code></a> package.</li>
+</ul>
 
 
 

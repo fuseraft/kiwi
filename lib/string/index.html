@@ -3086,6 +3086,13 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;string&quot;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>encoded = string::base64encode(&quot;Hello, Kiwi!&quot;)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>println encoded                         # prints: SGVsbG8sIEtpd2kh
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>println string::base64decode(encoded)   # prints: Hello, Kiwi!
+</span></code></pre></div></p>
 <h3 id="base64encode_input"><code>base64encode(_input)</code><a class="headerlink" href="#base64encode_input" title="Permanent link">&para;</a></h3>
 <p>Encodes data as a base64 string.</p>
 <p><strong>Parameters</strong></p>
@@ -3120,8 +3127,14 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;string&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>println string::base64encode(&quot;Hello, Kiwi!&quot;)        # prints: SGVsbG8sIEtpd2kh
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>println string::base64encode(&quot;Hello&quot;.to_bytes())    # encode from bytes
+</span></code></pre></div></p>
 <h3 id="center_input-_size-_padding"><code>center(_input, _size, _padding = " ")</code><a class="headerlink" href="#center_input-_size-_padding" title="Permanent link">&para;</a></h3>
-<p>Pads both sides of a string, centering it.</p>
+<p>Pads both sides of a string, centering it within a field of <code>_size</code> characters.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3140,12 +3153,12 @@
 <tr>
 <td style="text-align: left;"><code>integer</code></td>
 <td style="text-align: left;"><code>_size</code></td>
-<td style="text-align: left;">The max length of the output string.</td>
+<td style="text-align: left;">The total width of the output string.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: left;"><code>_padding</code></td>
-<td style="text-align: left;">The padding content. Defaults to a single space <code></code>.</td>
+<td style="text-align: left;">The padding character. Defaults to a single space <code></code>.</td>
 </tr>
 </tbody>
 </table>
@@ -3164,8 +3177,15 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;string&quot;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>println string::center(&quot;hi&quot;, 10)        # prints: &quot;    hi    &quot;
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>println string::center(&quot;hi&quot;, 10, &quot;-&quot;)   # prints: &quot;----hi----&quot;
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>println string::center(&quot;kiwi&quot;, 10, &quot;*&quot;) # prints: &quot;***kiwi***&quot;
+</span></code></pre></div></p>
 <h3 id="contains_anystr-matches"><code>contains_any(str, matches = [])</code><a class="headerlink" href="#contains_anystr-matches" title="Permanent link">&para;</a></h3>
-<p>Returns <code>true</code> if <code>str</code> contains any values in <code>matches</code>.</p>
+<p>Returns <code>true</code> if <code>str</code> contains any of the substrings in <code>matches</code>.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3184,7 +3204,7 @@
 <tr>
 <td style="text-align: left;"><code>list</code></td>
 <td style="text-align: left;"><code>matches</code></td>
-<td style="text-align: left;">The strings to match against.</td>
+<td style="text-align: left;">The substrings to search for.</td>
 </tr>
 </tbody>
 </table>
@@ -3199,12 +3219,19 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;">True if found.</td>
+<td style="text-align: left;"><code>true</code> if any match is found.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;string&quot;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>println string::contains_any(&quot;hello world&quot;, [&quot;world&quot;, &quot;earth&quot;])  # prints: true
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>println string::contains_any(&quot;hello world&quot;, [&quot;mars&quot;, &quot;venus&quot;])   # prints: false
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>println string::contains_any(&quot;foo@bar.com&quot;, [&quot;@&quot;, &quot;#&quot;])          # prints: true
+</span></code></pre></div></p>
 <h3 id="echo_input-_count"><code>echo(_input, _count)</code><a class="headerlink" href="#echo_input-_count" title="Permanent link">&para;</a></h3>
-<p>Repeats each character in the string a specified number of times.</p>
+<p>Repeats each character in the string <code>_count</code> times.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3223,7 +3250,7 @@
 <tr>
 <td style="text-align: left;"><code>integer</code></td>
 <td style="text-align: left;"><code>_count</code></td>
-<td style="text-align: left;">The number of times each character is repeated.</td>
+<td style="text-align: left;">The number of times to repeat each character.</td>
 </tr>
 </tbody>
 </table>
@@ -3238,12 +3265,18 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The string with characters echoed.</td>
+<td style="text-align: left;">The string with each character repeated.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;string&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>println string::echo(&quot;abc&quot;, 3)   # prints: aaabbbccc
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>println string::echo(&quot;hi&quot;, 2)    # prints: hhii
+</span></code></pre></div></p>
 <h3 id="interweave_input1-_input2"><code>interweave(_input1, _input2)</code><a class="headerlink" href="#interweave_input1-_input2" title="Permanent link">&para;</a></h3>
-<p>Interweaves characters from two strings, alternating one character from each.</p>
+<p>Interweaves two strings character by character, alternating one from each. If one string is shorter, the remaining characters of the longer string are appended.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3281,8 +3314,14 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;string&quot;
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>println string::interweave(&quot;abc&quot;, &quot;123&quot;)    # prints: a1b2c3
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>println string::interweave(&quot;hi&quot;, &quot;!!!&quot;)     # prints: h!i!!!
+</span></code></pre></div></p>
 <h3 id="isalpha_input"><code>isalpha(_input)</code><a class="headerlink" href="#isalpha_input" title="Permanent link">&para;</a></h3>
-<p>Checks if the string consists only of alphabetic characters.</p>
+<p>Checks if the string consists only of alphabetic characters (A–Z, a–z).</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3311,12 +3350,19 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;">Returns <code>true</code> if the string is alphabetic, otherwise <code>false</code>.</td>
+<td style="text-align: left;"><code>true</code> if the string contains only letters.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;string&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>println string::isalpha(&quot;hello&quot;)    # prints: true
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>println string::isalpha(&quot;hello1&quot;)   # prints: false
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>println string::isalpha(&quot;héllo&quot;)    # prints: false
+</span></code></pre></div></p>
 <h3 id="isalphanumeric_input"><code>isalphanumeric(_input)</code><a class="headerlink" href="#isalphanumeric_input" title="Permanent link">&para;</a></h3>
-<p>Checks if the string consists only of alphanumeric characters</p>
+<p>Checks if the string consists only of alphanumeric characters (A–Z, a–z, 0–9).</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3345,12 +3391,18 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;">Returns <code>true</code> if the string is alphanumeric, otherwise <code>false</code>.</td>
+<td style="text-align: left;"><code>true</code> if the string contains only letters and digits.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;string&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>println string::isalphanumeric(&quot;hello123&quot;)   # prints: true
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>println string::isalphanumeric(&quot;hello!&quot;)     # prints: false
+</span></code></pre></div></p>
 <h3 id="islower_input"><code>islower(_input)</code><a class="headerlink" href="#islower_input" title="Permanent link">&para;</a></h3>
-<p>Checks if the string is entirely in lowercase.</p>
+<p>Checks if the string is entirely lowercase (no uppercase letters present).</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3379,12 +3431,19 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;">Returns <code>true</code> if the string is all lowercase, otherwise <code>false</code>.</td>
+<td style="text-align: left;"><code>true</code> if the string has no uppercase letters.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;string&quot;
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>println string::islower(&quot;hello&quot;)    # prints: true
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>println string::islower(&quot;Hello&quot;)    # prints: false
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>println string::islower(&quot;hello 1&quot;)  # prints: true
+</span></code></pre></div></p>
 <h3 id="isnumeric_input"><code>isnumeric(_input)</code><a class="headerlink" href="#isnumeric_input" title="Permanent link">&para;</a></h3>
-<p>Checks if the string consists only of numeric characters.</p>
+<p>Checks if the string consists only of digit characters (0–9).</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3413,12 +3472,19 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;">Returns <code>true</code> if the string is numeric, otherwise <code>false</code>.</td>
+<td style="text-align: left;"><code>true</code> if the string contains only digits.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>import &quot;string&quot;
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>println string::isnumeric(&quot;12345&quot;)   # prints: true
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>println string::isnumeric(&quot;123.4&quot;)   # prints: false
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>println string::isnumeric(&quot;12 34&quot;)   # prints: false
+</span></code></pre></div></p>
 <h3 id="isupper_input"><code>isupper(_input)</code><a class="headerlink" href="#isupper_input" title="Permanent link">&para;</a></h3>
-<p>Checks if the string is entirely in uppercase.</p>
+<p>Checks if the string is entirely uppercase (no lowercase letters present).</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3447,12 +3513,19 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;">Returns <code>true</code> if the string is all uppercase, otherwise <code>false</code>.</td>
+<td style="text-align: left;"><code>true</code> if the string has no lowercase letters.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>import &quot;string&quot;
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>println string::isupper(&quot;HELLO&quot;)    # prints: true
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>println string::isupper(&quot;Hello&quot;)    # prints: false
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>println string::isupper(&quot;HELLO 1&quot;)  # prints: true
+</span></code></pre></div></p>
 <h3 id="mirror_input-_delimiter"><code>mirror(_input, _delimiter = "")</code><a class="headerlink" href="#mirror_input-_delimiter" title="Permanent link">&para;</a></h3>
-<p>Creates a mirrored version of the input string.</p>
+<p>Appends the reverse of the string to itself, optionally separated by a delimiter.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3471,7 +3544,7 @@
 <tr>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: left;"><code>_delimiter</code></td>
-<td style="text-align: left;">The delimiter to separate the original string from its mirror. Defaults to an empty string.</td>
+<td style="text-align: left;">Separator between the original and its reverse. Defaults to <code>""</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -3490,8 +3563,15 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>import &quot;string&quot;
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>println string::mirror(&quot;hello&quot;)         # prints: helloolleh
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>println string::mirror(&quot;kiwi&quot;, &quot;|&quot;)     # prints: kiwi|iwik
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>println string::mirror(&quot;abc&quot;, &quot; - &quot;)    # prints: abc - cba
+</span></code></pre></div></p>
 <h3 id="padstart_input-_size-_padding"><code>padstart(_input, _size, _padding = " ")</code><a class="headerlink" href="#padstart_input-_size-_padding" title="Permanent link">&para;</a></h3>
-<p>Pads the left side of a string.</p>
+<p>Left-pads a string to <code>_size</code> characters.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3510,12 +3590,12 @@
 <tr>
 <td style="text-align: left;"><code>integer</code></td>
 <td style="text-align: left;"><code>_size</code></td>
-<td style="text-align: left;">The max length of the output string.</td>
+<td style="text-align: left;">The total width of the output string.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: left;"><code>_padding</code></td>
-<td style="text-align: left;">The padding content. Defaults to a single space <code></code>.</td>
+<td style="text-align: left;">The padding character. Defaults to a single space <code></code>.</td>
 </tr>
 </tbody>
 </table>
@@ -3530,12 +3610,19 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The padded string.</td>
+<td style="text-align: left;">The left-padded string.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>import &quot;string&quot;
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>println string::padstart(&quot;42&quot;, 6)        # prints: &quot;    42&quot;
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>println string::padstart(&quot;42&quot;, 6, &quot;0&quot;)   # prints: &quot;000042&quot;
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>println string::padstart(&quot;hi&quot;, 6, &quot;-&quot;)   # prints: &quot;----hi&quot;
+</span></code></pre></div></p>
 <h3 id="padend_input-_size-_padding"><code>padend(_input, _size, _padding = " ")</code><a class="headerlink" href="#padend_input-_size-_padding" title="Permanent link">&para;</a></h3>
-<p>Pads the right side of a string.</p>
+<p>Right-pads a string to <code>_size</code> characters.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3554,12 +3641,12 @@
 <tr>
 <td style="text-align: left;"><code>integer</code></td>
 <td style="text-align: left;"><code>_size</code></td>
-<td style="text-align: left;">The max length of the output string.</td>
+<td style="text-align: left;">The total width of the output string.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: left;"><code>_padding</code></td>
-<td style="text-align: left;">The padding content. Defaults to a single space <code></code>.</td>
+<td style="text-align: left;">The padding character. Defaults to a single space <code></code>.</td>
 </tr>
 </tbody>
 </table>
@@ -3574,12 +3661,18 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The padded string.</td>
+<td style="text-align: left;">The right-padded string.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>import &quot;string&quot;
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>println string::padend(&quot;hi&quot;, 6)        # prints: &quot;hi    &quot;
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>println string::padend(&quot;hi&quot;, 6, &quot;.&quot;)   # prints: &quot;hi....&quot;
+</span></code></pre></div></p>
 <h3 id="shuffle_input"><code>shuffle(_input)</code><a class="headerlink" href="#shuffle_input" title="Permanent link">&para;</a></h3>
-<p>Randomly shuffles the characters in a string.</p>
+<p>Returns a new string with the characters in a random order.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3612,8 +3705,15 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>import &quot;string&quot;
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>s = string::shuffle(&quot;hello&quot;)
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>println s.size()           # prints: 5  (same length)
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>println s.chars().sort()   # prints: [&quot;e&quot;, &quot;h&quot;, &quot;l&quot;, &quot;l&quot;, &quot;o&quot;]  (same chars)
+</span></code></pre></div></p>
 <h3 id="slug_input"><code>slug(_input)</code><a class="headerlink" href="#slug_input" title="Permanent link">&para;</a></h3>
-<p>Generates a URL-friendly slug from a string.</p>
+<p>Generates a URL-friendly slug: lowercases, replaces spaces and special characters with hyphens, and strips leading/trailing hyphens.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3646,6 +3746,13 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>import &quot;string&quot;
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>println string::slug(&quot;Hello, World!&quot;)           # prints: hello-world
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>println string::slug(&quot;The Quick Brown Fox&quot;)     # prints: the-quick-brown-fox
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>println string::slug(&quot;  leading &amp; trailing  &quot;)  # prints: leading-trailing
+</span></code></pre></div></p>
 <h3 id="tolower_input"><code>tolower(_input)</code><a class="headerlink" href="#tolower_input" title="Permanent link">&para;</a></h3>
 <p>Converts all characters in the string to lowercase.</p>
 <p><strong>Parameters</strong></p>
@@ -3680,6 +3787,11 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>import &quot;string&quot;
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>println string::tolower(&quot;HELLO World&quot;)   # prints: hello world
+</span></code></pre></div></p>
 <h3 id="toupper_input"><code>toupper(_input)</code><a class="headerlink" href="#toupper_input" title="Permanent link">&para;</a></h3>
 <p>Converts all characters in the string to uppercase.</p>
 <p><strong>Parameters</strong></p>
@@ -3714,8 +3826,13 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>import &quot;string&quot;
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>println string::toupper(&quot;hello World&quot;)   # prints: HELLO WORLD
+</span></code></pre></div></p>
 <h3 id="urldecode_input"><code>urldecode(_input)</code><a class="headerlink" href="#urldecode_input" title="Permanent link">&para;</a></h3>
-<p>Decodes a URL encoded string to plaintext.</p>
+<p>Decodes a percent-encoded URL string to plaintext.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3729,7 +3846,7 @@
 <tr>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: left;"><code>_input</code></td>
-<td style="text-align: left;">The input string.</td>
+<td style="text-align: left;">The URL-encoded string.</td>
 </tr>
 </tbody>
 </table>
@@ -3744,12 +3861,18 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The plaintext string.</td>
+<td style="text-align: left;">The decoded plaintext string.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>import &quot;string&quot;
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>println string::urldecode(&quot;hello%20world&quot;)   # prints: hello world
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>println string::urldecode(&quot;foo%3Dbar&quot;)       # prints: foo=bar
+</span></code></pre></div></p>
 <h3 id="urlencode_input"><code>urlencode(_input)</code><a class="headerlink" href="#urlencode_input" title="Permanent link">&para;</a></h3>
-<p>Encodes a string as a URL encoded string.</p>
+<p>Percent-encodes a string for safe use in a URL.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3763,7 +3886,7 @@
 <tr>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: left;"><code>_input</code></td>
-<td style="text-align: left;">The input string.</td>
+<td style="text-align: left;">The string to encode.</td>
 </tr>
 </tbody>
 </table>
@@ -3778,12 +3901,18 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The URL encoded string.</td>
+<td style="text-align: left;">The URL-encoded string.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>import &quot;string&quot;
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>println string::urlencode(&quot;hello world&quot;)   # prints: hello+world
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>println string::urlencode(&quot;foo=bar&amp;x=1&quot;)   # prints: foo%3Dbar%26x%3D1
+</span></code></pre></div></p>
 <h3 id="capitalize_input"><code>capitalize(_input)</code><a class="headerlink" href="#capitalize_input" title="Permanent link">&para;</a></h3>
-<p>Returns a copy of the string with the first character uppercased and the rest lowercased. Also available as <code>capitalise(_input)</code>.</p>
+<p>Returns the string with the first character uppercased and the rest lowercased. Also available as <code>capitalise(_input)</code>.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3816,8 +3945,15 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>import &quot;string&quot;
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>println string::capitalize(&quot;hello world&quot;)   # prints: Hello world
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>println string::capitalize(&quot;HELLO&quot;)         # prints: Hello
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>println string::capitalise(&quot;kiwi&quot;)          # prints: Kiwi
+</span></code></pre></div></p>
 <h3 id="titleize_input"><code>titleize(_input)</code><a class="headerlink" href="#titleize_input" title="Permanent link">&para;</a></h3>
-<p>Returns a copy of the string with the first character of every word uppercased and the rest lowercased. Also available as <code>title(_input)</code>.</p>
+<p>Returns the string with the first character of every word uppercased and the rest lowercased. Also available as <code>title(_input)</code>.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3850,6 +3986,12 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>import &quot;string&quot;
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>println string::titleize(&quot;the quick brown fox&quot;)   # prints: The Quick Brown Fox
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>println string::title(&quot;hello world&quot;)              # prints: Hello World
+</span></code></pre></div></p>
 <h3 id="smart_titleizes-keep_lowercase"><code>smart_titleize(s, keep_lowercase?)</code><a class="headerlink" href="#smart_titleizes-keep_lowercase" title="Permanent link">&para;</a></h3>
 <p>Title-cases a string while keeping common short words (articles, prepositions, conjunctions) lowercase — unless they are the first word.</p>
 <p><strong>Parameters</strong></p>
@@ -3890,8 +4032,8 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>println string::smart_titleize(&quot;the lord of the rings&quot;)
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a># prints: The Lord of the Rings
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>println string::smart_titleize(&quot;the lord of the rings&quot;)
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a># prints: The Lord of the Rings
 </span></code></pre></div></p>
 <h3 id="dedenttext"><code>dedent(text)</code><a class="headerlink" href="#dedenttext" title="Permanent link">&para;</a></h3>
 <p>Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings.</p>
@@ -3928,14 +4070,14 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>s = &quot;
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  hello
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  world
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>&quot;
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>println string::dedent(s)
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a># prints:
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a># hello
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a># world
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>s = &quot;
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>  hello
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>  world
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>&quot;
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>println string::dedent(s)
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a># prints:
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a># hello
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a># world
 </span></code></pre></div></p>
 <h3 id="to_pathpath"><code>to_path(path)</code><a class="headerlink" href="#to_pathpath" title="Permanent link">&para;</a></h3>
 <p>Converts a string to a <code>Path</code> instance from the <code>path</code> package.</p>
@@ -3972,8 +4114,8 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>p = string::to_path(&quot;/home/user/docs&quot;)
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>println p.is_dir()  # prints: true (if directory exists)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>p = string::to_path(&quot;/home/user/docs&quot;)
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>println p.is_dir()  # prints: true (if directory exists)
 </span></code></pre></div></p>
 
 

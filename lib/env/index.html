@@ -2729,6 +2729,13 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;env&quot;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>vars = env::all()
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>println vars[&quot;HOME&quot;]   # /home/user
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>println vars[&quot;PATH&quot;]
+</span></code></pre></div></p>
 <h3 id="argv"><code>argv()</code><a class="headerlink" href="#argv" title="Permanent link">&para;</a></h3>
 <p>Get the list of command-line arguments supplied to the program.</p>
 <p><strong>Returns</strong></p>
@@ -2746,6 +2753,13 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;env&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a># kiwi myscript.kiwi foo bar
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>args = env::argv()
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>println args   # { foo: &quot;&quot;, bar: &quot;&quot; }
+</span></code></pre></div></p>
 <h3 id="opt_key"><code>opt(_key)</code><a class="headerlink" href="#opt_key" title="Permanent link">&para;</a></h3>
 <p>Get a KVP command-line option value by key.</p>
 <p><strong>Parameters</strong></p>
@@ -2782,12 +2796,12 @@
 </table>
 <h2 id="kvp-command-line-options">KVP Command-Line Options<a class="headerlink" href="#kvp-command-line-options" title="Permanent link">&para;</a></h2>
 <p>You can pass a named command-line argument in the form of a key-value pair.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kiwi<span class="w"> </span>-key<span class="o">=</span>value
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>kiwi<span class="w"> </span>--key<span class="o">=</span>value
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>kiwi<span class="w"> </span>/key<span class="o">=</span>value
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kiwi<span class="w"> </span>-key<span class="o">=</span>value
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>kiwi<span class="w"> </span>--key<span class="o">=</span>value
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>kiwi<span class="w"> </span>/key<span class="o">=</span>value
 </span></code></pre></div>
 <p>You can pull these values using this package.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>println(env::opt(&quot;key&quot;)) # prints: value
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>println(env::opt(&quot;key&quot;)) # prints: value
 </span></code></pre></div>
 <h3 id="parse_argsargs-value_opts"><code>parse_args(args, value_opts)</code><a class="headerlink" href="#parse_argsargs-value_opts" title="Permanent link">&para;</a></h3>
 <p>Parses a list of command-line argument strings into a hashmap of key-value pairs. Arguments listed in <code>value_opts</code> consume the next argument as their value; all other arguments are mapped to <code>true</code>.</p>
@@ -2829,10 +2843,10 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># kiwi myscript.kiwi --output result.txt --verbose
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>cfg = env::parse_args([], [&quot;--output&quot;])
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>println cfg[&quot;--output&quot;]   # prints: result.txt
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>println cfg[&quot;--verbose&quot;]  # prints: true
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># kiwi myscript.kiwi --output result.txt --verbose
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>cfg = env::parse_args([], [&quot;--output&quot;])
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>println cfg[&quot;--output&quot;]   # prints: result.txt
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>println cfg[&quot;--verbose&quot;]  # prints: true
 </span></code></pre></div></p>
 <p><strong>Throws</strong>
 If a value option is listed in <code>value_opts</code> but no following argument exists.</p>
@@ -2871,6 +2885,12 @@ If a value option is listed in <code>value_opts</code> but no following argument
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;env&quot;
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>home = env::get(&quot;HOME&quot;)
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>println home   # /home/user
+</span></code></pre></div></p>
 <h3 id="set_varname-_varvalue"><code>set(_varname, _varvalue)</code><a class="headerlink" href="#set_varname-_varvalue" title="Permanent link">&para;</a></h3>
 <p>Set an environment variable.</p>
 <p><strong>Parameters</strong></p>
@@ -2910,6 +2930,12 @@ If a value option is listed in <code>value_opts</code> but no following argument
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;env&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>env::set(&quot;APP_ENV&quot;, &quot;production&quot;)
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>println env::get(&quot;APP_ENV&quot;)   # production
+</span></code></pre></div></p>
 <h3 id="bin"><code>bin()</code><a class="headerlink" href="#bin" title="Permanent link">&para;</a></h3>
 <p>Returns a string containing the path to the Kiwi executable.</p>
 <p><strong>Returns</strong></p>
@@ -2927,6 +2953,11 @@ If a value option is listed in <code>value_opts</code> but no following argument
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;env&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>println env::bin()   # /usr/local/bin/kiwi
+</span></code></pre></div></p>
 <h3 id="lib"><code>lib()</code><a class="headerlink" href="#lib" title="Permanent link">&para;</a></h3>
 <p>Returns a string containing the path to the Kiwi Standard Library.</p>
 <p><strong>Returns</strong></p>
@@ -2944,6 +2975,11 @@ If a value option is listed in <code>value_opts</code> but no following argument
 </tr>
 </tbody>
 </table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;env&quot;
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>println env::lib()   # /usr/local/lib/kiwi
+</span></code></pre></div></p>
 
 
 

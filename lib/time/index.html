@@ -3029,7 +3029,7 @@
 <p>All <code>add_*</code> functions return a <strong>new</strong> <code>date</code> object — they do <strong>not</strong> mutate the input.</p>
 <h3 id="add_daysdt-n"><code>add_days(dt, n)</code><a class="headerlink" href="#add_daysdt-n" title="Permanent link">&para;</a></h3>
 <p>Adds/subtracts whole days (handles month/year rollover).</p>
-<p><strong>Parameters</strong>  </p>
+<p><strong>Parameters</strong></p>
 <table>
 <thead>
 <tr>
@@ -3052,9 +3052,21 @@
 </tbody>
 </table>
 <p><strong>Returns</strong> <code>date</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;time&quot;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>today    = time::now()
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>next_week = time::add_days(today, 7)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>last_week = time::add_days(today, -7)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>println &quot;Today:     ${today.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>println &quot;Next week: ${next_week.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>println &quot;Last week: ${last_week.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="add_monthsdt-n"><code>add_months(dt, n)</code><a class="headerlink" href="#add_monthsdt-n" title="Permanent link">&para;</a></h3>
 <p>Adds/subtracts months (preserves day-of-month when possible).</p>
-<p><strong>Parameters</strong>  </p>
+<p><strong>Parameters</strong></p>
 <table>
 <thead>
 <tr>
@@ -3077,6 +3089,18 @@
 </tbody>
 </table>
 <p><strong>Returns</strong> <code>date</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;time&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>today       = time::now()
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>in_3_months = time::add_months(today, 3)
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>last_quarter = time::add_months(today, -3)
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>println &quot;Today:        ${today.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>println &quot;In 3 months:  ${in_3_months.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>println &quot;Last quarter: ${last_quarter.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="add_yearsdt-n"><code>add_years(dt, n)</code><a class="headerlink" href="#add_yearsdt-n" title="Permanent link">&para;</a></h3>
 <p>Adds/subtracts whole years.</p>
 <p><strong>Parameters</strong></p>
@@ -3102,15 +3126,50 @@
 </tbody>
 </table>
 <p><strong>Returns</strong> <code>date</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;time&quot;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>today     = time::now()
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>next_year = time::add_years(today, 1)
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>decade    = time::add_years(today, 10)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>println &quot;Today:     ${today.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>println &quot;Next year: ${next_year.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>println &quot;A decade:  ${decade.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="add_hoursdt-n-add_minutesdt-n-add_secondsdt-n-add_millisecondsdt-n"><code>add_hours(dt, n)</code>, <code>add_minutes(dt, n)</code>, <code>add_seconds(dt, n)</code>, <code>add_milliseconds(dt, n)</code><a class="headerlink" href="#add_hoursdt-n-add_minutesdt-n-add_secondsdt-n-add_millisecondsdt-n" title="Permanent link">&para;</a></h3>
 <p>Add/subtract smaller time units (may cross day boundaries).</p>
 <p><strong>Returns</strong> <code>date</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;time&quot;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>now = time::now()
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>println &quot;Now:           ${now.to_string(&quot;yyyy-MM-dd HH:mm:ss&quot;)}&quot;
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>println &quot;+3 hours:      ${time::add_hours(now, 3).to_string(&quot;yyyy-MM-dd HH:mm:ss&quot;)}&quot;
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>println &quot;+90 minutes:   ${time::add_minutes(now, 90).to_string(&quot;yyyy-MM-dd HH:mm:ss&quot;)}&quot;
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>println &quot;+45 seconds:   ${time::add_seconds(now, 45).to_string(&quot;yyyy-MM-dd HH:mm:ss&quot;)}&quot;
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>println &quot;+500ms:        ${time::add_milliseconds(now, 500).to_string(&quot;yyyy-MM-dd HH:mm:ss&quot;)}&quot;
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>println &quot;-6 hours:      ${time::add_hours(now, -6).to_string(&quot;yyyy-MM-dd HH:mm:ss&quot;)}&quot;
+</span></code></pre></div>
+<hr />
 <h2 id="current-time-components">Current time &amp; components<a class="headerlink" href="#current-time-components" title="Permanent link">&para;</a></h2>
-<p>Most component functions accept an optional <code>date</code> argument.<br />
+<p>Most component functions accept an optional <code>date</code> argument.
 If omitted (<code>dt = null</code>), they return the value for <strong>now</strong>.</p>
 <h3 id="now"><code>now()</code><a class="headerlink" href="#now" title="Permanent link">&para;</a></h3>
 <p>Returns the current date and time as a <code>date</code> object.</p>
 <p><strong>Returns</strong> <code>date</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;time&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>dt = time::now()
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>println &quot;Full timestamp: ${dt.to_string(&quot;yyyy-MM-dd HH:mm:ss&quot;)}&quot;
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>println &quot;Year:  ${time::year(dt)}&quot;
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>println &quot;Month: ${time::month(dt)}&quot;
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>println &quot;Day:   ${time::day(dt)}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="hourdt-minutedt-seconddt-milliseconddt"><code>hour(dt?)</code>, <code>minute(dt?)</code>, <code>second(dt?)</code>, <code>millisecond(dt?)</code><a class="headerlink" href="#hourdt-minutedt-seconddt-milliseconddt" title="Permanent link">&para;</a></h3>
 <p>Extract time-of-day components.</p>
 <p><strong>Returns</strong> <code>integer</code></p>
@@ -3120,9 +3179,31 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 <li><code>second</code>: 0–60 (leap seconds possible)</li>
 <li><code>millisecond</code>: 0–999</li>
 </ul>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;time&quot;
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a># Called without argument — operates on the current time
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>println &quot;Hour:        ${time::hour()}&quot;
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>println &quot;Minute:      ${time::minute()}&quot;
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>println &quot;Second:      ${time::second()}&quot;
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>println &quot;Millisecond: ${time::millisecond()}&quot;
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a># Can also pass an explicit date
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>dt = time::now()
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>println &quot;Hour from dt: ${time::hour(dt)}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="ampmdt"><code>ampm(dt?)</code><a class="headerlink" href="#ampmdt" title="Permanent link">&para;</a></h3>
 <p>Returns <code>"AM"</code> or <code>"PM"</code> (12-hour clock indicator).</p>
 <p><strong>Returns</strong> <code>string</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;time&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>period = time::ampm()
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>println &quot;It is currently ${time::hour() % 12}:${time::minute()} ${period}&quot;
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a># =&gt; It is currently 2:34 PM  (example)
+</span></code></pre></div>
+<hr />
 <h3 id="daydt-monthdt-yeardt"><code>day(dt?)</code>, <code>month(dt?)</code>, <code>year(dt?)</code><a class="headerlink" href="#daydt-monthdt-yeardt" title="Permanent link">&para;</a></h3>
 <p>Calendar date components.</p>
 <p><strong>Returns</strong> <code>integer</code></p>
@@ -3131,12 +3212,48 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 <li><code>month</code>: 1–12</li>
 <li><code>year</code>: full year (e.g. 2026)</li>
 </ul>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;time&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>println &quot;Year:  ${time::year()}&quot;
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>println &quot;Month: ${time::month()}&quot;
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>println &quot;Day:   ${time::day()}&quot;
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a># Or pass a specific date
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>dt = time::add_days(time::now(), 30)
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>println &quot;30 days from now: ${time::year(dt)}-${time::month(dt)}-${time::day(dt)}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="weekdaydt"><code>weekday(dt?)</code><a class="headerlink" href="#weekdaydt" title="Permanent link">&para;</a></h3>
 <p>Day of week (0 = Sunday, 1 = Monday, …, 6 = Saturday).</p>
 <p><strong>Returns</strong> <code>integer</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;time&quot;
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>names = [&quot;Sunday&quot;, &quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, &quot;Friday&quot;, &quot;Saturday&quot;]
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>idx   = time::weekday()
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>println &quot;Today is ${names[idx]} (index ${idx})&quot;
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a># Check if today is a weekend
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>is_weekend = idx == 0 || idx == 6
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>println &quot;Weekend: ${is_weekend}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="yeardaydt"><code>yearday(dt?)</code><a class="headerlink" href="#yeardaydt" title="Permanent link">&para;</a></h3>
 <p>Day of year (1 = Jan 1, up to 365 or 366).</p>
 <p><strong>Returns</strong> <code>integer</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>import &quot;time&quot;
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>yd = time::yearday()
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>println &quot;Day of year: ${yd}&quot;
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a># Days remaining in the year
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>yr   = time::year()
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>days = case time::leapyear(yr) | true =&gt; 366, false =&gt; 365 end
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>println &quot;Days remaining: ${days - yd}&quot;
+</span></code></pre></div>
+<hr />
 <h2 id="calendar-utilities">Calendar utilities<a class="headerlink" href="#calendar-utilities" title="Permanent link">&para;</a></h2>
 <h3 id="leapyear_year"><code>leapyear(_year)</code><a class="headerlink" href="#leapyear_year" title="Permanent link">&para;</a></h3>
 <p>Checks whether a year is a leap year (Gregorian rules).</p>
@@ -3156,6 +3273,15 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </tbody>
 </table>
 <p><strong>Returns</strong> <code>boolean</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>import &quot;time&quot;
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>println &quot;2024 leap year: ${time::leapyear(2024)}&quot;  # =&gt; true
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>println &quot;2023 leap year: ${time::leapyear(2023)}&quot;  # =&gt; false
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>println &quot;2000 leap year: ${time::leapyear(2000)}&quot;  # =&gt; true
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>println &quot;1900 leap year: ${time::leapyear(1900)}&quot;  # =&gt; false
+</span></code></pre></div>
+<hr />
 <h3 id="monthdays_year-_month"><code>monthdays(_year, _month)</code><a class="headerlink" href="#monthdays_year-_month" title="Permanent link">&para;</a></h3>
 <p>Returns number of days in the specified month/year.</p>
 <p><strong>Parameters</strong></p>
@@ -3178,6 +3304,16 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </tbody>
 </table>
 <p><strong>Returns</strong> <code>integer</code> (28–31)</p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>import &quot;time&quot;
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a># February in a leap year vs. a regular year
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>println &quot;Feb 2024: ${time::monthdays(2024, 2)} days&quot;  # =&gt; 29
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>println &quot;Feb 2023: ${time::monthdays(2023, 2)} days&quot;  # =&gt; 28
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>println &quot;Jan 2026: ${time::monthdays(2026, 1)} days&quot;  # =&gt; 31
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>println &quot;Apr 2026: ${time::monthdays(2026, 4)} days&quot;  # =&gt; 30
+</span></code></pre></div>
+<hr />
 <h3 id="valid_day_year-_month-_day"><code>valid_day(_year, _month, _day)</code><a class="headerlink" href="#valid_day_year-_month-_day" title="Permanent link">&para;</a></h3>
 <p>Checks if the day is valid in the given month/year.</p>
 <p><strong>Parameters</strong></p>
@@ -3204,18 +3340,55 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </tbody>
 </table>
 <p><strong>Returns</strong> <code>boolean</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>import &quot;time&quot;
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>println &quot;2026-03-15 valid: ${time::valid_day(2026, 3, 15)}&quot;  # =&gt; true
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>println &quot;2026-02-29 valid: ${time::valid_day(2026, 2, 29)}&quot;  # =&gt; false (2026 not a leap year)
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>println &quot;2024-02-29 valid: ${time::valid_day(2024, 2, 29)}&quot;  # =&gt; true  (2024 is a leap year)
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>println &quot;2026-13-01 valid: ${time::valid_day(2026, 13, 1)}&quot;  # =&gt; false (no 13th month)
+</span></code></pre></div>
+<hr />
 <h3 id="first_day"><code>first_day()</code><a class="headerlink" href="#first_day" title="Permanent link">&para;</a></h3>
 <p>Returns January 1st of the current year.</p>
 <p><strong>Returns</strong> <code>date</code></p>
 <h3 id="last_day"><code>last_day()</code><a class="headerlink" href="#last_day" title="Permanent link">&para;</a></h3>
 <p>Returns December 31st of the current year.</p>
 <p><strong>Returns</strong> <code>date</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>import &quot;time&quot;
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>first = time::first_day()
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>last  = time::last_day()
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>println &quot;First day of year: ${first.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>println &quot;Last day of year:  ${last.to_string(&quot;yyyy-MM-dd&quot;)}&quot;
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a># Iterate every day of the year
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>dt = time::add_days(first, -1)
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>repeat 365 do
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>  dt = time::add_days(dt, 1)
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>  # process dt ...
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>end
+</span></code></pre></div>
+<hr />
 <h2 id="other-helpers">Other helpers<a class="headerlink" href="#other-helpers" title="Permanent link">&para;</a></h2>
 <h3 id="isdstdt"><code>isdst(dt?)</code><a class="headerlink" href="#isdstdt" title="Permanent link">&para;</a></h3>
 <p>Checks whether the time is in Daylight Saving Time.</p>
 <p><strong>Returns</strong> <code>boolean</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>import &quot;time&quot;
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>in_dst = time::isdst()
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>println &quot;Currently in DST: ${in_dst}&quot;
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a># Check a specific date
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>summer = time::add_months(time::now(), 3)
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>println &quot;DST in 3 months: ${time::isdst(summer)}&quot;
+</span></code></pre></div>
+<hr />
 <h3 id="timestampformat"><code>timestamp(format?)</code><a class="headerlink" href="#timestampformat" title="Permanent link">&para;</a></h3>
-<p>Formats the current time using the <code>date</code> type’s <code>to_string()</code> rules.</p>
+<p>Formats the current time using the <code>date</code> type's <code>to_string()</code> rules.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3235,6 +3408,23 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </table>
 <p><strong>Returns</strong> <code>string</code></p>
 <p>Common formats include <code>'u'</code> (ISO-like), <code>'yyyy-MM-dd'</code>, <code>'HH:mm:ss'</code>, etc.</p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>import &quot;time&quot;
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>println time::timestamp()               # ISO-like default
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>println time::timestamp(&quot;yyyy-MM-dd&quot;)   # date only
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>println time::timestamp(&quot;HH:mm:ss&quot;)     # time only
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>println time::timestamp(&quot;yyyy-MM-dd HH:mm:ss&quot;)  # datetime
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a># Useful for log prefixes
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>fn log(msg: string)
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>  println &quot;[${time::timestamp(&quot;HH:mm:ss&quot;)}] ${msg}&quot;
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>end
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>log(&quot;Starting process&quot;)
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>log(&quot;Process complete&quot;)
+</span></code></pre></div>
+<hr />
 <h3 id="ticks"><code>ticks()</code><a class="headerlink" href="#ticks" title="Permanent link">&para;</a></h3>
 <p>Nanoseconds since Unix epoch (1970-01-01 00:00:00 UTC).</p>
 <p><strong>Returns</strong> <code>float</code></p>
@@ -3256,6 +3446,32 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </tbody>
 </table>
 <p><strong>Returns</strong> <code>float</code></p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>import &quot;time&quot;
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a># Time a block of code using ticks
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>fn expensive_work()
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>  total = 0
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>  for i in [1 to 100000] do
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    total += i
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>  end
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>  total
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>end
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>t0     = time::ticks()
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>result = expensive_work()
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>t1     = time::ticks()
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>elapsed_ms = time::ticksms(t1 - t0)
+</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>println &quot;Result:  ${result}&quot;
+</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>println &quot;Elapsed: ${elapsed_ms}ms&quot;
+</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>
+</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a># Ticks are also useful for simple wall-clock comparisons
+</span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>start = time::ticks()
+</span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a># ... do work ...
+</span><span id="__span-16-23"><a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a>end_t  = time::ticks()
+</span><span id="__span-16-24"><a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a>println &quot;Wall time: ${time::ticksms(end_t - start)}ms&quot;
+</span></code></pre></div>
 
 
 
