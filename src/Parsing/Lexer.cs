@@ -313,6 +313,26 @@ public class Lexer : IDisposable
                     {
                         if (i + 1 < text.Length && text[i + 1] == '{')
                         {
+                            // \${ → escape: treat as literal "${...}" without interpolating
+                            if (sv.Length > 0 && sv[sv.Length - 1] == '\\')
+                            {
+                                sv.Remove(sv.Length - 1, 1); // remove the preceding backslash
+                                sv.Append("${");
+                                i += 2; // skip '$' and '{'
+                                int depth = 1;
+                                while (i < text.Length && depth > 0)
+                                {
+                                    char ci = text[i];
+                                    if (ci == '{') { depth++; sv.Append(ci); }
+                                    else if (ci == '}') { depth--; if (depth > 0) sv.Append(ci); }
+                                    else sv.Append(ci);
+                                    i++;
+                                }
+                                sv.Append('}');
+                                --i; // compensate for for-loop's ++i
+                                break;
+                            }
+
                             ++i; // skip "${"
                             ++braces;
 
@@ -322,6 +342,17 @@ public class Lexer : IDisposable
                             var st = CreateStringLiteralToken(span, s, Value.CreateString(s));
                             interpTokens.Add(st);
                             interpolate = true;
+                        }
+                        else if (i + 1 < text.Length && text[i + 1] == '$')
+                        {
+                            // $$ → literal single $
+                            sv.Append('$');
+                            ++i; // skip second $
+                        }
+                        else
+                        {
+                            // bare $ (not followed by { or $) → literal $
+                            sv.Append('$');
                         }
                     }
                     break;
@@ -1150,6 +1181,10 @@ public class Lexer : IDisposable
                 name = TokenName.Types_Hashmap;
                 break;
 
+            case "generator":
+                name = TokenName.Types_Generator;
+                break;
+
             case "lambda":
                 name = TokenName.Types_Lambda;
                 break;
@@ -1280,6 +1315,7 @@ public class Lexer : IDisposable
             "var" => TokenName.KW_Var,
             "when" => TokenName.KW_When,
             "while" => TokenName.KW_While,
+            "yield" => TokenName.KW_Yield,
             _ => TokenName.Default,
         };
 

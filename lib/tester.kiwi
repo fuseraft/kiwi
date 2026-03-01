@@ -71,7 +71,7 @@ package tester
 
     test_stop = time::ticks()
     duration = time::ticksms(test_stop - test_start)
-    results.push({ name: t, result: passed, duration: duration })
+    results.push({ name: name, result: passed, duration: duration })
 
     println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
     if !error_message.empty()

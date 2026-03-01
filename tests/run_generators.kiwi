@@ -1,0 +1,20 @@
+include "lib/suite/generators"
+
+var results = tester::run_tests()
+var failed = 0
+
+for r in results do
+  if r.result
+    println "[PASS] ${r.name}"
+  else
+    println "[FAIL] ${r.name}"
+    failed += 1
+  end
+end
+
+if failed == 0
+  println "\nAll generator tests passed!"
+else
+  println "\n${failed} test(s) failed."
+  exit 1
+end

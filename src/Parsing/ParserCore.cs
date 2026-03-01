@@ -16,6 +16,7 @@ public partial class Parser(bool rethrowErrors = false)
     private TokenStream stream = new([]);
     private Stack<string> structStack = new();
     private Stack<Dictionary<string, string>> mangledNameStack = new();
+    private readonly List<bool> _generatorMarks = [];
     private static HashSet<string> StructsDefined = [];
     private static HashSet<string> PackagesDefined = [];
     
@@ -396,11 +397,8 @@ public partial class Parser(bool rethrowErrors = false)
 
     private bool HasName(string name)
     {
-        Stack<Dictionary<string, string>> nameStack = new(mangledNameStack);
-
-        while (nameStack.Count > 0)
+        foreach (var names in mangledNameStack)
         {
-            var names = nameStack.Pop();
             if (names.ContainsKey(name))
             {
                 return true;
@@ -412,11 +410,8 @@ public partial class Parser(bool rethrowErrors = false)
 
     private string GetName(string name)
     {
-        Stack<Dictionary<string, string>> nameStack = new(mangledNameStack);
-
-        while (nameStack.Count > 0)
+        foreach (var names in mangledNameStack)
         {
-            var names = nameStack.Pop();
             if (names.TryGetValue(name, out string? value))
             {
                 return value ?? string.Empty;

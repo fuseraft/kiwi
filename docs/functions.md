@@ -96,3 +96,21 @@ end
 # 5
 println(counter)
 ```
+
+### Generator Functions
+
+A function that contains `yield` is a **generator function**. Calling it returns a lazy generator object instead of executing the body. See [Generators](generators.md) for full details.
+
+```kiwi
+fn countdown(n)
+  while n >= 0 do
+    yield n
+    n -= 1
+  end
+end
+
+for x in countdown(5) do
+  print "${x} "
+end
+# 5 4 3 2 1 0
+```

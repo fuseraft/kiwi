@@ -12,6 +12,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
     public bool IsOperatorOverload { get; set; }
     public bool IsStatic { get; set; }
     public bool IsPrivate { get; set; }
+    public bool IsGenerator { get; set; }
 
     public LambdaNode ToLambda()
     {
@@ -107,6 +108,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
             Body = clonedBody,
             IsStatic = IsStatic,
             IsPrivate = IsPrivate,
+            IsGenerator = IsGenerator,
             TypeHints = TypeHints,
             ReturnTypeHint = ReturnTypeHint,
             Token = Token

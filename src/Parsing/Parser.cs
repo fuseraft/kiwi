@@ -56,6 +56,9 @@ public partial class Parser
             case TokenName.KW_Return:
                 return ParseReturn();
 
+            case TokenName.KW_Yield:
+                return ParseYield();
+
             case TokenName.KW_Throw:
                 return ParseThrow();
 
@@ -123,6 +126,12 @@ public partial class Parser
                 node = ParseError();
                 break;
 
+            // @var used as a statement — route through ParseExpression so binary
+            // operators (>=, ==, &&, etc.) are parsed correctly after the member access.
+            case TokenType.Keyword when GetTokenName() == TokenName.KW_This:
+                node = ParseExpression();
+                break;
+
             case TokenType.Keyword:
                 node = ParseKeyword();
                 break;
@@ -150,8 +159,22 @@ public partial class Parser
                 {
                     throw new UnexpectedEndOfFileError(GetErrorToken());
                 }
-                
+
                 throw new TokenStreamError(GetErrorToken(), $"Unexpected token in statement: {Enum.GetName(nodeToken.Type)}: `{nodeToken.Text}`");
+        }
+
+        // Apply a when-guard to any statement that did not already consume 'when'.
+        // return/throw/exit/break/next/assignment all consume 'when' themselves,
+        // so MatchName returns false for those and no wrapping occurs.
+        if (node != null && MatchName(TokenName.KW_When))
+        {
+            if (!HasValue())
+            {
+                throw new SyntaxError(GetErrorToken(), "Expected condition after 'when'.");
+            }
+
+            var whenCondition = ParseExpression();
+            node = new IfNode { Condition = whenCondition, Body = [node], Token = nodeToken };
         }
 
         if (node != null)
@@ -664,6 +687,7 @@ public partial class Parser
             throw new SyntaxError(GetErrorToken(), $"Expected '(' after the identifier `{functionName}`.");
         }
 
+        _generatorMarks.Add(false);
         var mangledNames = PushNameStack();
 
         if (GetTokenType() == TokenType.LParen)
@@ -737,6 +761,10 @@ public partial class Parser
 
         PopNameStack();
 
+        var isGenerator = _generatorMarks.Count > 0 && _generatorMarks[_generatorMarks.Count - 1];
+        if (_generatorMarks.Count > 0)
+            _generatorMarks.RemoveAt(_generatorMarks.Count - 1);
+
         return new FunctionNode
         {
             Name = functionName,
@@ -744,7 +772,8 @@ public partial class Parser
             Body = body,
             TypeHints = typeHints,
             ReturnTypeHint = returnTypeHint,
-            IsOperatorOverload = isOperator
+            IsOperatorOverload = isOperator,
+            IsGenerator = isGenerator
         };
     }
 
@@ -761,7 +790,7 @@ public partial class Parser
         {
             valueIteratorName = mangler + token.Text;
             mangledNames[token.Text] = valueIteratorName;
-            subMangled.Add(valueIteratorName);
+            subMangled.Add(token.Text);
         }
 
         var valueIterator = ParseIdentifier(false, false);
@@ -772,7 +801,7 @@ public partial class Parser
             if (GetTokenType() == TokenType.Identifier)
             {
                 mangledNames[token.Text] = mangler + token.Text;
-                subMangled.Add(mangler + token.Text);
+                subMangled.Add(token.Text);
             }
             indexIterator = ParseIdentifier(false, false);
         }
@@ -904,6 +933,26 @@ public partial class Parser
             }
 
             node.Condition = ParseExpression();
+        }
+
+        return node;
+    }
+
+    private YieldNode? ParseYield()
+    {
+        var yieldToken = token;
+        MatchName(TokenName.KW_Yield);
+        var node = new YieldNode { Token = yieldToken };
+
+        if (HasValue())
+        {
+            node.YieldValue = ParseExpression();
+        }
+
+        // Mark the enclosing function as a generator
+        if (_generatorMarks.Count > 0)
+        {
+            _generatorMarks[_generatorMarks.Count - 1] = true;
         }
 
         return node;
@@ -1103,7 +1152,7 @@ public partial class Parser
                 var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
                 var testAlias = mangler + token.Text;
                 mangledNames[token.Text] = testAlias;
-                subMangled.Add(testAlias);
+                subMangled.Add(token.Text);
 
                 node.TestValueAlias = ParseIdentifier(false, false);
             }

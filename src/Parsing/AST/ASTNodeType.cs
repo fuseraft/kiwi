@@ -55,4 +55,5 @@ public enum ASTNodeType
     UnaryOperation,
     Variable,
     WhileLoop,
+    Yield,
 };

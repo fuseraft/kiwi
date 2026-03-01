@@ -9,7 +9,7 @@ All loops support `break` (exit early) and `next` (skip to next iteration).
 |---------------|---------------------------------------|---------------|------------------|--------------------|
 | `repeat n`    | Known number of repetitions           | Yes (via `as`) | Yes              | No                 |
 | `while`       | Condition-based (including infinite)  | No            | Manual           | Yes                |
-| `for … in …`  | Collection / range iteration          | Yes           | Yes (optional)   | No                 |
+| `for … in …`  | Collection / range / generator        | Yes           | Yes (optional)   | Yes (generators)   |
 
 ## 1. `repeat` – Fixed number of iterations
 
@@ -92,9 +92,9 @@ end
 # 1 3 5 7 9
 ```
 
-## 3. `for` – Iteration over collections & ranges
+## 3. `for` – Iteration over collections, ranges & generators
 
-Most common loop in Kiwi — used for lists, hashmaps, ranges, iterators, etc.
+Most common loop in Kiwi — used for lists, hashmaps, ranges, and generators.
 
 ### Syntax
 
@@ -195,4 +195,5 @@ See also:
 - [Ranges](ranges.md)
 - [Lists](lists.md)
 - [Hashmaps](hashmaps.md)
+- [Generators](generators.md)
 - [Control Flow – `when` guards](control_structures.md#3-when--guard-clauses--conditional-modifiers)

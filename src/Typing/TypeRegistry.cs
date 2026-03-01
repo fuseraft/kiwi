@@ -29,6 +29,7 @@ public static class TypeRegistry
         RegisterType("boolean");
         RegisterType("date");
         RegisterType("hashmap");
+        RegisterType("generator");
         RegisterType("lambda");
         RegisterType("string");
         RegisterType("list");
@@ -83,6 +84,7 @@ public static class TypeRegistry
             Typing.ValueType.String => "string",
             Typing.ValueType.Pointer => "pointer",
             Typing.ValueType.Bytes => "bytes",
+            Typing.ValueType.Generator => "generator",
             _ => string.Empty,
         };
         

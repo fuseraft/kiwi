@@ -29,6 +29,7 @@ var (unit_tests: list = [
   "nulls",
   "type_checking",
   "loops",
+  "generators",
   "try_finally",
   "try_catch_finally",
   "nested_try",
