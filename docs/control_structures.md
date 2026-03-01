@@ -2,6 +2,19 @@
 
 Kiwi offers a compact but very expressive set of control structures.
 
+## Truthiness
+
+A condition is any boolean expression. Non-boolean values are also valid — they are coerced to a boolean based on whether they are *truthy* or *falsy*:
+
+| Type      | Truthy example  | Falsy example | Rule                       |
+|-----------|-----------------|---------------|----------------------------|
+| `integer` | `1`             | `0`           | Non-zero is truthy         |
+| `float`   | `1.0`           | `0.0`         | Non-zero is truthy         |
+| `boolean` | `true`          | `false`       | The boolean values         |
+| `string`  | `"hello"`       | `""`          | Non-empty string is truthy |
+| `list`    | `[1, 2, 3]`     | `[]`          | Non-empty list is truthy   |
+| `hashmap` | `{"a": 1}`      | `{}`          | Non-empty hashmap is truthy|
+
 ## Quick Reference
 
 | Construct              | Best for                              | Returns value? | Early-exit friendly? |
