@@ -41,6 +41,7 @@ var (unit_tests: list = [
   "iterators",
   "scoping",
   "chained_access",
+  "dates",
   "xml"
 ])
 

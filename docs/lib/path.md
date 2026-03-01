@@ -318,8 +318,136 @@ Reads the entire file as bytes.
 #### `readlines()` / `read_lines()`
 Reads the file and returns its lines as a list of strings.
 
-**Returns**  
+**Returns**
 
 | Type  | Description                  |
 |-------|------------------------------|
 | `list`| List of lines (strings)      |
+
+---
+
+## Examples
+
+### Basic path construction and joining
+
+```kiwi
+import "path"
+
+p = Path.new("/home/user/projects")
+report = p / "2024" / "report.txt"
+
+println report.to_string()   # /home/user/projects/2024/report.txt
+println report.name()        # report.txt
+println report.ext()         # .txt
+println report.parent()      # /home/user/projects/2024
+```
+
+### Working directory and parts
+
+```kiwi
+import "path"
+
+cwd = Path.cwd()
+println cwd.to_string()   # /home/user/projects
+
+println cwd.parts()       # ["home", "user", "projects"]
+println cwd.root()        # /
+```
+
+### Filesystem queries
+
+```kiwi
+import "path"
+
+p = Path.new("/etc/hosts")
+println p.exists()    # true
+println p.is_file()   # true
+println p.is_dir()    # false
+
+d = Path.new("/etc")
+println d.is_dir()    # true
+```
+
+### Reading files
+
+```kiwi
+import "path"
+
+p = Path.new("/etc/hostname")
+
+println p.read()           # "mymachine\n"
+println p.readlines()      # ["mymachine"]
+bytes = p.readbytes()
+println bytes.size()       # byte count
+```
+
+### Ancestor traversal
+
+```kiwi
+import "path"
+
+p = Path.new("/home/user/projects/app/src")
+println p.parent()         # /home/user/projects/app
+
+all_parents = p.parents()
+for ancestor in all_parents do
+  println ancestor
+end
+# /home/user/projects/app
+# /home/user/projects
+# /home/user
+# /home
+# /
+```
+
+### joinpath with multiple components
+
+```kiwi
+import "path"
+
+base = Path.new("/var/log")
+full = base.joinpath(["nginx", "access.log"])
+println full.to_string()   # /var/log/nginx/access.log
+```
+
+### Absolute path resolution
+
+```kiwi
+import "path"
+
+p = Path.new("../config")
+println p.abspath()   # resolved absolute path
+```
+
+### Temporary files and directories
+
+```kiwi
+import "path"
+
+tmp = Path.temp_dir()
+println tmp.to_string()   # /tmp  (or system temp dir)
+
+f = Path.temp_file()
+println f.exists()   # true
+f.remove()
+```
+
+### Find an ancestor by name
+
+```kiwi
+import "path"
+
+p = Path.new("/home/user/projects/myapp/src/main.kiwi")
+found = p.find("myapp")
+println found.to_string()   # /home/user/projects/myapp
+```
+
+### Check if path contains a component
+
+```kiwi
+import "path"
+
+p = Path.new("/home/user/projects")
+println p.contains("user")      # true
+println p.contains("admin")     # false
+```

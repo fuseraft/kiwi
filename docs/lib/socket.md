@@ -110,6 +110,81 @@ Enqueues an asynchronous send operation on a client socket. The operation comple
 | :--- | :--- |
 | `integer` | An awaitable task identifier. Use `task::await()` on this ID to obtain the number of bytes sent (`integer`). |
 
+**Example: Echo server**
+
+A minimal TCP echo server that accepts one connection, reads data, and echoes it back.
+
+```kiwi
+import "socket"
+import "task"
+
+# Bind and listen on localhost:8080
+server = socket::tcpserver("127.0.0.1", 8080)
+println "Server listening on 127.0.0.1:8080"
+
+# Block until a client connects
+client_id = task::await(socket::accept(server))
+println "Client connected: ${client_id}"
+
+# Receive up to 4096 bytes
+data = task::await(socket::recv(client_id))
+println "Received: ${data.to_list().join("")}"
+
+# Echo back
+task::await(socket::send(client_id, data))
+
+socket::close(client_id)
+socket::close(server)
+println "Done."
+```
+
+**Example: TCP client**
+
+Connect to a server, send a message, and read the response.
+
+```kiwi
+import "socket"
+import "task"
+
+conn = socket::tcpconnect("127.0.0.1", 8080)
+println "Connected to server"
+
+task::await(socket::send(conn, "Hello".to_bytes()))
+
+response = task::await(socket::recv(conn))
+println "Server replied: ${response.to_list().join("")}"
+
+socket::close(conn)
+```
+
+**Example: Persistent echo server (multi-client loop)**
+
+Accept and handle clients in a loop using `task::spawn`.
+
+```kiwi
+import "socket"
+import "task"
+
+fn handle_client(client_id)
+  data = task::await(socket::recv(client_id))
+  if data.size() > 0
+    task::await(socket::send(client_id, data))
+  end
+  socket::close(client_id)
+end
+
+server = socket::tcpserver("127.0.0.1", 9000)
+println "Echo server running on port 9000"
+
+# Accept connections indefinitely
+while true do
+  client_id = task::await(socket::accept(server))
+  task::spawn(with (id) do handle_client(id) end, [client_id])
+end
+```
+
+---
+
 ## `tls` Package Functions
 
 ### `tls::tcpserver(host, port, backlog)`
@@ -132,7 +207,7 @@ Creates a TCP server socket and binds it to the specified host and port.
 ---
 
 ### `tls::tcpconnect(host, port?, sni?)`
-Establishes a TLS-secured TCP connection to the specified host and port.  
+Establishes a TLS-secured TCP connection to the specified host and port.
 Returns a socket ID that can be used with `recv`, `send`, and `close`.
 
 **Parameters**
@@ -177,16 +252,16 @@ Closes the TLS socket and faults any pending send/receive tasks associated with 
 |-----------|-----------|------------------------------|
 | `integer` | `sock_id` | The socket ID to close       |
 
-**Returns**  
+**Returns**
 _None_
 
-**Throws / faults**  
+**Throws / faults**
 Any pending tasks on this socket will be faulted with a socket error.
 
 ---
 
 ### `tls::recv(sock_id, max_bytes?)`
-Enqueues an asynchronous receive operation on the TLS socket.  
+Enqueues an asynchronous receive operation on the TLS socket.
 Returns a task ID that you can `await` to get the received bytes.
 
 **Parameters**
@@ -205,7 +280,7 @@ Returns a task ID that you can `await` to get the received bytes.
 ---
 
 ### `tls::send(sock_id, data)`
-Enqueues an asynchronous send operation on the TLS socket.  
+Enqueues an asynchronous send operation on the TLS socket.
 Returns a task ID that you can `await` to confirm the send completed.
 
 **Parameters**
@@ -220,3 +295,46 @@ Returns a task ID that you can `await` to confirm the send completed.
 | Type      | Description                          |
 |-----------|--------------------------------------|
 | `integer` | Task ID (await with `task.await()`)  |
+
+**Example: HTTPS request over TLS**
+
+Connect to a remote HTTPS server and issue a raw HTTP/1.1 GET request.
+
+```kiwi
+import "socket"
+import "task"
+
+# Connect with TLS — port defaults to 443
+conn = tls::tcpconnect("example.com", 443)
+println "TLS connection established"
+
+# Build a minimal HTTP/1.1 request
+request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n"
+task::await(tls::send(conn, request.to_bytes()))
+
+# Read the response (may need multiple recv calls for large responses)
+response = task::await(tls::recv(conn))
+println response.to_list().join("")
+
+tls::close(conn)
+```
+
+**Example: TLS client with SNI**
+
+When connecting to a server that hosts multiple domains, pass the SNI hostname explicitly.
+
+```kiwi
+import "socket"
+import "task"
+
+# SNI lets the server select the correct certificate for "api.example.com"
+conn = tls::tcpconnect("203.0.113.10", 443, "api.example.com")
+
+request = "GET /status HTTP/1.1\r\nHost: api.example.com\r\nConnection: close\r\n\r\n"
+task::await(tls::send(conn, request.to_bytes()))
+
+data = task::await(tls::recv(conn))
+println "Response length: ${data.size()} bytes"
+
+tls::close(conn)
+```

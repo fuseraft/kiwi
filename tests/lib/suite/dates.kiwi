@@ -1,0 +1,104 @@
+/# ==============================================================================
+    Testing the `date` package — method-style date arithmetic and component
+    accessors on the built-in `date` type.
+
+    Base date: 2024-03-15 10:30:45.500  (Friday, day 75 of year, leap year)
+   ============================================================================== #/
+tester::register_test("dates", with do
+  base = d(2024, 3, 15, 10, 30, 45, 500)
+
+  # -----------------------------------------------------------------------
+  # Component accessors
+  # -----------------------------------------------------------------------
+  tester::assert(base.year()        == 2024,  "year")
+  tester::assert(base.month()       == 3,     "month")
+  tester::assert(base.day()         == 15,    "day")
+  tester::assert(base.hour()        == 10,    "hour")
+  tester::assert(base.minute()      == 30,    "minute")
+  tester::assert(base.second()      == 45,    "second")
+  tester::assert(base.millisecond() == 500,   "millisecond")
+  tester::assert(base.weekday()     == 5,     "weekday (Friday = 5)")
+  tester::assert(base.yearday()     == 75,    "yearday (31+29+15)")
+  tester::assert(base.ampm()        == "AM",  "ampm")
+
+  # -----------------------------------------------------------------------
+  # add_days
+  # -----------------------------------------------------------------------
+  r = base.add_days(10)
+  tester::assert(r.month() == 3 && r.day() == 25, "add_days +10")
+
+  r = base.add_days(-15)   # crosses into Feb (2024 is a leap year)
+  tester::assert(r.month() == 2 && r.day() == 29, "add_days -15 (leap Feb 29)")
+
+  r = base.add_days(17)    # Mar 15 + 17 = Apr 1
+  tester::assert(r.month() == 4 && r.day() == 1,  "add_days +17 rolls into April")
+
+  # -----------------------------------------------------------------------
+  # add_months
+  # -----------------------------------------------------------------------
+  r = base.add_months(1)
+  tester::assert(r.month() == 4 && r.day() == 15, "add_months +1")
+
+  r = base.add_months(-2)
+  tester::assert(r.month() == 1 && r.day() == 15, "add_months -2")
+
+  r = base.add_months(10)  # Mar -> Jan next year
+  tester::assert(r.year() == 2025 && r.month() == 1, "add_months +10 rolls into next year")
+
+  # -----------------------------------------------------------------------
+  # add_years
+  # -----------------------------------------------------------------------
+  r = base.add_years(1)
+  tester::assert(r.year() == 2025 && r.month() == 3 && r.day() == 15, "add_years +1")
+
+  r = base.add_years(-1)
+  tester::assert(r.year() == 2023 && r.month() == 3 && r.day() == 15, "add_years -1")
+
+  # -----------------------------------------------------------------------
+  # add_hours
+  # -----------------------------------------------------------------------
+  r = base.add_hours(2)
+  tester::assert(r.hour() == 12 && r.day() == 15, "add_hours +2")
+
+  r = base.add_hours(14)   # 10 + 14 = 24 -> midnight next day
+  tester::assert(r.hour() == 0 && r.day() == 16, "add_hours +14 rolls to next day")
+
+  r = base.add_hours(-11)  # 10 - 11 = -1 -> 23:xx previous day
+  tester::assert(r.hour() == 23 && r.day() == 14, "add_hours -11 rolls to previous day")
+
+  # -----------------------------------------------------------------------
+  # add_minutes
+  # -----------------------------------------------------------------------
+  r = base.add_minutes(30)   # 10:30 + 30 = 11:00
+  tester::assert(r.hour() == 11 && r.minute() == 0, "add_minutes +30")
+
+  r = base.add_minutes(-31)  # 10:30 - 31 = 09:59
+  tester::assert(r.hour() == 9 && r.minute() == 59, "add_minutes -31")
+
+  # -----------------------------------------------------------------------
+  # add_seconds
+  # -----------------------------------------------------------------------
+  r = base.add_seconds(15)   # 10:30:45 + 15 = 10:31:00
+  tester::assert(r.minute() == 31 && r.second() == 0, "add_seconds +15")
+
+  r = base.add_seconds(-46)  # 10:30:45 - 46 = 10:29:59
+  tester::assert(r.minute() == 29 && r.second() == 59, "add_seconds -46")
+
+  # -----------------------------------------------------------------------
+  # add_milliseconds
+  # -----------------------------------------------------------------------
+  r = base.add_milliseconds(500)   # 500 + 500 = 1000ms = 1 second over
+  tester::assert(r.second() == 46 && r.millisecond() == 0, "add_milliseconds +500")
+
+  r = base.add_milliseconds(-500)  # 500 - 500 = 0ms
+  tester::assert(r.millisecond() == 0, "add_milliseconds -500")
+
+  # -----------------------------------------------------------------------
+  # Chaining
+  # -----------------------------------------------------------------------
+  r = base.add_months(1).add_days(5)   # Apr 15 + 5 = Apr 20
+  tester::assert(r.month() == 4 && r.day() == 20, "chain: add_months(1).add_days(5)")
+
+  r = base.add_years(1).add_months(-3).add_days(10)  # Mar 2025 - 3m + 10d = Dec 25, 2024
+  tester::assert(r.year() == 2024 && r.month() == 12 && r.day() == 25, "chain: add_years(1).add_months(-3).add_days(10)")
+end)
