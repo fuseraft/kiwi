@@ -45,6 +45,7 @@ public partial class Parser
                 return ParseWhileLoop();
 
             case TokenName.KW_This:
+            case TokenName.KW_StaticSelf:
                 return ParseIdentifier(false, false);
 
             case TokenName.KW_Repeat:
@@ -126,9 +127,9 @@ public partial class Parser
                 node = ParseError();
                 break;
 
-            // @var used as a statement — route through ParseExpression so binary
+            // @var or @@var used as a statement — route through ParseExpression so binary
             // operators (>=, ==, &&, etc.) are parsed correctly after the member access.
-            case TokenType.Keyword when GetTokenName() == TokenName.KW_This:
+            case TokenType.Keyword when GetTokenName() is TokenName.KW_This or TokenName.KW_StaticSelf:
                 node = ParseExpression();
                 break;
 
@@ -480,8 +481,9 @@ public partial class Parser
         StructsDefined.Add(structName);
 
         List<ASTNode?> methods = [];
+        List<(string Name, ASTNode? Initializer)> staticVars = [];
         bool isStatic = false, isPrivate = false;
-        
+
         while (GetTokenName() != TokenName.KW_End)
         {
             if (MatchName(TokenName.KW_Static))
@@ -492,6 +494,25 @@ public partial class Parser
             else if (MatchName(TokenName.KW_Private))
             {
                 isPrivate = true;
+                continue;
+            }
+
+            // Static variable declaration: static @varname = expr
+            if (isStatic && GetTokenName() == TokenName.KW_This)
+            {
+                Next();  // consume @
+                var varName = "@@" + token.Text;
+                Next();  // consume identifier
+
+                if (GetTokenName() != TokenName.Ops_Assign)
+                {
+                    throw new SyntaxError(GetErrorToken(), "Expected '=' in static variable declaration.");
+                }
+
+                Next();  // consume =
+                var initializer = ParseExpression();
+                staticVars.Add((varName, initializer));
+                isStatic = false;
                 continue;
             }
 
@@ -514,7 +535,7 @@ public partial class Parser
         // Outside the struct definition
         structStack.Pop();
 
-        return new StructNode(structName, baseStruct, interfaces, methods);
+        return new StructNode(structName, baseStruct, interfaces, methods, staticVars);
     }
 
     private ASTNode? ParseInterface()
@@ -2058,6 +2079,35 @@ public partial class Parser
     private ASTNode? ParseIdentifier(bool packed, bool lenient)
     {
         var idToken = token.Clone();
+
+        // Static self: @@varname
+        if (GetTokenName() == TokenName.KW_StaticSelf)
+        {
+            Next();  // consume @@
+
+            if (GetTokenType() != TokenType.Identifier)
+            {
+                throw new SyntaxError(GetErrorToken(), "Expected identifier after '@@'.");
+            }
+
+            var staticVarName = "@@" + token.Text;
+            Next();  // consume identifier
+
+            ASTNode? staticNode = new StaticSelfNode(staticVarName) { Token = idToken };
+
+            if (GetTokenType() == TokenType.Operator && IsAssignmentOperator())
+            {
+                staticNode = ParseAssignment(staticNode, staticVarName);
+            }
+
+            if (staticNode != null)
+            {
+                staticNode.Token = idToken;
+            }
+
+            return staticNode;
+        }
+
         bool isInstance = MatchName(TokenName.KW_This);
 
         var isTypeName = GetTokenType() == TokenType.Typename;

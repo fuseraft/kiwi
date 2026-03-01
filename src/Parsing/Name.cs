@@ -325,6 +325,7 @@ public enum TokenName
   KW_Static,
   KW_Struct,
   KW_This,
+  KW_StaticSelf,
   KW_Throw,
   KW_To,
   KW_True,

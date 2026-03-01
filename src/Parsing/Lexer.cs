@@ -449,6 +449,7 @@ public class Lexer : IDisposable
         {
             '\n' => CreateToken(TokenType.Newline, span, Environment.NewLine),
             ',' => CreateToken(TokenType.Comma, span, ","),
+            '@' when PeekChar() == '@' => CreateToken(TokenType.Keyword, span, $"@{GetChar()}", TokenName.KW_StaticSelf),
             '@' => CreateToken(TokenType.Keyword, span, "@", TokenName.KW_This),
             ':' when PeekChar() == ':' => CreateToken(TokenType.Qualifier, span, $":{GetChar()}"),
             '.' when PeekChar() == '.' => TokenizeDoubleDot(span),

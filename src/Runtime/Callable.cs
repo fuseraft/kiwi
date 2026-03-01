@@ -90,6 +90,7 @@ public class KStruct
     public string Name { get; set; } = string.Empty;
     public string BaseStruct { get; set; } = string.Empty;
     public Dictionary<string, KFunction> Methods { get; set; } = [];
+    public Dictionary<string, Value> StaticVariables { get; set; } = [];
 
     public KStruct Clone()
     {
@@ -102,6 +103,11 @@ public class KStruct
         foreach (var kvp in Methods)
         {
             cloned.Methods.Add(kvp.Key, kvp.Value.Clone());
+        }
+
+        foreach (var kvp in StaticVariables)
+        {
+            cloned.StaticVariables.Add(kvp.Key, kvp.Value);
         }
 
         return cloned;

@@ -10,6 +10,7 @@ Structs in Kiwi provide a way to bundle data and functionality together.
 - [Method Definition](#method-definition)
 - [Overriding `to_string()`](#overriding-to_string)
 - [Static Method Definition](#static-method-definition)
+- [Static Variables](#static-variables)
 - [Access Control](#access-control)
 - [Type-checking, member queries](#type-checking-member-queries)
 
@@ -94,6 +95,62 @@ struct MyStruct
 end
 
 MyStruct.static_method() # prints: I can be invoked without an instance!
+```
+
+## Static Variables
+
+Static variables are shared across all instances of a struct. They belong to the struct itself, not to any individual instance.
+
+Declare a static variable with `static @name = value` inside the struct body. It is initialized once when the struct is defined.
+
+```kiwi
+struct Counter
+  static @count = 0
+
+  fn new()
+    @@count += 1
+  end
+
+  static fn get(): integer
+    @@count
+  end
+end
+
+Counter.new()
+Counter.new()
+Counter.new()
+println(Counter.get())  # 3
+```
+
+Inside any method — static or instance — use `@@name` to read or write a static variable.
+
+```kiwi
+struct Logger
+  static @entries = []
+
+  fn new(msg: string)
+    @@entries = @@entries + [msg]
+  end
+
+  static fn all(): list
+    @@entries
+  end
+end
+
+Logger.new("started")
+Logger.new("finished")
+println(Logger.all())  # ["started", "finished"]
+```
+
+Read a static variable from outside the struct with `StructName.varname`. Write to it with `StructName.varname = value`.
+
+```kiwi
+struct Config
+  static @debug = false
+end
+
+Config.debug = true
+println(Config.debug)  # true
 ```
 
 ## Access Control
