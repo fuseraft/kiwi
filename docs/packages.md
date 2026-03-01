@@ -90,3 +90,113 @@ export "app::utils"
 
 app::utils::greet("World")
 ```
+
+---
+
+## Extending Built-in Types
+
+When a package's name matches a built-in type name **and** a function's first parameter is typed as that type, Kiwi automatically makes the function callable as a method on any value of that type.
+
+```kiwi
+package list
+  fn sum_positive(_list: list): integer
+    _list.filter(do (n) => n > 0).sum()
+  end
+end
+
+export "list"
+
+nums = [-3, 1, -1, 4, 2]
+println nums.sum_positive()   # 7
+```
+
+The function is reachable both ways:
+
+```kiwi
+nums.sum_positive()              # method syntax
+list::sum_positive(nums)         # package syntax
+```
+
+### How it works
+
+The dispatch rule has three parts:
+
+1. **Package name** matches a built-in type: `list`, `string`, `date`, `integer`, `float`, `boolean`, `hashmap`, or `bytes`.
+2. **First parameter** carries a matching type hint (e.g. `_s: string`).
+3. **Caller** invokes it as `value.func(args...)` — Kiwi routes this to `package::func(value, args...)`.
+
+If the first parameter has no type hint, or the package name does not match a type, the function is only reachable via the `package::func(...)` form.
+
+### Extending `string`
+
+```kiwi
+package string
+  fn word_count(_s: string): integer
+    _s.trim().split(" ").size()
+  end
+
+  fn shout(_s: string): string
+    _s.uppercase() + "!!!"
+  end
+end
+
+export "string"
+
+println "hello world".word_count()   # 2
+println "kiwi".shout()               # KIWI!!!
+```
+
+### Extending `integer`
+
+```kiwi
+package integer
+  fn factorial(_n: integer): integer
+    return 1 when _n <= 1
+    _n * (_n - 1).factorial()
+  end
+end
+
+export "integer"
+
+println (5).factorial()   # 120
+println (10).factorial()  # 3628800
+```
+
+### Extending `date`
+
+The standard library's `date` package uses this pattern to add arithmetic and accessors to every `date` value:
+
+```kiwi
+# lib/date.kiwi (stdlib)
+package date
+  fn add_days(_dt: date, n: integer): date
+    time::add_days(_dt, n)
+  end
+end
+
+export "date"
+```
+
+After loading, any `date` value gains `.add_days()`:
+
+```kiwi
+today     = time::now()
+next_week = today.add_days(7)
+```
+
+### Standard library type extensions
+
+The following stdlib packages use this pattern:
+
+| Package  | Extends   | Key additions |
+|----------|-----------|---------------|
+| `list`   | `list`    | `all`, `_any`, `_none`, `one`, `reject`, `find`, `first_where`, `last_where`, `sum_integer`, `sum_float`, `iterator` |
+| `string` | `string`  | `base64encode`, `base64decode`, `slug`, `padstart`, `padend`, `center`, `mirror`, `isalpha`, `isnumeric`, `islower`, `isupper` |
+| `date`   | `date`    | `add_days`, `add_months`, `add_years`, `add_hours`, `year`, `month`, `day`, `weekday`, and more |
+
+### Notes
+
+- The first parameter name is conventional — it is not special. `_list`, `lst`, `self` all work equally.
+- If two loaded packages extend the same type with the same function name, the last one loaded wins.
+- Type extension only applies to built-in types. Struct methods are defined inside the struct body using `fn`.
+- Functions with no type hint on the first parameter are still callable as `pkg::func(value)` but will **not** be dispatched as instance methods.
