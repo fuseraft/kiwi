@@ -504,6 +504,16 @@ public partial class Parser
                 var varName = "@@" + token.Text;
                 Next();  // consume identifier
 
+                // Skip optional type hint: : typename
+                if (MatchType(TokenType.Colon))
+                {
+                    if (GetTokenType() != TokenType.Typename && GetTokenType() != TokenType.Identifier)
+                    {
+                        throw new SyntaxError(GetErrorToken(), "Expected type name after ':'.");
+                    }
+                    Next();  // consume type name
+                }
+
                 if (GetTokenName() != TokenName.Ops_Assign)
                 {
                     throw new SyntaxError(GetErrorToken(), "Expected '=' in static variable declaration.");
