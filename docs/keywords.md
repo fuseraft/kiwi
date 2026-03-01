@@ -182,9 +182,44 @@ The `return` keyword is used to return a value from a method, or to exit a metho
 See [Functions and Methods](functions.md) and [Control Structures](control_structures.md).
 
 ### `static`
-The `static` keyword is used to declare a method with static access (can be accessed without instantiation).
+The `static` keyword is used inside a struct to declare a static method or a static variable.
 
-See [Structs](structs.md).
+**Static methods** can be invoked directly on the struct without an instance.
+
+```kiwi
+struct MathUtils
+  static fn square(n: integer): integer
+    n * n
+  end
+end
+
+println(MathUtils.square(4))  # 16
+```
+
+**Static variables** are shared across all instances of a struct. Declare with `static @name = value` (an optional type hint is supported). Read or write them inside any method using `@@name`, or externally using `StructName.name`.
+
+```kiwi
+struct Counter
+  static @count: integer = 0
+
+  fn new()
+    @@count += 1
+  end
+
+  static fn get(): integer
+    @@count
+  end
+end
+
+Counter.new()
+Counter.new()
+println(Counter.get())   # 2
+println(Counter.count)   # 2
+Counter.count = 0
+println(Counter.count)   # 0
+```
+
+See [Structs](structs.md#static-method-definition) and [Static Variables](structs.md#static-variables).
 
 ### `with`
 The `with` keyword is used to define a lambda.
