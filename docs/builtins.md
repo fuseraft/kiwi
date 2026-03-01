@@ -53,10 +53,22 @@ Converts a string into a list. Each character in the string becomes a new string
 
 ```kiwi
 string = "Hello"
-chars = string.chars() 
+chars = string.chars()
 # chars = ["H", "e", "l", "l", "o"]
 
-println("kiwi".chars()) # prints: ["a", "s", "t", "r", "a", "l"]
+println("kiwi".chars()) # prints: ["k", "i", "w", "i"]
+```
+
+### `chomp()`
+
+Strips a trailing newline (`\r\n`, `\n`, or `\r`) from the string. Returns the string unchanged if it does not end with a newline.
+
+```kiwi
+line = "Hello, World!\n"
+println line.chomp()  # prints: Hello, World!
+
+line2 = "No newline"
+println line2.chomp() # prints: No newline
 ```
 
 ### `contains(str)`
@@ -68,14 +80,6 @@ println("foobar".contains("bar"))   # prints: true
 println("foobar".contains("bark"))  # prints: false
 ```
 
-### `lowercase()`
-
-Returns the lowercase value of a string.
-
-```kiwi
-println("FOOBAR".lowercase())   # prints: foobar
-```
-
 ### `ends_with(str)`
 
 Returns true if the string ends with a given string.
@@ -85,13 +89,23 @@ println("foobar".ends_with("bar"))   # prints: true
 println("foobar".ends_with("bark"))  # prints: false
 ```
 
+### `hex_bytes()`
+
+Parses a hex-encoded string into a bytes value. The string may contain spaces and tabs (which are stripped). The hex string must have an even number of characters after whitespace is removed.
+
+```kiwi
+data = "48 65 6C 6C 6F".hex_bytes()
+println data.size()  # prints: 5
+println data         # prints the raw byte array
+```
+
 ### `index(str)`
 
 Returns the index of a string. Returns -1 if not found.
 
 ```kiwi
-println("foobar".index("bar"))     # prints: 3
-println("foobar".index("kiwi"))  # prints: -1
+println("foobar".index("bar"))    # prints: 3
+println("foobar".index("kiwi"))   # prints: -1
 ```
 
 ### `lastindex(str)`
@@ -100,7 +114,24 @@ Returns the last index of a string. Returns -1 if not found.
 
 ```kiwi
 println("foobarbar".lastindex("bar"))  # prints: 6
-println("foobar".lastindex("kiwi"))  # prints: -1
+println("foobar".lastindex("kiwi"))    # prints: -1
+```
+
+### `lines()`
+
+Splits the string into a list of lines, splitting on the platform newline sequence.
+
+```kiwi
+text = "line one\nline two\nline three"
+println text.lines()  # prints: ["line one", "line two", "line three"]
+```
+
+### `lowercase()`
+
+Returns the lowercase value of a string.
+
+```kiwi
+println("FOOBAR".lowercase())  # prints: foobar
 ```
 
 ### `ltrim()`
@@ -109,6 +140,16 @@ Trims whitespace from the left-hand side of a string.
 
 ```kiwi
 println("   Hello World!".ltrim()) # prints: Hello World!
+```
+
+### `ord()`
+
+Returns the Unicode code point (as an integer) of the first character of the string. Throws an error if the string is empty.
+
+```kiwi
+println("A".ord())    # prints: 65
+println("kiwi".ord()) # prints: 107
+println("🥝".ord())   # prints: 129373
 ```
 
 ### `rtrim()`
@@ -157,9 +198,7 @@ println("my email: example@test.com".find('\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[
 
 ### `match(regex)`
 
-Returns the capture groups for the first match of the regex in the string. 
-
-This function extracts parts of the string that match the given regular expression, specifically the groups defined within the pattern.
+Returns the capture groups for the first match of the regex in the string.
 
 ```kiwi
 println("June 24, 2021".match('(\w+) (\d+), (\d+)')) # prints: ["June", "24", "2021"]
@@ -185,12 +224,30 @@ println("123-456-789x".matches_all('\d{3}-\d{3}-\d{4}'))  # prints: false
 
 ### `replace(search, replacement)`
 
-Search for a string and replace with a given string.
+Search for a string (or regex pattern) and replace with a given string. Supports regex capture group back-references.
 
 ```kiwi
-println("foobar".replace("foo", "food"))      # prints: foodbar
-println("foo123bar".replace('(\d+)', '[$1]')) # prints: foo[123]bar
-println("foo123bar456".replace('\d+', "-"))   # prints: foo-bar-
+println("foobar".replace("foo", "food"))       # prints: foodbar
+println("foo123bar".replace('(\d+)', '[$1]'))  # prints: foo[123]bar
+println("foo123bar456".replace('\d+', "-"))    # prints: foo-bar-
+```
+
+### `rreplace(pattern, replacement)`
+
+Like `replace`, but replaces only the **last** occurrence of the pattern.
+
+```kiwi
+println("aabbcc".rreplace("b", "X"))         # prints: aabXcc
+println("foo-bar-baz".rreplace('-\w+', "!")) # prints: foo-bar!
+```
+
+### `rsplit(delimiter, limit = -1)`
+
+Splits a string by delimiter, working from **right to left**. The optional `limit` caps the number of splits. Useful for peeling off a suffix or file extension.
+
+```kiwi
+println("a.b.c.d".rsplit(".", 1))  # prints: ["a.b.c", "d"]
+println("a.b.c.d".rsplit("."))     # prints: ["a", "b", "c", "d"]
 ```
 
 ### `scan(regex)`
@@ -206,8 +263,33 @@ println("s7s s8s s9s".scan('\d'))  # prints: ["7", "8", "9"]
 Splits a string into a list by delimiter.
 
 ```kiwi
-println("Hello World!".split(" ")) # prints: ["Hello", "World!"]
+println("Hello World!".split(" "))           # prints: ["Hello", "World!"]
 println("one,two,three,four".split(",", 2))  # prints: ["one", "two,three,four"]
+```
+
+## Range Checking
+
+### `between(a, b)`
+
+Returns true if the value falls within the inclusive range `[a, b]`. Works on numbers, strings (lexicographic order), and dates.
+
+```kiwi
+# Numbers
+println (5).between(1, 10)    # prints: true
+println (15).between(1, 10)   # prints: false
+
+# Floats
+println (3.14).between(3.0, 4.0)  # prints: true
+
+# Strings (lexicographic order)
+println "kiwi".between("apple", "mango")   # prints: true
+println "zebra".between("apple", "mango")  # prints: false
+
+# Dates
+start = "2024-01-01".to_date()
+end   = "2024-12-31".to_date()
+today = "2024-06-15".to_date()
+println today.between(start, end)  # prints: true
 ```
 
 ## Hashmap Builtins
@@ -218,8 +300,8 @@ Returns the list of keys from a hashmap.
 
 ```kiwi
 hashmap = {
-  "key1": true, 
-  "key2": 1, 
+  "key1": true,
+  "key2": 1,
   "key3": ["a", "b", "c"]
 }
 
@@ -231,47 +313,37 @@ println(hashmap.keys()) # prints: ["key1", "key2", "key3"]
 Returns true if a hashmap contains a given key.
 
 ```kiwi
-hashmap = {
-  "key1": true, 
-  "key2": 1, 
-  "key3": ["a", "b", "c"]
-}
-
+hashmap = { "key1": true, "key2": 1 }
 println(hashmap.has_key("key2")) # prints: true
+println(hashmap.has_key("key9")) # prints: false
 ```
 
-### `get(key)`
+### `get(key, default = null)`
 
-Returns the value assigned to a given key.
+Returns the value assigned to a given key. If the key is not present and a default is supplied, returns the default instead of `null`.
 
 ```kiwi
-hashmap = {
-  "key1": true, 
-  "key2": 1, 
-  "key3": ["a", "b", "c"]
-}
+hashmap = { "a": 1, "b": 2 }
 
-println(hashmap.get("key3")) # prints: ["a", "b", "c"]
+println(hashmap.get("a"))         # prints: 1
+println(hashmap.get("z", 99))     # prints: 99
+println(hashmap.get("z"))         # prints: null
 ```
 
 ### `set(key, value)`
 
-Sets the value assigned to a given key.
+Sets the value assigned to a given key (creates the key if it does not exist).
 
 ```kiwi
-hashmap = {
-  "key1": true, 
-  "key2": 1, 
-  "key3": ["a", "b", "c"]
-}
-
-hashmap.set("key3", 31337)
-println(hashmap.get("key3")) # prints: 31337
+hashmap = { "key1": true }
+hashmap.set("key1", false)
+hashmap.set("key2", 42)
+println hashmap  # prints: {"key1": false, "key2": 42}
 ```
 
 ### `merge(hashmap)`
 
-Merge a hashmap with another.
+Merge a hashmap with another. Keys in the argument override matching keys in the receiver.
 
 ```kiwi
 hashmap1 = {"a": 1, "b": 2}
@@ -279,21 +351,48 @@ hashmap2 = {"b": 3, "c": 4}
 println(hashmap1.merge(hashmap2)) # prints: {"a": 1, "b": 3, "c": 4}
 ```
 
+### `remove(key)`
+
+Removes a key-value pair from the hashmap. Returns the hashmap after removal.
+
+```kiwi
+h = { "a": 1, "b": 2, "c": 3 }
+h.remove("b")
+println h  # prints: {"a": 1, "c": 3}
+```
+
 ### `values()`
 
 Returns the list of values from a hashmap.
 
 ```kiwi
-hashmap = {
-  "key1": true, 
-  "key2": 1, 
-  "key3": ["a", "b", "c"]
-}
-
+hashmap = { "key1": true, "key2": 1, "key3": ["a", "b", "c"] }
 println(hashmap.values()) # prints: [true, 1, ["a", "b", "c"]]
 ```
 
 ## List Builtins
+
+### `all(lambda)`
+
+Returns true if all elements in a list match a given condition.
+
+```kiwi
+list = [2, 4, 6]
+println list.all(do (n) => n % 2 == 0)  # prints: true
+
+list.push(5)
+println list.all(do (n) => n % 2 == 0)  # prints: false
+```
+
+### `append(value)`
+
+Alias for `push`. Adds a value to the end of a list.
+
+```kiwi
+list = [1, 2, 3]
+list.append(4)
+println list  # prints: [1, 2, 3, 4]
+```
 
 ### `clear()`
 
@@ -301,7 +400,7 @@ Clears a list or a hashmap.
 
 ```kiwi
 list = "Hello".chars() # ["H", "e", "l", "l", "o"]
-list.clear() # []
+list.clear()           # []
 ```
 
 ### `concat(list)`
@@ -309,7 +408,7 @@ list.clear() # []
 Combine two lists into one.
 
 ```kiwi
-println([1,2].concat([3,4])) # prints: [1, 2, 3, 4]
+println([1, 2].concat([3, 4])) # prints: [1, 2, 3, 4]
 ```
 
 ### `count(value)`
@@ -328,24 +427,6 @@ Removes and returns a value from the beginning of a list.
 list = [1, 2, 3]
 println(list.dequeue()) # prints: 1
 println(list)           # prints: [2, 3]
-```
-
-### `all(lambda)`
-
-Returns true if all elements in a list match a given condition.
-
-```kiwi
-# a list of even numbers (so far)
-list = [2, 4, 6]
-
-all_evens = list.all(do (n) => n % 2 == 0)
-println all_evens # prints: true
-
-# add 5 to the list, it is not divisible by 2
-list.push(5)
-
-all_evens = list.all(do (n) => n % 2 == 0)
-println all_evens # prints: false
 ```
 
 ### `each(lambda)`
@@ -373,25 +454,35 @@ Iterate a list, performing some action for each item in the list.
 3: 4
 4: 5
 #/
-
-# Iterate a list.
-matrix = [[0] * 3] * 3
-matrix.each(do (row, row_index) => println "${row_index}: ${row}")
-
-/# Prints:
-0: [0, 0, 0]
-1: [0, 0, 0]
-2: [0, 0, 0]
-#/
 ```
 
 ### `enqueue(value)`
 
-Pushes a value onto a list.
+Pushes a value onto the end of a list (alias for `push`).
 
 ```kiwi
 list = [1, 2, 3]
-list.enqueue(4)        # prints: [1, 2, 3, 4]
+list.enqueue(4)
+println list  # prints: [1, 2, 3, 4]
+```
+
+### `filter(lambda)`
+
+Filter a list based on a condition.
+
+```kiwi
+words = ["kiwi", "mango", "strawberry"]
+println words.filter(do (w) => w.size() > 4)
+# prints: ["mango", "strawberry"]
+```
+
+### `first(default = null)`
+
+Returns the first value in a list. Returns `null` (or a provided default) if the list is empty.
+
+```kiwi
+println([1, 2, 3].first())     # prints: 1
+println([].first("none"))      # prints: none
 ```
 
 ### `flatten()`
@@ -401,22 +492,6 @@ Flatten nested lists into a single list.
 ```kiwi
 println([[1, 2, 3], [[4, 5], 6], [7]].flatten())
 # prints: [1, 2, 3, 4, 5, 6, 7]
-```
-
-### `first(default_value)`
-
-Returns the first value in a list. Returns `null` if not found.
-
-```kiwi
-println([1, 2, 3].first()) # prints: 1
-```
-
-### `last(default_value)`
-
-Returns the last value in a list. Returns `null` if not found.
-
-```kiwi
-println([1, 2, 3].first()) # prints: 3
 ```
 
 ### `index(value)`
@@ -438,10 +513,20 @@ println([1, 2, 3].insert(2, "a")) # prints: [1, 2, "a", 3]
 
 ### `join(str)`
 
-Joins a list into a string.
+Joins a list into a string with an optional separator.
 
 ```kiwi
-println(["Hello", "World!"].join(" ")) # prints: "Hello, World!"
+println(["Hello", "World!"].join(" ")) # prints: Hello World!
+println([1, 2, 3].join(", "))          # prints: 1, 2, 3
+```
+
+### `last(default = null)`
+
+Returns the last value in a list. Returns `null` (or a provided default) if the list is empty.
+
+```kiwi
+println([1, 2, 3].last())      # prints: 3
+println([].last("none"))       # prints: none
 ```
 
 ### `lastindex(value)`
@@ -449,18 +534,18 @@ println(["Hello", "World!"].join(" ")) # prints: "Hello, World!"
 Returns the last index of an item in a list. Returns -1 if not found.
 
 ```kiwi
-println([1, 0, 0, 1, 0, 1, 1].lastindex(1))  # prints 6
-println([1, 2, 3, 4, 5].lastindex(6))        # prints: -1
+println([1, 0, 0, 1, 0, 1, 1].lastindex(1))  # prints: 6
+println([1, 2, 3, 4, 5].lastindex(6))         # prints: -1
 ```
 
 ### `map(lambda)`
 
-Transform a list based on a condition.
+Transform each element in a list, returning a new list.
 
 ```kiwi
 list = ["kiwi", "mango", "banana"]
-println list.map(do (item) => { "fruit": item, "is_a_kiwi": item.lowercase() == "kiwi" })
-# prints: [{"fruit": "kiwi", "is_a_kiwi": true}, {"fruit": "mango", "is_a_kiwi": false}, {"fruit": "banana", "is_a_kiwi": false}]
+println list.map(do (item) => item.uppercase())
+# prints: ["KIWI", "MANGO", "BANANA"]
 ```
 
 ### `max()`
@@ -468,8 +553,8 @@ println list.map(do (item) => { "fruit": item, "is_a_kiwi": item.lowercase() == 
 Get the highest value in a list.
 
 ```kiwi
-list = [1, 2, 3]
-println list.max() # prints: 3
+println [1, 2, 3].max()      # prints: 3
+println ["a", "z", "m"].max() # prints: z
 ```
 
 ### `min()`
@@ -477,8 +562,20 @@ println list.max() # prints: 3
 Get the lowest value in a list.
 
 ```kiwi
-list = [1, 2, 3]
-println list.min() # prints: 1
+println [1, 2, 3].min()       # prints: 1
+println ["a", "z", "m"].min() # prints: a
+```
+
+### `none(lambda)`
+
+Returns true if **no** elements in the list satisfy the predicate. The inverse of `all`.
+
+```kiwi
+list = [1, 3, 5, 7]
+println list.none(do (n) => n % 2 == 0)  # prints: true  (no even numbers)
+
+list.push(4)
+println list.none(do (n) => n % 2 == 0)  # prints: false (4 is even)
 ```
 
 ### `pop()`
@@ -493,35 +590,31 @@ println list       # prints: [1, 2]
 
 ### `push(value)`
 
-Pushes a value onto a list.
+Pushes a value onto the end of a list.
 
 ```kiwi
 list = [1, 2, 3]
-list.push(4)       # prints: [1, 2, 3, 4]
+list.push(4)
+println list  # prints: [1, 2, 3, 4]
 ```
 
 ### `reduce(accumulator, lambda)`
 
-Aggregate the items in a list.
+Aggregate the items in a list into a single value.
 
 ```kiwi
 numbers = [1, 2, 3, 4, 5]
-
-sum = numbers.reduce(0, do (accumulator, number) => accumulator + number)
-
-println(sum) # prints: 15
+sum = numbers.reduce(0, do (acc, n) => acc + n)
+println sum  # prints: 15
 ```
 
 ```kiwi
 numbers = [1, 2, 3, 4, 5]
-
-hashmap = numbers.reduce({}, do (accumulator, number)
-    accumulator["key${number}"] = number
-    accumulator
+result = numbers.reduce({}, do (acc, n)
+  acc["key${n}"] = n
+  acc
 end)
-
-println(hashmap)
-# prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
+println result  # prints: {"key1": 1, "key2": 2, "key3": 3, "key4": 4, "key5": 5}
 ```
 
 ### `remove(value)`
@@ -529,8 +622,8 @@ println(hashmap)
 Remove the first occurrence of a specific value in a list.
 
 ```kiwi
-println([1, 2, 3].remove(2))          # prints: [1, 3]
-println(["a", "b", 3, 4].remove("b")) # prints: ["a", 3, 4]
+println([1, 2, 3].remove(2))           # prints: [1, 3]
+println(["a", "b", 3, 4].remove("b"))  # prints: ["a", 3, 4]
 ```
 
 ### `remove_at(index)`
@@ -546,14 +639,15 @@ println(["a", "b", 3, 4].remove_at(0)) # prints: ["b", 3, 4]
 Reverse a list or a string.
 
 ```kiwi
-println("kiwi".reverse()) # prints: lartsa
+println([1, 2, 3].reverse())   # prints: [3, 2, 1]
+println("kiwi".reverse())      # prints: iwik
 ```
 
 ### `rotate(n)`
 
-Rotate the values of the list by a specified number of positions. 
+Rotate the values of the list by a specified number of positions.
 
-If `n` is negative, values are rotated left.
+If `n` is positive, values rotate right. If `n` is negative, values rotate left.
 
 ```kiwi
 println "abcd".chars().rotate(1)  # prints: ["d", "a", "b", "c"]
@@ -561,19 +655,9 @@ println "abcd".chars().rotate(0)  # prints: ["a", "b", "c", "d"]
 println "abcd".chars().rotate(-1) # prints: ["b", "c", "d", "a"]
 ```
 
-### `filter(lambda)`
-
-Filter a list based on a condition.
-
-```kiwi
-list = ["kiwi", "mango", "banana"]
-println list.filter(do (item) => return item.contains("s"))
-# prints: ["kiwi"]
-```
-
 ### `shift()`
 
-Returns the first value of a list.
+Removes and returns the first value of a list.
 
 ```kiwi
 list = [1, 2, 3]
@@ -583,19 +667,26 @@ println(list)         # prints: [2, 3]
 
 ### `size()`
 
-Returns the size of a list or a string as an integer.
+Returns the size of a list, string, hashmap, or byte array as an integer.
 
 ```kiwi
-string = "four"
-list = [1, 2, 3, true, false]
+println("four".size())            # prints: 4
+println([1, 2, 3, true].size())   # prints: 4
+println({a: 1, b: 2}.size())      # prints: 2
+```
 
-println(string.size())
-println(list.size())
+### `skip(n)`
+
+Returns a new list with the first `n` elements removed.
+
+```kiwi
+println([1, 2, 3, 4, 5].skip(2))  # prints: [3, 4, 5]
+println([1, 2, 3].skip(10))       # prints: []
 ```
 
 ### `slice(start, end)`
 
-Get a subset of the list, specifying start and end indices.
+Get a subset of the list, specifying start (inclusive) and end (exclusive) indices.
 
 ```kiwi
 println([1, 2, 3].slice(1, 2)) # prints: [2]
@@ -605,23 +696,40 @@ println([1, 2, 3].slice(0, 2)) # prints: [1, 2]
 
 ### `sort()`
 
-Sorting a list.
+Sort a list in ascending order.
 
 ```kiwi
 list = ["kiwi", "mango", "guava"]
 println(list.sort()) # prints: ["guava", "kiwi", "mango"]
+
+println([3, 1, 2].sort()) # prints: [1, 2, 3]
+```
+
+### `sort(lambda)`
+
+Sort a list using a custom comparator. The lambda receives two elements and should return `true` if the first argument should come before the second.
+
+```kiwi
+# Sort descending
+nums = [3, 1, 4, 1, 5, 9, 2, 6]
+println nums.sort(do (a, b) => a > b)  # prints: [9, 6, 5, 4, 3, 2, 1, 1]
+
+# Sort strings by length
+words = ["banana", "fig", "kiwi", "mango"]
+println words.sort(do (a, b) => a.size() < b.size())
+# prints: ["fig", "kiwi", "mango", "banana"]
 ```
 
 ### `sum()`
 
-Sum the numeric values in a list.
+Sum the numeric values in a list. Returns an integer if all values are integers, otherwise a float.
 
 ```kiwi
-list = [1, 2, 3]
-println(list.sum()) # prints: 6
+println([1, 2, 3].sum())         # prints: 6
+println([1.5, 2.5, 3.0].sum())   # prints: 7.0
 ```
 
-### `swap()`
+### `swap(index1, index2)`
 
 Swaps two values in a list by index.
 
@@ -631,22 +739,31 @@ list.swap(0, 1)
 println(list) # prints: [2, 1, 3]
 ```
 
-### `to_bytes()`
+### `take(n)`
 
-Converts a string or list value to a list of bytes.
+Returns a new list containing only the first `n` elements.
 
 ```kiwi
-println("kiwi".to_bytes())         # prints: [97, 115, 116, 114, 97, 108]
-println("kiwi".chars().to_bytes()) # prints: [97, 115, 116, 114, 97, 108]
+println([1, 2, 3, 4, 5].take(3))  # prints: [1, 2, 3]
+println([1, 2].take(10))          # prints: [1, 2]
+```
+
+### `to_bytes()`
+
+Converts a string or list value to a byte array.
+
+```kiwi
+println("kiwi".to_bytes())         # byte array of UTF-8 encoded string
+println("kiwi".chars().to_bytes()) # same result via chars
 ```
 
 ### `to_hex()`
 
-Converts a list of integer values to a hexadecimal string.
+Converts a byte array or list of integer byte values to a lowercase hexadecimal string.
 
 ```kiwi
 println([97, 115, 116, 114, 97, 108].to_hex()) # prints: 61737472616c
-println("kiwi".chars().to_bytes().to_hex())  # prints: 61737472616c
+println("kiwi".chars().to_bytes().to_hex())
 ```
 
 ### `unique()`
@@ -655,6 +772,7 @@ Remove duplicate values from the list.
 
 ```kiwi
 println("aaaabbcccc".chars().unique()) # prints: ["a", "b", "c"]
+println([1, 2, 2, 3, 3, 3].unique())  # prints: [1, 2, 3]
 ```
 
 ### `unshift(value)`
@@ -663,8 +781,8 @@ Inserts a value at the beginning of a list.
 
 ```kiwi
 list = [1, 2, 3]
-println(list.unshift(0)) # prints: [0, 1, 2, 3]
-println(list)            # prints: [0, 1, 2, 3]
+list.unshift(0)
+println list  # prints: [0, 1, 2, 3]
 ```
 
 ### `zip(list)`
@@ -673,21 +791,14 @@ Combine values from two lists into pairs.
 
 ```kiwi
 println([1, 2].zip([3, 4])) # prints: [[1, 3], [2, 4]]
+println([1, 2, 3].zip(["a", "b", "c"])) # prints: [[1, "a"], [2, "b"], [3, "c"]]
 ```
 
 ## Conversion and Type Checking
 
-### `empty()`
+### `between(a, b)`
 
-Returns true if the value contained is a default value.
-
-```kiwi
-println((0).empty())    # prints: true
-println("".empty())     # prints: true
-println([].empty())     # prints: true
-println({}.empty())     # prints: true
-println(false.empty())  # prints: true
-```
+See [Range Checking — `between`](#betweena-b).
 
 ### `clone()`
 
@@ -702,28 +813,58 @@ println(list)  # prints: [1, 2, 3, true, false]
 println(list2) # prints: ["hello", 2, 3, true, false]
 ```
 
-### `is_a(type_name)`
+### `empty(default = null)`
 
-Used for type-checking.
+Returns true if the value is a "default" (zero-like) value: empty string, empty list, empty hashmap, `0`, `0.0`, `false`, or `null`.
+
+If a `default` argument is provided, returns that value when empty instead of `true`.
 
 ```kiwi
-println("foobar".is_a(string)) # prints: true
+println((0).empty())    # prints: true
+println("".empty())     # prints: true
+println([].empty())     # prints: true
+println({}.empty())     # prints: true
+println(false.empty())  # prints: true
+println("hi".empty())   # prints: false
+
+# With a default value:
+name = ""
+println name.empty("anonymous")  # prints: anonymous
+
+score = 100
+println score.empty(0)            # prints: 100  (not empty, returns value itself)
+```
+
+### `is_a(type_name)`
+
+Used for type-checking. Accepts a type name string or a struct reference. For struct instances, also checks the full inheritance hierarchy.
+
+```kiwi
+println("foobar".is_a(string))     # prints: true
+println(42.is_a(integer))          # prints: true
+println([].is_a(list))             # prints: true
+
+struct Animal end
+struct Dog < Animal end
+
+d = Dog.new()
+println d.is_a(Dog)     # prints: true
+println d.is_a(Animal)  # prints: true  (checks hierarchy)
 ```
 
 ### `pretty()`
 
-Returns a pretty serialization.
+Returns a pretty-printed (indented) serialization of the value.
 
 ```kiwi
 hashmap = {
-  "key1": true, 
-  "key2": 1, 
+  "key1": true,
+  "key2": 1,
   "key3": ["a", "b", "c"]
 }
 
 println(hashmap.pretty())
-/# 
-prints:
+/# prints:
 {
   "key1": true,
   "key2": 1,
@@ -736,9 +877,34 @@ prints:
 #/
 ```
 
+### `to_date(format = null)`
+
+Converts a string or integer to a date value.
+
+- **String with no format**: parsed with `DateTime.TryParse` (ISO 8601 and common locale formats).
+- **String with format**: parsed using the exact format string (e.g. `"dd/MM/yyyy"`).
+- **Integer**: treated as a Unix timestamp in **milliseconds**.
+
+Returns a default (zero) date if parsing fails.
+
+```kiwi
+d1 = "2024-06-15".to_date()
+println d1.year()   # prints: 2024
+println d1.month()  # prints: 6
+println d1.day()    # prints: 15
+
+# Custom format
+d2 = "15/06/2024".to_date("dd/MM/yyyy")
+println d2.year()   # prints: 2024
+
+# From Unix timestamp (ms)
+d3 = 1718409600000.to_date()
+println d3.year()   # prints: 2024
+```
+
 ### `to_float()`
 
-Converts a numeric value to a double.
+Converts a numeric or string value to a float.
 
 ```kiwi
 pi = "3.14159".to_float()
@@ -748,18 +914,26 @@ println(tau) # 6.28318
 
 ### `to_integer()`
 
-Converts a numeric value to an integer.
+Converts a numeric or string value to an integer (truncates floats).
 
 ```kiwi
 n = "100".to_integer()
 n += 0.5
-println(n) # 100.5
+println(n)              # 100.5
 
-n = n.to_integer()
-println(n) # 100
+println(n.to_integer()) # 100
 ```
 
-### `to_string()`
+### `to_list()`
+
+Converts a string to a list of characters, or a byte array to a list of integer byte values.
+
+```kiwi
+println("abc".to_list())           # prints: ["a", "b", "c"]
+println("kiwi".to_bytes().to_list()) # prints: [107, 105, 119, 105]
+```
+
+### `to_string(format = null)`
 
 Converts a value to a string.
 
@@ -771,82 +945,64 @@ println(s)  # prints: [100, "100"]
 
 #### Formatting Options
 
-Optionally, for integral and double types, you can pass a format string.
+For integer and float values, an optional format specifier can be passed.
 
-| Format Specifier | Name | Description | Example |
-| ---------------- | ---- | ----------- | ------- |
-| "B" or "b" | Binary | A 16-digit binary number, left-padded with zeros for values < 255. |  `(31337).to_string("b")`<br>-> `0111101001101001` |
-| "F" or "f" | Fixed-Point | A fixed-point precision number. | `(100).to_string("f2")`<br>-> `100.00` |
-| "O" or "o" | Octal | An octal number. | `(64).to_string("o")`<br>-> `100` |
-| "X" or "x" | Hexadecimal | A hexadecimal number. | `(43).to_string("x")`<br>-> `2b`<br>`(43).to_string("X")`<br>-> `2B` |
+| Format | Name | Description | Example |
+|--------|------|-------------|---------|
+| `"B"` / `"b"` | Binary | 16-digit binary, zero-padded | `(31337).to_string("b")` → `0111101001101001` |
+| `"Fn"` / `"fn"` | Fixed-Point | `n` decimal places | `(100).to_string("f2")` → `100.00` |
+| `"O"` / `"o"` | Octal | Octal representation | `(64).to_string("o")` → `100` |
+| `"X"` | Hexadecimal (upper) | Uppercase hex | `(43).to_string("X")` → `2B` |
+| `"x"` | Hexadecimal (lower) | Lowercase hex | `(43).to_string("x")` → `2b` |
 
 ### `truthy()`
 
 Returns the truthiness of a value.
 
 ```kiwi
-println null.truthy() # prints: false       # null is never truthy
-println (0).truthy()    # prints: false       # 0 is the only non-truthy integer
-println (1).truthy()    # prints: true        
-println "".truthy()   # prints: false
-println "0".truthy()  # prints: true        # non-empty strings are truthy
-println [].truthy()   # prints: false
-println [0].truthy()  # prints: true        # non-empty lists are truthy
-println {}.truthy()   # prints: false       # empty hashmaps are not truthy
-println true.truthy() # prints: true        # true is always truthy
+println null.truthy()   # prints: false  — null is never truthy
+println (0).truthy()    # prints: false  — 0 is the only non-truthy integer
+println (1).truthy()    # prints: true
+println "".truthy()     # prints: false
+println "0".truthy()    # prints: true   — non-empty strings are truthy
+println [].truthy()     # prints: false
+println [0].truthy()    # prints: true   — non-empty lists are truthy
+println {}.truthy()     # prints: false  — empty hashmaps are not truthy
+println true.truthy()   # prints: true
 ```
 
 ### `type()`
 
 Returns the type of the value as a string.
 
-Valid types are: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `object`, `lambda`.
-
-If the type is an object, `type()` will return the struct name of the instance.
+Valid types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `lambda`, `date`, `bytes`, `none`. For struct instances, returns the struct name.
 
 ```kiwi
 struct MyStruct end
 
 instance = MyStruct.new()
-println(instance.type()) # prints: MyStruct
-println("Kiwis are delicious!".type()) # prints: String
+println(instance.type())                  # prints: MyStruct
+println("Kiwis are delicious!".type())    # prints: string
+println(42.type())                        # prints: integer
+println(3.14.type())                      # prints: float
 ```
 
 ### `deserialize(str)`
 
-Deserializes a string into a value.
+Deserializes a JSON-like string into a Kiwi value.
 
 ```kiwi
 string = "[1, 2, 3]"
-list = deserialize(string) # Deserialize a string into a list.
-list.push(4)               # Push a value to the list.
-
-println(list)              # Prints: [1, 2, 3, 4]
+list = deserialize(string)
+list.push(4)
+println(list)  # prints: [1, 2, 3, 4]
 ```
 
 ### `serialize(value)`
 
-Serializes a value into a string.
+Serializes a Kiwi value into its string representation.
 
 ```kiwi
-list = [1, 2, 3]
-string = serialize(list) # Serialize a list into a string.
-
-# split the string into a list,
-# then print the list of strings in a pretty format.
-println(string.chars().pretty())
-
-/# Output:
-[
-  "[",
-  "1",
-  ",",
-  " ",
-  "2",
-  ",",
-  " ",
-  "3",
-  "]"
-]
-#/
+data = { name: "kiwi", version: 1 }
+println serialize(data)  # prints: {"name": "kiwi", "version": 1}
 ```
