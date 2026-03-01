@@ -164,7 +164,7 @@ c = { "a": null, "b": null }
 println(c) # prints: {"a": null, "b": null}
 
 # Deserializing a JSON string with "null" values into a hashmap.
-d = '{"a": null, "b": null}'.to_hashmap()
+d = deserialize('{"a": null, "b": null}')
 println(d) # prints: {"a": null, "b": null}
 
 # Set the hashmap key values of `a` and `b` to non-null values.

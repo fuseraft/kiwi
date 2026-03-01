@@ -186,10 +186,14 @@ public partial class Parser(bool rethrowErrors = false)
             case TokenType.LParen:
             case TokenType.LBrace:
             case TokenType.LBracket:
+            case TokenType.Lambda:  // 'with' lambda expression
                 return true;
 
+            case TokenType.Conditional:
+                return GetTokenName() == TokenName.KW_Case;  // 'case' expression only
+
             case TokenType.Keyword:
-                return GetTokenName() == TokenName.KW_This;
+                return GetTokenName() is TokenName.KW_This or TokenName.KW_Do;
 
             case TokenType.Operator:
                 var name = GetTokenName();

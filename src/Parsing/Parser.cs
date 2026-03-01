@@ -1809,6 +1809,7 @@ public partial class Parser
             var indexExpression = start ?? throw new SyntaxError(GetErrorToken(), "Missing index expression.");
             if (indexExpression.Type is not ASTNodeType.Literal and
                 not ASTNodeType.Identifier and
+                not ASTNodeType.Self and
                 not ASTNodeType.FunctionCall and
                 not ASTNodeType.BinaryOperation and
                 not ASTNodeType.MethodCall and
@@ -2117,7 +2118,7 @@ public partial class Parser
                 {
                     throw new SyntaxError(GetErrorToken(), $"Expected '(' or '::' after the identifier `{identifierName}`.");
                 }
-                else
+                else if (!isInstance)
                 {
                     node = new IdentifierNode(identifierName);
                 }
