@@ -1,0 +1,162 @@
+/#
+@summary A package for measuring and reporting the performance of Kiwi code.
+@see time : Used internally to measure benchmark duration.
+@see math : Used internally for statistical calculations (std dev, sqrt).
+#/
+package bench
+  /#
+  @summary Initializes the global benchmark registry if not already set up.
+  #/
+  fn initialize()
+    if !global.has_key("benchmarks")
+      global.benchmarks = {}
+    end
+  end
+
+  /#
+  @summary Registers a named benchmark lambda for later execution by `run_all()`.
+  @param string name : The display name of the benchmark.
+  @param lambda b : A no-argument lambda containing the code to benchmark.
+  #/
+  fn register(name: string, b: lambda)
+    bench::initialize()
+    global.benchmarks.set(name, b)
+  end
+
+  /#
+  @summary Computes descriptive statistics from a list of timing values.
+  @param list timings : A list of float timing values (in ms).
+  @return hashmap : A hashmap with keys: total, mean, median, min, max, stddev.
+  #/
+  fn stats(timings: list): hashmap
+    n      = timings.size()
+    n_f    = n * 1.0
+    sorted = timings.sort()
+    total  = timings.sum()
+    mean   = total / n_f
+    median = n % 2 == 1 ? sorted[n / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+
+    sq_sum = 0.0
+    for t in timings do
+      sq_sum += (t - mean) ** 2.0
+    end
+
+    stddev = math::sqrt(sq_sum / n_f)
+
+    {
+      total:  total,
+      mean:   mean,
+      median: median,
+      min:    sorted[0],
+      max:    sorted[n - 1],
+      stddev: stddev
+    }
+  end
+
+  /#
+  @summary Formats a float timing value as a string with 3 decimal places and "ms" suffix.
+  @param float val : The timing value in milliseconds.
+  @return string : The formatted string (e.g., "1.234ms").
+  #/
+  fn fmt(val: float): string
+    "${math::round(val, 3)}ms"
+  end
+
+  /#
+  @summary Runs a single named benchmark, printing a one-line result.
+  @param string name : The display name of the benchmark.
+  @param lambda b : A no-argument lambda containing the code to benchmark.
+  @param integer iterations : Number of timed iterations to run (default 100).
+  @param integer warmup : Number of warmup iterations before timing (default 5).
+  @return hashmap : A result hashmap with keys: name, iterations, total, mean, median, min, max, stddev.
+  #/
+  fn run(name: string, b: lambda, iterations: integer = 100, warmup: integer = 5): hashmap
+    print ("bench: ${name} ").padend(52, " ")
+
+    repeat warmup do
+      b()
+    end
+
+    timings = []
+    repeat iterations do
+      t0 = time::ticks()
+      b()
+      t1 = time::ticks()
+      timings.push(time::ticksms(t1 - t0))
+    end
+
+    s = bench::stats(timings)
+    println "  mean: ${bench::fmt(s.mean)}  min: ${bench::fmt(s.min)}  max: ${bench::fmt(s.max)}"
+
+    {
+      name:       name,
+      iterations: iterations,
+      total:      s.total,
+      mean:       s.mean,
+      median:     s.median,
+      min:        s.min,
+      max:        s.max,
+      stddev:     s.stddev
+    }
+  end
+
+  /#
+  @summary Runs all registered benchmarks and prints a summary table.
+  @param integer iterations : Number of timed iterations per benchmark (default 100).
+  @param integer warmup : Number of warmup iterations per benchmark (default 5).
+  @return list : A list of result hashmaps for all registered benchmarks.
+  #/
+  fn run_all(iterations: integer = 100, warmup: integer = 5): list
+    bench::initialize()
+    results = []
+
+    for name, b in global.benchmarks do
+      results.push(bench::run(name, b, iterations, warmup))
+    end
+
+    bench::print_summary(results)
+    results
+  end
+
+  /#
+  @summary Prints a formatted summary table of benchmark results.
+  @param list results : A list of result hashmaps from `run()` or `run_all()`.
+  #/
+  fn print_summary(results: list)
+    if results.size() == 0
+      return
+    end
+
+    col_name  = 42
+    col_iters =  8
+    col_val   = 12
+
+    header = "Benchmark".padend(col_name, " ") +
+             "Iters".padend(col_iters, " ") +
+             "Mean".padend(col_val, " ") +
+             "Median".padend(col_val, " ") +
+             "Min".padend(col_val, " ") +
+             "Max".padend(col_val, " ") +
+             "Std Dev"
+
+    sep = "-" * header.size()
+
+    println "\nBenchmark Summary"
+    println sep
+    println header
+    println sep
+
+    for r in results do
+      row = r.name.padend(col_name, " ") +
+            ("${r.iterations}").padend(col_iters, " ") +
+            bench::fmt(r.mean).padend(col_val, " ") +
+            bench::fmt(r.median).padend(col_val, " ") +
+            bench::fmt(r.min).padend(col_val, " ") +
+            bench::fmt(r.max).padend(col_val, " ") +
+            bench::fmt(r.stddev)
+      println row
+    end
+
+    println sep
+  end
+end

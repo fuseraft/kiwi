@@ -4,6 +4,24 @@ Kiwi is a high-level, dynamically-typed scripting language designed to make ever
 
 This guide walks you through the language from scratch — no prior Kiwi experience required. By the end, you'll be writing real programs with confidence.
 
+## Table of Contents
+
+- [Hello, World](#hello-world)
+- [Variables](#variables)
+- [Types](#types)
+- [Strings](#strings)
+- [Numbers](#numbers)
+- [Making Decisions](#making-decisions)
+- [Loops](#loops)
+- [Collections](#collections)
+- [Functions](#functions)
+- [Lambdas](#lambdas)
+- [Error Handling](#error-handling)
+- [Structs](#structs)
+- [A Taste of the Standard Library](#a-taste-of-the-standard-library)
+- [Putting It All Together](#putting-it-all-together)
+- [What's Next](#whats-next)
+
 ---
 
 ## Hello, World

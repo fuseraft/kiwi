@@ -4,6 +4,11 @@ Ranges in Kiwi can be used to define a range of integers. Use the `to` keyword o
 
 Ranges are immediately evaluated as [Lists](./lists.md).
 
+## Table of Contents
+
+- [Syntax](#syntax)
+- [Example](#example)
+
 ### Syntax
 
 **`[`** *start* **`to`** *end* **`]`**

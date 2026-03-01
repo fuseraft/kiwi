@@ -2,6 +2,13 @@
 
 Abstract structs in Kiwi serve as a way to define structs that cannot be instantiated on their own but can be used as a base for other structs. These structs are intended to outline a set of methods and properties that derived structs must implement or inherit.
 
+## Table of Contents
+
+- [Defining Abstract Structs](#defining-abstract-structs)
+- [Implementing Abstract Structs](#implementing-abstract-structs)
+- [Instantiation](#instantiation)
+- [Notes](#notes)
+
 ## Defining Abstract Structs
 
 To define an abstract struct, use the `abstract struct` keywords followed by the struct name. Abstract methods within these structs are declared using the `abstract def` keywords.
