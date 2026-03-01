@@ -24,6 +24,7 @@ var (unit_tests: list = [
   "heaps",
   "hashmaps",
   "structs",
+  "static_vars",
   "builtins",
   "standard_library",
   "nulls",

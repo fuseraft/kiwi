@@ -47,6 +47,7 @@ public enum ASTNodeType
     Require,
     Return,
     Self,
+    StaticSelf,
     Slice,
     Struct,
     TernaryOperation,

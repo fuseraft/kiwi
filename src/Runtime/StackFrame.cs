@@ -27,6 +27,8 @@ public sealed class StackFrame
     public string Name { get; }
     public Token? CallSiteToken { get; set; }
 
+    public string StructName { get; set; } = string.Empty;
+
     public StackFrame(string name, Scope scope, Token? callSiteToken = null)
     {
         Name = name;

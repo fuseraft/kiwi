@@ -1,0 +1,97 @@
+/# ==============================================================================
+   Testing static variables on structs.
+   ============================================================================== #/
+tester::register_test("static_vars", with do
+  # Basic counter: static var incremented by constructor and static method
+  struct Counter
+    static @count = 0
+
+    fn new()
+      @@count += 1
+    end
+
+    static fn increment()
+      @@count += 1
+    end
+
+    static fn get(): integer
+      @@count
+    end
+
+    static fn reset()
+      @@count = 0
+    end
+  end
+
+  Counter.new()
+  Counter.new()
+  Counter.increment()
+  tester::assert(Counter.get() == 3, "A1: static var updated by constructor and static method")
+
+  # External read via member access
+  tester::assert(Counter.count == 3, "A2: static var readable externally via member access")
+
+  # External write via member assignment
+  Counter.count = 10
+  tester::assert(Counter.get() == 10, "A3: static var writable externally via member assignment")
+
+  # Static vars are per-struct (not shared between structs)
+  struct Alpha
+    static @x = 1
+    static fn get(): integer  @@x  end
+  end
+
+  struct Beta
+    static @x = 100
+    static fn get(): integer  @@x  end
+  end
+
+  Alpha.x += 1
+  Beta.x += 1
+  tester::assert(Alpha.get() == 2,   "A4: static vars are isolated per struct (Alpha)")
+  tester::assert(Beta.get() == 101,  "A5: static vars are isolated per struct (Beta)")
+
+  # Static list accumulation
+  struct Log
+    static @entries = []
+
+    fn new(msg: string)
+      @@entries = @@entries + [msg]
+    end
+
+    static fn all(): list
+      @@entries
+    end
+  end
+
+  Log.new("first")
+  Log.new("second")
+  tester::assert(Log.all() == ["first", "second"], "A6: static list accumulates across instances")
+  tester::assert(Log.all().size() == 2, "A7: static list size correct")
+
+  # Static var read from instance method
+  struct Stamp
+    static @id = 0
+
+    fn new()
+      @@id += 1
+      @my_id = @@id
+    end
+
+    fn id(): integer
+      @my_id
+    end
+
+    static fn last(): integer
+      @@id
+    end
+  end
+
+  a = Stamp.new()
+  b = Stamp.new()
+  c = Stamp.new()
+  tester::assert(a.id() == 1, "A8: instance captures static var value at construction (first)")
+  tester::assert(b.id() == 2, "A9: instance captures static var value at construction (second)")
+  tester::assert(c.id() == 3, "A10: instance captures static var value at construction (third)")
+  tester::assert(Stamp.last() == 3, "A11: static var reflects final state")
+end)

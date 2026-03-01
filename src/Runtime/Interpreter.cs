@@ -137,6 +137,7 @@ public class Interpreter
             ASTNodeType.Require => Visit((RequireNode)node),
             ASTNodeType.Return => Visit((ReturnNode)node),
             ASTNodeType.Self => Visit((SelfNode)node),
+            ASTNodeType.StaticSelf => Visit((StaticSelfNode)node),
             ASTNodeType.Slice => Visit((SliceNode)node),
             ASTNodeType.Struct => Visit((StructNode)node),
             ASTNodeType.TernaryOperation => Visit((TernaryOperationNode)node),
@@ -366,6 +367,41 @@ public class Interpreter
         return Value.CreateObject(obj);
     }
 
+    private string GetCurrentStructName(Token token)
+    {
+        var frame = CallStack.Peek();
+
+        if (!string.IsNullOrEmpty(frame.StructName))
+        {
+            return frame.StructName;
+        }
+
+        if (frame.InObjectContext())
+        {
+            var sn = frame.GetObjectContext()?.StructName ?? string.Empty;
+            if (!string.IsNullOrEmpty(sn))
+            {
+                return sn;
+            }
+        }
+
+        throw new InvalidContextError(token, "Cannot access static variable outside of a struct method.");
+    }
+
+    private Value Visit(StaticSelfNode node)
+    {
+        var structName = GetCurrentStructName(node.Token);
+        var kstruct = Context.Structs[structName];
+        var varName = node.Name;
+
+        if (!kstruct.StaticVariables.ContainsKey(varName))
+        {
+            kstruct.StaticVariables[varName] = Value.Default;
+        }
+
+        return kstruct.StaticVariables[varName];
+    }
+
     private Value Visit(StructNode node)
     {
         var structName = node.Name;
@@ -409,6 +445,13 @@ public class Interpreter
         }
 
         Context.Structs[structName] = struc;
+
+        // Initialize static variables
+        foreach (var (varName, initializer) in node.StaticVars)
+        {
+            struc.StaticVariables[varName] = initializer != null ? Interpret(initializer) : Value.Default;
+        }
+
         StructStack.Pop();
         Context.Methods.Clear();
 
@@ -612,6 +655,33 @@ public class Interpreter
             {
                 return Value.Default;
             }
+        }
+
+        // Static variable assignment: @@varname = expr or @@varname += expr etc.
+        if (node.Left?.Type == ASTNodeType.StaticSelf)
+        {
+            var varName = name;
+            var structName = GetCurrentStructName(node.Token);
+            var kstruct = Context.Structs[structName];
+
+            if (type == TokenName.Ops_Assign)
+            {
+                kstruct.StaticVariables[varName] = value;
+            }
+            else
+            {
+                if (!kstruct.StaticVariables.TryGetValue(varName, out var oldVal))
+                {
+                    kstruct.StaticVariables[varName] = Value.Default;
+                    oldVal = Value.Default;
+                }
+
+                kstruct.StaticVariables[varName] = type == TokenName.Ops_BitwiseNotAssign
+                    ? BitwiseOp.Not(node.Token, ref oldVal)
+                    : OpDispatch.DoBinary(node.Token, type, ref oldVal, ref value);
+            }
+
+            return kstruct.StaticVariables[varName];
         }
 
         if (type == TokenName.Ops_Assign)
@@ -918,7 +988,22 @@ public class Interpreter
 
             if (!scope.TryGet(varName, out var container))
             {
+                // Check if it's a struct name (static member assignment)
+                if (Context.HasStruct(varName))
+                {
+                    var kstruct = Context.Structs[varName];
+                    ApplyStaticVarAssignment(node.Token, kstruct, memberName, node.Op, ref newValue);
+                    return Value.Default;
+                }
+
                 throw new VariableUndefinedError(node.Token, varName);
+            }
+
+            if (container.IsStruct())
+            {
+                var kstruct = Context.Structs[container.GetStruct().Identifier];
+                ApplyStaticVarAssignment(node.Token, kstruct, memberName, node.Op, ref newValue);
+                return Value.Default;
             }
 
             ApplyMemberAssignment(node.Token, ref container, key, node.Op, ref newValue);
@@ -927,10 +1012,39 @@ public class Interpreter
         else
         {
             var container = Interpret(target);
+
+            if (container.IsStruct())
+            {
+                var kstruct = Context.Structs[container.GetStruct().Identifier];
+                ApplyStaticVarAssignment(node.Token, kstruct, memberName, node.Op, ref newValue);
+                return Value.Default;
+            }
+
             ApplyMemberAssignment(node.Token, ref container, key, node.Op, ref newValue);
         }
 
         return Value.Default;
+    }
+
+    private void ApplyStaticVarAssignment(Token token, KStruct kstruct, string memberName, TokenName op, ref Value newValue)
+    {
+        var varKey = "@@" + memberName;
+
+        if (op == TokenName.Ops_Assign)
+        {
+            kstruct.StaticVariables[varKey] = newValue;
+        }
+        else
+        {
+            if (!kstruct.StaticVariables.TryGetValue(varKey, out var oldVal))
+            {
+                throw new VariableUndefinedError(token, memberName);
+            }
+
+            kstruct.StaticVariables[varKey] = op == TokenName.Ops_BitwiseNotAssign
+                ? BitwiseOp.Not(token, ref oldVal)
+                : OpDispatch.DoBinary(token, op, ref oldVal, ref newValue);
+        }
     }
 
     private void ApplyMemberAssignment(Token token, ref Value container, Value key, TokenName op, ref Value newValue)
@@ -1017,13 +1131,24 @@ public class Interpreter
         else if (obj.IsObject())
         {
             var o = obj.GetObject();
-            
+
             if (o.InstanceVariables.TryGetValue("@" + memberName, out Value? v))
             {
                 if (v != null)
                 {
                     return v;
                 }
+            }
+        }
+        else if (obj.IsStruct())
+        {
+            var struc = obj.GetStruct();
+            var kstruct = Context.Structs[struc.Identifier];
+            var varKey = "@@" + memberName;
+
+            if (kstruct.StaticVariables.TryGetValue(varKey, out Value? sv))
+            {
+                return sv;
             }
         }
 
@@ -2898,10 +3023,11 @@ public class Interpreter
         return result;
     }
 
-    private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName)
+    private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName, string structName = "")
     {
         var defaultParameters = function.DefaultParameters;
         var functionFrame = CreateFrame(functionName, token, function.CapturedScope);
+        functionFrame.StructName = structName;
         var scope = functionFrame.Scope;
         var typeHints = function.TypeHints;
         var returnTypeHint = function.ReturnTypeHint;
@@ -3327,7 +3453,7 @@ public class Interpreter
             throw new InvalidContextError(node.Token, "Invalid function context.");
         }
 
-        var result = CallFunction(function, node.Arguments, node.Token, methodName);
+        var result = CallFunction(function, node.Arguments, node.Token, methodName, struc.Identifier);
 
         if (isCtor)
         {

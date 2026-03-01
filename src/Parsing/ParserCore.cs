@@ -193,7 +193,7 @@ public partial class Parser(bool rethrowErrors = false)
                 return GetTokenName() == TokenName.KW_Case;  // 'case' expression only
 
             case TokenType.Keyword:
-                return GetTokenName() is TokenName.KW_This or TokenName.KW_Do;
+                return GetTokenName() is TokenName.KW_This or TokenName.KW_StaticSelf or TokenName.KW_Do;
 
             case TokenType.Operator:
                 var name = GetTokenName();
