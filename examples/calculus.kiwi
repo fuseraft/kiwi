@@ -1,0 +1,173 @@
+#!/usr/bin/env kiwi
+
+/#
+  Numerical calculus examples using the math package.
+  Demonstrates differentiation, integration, and root-finding
+  with lambdas as first-class function arguments.
+#/
+
+const PI = math::acos(-1.0)
+
+fn section(title)
+  println("\n-- ${title} " + ("-" * (44 - title.size())))
+end
+
+# ── Numerical differentiation (central difference) ───────────────────────────
+#
+#   f'(x) ≈ (f(x+h) - f(x-h)) / 2h
+#
+#   Central differences are second-order accurate: error ∝ h².
+
+fn derivative(f, x, h = 0.0000001)
+  (f.call([x + h]) - f.call([x - h])) / (2.0 * h)
+end
+
+# ── Numerical integration (Simpson's rule) ───────────────────────────────────
+#
+#   ∫ f(x) dx ≈ (h/3)[f(x₀) + 4f(x₁) + 2f(x₂) + 4f(x₃) + … + f(xₙ)]
+#
+#   Simpson's rule is fourth-order accurate: error ∝ h⁴.
+
+fn integrate(f, a, b, n = 1000)
+  n = n % 2 == 0 ? n : n + 1
+  h = (b - a) / n.to_float()
+  sum = f.call([a]) + f.call([b])
+
+  for i in std::range(1, n) do
+    coeff = i % 2 == 0 ? 2.0 : 4.0
+    sum += coeff * f.call([a + i * h])
+  end
+
+  sum * h / 3.0
+end
+
+# ── Root finding (Newton's method) ───────────────────────────────────────────
+#
+#   xₙ₊₁ = xₙ - f(xₙ) / f'(xₙ)
+#
+#   Converges quadratically when started close to a simple root.
+
+fn newton(f, df, x0, tol = 0.0000000001, max_iter = 100)
+  x = x0
+  i = 0
+  while i < max_iter do
+    fx = f.call([x])
+    return x when math::abs(fx) < tol
+    x -= fx / df.call([x])
+    i += 1
+  end
+  x
+end
+
+# ── Arc length ────────────────────────────────────────────────────────────────
+#
+#   L = ∫ sqrt(1 + f'(x)²) dx   approximated with the trapezoid rule directly.
+
+fn arc_length(f, a, b, n = 2000)
+  h   = (b - a) / n.to_float()
+  dh  = 0.0000001
+  sum = 0.0
+  i   = 0
+  while i < n do
+    x0  = a + i * h
+    x1  = a + (i + 1) * h
+    fp0 = (f.call([x0 + dh]) - f.call([x0 - dh])) / (2.0 * dh)
+    fp1 = (f.call([x1 + dh]) - f.call([x1 - dh])) / (2.0 * dh)
+    sum += (math::sqrt(1.0 + (fp0 ** 2)) + math::sqrt(1.0 + (fp1 ** 2))) * h / 2.0
+    i += 1
+  end
+  sum
+end
+
+# ── Demonstrations ────────────────────────────────────────────────────────────
+
+section("Differentiation")
+
+# d/dx sin(x) = cos(x)
+f_sin = with (x) do math::sin(x) end
+for deg in [0, 30, 45, 60, 90] do
+  x = deg.to_float() * PI / 180.0
+  numerical = math::round(derivative(f_sin, x), 8)
+  exact     = math::round(math::cos(x), 8)
+  label     = string::padend("${deg}°)", 5)
+  num_str   = string::padend(numerical.to_string(), 12)
+  println("  d/dx sin(${label}  numerical=${num_str}  exact=${exact}")
+end
+
+# d/dx x³ = 3x²
+f_cube = with (x) do x ** 3 end
+for x in [1.0, 2.0, 3.0] do
+  numerical = math::round(derivative(f_cube, x), 6)
+  exact     = math::round(3.0 * (x ** 2), 6)
+  println("  d/dx x³ at x=${x}:  numerical=${numerical}  exact=${exact}")
+end
+
+section("Integration (Simpson's rule)")
+
+# ∫ sin(x) dx from 0 to π = 2
+area = math::round(integrate(f_sin, 0.0, PI), 10)
+println("  ∫ sin(x) dx  [0, π]    = ${area}  (exact: 2)")
+
+# ∫ x² dx from 0 to 3 = 9
+f_sq = with (x) do x ** 2 end
+area = math::round(integrate(f_sq, 0.0, 3.0), 10)
+println("  ∫ x² dx      [0, 3]    = ${area}  (exact: 9)")
+
+# ∫ e^x dx from 0 to 1 = e - 1
+f_exp = with (x) do math::exp(x) end
+area  = math::round(integrate(f_exp, 0.0, 1.0), 10)
+exact = math::round(math::exp(1.0) - 1.0, 10)
+println("  ∫ eˣ dx      [0, 1]    = ${area}  (exact: ${exact})")
+
+# ∫ 1/x dx from 1 to e = 1
+f_inv = with (x) do 1.0 / x end
+area  = math::round(integrate(f_inv, 1.0, math::exp(1.0)), 10)
+println("  ∫ 1/x dx     [1, e]    = ${area}  (exact: 1)")
+
+# ∫ cos(x) dx from 0 to π/2 = 1
+f_cos = with (x) do math::cos(x) end
+area  = math::round(integrate(f_cos, 0.0, PI / 2.0), 10)
+println("  ∫ cos(x) dx  [0, π/2]  = ${area}  (exact: 1)")
+
+section("Root finding (Newton's method)")
+
+# x³ - x - 2 = 0  →  x ≈ 1.5213797068
+f1  = with (x) do x ** 3 - x - 2.0 end
+df1 = with (x) do 3.0 * x ** 2 - 1.0 end
+r1  = newton(f1, df1, 1.5)
+println("  x³ - x - 2 = 0      →  x ≈ ${math::round(r1, 10)}   residual: ${math::round(f1.call([r1]), 12)}")
+
+# x² - 2 = 0  →  x = √2 ≈ 1.41421356...
+f2  = with (x) do x ** 2 - 2.0 end
+df2 = with (x) do 2.0 * x end
+r2  = newton(f2, df2, 1.0)
+println("  x² - 2 = 0          →  x ≈ ${math::round(r2, 10)}   √2 = ${math::round(math::sqrt(2.0), 10)}")
+
+# cos(x) - x = 0  →  Dottie number ≈ 0.7390851332
+f3  = with (x) do math::cos(x) - x end
+df3 = with (x) do -math::sin(x) - 1.0 end
+r3  = newton(f3, df3, 0.5)
+println("  cos(x) - x = 0      →  x ≈ ${math::round(r3, 10)}   (Dottie number)")
+
+# e^x - 3 = 0  →  x = ln(3) ≈ 1.0986122886...
+f4  = with (x) do math::exp(x) - 3.0 end
+df4 = with (x) do math::exp(x) end
+r4  = newton(f4, df4, 1.0)
+println("  eˣ - 3 = 0          →  x ≈ ${math::round(r4, 10)}   ln(3) = ${math::round(math::log(3.0), 10)}")
+
+section("Arc length")
+
+# Arc length of sin(x) from 0 to 2π
+f_sin_arc = with (x) do math::sin(x) end
+l1 = math::round(arc_length(f_sin_arc, 0.0, 2.0 * PI), 6)
+println("  Length of sin(x)  [0, 2π]     ≈ ${l1}")
+
+# Arc length of x² from 0 to 1
+f_sq_arc = with (x) do x ** 2 end
+l2 = math::round(arc_length(f_sq_arc, 0.0, 1.0), 6)
+println("  Length of x²      [0, 1]      ≈ ${l2}")
+
+# Arc length of y = (3/4)x from 0 to 4 = hypotenuse of 3-4-5 triangle = 5
+f_line = with (x) do 0.75 * x end
+l3 = math::round(arc_length(f_line, 0.0, 4.0), 6)
+println("  Length of (3/4)x  [0, 4]      ≈ ${l3}   (exact: 5, the 3-4-5 hypotenuse)")
