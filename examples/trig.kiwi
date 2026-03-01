@@ -1,0 +1,118 @@
+#!/usr/bin/env kiwi
+
+/#
+  Trigonometry examples using the math package.
+#/
+
+const PI  = math::acos(-1.0)
+const TAU = 2.0 * PI
+
+fn deg_to_rad(deg)
+  deg * PI / 180.0
+end
+
+fn rad_to_deg(rad)
+  rad * 180.0 / PI
+end
+
+fn rnd(x, digits = 6)
+  math::round(x, digits)
+end
+
+fn section(title)
+  println("\n-- ${title} " + ("-" * (40 - title.size())))
+end
+
+# ── Unit circle: sin, cos, tan at common angles ──────────────────────────────
+
+section("Unit circle")
+
+var angles: list = [0, 30, 45, 60, 90, 120, 135, 150, 180, 270, 360]
+
+for deg in angles do
+  rad = deg_to_rad(deg)
+  s = rnd(math::sin(rad))
+  c = rnd(math::cos(rad))
+
+  # tan is undefined at 90° and 270°
+  t = (deg == 90 || deg == 270) ? "undefined" : rnd(math::tan(rad)).to_string()
+
+  label = string::padend("  ${deg}°", 7)
+  println("${label}  sin=${string::padend(s.to_string(), 10)}  cos=${string::padend(c.to_string(), 10)}  tan=${t}")
+end
+
+# ── Pythagorean identity: sin²(θ) + cos²(θ) = 1 ─────────────────────────────
+
+section("Pythagorean identity")
+
+for deg in [0, 30, 45, 60, 90, 123, 210, 315] do
+  rad = deg_to_rad(deg)
+  identity = math::round(math::sin(rad) ** 2 + math::cos(rad) ** 2, 10)
+  println("  sin²(${deg}°) + cos²(${deg}°) = ${identity}")
+end
+
+# ── Inverse trig ──────────────────────────────────────────────────────────────
+
+section("Inverse trig")
+
+println("  asin(0.5)    = ${rnd(rad_to_deg(math::asin(0.5)))}°   (expected 30°)")
+println("  acos(0.5)    = ${rnd(rad_to_deg(math::acos(0.5)))}°   (expected 60°)")
+println("  atan(1.0)    = ${rnd(rad_to_deg(math::atan(1.0)))}°  (expected 45°)")
+println("  atan2(1, 1)  = ${rnd(rad_to_deg(math::atan2(1.0, 1.0)))}°  (expected 45°)")
+println("  atan2(-1, 0) = ${rnd(rad_to_deg(math::atan2(-1.0, 0.0)))}°  (expected -90°)")
+
+# ── Hypotenuse and angle from components ─────────────────────────────────────
+
+section("Hypotenuse and angle from components")
+
+var pairs: list = [[3.0, 4.0], [5.0, 12.0], [8.0, 15.0], [1.0, 1.0]]
+
+for pair in pairs do
+  x = pair[0]
+  y = pair[1]
+  h = math::hypot(x, y)
+  angle = rnd(rad_to_deg(math::atan2(y, x)))
+  println("  hypot(${x}, ${y}) = ${h}   angle = ${angle}°")
+end
+
+# ── Hyperbolic functions: cosh²(x) - sinh²(x) = 1 ───────────────────────────
+
+section("Hyperbolic identity: cosh²(x) - sinh²(x)")
+
+for x in [0.0, 0.5, 1.0, 1.5, 2.0] do
+  identity = math::round(math::cosh(x) ** 2 - math::sinh(x) ** 2, 10)
+  println("  x=${x}  cosh²(x) - sinh²(x) = ${identity}")
+end
+
+# ── Law of cosines ────────────────────────────────────────────────────────────
+
+section("Law of cosines: c² = a² + b² - 2ab·cos(C)")
+
+# Triangle with sides a=5, b=7 and included angle C=60°
+a = 5.0
+b = 7.0
+c_angle = deg_to_rad(60.0)
+c_side = math::sqrt(a ** 2 + b ** 2 - 2.0 * a * b * math::cos(c_angle))
+println("  a=${a}, b=${b}, C=60°  →  c = ${rnd(c_side)}")
+
+# Recover angle C from all three sides
+recovered = rad_to_deg(math::acos((a ** 2 + b ** 2 - c_side ** 2) / (2.0 * a * b)))
+println("  verify:  acos(...)  →  C = ${rnd(recovered)}°  (expected 60°)")
+
+# ── ASCII sine wave ───────────────────────────────────────────────────────────
+
+section("ASCII sine wave")
+
+const COLS   = 60
+const ROWS   = 11
+const ORIGIN = ROWS / 2
+
+for row in std::range(0, ROWS) do
+  line = ""
+  for col in std::range(0, COLS) do
+    angle = col.to_float() / COLS.to_float() * TAU
+    wave_row = math::round(ORIGIN - math::sin(angle) * (ORIGIN - 1)).to_integer()
+    line += (wave_row == row) ? "*" : (col == 0 ? "|" : (row == ORIGIN ? "-" : " "))
+  end
+  println(line)
+end
