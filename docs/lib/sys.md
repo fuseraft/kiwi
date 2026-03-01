@@ -9,12 +9,7 @@ It offers three main functions with different levels of control and output captu
 
 These functions are the foundation for running shell commands, external tools, scripts, or desktop applications from Kiwi.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`open(_program, _args)`](#open_program-_args)
-  - [`exec(_program, _args)`](#exec_program-_args)
-  - [`execout(_program, _args)`](#execout_program-_args)
+---
 
 ## Package Functions
 
@@ -28,13 +23,15 @@ Most useful for:
 - Starting GUI tools or background daemons
 - Launching editors, browsers, media players, etc.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name       | Description                              | Default |
 |----------|------------|------------------------------------------|---------|
 | `string` | `_program` | Executable name or full path             | —       |
 | `list`   | `_args`    | List of command-line arguments (strings) | `[]`    |
 
 **Returns**  
+
 | Type      | Description                              |
 |-----------|------------------------------------------|
 | `boolean` | `true` if the process was successfully started, and `false` if for any reason it fails to start |
@@ -61,13 +58,15 @@ Runs an external program **synchronously** (blocks until it exits) and returns o
 
 Ideal when you only care whether the command succeeded (exit code 0) or failed.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name       | Description                              | Default |
 |----------|------------|------------------------------------------|---------|
 | `string` | `_program` | Executable name or full path             | —       |
 | `list`   | `_args`    | List of command-line arguments (strings) | `[]`    |
 
 **Returns**  
+
 | Type      | Description                  |
 |-----------|------------------------------|
 | `integer` | Process exit code (0 = success) |
@@ -94,13 +93,15 @@ This is the most commonly used function when you need to:
 - Parse results from tools (git, ffmpeg, curl, etc.)
 - Handle both normal output and errors
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name       | Description                              | Default |
 |----------|------------|------------------------------------------|---------|
 | `string` | `_program` | Executable name or full path             | —       |
 | `list`   | `_args`    | List of command-line arguments (strings) | `[]`    |
 
 **Returns**  
+
 | Type      | Description                                                                 |
 |-----------|-----------------------------------------------------------------------------|
 | `hashmap` | `{ "stdout": string, "stderr": string, "exit_code": integer }`             |

@@ -10,30 +10,7 @@ Unlike Kiwi's built-in `for ... in ...` loops (which consume iterators implicitl
 - safe indexing with fallback values
 - skipping sections (whitespace, comments, etc.)
 
-## Table of Contents
-
-- [`ListIterator` struct](#listiterator-struct)
-  - [Constructor](#constructor)
-  - [Navigation](#navigation)
-    - [`consume(n)`](#consumen)
-    - [`skip(n)`](#skipn)
-    - [`rewind(n)`](#rewindn)
-    - [`reset()`](#reset)
-  - [State queries](#state-queries)
-    - [`can_read()`](#can_read)
-    - [`eof()`](#eof)
-    - [`position()`](#position)
-    - [`length()` / `size()`](#length--size)
-  - [Accessing values](#accessing-values)
-    - [`current()`](#current)
-    - [`peek()`](#peek)
-    - [`grab(index)`](#grabindex)
-    - [`reach(offset)`](#reachoffset)
-    - [`remaining()`](#remaining)
-  - [Default-value helpers](#default-value-helpers)
-    - [`skip_defaults()`](#skip_defaults)
-    - [`look_ahead()`](#look_ahead)
-    - [`count_ahead()`](#count_ahead)
+---
 
 ## `ListIterator` struct
 
@@ -43,7 +20,8 @@ An explicit, bidirectional, bounds-safe iterator over a list with configurable d
 
 Creates a new iterator wrapping a list.
 
-**Parameters**  
+**Parameters**
+
 | Type     | Name         | Description                                      | Default   |
 |----------|--------------|--------------------------------------------------|-----------|
 | `list`   | `list_data`  | The list to iterate over                         | —         |
@@ -59,12 +37,14 @@ it = ListIterator.new(["apple", "banana", "cherry"], default: "")
 #### `consume(n)`
 Returns the **current** value and then advances the position by `n+1` steps (or 1 if `n=0`).
 
-**Parameters**  
+**Parameters**
+
 | Type      | Name | Description                     | Default |
 |-----------|------|---------------------------------|---------|
 | `integer` | `n`  | Extra steps to skip after read  | `0`     |
 
 **Returns**  
+
 | Type | Description                      |
 |------|----------------------------------|
 | `any`| The value that was just consumed |
@@ -72,7 +52,8 @@ Returns the **current** value and then advances the position by `n+1` steps (or 
 #### `skip(n)`
 Moves forward `n` positions (clamped — never goes past end).
 
-**Parameters**  
+**Parameters**
+
 | Type      | Name | Default |
 |-----------|------|---------|
 | `integer` | `n`  | `1`     |
@@ -80,7 +61,8 @@ Moves forward `n` positions (clamped — never goes past end).
 #### `rewind(n)`
 Moves backward `n` positions (clamped — never goes before 0).
 
-**Parameters**  
+**Parameters**
+
 | Type      | Name | Default |
 |-----------|------|---------|
 | `integer` | `n`  | `1`     |
@@ -125,7 +107,8 @@ Value at the next position (`pos + 1`), or `default` if none.
 #### `grab(index)`
 Absolute-index access — safe, returns `default` if out of bounds.
 
-**Parameters**  
+**Parameters**
+
 | Type      | Name    |
 |-----------|---------|
 | `integer` | `index` |
@@ -136,7 +119,8 @@ Absolute-index access — safe, returns `default` if out of bounds.
 Relative-to-end access: `reach(-1)` → last element, `reach(-2)` → second-to-last, etc.  
 Returns `default` if result is out of bounds.
 
-**Parameters**  
+**Parameters**
+
 | Type      | Name     |
 |-----------|----------|
 | `integer` | `offset` |

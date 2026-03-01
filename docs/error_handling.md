@@ -2,15 +2,6 @@
 
 Kiwi provides robust mechanisms for error handling through the use of `try`, `catch`, and `finally` constructs. These constructs allow developers to handle exceptions gracefully, ensuring that the program can recover from errors or at least terminate cleanly.
 
-# Table of Contents
-- [Basic Error Handling](#basic-error-handling)
-  - [`try` block](#try-block)
-  - [`catch` block](#catch-block)
-  - [`finally` block](#finally-block)
-- [Nested `try-catch` Blocks](#nested-try-catch-blocks)
-- [Using `throw` for Custom Errors](#using-throw-for-custom-errors)
-- [Error Hashmaps](#error-hashmaps)
-
 ## Basic Error Handling
 
 The basic syntax for error handling involves using `try`, `catch`, and `finally` blocks. Here's a simple example to illustrate how they work:

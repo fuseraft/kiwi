@@ -2,18 +2,7 @@
 
 The `bench` package provides tools for measuring and reporting the performance of Kiwi code. Benchmarks are registered by name, run for a configurable number of iterations (with optional warmup), and produce descriptive statistics: mean, median, min, max, and standard deviation.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`initialize()`](#initialize)
-  - [`register(name, b)`](#registername-b)
-  - [`run(name, b, iterations, warmup)`](#runname-b-iterations--100-warmup--5)
-  - [`run_all(iterations, warmup)`](#run_alliterations--100-warmup--5)
-  - [`print_summary(results)`](#print_summaryresults)
-  - [`stats(timings)`](#statstimings)
-  - [`fmt(val)`](#fmtval)
-- [Result Hashmap](#result-hashmap)
-- [Examples](#examples)
+---
 
 ## Package Functions
 
@@ -32,6 +21,7 @@ _None_
 Registers a named benchmark lambda for later execution by `run_all()`.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `name` | The display name of the benchmark. |
@@ -48,6 +38,7 @@ Runs a single benchmark, printing a one-line progress result, and returns a resu
 The benchmark lambda is first called `warmup` times (results discarded) to allow the runtime to reach a steady state. It is then called `iterations` times, recording the wall-clock duration of each call. Statistics are computed over those timed iterations.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `name` | The display name of the benchmark. |
@@ -56,6 +47,7 @@ The benchmark lambda is first called `warmup` times (results discarded) to allow
 | `integer` | `warmup` | Number of un-timed warmup calls before timing begins (default `5`). |
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `hashmap` | A [result hashmap](#result-hashmap) containing the benchmark name and timing statistics. |
@@ -66,12 +58,14 @@ The benchmark lambda is first called `warmup` times (results discarded) to allow
 Runs every benchmark registered via `register()`, prints a one-line result for each as it runs, then prints a full summary table.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `integer` | `iterations` | Number of timed iterations per benchmark (default `100`). |
 | `integer` | `warmup` | Number of warmup calls per benchmark (default `5`). |
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `list` | A list of [result hashmaps](#result-hashmap), one per registered benchmark. |
@@ -82,6 +76,7 @@ Runs every benchmark registered via `register()`, prints a one-line result for e
 Prints a formatted table of benchmark results with columns for iterations, mean, median, min, max, and standard deviation. Called automatically by `run_all()`, but can also be called manually on a list of results collected via `run()`.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `list` | `results` | A list of [result hashmaps](#result-hashmap). |
@@ -95,11 +90,13 @@ _None_
 Computes descriptive statistics from a list of timing values. Used internally by `run()`, but available directly if you want to collect timings yourself.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `list` | `timings` | A list of `float` timing values in milliseconds. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `hashmap` | A hashmap with keys: `total`, `mean`, `median`, `min`, `max`, `stddev` (all `float`, in ms). |
@@ -110,11 +107,13 @@ Computes descriptive statistics from a list of timing values. Used internally by
 Formats a float timing value as a string rounded to 3 decimal places with an `ms` suffix (e.g., `"1.234ms"`).
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `val` | A timing value in milliseconds. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `string` | The formatted string. |

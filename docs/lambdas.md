@@ -2,14 +2,7 @@
 
 Lambdas are used to treat callables (i.e. functions) as first-class citizens. You can pass lambdas as method parameters.
 
-# Table of Contents
-- [Defining and calling lambdas](#defining-and-calling-lambdas)
-  - [Converting a function to a lambda](#converting-a-function-to-a-lambda)
-  - [Using `do` (lambda block and arrow functions)](#using-do-lambda-block-and-arrow-functions)
-  - [Using the `with` keyword](#using-the-with-keyword)
-- [Inline lambdas](#inline-lambdas)
-- [Assigned lambdas](#assigned-lambdas)
-- [Passing lambdas as parameters](#passing-lambdas-as-parameters)
+---
 
 ## Defining and calling lambdas
 

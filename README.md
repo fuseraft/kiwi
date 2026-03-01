@@ -2,15 +2,6 @@
 
 Kiwi is a high-level, dynamically-typed language designed for efficiency and expressiveness across a variety of tasks.
 
-## Table of Contents
-
-- [Getting Started](#getting-started)
-- [VS Code Integration](#visual-studio-code-integration)
-- [Documentation](#documentation)
-- [Test Suite](#test-suite)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Getting Started
 
 Clone the repository:

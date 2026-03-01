@@ -2,19 +2,7 @@
 
 Kiwi supports type hints for function arguments and return values. Type hints help ensure code correctness and improve readability by allowing the programmer to specify expected types for function inputs and outputs. Currently, Kiwi performs runtime type checking based on these hints.
 
-## Table of Contents
-
-- [Syntax](#syntax)
-- [Supported Types](#supported-types)
-- [Function Parameters with Type Hints](#function-parameters-with-type-hints)
-- [Union Types](#union-types)
-  - [Nullable Parameters](#nullable-parameters)
-  - [Multiple Types](#multiple-types)
-  - [Union Return Types](#union-return-types)
-  - [Type Mismatch](#type-mismatch)
-- [Default Values with Type Hints](#default-values-with-type-hints)
-- [Type Hints for Return Types](#type-hints-for-return-types)
-- [Type Checking at Runtime](#type-checking-at-runtime)
+---
 
 ## Syntax
 

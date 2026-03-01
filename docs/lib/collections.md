@@ -6,32 +6,6 @@ It includes:
 - `Heap` — a min-heap or max-heap backed by an array
 - `Set` — an unordered collection of unique values with set-algebra operations
 
-## Table of Contents
-
-- [`Heap` struct](#heap-struct)
-  - [Constructor](#heap-constructor)
-  - [`insert(value)`](#insertvalue)
-  - [`extract_root()`](#extract_root)
-  - [`peek()`](#peek)
-  - [`size()`](#heap-size)
-  - [`is_empty()`](#is_empty)
-- [`Set` struct](#set-struct)
-  - [Constructor](#set-constructor)
-  - [`add(item)`](#additem)
-  - [`remove(item)`](#removeitem)
-  - [`contains(item)`](#containsitem)
-  - [`size()`](#set-size)
-  - [`clear()`](#clear)
-  - [`difference(data)`](#differencedata)
-  - [`disjoint(data)`](#disjointdata)
-  - [`intersect(data)`](#intersectdata)
-  - [`merge(data)`](#mergedata)
-  - [`union(data)`](#uniondata)
-  - [`subset(data)`](#subsetdata)
-  - [`superset(data)`](#supersetdata)
-  - [`to_list()`](#to_list)
-  - [`to_string()`](#to_string)
-
 ---
 
 ## `Heap` struct
@@ -41,6 +15,7 @@ An array-backed binary heap that can operate as either a **min-heap** (root is s
 ### Heap Constructor
 
 **Parameters**
+
 | Type | Name | Description | Default |
 |------|------|-------------|---------|
 | `string` | `type` | `"min"` for a min-heap, `"max"` for a max-heap | `"min"` |
@@ -59,6 +34,7 @@ println h.extract_root()  # prints: 2
 Inserts a value into the heap and restores the heap property.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `any` | `value` | The value to insert. |
@@ -110,6 +86,7 @@ An unordered collection of unique values. Accepts a `list` or another `Set` for 
 ### Set Constructor
 
 **Parameters**
+
 | Type | Name | Description | Default |
 |------|------|-------------|---------|
 | `list` | `data` | Initial values (duplicates are removed). | `[]` |
@@ -127,6 +104,7 @@ println s.to_list()  # prints: [1, 2, 3]
 Adds an item to the set. Has no effect if the item is already present.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `any` | `item` | The value to add. |
@@ -138,6 +116,7 @@ Adds an item to the set. Has no effect if the item is already present.
 Removes an item from the set. Has no effect if the item is not present.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `any` | `item` | The value to remove. |
@@ -149,6 +128,7 @@ Removes an item from the set. Has no effect if the item is not present.
 Checks whether the set contains the given item.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `any` | `item` | The value to look for. |
@@ -176,6 +156,7 @@ Removes all elements from the set.
 Returns a new `Set` containing elements that are in this set but **not** in `data`.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `list` or `Set` | `data` | The set or list to subtract. |
@@ -189,6 +170,7 @@ Returns a new `Set` containing elements that are in this set but **not** in `dat
 Returns `true` if this set shares no elements with `data`.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `list` or `Set` | `data` | The set or list to compare. |
@@ -202,6 +184,7 @@ Returns `true` if this set shares no elements with `data`.
 Returns `true` if this set shares at least one element with `data`.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `list` or `Set` | `data` | The set or list to compare. |
@@ -215,6 +198,7 @@ Returns `true` if this set shares at least one element with `data`.
 Adds all elements from `data` into this set (mutates in place).
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `list` or `Set` | `data` | The set or list to merge in. |
@@ -226,6 +210,7 @@ Adds all elements from `data` into this set (mutates in place).
 Returns a **new** `Set` that is the union of this set and `data`.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `list` or `Set` | `data` | The set or list to union with. |
@@ -239,6 +224,7 @@ Returns a **new** `Set` that is the union of this set and `data`.
 Returns `true` if every element of this set is contained in `data`.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `list` or `Set` | `data` | The set or list to check against. |
@@ -252,6 +238,7 @@ Returns `true` if every element of this set is contained in `data`.
 Returns `true` if this set contains every element of `data`.
 
 **Parameters**
+
 | Type | Name | Description |
 |------|------|-------------|
 | `list` or `Set` | `data` | The set or list to check against. |

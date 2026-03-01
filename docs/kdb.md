@@ -2,26 +2,6 @@
 
 `kdb` is Kiwi's built-in command-line debugger. It lets you step through a program statement by statement, inspect variables, set breakpoints, and evaluate expressions interactively — similar to `gdb` or Python's `pdb`.
 
-### Table of Contents
-- [Starting the Debugger](#starting-the-debugger)
-- [The Prompt](#the-prompt)
-- [Stepping](#stepping)
-  - [`s` / `step` — Step In](#s--step--step-in)
-  - [`n` / `next` — Step Over](#n--next--step-over)
-  - [`f` / `finish` — Step Out](#f--finish--step-out)
-  - [`r` / `run` — Run to Breakpoint](#r--run--run-to-breakpoint)
-- [Breakpoints](#breakpoints)
-  - [`b` — Set Breakpoint](#b--set-breakpoint)
-  - [`d` — Delete Breakpoint](#d--delete-breakpoint)
-  - [`info b` — List Breakpoints](#info-b--list-breakpoints)
-- [Inspection](#inspection)
-  - [`p` — Print Expression](#p--print-expression)
-  - [`l` / `locals` — Local Variables](#l--locals--local-variables)
-  - [`bt` / `backtrace` — Call Stack](#bt--backtrace--call-stack)
-  - [`list` — Show Source](#list--show-source)
-- [Other Commands](#other-commands)
-- [Workflow Example](#workflow-example)
-
 ---
 
 ## Starting the Debugger

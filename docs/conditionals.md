@@ -2,10 +2,6 @@
 
 In Kiwi, there are a few constructs for conditional logic.
 
-## Table of Contents
-1. [Conditions](#conditions)
-2. [Non-Boolean Expressions as Conditions](#non-boolean-expressions-as-conditions)
-
 ## Conditions
 
 A condition is a boolean expression that is passed to a [control structure](control_structures.md) to execute code when the condition is satisfied.

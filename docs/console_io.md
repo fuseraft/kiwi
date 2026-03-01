@@ -15,11 +15,6 @@ For advanced features (colors, cursor control, clearing screen, reading single k
 
 For file I/O, see the [`fio` package](./lib/fio.md) or the higher-level [`path` module](./lib/path.md).
 
-## Table of Contents
-
-- [Reading input](#reading-input)
-  - [`input(prompt = "")`](#inputprompt--)
-
 ## Reading input
 
 ### `input(prompt = "")`

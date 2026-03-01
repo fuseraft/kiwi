@@ -2,14 +2,6 @@
 
 Docstrings are a way to add documentation to your code.
 
-## Table of Contents
-
-- [Syntax Basics](#1-syntax-basics)
-- [Placement](#2-placement)
-- [Required and Optional Tags](#3-required-and-optional-tags)
-- [Examples](#4-examples)
-- [Best Practices](#5-best-practices)
-
 ## 1. Syntax Basics
 
 - Use multi-line comments starting with `/#` and ending with `#/`. This is Kiwi's native multi-line (block) comment syntax.

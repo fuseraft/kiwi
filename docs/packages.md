@@ -2,12 +2,7 @@
 
 Use the `package` keyword to define a package. Use `export` to make a package available, and `import` to bring a package into scope. Methods defined in a package are accessed using a fully qualified name (`package::method`).
 
-## Table of Contents
-
-- [Defining and Using a Package](#defining-and-using-a-package)
-- [File-Based Packages](#file-based-packages)
-- [`import` vs `export`](#import-vs-export)
-- [Nested Packages](#nested-packages)
+---
 
 ## Defining and Using a Package
 

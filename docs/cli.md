@@ -2,25 +2,11 @@
 
 The Kiwi CLI provides an interface for working with Kiwi files.
 
-### Basic Usage
+## Basic Usage
 
 ```
 kiwi [--flags] <script|args>
 ```
-
-### Table of Contents
-- [Options](#options)
-  - [`-h`, `--help`](#-h---help)
-  - [`-v`, `--version`](#-v---version)
-  - [`-s`, `--settings`](#-s---settings)
-  - [`-n`, `--new <file_path>`](#-n---new-file_path)
-  - [`-i`, `--interactive`](#-i---interactive)
-  - [`-d`, `--debug <input_file_path>`](#-d---debug-input_file_path)
-  - [`-a`, `--ast <input_file_path>`](#-a---ast-input_file_path)
-  - [`-t`, `--tokenize <input_file_path>`](#-t---tokenize-input_file_path)
-  - [`-ns`, `--no-stdlib`](#-ns---no-stdlib)
-  - [`-sm`, `--safemode`](#-sm---safemode)
-  - [`-<key>=<value>`](#-keyvalue)
 
 ## Options
 

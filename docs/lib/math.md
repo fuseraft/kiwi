@@ -2,56 +2,7 @@
 
 The `math` package contains functionality for working with common math operations.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`abs(_value)`](#abs_value)
-  - [`acos(_value)`](#acos_value)
-  - [`asin(_value)`](#asin_value)
-  - [`atan(_value)`](#atan_value)
-  - [`atan2(_valueY, _valueX)`](#atan2_valuey-_valuex)
-  - [`cbrt(_value)`](#cbrt_value)
-  - [`ceil(_value)`](#ceil_value)
-  - [`copysign(_valueX, _valueY)`](#copysign_valuex-_valuey)
-  - [`cos(_value)`](#cos_value)
-  - [`cosh(_value)`](#cosh_value)
-  - [`eps(n = 9)`](#epsn--9)
-  - [`epsilon()`](#epsilon)
-  - [`erf(_value)`](#erf_value)
-  - [`erfc(_value)`](#erfc_value)
-  - [`exp(_value)`](#exp_value)
-  - [`expm1(_value)`](#expm1_value)
-  - [`fdim(_valueX, _valueY)`](#fdim_valuex-_valuey)
-  - [`floor(_value)`](#floor_value)
-  - [`fmax(_valueX, _valueY)`](#fmax_valuex-_valuey)
-  - [`fmin(_valueX, _valueY)`](#fmin_valuex-_valuey)
-  - [`fmod(_valueX, _valueY)`](#fmod_valuex-_valuey)
-  - [`hypot(_valueX, _valueY)`](#hypot_valuex-_valuey)
-  - [`isfinite(_value)`](#isfinite_value)
-  - [`isinf(_value)`](#isinf_value)
-  - [`isnan(_value)`](#isnan_value)
-  - [`isnormal(_value)`](#isnormal_value)
-  - [`lgamma(_value)`](#lgamma_value)
-  - [`listprimes(_limit)`](#listprimes_limit)
-  - [`log(_value)`](#log_value)
-  - [`log10(_value)`](#log10_value)
-  - [`log1p(_value)`](#log1p_value)
-  - [`log2(_value)`](#log2_value)
-  - [`nextafter(_valueX, _valueY)`](#nextafter_valuex-_valuey)
-  - [`nthprime(_n)`](#nthprime_n)
-  - [`pow(_valueX, _valueY)`](#pow_valuex-_valuey)
-  - [`random(_base, _limit)`](#random_base-_limit)
-  - [`random(_valueX, _valueY)`](#random_valuex-_valuey)
-  - [`random_set(x, y, n)`](#random_setx-y-n)
-  - [`remainder(_valueX, _valueY)`](#remainder_valuex-_valuey)
-  - [`round(_value)`](#round_value)
-  - [`sin(_value)`](#sin_value)
-  - [`sinh(_value)`](#sinh_value)
-  - [`sqrt(_value)`](#sqrt_value)
-  - [`tan(_value)`](#tan_value)
-  - [`tanh(_value)`](#tanh_value)
-  - [`tgamma(_value)`](#tgamma_value)
-  - [`trunc(_value)`](#trunc_value)
+---
 
 ## Package Functions
 
@@ -60,11 +11,13 @@ The `math` package contains functionality for working with common math operation
 Computes an epsilon value. The value of `n` must be between 1 and 15 (inclusive).
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `integer` | `n` | The number of decimal places to compute. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | An epsilon value. |
@@ -74,6 +27,7 @@ Computes an epsilon value. The value of `n` must be between 1 and 15 (inclusive)
 Gets the machine epsilon.
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The machine epsilon. |
@@ -83,12 +37,14 @@ Gets the machine epsilon.
 Returns a random number between x and y.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `integer`\|`float` | `_valueX` | The number x. |
 | `integer`\|`float` | `_valueY` | The number y. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `integer`\|`float` | A random number. |
@@ -98,6 +54,7 @@ Returns a random number between x and y.
 Returns a random string or list from a string or list with a limited number of characters or elements.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string`\|`list` | `_base` | The base string or list containing the elements to build a random distribution from. |
@@ -108,6 +65,7 @@ Returns a random string or list from a string or list with a limited number of c
 Returns a list of `n` unique random numbers between `x` and `y`.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `integer`\|`float` | `x` | The lower bound. |
@@ -115,6 +73,7 @@ Returns a list of `n` unique random numbers between `x` and `y`.
 | `integer` | `n` | The total number of values in the set. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `list` | A list of random numbers. |
@@ -124,11 +83,13 @@ Returns a list of `n` unique random numbers between `x` and `y`.
 Get a list of prime numbers up to a limit.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `integer` | `_limit` | The limit. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `list` | Prime numbers. |
@@ -138,11 +99,13 @@ Get a list of prime numbers up to a limit.
 Get the n-th prime number.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `integer` | `_n` | The n-th number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `integer` | The n-th prime number. |
@@ -152,11 +115,13 @@ Get the n-th prime number.
 Computes the sine of a number.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The angle in radians. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The sine of the input. |
@@ -166,11 +131,13 @@ Computes the sine of a number.
 Computes the cosine of a number.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The angle in radians. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The cosine of the input. |
@@ -180,11 +147,13 @@ Computes the cosine of a number.
 Computes the tangent of a number.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `float` | `_value` | The angle in radians. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The tangent of the input. |
@@ -200,6 +169,7 @@ Computes the arc sine of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The arc sine of the input. |
@@ -215,6 +185,7 @@ Computes the arc cosine of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The arc cosine of the input. |
@@ -230,6 +201,7 @@ Computes the arc tangent of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The arc tangent of the input. |
@@ -246,6 +218,7 @@ Computes the arc tangent of `y / x`, handling quadrants correctly.
 | `float` | `_valueX` | The x-coordinate. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The arc tangent of `y / x`. |
@@ -261,6 +234,7 @@ Computes the hyperbolic sine of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The hyperbolic sine of the input. |
@@ -276,6 +250,7 @@ Computes the hyperbolic cosine of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The hyperbolic cosine of the input. |
@@ -291,6 +266,7 @@ Computes the hyperbolic tangent of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The hyperbolic tangent of the input. |
@@ -306,6 +282,7 @@ Computes the natural logarithm (base e) of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The natural logarithm of the input. |
@@ -321,6 +298,7 @@ Computes the logarithm to base 2 of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The base 2 logarithm of the input. |
@@ -337,6 +315,7 @@ Computes the logarithm to base 10 of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The base 10 logarithm of the input. |
@@ -353,6 +332,7 @@ Computes `log(1 + x)`.
 | `float` | `_value` | The number x. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The value of `log(1 + x)` |
@@ -369,6 +349,7 @@ Computes the square root of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The square root of the input. |
@@ -384,6 +365,7 @@ Computes the cube root of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The cube root of the input. |
@@ -400,6 +382,7 @@ Gets the floating-point remainder of `x / y`.
 | `float` | `_valueY` | The number y. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The remainder of `x / y`. |
@@ -416,6 +399,7 @@ Computes `sqrt(x^2 + y^2)` without undue overflow or underflow.
 | `float` | `_valueY` | The number y. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The Euclidean distance between the point (x, y) and the origin. |
@@ -431,6 +415,7 @@ Checks if a number is a finite value.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `boolean` | Indicates whether the number is finite. |
@@ -446,6 +431,7 @@ Checks if a number is an infinite value.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `boolean` | Indicates whether the number is infinite. |
@@ -461,6 +447,7 @@ Checks if a number is NaN (Not a Number).
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `boolean` | Indicates whether the number is NaN. |
@@ -476,6 +463,7 @@ Checks if a number is a normal floating-point number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `boolean` | Indicates whether the number is a normal number. |
@@ -491,6 +479,7 @@ Rounds a number to the largest integer not greater than the number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `integer` | The floor value. |
@@ -506,6 +495,7 @@ Rounds a number to the smallest integer not less than the number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `integer` | The ceiling value. |
@@ -521,6 +511,7 @@ Rounds a number to the nearest integer, away from zero in halfway cases.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `integer` | The nearest integer. |
@@ -536,6 +527,7 @@ Truncates a number to the integer part, towards zero.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The truncated value. |
@@ -552,6 +544,7 @@ Computes the IEEE 754 floating-point remainder of `x / y`.
 | `float` | `_valueY` | The number y. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The remainder of `x / y`. |
@@ -567,6 +560,7 @@ Computes `e^x`, where `e` is the base of the natural logarithm.
 | `float` | `_value` | The number x. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The value of `e^x`. |
@@ -582,6 +576,7 @@ Computes `e^x - 1`.
 | `float` | `_value` | The number x. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The value of `e^x - 1`. |
@@ -597,6 +592,7 @@ Error function.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The error function of a number. |
@@ -612,6 +608,7 @@ Complementary error function.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The complementary error function of a number. |
@@ -627,6 +624,7 @@ The natural logarithm of the absolute value of the gamma function.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The natural logarithm of the gamma function of a number. |
@@ -642,6 +640,7 @@ The gamma function.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The gamma function of a number. |
@@ -658,6 +657,7 @@ Copies the sign of `y` to `x`.
 | `float` | `_valueY` | The sign of the number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | Contains `x` with the sign of `y`. |
@@ -674,6 +674,7 @@ Get the next representable value after x towards y.
 | `float` | `_valueY` | The number x is moving towards. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The next representable floating-point value moving from `x` towards `y`. |
@@ -690,6 +691,7 @@ Get the maximum of x and y.
 | `float` | `_valueY` | The number y. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The maximum value of `x` and `y`. |
@@ -706,6 +708,7 @@ Get the minimum of `x` and `y`.
 | `float` | `_valueY` | The number y. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The minimum value of `x` and `y`. |
@@ -722,6 +725,7 @@ Get the positive difference between x and y.
 | `float` | `_valueY` | The number y. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | The positive difference between `x` and `y`. |
@@ -738,6 +742,7 @@ Get `x` raised to the power of `y`.
 | `float` | `_valueY` | The exponent. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `float` | `x^y` |
@@ -753,6 +758,7 @@ Get the absolute value of a number.
 | `float` | `_value` | The number. |
 
 **Returns**
+
 | Type | Description |
 | :--- | :---|
 | `integer`\|`float` | The absolute value of the number. |

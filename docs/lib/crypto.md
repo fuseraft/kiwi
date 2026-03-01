@@ -2,12 +2,7 @@
 
 The `crypto` package contains functionality for generating hash strings.
 
-## Table of Contents
-
-- [Package Functions](#package-functions)
-  - [`md5_hash(input)`](#md5_hashinput--)
-  - [`sha224_hash(input)`](#sha224_hashinput--)
-  - [`sha256_hash(input)`](#sha256_hashinput--)
+---
 
 ## Package Functions
 
@@ -15,11 +10,13 @@ The `crypto` package contains functionality for generating hash strings.
 Generates an MD5 hash string.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `input` | The input string.|
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `string` | An MD5 hash. |
@@ -28,11 +25,13 @@ Generates an MD5 hash string.
 Generates a SHA-224 hash string.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `input` | The input string.|
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `string` | A SHA-224 hash. |
@@ -41,11 +40,13 @@ Generates a SHA-224 hash string.
 Generates a SHA-256 hash string.
 
 **Parameters**
+
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `input` | The input string.|
 
 **Returns**
+
 | Type | Description |
 | :--- | :--- |
 | `string` | A SHA-256 hash. |

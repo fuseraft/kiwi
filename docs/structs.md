@@ -2,17 +2,7 @@
 
 Structs in Kiwi provide a way to bundle data and functionality together.
 
-## Table of Contents
-
-- [Defining Structs](#defining-structs)
-- [Creating Instances](#creating-instances)
-- [Inheritance](#inheritance)
-- [Method Definition](#method-definition)
-- [Overriding `to_string()`](#overriding-to_string)
-- [Static Method Definition](#static-method-definition)
-- [Static Variables](#static-variables)
-- [Access Control](#access-control)
-- [Type-checking, member queries](#type-checking-member-queries)
+---
 
 ## Defining Structs
 
