@@ -102,9 +102,9 @@ package http
     for c in s.chars() do
       digit = 0
       if c >= '0' && c <= '9'
-        digit = c.to_integer() - '0'.to_integer()
+        digit = c.ord() - '0'.ord()
       elsif c >= 'a' && c <= 'f'
-        digit = c.to_integer() - 'a'.to_integer() + 10
+        digit = c.ord() - 'a'.ord() + 10
       else
         throw "Invalid hex digit: ${c}"
       end
