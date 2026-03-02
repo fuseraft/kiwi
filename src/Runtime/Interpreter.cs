@@ -2650,61 +2650,16 @@ public class Interpreter
 
             return Value.CreateList(listObj);
         }
-        else if (indexExpr.IndexExpression.Type == ASTNodeType.Identifier && baseObj.IsHashmap())
+        else
         {
-            var key = Id(indexExpr.IndexExpression);
-            var keyString = Value.CreateString(key);
-            var hashObj = baseObj.GetHashmap();
+            // General case: evaluate the index expression (handles Identifier, Self,
+            // Literal, BinaryOperation, FunctionCall, MethodCall, MemberAccess, etc.)
+            var indexVal = Interpret(indexExpr.IndexExpression);
 
-            // if (!hashObj.TryGetValue(keyString, out Value? nestedValue))
-            // {
-            //     throw new HashKeyError(indexExpr.Token, key);
-            // }
-
-            if (op == TokenName.Ops_Assign)
-            {
-                hashObj[keyString] = newValue;
-            }
-            else
-            {
-                var oldValue = hashObj[keyString];
-                hashObj[keyString] = OpDispatch.DoBinary(indexExpr.Token, op, ref oldValue, ref newValue);
-            }
-
-            return Value.CreateHashmap(hashObj);
-        }
-        else if (indexExpr.IndexExpression.Type == ASTNodeType.Identifier && baseObj.IsList())
-        {
-            var identifier = Interpret(indexExpr.IndexExpression);
-            var list = baseObj.GetList();
-            var listIndex = (int)ConversionOp.GetInteger(indexExpr.Token, identifier);
-
-            if (listIndex < 0 || listIndex >= list.Count)
-            {
-                throw new IndexError(indexExpr.Token, "The index was outside the bounds of the list.");
-            }
-
-            if (op == TokenName.Ops_Assign)
-            {
-                list[listIndex] = newValue;
-            }
-            else
-            {
-                var oldValue = list[listIndex];
-                list[listIndex] = OpDispatch.DoBinary(indexExpr.Token, op, ref oldValue, ref newValue);
-            }
-
-            return Value.CreateList(list);
-
-        }
-        else if (indexExpr.IndexExpression.Type == ASTNodeType.Literal)
-        {
-            var literal = Interpret(indexExpr.IndexExpression);
-
-            if (baseObj.IsList() && literal.IsInteger())
+            if (baseObj.IsList())
             {
                 var list = baseObj.GetList();
-                var listIndex = (int)ConversionOp.GetInteger(indexExpr.Token, literal);
+                var listIndex = (int)ConversionOp.GetInteger(indexExpr.Token, indexVal);
 
                 if (listIndex < 0 || listIndex >= list.Count)
                 {
@@ -2729,19 +2684,22 @@ public class Interpreter
 
                 if (op == TokenName.Ops_Assign)
                 {
-                    hash[literal] = newValue;
+                    hash[indexVal] = newValue;
                 }
                 else
                 {
-                    var oldValue = hash[literal];
-                    hash[literal] = OpDispatch.DoBinary(indexExpr.Token, op, ref oldValue, ref newValue);
+                    if (!hash.TryGetValue(indexVal, out Value? oldValue))
+                    {
+                        throw new HashKeyError(indexExpr.Token, Serializer.Serialize(indexVal));
+                    }
+                    hash[indexVal] = OpDispatch.DoBinary(indexExpr.Token, op, ref oldValue, ref newValue);
                 }
 
                 return Value.CreateHashmap(hash);
             }
-        }
 
-        throw new IndexError(indexExpr.Token, "Invalid index expression.");
+            throw new IndexError(indexExpr.Token, "Invalid index expression.");
+        }
     }
 
     private SliceIndex GetSlice(SliceNode node, Value obj)
