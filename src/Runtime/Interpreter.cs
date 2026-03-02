@@ -663,10 +663,11 @@ public class Interpreter
 
         var frame = CallStack.Peek();
         var scope = frame.Scope;
-        var value = Interpret(node.Initializer).Clone();
         var type = node.Op;
         var name = node.Name;
 
+        // Evaluate the when-guard condition BEFORE the RHS initializer so that
+        // `x += expensive() when cond` only calls expensive() when cond is true.
         if (node.Condition != null)
         {
             var eval = Interpret(node.Condition);
@@ -676,6 +677,8 @@ public class Interpreter
                 return Value.Default;
             }
         }
+
+        var value = Interpret(node.Initializer).Clone();
 
         // Static variable assignment: @@varname = expr or @@varname += expr etc.
         if (node.Left?.Type == ASTNodeType.StaticSelf)

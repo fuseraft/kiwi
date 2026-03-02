@@ -1580,14 +1580,20 @@ public partial class Parser
         {
             Next(); // consume the arrow
 
-            // If there is an arrow, we will only allow a single statement. 
+            // If there is an arrow, we will only allow a single statement.
             // This is the end of the lambda decl.
-            
+
             var stmt = ParseStatement();
             if (stmt != null)
             {
                 body.Add(stmt);
             }
+
+            // Optionally consume 'end' — arrow lambdas don't require it, but
+            // users may write `do (x) => expr end` (symmetric with multi-line form).
+            // Without this, a trailing 'end' would be left in the stream and cause
+            // a parse error in the surrounding call argument list.
+            MatchName(TokenName.KW_End);
         }
         else
         {
