@@ -1,32 +1,28 @@
-dt = time::now()
+days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+dt   = time::now()
+day  = days[dt.weekday()]
+hour = dt.hour()
 
-case
-    when dt.hour() < 12
-        println "good morning"
-    when dt.hour() < 17
-        println "good afternoon"
-    when dt.hour() < 21
-        println "good evening"
-    else
-        println "good night"
+time_of_day = case
+  when hour.between(5, 11):  'morning'
+  when hour.between(12, 16): 'afternoon'
+  when hour.between(17, 21): 'evening'
+  else:                      'night'
 end
 
-case dt.hour() as hour
-    when hour < 12
-        println "good morning"
-    when hour < 17
-        println "good afternoon"
-    when hour < 21
-        println "good evening"
-    else
-        println "good night, the time is: ${dt}"
+greeting = case time_of_day
+  when 'morning':   'Good morning!'
+  when 'afternoon': 'Good afternoon.'
+  when 'evening':   'Good evening.'
+  when 'night':     'Hello, night owl!'
+  else:             'What time is it again?'
 end
 
-x = case dt.hour() as hour
-        when hour < 12 "morning"
-        when hour < 17 "afternoon"
-        when hour < 21 "evening"
-        else "night"
-    end
+mood = case day
+  when "Monday":             "Here we go again."
+  when "Friday":             "Almost there!"
+  when "Saturday", "Sunday": "Enjoy the weekend!"
+  else:                      "Just another day."
+end
 
-println x
+println "It's ${day} ${time_of_day}. ${greeting} ${mood}"

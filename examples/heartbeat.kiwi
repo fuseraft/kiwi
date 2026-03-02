@@ -1,1 +1,0 @@
-task::interval(1000, with () do println "Heartbeat: ${time::now()}" end)

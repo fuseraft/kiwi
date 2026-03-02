@@ -1,4 +1,0 @@
-strings = fio::readlines("strings.txt")
-
-println strings.size()
-println Set.new(strings).size()

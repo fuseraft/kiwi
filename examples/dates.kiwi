@@ -1,7 +1,128 @@
-dt = time::first_day()
-dt = time::add_days(dt, -1)
+#!/usr/bin/env kiwi
 
-repeat 365 do
-  dt = time::add_days(dt, 1)
-  println dt.to_string("yyyy-MM-dd hh:mm:ss tt")
+day_names   = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+month_names = ["January", "February", "March", "April", "May", "June",
+               "July", "August", "September", "October", "November", "December"]
+
+/#
+  Returns the formatted date string: "Weekday, Month Day, Year"
+#/
+fn fmt(dt: date): string
+  "${day_names[dt.weekday()]}, ${month_names[dt.month() - 1]} ${dt.day()}, ${dt.year()}"
 end
+
+/#
+  Returns the fiscal quarter label for a given date.
+#/
+fn quarter(dt: date): string
+  m = dt.month()
+  case
+    when m <= 3:  "Q1"
+    when m <= 6:  "Q2"
+    when m <= 9:  "Q3"
+    else:         "Q4"
+  end
+end
+
+/#
+  Returns true if dt falls on a Saturday or Sunday.
+#/
+fn is_weekend(dt: date): boolean
+  wd = dt.weekday()
+  wd == 0 || wd == 6
+end
+
+/#
+  Returns the next occurrence of target weekday (0=Sun..6=Sat) after dt.
+  Never returns dt itself — always a future date.
+#/
+fn next_weekday(dt: date, target: integer): date
+  offset = (target - dt.weekday() + 7) % 7
+  offset = (offset == 0) ? 7 : offset
+  time::add_days(dt, offset)
+end
+
+/#
+  Returns all business days (Mon-Fri) between start (exclusive) and finish (inclusive).
+#/
+fn business_days_in_range(start: date, finish: date): list
+  result = []
+  dt = start.add_days(1)
+  while dt.to_string("yyyyMMdd") <= finish.to_string("yyyyMMdd") do
+    if !is_weekend(dt)
+      result.push(dt)
+    end
+    dt = dt.add_days(1)
+  end
+  result
+end
+
+/#
+  Returns the age in full years given a birthdate.
+#/
+fn age(birthdate: date): integer
+  today = time::now()
+  years = today.year() - birthdate.year()
+  bm = birthdate.month()
+  bd = birthdate.day()
+  tm = today.month()
+  td = today.day()
+  if tm < bm || (tm == bm && td < bd)
+    years -= 1
+  end
+  years
+end
+
+/#
+  Returns the ISO week number (1–53) for a given date.
+#/
+fn week_number(dt: date): integer
+  (time::yearday(dt) + 6) / 7
+end
+
+today = time::now()
+
+println "=== Today ============================="
+println "Date:     ${fmt(today)}"
+println "Quarter:  ${quarter(today)}"
+println "Week:     #${week_number(today)}"
+println "DST:      ${time::isdst(today)}"
+println "Weekend:  ${is_weekend(today)}"
+println ""
+
+println "=== Upcoming Weekdays ================="
+println "Next Monday:    ${fmt(next_weekday(today, 1))}"
+println "Next Friday:    ${fmt(next_weekday(today, 5))}"
+println ""
+
+println "=== Year at a Glance =================="
+eoy   = time::last_day()
+bdays = business_days_in_range(today, eoy)
+println "End of year:              ${fmt(eoy)}"
+println "Business days remaining:  ${bdays.size()}"
+println ""
+
+println "=== Sprint Planning ==================="
+sprint_start = next_weekday(today, 1)
+sprint_end   = time::add_days(sprint_start, 13)
+sprint_days  = business_days_in_range(time::add_days(sprint_start, -1), sprint_end)
+println "Sprint window:        ${fmt(sprint_start)} -> ${fmt(sprint_end)}"
+println "Sprint working days:  ${sprint_days.size()}"
+println ""
+
+println "=== Sample Birthdates ================="
+birthdates = [d(1990, 7, 15), d(1985, 3, 22), d(2000, 12, 1)]
+for bd in birthdates do
+  println "${fmt(bd)}  ->  age ${age(bd)}"
+end
+println ""
+
+println "=== 30-Day Lookahead =================="
+deadline      = time::add_days(today, 30)
+working_days  = business_days_in_range(today, deadline)
+milestones    = [7, 14, 21, 30]
+for offset in milestones do
+  dt = today.add_days(offset)
+  println "T+${string::padstart(offset, 2)}:  ${fmt(dt)}  (${quarter(dt)})"
+end
+println "Working days in window: ${working_days.size()}"
