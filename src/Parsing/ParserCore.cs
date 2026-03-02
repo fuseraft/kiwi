@@ -213,6 +213,8 @@ public partial class Parser(bool rethrowErrors = false)
 
     private Token Peek() => stream.Peek();
 
+    private Token Previous() => stream.Previous();
+
     private bool MatchType(TokenType expectedType)
     {
         if (GetTokenType() == expectedType)
