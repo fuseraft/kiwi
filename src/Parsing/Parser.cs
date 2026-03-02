@@ -116,7 +116,7 @@ public partial class Parser
         }
     }
 
-    private ASTNode? ParseStatement()
+    private ASTNode? ParseStatement(bool applyWhenGuard = true)
     {
         var nodeToken = token.Clone();
         ASTNode? node;
@@ -175,7 +175,7 @@ public partial class Parser
         // Apply a when-guard to any statement that did not already consume 'when'.
         // return/throw/exit/break/next/assignment all consume 'when' themselves,
         // so MatchName returns false for those and no wrapping occurs.
-        if (node != null && MatchName(TokenName.KW_When))
+        if (applyWhenGuard && node != null && MatchName(TokenName.KW_When))
         {
             if (!HasValue())
             {
@@ -1228,10 +1228,12 @@ public partial class Parser
                     caseWhen.Conditions.Add(ParseExpression());
                 }
 
+                MatchType(TokenType.Colon);  // optional ':' after condition(s)
+
                 while (GetTokenName() is not TokenName.KW_When and not TokenName.KW_Else and
                        not TokenName.KW_End)
                 {
-                    var stmt = ParseStatement();
+                    var stmt = ParseStatement(applyWhenGuard: false);
                     if (stmt != null)
                     {
                         caseWhen.Body.Add(stmt);
@@ -1242,6 +1244,8 @@ public partial class Parser
             }
             else if (MatchName(TokenName.KW_Else))
             {
+                MatchType(TokenType.Colon);  // optional ':' after else
+
                 while (GetTokenName() != TokenName.KW_End)
                 {
                     var stmt = ParseStatement();
