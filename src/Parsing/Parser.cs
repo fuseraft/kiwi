@@ -91,6 +91,14 @@ public partial class Parser
             case TokenName.KW_Export:
                 return ParseExport();
 
+            case TokenName.KW_Abstract:
+                Next(); // consume 'abstract'
+                if (GetTokenName() != TokenName.KW_Struct)
+                {
+                    throw new SyntaxError(GetErrorToken(), "Expected 'struct' after 'abstract'.");
+                }
+                return ParseStruct(isAbstract: true);
+
             case TokenName.KW_Struct:
                 return ParseStruct();
 
@@ -435,7 +443,7 @@ public partial class Parser
         return null;
     }
 
-    private StructNode? ParseStruct()
+    private StructNode? ParseStruct(bool isAbstract = false)
     {
         MatchName(TokenName.KW_Struct);
 
@@ -482,7 +490,7 @@ public partial class Parser
 
         List<ASTNode?> methods = [];
         List<(string Name, ASTNode? Initializer)> staticVars = [];
-        bool isStatic = false, isPrivate = false;
+        bool isStatic = false, isPrivate = false, isAbstractMethod = false, isOverride = false;
 
         while (GetTokenName() != TokenName.KW_End)
         {
@@ -494,6 +502,16 @@ public partial class Parser
             else if (MatchName(TokenName.KW_Private))
             {
                 isPrivate = true;
+                continue;
+            }
+            else if (MatchName(TokenName.KW_Abstract))
+            {
+                isAbstractMethod = true;
+                continue;
+            }
+            else if (MatchName(TokenName.KW_Override))
+            {
+                isOverride = true;
                 continue;
             }
 
@@ -532,12 +550,16 @@ public partial class Parser
                 var func = (FunctionNode)statement;
                 func.IsPrivate = isPrivate;
                 func.IsStatic = isStatic;
+                func.IsAbstract = isAbstractMethod;
+                func.IsOverride = isOverride;
 
                 methods.Add(func);
             }
 
             isStatic = false;
             isPrivate = false;
+            isAbstractMethod = false;
+            isOverride = false;
         }
 
         Next();  // Consume 'end'
@@ -545,7 +567,7 @@ public partial class Parser
         // Outside the struct definition
         structStack.Pop();
 
-        return new StructNode(structName, baseStruct, interfaces, methods, staticVars);
+        return new StructNode(structName, baseStruct, interfaces, methods, staticVars, isAbstract);
     }
 
     private ASTNode? ParseInterface()

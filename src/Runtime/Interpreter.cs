@@ -407,7 +407,8 @@ public class Interpreter
         var structName = node.Name;
         KStruct struc = new()
         {
-            Name = structName
+            Name = structName,
+            IsAbstract = node.IsAbstract
         };
 
         if (!string.IsNullOrEmpty(node.BaseStruct))
@@ -441,6 +442,25 @@ public class Interpreter
             else
             {
                 struc.Methods[methodName] = Context.Methods[methodName];
+            }
+
+            if (funcDecl.IsAbstract)
+            {
+                struc.Methods[methodName].IsAbstract = true;
+                struc.AbstractMethods.Add(methodName);
+            }
+        }
+
+        // If derived from an abstract base, verify all abstract methods are implemented (only for concrete structs)
+        if (!node.IsAbstract && !string.IsNullOrEmpty(node.BaseStruct))
+        {
+            var baseKStruct = Context.Structs[node.BaseStruct];
+            foreach (var abstractMethod in baseKStruct.AbstractMethods)
+            {
+                if (!struc.Methods.ContainsKey(abstractMethod))
+                {
+                    throw new AbstractMethodError(node.Token, structName, abstractMethod);
+                }
             }
         }
 
@@ -2926,6 +2946,9 @@ public class Interpreter
         var methods = kstruct.Methods;
         var isCtor = methodName == "new";
 
+        if (isCtor && kstruct.IsAbstract)
+            throw new AbstractInstantiationError(node.Token, struc.Identifier);
+
         // if the struct does not have the method, check the base struct
         if (!methods.ContainsKey(methodName))
         {
@@ -2945,6 +2968,8 @@ public class Interpreter
 
             if (!baseStructMethods.ContainsKey(methodName))
             {
+                if (isCtor)
+                    return ExecuteStructMethod(methods, methodName, frame, node, struc);
                 throw new UnimplementedMethodError(node.Token, struc.Identifier, methodName);
             }
 

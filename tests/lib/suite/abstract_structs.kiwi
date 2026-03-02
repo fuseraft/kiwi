@@ -1,0 +1,103 @@
+/# ==============================================================================
+    Testing abstract structs.
+   ============================================================================== #/
+tester::register_test("abstract structs", with do
+  # Basic abstract struct with concrete derived struct works
+  abstract struct Animal
+    abstract fn speak(): string end
+    fn describe(): string
+      return "I am a " + @.speak()
+    end
+  end
+
+  struct Dog < Animal
+    override fn speak(): string
+      return "dog"
+    end
+  end
+
+  struct Cat < Animal
+    override fn speak(): string
+      return "cat"
+    end
+  end
+
+  dog = Dog.new()
+  cat = Cat.new()
+
+  tester::assert(dog.speak() == "dog")
+  tester::assert(cat.speak() == "cat")
+  tester::assert(dog.describe() == "I am a dog")
+  tester::assert(cat.describe() == "I am a cat")
+
+  # Abstract struct cannot be instantiated
+  caught_abstract_instantiation = false
+  try
+    a = Animal.new()
+  catch (err)
+    caught_abstract_instantiation = true
+  end
+  tester::assert(caught_abstract_instantiation)
+
+  # Concrete derived struct missing abstract method throws at definition time
+  caught_missing_method = false
+  try
+    struct Fish < Animal
+    end
+  catch (err)
+    caught_missing_method = true
+  end
+  tester::assert(caught_missing_method)
+
+  # Abstract struct can extend another abstract struct (no enforcement)
+  abstract struct Shape
+    abstract fn area(): float end
+    abstract fn perimeter(): float end
+  end
+
+  abstract struct ColoredShape < Shape
+    abstract fn color(): string end
+  end
+
+  struct RedCircle < ColoredShape
+    fn new(radius)
+      @radius = radius
+    end
+
+    override fn area(): float
+      return 3.14159 * @radius * @radius
+    end
+
+    override fn perimeter(): float
+      return 2 * 3.14159 * @radius
+    end
+
+    override fn color(): string
+      return "red"
+    end
+  end
+
+  rc = RedCircle.new(1)
+  tester::assert(rc.color() == "red")
+  tester::assert(math::floor(rc.area()).to_integer() == 3)
+
+  # Multi-method abstract struct — all implemented
+  abstract struct Transformer
+    abstract fn transform(x): string end
+    abstract fn name(): string end
+  end
+
+  struct Upper < Transformer
+    override fn transform(x): string
+      return x.uppercase()
+    end
+
+    override fn name(): string
+      return "upper"
+    end
+  end
+
+  u = Upper.new()
+  tester::assert(u.transform("hello") == "HELLO")
+  tester::assert(u.name() == "upper")
+end)

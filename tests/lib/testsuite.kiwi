@@ -42,7 +42,8 @@ var (unit_tests: list = [
   "scoping",
   "chained_access",
   "dates",
-  "xml"
+  "xml",
+  "abstract_structs"
 ])
 
 for unit_test in unit_tests do

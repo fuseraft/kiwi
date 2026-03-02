@@ -47,6 +47,8 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     public bool IsPrivate { get; set; }
     public bool IsCtor { get; set; }
     public bool IsGenerator { get; set; }
+    public bool IsAbstract { get; set; }
+    public bool IsOverride { get; set; }
 
     public KFunction Clone()
     {
@@ -57,6 +59,8 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
             IsPrivate       = IsPrivate,
             IsCtor          = IsCtor,
             IsGenerator     = IsGenerator,
+            IsAbstract      = IsAbstract,
+            IsOverride      = IsOverride,
             Parameters      = Parameters,
             DefaultParameters = DefaultParameters,
             TypeHints       = TypeHints,
@@ -91,13 +95,17 @@ public class KStruct
     public string BaseStruct { get; set; } = string.Empty;
     public Dictionary<string, KFunction> Methods { get; set; } = [];
     public Dictionary<string, Value> StaticVariables { get; set; } = [];
+    public bool IsAbstract { get; set; }
+    public HashSet<string> AbstractMethods { get; set; } = [];
 
     public KStruct Clone()
     {
         KStruct cloned = new()
         {
             Name = Name,
-            BaseStruct = BaseStruct
+            BaseStruct = BaseStruct,
+            IsAbstract = IsAbstract,
+            AbstractMethods = new HashSet<string>(AbstractMethods)
         };
 
         foreach (var kvp in Methods)
