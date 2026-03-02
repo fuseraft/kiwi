@@ -104,6 +104,7 @@ nav:
   - Object-Oriented:
     - Structs: structs.md
     - Abstract Structs: abstract_structs.md
+    - Operator Overloading: operator_overloading.md
   - Modules & I/O:
     - Packages: packages.md
     - Events: events.md

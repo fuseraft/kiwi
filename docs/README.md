@@ -45,6 +45,7 @@ Kiwi is a scripting language that gets out of your way — write a little, do a 
 
 - [Structs](structs.md)
 - [Abstract Structs](abstract_structs.md)
+- [Operator Overloading](operator_overloading.md)
 
 ## **Modules & I/O**
 

@@ -50,10 +50,18 @@ public struct ComparisonOp
 
     public static Value GreaterThanOrEqual(ref Value left, ref Value right) => Value.CreateBoolean(GetGteResult(ref left, ref right));
 
+    private static bool IsNumeric(Value v) => v.IsInteger() || v.IsFloat();
+    
+    private static double ToDouble(Value v) => v.IsFloat() ? v.GetFloat() : (double)v.GetInteger();
+
     public static bool GetLtResult(ref Value lhs, ref Value rhs)
     {
         if (lhs.Type != rhs.Type)
         {
+            if (IsNumeric(lhs) && IsNumeric(rhs))
+            {
+                return ToDouble(lhs) < ToDouble(rhs);
+            }
             return lhs.Type < rhs.Type;
         }
 
@@ -75,6 +83,10 @@ public struct ComparisonOp
     {
         if (lhs.Type != rhs.Type)
         {
+            if (IsNumeric(lhs) && IsNumeric(rhs))
+            {
+                return ToDouble(lhs) <= ToDouble(rhs);
+            }
             return lhs.Type <= rhs.Type;
         }
 
@@ -96,6 +108,10 @@ public struct ComparisonOp
     {
         if (lhs.Type != rhs.Type)
         {
+            if (IsNumeric(lhs) && IsNumeric(rhs))
+            {
+                return ToDouble(lhs) > ToDouble(rhs);
+            }
             return lhs.Type > rhs.Type;
         }
 
@@ -117,6 +133,10 @@ public struct ComparisonOp
     {
         if (lhs.Type != rhs.Type)
         {
+            if (IsNumeric(lhs) && IsNumeric(rhs))
+            {
+                return ToDouble(lhs) >= ToDouble(rhs);
+            }
             return lhs.Type >= rhs.Type;
         }
 

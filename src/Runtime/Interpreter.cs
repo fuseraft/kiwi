@@ -3419,8 +3419,13 @@ public class Interpreter
             throw new InvalidContextError(node.Token, "Cannot invoke non-static method on struct.");
         }
 
+        // Evaluate ctor arguments in the current context before switching object context,
+        // so that @instanceVar references in ctor args resolve to the calling instance.
+        List<ASTNode?> ctorArgs = node.Arguments;
         if (isCtor)
         {
+            ctorArgs = [.. GetMethodCallArguments(node.Arguments).Select(v => (ASTNode?)new LiteralNode(v))];
+
             if (frame.InObjectContext())
             {
                 contextSwitch = true;
@@ -3436,7 +3441,7 @@ public class Interpreter
             throw new InvalidContextError(node.Token, "Invalid function context.");
         }
 
-        var result = CallFunction(function, node.Arguments, node.Token, methodName, struc.Identifier);
+        var result = CallFunction(function, ctorArgs, node.Token, methodName, struc.Identifier);
 
         if (isCtor)
         {

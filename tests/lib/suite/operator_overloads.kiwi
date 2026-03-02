@@ -1,84 +1,229 @@
 /# ==============================================================================
-    Testing operator overloads. A WIP but still pretty cool.
+    Testing operator overloads.
    ============================================================================== #/
-tester::register_test("operator overloads", with do
-  struct Number
-    fn new(_value: any = 0)
-      throw "Not a number: ${_value}"
-        when not Number.is_numeric(_value)
 
-      if typeof(_value) == "Number"
-        @_value = _value.get_value()
-      elsif [integer, float].contains(typeof(_value))
-        @_value = _value
-      end
-    end
+# ── Number: arithmetic and equality ────────────────────────────────────────────
 
-    fn get_value(): any
-      @_value
-    end
+struct Number
+  fn new(_value: any = 0)
+    throw "Not a number: ${_value}"
+      when not Number.is_numeric(_value)
 
-    static fn is_numeric(_value: any): boolean
-      ["Number", integer, float].contains(typeof(_value))
-    end
-
-    fn +(other): Number
-      var (_tmp = @_value, _type = typeof(other))
-
-      if _type == "Number"
-        return Number.new(_tmp + other.get_value())
-      elsif [integer, float].contains(_type)
-        return Number.new(_tmp + other)
-      end
-
-      throw "Not a number: ${other}"
-    end
-
-    fn -(other: any): Number
-      var (_tmp = @_value, _type = typeof(other))
-
-      if _type == "Number"
-        return Number.new(_tmp - other.get_value())
-      elsif [integer, float].contains(_type)
-        return Number.new(_tmp - other)
-      end
-
-      throw "Not a number: ${other}"
-    end
-
-    fn ==(other: any): boolean
-      var (_tmp = @_value, _type = typeof(other))
-
-      if _type == "Number"
-        return _tmp == other.get_value()
-      elsif [integer, float].contains(_type)
-        return _tmp == other
-      end
-
-      throw "Not a number: ${other}"
-    end
-
-    fn to_string()
-      "${@_value}"
+    if typeof(_value) == "Number"
+      @_value = _value.get_value()
+    elsif [integer, float].contains(typeof(_value))
+      @_value = _value
     end
   end
 
-  fn number(_value): Number
-    Number.new(_value)
+  fn get_value(): any
+    @_value
   end
 
-  n = number(1)
-  tester::assert(n.get_value() == 1, "expected n to contain 1")
+  static fn is_numeric(_value: any): boolean
+    ["Number", integer, float].contains(typeof(_value))
+  end
 
-  n = n + number(2)
-  tester::assert(n.get_value() == 3, "expected n to contain 3")
+  private fn _unwrap(other)
+    typeof(other) == "Number" ? other.get_value() : other
+  end
 
-  n = n + 3
-  tester::assert(n.get_value() == 6, "expected n to contain 6")
-  tester::assert((n + n).get_value() == 12, "expected n + n to be 12")
+  fn +(other): Number
+    Number.new(@_value + @._unwrap(other))
+  end
+
+  fn -(other): Number
+    Number.new(@_value - @._unwrap(other))
+  end
+
+  fn *(other): Number
+    Number.new(@_value * @._unwrap(other))
+  end
+
+  fn /(other): Number
+    Number.new(@_value / @._unwrap(other))
+  end
+
+  fn %(other): Number
+    Number.new(@_value % @._unwrap(other))
+  end
+
+  fn **(other): Number
+    Number.new(@_value ** @._unwrap(other))
+  end
+
+  fn ==(other): boolean
+    @_value == @._unwrap(other)
+  end
+
+  fn !=(other): boolean
+    @_value != @._unwrap(other)
+  end
+
+  fn <(other): boolean
+    @_value < @._unwrap(other)
+  end
+
+  fn <=(other): boolean
+    @_value <= @._unwrap(other)
+  end
+
+  fn >(other): boolean
+    @_value > @._unwrap(other)
+  end
+
+  fn >=(other): boolean
+    @_value >= @._unwrap(other)
+  end
+
+  fn to_string(): string
+    "${@_value}"
+  end
+end
+
+fn number(_value): Number
+  Number.new(_value)
+end
+
+tester::register_test("operator overloads: arithmetic", with do
+  n = number(10)
+
+  # + struct-to-struct and struct-to-raw
+  tester::assert((n + number(5)).get_value() == 15, "10 + 5 == 15")
+  tester::assert((n + 5).get_value() == 15,         "10 + 5 (raw) == 15")
+
+  # -
+  tester::assert((n - number(3)).get_value() == 7,  "10 - 3 == 7")
+  tester::assert((n - 3).get_value() == 7,          "10 - 3 (raw) == 7")
+
+  # *
+  tester::assert((n * number(3)).get_value() == 30, "10 * 3 == 30")
+  tester::assert((n * 3).get_value() == 30,         "10 * 3 (raw) == 30")
+
+  # /
+  tester::assert((n / number(4)).get_value() == 2,  "10 / 4 == 2 (integer)")
+  tester::assert((n / 4).get_value() == 2,          "10 / 4 (raw) == 2")
+
+  # %
+  tester::assert((n % number(3)).get_value() == 1,  "10 % 3 == 1")
+  tester::assert((n % 3).get_value() == 1,          "10 % 3 (raw) == 1")
+
+  # **
+  tester::assert((n ** number(2)).get_value() == 100, "10 ** 2 == 100")
+  tester::assert((n ** 2).get_value() == 100,         "10 ** 2 (raw) == 100")
+
+  # chained
+  tester::assert(((n + 5) * number(2)).get_value() == 30, "(10 + 5) * 2 == 30")
+end)
+
+tester::register_test("operator overloads: comparison", with do
+  a = number(5)
+  b = number(10)
+
+  tester::assert(a == number(5),  "5 == 5")
+  tester::assert(a == 5,          "5 == 5 (raw)")
+  tester::assert(a != b,          "5 != 10")
+  tester::assert(a != 10,         "5 != 10 (raw)")
+  tester::assert(a < b,           "5 < 10")
+  tester::assert(a < 10,          "5 < 10 (raw)")
+  tester::assert(a <= b,          "5 <= 10")
+  tester::assert(a <= number(5),  "5 <= 5")
+  tester::assert(b > a,           "10 > 5")
+  tester::assert(b > 5,           "10 > 5 (raw)")
+  tester::assert(b >= a,          "10 >= 5")
+  tester::assert(b >= number(10), "10 >= 10")
 
   pi = number(3.14159)
+  tester::assert(pi == 3.14159,   "pi == 3.14159")
+  tester::assert(pi != 3.0,       "pi != 3.0")
+  tester::assert(pi > 3,          "pi > 3")
+  tester::assert(pi < 4,          "pi < 4")
+end)
 
-  tester::assert(pi == pi, "expected pi to be pi")
-  tester::assert(pi == 3.14159, "expected pi to be 3.14159")
+# ── Vec2: multi-operator struct ─────────────────────────────────────────────────
+
+tester::register_test("operator overloads: Vec2", with do
+  struct Vec2
+    fn new(x, y)
+      @x = x
+      @y = y
+    end
+
+    fn +(other: Vec2): Vec2
+      Vec2.new(@x + other.x, @y + other.y)
+    end
+
+    fn -(other: Vec2): Vec2
+      Vec2.new(@x - other.x, @y - other.y)
+    end
+
+    fn *(scalar): Vec2
+      Vec2.new(@x * scalar, @y * scalar)
+    end
+
+    fn ==(other: Vec2): boolean
+      @x == other.x && @y == other.y
+    end
+
+    fn !=(other: Vec2): boolean
+      @x != other.x || @y != other.y
+    end
+
+    fn to_string(): string
+      "(${@x}, ${@y})"
+    end
+  end
+
+  a = Vec2.new(1, 2)
+  b = Vec2.new(3, 4)
+
+  sum = a + b
+  tester::assert(sum.x == 4 && sum.y == 6, "Vec2 +: (1,2)+(3,4) == (4,6)")
+
+  diff = b - a
+  tester::assert(diff.x == 2 && diff.y == 2, "Vec2 -: (3,4)-(1,2) == (2,2)")
+
+  scaled = a * 3
+  tester::assert(scaled.x == 3 && scaled.y == 6, "Vec2 *: (1,2)*3 == (3,6)")
+
+  tester::assert(a == Vec2.new(1, 2), "Vec2 ==: (1,2) == (1,2)")
+  tester::assert(a != b,              "Vec2 !=: (1,2) != (3,4)")
+
+  # chained
+  chain = (a + b) * 2
+  tester::assert(chain.x == 8 && chain.y == 12, "Vec2 chained (a+b)*2 == (8,12)")
+end)
+
+# ── Inheritance: overloads flow to derived structs ──────────────────────────────
+
+tester::register_test("operator overloads: inheritance", with do
+  struct BaseVal
+    fn new(v)
+      @v = v
+    end
+
+    fn +(other): BaseVal
+      BaseVal.new(@v + other.v)
+    end
+
+    fn ==(other): boolean
+      @v == other.v
+    end
+
+    fn to_string(): string
+      "${@v}"
+    end
+  end
+
+  struct DerivedVal < BaseVal
+    # inherits + and == from BaseVal
+  end
+
+  x = DerivedVal.new(4)
+  y = DerivedVal.new(6)
+
+  sum = x + y
+  tester::assert(sum.v == 10,         "inherited +: 4 + 6 == 10")
+  tester::assert(x == DerivedVal.new(4), "inherited ==: 4 == 4")
+  tester::assert(!(x == y),           "inherited ==: 4 != 6")
 end)
