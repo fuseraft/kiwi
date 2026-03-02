@@ -1,0 +1,235 @@
+#!/usr/bin/env kiwi
+/#
+  maze.kiwi — Procedural maze generator with BFS pathfinding.
+
+  Generates a perfect maze using recursive-backtracking (DFS),
+  then finds the shortest path from S to E using BFS.
+
+  Usage:
+    kiwi examples/maze.kiwi              # 41 × 21 (default)
+    kiwi examples/maze.kiwi 61 31        # custom size (odd numbers work best)
+#/
+
+struct Maze
+  fn new(width: integer, height: integer)
+    # Force odd dimensions — the DFS carver works on a cell+wall grid
+    # where each "cell" sits at odd (row, col) and walls sit at even.
+    @w = width  % 2 == 0 ? width  + 1 : width
+    @h = height % 2 == 0 ? height + 1 : height
+
+    # Fill every cell with a wall '#'
+    @grid = []
+    for r in [0 to @h - 1] do
+      row = []
+      repeat @w do
+        row.push("#")
+      end
+      @grid.push(row)
+    end
+
+    # Anchor start (top-left cell) and end (bottom-right cell)
+    @sr = 1,      @sc = 1
+    @er = @h - 2, @ec = @w - 2
+
+    # Carve the maze and label start/end
+    @grid[@sr][@sc] = " "
+    dfs(@sr, @sc)
+    @grid[@sr][@sc] = "S"
+    @grid[@er][@ec] = "E"
+  end
+
+  /#
+  Recursive-backtracking DFS: from (r, c) pick a random unvisited
+  neighbour 2 steps away, carve through the wall between them, recurse.
+  #/
+  fn dfs(r: integer, c: integer)
+    dirs = [[-2, 0], [2, 0], [0, -2], [0, 2]]
+
+    # Fisher-Yates in-place shuffle for random traversal order
+    n = 4
+    while n > 1 do
+      n -= 1
+      k = math::random(0, n)
+      dirs.swap(k, n)
+    end
+
+    for dir in dirs do
+      nr = r + dir[0]
+      nc = c + dir[1]
+      wr = r + dir[0] / 2    # row of the wall between (r,c) and (nr,nc)
+      wc = c + dir[1] / 2    # col of the wall
+
+      if nr > 0 && nr < @h - 1 && nc > 0 && nc < @w - 1 && @grid[nr][nc] == "#"
+        @grid[wr][wc] = " "
+        @grid[nr][nc] = " "
+        dfs(nr, nc)
+      end
+    end
+  end
+
+  /#
+  BFS from start to end.  Returns the shortest path as a list of [r,c]
+  pairs (start → end), or [] if the maze has no solution.
+
+  Uses flat integer keys (r * @w + c) for visited/parent maps to avoid
+  any string-splitting or to_integer() quirks with single-char strings.
+  #/
+  fn solve(): list
+    queue   = [[@sr, @sc]]
+    visited = {}
+    parent  = {}
+
+    sk = @sr * @w + @sc
+    ek = @er * @w + @ec
+
+    visited[sk] = true
+    found = false
+
+    while !queue.empty() do
+      curr = queue.shift()
+      r    = curr[0]
+      c    = curr[1]
+      k    = r * @w + c
+
+      if r == @er && c == @ec
+        found = true
+        break
+      end
+
+      for dir in [[-1, 0], [1, 0], [0, -1], [0, 1]] do
+        nr = r + dir[0]
+        nc = c + dir[1]
+
+        if nr >= 0 && nr < @h && nc >= 0 && nc < @w
+          nk = nr * @w + nc
+          cv = @grid[nr][nc]
+
+          if !visited.has_key(nk) && cv != "#"
+            visited[nk] = true
+            parent[nk]  = k
+            queue.push([nr, nc])
+          end
+        end
+      end
+    end
+
+    return [] when !found
+
+    # Walk parent pointers from end back to start, decoding r/c from key
+    path = []
+    k    = ek
+
+    while parent.has_key(k) do
+      path.push([k / @w, k % @w])
+      k = parent[k]
+    end
+
+    path.push([@sr, @sc])
+    path.reverse()
+  end
+
+  /#
+  Render the maze to a string, overlaying the solution path (·)
+  and highlighting S/E with brackets.
+  #/
+  fn render(path: list = []): string
+    path_set = {}
+    for p in path do
+      path_set[p[0] * @w + p[1]] = true
+    end
+
+    lines = []
+    for r in [0 to @h - 1] do
+      line = ""
+      for c in [0 to @w - 1] do
+        cv  = @grid[r][c]
+
+        if cv == "S"
+          line += "S"
+        elsif cv == "E"
+          line += "E"
+        elsif path_set.has_key(r * @w + c) && cv == " "
+          line += "·"
+        elsif cv == "#"
+          line += "█"
+        else
+          line += " "
+        end
+      end
+      lines.push(line)
+    end
+
+    lines.join("\n")
+  end
+
+  fn width(): integer
+    @w
+  end
+
+  fn height(): integer
+    @h
+  end
+end
+
+# ── helpers ────────────────────────────────────────────────────────────────────
+
+fn draw_banner(text: string, width: integer)
+  bar = "─" * width
+  console::fg("dark_gray")
+  println bar
+  console::fg("cyan")
+  println string::center(text, width)
+  console::fg("dark_gray")
+  println bar
+  console::reset()
+end
+
+fn print_maze(rendered: string)
+  for line in rendered.lines() do
+    for ch in line.chars() do
+      case ch
+        when "#"
+          console::fg("dark_gray")
+          print ch
+        when "·"
+          console::fg("yellow")
+          print ch
+        when "S"
+          console::fg("green")
+          print ch
+        when "E"
+          console::fg("red")
+          print ch
+        else
+          console::reset()
+          print ch
+      end
+    end
+    console::reset()
+    println ""
+  end
+end
+
+# ── entry point ────────────────────────────────────────────────────────────────
+
+width  = 41
+height = 21
+
+argv = env::argv().keys()
+if argv.size() >= 1
+  w = argv[0].to_integer()
+  width = w when w >= 3
+end
+if argv.size() >= 2
+  h = argv[1].to_integer()
+  height = h when h >= 3
+end
+
+t_start = time::ticks()
+maze    = Maze.new(width, height)
+path    = maze.solve()
+elapsed = math::round(time::ticksms(time::ticks() - t_start), 1)
+
+draw_banner(" Kiwi Maze  ${maze.width()}×${maze.height()}  ·  ${path.size()} steps  ·  ${elapsed}ms ", maze.width())
+print_maze(maze.render(path))
+draw_banner(" S = Start  ·· = Shortest path  E = End ", maze.width())
