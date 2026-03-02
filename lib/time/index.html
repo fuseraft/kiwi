@@ -3229,7 +3229,7 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>period = time::ampm()
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>println &quot;It is currently ${time::hour() % 12}:${time::minute()} ${period}&quot;
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a># =&gt; It is currently 2:34 PM  (example)
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a># =&gt; It is currently 2:34 PM
 </span></code></pre></div>
 <hr />
 <h3 id="daydt-monthdt-yeardt"><code>day(dt?)</code>, <code>month(dt?)</code>, <code>year(dt?)</code><a class="headerlink" href="#daydt-monthdt-yeardt" title="Permanent link">&para;</a></h3>
@@ -3253,7 +3253,7 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </span></code></pre></div>
 <hr />
 <h3 id="weekdaydt"><code>weekday(dt?)</code><a class="headerlink" href="#weekdaydt" title="Permanent link">&para;</a></h3>
-<p>Day of week (0 = Sunday, 1 = Monday, …, 6 = Saturday).</p>
+<p>Returns the day of the week (0 = Sunday, 1 = Monday, …, 6 = Saturday).</p>
 <p><strong>Returns</strong> <code>integer</code></p>
 <p><strong>Example</strong></p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;time&quot;
@@ -3278,7 +3278,7 @@ If omitted (<code>dt = null</code>), they return the value for <strong>now</stro
 </span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
 </span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a># Days remaining in the year
 </span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>yr   = time::year()
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>days = case time::leapyear(yr) | true =&gt; 366, false =&gt; 365 end
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>days = time::leapyear(yr) ? 366 : 365
 </span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>println &quot;Days remaining: ${days - yd}&quot;
 </span></code></pre></div>
 <hr />
