@@ -1,6 +1,6 @@
 # The Kiwi Programming Language 🥝
 
-Kiwi is a high-level, dynamically-typed language designed for efficiency and expressiveness across a variety of tasks.
+Kiwi is a scripting language that gets out of your way — write a little, do a lot.
 
 ## Getting Started
 
