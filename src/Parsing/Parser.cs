@@ -2102,7 +2102,7 @@ public partial class Parser
         {
             qualifiedNode = ParseFunctionCall(qualifiedName, GetTokenName());
         }
-        else if (GetTokenType() == TokenType.LBracket)
+        else if (GetTokenType() == TokenType.LBracket && token.Span.Line == Previous().Span.Line)
         {
             qualifiedNode = ParseIndexing(qualifiedName);
         }
@@ -2193,7 +2193,7 @@ public partial class Parser
             case TokenType.LParen:
                 node = ParseFunctionCall(identifierName, type);
                 break;
-            case TokenType.LBracket:
+            case TokenType.LBracket when token.Span.Line == Previous().Span.Line:
                 node = ParseIndexing(identifierName);
                 break;
             case TokenType.Operator when IsAssignmentOperator():
@@ -2495,7 +2495,7 @@ public partial class Parser
             {
                 node = ParseMemberAccess(node);
             }
-            else if (GetTokenType() == TokenType.LBracket)
+            else if (GetTokenType() == TokenType.LBracket && token.Span.Line == Previous().Span.Line)
             {
                 node = ParseIndexing(node);
             }
