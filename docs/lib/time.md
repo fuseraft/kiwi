@@ -184,7 +184,7 @@ import "time"
 
 period = time::ampm()
 println "It is currently ${time::hour() % 12}:${time::minute()} ${period}"
-# => It is currently 2:34 PM  (example)
+# => It is currently 2:34 PM
 ```
 
 ---
@@ -215,7 +215,7 @@ println "30 days from now: ${time::year(dt)}-${time::month(dt)}-${time::day(dt)}
 ---
 
 ### `weekday(dt?)`
-Day of week (0 = Sunday, 1 = Monday, …, 6 = Saturday).
+Returns the day of the week (0 = Sunday, 1 = Monday, …, 6 = Saturday).
 
 **Returns** `integer`
 
@@ -250,7 +250,7 @@ println "Day of year: ${yd}"
 
 # Days remaining in the year
 yr   = time::year()
-days = case time::leapyear(yr) | true => 366, false => 365 end
+days = time::leapyear(yr) ? 366 : 365
 println "Days remaining: ${days - yd}"
 ```
 
