@@ -5,6 +5,7 @@ using kiwi.Runtime.Builtin.Util;
 using kiwi.Settings;
 using kiwi.Tracing;
 using kiwi.Tracing.Error;
+using kiwi.Typing;
 
 namespace kiwi.Runtime.Runner;
 
@@ -19,6 +20,7 @@ public class REPLRunner(Interpreter interpreter) : IRunner
     /// Gets the local interpreter.
     /// </summary>
     private Interpreter Interpreter { get; } = interpreter;
+    private LineEditor Editor { get; } = new();
 
     /// <summary>
     /// Gets or sets a flag indicating whether the standard library has been loaded.
@@ -42,64 +44,91 @@ public class REPLRunner(Interpreter interpreter) : IRunner
         const int replId = 0;
         const bool rethrowErrors = true;
 
+        Console.WriteLine($"{Kiwi.Settings.Name} {Kiwi.Settings.Version} — type 'exit' or press Ctrl+C to quit.");
+
         LoadStandardLibrary();
 
         StringBuilder code = new();
-                
+        bool inContinuation = false;
+
         while (true)
         {
             try
             {
-                // Read a line, trim, and skip if empty.
-                Console.Write("> ");
-                string? input = Console.ReadLine()?.Trim();
+                string? input;
+                try
+                {
+                    input = Editor.ReadLine(inContinuation ? ".. " : ">> ");
+                }
+                catch (EndOfStreamException)
+                {
+                    break; // Ctrl+D on empty line
+                }
+
+                // Ctrl+D / EOF from piped input
+                if (input == null)
+                    break;
+
+                input = input.Trim();
 
                 if (string.IsNullOrWhiteSpace(input))
                 {
                     continue;
                 }
 
-                // Continue building code if the input is terminated with a '\'
+                // Explicit line continuation with backslash
                 if (input.EndsWith('\\'))
                 {
                     code.AppendLine(input[..^1]);
+                    inContinuation = true;
                     continue;
                 }
-                else if (input.Equals(".exit"))
+
+                if (input is ".exit" or "exit")
                 {
                     break;
                 }
-                else
-                {
-                    code.AppendLine(input);
-                }
 
-                // Parse and clear the string builder.
+                code.AppendLine(input);
+
+                // Parse
                 Parser parser = new(rethrowErrors);
                 using Lexer lexer = new(replId, code.ToString());
 
                 var ast = parser.ParseTokenStreamCollection([lexer.GetTokenStream()]);
                 if (parser.HasError)
                 {
+                    code.Clear();
+                    inContinuation = false;
                     continue;
                 }
 
                 code.Clear();
+                inContinuation = false;
 
-                // If we have a valid AST, walk it.
-                Interpreter.Interpret(ast);
+                // Execute and auto-print non-null results
+                var result = Interpreter.Interpret(ast);
+                if (!result.IsNull())
+                {
+                    Console.WriteLine($"=> {Serializer.Serialize(result, wrapStrings: true)}");
+                }
             }
             catch (UnexpectedEndOfFileError)
             {
-                // assume the user is writing a multi-line block
+                // Implicit multi-line block — wait for more input
+                inContinuation = true;
             }
             catch (KiwiError e)
             {
                 ErrorHandler.PrintError(e);
+                code.Clear();
+                inContinuation = false;
             }
             catch (Exception e)
             {
                 ErrorHandler.DumpCrashLog(e);
+                code.Clear();
+                inContinuation = false;
             }
         }
     }
