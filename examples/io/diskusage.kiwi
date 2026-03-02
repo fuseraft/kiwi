@@ -1,0 +1,90 @@
+/#
+Computes disk usage for each subdirectory under a given path,
+sorted from largest to smallest (like a simplified `du -sh *`).
+
+Usage: kiwi diskusage [path]
+#/
+
+fn dir_size(path: string): integer
+  total = 0
+  for entry in fio::listdir(path, true) do
+    if fio::isfile(entry)
+      total += fio::filesize(entry)
+    end
+  end
+  total
+end
+
+fn format_size(n: integer): string
+  case
+  when n >= 1073741824  "${math::round(n / 1073741824.0, 2)} GB"
+  when n >= 1048576     "${math::round(n / 1048576.0, 2)} MB"
+  when n >= 1024        "${math::round(n / 1024.0, 2)} KB"
+  else                  "${n} B"
+  end
+end
+
+fn pad_left(s: string, width: integer): string
+  pad = width - s.size()
+  pad > 0 ? (" " * pad) + s : s
+end
+
+argv = env::argv().keys()
+target = argv.size() >= 1 ? argv[0] : fio::cwd()
+
+if not fio::isdir(target)
+  println "Error: '${target}' is not a directory."
+  exit(1)
+end
+
+println "Disk usage: ${target}"
+println "-" * 60
+
+entries = fio::listdir(target, false)
+
+dirs = []
+root_files = []
+for e in entries do
+  if fio::isdir(e)
+    dirs.push(e)
+  else
+    root_files.push(e)
+  end
+end
+
+results = []
+for d in dirs do
+  try
+    results.push({ path: d, size: dir_size(d) })
+  catch
+    results.push({ path: d, size: -1 })
+  end
+end
+
+results = results.sort(with (a, b) do a.size > b.size end)
+
+total = 0
+for r in results do
+  name = fio::filename(r.path)
+  if r.size >= 0
+    label = format_size(r.size)
+    println "${pad_left(label, 12)}  ${name}"
+    total += r.size
+  else
+    label = pad_left("?", 12)
+    println "${label}  ${name}  (permission denied)"
+  end
+end
+
+root_size = 0
+for f in root_files do
+  root_size += fio::filesize(f)
+end
+
+if root_size > 0
+  println "${pad_left(format_size(root_size), 12)}  (files in root)"
+  total += root_size
+end
+
+println "-" * 60
+println "${pad_left(format_size(total), 12)}  total"
