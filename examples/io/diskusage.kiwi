@@ -8,9 +8,7 @@ Usage: kiwi diskusage [path]
 fn dir_size(path: string): integer
   total = 0
   for entry in fio::listdir(path, true) do
-    if fio::isfile(entry)
-      total += fio::filesize(entry)
-    end
+    total += fio::filesize(entry) when fio::isfile(entry)
   end
   total
 end
@@ -38,15 +36,8 @@ if __main__()
 
   entries = fio::listdir(target, false)
 
-  dirs = []
-  root_files = []
-  for e in entries do
-    if fio::isdir(e)
-      dirs.push(e)
-    else
-      root_files.push(e)
-    end
-  end
+  dirs = entries.filter(do (e) => fio::isdir(e) end)
+  root_files = entries.filter(do (e) => fio::isfile(e) end)
 
   results = []
   for d in dirs do
