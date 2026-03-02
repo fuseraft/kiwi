@@ -2884,11 +2884,18 @@
 - <code>throw … when …</code>
 - <code>break when …</code>
 - <code>next when …</code>
-- <code>exit … when …</code></p>
+- <code>exit … when …</code>
+- <code>x = expr when …</code> and <code>x += expr when …</code> (all assignment forms)
+- bare method/function calls: <code>some_fn() when …</code></p>
+<p><strong>Lazy evaluation for assignments:</strong> the right-hand side expression is only evaluated when the condition is true. This means it is safe to guard against expensive or potentially failing calls:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>for entry in fio::listdir(path, true) do
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  total += fio::filesize(entry) when fio::isfile(entry)
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>end
+</span></code></pre></div>
 <h2 id="4-ternary-operator">4. Ternary operator <code>?:</code><a class="headerlink" href="#4-ternary-operator" title="Permanent link">&para;</a></h2>
 <p>Inline if-else expression.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>status = file.exists() ? &quot;found&quot; : &quot;not found&quot;
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>price_display = discount &gt; 0 ? &quot;${price * (1 - discount)}&quot; : price
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>status = file.exists() ? &quot;found&quot; : &quot;not found&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>price_display = discount &gt; 0 ? &quot;${price * (1 - discount)}&quot; : price
 </span></code></pre></div>
 <h2 id="related-topics">Related topics<a class="headerlink" href="#related-topics" title="Permanent link">&para;</a></h2>
 <ul>
