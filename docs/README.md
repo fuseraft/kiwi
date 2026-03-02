@@ -1,6 +1,6 @@
-# The Kiwi Programming Language 🥝
+# Kiwi 🥝
 
-Kiwi is a scripting language that gets out of your way — write a little, do a lot.
+Kiwi is a modern, lightweight scripting language built for expressiveness and utility.
 
 ## **Getting Started**
 

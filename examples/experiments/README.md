@@ -1,6 +1,6 @@
 # ziputil.kiwi
 
-A simple zip utility written in [The Kiwi Programming Language](https://github.com/fuseraft/kiwi).
+A simple zip utility written in [Kiwi](https://github.com/fuseraft/kiwi).
 
 ## Usage
 
