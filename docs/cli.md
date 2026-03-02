@@ -63,7 +63,7 @@ Prints the abstract syntax tree of the input file.
 kiwi -a filename         # Prints AST of the file.
 ```
 
-### `-t`, `--tokenize <input_file_path>`
+### `-t`, `--tokens <input_file_path>`
 
 Tokenizes a file with the Kiwi lexer and prints the results to the standard output stream.
 
@@ -97,6 +97,14 @@ Runs Kiwi without loading its standard library.
 
 ```
 kiwi -ns filename.k        # Runs `filename.k` without loading the Kiwi standard library.
+```
+
+### `-p`, `--stdlib-path <path>`
+
+Overrides the standard library path. Kiwi will load `.kiwi` files from the specified directory instead of the default stdlib location.
+
+```
+kiwi -p ~/my-stdlib script.kiwi
 ```
 
 ### `-<key>=<value>`

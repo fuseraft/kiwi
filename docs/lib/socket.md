@@ -183,6 +183,85 @@ while true do
 end
 ```
 
+**Example: Concurrent port scanner**
+
+Probe a range of ports in parallel. Each probe connects, then polls `task::status` on a `recv` task to detect whether the remote sent a TCP RST (closed) or is waiting for client data (open). A configurable timeout declares the port open if neither happens within the window.
+
+```kiwi
+import "socket"
+import "task"
+
+/#
+  probe(host, port, ch, timeout_ms)
+
+  Detection strategy:
+    - RST within timeout  -> task faults  -> port closed -> sends 0 on ch
+    - Banner received     -> task completes -> port open  -> sends port on ch
+    - Timeout with no RST -> port open (service silent) -> sends port on ch
+#/
+fn probe(host: string, port: integer, ch: Channel, timeout_ms: integer)
+  try
+    sock     = socket::tcpconnect(host, port)
+    recv_tid = socket::recv(sock, 1)
+
+    elapsed = 0
+    open    = false
+
+    while elapsed < timeout_ms do
+      s = task::status(recv_tid)
+
+      if s == "Completed"
+        open = true   # banner received — definitely open
+        break
+      elsif s == "Faulted"
+        open = false  # TCP RST — port closed
+        break
+      end
+
+      task::sleep(10)
+      elapsed += 10
+    end
+
+    socket::close(sock) # faults recv_tid if still running
+    open = true when elapsed >= timeout_ms
+
+    ch.send(open ? port : 0)
+  catch (err)
+    ch.send(0) # connection refused or other error -> closed
+  end
+end
+
+host       = "127.0.0.1"
+port_start = 1
+port_end   = 1024
+timeout_ms = 500
+
+ch         = task::channel(0)
+total      = port_end - port_start + 1
+open_ports = []
+
+for port in [port_start to port_end] do
+  task::spawn(with (h, p, c, t) do
+    probe(h, p, c, t)
+  end, [host, port, ch, timeout_ms])
+end
+
+received = 0
+while received < total do
+  result = ch.recv()
+  received += 1
+  if result > 0
+    open_ports.push(result)
+    println "  [open]  port ${result}"
+  end
+end
+
+open_ports.sort()
+println "Open ports: " + open_ports.join(", ")
+```
+
+> **Note:** `task::status(id)` is non-blocking and does not throw for faulted tasks — use it for polling. `task::await(id)` blocks and throws a catchable `SystemError` for faulted tasks. See the [`task` docs](./task.md) for details.
+
 ---
 
 ## `tls` Package Functions

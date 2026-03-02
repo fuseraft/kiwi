@@ -116,7 +116,7 @@ Absolute-index access — safe, returns `default` if out of bounds.
 **Returns** `any`
 
 #### `reach(offset)`
-Relative-to-end access: `reach(-1)` → last element, `reach(-2)` → second-to-last, etc.  
+Relative-to-end access: `reach(-1)` -> last element, `reach(-2)` -> second-to-last, etc.  
 Returns `default` if result is out of bounds.
 
 **Parameters**
@@ -218,7 +218,7 @@ it = ListIterator.new(data)
 
 println it.grab(0)    # 10  — first element
 println it.grab(4)    # 50  — last element
-println it.grab(99)   # null — out of bounds → default
+println it.grab(99)   # null — out of bounds -> default
 
 println it.reach(-1)  # 50  — last element
 println it.reach(-2)  # 40  — second-to-last

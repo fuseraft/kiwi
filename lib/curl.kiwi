@@ -29,7 +29,10 @@ package curl
     end
 
     # Run the command and capture output if specified
-    return sys::command("curl", cmd_args, capture_output)
+    if capture_output
+      return sys::execout("curl", cmd_args)["stdout"]
+    end
+    return sys::exec("curl", cmd_args)
   end
 
   /#

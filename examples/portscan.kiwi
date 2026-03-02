@@ -1,0 +1,154 @@
+#!/usr/bin/env kiwi
+/#
+  portscan.kiwi — Concurrent TCP port scanner.
+
+  For each port in the given range, spawns a task that:
+    1. Connects to the host
+    2. Waits up to `timeout_ms` for the remote to send data (or reset)
+    3. Reports the port as open or closed via a shared channel
+
+  Closed ports → remote sends TCP RST immediately (recv faults)
+  Open ports   → recv blocks (service waiting for client); timeout → open
+  Open + data  → service sent a banner; recv completes with bytes → open
+
+  Usage:
+    kiwi examples/portscan.kiwi                         # localhost 1-1024
+    kiwi examples/portscan.kiwi 192.168.1.1             # custom host
+    kiwi examples/portscan.kiwi 192.168.1.1 1 65535     # full range
+    kiwi examples/portscan.kiwi 127.0.0.1 1 1024 200    # 200ms timeout
+#/
+
+import "socket"
+import "task"
+
+# ── defaults ────────────────────────────────────────────────────────────────────
+
+host        = "127.0.0.1"
+port_start  = 1
+port_end    = 1024
+timeout_ms  = 500   # ms to wait for a banner before declaring port open
+
+argv = env::argv().keys()
+if argv.size() >= 1
+  host = argv[0]
+end
+if argv.size() >= 2
+  port_start = argv[1].to_integer()
+end
+if argv.size() >= 3
+  port_end = argv[2].to_integer()
+end
+if argv.size() >= 4
+  timeout_ms = argv[3].to_integer()
+end
+
+port_start = [1,     port_start].max()
+port_end   = [65535, port_end].min()
+
+# ── banner ───────────────────────────────────────────────────────────────────────
+
+fn banner(text: string)
+  bar = "─" * 54
+  console::fg("dark_gray")
+  println bar
+  console::fg("cyan")
+  println "  ${text}"
+  console::fg("dark_gray")
+  println bar
+  console::reset()
+end
+
+# ── probe ────────────────────────────────────────────────────────────────────────
+/#
+  probe(host, port, ch, timeout_ms)
+
+  Tries to connect to host:port, then polls for a TCP RST for up to
+  timeout_ms milliseconds.
+
+    - RST within timeout → port closed  → sends 0 on ch
+    - No RST within timeout → port open → sends port number on ch
+    - Banner received → port open        → sends port number on ch
+#/
+fn probe(host: string, port: integer, ch, timeout_ms: integer)
+  try
+    sock     = socket::tcpconnect(host, port)
+    recv_tid = socket::recv(sock, 1)
+
+    elapsed = 0
+    open    = false
+
+    while elapsed < timeout_ms do
+      s = task::status(recv_tid)
+
+      if s == "Completed"
+        open = true   # banner received → definitely open
+        break
+      elsif s == "Faulted"
+        open = false  # RST / connection reset → closed
+        break
+      end
+
+      task::sleep(10)
+      elapsed += 10
+    end
+
+    # Closing the socket faults the pending recv if it was still running
+    socket::close(sock)
+
+    # Timeout with no RST → service is listening but silent → open
+    open = true when elapsed >= timeout_ms
+
+    ch.send(open ? port : 0)
+  catch (err)
+    ch.send(0)
+  end
+end
+
+# ── main ─────────────────────────────────────────────────────────────────────────
+
+banner("Kiwi Port Scanner  ·  ${host}  ·  ${port_start}-${port_end}  ·  ${timeout_ms}ms timeout")
+
+ch         = task::channel()
+total      = port_end - port_start + 1
+open_ports = []
+t_start    = time::ticks()
+
+for port in [port_start to port_end] do
+  task::spawn(with (h, p, c, t) do
+    probe(h, p, c, t)
+  end, [host, port, ch, timeout_ms])
+end
+
+received = 0
+while received < total do
+  result = ch.recv()
+  received += 1
+
+  if result > 0
+    open_ports.push(result)
+    console::fg("green")
+    print "  [open]  "
+    console::fg("white")
+    println "port ${result}"
+    console::reset()
+  end
+end
+
+# ── summary ──────────────────────────────────────────────────────────────────────
+
+elapsed = math::round(time::ticksms(time::ticks() - t_start), 1)
+open_ports.sort()
+
+banner("Scan complete  ·  ${open_ports.size()} open  ·  ${elapsed}ms")
+
+if open_ports.empty()
+  console::fg("dark_gray")
+  println "  No open ports found in range ${port_start}-${port_end}."
+  console::reset()
+else
+  console::fg("cyan")
+  print "  Open: "
+  console::fg("white")
+  println open_ports.join(", ")
+  console::reset()
+end

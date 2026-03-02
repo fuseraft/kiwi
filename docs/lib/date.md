@@ -37,7 +37,7 @@ last_week = today.add_days(-7)
 
 ### `add_months(n)`
 
-Preserves day-of-month where possible (e.g. Jan 31 + 1 month → Feb 28/29).
+Preserves day-of-month where possible (e.g. Jan 31 + 1 month -> Feb 28/29).
 
 **Parameters**
 

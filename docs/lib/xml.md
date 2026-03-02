@@ -78,7 +78,7 @@ Every parsed XML element, text node, comment, CDATA section, and processing inst
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `tag` | The element tag name, or one of the special values `"#text"`, `"#comment"`, `"#cdata"`, `"#pi"`. |
-| `hashmap` | `attrs` | Attribute map (name → value). Empty for non-element nodes. |
+| `hashmap` | `attrs` | Attribute map (name -> value). Empty for non-element nodes. |
 | `list` | `children` | Child `XmlNode` instances. Empty for leaf nodes. |
 | `string` | `content` | Text payload for `#text`, `#comment`, `#cdata`, and `#pi` nodes. Empty for element nodes. |
 
