@@ -7,7 +7,9 @@ The `task` package contains functionality for concurrency in Kiwi.
 ## Package Functions
 
 ### `await(task_id)`
-Await a specified task and return its result.
+Await a specified task and return its result. Blocks until the task completes.
+
+If the task faulted (e.g. an async socket was reset), `await` throws a catchable `SystemError` with the fault message. Use `try/catch` to handle expected failures.
 
 **Parameters**
 
@@ -20,6 +22,12 @@ Await a specified task and return its result.
 | Type | Description |
 | :--- | :--- |
 | `any` | The value returned by the task. |
+
+**Throws**
+
+| Error | Condition |
+| :---- | :-------- |
+| `SystemError` | The task faulted (e.g. network error, socket reset). |
 
 **Example**
 
@@ -39,6 +47,22 @@ id = task::spawn(worker, [1000])
 result = task::await(id)
 println "Sum 1..1000 = ${result}"
 # => Sum 1..1000 = 500500
+```
+
+**Example: handling a faulted task**
+
+```kiwi
+import "socket"
+import "task"
+
+try
+  sock = socket::tcpconnect("127.0.0.1", 9)
+  data = task::await(socket::recv(sock, 1))
+  println "received: ${data.size()} bytes"
+  socket::close(sock)
+catch (err)
+  println "connection failed: ${err}"
+end
 ```
 
 ---
@@ -311,7 +335,7 @@ end
 ---
 
 ### `status(task_id)`
-Returns the status of a given task.
+Returns the status of a given task as a string. Does not block and does not throw for faulted tasks — use this to poll task state before deciding whether to call `await`.
 
 **Parameters**
 
@@ -323,7 +347,7 @@ Returns the status of a given task.
 
 | Type | Description |
 | :--- | :--- |
-| `hashmap` | A hashmap containing task status information. |
+| `string` | One of `"Running"`, `"Completed"`, or `"Faulted"`. |
 
 **Example**
 
@@ -337,14 +361,40 @@ end
 
 id = task::spawn(worker, [300])
 
-# Check status while the task is still running
+# Poll status without blocking
 task::sleep(50)
-s = task::status(id)
-println "Status: ${s}"
+println "Status mid-run: ${task::status(id)}"    # => Running
 
 task::await(id)
-s = task::status(id)
-println "Status after completion: ${s}"
+println "Status after await: ${task::status(id)}" # => (empty — task removed)
+```
+
+**Example: polling with a timeout**
+
+```kiwi
+import "task"
+import "socket"
+
+sock     = socket::tcpconnect("127.0.0.1", 8080)
+recv_tid = socket::recv(sock, 1)
+
+elapsed = 0
+open    = false
+
+while elapsed < 500 do
+  s = task::status(recv_tid)
+  if s == "Completed"
+    open = true
+    break
+  elsif s == "Faulted"
+    break
+  end
+  task::sleep(10)
+  elapsed += 10
+end
+
+socket::close(sock)
+println open ? "port is open" : "port is closed"
 ```
 
 ---

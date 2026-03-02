@@ -949,11 +949,11 @@ For integer and float values, an optional format specifier can be passed.
 
 | Format | Name | Description | Example |
 |--------|------|-------------|---------|
-| `"B"` / `"b"` | Binary | 16-digit binary, zero-padded | `(31337).to_string("b")` → `0111101001101001` |
-| `"Fn"` / `"fn"` | Fixed-Point | `n` decimal places | `(100).to_string("f2")` → `100.00` |
-| `"O"` / `"o"` | Octal | Octal representation | `(64).to_string("o")` → `100` |
-| `"X"` | Hexadecimal (upper) | Uppercase hex | `(43).to_string("X")` → `2B` |
-| `"x"` | Hexadecimal (lower) | Lowercase hex | `(43).to_string("x")` → `2b` |
+| `"B"` / `"b"` | Binary | 16-digit binary, zero-padded | `(31337).to_string("b")` -> `0111101001101001` |
+| `"Fn"` / `"fn"` | Fixed-Point | `n` decimal places | `(100).to_string("f2")` -> `100.00` |
+| `"O"` / `"o"` | Octal | Octal representation | `(64).to_string("o")` -> `100` |
+| `"X"` | Hexadecimal (upper) | Uppercase hex | `(43).to_string("X")` -> `2B` |
+| `"x"` | Hexadecimal (lower) | Lowercase hex | `(43).to_string("x")` -> `2b` |
 
 ### `truthy()`
 

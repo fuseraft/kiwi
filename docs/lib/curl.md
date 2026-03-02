@@ -22,7 +22,7 @@ Executes a `curl` command to perform an arbitrary HTTP request. This is the unde
 | :--- | :--- | :--- | :--- |
 | `string` | `url` | The URL to request. | — |
 | `string` | `method` | The HTTP method (`"GET"`, `"POST"`, `"PUT"`, `"DELETE"`, etc.). | `"GET"` |
-| `hashmap` | `headers` | Request headers as a hashmap of name → value pairs. | `{}` |
+| `hashmap` | `headers` | Request headers as a hashmap of name -> value pairs. | `{}` |
 | `string` | `data` | Request body. Only sent for `POST` and `PUT` requests. | `""` |
 | `boolean` | `capture_output` | If `true`, return the response body. If `false`, return the exit code. | `true` |
 
@@ -109,7 +109,7 @@ Sends an HTTP `POST` request with an optional body.
 import "curl"
 
 headers = {"Content-Type": "application/json"}
-payload = "{\"name\": \"kiwi\", \"version\": \"1.0\"}"
+payload = '{"name": "kiwi", "version": "1.0"}'
 
 response = curl::post("https://httpbin.org/post", headers, payload)
 println response
@@ -143,7 +143,7 @@ Sends an HTTP `PUT` request with an optional body.
 import "curl"
 
 headers = {"Content-Type": "application/json", "Authorization": "Bearer mytoken"}
-payload = "{\"status\": \"active\"}"
+payload = '{"status": "active"}'
 
 response = curl::put("https://api.example.com/resource/42", headers, payload)
 println response
@@ -196,12 +196,12 @@ println curl::get(base + "/get")
 # POST JSON
 println "-- POST --"
 headers = {"Content-Type": "application/json"}
-body = "{\"lang\": \"kiwi\"}"
+body = '{"lang": "kiwi"}'
 println curl::post(base + "/post", headers, body)
 
 # PUT
 println "-- PUT --"
-println curl::put(base + "/put", headers, "{\"status\": \"ok\"}")
+println curl::put(base + "/put", headers, '{"status": "ok"}')
 
 # DELETE
 println "-- DELETE --"

@@ -161,8 +161,8 @@ Copies the file or directory (recursively) to the destination.
 | `boolean` | `true` if copy succeeded             |
 
 **Behavior**
-- Directories → recursive copy (`fio::copyr`)
-- Files → single file copy (`fio::copy`)
+- Directories -> recursive copy (`fio::copyr`)
+- Files -> single file copy (`fio::copy`)
 - When copying file to directory, preserves filename
 
 #### `exists()`
@@ -256,7 +256,7 @@ Returns a list of all ancestor directories, from closest to root.
 
 | Type  | Description                              |
 |-------|------------------------------------------|
-| `list`| List of `Path` objects (parent → root)   |
+| `list`| List of `Path` objects (parent -> root)   |
 
 #### `parts()`
 Splits the path into its components.

@@ -155,8 +155,7 @@ public sealed class TaskManager
         {
             if (state.Exception != null)
             {
-                ErrorHandler.DumpCrashLog(state.Exception);
-                throw state.Exception;
+                throw new SystemError(token, state.Exception.Message);
             }
 
             return state.Result;
