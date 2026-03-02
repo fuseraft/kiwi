@@ -138,6 +138,20 @@ result = [1 to 10]
 println result                      # [10, 30, 50, 70, 90]
 ```
 
+A list literal can also be used directly as a statement — calling a method on it without assigning the result, or combined with a `when` guard:
+
+```kiwi
+[].size()                           # valid statement (result discarded)
+["a", "b"].size() when some_flag    # guarded call
+```
+
+> **Note on line breaks and `[`:** A `[` at the start of a new line is always parsed as a new list literal, never as an index operator on the expression above it. Same-line indexing (`lst[i]`) is unaffected.
+>
+> ```kiwi
+> x = my_list      # x gets the list
+> [0].size()        # separate statement — NOT my_list[0].size()
+> ```
+
 ## Iterating Lists
 
 ### Basic iteration

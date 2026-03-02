@@ -114,6 +114,16 @@ Supported with:
 - `break when …`
 - `next when …`
 - `exit … when …`
+- `x = expr when …` and `x += expr when …` (all assignment forms)
+- bare method/function calls: `some_fn() when …`
+
+**Lazy evaluation for assignments:** the right-hand side expression is only evaluated when the condition is true. This means it is safe to guard against expensive or potentially failing calls:
+
+```kiwi
+for entry in fio::listdir(path, true) do
+  total += fio::filesize(entry) when fio::isfile(entry)
+end
+```
 
 ## 4. Ternary operator `?:`
 

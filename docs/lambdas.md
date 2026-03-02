@@ -49,7 +49,18 @@ println [1 to 10].filter(do (n) => n % 2 == 0)
 # [2, 4, 6, 8, 10]
 ```
 
-Or for more complex requirements, you can implement within a block. 
+Arrow lambdas passed as call arguments may optionally include a closing `end`, which is useful for visual symmetry with multi-line blocks.
+```kiwi
+println [1 to 10].filter(do (n) => n % 2 == 0 end)
+# [2, 4, 6, 8, 10]
+```
+
+Package calls (`::`) and other complex expressions work in arrow lambdas too:
+```kiwi
+files = fio::listdir("/tmp", false).filter(do (e) => fio::isfile(e) end)
+```
+
+Or for more complex requirements, you can implement within a block.
 
 *Note: Remember, the last evaluation of the callable is its return value!*
 ```kiwi
