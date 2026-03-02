@@ -3405,7 +3405,7 @@
 </table>
 <p><strong>Returns</strong> <code>any</code></p>
 <h4 id="reachoffset"><code>reach(offset)</code><a class="headerlink" href="#reachoffset" title="Permanent link">&para;</a></h4>
-<p>Relative-to-end access: <code>reach(-1)</code> → last element, <code>reach(-2)</code> → second-to-last, etc.<br />
+<p>Relative-to-end access: <code>reach(-1)</code> -&gt; last element, <code>reach(-2)</code> -&gt; second-to-last, etc.<br />
 Returns <code>default</code> if result is out of bounds.</p>
 <p><strong>Parameters</strong></p>
 <table>
@@ -3492,7 +3492,7 @@ Returns <code>default</code> if result is out of bounds.</p>
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>println it.grab(0)    # 10  — first element
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>println it.grab(4)    # 50  — last element
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>println it.grab(99)   # null — out of bounds → default
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>println it.grab(99)   # null — out of bounds -&gt; default
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
 </span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>println it.reach(-1)  # 50  — last element
 </span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>println it.reach(-2)  # 40  — second-to-last

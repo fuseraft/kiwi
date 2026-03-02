@@ -716,10 +716,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-t-tokenize-input_file_path" class="md-nav__link">
+  <a href="#-t-tokens-input_file_path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        -t, --tokenize &lt;input_file_path&gt;
+        -t, --tokens &lt;input_file_path&gt;
       
     </span>
   </a>
@@ -753,6 +753,17 @@
     <span class="md-ellipsis">
       
         -ns, --no-stdlib
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-p-stdlib-path-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -p, --stdlib-path &lt;path&gt;
       
     </span>
   </a>
@@ -2706,10 +2717,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#-t-tokenize-input_file_path" class="md-nav__link">
+  <a href="#-t-tokens-input_file_path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        -t, --tokenize &lt;input_file_path&gt;
+        -t, --tokens &lt;input_file_path&gt;
       
     </span>
   </a>
@@ -2743,6 +2754,17 @@
     <span class="md-ellipsis">
       
         -ns, --no-stdlib
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-p-stdlib-path-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -p, --stdlib-path &lt;path&gt;
       
     </span>
   </a>
@@ -2822,7 +2844,7 @@
 <p>Prints the abstract syntax tree of the input file.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kiwi -a filename         # Prints AST of the file.
 </span></code></pre></div>
-<h3 id="-t-tokenize-input_file_path"><code>-t</code>, <code>--tokenize &lt;input_file_path&gt;</code><a class="headerlink" href="#-t-tokenize-input_file_path" title="Permanent link">&para;</a></h3>
+<h3 id="-t-tokens-input_file_path"><code>-t</code>, <code>--tokens &lt;input_file_path&gt;</code><a class="headerlink" href="#-t-tokens-input_file_path" title="Permanent link">&para;</a></h3>
 <p>Tokenizes a file with the Kiwi lexer and prints the results to the standard output stream.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>kiwi -t filename         # Prints tokens by line from the file
 </span></code></pre></div>
@@ -2841,9 +2863,13 @@
 <p>Runs Kiwi without loading its standard library.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kiwi -ns filename.k        # Runs `filename.k` without loading the Kiwi standard library.
 </span></code></pre></div>
+<h3 id="-p-stdlib-path-path"><code>-p</code>, <code>--stdlib-path &lt;path&gt;</code><a class="headerlink" href="#-p-stdlib-path-path" title="Permanent link">&para;</a></h3>
+<p>Overrides the standard library path. Kiwi will load <code>.kiwi</code> files from the specified directory instead of the default stdlib location.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kiwi -p ~/my-stdlib script.kiwi
+</span></code></pre></div>
 <h3 id="-keyvalue"><code>-&lt;key&gt;=&lt;value&gt;</code><a class="headerlink" href="#-keyvalue" title="Permanent link">&para;</a></h3>
 <p>Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kiwi myapp -theme=dark
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kiwi myapp -theme=dark
 </span></code></pre></div>
 
 

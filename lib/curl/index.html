@@ -2565,7 +2565,7 @@
 <tr>
 <td style="text-align: left;"><code>hashmap</code></td>
 <td style="text-align: left;"><code>headers</code></td>
-<td style="text-align: left;">Request headers as a hashmap of name → value pairs.</td>
+<td style="text-align: left;">Request headers as a hashmap of name -&gt; value pairs.</td>
 <td style="text-align: left;"><code>{}</code></td>
 </tr>
 <tr>
@@ -2738,7 +2738,7 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;curl&quot;
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>headers = {&quot;Content-Type&quot;: &quot;application/json&quot;}
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>payload = &quot;{\&quot;name\&quot;: \&quot;kiwi\&quot;, \&quot;version\&quot;: \&quot;1.0\&quot;}&quot;
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>payload = &#39;{&quot;name&quot;: &quot;kiwi&quot;, &quot;version&quot;: &quot;1.0&quot;}&#39;
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>response = curl::post(&quot;https://httpbin.org/post&quot;, headers, payload)
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>println response
@@ -2806,7 +2806,7 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;curl&quot;
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>headers = {&quot;Content-Type&quot;: &quot;application/json&quot;, &quot;Authorization&quot;: &quot;Bearer mytoken&quot;}
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>payload = &quot;{\&quot;status\&quot;: \&quot;active\&quot;}&quot;
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>payload = &#39;{&quot;status&quot;: &quot;active&quot;}&#39;
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>response = curl::put(&quot;https://api.example.com/resource/42&quot;, headers, payload)
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>println response
@@ -2884,12 +2884,12 @@
 </span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a># POST JSON
 </span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>println &quot;-- POST --&quot;
 </span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>headers = {&quot;Content-Type&quot;: &quot;application/json&quot;}
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>body = &quot;{\&quot;lang\&quot;: \&quot;kiwi\&quot;}&quot;
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>body = &#39;{&quot;lang&quot;: &quot;kiwi&quot;}&#39;
 </span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>println curl::post(base + &quot;/post&quot;, headers, body)
 </span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
 </span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a># PUT
 </span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>println &quot;-- PUT --&quot;
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>println curl::put(base + &quot;/put&quot;, headers, &quot;{\&quot;status\&quot;: \&quot;ok\&quot;}&quot;)
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>println curl::put(base + &quot;/put&quot;, headers, &#39;{&quot;status&quot;: &quot;ok&quot;}&#39;)
 </span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
 </span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a># DELETE
 </span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>println &quot;-- DELETE --&quot;
