@@ -1,12 +1,13 @@
 namespace kiwi.Parsing.AST;
 
-public class StructNode(string name, string baseStruct, List<string> interfaces, List<ASTNode?> methods, List<(string Name, ASTNode? Initializer)>? staticVars = null) : ASTNode(ASTNodeType.Struct)
+public class StructNode(string name, string baseStruct, List<string> interfaces, List<ASTNode?> methods, List<(string Name, ASTNode? Initializer)>? staticVars = null, bool isAbstract = false) : ASTNode(ASTNodeType.Struct)
 {
     public string Name { get; } = name;
     public string BaseStruct { get; } = baseStruct;
     public List<string> Interfaces { get; } = interfaces;
     public List<ASTNode?> Methods { get; } = methods;
     public List<(string Name, ASTNode? Initializer)> StaticVars { get; } = staticVars ?? [];
+    public bool IsAbstract { get; } = isAbstract;
 
     public override void Print(int depth)
     {
@@ -58,7 +59,7 @@ public class StructNode(string name, string baseStruct, List<string> interfaces,
             clonedStaticVars.Add((varName, init?.Clone()));
         }
 
-        return new StructNode(Name, BaseStruct, Interfaces, clonedMethods, clonedStaticVars)
+        return new StructNode(Name, BaseStruct, Interfaces, clonedMethods, clonedStaticVars, IsAbstract)
         {
             Token = Token
         };

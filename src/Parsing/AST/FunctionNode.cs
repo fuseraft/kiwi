@@ -13,6 +13,8 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
     public bool IsStatic { get; set; }
     public bool IsPrivate { get; set; }
     public bool IsGenerator { get; set; }
+    public bool IsAbstract { get; set; }
+    public bool IsOverride { get; set; }
 
     public LambdaNode ToLambda()
     {
@@ -44,12 +46,12 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
         ASTTracer.PrintDepth(depth);
         Print($"Function: `{ASTTracer.Unmangle(Name)}`");
 
-        if (IsStatic || IsPrivate)
+        if (IsStatic || IsPrivate || IsAbstract || IsOverride)
         {
             ASTTracer.PrintDepth(1 + depth);
             Print("Modifiers:");
             ASTTracer.PrintDepth(2 + depth);
-            Print($"Private: {IsPrivate}, Static: {IsStatic}");
+            Print($"Private: {IsPrivate}, Static: {IsStatic}, Abstract: {IsAbstract}, Override: {IsOverride}");
         }
 
         ASTTracer.PrintDepth(1 + depth);
@@ -109,6 +111,8 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
             IsStatic = IsStatic,
             IsPrivate = IsPrivate,
             IsGenerator = IsGenerator,
+            IsAbstract = IsAbstract,
+            IsOverride = IsOverride,
             TypeHints = TypeHints,
             ReturnTypeHint = ReturnTypeHint,
             Token = Token
