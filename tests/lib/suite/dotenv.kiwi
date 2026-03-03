@@ -1,0 +1,84 @@
+/# ==============================================================================
+   Testing dotenv package: parse, parse_file, load.
+   ============================================================================== #/
+tester::register_test("dotenv", with do
+  # --- dotenv::parse ---
+
+  sample = "# comment line\n\nKEY1=hello\nKEY2=world\nKEY3=  spaced  \n"
+  result = dotenv::parse(sample)
+  tester::assert(result["KEY1"] == "hello", "D1")
+  tester::assert(result["KEY2"] == "world", "D2")
+  tester::assert(result["KEY3"] == "spaced", "D3")
+
+  # double-quoted value
+  dq = "GREETING=\"hello world\"\n"
+  tester::assert(dotenv::parse(dq)["GREETING"] == "hello world", "D4")
+
+  # double-quoted with escape sequences
+  esc = "MSG=\"line1\\nline2\"\n"
+  tester::assert(dotenv::parse(esc)["MSG"] == "line1\nline2", "D5")
+
+  # double-quoted with escaped backslash
+  bs = "PATH_VAL=\"C:\\\\Windows\"\n"
+  tester::assert(dotenv::parse(bs)["PATH_VAL"] == "C:\\Windows", "D6")
+
+  # single-quoted value (no escape processing)
+  sq = "RAW='it\\'s raw'\n"
+  parsed_sq = dotenv::parse(sq)
+  tester::assert(parsed_sq["RAW"] == "it\\'s raw", "D7")
+
+  # inline comment stripped from unquoted value
+  ic = "DEBUG=true # enable debug\n"
+  tester::assert(dotenv::parse(ic)["DEBUG"] == "true", "D8")
+
+  # export prefix stripped
+  exp = "export APP_ENV=production\n"
+  tester::assert(dotenv::parse(exp)["APP_ENV"] == "production", "D9")
+
+  # CRLF line endings
+  crlf = "A=1\r\nB=2\r\n"
+  crlf_result = dotenv::parse(crlf)
+  tester::assert(crlf_result["A"] == "1", "D10")
+  tester::assert(crlf_result["B"] == "2", "D11")
+
+  # empty value
+  empty_val = "EMPTY=\n"
+  tester::assert(dotenv::parse(empty_val)["EMPTY"] == "", "D12")
+
+  # lines without '=' are ignored
+  bad = "NOEQUALSSIGN\nGOOD=yes\n"
+  bad_result = dotenv::parse(bad)
+  tester::assert(!bad_result.has_key("NOEQUALSSIGN"), "D13")
+  tester::assert(bad_result["GOOD"] == "yes", "D14")
+
+  # --- dotenv::parse_file and load via temp file ---
+
+  content = "TMP_KEY=from_file\nTMP_NUM=42\n"
+  tmp = fio::tmpfile()
+  fio::write(tmp, content)
+
+  file_result = dotenv::parse_file(tmp)
+  tester::assert(file_result["TMP_KEY"] == "from_file", "D15")
+  tester::assert(file_result["TMP_NUM"] == "42", "D16")
+
+  dotenv::load(tmp)
+  tester::assert(env::get("TMP_KEY") == "from_file", "D17")
+  tester::assert(env::get("TMP_NUM") == "42", "D18")
+
+  # overwrite=false should not overwrite an already-set variable
+  content2 = "TMP_KEY=overwritten\n"
+  fio::write(tmp, content2)
+  dotenv::load(tmp, false)
+  tester::assert(env::get("TMP_KEY") == "from_file", "D19")
+
+  fio::remove(tmp)
+
+  # throw on missing file
+  threw = false
+  try
+    dotenv::parse_file("/nonexistent/.env")
+  catch e
+    threw = true
+  end
+  tester::assert(threw, "D20")
+end)

@@ -43,7 +43,8 @@ var (unit_tests: list = [
   "chained_access",
   "dates",
   "xml",
-  "abstract_structs"
+  "abstract_structs",
+  "dotenv"
 ])
 
 for unit_test in unit_tests do
