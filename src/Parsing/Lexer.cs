@@ -440,7 +440,13 @@ public class Lexer : IDisposable
             interpTokens.Add(CreateStringLiteralToken(span, s, Value.CreateString(s)));
         }
 
+        // Wrap the entire interpolation expansion in parens so that a trailing
+        // postfix like .method() or [index] binds to the whole string result,
+        // not just the last sub-expression.  e.g. "${month}".padstart(2,"0")
+        // must be ("" + (month)).padstart(2,"0"), not "" + (month).padstart(2,"0").
+        tokens.Add(CreateToken(TokenType.LParen, span, "("));
         tokens.AddRange(interpTokens);
+        tokens.Add(CreateToken(TokenType.RParen, span, ")"));
     }
 
     private Token TokenizeSymbol(TokenSpan span, char c)

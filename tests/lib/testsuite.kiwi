@@ -44,7 +44,8 @@ var (unit_tests: list = [
   "dates",
   "xml",
   "abstract_structs",
-  "dotenv"
+  "dotenv",
+  "regex"
 ])
 
 for unit_test in unit_tests do

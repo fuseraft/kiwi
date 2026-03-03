@@ -20,6 +20,7 @@ The standard library is a collection of packages containing useful functions and
 | [`math`](math.md) | Common mathematical functions and utilities. |
 | [`path`](path.md) | Contains the definition for the `Path` struct. |
 | [`reflector`](reflector.md) | Reflection tools, including `Callable`. |
+| [`regex`](regex.md) | Regular expression matching, searching, splitting, and replacement. |
 | [`socket` / `tls`](socket.md) | Low-level asynchronous TCP and TLS networking. |
 | [`stdin`](stdin.md) | Functions for reading from standard input. |
 | [`string`](string.md) | String manipulation and transformation utilities. |

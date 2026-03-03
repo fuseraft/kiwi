@@ -11,6 +11,7 @@ The `var` keyword in Kiwi simplifies variable declaration, supporting multiple s
 ### Syntax
 
 **Single variable:**
+
 ```kiwi
 var var_name
 var var_name = value
@@ -19,19 +20,24 @@ var var_name: type = value
 ```
 
 **Multiple variables (grouped with parentheses):**
+
 ```kiwi
 var (<declaration_1>, <declaration_2>, ..., <declaration_n>)
 ```
 
 ### Declaration Options
+
 Each declaration can take one of the following forms:
+
 1. **Regular declaration with initialization:**
+
    ```kiwi
    var greeting = "Hello"
    ```
    - Infers the variable type from the assigned value.
 
 2. **Type-hinted declaration with initialization:**
+
    ```kiwi
    var count: integer = 0
    ```
@@ -39,19 +45,24 @@ Each declaration can take one of the following forms:
    - Union types are supported: `var name: type1|type2 = value`.
 
 3. **Type-hinted declaration without initialization:**
+
    ```kiwi
    var label: string
    ```
    - Defaults to the type’s default value (e.g., `0` for integers, `false` for booleans, `""` for strings, `null` for others).
 
 4. **Uninitialized declaration:**
+
    ```kiwi
    var name
    ```
+
    - Defaults to `null`.
 
 ### Multiple Declarations
+
 You can group multiple declarations within parentheses `()` separated by commas `,`:
+
 ```kiwi
 var (x = 10, y: float = 3.14, z: string, w)
 ```

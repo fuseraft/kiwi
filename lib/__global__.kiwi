@@ -8,7 +8,7 @@ const STDLIB_PACKAGES = [
   "bench", "hashable", "compress", "console", "crypto", "csv",
   "date", "dotenv", "env", "fio", "http", "iter", "list", "path", "math", "socket", "tls",
   "std", "std::error", "stdin", "string", "sys", "task", "tester", "time",
-  "reflector", "xml"
+  "reflector", "regex", "xml"
 ]
 
 for pkg in STDLIB_PACKAGES do
@@ -40,16 +40,16 @@ fn d
 
   var
   (
-    y:          string = "${year}",
-    m:          string = ("${month}").padstart(2, "0"),
-    d:          string = ("${day}").padstart(2, "0"),
-    h:          string = ("${hour}").padstart(2, "0"),
-    mi:         string = ("${minute}").padstart(2, "0"),
-    s:          string = ("${second}").padstart(2, "0"),
-    ms:         string = ("${millisecond}").padstart(3, "0")
+    y:   string = "${year}",
+    m:   string = "${month}".padstart(2, "0"),
+    d:   string = "${day}".padstart(2, "0"),
+    h:   string = "${hour}".padstart(2, "0"),
+    mi:  string = "${minute}".padstart(2, "0"),
+    s:   string = "${second}".padstart(2, "0"),
+    ms:  string = "${millisecond}".padstart(3, "0")
   )
 
-  ("${y}/${m}/${d} ${h}:${mi}:${s}.${ms}").to_date()
+  "${y}/${m}/${d} ${h}:${mi}:${s}.${ms}".to_date()
 end
 
 /#

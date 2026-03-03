@@ -192,4 +192,89 @@ public static class RegexUtil
 
         return matches;
     }
+
+    /// <summary>
+    /// Returns a hashmap of named capture groups from the first match of the regex pattern.
+    /// </summary>
+    /// <param name="text">The string to check.</param>
+    /// <param name="pattern">The regular expression (must contain named groups via (?&lt;name&gt;...)).</param>
+    /// <returns>A hashmap mapping each group name to its matched value, or an empty hashmap if no match.</returns>
+    public static Dictionary<Value, Value> NamedCaptures(string text, string pattern)
+    {
+        Dictionary<Value, Value> result = [];
+        try
+        {
+            Regex regex = new(pattern);
+            Match match = regex.Match(text);
+
+            if (match.Success)
+            {
+                foreach (Group group in match.Groups)
+                {
+                    // Named groups have non-numeric names
+                    if (!int.TryParse(group.Name, out _))
+                    {
+                        result[Value.CreateString(group.Name)] = Value.CreateString(group.Value);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            throw;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Returns the capture groups for every match of the regex in the string.
+    /// Each item in the returned list is a list of capture group strings for one match (group 0 excluded).
+    /// </summary>
+    /// <param name="text">The string to check.</param>
+    /// <param name="pattern">The regular expression.</param>
+    /// <returns>A list of lists of capture group strings.</returns>
+    public static List<Value> ScanGroups(string text, string pattern)
+    {
+        List<Value> results = [];
+        try
+        {
+            Regex regex = new(pattern);
+            MatchCollection matchCollection = regex.Matches(text);
+
+            foreach (Match match in matchCollection)
+            {
+                List<Value> groups = [];
+                // Start at 1 to skip the full match (group 0), consistent with Match()
+                for (int i = 1; i < match.Groups.Count; i++)
+                {
+                    groups.Add(Value.CreateString(match.Groups[i].Value));
+                }
+                results.Add(Value.CreateList(groups));
+            }
+        }
+        catch
+        {
+            throw;
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Escapes all regex special characters in the string so it can be used as a literal pattern.
+    /// </summary>
+    /// <param name="text">The string to escape.</param>
+    /// <returns>The escaped string.</returns>
+    public static string Escape(string text)
+    {
+        try
+        {
+            return Regex.Escape(text);
+        }
+        catch
+        {
+            throw;
+        }
+    }
 }

@@ -1,0 +1,78 @@
+/# ==============================================================================
+   Testing the regex package.
+   ============================================================================== #/
+tester::register_test("regex", with do
+
+  # --- regex::test ---
+  tester::assert(regex::test('\d+', "abc123"), "R1")
+  tester::assert(!regex::test('\d+', "abcdef"), "R2")
+  tester::assert(regex::test('^hello', "hello world"), "R3")
+  tester::assert(!regex::test('^world', "hello world"), "R4")
+
+  # --- regex::find ---
+  tester::assert(regex::find('\d+', "price: 42 usd") == "42", "R5")
+  tester::assert(regex::find('\d+', "no numbers") == "", "R6")
+  tester::assert(regex::find('[A-Z]+', "abcDEFghi") == "DEF", "R7")
+
+  # --- regex::match (capture groups) ---
+  groups = regex::match('(\d{4})-(\d{2})-(\d{2})', "date: 2025-03-15")
+  tester::assert(groups.size() == 3, "R8")
+  tester::assert(groups[0] == "2025", "R9")
+  tester::assert(groups[1] == "03", "R10")
+  tester::assert(groups[2] == "15", "R11")
+
+  tester::assert(regex::match('\d+', "no digits").empty(), "R12")
+
+  # --- regex::named_captures ---
+  nc = regex::named_captures('(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})', "2025-03-15")
+  tester::assert(nc["year"] == "2025", "R13")
+  tester::assert(nc["month"] == "03", "R14")
+  tester::assert(nc["day"] == "15", "R15")
+
+  tester::assert(regex::named_captures('(?<word>\w+)', "no match 999")["word"] == "no", "R16")
+  tester::assert(regex::named_captures('\d+', "abc").empty(), "R17")
+
+  # --- regex::scan ---
+  nums = regex::scan('\d+', "a1 b22 c333")
+  tester::assert(nums.size() == 3, "R18")
+  tester::assert(nums[0] == "1", "R19")
+  tester::assert(nums[1] == "22", "R20")
+  tester::assert(nums[2] == "333", "R21")
+
+  tester::assert(regex::scan('\d+', "nope").empty(), "R22")
+
+  # --- regex::scan_groups ---
+  pairs = regex::scan_groups('(\w+)=(\w+)', "a=1 b=2 c=3")
+  tester::assert(pairs.size() == 3, "R23")
+  tester::assert(pairs[0][0] == "a", "R24")
+  tester::assert(pairs[0][1] == "1", "R25")
+  tester::assert(pairs[2][0] == "c", "R26")
+  tester::assert(pairs[2][1] == "3", "R27")
+
+  # --- regex::replace ---
+  tester::assert(regex::replace('\d+', "abc 123 def 456", "NUM") == "abc NUM def NUM", "R28")
+  tester::assert(regex::replace('\s+', "hello   world", " ") == "hello world", "R29")
+
+  # backreference
+  tester::assert(regex::replace('(\w+)\s(\w+)', "John Smith", '$2, $1') == "Smith, John", "R30")
+
+  # --- regex::split ---
+  parts = regex::split('\s+', "one two  three")
+  tester::assert(parts.size() == 3, "R31")
+  tester::assert(parts[0] == "one", "R32")
+  tester::assert(parts[2] == "three", "R33")
+
+  # with limit
+  limited = regex::split(',\s*', "a, b, c, d", 2)
+  tester::assert(limited.size() == 2, "R34")
+  tester::assert(limited[0] == "a", "R35")
+
+  # --- regex::escape ---
+  escaped = regex::escape("hello.world+foo?")
+  tester::assert(regex::test(escaped, "hello.world+foo?"), "R36")
+  tester::assert(!regex::test(escaped, "helloxworldyfoo?"), "R37")
+
+  tester::assert(regex::escape("").empty(), "R38")
+  tester::assert(regex::escape("abc") == "abc", "R39")
+
+end)

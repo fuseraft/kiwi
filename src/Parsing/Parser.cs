@@ -2190,7 +2190,7 @@ public partial class Parser
             case TokenType.Dot:
                 node = ParseMemberAccess(node);
                 break;
-            case TokenType.LParen:
+            case TokenType.LParen when token.Span.Line == Previous().Span.Line:
                 node = ParseFunctionCall(identifierName, type);
                 break;
             case TokenType.LBracket when token.Span.Line == Previous().Span.Line:
