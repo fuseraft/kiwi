@@ -1,0 +1,107 @@
+/#
+@summary A package for working with regular expressions.
+#/
+package regex
+  /#
+  @summary Returns `true` if the pattern matches anywhere in the string.
+  @param string pattern : The regular expression pattern.
+  @param string str : The string to test.
+  @return boolean : `true` if a match is found, `false` otherwise.
+  #/
+  fn test(pattern: string, str: string): boolean
+    !str.find(pattern).empty()
+  end
+
+  /#
+  @summary Returns the first substring matching the pattern, or `""` if there is no match.
+  @param string pattern : The regular expression pattern.
+  @param string str : The string to search.
+  @return string : The first matching substring, or an empty string.
+  #/
+  fn find(pattern: string, str: string): string
+    str.find(pattern)
+  end
+
+  /#
+  @summary Returns the capture groups from the first match as a list.
+  Group 0 (the full match) is excluded — only named or positional capture groups are returned.
+  Returns an empty list if there is no match or no capture groups.
+  @param string pattern : The regular expression pattern.
+  @param string str : The string to search.
+  @return list : A list of capture group strings from the first match.
+  #/
+  fn match(pattern: string, str: string): list
+    str.match(pattern)
+  end
+
+  /#
+  @summary Returns a hashmap of named capture groups from the first match.
+  Returns an empty hashmap if there is no match or the pattern has no named groups.
+  @param string pattern : The regular expression pattern (use `(?<name>...)` for named groups).
+  @param string str : The string to search.
+  @return hashmap : A hashmap mapping group names to their matched values.
+  #/
+  fn named_captures(pattern: string, str: string): hashmap
+    str.named_captures(pattern)
+  end
+
+  /#
+  @summary Returns all non-overlapping matches as a list of strings.
+  @param string pattern : The regular expression pattern.
+  @param string str : The string to search.
+  @return list : A list of matched substrings.
+  #/
+  fn scan(pattern: string, str: string): list
+    str.scan(pattern)
+  end
+
+  /#
+  @summary Returns the capture groups for every match in the string.
+  Each item in the returned list is itself a list of capture group strings for one match
+  (group 0 excluded, consistent with `regex::match`).
+  @param string pattern : The regular expression pattern.
+  @param string str : The string to search.
+  @return list : A list of lists of capture group strings, one inner list per match.
+  #/
+  fn scan_groups(pattern: string, str: string): list
+    str.scan_groups(pattern)
+  end
+
+  /#
+  @summary Replaces every match of the pattern with the replacement string.
+  Supports backreferences in the replacement (e.g. `$1`, `${name}`).
+  @param string pattern : The regular expression pattern.
+  @param string str : The string to modify.
+  @param string replacement : The replacement text.
+  @return string : A new string with all matches replaced.
+  #/
+  fn replace(pattern: string, str: string, replacement: string): string
+    str.rreplace(pattern, replacement)
+  end
+
+  /#
+  @summary Splits the string around matches of the pattern.
+  @param string pattern : The regular expression pattern.
+  @param string str : The string to split.
+  @param integer limit : Maximum number of substrings to return. Use `-1` for no limit (default).
+  @return list : A list of substrings.
+  #/
+  fn split(pattern: string, str: string, limit: integer = -1): list
+    limit < 0 ? str.rsplit(pattern) : str.rsplit(pattern, limit)
+  end
+
+  /#
+  @summary Escapes all regex special characters in a string so it can be used as a literal pattern.
+  @param string str : The string to escape.
+  @return string : The escaped string.
+  @example
+  ---
+  pattern = regex::escape("hello.world")
+  println regex::test(pattern, "hello.world")   # true
+  println regex::test(pattern, "helloxworld")   # false
+  ---
+  #/
+  fn escape(str: string): string
+    str.regex_escape()
+  end
+end

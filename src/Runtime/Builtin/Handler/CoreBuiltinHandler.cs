@@ -88,6 +88,9 @@ public static class CoreBuiltinHandler
             TokenName.Builtin_Core_Match => Match(token, value, args),
             TokenName.Builtin_Core_Matches => Matches(token, value, args),
             TokenName.Builtin_Core_MatchesAll => MatchesAll(token, value, args),
+            TokenName.Builtin_Core_NamedCaptures => NamedCaptures(token, value, args),
+            TokenName.Builtin_Core_RegexEscape => RegexEscape(token, value, args),
+            TokenName.Builtin_Core_ScanGroups => ScanGroups(token, value, args),
             TokenName.Builtin_Core_Scan => Scan(token, value, args),
             /*
             TokenName.Builtin_Core_Tokens => Tokens(token, value, args),
@@ -159,6 +162,35 @@ public static class CoreBuiltinHandler
         var pattern = args[0].GetString();
 
         return Value.CreateList(RegexUtil.Scan(stringValue, pattern));
+    }
+
+    private static Value NamedCaptures(Token token, Value value, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CoreBuiltin.NamedCaptures, 1, args.Count);
+
+        TypeError.ExpectString(token, value);
+        TypeError.ExpectString(token, args[0]);
+
+        return Value.CreateHashmap(RegexUtil.NamedCaptures(value.GetString(), args[0].GetString()));
+    }
+
+    private static Value ScanGroups(Token token, Value value, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CoreBuiltin.ScanGroups, 1, args.Count);
+
+        TypeError.ExpectString(token, value);
+        TypeError.ExpectString(token, args[0]);
+
+        return Value.CreateList(RegexUtil.ScanGroups(value.GetString(), args[0].GetString()));
+    }
+
+    private static Value RegexEscape(Token token, Value value, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CoreBuiltin.RegexEscape, 0, args.Count);
+
+        TypeError.ExpectString(token, value);
+
+        return Value.CreateString(RegexUtil.Escape(value.GetString()));
     }
 
     private static Value RSplit(Token token, Value value, List<Value> args)
