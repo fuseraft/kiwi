@@ -2876,48 +2876,48 @@
 <h2 id="var-keyword"><code>var</code> Keyword<a class="headerlink" href="#var-keyword" title="Permanent link">&para;</a></h2>
 <p>The <code>var</code> keyword in Kiwi simplifies variable declaration, supporting multiple styles of initialization with optional type hints.</p>
 <h3 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">&para;</a></h3>
-<p><strong>Single variable:</strong>
+<p><strong>Single variable:</strong></p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>var var_name
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>var var_name = value
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>var var_name: type
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>var var_name: type = value
-</span></code></pre></div></p>
-<p><strong>Multiple variables (grouped with parentheses):</strong>
+</span></code></pre></div>
+<p><strong>Multiple variables (grouped with parentheses):</strong></p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>var (&lt;declaration_1&gt;, &lt;declaration_2&gt;, ..., &lt;declaration_n&gt;)
-</span></code></pre></div></p>
+</span></code></pre></div>
 <h3 id="declaration-options">Declaration Options<a class="headerlink" href="#declaration-options" title="Permanent link">&para;</a></h3>
-<p>Each declaration can take one of the following forms:
-1. <strong>Regular declaration with initialization:</strong>
-   <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>var greeting = &quot;Hello&quot;
+<p>Each declaration can take one of the following forms:</p>
+<ol>
+<li><strong>Regular declaration with initialization:</strong></li>
+</ol>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>var greeting = &quot;Hello&quot;
 </span></code></pre></div>
    - Infers the variable type from the assigned value.</p>
 <ol>
-<li><strong>Type-hinted declaration with initialization:</strong>
-   <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>var count: integer = 0
-</span></code></pre></div></li>
-<li>Specifies the variable type explicitly with an initializer.</li>
-<li>
-<p>Union types are supported: <code>var name: type1|type2 = value</code>.</p>
-</li>
-<li>
-<p><strong>Type-hinted declaration without initialization:</strong>
-   <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>var label: string
-</span></code></pre></div></p>
-</li>
-<li>
-<p>Defaults to the type’s default value (e.g., <code>0</code> for integers, <code>false</code> for booleans, <code>""</code> for strings, <code>null</code> for others).</p>
-</li>
-<li>
-<p><strong>Uninitialized declaration:</strong>
-   <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>var name
-</span></code></pre></div></p>
-</li>
-<li>Defaults to <code>null</code>.</li>
+<li><strong>Type-hinted declaration with initialization:</strong></li>
 </ol>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>var count: integer = 0
+</span></code></pre></div>
+   - Specifies the variable type explicitly with an initializer.
+   - Union types are supported: <code>var name: type1|type2 = value</code>.</p>
+<ol>
+<li><strong>Type-hinted declaration without initialization:</strong></li>
+</ol>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>var label: string
+</span></code></pre></div>
+   - Defaults to the type’s default value (e.g., <code>0</code> for integers, <code>false</code> for booleans, <code>""</code> for strings, <code>null</code> for others).</p>
+<ol>
+<li><strong>Uninitialized declaration:</strong></li>
+</ol>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>var name
+</span></code></pre></div>
+<ul>
+<li>Defaults to <code>null</code>.</li>
+</ul>
 <h3 id="multiple-declarations">Multiple Declarations<a class="headerlink" href="#multiple-declarations" title="Permanent link">&para;</a></h3>
-<p>You can group multiple declarations within parentheses <code>()</code> separated by commas <code>,</code>:
+<p>You can group multiple declarations within parentheses <code>()</code> separated by commas <code>,</code>:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>var (x = 10, y: float = 3.14, z: string, w)
-</span></code></pre></div></p>
+</span></code></pre></div>
 <hr />
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <h3 id="single-declaration">Single Declaration<a class="headerlink" href="#single-declaration" title="Permanent link">&para;</a></h3>
