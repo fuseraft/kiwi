@@ -1,0 +1,49 @@
+# dotenv example — demonstrate dotenv::parse, parse_file, and load
+
+# Create a temporary .env file
+tmp = fio::tmpfile()
+fio::write(tmp, "
+# App configuration
+APP_NAME=MyApp
+APP_ENV=development
+PORT=8080
+
+# Credentials (single-quoted — literal, no escapes)
+DB_PASSWORD='s3cr3t!pass'
+
+# Multi-word values in double quotes (supports \n, \t, \\, \")
+GREETING=\"Hello, World!\"
+
+# Inline comment gets stripped
+DEBUG=true  # set to false in production
+
+# export prefix is supported
+export LOG_LEVEL=info
+
+# Empty value
+NOTES=
+")
+
+# --- parse into a hashmap (does not touch the environment) ---
+vars = dotenv::parse_file(tmp)
+println "Parsed ${vars.keys().size()} variables:"
+for k, v in vars do
+  println "  ${k} = ${v}"
+end
+
+# --- load into the environment ---
+dotenv::load(tmp)
+println "\nLoaded into environment:"
+println "  APP_NAME  = " + env::get("APP_NAME")
+println "  PORT      = " + env::get("PORT")
+println "  GREETING  = " + env::get("GREETING")
+println "  LOG_LEVEL = " + env::get("LOG_LEVEL")
+println "  DEBUG     = " + env::get("DEBUG")
+
+# --- overwrite=false keeps existing values ---
+fio::write(tmp, "APP_NAME=Changed\n")
+dotenv::load(tmp, false)
+println "\nAfter load(overwrite=false):"
+println "  APP_NAME = " + env::get("APP_NAME")   # still "MyApp"
+
+fio::remove(tmp)

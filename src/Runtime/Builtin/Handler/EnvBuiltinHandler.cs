@@ -117,6 +117,6 @@ public static class EnvBuiltinHandler
         ParameterTypeMismatchError.ExpectString(token, EnvBuiltin.SetEnvironmentVariable, 1, args[1]);
 
         Environment.SetEnvironmentVariable(args[0].GetString(), args[1].GetString());
-        return Value.Default;
+        return Value.CreateBoolean(true);
     }
 }

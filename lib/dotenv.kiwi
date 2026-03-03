@@ -1,0 +1,131 @@
+/#
+@summary A package for loading .env files into the environment.
+#/
+package dotenv
+  /#
+  @summary Parses a double-quoted dotenv value with escape sequence support.
+  @param string raw : The raw string starting with `"`.
+  @return string : The unescaped value (content between the outer double-quotes).
+  #/
+  fn _parse_dquoted(raw: string): string
+    val = ""
+    i = 1
+
+    while i < raw.size() do
+      c = raw[i]
+
+      if c == "\\" && i + 1 < raw.size()
+        nc = raw[i + 1]
+
+        if nc == '"'
+          val += '"'
+          i += 2
+        elsif nc == "\\"
+          val += "\\"
+          i += 2
+        elsif nc == "n"
+          val += "\n"
+          i += 2
+        elsif nc == "t"
+          val += "\t"
+          i += 2
+        elsif nc == "r"
+          val += "\r"
+          i += 2
+        else
+          val += nc
+          i += 2
+        end
+      elsif c == '"'
+        i = raw.size()  # closing quote — exit loop
+      else
+        val += c
+        i += 1
+      end
+    end
+
+    val
+  end
+
+  /#
+  @summary Parses a .env-formatted string into a hashmap.
+  @description
+  Supported syntax:
+    - `KEY=VALUE`                    plain assignment
+    - `KEY="value"`                  double-quoted (supports `\\`, `\"`, `\n`, `\t`, `\r`)
+    - `KEY='value'`                  single-quoted (literal, no escapes)
+    - `KEY=value  # inline comment`  unquoted with inline comment
+    - `export KEY=VALUE`             optional `export` prefix (stripped)
+    - `# comment` or blank line      skipped
+  @param string content : The dotenv-formatted string to parse.
+  @return hashmap : A hashmap of key-value pairs.
+  #/
+  fn parse(content: string): hashmap
+    result = {}
+
+    for line in content.split("\n") do
+      line = line.replace("\r", "").trim()
+
+      # skip blank lines and comment lines
+      next when line.empty() || line.begins_with("#")
+
+      # strip optional `export ` prefix
+      line = line[7:].trim() when line.begins_with("export ")
+
+      eq = line.index("=")
+      next when eq < 0
+
+      key = line[0:eq].trim()
+      next when key.empty()
+
+      raw = line[eq + 1:]
+
+      if raw.begins_with('"')
+        val = dotenv::_parse_dquoted(raw)
+      elsif raw.begins_with("'")
+        close = raw.lastindex("'")
+        val = close > 0 ? raw[1:close] : raw[1:]
+      else
+        ci = raw.index(" #")
+        val = ci >= 0 ? raw[0:ci].trim() : raw.trim()
+      end
+
+      result[key] = val
+    end
+
+    result
+  end
+
+  /#
+  @summary Parses a .env file into a hashmap without modifying the environment.
+  @param string file_path : The path to the .env file. Defaults to `".env"`.
+  @return hashmap : A hashmap of key-value pairs.
+  @throws string : If the file does not exist.
+  #/
+  fn parse_file(file_path: string = ".env"): hashmap
+    if !fio::isfile(file_path)
+      throw "File does not exist: ${file_path}"
+    end
+
+    dotenv::parse(fio::read(file_path))
+  end
+
+  /#
+  @summary Loads a .env file and sets each entry as an environment variable.
+  @param string file_path : The path to the .env file. Defaults to `".env"`.
+  @param boolean overwrite : When `true`, existing environment variables are overwritten. Defaults to `true`.
+  @return hashmap : A hashmap of the loaded key-value pairs.
+  @throws string : If the file does not exist.
+  #/
+  fn load(file_path: string = ".env", overwrite: boolean = true): hashmap
+    vars = dotenv::parse_file(file_path)
+
+    for key, val in vars do
+      if overwrite || env::get(key).empty()
+        env::set(key, val)
+      end
+    end
+
+    vars
+  end
+end
