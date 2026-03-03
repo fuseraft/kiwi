@@ -12,6 +12,7 @@ The standard library is a collection of packages containing useful functions and
 | [`console`](console.md) | An interface that wraps core I/O operations. |
 | [`crypto`](crypto.md) | Cryptographic functions like MD5 and SHA-2. |
 | [`csv`](csv.md) | Functions for parsing CSV data. |
+| [`dotenv`](dotenv.md) | Load `.env` files into the process environment. |
 | [`env`](env.md) | For interacting with environment variables. |
 | [`fio`](fio.md) | Functions for file system operations. |
 | [`http`](http.md) | Functions for HTTP requests (GET, POST, etc), including `HttpResponse`. |
