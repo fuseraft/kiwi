@@ -112,7 +112,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
             {
                 continue;
             }
-            
+
             var libraryPath = library.IsOverride ? FileUtil.ExpandPath(library.Path) : Path.Combine(Path.GetDirectoryName(exePath) ?? string.Empty, library.Path);
             libraryPath = Path.GetFullPath(libraryPath);
 
