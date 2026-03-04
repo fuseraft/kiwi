@@ -46,21 +46,29 @@ public class KiwiSettings
                 ?? throw new InvalidOperationException("Failed to deserialize kiwi-settings.json");
         }
 
-        Console.WriteLine("Could not find kiwi-settings.json. Run with --settings to view defaults.");
-
         return new KiwiSettings
         {
             Name = "kiwi",
             Version = "1.3.9",
-            SafeMode = true,
+            SafeMode = false,
             Extensions = new FileExtensions
             {
                 Primary = ".kiwi",
                 Minified = ".min.kiwi",
-                Recognized = [".kiwi", ".kiwi"]
+                Recognized = [".min.kiwi", ".kiwi", ".min.🥝", ".🥝"]
             },
+            StandardLibrary =
+            [
+                new StandardLibraryPath
+                {
+                    AutoLoad = true,
+                    Path = "../lib",
+                    IncludeSubdirectories = true,
+                    IsOverride = false,
+                }
+            ],
             Debug = new DebugSettings {},
-            CrashDumpPath = "kiwi-crash.log"
+            CrashDumpPath = "./kiwi_crash.log"
         };
     }
 }
