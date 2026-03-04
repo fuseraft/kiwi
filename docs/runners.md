@@ -9,6 +9,7 @@ Kiwi supports **multiple execution modes** via the `IRunner` interface. Each mod
 | Runner | Purpose | Input | Example |
 |--------|--------|-------|--------|
 | `ScriptRunner` | Run `.kiwi` files | File path | `kiwi script.kiwi` |
+| `CodeRunner` | Execute a code string inline | `-e` flag | `kiwi -e 'println "hi"'` |
 | `StdInRunner` | Run from piped input | `stdin` | `cat script.kiwi &#124; kiwi` |
 | `REPLRunner` | Interactive shell | Keyboard | `kiwi --interactive` |
 | `DebugRunner` | Step-debug a script (kdb) | File | `kiwi --debug script.kiwi` |
@@ -35,6 +36,30 @@ kiwi examples/hello.kiwi
 - Loads the [`standard library`](./lib/README.md) first
 - Then loads `hello.kiwi`
 - Executes top-level code and `main()` if defined
+
+## `CodeRunner` – Execute Inline Code
+
+**Use Case**: Quick one-liners, shell aliases, scripted invocations without a file.
+
+```bash
+kiwi --execute 'println("Hello!")'   # long form
+kiwi -e 'println("Hello!")'          # short form
+```
+
+- Accepts a **string of Kiwi code** as the argument
+- Loads the **standard library** (use `-ns` to skip)
+- Supports multi-line code via shell `$'...'` quoting:
+
+```bash
+kiwi -e $'x = 6 * 7\nprintln(x)'
+# 42
+```
+
+- Can be combined with key-value args:
+
+```bash
+kiwi -e 'println(__argv__)' -name=world
+```
 
 ## `StdInRunner` – Run from Pipe
 
@@ -165,8 +190,8 @@ Token #               Type  Name                 Text
 
 ## Standard Library
 
-- **Loaded automatically** in `ScriptRunner`, `StdInRunner`, and `REPLRunner`
-- **Skipped** in `--ast` and `--tokenize`
+- **Loaded automatically** in `ScriptRunner`, `CodeRunner`, `StdInRunner`, and `REPLRunner`
+- **Skipped** in `--ast` and `--tokens`
 - Configured in [`kiwi-settings.json`](../src/kiwi-settings.json)
 - **Last file wins** (for overrides)
 
@@ -181,6 +206,9 @@ All runners catch:
 ```bash
 # Run a script
 kiwi test.kiwi
+
+# Execute inline code
+kiwi -e 'println("hello")'
 
 # Pipe input
 echo "println 100" | kiwi

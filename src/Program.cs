@@ -73,6 +73,13 @@ public class Program
         {
             return new REPLRunner(new());
         }
+        else if (config.ExecuteCode != null)
+        {
+            return new CodeRunner(config.ExecuteCode, new()
+            {
+                CliArgs = ParseKeyValueArgs(config.Args),
+            });
+        }
         else if (config.UseDebugger)
         {
             return new DebugRunner(new()

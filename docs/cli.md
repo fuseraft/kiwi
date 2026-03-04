@@ -45,6 +45,29 @@ To learn more about the REPL, please see [REPL](repl.md).
 kiwi -i
 ```
 
+### `-e`, `--execute <code>`
+
+Executes a string of Kiwi code directly, without needing a file. The standard library is loaded as normal.
+
+```
+kiwi -e 'println "Hello!"'
+kiwi --execute 'println "Hello!"'
+```
+
+For multi-line code, use shell `$'...'` quoting with `\n`:
+
+```bash
+kiwi -e $'x = 6 * 7\nprintln x'
+# 42
+```
+
+Key-value arguments can be passed alongside:
+
+```bash
+ kiwi -e 'println env::argv()' -name=world
+# {"name": "world"}
+```
+
 ### `-d`, `--debug <input_file_path>`
 
 Runs a script under the `kdb` interactive debugger. Execution pauses at the first statement and presents a `(kdb)` prompt where you can step through the program, inspect variables, set breakpoints, and evaluate expressions.
