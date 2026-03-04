@@ -1,5 +1,4 @@
-include "lib/cli"
-export "cli"
+import "cli"
 
 # --- output helpers ---
 cli::header("Output Helpers")

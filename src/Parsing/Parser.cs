@@ -711,10 +711,16 @@ public partial class Parser
 
     private FunctionNode? ParseFunction()
     {
+        var fnKeyword = token;
         MatchType(TokenType.Keyword);  // Consume 'fn'
 
         var isTypeName = GetTokenType() == TokenType.Typename;
         var isOperator = GetTokenType() == TokenType.Operator;
+
+        if (isOperator && token.Text is "=" or "+=" or "-=" or "*=" or "/=" or "%=" or "**=")
+        {
+            throw new SyntaxError(fnKeyword, $"'{fnKeyword.Text}' is a reserved keyword and cannot be used as a variable name.");
+        }
 
         if (GetTokenType() != TokenType.Identifier && !isTypeName && !isOperator)
         {
@@ -1758,6 +1764,7 @@ public partial class Parser
                 interpNode.Parts.Add(new LiteralNode(Value.CreateString(sb.ToString())) { Token = interpNode.Token });
                 sb.Clear();
 
+                int dollarIdx = i;
                 i += 2;  // skip '$' and '{'
 
                 // Collect expression until matching '}'
@@ -1793,7 +1800,12 @@ public partial class Parser
 
                 if (!string.IsNullOrEmpty(code))
                 {
-                    using var lex = new Lexer(interpNode.Token.Span.File, code);
+                    // Compute source position of the expression inside ${...}.
+                    // i points one past the closing '}', so the '$' was at (i - code.Length - 2 - 1).
+                    // Simpler: we captured dollarIdx before advancing i.
+                    int exprLine = interpNode.Token.Span.Line;
+                    int exprCol  = interpNode.Token.Span.Pos + 1 + dollarIdx + 2;  // past `"`, prefix chars, `${`
+                    using var lex = new Lexer(interpNode.Token.Span.File, code, exprLine, exprCol);
                     var subStream = lex.GetTokenStream();
                     var savedStream = stream;
                     var savedToken = token;
