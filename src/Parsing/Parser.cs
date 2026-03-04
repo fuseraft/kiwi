@@ -1996,7 +1996,8 @@ public partial class Parser
                 not ASTNodeType.BinaryOperation and
                 not ASTNodeType.MethodCall and
                 not ASTNodeType.MemberAccess and
-                not ASTNodeType.Interpolation)
+                not ASTNodeType.Interpolation and
+                not ASTNodeType.Index)
             {
                 throw new SyntaxError(indexValueToken, "Invalid index value in indexer.");
             }

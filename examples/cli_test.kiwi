@@ -1,0 +1,56 @@
+include "lib/cli"
+export "cli"
+
+# --- output helpers ---
+cli::header("Output Helpers")
+cli::info("This is an info message")
+cli::warn("This is a warning")
+cli::error("This is an error")
+cli::success("Operation succeeded")
+cli::hr()
+
+# --- kv ---
+cli::header("Key-Value Pairs")
+cli::kv("Name", "Alice", 10)
+cli::kv("Age", 30, 10)
+cli::kv("City", "London", 10)
+cli::hr()
+
+# --- table ---
+cli::header("Table")
+cli::table(
+  ["Name", "Age", "City"],
+  [
+    ["Alice", 30, "London"],
+    ["Bob", 25, "Paris"],
+    ["Charlie", 35, "New York"]
+  ]
+)
+
+# --- progress bar ---
+cli::header("Progress Bar")
+for i in [0 to 10] do
+  print "\r" + cli::progress_bar(i, 10)
+end
+println ""
+cli::hr()
+
+# --- CliParser help ---
+cli::header("CliParser Help")
+p = CliParser.new("example", "An example CLI application")
+p.flag("verbose", "v", "Enable verbose output")
+p.flag("dry-run", "n", "Simulate without writing files")
+p.option("output", "o", "Output file path", "stdout")
+p.option("format", "f", "Output format (text, json, csv)", "text")
+p.option("count", "c", "Number of items to process", 10)
+p.help()
+
+# --- parse (no actual args, just verify defaults) ---
+cli::header("Parsed Args (defaults)")
+args = p.parse()
+cli::kv("verbose", args["verbose"], 12)
+cli::kv("dry-run", args["dry-run"], 12)
+cli::kv("output", args["output"], 12)
+cli::kv("format", args["format"], 12)
+cli::kv("count", args["count"], 12)
+cli::kv("_args", args["_args"], 12)

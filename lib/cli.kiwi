@@ -1,0 +1,304 @@
+/#
+@summary A package for building command-line interfaces.
+#/
+package cli
+  /#
+  @summary Prints an info message.
+  @param string msg : The message to display.
+  #/
+  fn info(msg: string)
+    console::fg("CYAN")
+    print "  info  "
+    console::reset()
+    println " ${msg}"
+  end
+
+  /#
+  @summary Prints a warning message.
+  @param string msg : The message to display.
+  #/
+  fn warn(msg: string)
+    console::fg("YELLOW")
+    print "  warn  "
+    console::reset()
+    println " ${msg}"
+  end
+
+  /#
+  @summary Prints an error message.
+  @param string msg : The message to display.
+  #/
+  fn error(msg: string)
+    console::fg("RED")
+    print " error  "
+    console::reset()
+    println " ${msg}"
+  end
+
+  /#
+  @summary Prints a success message.
+  @param string msg : The message to display.
+  #/
+  fn success(msg: string)
+    console::fg("GREEN")
+    print "    ok  "
+    console::reset()
+    println " ${msg}"
+  end
+
+  /#
+  @summary Prints a section header.
+  @param string title : The header text.
+  #/
+  fn header(title: string)
+    console::fg("WHITE")
+    println "\n${title}"
+    println "=" * title.size()
+    console::reset()
+  end
+
+  /#
+  @summary Prints a horizontal rule.
+  @param integer width : The width (default: 40).
+  #/
+  fn hr(width: integer = 40)
+    println "-" * width
+  end
+
+  /#
+  @summary Prints a key-value pair with alignment.
+  @param string key : The label.
+  @param any val : The value.
+  @param integer width : The column width for the key (default: 16).
+  #/
+  fn kv(key: string, val, width: integer = 16)
+    console::fg("CYAN")
+    print key.padend(width)
+    console::reset()
+    println " ${val}"
+  end
+
+  /#
+  @summary Prints a formatted table.
+  @param list headers : Column header strings.
+  @param list rows : List of row lists.
+  #/
+  fn table(headers: list, rows: list)
+    widths = []
+    for h in headers do
+      widths.push(h.size())
+    end
+
+    for row in rows do
+      for i in [0 to widths.size() - 1] do
+        cell = "${row[i]}"
+        widths[i] = cell.size() > widths[i] ? cell.size() : widths[i]
+      end
+    end
+
+    sep = "+"
+    for w in widths do
+      sep = sep + "-" * (w + 2) + "+"
+    end
+
+    println sep
+
+    hdr = "|"
+    for i in [0 to headers.size() - 1] do
+      hdr = hdr + " " + headers[i].padend(widths[i]) + " |"
+    end
+    println hdr
+    println sep
+
+    for row in rows do
+      line = "|"
+      for i in [0 to row.size() - 1] do
+        cell = "${row[i]}"
+        line = line + " " + cell.padend(widths[i]) + " |"
+      end
+      println line
+    end
+
+    println sep
+  end
+
+  /#
+  @summary Returns a progress bar string.
+  @param integer current : Current progress value.
+  @param integer total : Total value.
+  @param integer width : Bar width in characters (default: 30).
+  @return string : The progress bar string.
+  #/
+  fn progress_bar(current: integer, total: integer, width: integer = 30): string
+    pct = total > 0 ? (current * 100 / total) : 0
+    filled = total > 0 ? (current * width / total) : 0
+    bar = "#" * filled + "." * (width - filled)
+    "[${bar}] ${pct.to_string().padstart(3)}%"
+  end
+
+  /#
+  @summary Prompts the user for input.
+  @param string msg : The prompt message.
+  @return string : The user's input.
+  #/
+  fn prompt(msg: string = ""): string
+    console::fg("CYAN")
+    print msg
+    console::reset()
+    console::readline()
+  end
+
+  /#
+  @summary Prompts the user for a yes/no confirmation.
+  @param string msg : The prompt message.
+  @return boolean : `true` if the user answered yes.
+  #/
+  fn confirm(msg: string = ""): boolean
+    console::fg("CYAN")
+    print "${msg} [y/N] "
+    console::reset()
+    answer = console::readline()
+    answer.lowercase() == "y"
+  end
+end
+
+/#
+@summary A struct for defining and parsing command-line arguments.
+#/
+struct CliParser
+  /#
+  @summary Creates a new CliParser.
+  @param string name : The program name.
+  @param string desc : A short description (optional).
+  #/
+  fn new(name: string, desc: string = "")
+    @name = name
+    @desc = desc
+    @flags = {}
+    @options = {}
+  end
+
+  /#
+  @summary Registers a boolean flag.
+  @param string name : The long flag name (e.g., `"verbose"`).
+  @param string short : The short flag character (e.g., `"v"`).
+  @param string desc : A description of the flag.
+  #/
+  fn flag(name: string, short: string = "", desc: string = "")
+    @flags[name] = { short: short, desc: desc }
+  end
+
+  /#
+  @summary Registers an option that takes a value.
+  @param string name : The long option name (e.g., `"output"`).
+  @param string short : The short option character (e.g., `"o"`).
+  @param string desc : A description of the option.
+  @param any dval : The default value (default: `null`).
+  #/
+  fn option(name: string, short: string = "", desc: string = "", dval = null)
+    @options[name] = { short: short, desc: desc, default: dval }
+  end
+
+  /#
+  @summary Prints the help text for this parser.
+  #/
+  fn help()
+    console::fg("WHITE")
+    println "Usage: ${@name}"
+    console::reset()
+    println @desc when @desc != ""
+    println ""
+
+    if !@flags.empty()
+      println "Flags:"
+      for name in @flags.keys() do
+        s     = @flags[name]["short"]
+        d     = @flags[name]["desc"]
+        alias = s != "" ? "-${s}, " : "    "
+        console::fg("CYAN")
+        print "  ${alias}--${name}"
+        console::reset()
+        println "  ${d}"
+      end
+      println ""
+    end
+
+    if !@options.empty()
+      println "Options:"
+      for name in @options.keys() do
+        s     = @options[name]["short"]
+        d     = @options[name]["desc"]
+        dval  = @options[name]["default"]
+        alias = s != "" ? "-${s}, " : "    "
+        hint  = dval != null ? " (default: ${dval})" : ""
+        console::fg("CYAN")
+        print "  ${alias}--${name}"
+        console::reset()
+        println "  ${d}${hint}"
+      end
+      println ""
+    end
+  end
+
+  /#
+  @summary Parses command-line arguments.
+  @return hashmap : A hashmap of parsed values, plus `_args` for positional arguments.
+  #/
+  fn parse(): hashmap
+    result = { "_args": [] }
+
+    for name in @flags.keys() do
+      result[name] = false
+    end
+
+    for name in @options.keys() do
+      result[name] = @options[name]["default"]
+    end
+
+    argv = env::argv().keys()
+    flag_short = {}
+
+    for name in @flags.keys() do
+      s = @flags[name]["short"]
+      flag_short[s] = name when s != ""
+    end
+
+    opt_short = {}
+
+    for name in @options.keys() do
+      s = @options[name]["short"]
+      opt_short[s] = name when s != ""
+    end
+
+    i = 0
+    while i < argv.size() do
+      arg = argv[i]
+
+      if arg.starts_with("--")
+        key = arg[2:]
+        if @flags.keys().contains(key)
+          result[key] = true
+        elsif @options.keys().contains(key)
+          i = i + 1
+          result[key] = argv[i] when i < argv.size()
+        end
+      elsif arg.starts_with("-") && arg.size() == 2
+        c = arg[1]
+        if flag_short.keys().contains(c)
+          result[flag_short[c]] = true
+        elsif opt_short.keys().contains(c)
+          i = i + 1
+          result[opt_short[c]] = argv[i] when i < argv.size()
+        end
+      else
+        positional = result["_args"]
+        positional.push(arg)
+        result["_args"] = positional
+      end
+
+      i = i + 1
+    end
+
+    result
+  end
+end
