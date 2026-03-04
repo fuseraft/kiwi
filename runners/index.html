@@ -3087,8 +3087,9 @@
 </ul>
 <h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
 <p>All runners catch:
-- <code>KiwiError</code> -&gt; Pretty print with file/line
-- <code>Exception</code> -&gt; Full crash log + stack trace</p>
+- <code>KiwiError</code> → Pretty-print error type, message, and file/line to stderr
+- <code>Exception</code> → Print message and stack trace to stderr</p>
+<p>Crash dump logging is <strong>opt-in</strong> via the <code>-cd</code>/<code>--crash-dump</code> flag (or by setting <code>"crashdump_path"</code> in <code>kiwi-settings.json</code>). When enabled, errors are also appended to the configured log file.</p>
 <h2 id="quick-testing">Quick Testing<a class="headerlink" href="#quick-testing" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Run a script</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>kiwi<span class="w"> </span>test.kiwi

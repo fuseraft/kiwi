@@ -782,6 +782,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#-cd-crash-dump" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -cd, --crash-dump
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#-keyvalue" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2794,6 +2805,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#-cd-crash-dump" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -cd, --crash-dump
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#-keyvalue" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2902,9 +2924,15 @@
 <p>Overrides the standard library path. Kiwi will load <code>.kiwi</code> files from the specified directory instead of the default stdlib location.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>kiwi -p ~/my-stdlib script.kiwi
 </span></code></pre></div>
+<h3 id="-cd-crash-dump"><code>-cd</code>, <code>--crash-dump</code><a class="headerlink" href="#-cd-crash-dump" title="Permanent link">&para;</a></h3>
+<p>Enables crash dump logging. When set, errors and unhandled exceptions are appended to <code>kiwi_crash.log</code> in the current directory. Without this flag, errors are only printed to stderr and no file is written.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>kiwi -cd script.kiwi
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>kiwi --crash-dump script.kiwi
+</span></code></pre></div>
+<p>The log path can also be set permanently via <code>"crashdump_path"</code> in <code>kiwi-settings.json</code>.</p>
 <h3 id="-keyvalue"><code>-&lt;key&gt;=&lt;value&gt;</code><a class="headerlink" href="#-keyvalue" title="Permanent link">&para;</a></h3>
 <p>Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>kiwi myapp -theme=dark
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>kiwi myapp -theme=dark
 </span></code></pre></div>
 
 
