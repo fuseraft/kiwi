@@ -20,7 +20,7 @@ public enum FrameFlags : ushort
 
 public sealed class StackFrame
 {
-    public Scope Scope { get; }
+    public Scope Scope { get; set; }
     public Value? ReturnValue { get; set; }
     public InstanceRef? ObjectContext { get; private set; }
     public FrameFlags Flags { get; private set; } = FrameFlags.None;

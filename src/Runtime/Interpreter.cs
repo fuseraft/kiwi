@@ -1531,13 +1531,19 @@ public class Interpreter
 
         if (condition == null || BooleanOp.IsTruthy(Interpret(condition)))
         {
-            foreach (var stmt in node.Body)
+            var parent = EnterBlockScope(frame);
+            try
             {
-                result = Interpret(stmt);
-                if (frame.IsFlagSet(FrameFlags.Return))
+                foreach (var stmt in node.Body)
                 {
-                    return frame.ReturnValue ?? result;
+                    result = Interpret(stmt);
+                    if (frame.IsFlagSet(FrameFlags.Return))
+                        return frame.ReturnValue ?? result;
                 }
+            }
+            finally
+            {
+                ExitBlockScope(frame, parent);
             }
         }
 
@@ -1552,13 +1558,19 @@ public class Interpreter
 
         if (BooleanOp.IsTruthy(conditionValue))
         {
-            foreach (var stmt in node.Body)
+            var parent = EnterBlockScope(frame);
+            try
             {
-                result = Interpret(stmt);
-                if (frame.IsFlagSet(FrameFlags.Return))
+                foreach (var stmt in node.Body)
                 {
-                    return frame.ReturnValue ?? result;
+                    result = Interpret(stmt);
+                    if (frame.IsFlagSet(FrameFlags.Return))
+                        return frame.ReturnValue ?? result;
                 }
+            }
+            finally
+            {
+                ExitBlockScope(frame, parent);
             }
         }
         else
@@ -1575,13 +1587,19 @@ public class Interpreter
                         continue;
                     }
 
-                    foreach (var stmt in elsifNode.Body)
+                    var parent = EnterBlockScope(frame);
+                    try
                     {
-                        result = Interpret(stmt);
-                        if (frame.IsFlagSet(FrameFlags.Return))
+                        foreach (var stmt in elsifNode.Body)
                         {
-                            return frame.ReturnValue ?? result;
+                            result = Interpret(stmt);
+                            if (frame.IsFlagSet(FrameFlags.Return))
+                                return frame.ReturnValue ?? result;
                         }
+                    }
+                    finally
+                    {
+                        ExitBlockScope(frame, parent);
                     }
                     executed = true;
                     break;
@@ -1590,13 +1608,19 @@ public class Interpreter
 
             if (!executed && node.ElseBody.Count > 0)
             {
-                foreach (var stmt in node.ElseBody)
+                var parent = EnterBlockScope(frame);
+                try
                 {
-                    result = Interpret(stmt);
-                    if (frame.IsFlagSet(FrameFlags.Return))
+                    foreach (var stmt in node.ElseBody)
                     {
-                        return frame.ReturnValue ?? result;
+                        result = Interpret(stmt);
+                        if (frame.IsFlagSet(FrameFlags.Return))
+                            return frame.ReturnValue ?? result;
                     }
+                }
+                finally
+                {
+                    ExitBlockScope(frame, parent);
                 }
             }
         }
@@ -1704,11 +1728,14 @@ public class Interpreter
     {
         var result = Value.Default;
         var frame = CallStack.Peek();
+        var parent = EnterBlockScope(frame);
         frame.SetFlag(FrameFlags.InLoop);
 
         var fallOut = false;
         var iterations = 0;
 
+        try
+        {
         while (BooleanOp.IsTruthy(Interpret(node.Condition)))
         {
             if (Kiwi.Settings.SafeMode)
@@ -1780,8 +1807,12 @@ public class Interpreter
                 break;
             }
         }
-
-        frame.ClearFlag(FrameFlags.InLoop);
+        } // end try
+        finally
+        {
+            frame.ClearFlag(FrameFlags.InLoop);
+            ExitBlockScope(frame, parent);
+        }
 
         return frame.ReturnValue ?? result;
     }
@@ -1796,6 +1827,7 @@ public class Interpreter
 
         var count = (int)countValue.GetInteger();
         var frame = CallStack.Peek();
+        var parent = EnterBlockScope(frame);
         var scope = frame.Scope;
         var result = Value.Default;
 
@@ -1828,10 +1860,7 @@ public class Interpreter
         finally
         {
             frame.ClearFlag(FrameFlags.InLoop);
-            if (aliasName != null)
-            {
-                scope.Assign(aliasName, Value.Default); // Optional: clean up
-            }
+            ExitBlockScope(frame, parent);
         }
 
         return result;
@@ -2365,6 +2394,7 @@ public class Interpreter
     private Value GeneratorLoop(ForLoopNode node, GeneratorRef genRef)
     {
         var frame = CallStack.Peek();
+        var parent = EnterBlockScope(frame);
         var scope = frame.Scope;
         frame.SetFlag(FrameFlags.InLoop);
 
@@ -2450,8 +2480,7 @@ public class Interpreter
         {
             frame.ClearFlag(FrameFlags.InLoop);
             genRef.Dispose();
-            scope.Remove(valueName);
-            if (indexName != null) scope.Remove(indexName);
+            ExitBlockScope(frame, parent);
         }
 
         return result;
@@ -3541,6 +3570,7 @@ public class Interpreter
     private Value BytesLoop(ForLoopNode node, byte[] list)
     {
         var frame = CallStack.Peek();
+        var parent = EnterBlockScope(frame);
         var scope = frame.Scope;
         frame.SetFlag(FrameFlags.InLoop);
 
@@ -3639,13 +3669,8 @@ public class Interpreter
         }
         finally
         {
-            scope.Remove(valueName);
-            if (indexName != null)
-            {
-                scope.Remove(indexName);
-            }
-
             frame.ClearFlag(FrameFlags.InLoop);
+            ExitBlockScope(frame, parent);
         }
 
         return result;
@@ -3654,6 +3679,7 @@ public class Interpreter
     private Value ListLoop(ForLoopNode node, List<Value> list)
     {
         var frame = CallStack.Peek();
+        var parent = EnterBlockScope(frame);
         var scope = frame.Scope;
         frame.SetFlag(FrameFlags.InLoop);
 
@@ -3752,13 +3778,8 @@ public class Interpreter
         }
         finally
         {
-            scope.Remove(valueName);
-            if (indexName != null)
-            {
-                scope.Remove(indexName);
-            }
-
             frame.ClearFlag(FrameFlags.InLoop);
+            ExitBlockScope(frame, parent);
         }
 
         return result;
@@ -3767,6 +3788,7 @@ public class Interpreter
     private Value HashmapLoop(ForLoopNode node, Dictionary<Value, Value> hash)
     {
         var frame = CallStack.Peek();
+        var parent = EnterBlockScope(frame);
         var scope = frame.Scope;
         frame.SetFlag(FrameFlags.InLoop);
 
@@ -3862,12 +3884,8 @@ public class Interpreter
         }
         finally
         {
-            scope.Remove(keyName);
-            if (valueName != null)
-            {
-                scope.Remove(valueName);
-            }
             frame.ClearFlag(FrameFlags.InLoop);
+            ExitBlockScope(frame, parent);
         }
 
         return result;
@@ -4027,6 +4045,20 @@ public class Interpreter
         FuncStack.Push(frame.Name);
         return true;
     }
+
+    /// <summary>
+    /// Enters a block scope by creating a child Scope and pointing the frame at it.
+    /// Returns the previous (parent) scope so the caller can restore it in finally.
+    /// </summary>
+    private static Scope EnterBlockScope(StackFrame frame)
+    {
+        var parent = frame.Scope;
+        frame.Scope = new Scope(parent);
+        return parent;
+    }
+
+    /// <summary>Restores the frame to the scope saved by EnterBlockScope.</summary>
+    private static void ExitBlockScope(StackFrame frame, Scope parent) => frame.Scope = parent;
 
     private bool InTry()
     {
