@@ -1,28 +1,63 @@
 /# ==============================================================================
-    Testing some common string manipulation, concatenation, interpolation, etc.
+    Testing string builtins: concatenation, interpolation, split, trim,
+    contains, reverse, lines, substring, size, to_integer/to_float, and more.
    ============================================================================== #/
 tester::register_test("strings", with do
-  # simple concatenation
-  a = "Hello"
-  b = " World"
-  tester::assert(a + b == "Hello World", "A1")
-
-  # concatenation expression
+  # concatenation and interpolation
   a = "Hello"
   b = "World"
-  tester::assert((a + " " + b) == "Hello World", "A2")
+  tester::assert(a + " " + b == "Hello World",    "A1: concatenation")
+  tester::assert("${a} ${b}" == "Hello World",    "A2: basic interpolation")
+  tester::assert("${a * 2}" == "HelloHello",      "A3: interpolation with expression")
 
-  # string interpolation
-  tester::assert("${a} ${b}" == "Hello World", "A3")
-
-  wrap_string = with (inputstring, openchar, closechar) do
-    return "${openchar}${inputstring}${closechar}"
-  end
-
-  tester::assert(wrap_string("div", "<", ">") == "<div>", "A4")
+  # interpolation with method calls
+  n = 7
+  tester::assert("${n}".padstart(3, "0") == "007", "A4: method chain on interpolated string")
 
   # string multiplication
-  a = "Hello"
-  b = 5
-  tester::assert(a * b == "HelloHelloHelloHelloHello", "A5")
+  tester::assert("ha" * 3 == "hahaha", "A5: string multiplication")
+
+  # split and join round-trip
+  csv = "one,two,three,four"
+  parts = csv.split(",")
+  tester::assert(parts.size() == 4,           "A6: split produces correct count")
+  tester::assert(parts[0] == "one",           "A7: split first element")
+  tester::assert(parts.join("|") == "one|two|three|four", "A8: join with delimiter")
+
+  # trim variants
+  padded = "   hello   "
+  tester::assert(padded.trim() == "hello",    "A9: trim removes both sides")
+  tester::assert(padded.ltrim() == "hello   ", "A10: ltrim removes left only")
+  tester::assert(padded.rtrim() == "   hello", "A11: rtrim removes right only")
+
+  # contains
+  tester::assert("foobar".contains("oba"),    "A12: contains substring")
+  tester::assert(not "foobar".contains("xyz"), "A13: contains returns false for absent")
+
+  # reverse
+  tester::assert("abcde".reverse() == "edcba", "A14: reverse")
+  tester::assert("racecar".reverse() == "racecar", "A15: palindrome reverses to itself")
+
+  # lines
+  multiline = "line1\nline2\nline3"
+  tester::assert(multiline.lines().size() == 3, "A16: lines splits on newlines")
+  tester::assert(multiline.lines()[1] == "line2", "A17: lines second element")
+
+  # size and substring
+  tester::assert("hello".size() == 5,              "A18: size of string")
+  tester::assert("hello world".substring(6, 5) == "world", "A19: substring extracts segment")
+
+  # count occurrences
+  tester::assert("banana".count("a") == 3, "A20: count char occurrences")
+
+  # to_integer / to_float
+  tester::assert("42".to_integer() + 1 == 43,   "A21: to_integer parses decimal")
+  tester::assert("ff".to_integer(16) == 255,     "A22: to_integer parses hex")
+  tester::assert("3.14".to_float() + 0.0 == 3.14, "A23: to_float parses decimal")
+
+  # lambda wrapping strings
+  wrap_string = with (s, open, close) do
+    return "${open}${s}${close}"
+  end
+  tester::assert(wrap_string("div", "<", ">") == "<div>", "A24: lambda building string")
 end)
