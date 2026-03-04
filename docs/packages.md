@@ -56,6 +56,26 @@ include "lib/greeter"
 greeter::greet("World")
 ```
 
+## `export` is required
+
+Defining a `package` block alone does **not** make its functions callable with `::`. The package must be activated with `export` (or `import`) before use. Without it, calling `pkg::fn()` raises an error.
+
+```kiwi
+package greeter
+  fn hello(name)
+    println "Hello, ${name}!"
+  end
+end
+
+# greeter::hello("world")  ← error: package not exported yet
+
+export "greeter"
+
+greeter::hello("world")   # ✓ Hello, world!
+```
+
+Standard library packages (e.g. `math`, `fio`, `http`) are pre-exported automatically — you never need to export them yourself.
+
 ## `import` vs `export`
 
 Both `import` and `export` activate a package and make its members accessible. By convention:

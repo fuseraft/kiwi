@@ -117,6 +117,19 @@ Supported with:
 - `x = expr when …` and `x += expr when …` (all assignment forms)
 - bare method/function calls: `some_fn() when …`
 
+**Not meaningful** on a bare expression whose value is discarded — the expression evaluates to a value but nothing uses it, so the `when` guard has no observable effect:
+
+```kiwi
+x + 1 when flag   # pointless — result is discarded
+```
+
+If you want to conditionally execute something, use a method call or an assignment:
+
+```kiwi
+log(x + 1) when flag      # ✓ call with side-effect
+result = x + 1 when flag  # ✓ assignment (result is null if condition is false)
+```
+
 **Lazy evaluation for assignments:** the right-hand side expression is only evaluated when the condition is true. This means it is safe to guard against expensive or potentially failing calls:
 
 ```kiwi

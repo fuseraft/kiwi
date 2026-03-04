@@ -16,6 +16,7 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
 - [Variables](variables.md)
 - [Types](types.md)
 - [Type Hints](type_hints.md)
+- [Scoping](scoping.md)
 - [Operators](operators.md)
 - [Keywords](keywords.md)
 - [Comments](comments.md)
