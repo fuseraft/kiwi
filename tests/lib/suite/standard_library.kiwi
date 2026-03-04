@@ -1,7 +1,56 @@
 /# ==============================================================================
-    Testing some standard library functions. Mostly redundant as the sha and md5
-    tests at the end use the `crypto` package from the standard library.
+    Testing functions from the standard library modules: string and math.
    ============================================================================== #/
 tester::register_test("standard library", with do
-  tester::assert("hello".mirror() == "helloolleh", "A1")
+  # --- string::pad* ---
+  tester::assert(string::padstart("3", 2, "0") == "03",        "A1: padstart pads to width")
+  tester::assert(string::padstart("hello", 3, "0") == "hello", "A2: padstart no-op when already wide")
+  tester::assert(string::padend("hi", 5, ".") == "hi...",      "A3: padend pads right")
+  tester::assert(string::center("hi", 6, "-") == "--hi--",     "A4: center pads both sides")
+
+  # --- string::base64 round-trip ---
+  encoded = string::base64encode("Hello, Kiwi!")
+  tester::assert(string::base64decode(encoded) == "Hello, Kiwi!", "A5: base64 round-trip")
+
+  # --- string::urlencode / urldecode ---
+  raw = "hello world & more"
+  enc = string::urlencode(raw)
+  tester::assert(enc.contains("+") or enc.contains("%20"), "A6: urlencode encodes spaces")
+  tester::assert(string::urldecode(enc) == raw,            "A7: urldecode round-trip")
+
+  # --- string::slug ---
+  tester::assert(string::slug("Hello, World!") == "hello-world", "A8: slug lowercases and hyphenates")
+  tester::assert(string::slug("Multiple   Spaces") == "multiple---spaces", "A9: slug handles multiple spaces")
+
+  # --- string::capitalize / titleize ---
+  tester::assert(string::capitalize("hello world") == "Hello world", "A10: capitalize first letter only")
+  tester::assert(string::titleize("the quick brown fox") == "The Quick Brown Fox", "A11: titleize each word")
+
+  # --- string::isnumeric / isalpha / isalphanumeric ---
+  tester::assert(string::isnumeric("12345"),   "A12: isnumeric digits")
+  tester::assert(not string::isnumeric("12x"), "A13: isnumeric rejects mixed")
+  tester::assert(string::isalpha("abc"),       "A14: isalpha letters")
+  tester::assert(not string::isalpha("ab1"),   "A15: isalpha rejects digits")
+
+  # --- string::echo / interweave / mirror ---
+  tester::assert(string::echo("ab", 3) == "aaabbb",        "A16: echo repeats each char")
+  tester::assert(string::interweave("ace", "bdf") == "abcdef", "A17: interweave alternates chars")
+  tester::assert(string::mirror("hi") == "hiih",           "A18: mirror appends reversed")
+
+  # --- math::floor / ceil / round ---
+  tester::assert(math::floor(3.9) == 3.0,      "A19: floor rounds down")
+  tester::assert(math::ceil(3.1) == 4.0,       "A20: ceil rounds up")
+  tester::assert(math::round(3.567, 2) == 3.57, "A21: round to 2 decimal places")
+
+  # --- math::sqrt / abs / pow ---
+  tester::assert(math::sqrt(144.0) == 12.0,    "A22: sqrt of perfect square")
+  tester::assert(math::abs(-99) == 99,         "A23: abs of negative integer")
+  tester::assert(math::pow(2.0, 8.0) == 256.0, "A24: pow 2^8")
+
+  # --- math::fmin / fmax ---
+  tester::assert(math::fmin(3.0, 7.0) == 3.0,  "A25: fmin returns smaller")
+  tester::assert(math::fmax(3.0, 7.0) == 7.0,  "A26: fmax returns larger")
+
+  # --- math::log10 ---
+  tester::assert(math::log10(1000.0) == 3.0,   "A27: log10(1000) == 3")
 end)

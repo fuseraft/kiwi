@@ -1,9 +1,38 @@
 /# ==============================================================================
-    Testing the null-coalesce operator `??`.
+    Testing the null-coalesce operator `??`: short-circuit, chaining,
+    mixed types, function results, and use in assignment.
    ============================================================================== #/
 tester::register_test("null-coalesce", with do
-  a, b, c, d =< null, null, "foo", "bar"
-  tester::assert((a ?? b ?? c ?? d) == c, "A1")
-  tester::assert((a ?? c) == c, "A2")
-  tester::assert((d ?? a) == d, "A3")
+  fn returns_null()
+    null
+  end
+
+  fn returns_value()
+    "from_fn"
+  end
+
+  # chain resolves to first non-null
+  tester::assert((null ?? null ?? "found" ?? "other") == "found", "A1: chain resolves first non-null")
+
+  # short-circuit: first non-null stops evaluation
+  tester::assert((null ?? "a") == "a",  "A2: single null falls through")
+  tester::assert(("a" ?? "b") == "a",   "A3: non-null short-circuits")
+
+  # works with different value types
+  tester::assert((null ?? 42) == 42,    "A4: fallback to integer")
+  tester::assert((null ?? 3.14) == 3.14, "A5: fallback to float")
+  tester::assert((null ?? true) == true, "A6: fallback to boolean")
+  tester::assert((null ?? [1, 2]) == [1, 2], "A7: fallback to list")
+
+  # function returning null uses fallback
+  tester::assert((returns_null() ?? "default") == "default", "A8: function returning null uses fallback")
+  tester::assert((returns_value() ?? "default") == "from_fn", "A9: function returning value short-circuits")
+
+  # use in assignment
+  x = null
+  x = x ?? "assigned"
+  tester::assert(x == "assigned", "A10: assignment via ??")
+
+  # chained all-null falls to last
+  tester::assert((null ?? null ?? null ?? "last") == "last", "A11: all-null chain")
 end)

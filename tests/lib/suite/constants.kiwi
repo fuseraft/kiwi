@@ -1,24 +1,49 @@
 /# ==============================================================================
-    Testing constants (permanently immutable variables)
+    Testing constants: multiple types, immutability enforcement, use in
+    expressions, and package-level constants.
    ============================================================================== #/
 tester::register_test("constants", with do
-  const MSG = "hello"
-  var (err_c: integer = 0)
+  # constants of various types
+  const MAX_RETRIES = 3
+  const THRESHOLD = 0.75
+  const APP_NAME = "Kiwi"
+  const DEBUG = false
+  const PRIMES = [2, 3, 5, 7, 11]
 
+  tester::assert(MAX_RETRIES == 3,          "A1: integer constant")
+  tester::assert(THRESHOLD == 0.75,         "A2: float constant")
+  tester::assert(APP_NAME == "Kiwi",        "A3: string constant")
+  tester::assert(not DEBUG,                 "A4: boolean constant")
+  tester::assert(PRIMES.size() == 5,        "A5: list constant accessible")
+  tester::assert(PRIMES[0] == 2,            "A6: list constant elements readable")
+
+  # constants are usable in expressions
+  tester::assert(MAX_RETRIES * 2 == 6,      "A7: constant in arithmetic expression")
+  tester::assert(APP_NAME + "!" == "Kiwi!", "A8: constant in string expression")
+
+  # reassignment raises an error
+  var err_count = 0
   try
-    MSG = "foobar"
+    MAX_RETRIES = 99
   catch
-    err_c += 1
+    err_count += 1
   end
-
-  tester::assert(MSG == "hello", "A1")
-  tester::assert(err_c == 1, "A2")
-
-  package xxx
-    const Y = "hello"
+  try
+    APP_NAME = "other"
+  catch
+    err_count += 1
   end
+  tester::assert(err_count == 2,   "A9: two reassignment attempts both threw")
+  tester::assert(MAX_RETRIES == 3, "A10: integer constant unchanged after error")
+  tester::assert(APP_NAME == "Kiwi", "A11: string constant unchanged after error")
 
-  export "xxx"
+  # package-level constants
+  package config
+    const VERSION = "1.0.0"
+    const MAX_CONN = 10
+  end
+  export "config"
 
-  tester::assert(xxx::Y == MSG, "A3")
+  tester::assert(config::VERSION == "1.0.0", "A12: package string constant")
+  tester::assert(config::MAX_CONN == 10,     "A13: package integer constant")
 end)

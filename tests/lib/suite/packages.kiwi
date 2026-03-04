@@ -1,12 +1,70 @@
 /# ==============================================================================
-    Testing package exports.
+    Testing package definitions, exports, and inter-function calls.
    ============================================================================== #/
 tester::register_test("packages", with do
-  package foobar_test_pkg
-    fn hello()
-      return "hello"
+  # basic package with multiple functions
+  package strutils
+    fn replicate(s, n)
+      result = ""
+      i = 0
+      while i < n do
+        result += s
+        i += 1
+      end
+      return result
+    end
+
+    fn shout(s)
+      return s.uppercase() + "!!!"
+    end
+
+    fn wrap(s, open, close)
+      return open + s + close
     end
   end
-  export "foobar_test_pkg"
-  tester::assert(foobar_test_pkg::hello() == "hello", "A1")
+  export "strutils"
+
+  tester::assert(strutils::replicate("ab", 3) == "ababab",     "A1: package function replicate")
+  tester::assert(strutils::shout("hello") == "HELLO!!!",       "A2: package function shout")
+  tester::assert(strutils::wrap("x", "[", "]") == "[x]",       "A3: package function wrap")
+
+  # package function calling another function in the same package
+  package counter
+    fn increment(n)
+      return n + 1
+    end
+
+    fn add_n(value, n)
+      result = value
+      i = 0
+      while i < n do
+        result = counter::increment(result)
+        i += 1
+      end
+      return result
+    end
+  end
+  export "counter"
+
+  tester::assert(counter::increment(9) == 10,    "A4: package function increment")
+  tester::assert(counter::add_n(0, 5) == 5,      "A5: package function calling sibling")
+  tester::assert(counter::add_n(10, 3) == 13,    "A6: package function calling sibling with args")
+
+  # two independent packages don't interfere
+  package pkg_a
+    fn greet()
+      return "hello from a"
+    end
+  end
+  export "pkg_a"
+
+  package pkg_b
+    fn greet()
+      return "hello from b"
+    end
+  end
+  export "pkg_b"
+
+  tester::assert(pkg_a::greet() == "hello from a", "A7: independent packages don't interfere (a)")
+  tester::assert(pkg_b::greet() == "hello from b", "A8: independent packages don't interfere (b)")
 end)

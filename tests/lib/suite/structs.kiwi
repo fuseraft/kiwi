@@ -1,29 +1,135 @@
 /# ==============================================================================
-    Testing structs... a WIP, but there are many other tests here using structs.
+    Testing structs: constructors, instance variables, methods, method calling
+    method via @., inheritance with override, and default constructors.
    ============================================================================== #/
 tester::register_test("structs", with do
+  # basic struct with constructor and instance variables
+  struct Point
+    fn new(x, y)
+      @x = x
+      @y = y
+    end
+
+    fn x() @x end
+    fn y() @y end
+
+    fn to_string()
+      "(${@x}, ${@y})"
+    end
+
+    fn distance_sq(other)
+      dx = @x - other.x()
+      dy = @y - other.y()
+      dx * dx + dy * dy
+    end
+  end
+
+  p1 = Point.new(0, 0)
+  p2 = Point.new(3, 4)
+  tester::assert(p1.to_string() == "(0, 0)",   "A1: constructor sets instance vars")
+  tester::assert(p2.to_string() == "(3, 4)",   "A2: constructor with different args")
+  tester::assert(p2.distance_sq(p1) == 25,     "A3: method receives struct argument")
+
+  # method calling another method via @.
+  struct Rectangle
+    fn new(w, h)
+      @w = w
+      @h = h
+    end
+
+    fn area()
+      @w * @h
+    end
+
+    fn perimeter()
+      2 * (@w + @h)
+    end
+
+    fn is_square()
+      @w == @h
+    end
+
+    fn describe()
+      "rect(${@w}x${@h}): area=${@.area()}, perim=${@.perimeter()}, square=${@.is_square()}"
+    end
+  end
+
+  r1 = Rectangle.new(4, 6)
+  r2 = Rectangle.new(5, 5)
+  tester::assert(r1.area() == 24,                                              "A4: area method")
+  tester::assert(r1.perimeter() == 20,                                         "A5: perimeter method")
+  tester::assert(not r1.is_square(),                                           "A6: is_square false")
+  tester::assert(r2.is_square(),                                               "A7: is_square true")
+  tester::assert(r1.describe() == "rect(4x6): area=24, perim=20, square=false", "A8: method calling @.method()")
+
+  # inheritance: subclass overrides method and adds new method
   struct Shape
-    fn area() end
-    fn perimeter() end
+    fn area()   0 end
+    fn label()  "shape" end
   end
 
   struct Circle < Shape
-    fn new(radius)
-      @radius = radius
+    fn new(r)
+      @r = r
     end
 
-    fn area(): float
-      return 3.14159 * @radius * @radius
+    fn area()
+      # using integer arithmetic for exact comparison
+      @r * @r * 3
     end
 
-    fn perimeter(): float
-      return 2 * 3.14159 * @radius
+    fn label()
+      "circle(r=${@r})"
+    end
+
+    fn diameter()
+      @r * 2
     end
   end
 
-  circle = Circle.new(5)
+  struct Square < Shape
+    fn new(s)
+      @s = s
+    end
 
-  # magic numbers everywhere
-  tester::assert(math::floor(circle.area()).to_integer() == 78)
-  tester::assert(math::floor(circle.perimeter()).to_integer() == 31)
+    fn area()
+      @s * @s
+    end
+
+    fn label()
+      "square(s=${@s})"
+    end
+  end
+
+  c = Circle.new(5)
+  s = Square.new(4)
+  tester::assert(c.area() == 75,               "A9: circle overrides area")
+  tester::assert(c.label() == "circle(r=5)",   "A10: circle overrides label")
+  tester::assert(c.diameter() == 10,           "A11: circle subclass-only method")
+  tester::assert(s.area() == 16,               "A12: square overrides area")
+  tester::assert(s.label() == "square(s=4)",   "A13: square overrides label")
+
+  # default constructor (no fn new): instance vars set on object
+  struct Counter
+    fn increment()
+      @count = (@count ?? 0) + 1
+    end
+
+    fn value()
+      @count ?? 0
+    end
+  end
+
+  ctr = Counter.new()
+  tester::assert(ctr.value() == 0, "A14: default ctor, initial value is null/0")
+  ctr.increment()
+  ctr.increment()
+  ctr.increment()
+  tester::assert(ctr.value() == 3, "A15: method mutates instance var")
+
+  # two instances are independent
+  ctr2 = Counter.new()
+  ctr2.increment()
+  tester::assert(ctr.value() == 3,  "A16: first counter unaffected by second")
+  tester::assert(ctr2.value() == 1, "A17: second counter independent")
 end)

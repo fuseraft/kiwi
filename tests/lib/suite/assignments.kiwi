@@ -1,8 +1,50 @@
 /# ==============================================================================
-    Testing simple (and complex?) assignment operations.
+    Testing assignment operations: chained assignment, compound operators,
+    list index assignment, hashmap key assignment, and swap via unpacking.
    ============================================================================== #/
 tester::register_test("assignments", with do
-  d = 5, e = 3, a = b = c = d
-  b -= e
-  tester::assert(a + b + c == d * e - e, "A1")
+  # chained assignment: all variables receive the same value
+  a = b = c = 10
+  tester::assert(a == 10 and b == 10 and c == 10, "A1: chained assignment")
+
+  # compound arithmetic operators
+  n = 20
+  n += 5
+  tester::assert(n == 25, "A2: +=")
+  n -= 10
+  tester::assert(n == 15, "A3: -=")
+  n *= 4
+  tester::assert(n == 60, "A4: *=")
+  n /= 3
+  tester::assert(n == 20, "A5: /=")
+  n %= 7
+  tester::assert(n == 6, "A6: %=")
+  n **= 3
+  tester::assert(n == 216, "A7: **=")
+
+  # list index assignment
+  lst = [10, 20, 30, 40, 50]
+  lst[0] = 99
+  lst[4] = 1
+  tester::assert(lst[0] == 99, "A8: list index assign first")
+  tester::assert(lst[4] == 1,  "A9: list index assign last")
+  lst[2] += 5
+  tester::assert(lst[2] == 35, "A10: list index compound assign")
+
+  # hashmap key assignment
+  h = { "x": 1, "y": 2 }
+  h["x"] = 42
+  h["z"] = 99
+  tester::assert(h["x"] == 42, "A11: hashmap update existing key")
+  tester::assert(h["z"] == 99, "A12: hashmap assign new key")
+
+  # swap via unpacking
+  p, q =< 7, 13
+  p, q =< q, p
+  tester::assert(p == 13 and q == 7, "A13: swap via =<")
+
+  # multi-variable unpacking from a list
+  nums = [100, 200, 300]
+  x, y, z =< nums
+  tester::assert(x == 100 and y == 200 and z == 300, "A14: unpack from list")
 end)
