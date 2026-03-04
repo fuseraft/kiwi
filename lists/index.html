@@ -1608,6 +1608,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mutating-nested-collections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutating Nested Collections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#best-practices-tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3001,6 +3012,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mutating-nested-collections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutating Nested Collections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#best-practices-tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3243,6 +3265,25 @@ Writing past the end throws an error (use <code>.push()</code> to grow).</p>
 </span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>println counts
 </span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a># { &quot;kiwi&quot;: 3, &quot;is&quot;: 2, &quot;fun&quot;: 1, &quot;awesome&quot;: 1, &quot;wins&quot;: 1 }
 </span></code></pre></div>
+<h2 id="mutating-nested-collections">Mutating Nested Collections<a class="headerlink" href="#mutating-nested-collections" title="Permanent link">&para;</a></h2>
+<p><strong>Direct chained mutation</strong> on an indexed element works correctly — the change is reflected in the original container:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>matrix = [[1, 2, 3], [4, 5, 6]]
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>matrix[0].push(99)
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>println matrix    # [[1, 2, 3, 99], [4, 5, 6]]
+</span></code></pre></div>
+<p>However, <strong>extracting a collection to a variable</strong> gives you a copy. Mutations to that copy are not reflected in the original — you must write it back.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>matrix = [[1, 2, 3], [4, 5, 6]]
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>row = matrix[0]   # row is a copy
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>row.push(99)      # modifies only the copy
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>println matrix    # [[1, 2, 3], [4, 5, 6]] — unchanged!
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>row = matrix[0]
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>row.push(99)
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>matrix[0] = row   # write back — required
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>println matrix    # [[1, 2, 3, 99], [4, 5, 6]]
+</span></code></pre></div>
+<p>The write-back rule applies to lists-of-hashmaps, nested lists, or any other extracted collection. When in doubt, prefer direct chained operations, or extract-mutate-reassign explicitly.</p>
 <h2 id="best-practices-tips">Best Practices &amp; Tips<a class="headerlink" href="#best-practices-tips" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Chain <code>.filter()</code>, <code>.map()</code>, <code>.take()</code>, etc. for clean data pipelines</li>

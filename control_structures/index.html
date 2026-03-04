@@ -2887,15 +2887,22 @@
 - <code>exit … when …</code>
 - <code>x = expr when …</code> and <code>x += expr when …</code> (all assignment forms)
 - bare method/function calls: <code>some_fn() when …</code></p>
+<p><strong>Not meaningful</strong> on a bare expression whose value is discarded — the expression evaluates to a value but nothing uses it, so the <code>when</code> guard has no observable effect:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>x + 1 when flag   # pointless — result is discarded
+</span></code></pre></div>
+<p>If you want to conditionally execute something, use a method call or an assignment:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>log(x + 1) when flag      # ✓ call with side-effect
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>result = x + 1 when flag  # ✓ assignment (result is null if condition is false)
+</span></code></pre></div>
 <p><strong>Lazy evaluation for assignments:</strong> the right-hand side expression is only evaluated when the condition is true. This means it is safe to guard against expensive or potentially failing calls:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>for entry in fio::listdir(path, true) do
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  total += fio::filesize(entry) when fio::isfile(entry)
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>end
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>for entry in fio::listdir(path, true) do
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  total += fio::filesize(entry) when fio::isfile(entry)
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>end
 </span></code></pre></div>
 <h2 id="4-ternary-operator">4. Ternary operator <code>?:</code><a class="headerlink" href="#4-ternary-operator" title="Permanent link">&para;</a></h2>
 <p>Inline if-else expression.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>status = file.exists() ? &quot;found&quot; : &quot;not found&quot;
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>price_display = discount &gt; 0 ? &quot;${price * (1 - discount)}&quot; : price
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>status = file.exists() ? &quot;found&quot; : &quot;not found&quot;
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>price_display = discount &gt; 0 ? &quot;${price * (1 - discount)}&quot; : price
 </span></code></pre></div>
 <h2 id="related-topics">Related topics<a class="headerlink" href="#related-topics" title="Permanent link">&para;</a></h2>
 <ul>

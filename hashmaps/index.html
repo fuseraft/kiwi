@@ -1586,6 +1586,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mutating-nested-collections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutating Nested Collections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#best-practices-tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2845,6 +2856,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mutating-nested-collections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutating Nested Collections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#best-practices-tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3074,6 +3096,27 @@ Both notations return <code>null</code> if the key doesn't exist (safe access).<
 </span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>for k, v in config do
 </span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>  println &quot;  ${k}: ${v}&quot;
 </span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>end
+</span></code></pre></div>
+<h2 id="mutating-nested-collections">Mutating Nested Collections<a class="headerlink" href="#mutating-nested-collections" title="Permanent link">&para;</a></h2>
+<p><strong>Extracting a collection to a variable</strong> gives you a copy. Mutations to that copy are not reflected in the original — you must write the value back.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>config = {&quot;servers&quot;: [&quot;a&quot;, &quot;b&quot;]}
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>servers = config[&quot;servers&quot;]   # copy
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>servers.push(&quot;c&quot;)             # modifies only the copy
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>println config                # {&quot;servers&quot;: [&quot;a&quot;, &quot;b&quot;]} — unchanged!
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>servers = config[&quot;servers&quot;]
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>servers.push(&quot;c&quot;)
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>config[&quot;servers&quot;] = servers   # write back — required
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>println config                # {&quot;servers&quot;: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]}
+</span></code></pre></div>
+<p>The same applies to hashmaps nested inside hashmaps:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>data = {&quot;user&quot;: {&quot;name&quot;: &quot;Kiwi&quot;, &quot;age&quot;: 1}}
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>user = data[&quot;user&quot;]   # copy
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>user[&quot;age&quot;] = 2
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>data[&quot;user&quot;] = user   # write back required
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>println data          # {&quot;user&quot;: {&quot;name&quot;: &quot;Kiwi&quot;, &quot;age&quot;: 2}}
 </span></code></pre></div>
 <h2 id="best-practices-tips">Best Practices &amp; Tips<a class="headerlink" href="#best-practices-tips" title="Permanent link">&para;</a></h2>
 <ul>

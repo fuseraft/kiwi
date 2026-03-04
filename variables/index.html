@@ -2993,13 +2993,12 @@
 </span></code></pre></div>
 <p>Now, <code>zero</code> is <code>0</code> and <code>one</code> is <code>1</code>.</p>
 <h2 id="variable-scope">Variable Scope<a class="headerlink" href="#variable-scope" title="Permanent link">&para;</a></h2>
-<p>Variables in Kiwi are function-scoped, meaning they are only accessible within the function where they are defined unless passed as arguments or returned from a function.</p>
-<p>For example:</p>
+<p>Kiwi uses lexical scoping. Variables created inside a function are local to that call. Variables created inside a control-flow block (<code>if</code>, <code>while</code>, <code>for</code>, <code>repeat</code>, <code>do</code>) are local to that block. See <a href="../scoping/">Scoping</a> for the full rules.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>fn example_scope()
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>  x = 100  # `x` is only available within this function
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>  x = 100  # local to this function call
 </span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>end
 </span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>println(x)  # null
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>println x  # null
 </span></code></pre></div>
 <h4 id="string-interpolation-with-variables">String Interpolation with Variables<a class="headerlink" href="#string-interpolation-with-variables" title="Permanent link">&para;</a></h4>
 <p>Kiwi supports string interpolation, allowing you to embed variable values directly into strings using <code>${}</code> syntax:</p>
