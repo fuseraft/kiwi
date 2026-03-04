@@ -716,6 +716,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#coderunner-execute-inline-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CodeRunner – Execute Inline Code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#stdinrunner-run-from-pipe" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2656,6 +2667,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#coderunner-execute-inline-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CodeRunner – Execute Inline Code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#stdinrunner-run-from-pipe" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2823,6 +2845,12 @@
 <td><code>kiwi script.kiwi</code></td>
 </tr>
 <tr>
+<td><code>CodeRunner</code></td>
+<td>Execute a code string inline</td>
+<td><code>-e</code> flag</td>
+<td><code>kiwi -e 'println "hi"'</code></td>
+</tr>
+<tr>
 <td><code>StdInRunner</code></td>
 <td>Run from piped input</td>
 <td><code>stdin</code></td>
@@ -2871,12 +2899,30 @@
 <li>Then loads <code>hello.kiwi</code></li>
 <li>Executes top-level code and <code>main()</code> if defined</li>
 </ul>
+<h2 id="coderunner-execute-inline-code"><code>CodeRunner</code> – Execute Inline Code<a class="headerlink" href="#coderunner-execute-inline-code" title="Permanent link">&para;</a></h2>
+<p><strong>Use Case</strong>: Quick one-liners, shell aliases, scripted invocations without a file.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kiwi<span class="w"> </span>--execute<span class="w"> </span><span class="s1">&#39;println(&quot;Hello!&quot;)&#39;</span><span class="w">   </span><span class="c1"># long form</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>kiwi<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;println(&quot;Hello!&quot;)&#39;</span><span class="w">          </span><span class="c1"># short form</span>
+</span></code></pre></div>
+<ul>
+<li>Accepts a <strong>string of Kiwi code</strong> as the argument</li>
+<li>Loads the <strong>standard library</strong> (use <code>-ns</code> to skip)</li>
+<li>Supports multi-line code via shell <code>$'...'</code> quoting:</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kiwi<span class="w"> </span>-e<span class="w"> </span><span class="s1">$&#39;x = 6 * 7\nprintln(x)&#39;</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># 42</span>
+</span></code></pre></div>
+<ul>
+<li>Can be combined with key-value args:</li>
+</ul>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kiwi<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;println(__argv__)&#39;</span><span class="w"> </span>-name<span class="o">=</span>world
+</span></code></pre></div>
 <h2 id="stdinrunner-run-from-pipe"><code>StdInRunner</code> – Run from Pipe<a class="headerlink" href="#stdinrunner-run-from-pipe" title="Permanent link">&para;</a></h2>
 <p><strong>Use Case</strong>: Shell pipelines, filters, one-liners.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;println &#39;Hello from pipe&#39;&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>kiwi
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># Hello from pipe</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>find<span class="w"> </span>.<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.kiwi&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-I<span class="w"> </span><span class="o">{}</span><span class="w"> </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;echo &#39;--- {} ---&#39;; kiwi {}&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;println &#39;Hello from pipe&#39;&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>kiwi
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Hello from pipe</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>find<span class="w"> </span>.<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.kiwi&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>-I<span class="w"> </span><span class="o">{}</span><span class="w"> </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;echo &#39;--- {} ---&#39;; kiwi {}&quot;</span>
 </span></code></pre></div>
 <ul>
 <li>Reads <strong>all input</strong> from <code>stdin</code></li>
@@ -2886,18 +2932,18 @@
 </ul>
 <h2 id="replrunner-interactive-mode"><code>REPLRunner</code> – Interactive Mode<a class="headerlink" href="#replrunner-interactive-mode" title="Permanent link">&para;</a></h2>
 <p><strong>Use Case</strong>: Learning, debugging, rapid prototyping.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kiwi<span class="w"> </span>--interactive<span class="w">   </span><span class="c1"># long form</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>kiwi<span class="w"> </span>-i<span class="w">              </span><span class="c1"># short form</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kiwi<span class="w"> </span>--interactive<span class="w">   </span><span class="c1"># long form</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>kiwi<span class="w"> </span>-i<span class="w">              </span><span class="c1"># short form</span>
 </span></code></pre></div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>&gt; println 1 + 2
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>3
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>&gt; for i in [1, 2, 3] do \
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>&gt;   println i * 2 \
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>&gt; end
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>2
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>4
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>6
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>&gt; .exit
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>&gt; println 1 + 2
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>3
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>&gt; for i in [1, 2, 3] do \
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>&gt;   println i * 2 \
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>&gt; end
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>2
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>4
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>6
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>&gt; .exit
 </span></code></pre></div>
 <h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2908,31 +2954,31 @@
 </ul>
 <h2 id="astprinter-debug-the-parser"><code>ASTPrinter</code> – Debug the Parser<a class="headerlink" href="#astprinter-debug-the-parser" title="Permanent link">&para;</a></h2>
 <p><strong>Use Case</strong>: Understand how code is parsed.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kiwi<span class="w"> </span>--ast<span class="w"> </span>hello.kiwi<span class="w">   </span><span class="c1"># long form</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>kiwi<span class="w"> </span>-a<span class="w"> </span>hello.kiwi<span class="w">      </span><span class="c1"># short form</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>kiwi<span class="w"> </span>--ast<span class="w"> </span>hello.kiwi<span class="w">   </span><span class="c1"># long form</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>kiwi<span class="w"> </span>-a<span class="w"> </span>hello.kiwi<span class="w">      </span><span class="c1"># short form</span>
 </span></code></pre></div>
 <p><strong>Sample Output</strong>:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Generating AST: hello.kiwi
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Program:
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  PrintLine:
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    Literal: &quot;Hello, World!&quot;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Generating AST: hello.kiwi
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Program:
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  PrintLine:
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    Literal: &quot;Hello, World!&quot;
 </span></code></pre></div></p>
 <h2 id="debugrunner-interactive-debugger-kdb"><code>DebugRunner</code> – Interactive Debugger (<code>kdb</code>)<a class="headerlink" href="#debugrunner-interactive-debugger-kdb" title="Permanent link">&para;</a></h2>
 <p><strong>Use Case</strong>: Step through code, inspect variables, set breakpoints.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kiwi<span class="w"> </span>--debug<span class="w"> </span>script.kiwi<span class="w">   </span><span class="c1"># long form</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>kiwi<span class="w"> </span>-d<span class="w"> </span>script.kiwi<span class="w">        </span><span class="c1"># short form</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kiwi<span class="w"> </span>--debug<span class="w"> </span>script.kiwi<span class="w">   </span><span class="c1"># long form</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>kiwi<span class="w"> </span>-d<span class="w"> </span>script.kiwi<span class="w">        </span><span class="c1"># short form</span>
 </span></code></pre></div>
 <p>Launches the <code>kdb</code> interactive debugger. Starts paused at the first statement.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>kdb - Kiwi Debugger
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Debugging: script.kiwi
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>Type &#39;h&#39; for help, &#39;s&#39; to step, &#39;r&#39; to run.
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>=&gt; script.kiwi:3
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>     1: fn greet(name)
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>     2:   println &quot;Hello, ${name}!&quot;
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>  =&gt; 3:   greet(&quot;world&quot;)
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>(kdb)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kdb - Kiwi Debugger
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Debugging: script.kiwi
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Type &#39;h&#39; for help, &#39;s&#39; to step, &#39;r&#39; to run.
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>=&gt; script.kiwi:3
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>     1: fn greet(name)
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>     2:   println &quot;Hello, ${name}!&quot;
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>  =&gt; 3:   greet(&quot;world&quot;)
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>(kdb)
 </span></code></pre></div>
 <h3 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h3>
 <table>
@@ -3020,22 +3066,22 @@
 <hr />
 <h2 id="tokenprinter-debug-the-lexer"><code>TokenPrinter</code> – Debug the Lexer<a class="headerlink" href="#tokenprinter-debug-the-lexer" title="Permanent link">&para;</a></h2>
 <p><strong>Use Case</strong>: Fix syntax errors, learn tokenization.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kiwi<span class="w"> </span>--tokens<span class="w"> </span>hello.kiwi<span class="w">   </span><span class="c1"># long form</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>kiwi<span class="w"> </span>-t<span class="w"> </span>hello.kiwi<span class="w">         </span><span class="c1"># short form</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kiwi<span class="w"> </span>--tokens<span class="w"> </span>hello.kiwi<span class="w">   </span><span class="c1"># long form</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>kiwi<span class="w"> </span>-t<span class="w"> </span>hello.kiwi<span class="w">         </span><span class="c1"># short form</span>
 </span></code></pre></div>
 <p><strong>Sample Output</strong>:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Tokenizing: hello.kiwi
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Token #               Type  Name                 Text                
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>-------               ----  ----                 ----                
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>1                  Keyword  KW_PrintLn           println             
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>2                   String  Default              Hello, World!       
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>3                      Eof  Default                               
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Tokenizing: hello.kiwi
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>Token #               Type  Name                 Text                
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>-------               ----  ----                 ----                
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>1                  Keyword  KW_PrintLn           println             
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>2                   String  Default              Hello, World!       
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>3                      Eof  Default                               
 </span></code></pre></div></p>
 <h2 id="standard-library">Standard Library<a class="headerlink" href="#standard-library" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Loaded automatically</strong> in <code>ScriptRunner</code>, <code>StdInRunner</code>, and <code>REPLRunner</code></li>
-<li><strong>Skipped</strong> in <code>--ast</code> and <code>--tokenize</code></li>
+<li><strong>Loaded automatically</strong> in <code>ScriptRunner</code>, <code>CodeRunner</code>, <code>StdInRunner</code>, and <code>REPLRunner</code></li>
+<li><strong>Skipped</strong> in <code>--ast</code> and <code>--tokens</code></li>
 <li>Configured in <a href="../src/kiwi-settings.json"><code>kiwi-settings.json</code></a></li>
 <li><strong>Last file wins</strong> (for overrides)</li>
 </ul>
@@ -3044,23 +3090,26 @@
 - <code>KiwiError</code> -&gt; Pretty print with file/line
 - <code>Exception</code> -&gt; Full crash log + stack trace</p>
 <h2 id="quick-testing">Quick Testing<a class="headerlink" href="#quick-testing" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Run a script</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>kiwi<span class="w"> </span>test.kiwi
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Pipe input</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;println 100&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>kiwi
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Interactive</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>kiwi<span class="w"> </span>-i
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1"># Step debugger</span>
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>kiwi<span class="w"> </span>-d<span class="w"> </span>test.kiwi
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c1"># Debug parser</span>
-</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>kiwi<span class="w"> </span>-a<span class="w"> </span>test.kiwi
-</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>
-</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="c1"># Debug lexer</span>
-</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>kiwi<span class="w"> </span>-t<span class="w"> </span>test.kiwi
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Run a script</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>kiwi<span class="w"> </span>test.kiwi
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Execute inline code</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>kiwi<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;println(&quot;hello&quot;)&#39;</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Pipe input</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;println 100&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>kiwi
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="c1"># Interactive</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>kiwi<span class="w"> </span>-i
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="c1"># Step debugger</span>
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>kiwi<span class="w"> </span>-d<span class="w"> </span>test.kiwi
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="c1"># Debug parser</span>
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>kiwi<span class="w"> </span>-a<span class="w"> </span>test.kiwi
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>
+</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="c1"># Debug lexer</span>
+</span><span id="__span-13-20"><a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>kiwi<span class="w"> </span>-t<span class="w"> </span>test.kiwi
 </span></code></pre></div>
 
 

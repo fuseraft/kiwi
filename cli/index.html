@@ -694,6 +694,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#-e-execute-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -e, --execute &lt;code&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#-d-debug-input_file_path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2695,6 +2706,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#-e-execute-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -e, --execute &lt;code&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#-d-debug-input_file_path" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2835,41 +2857,54 @@
 <p>To learn more about the REPL, please see <a href="../repl/">REPL</a>.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kiwi -i
 </span></code></pre></div>
+<h3 id="-e-execute-code"><code>-e</code>, <code>--execute &lt;code&gt;</code><a class="headerlink" href="#-e-execute-code" title="Permanent link">&para;</a></h3>
+<p>Executes a string of Kiwi code directly, without needing a file. The standard library is loaded as normal.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kiwi -e &#39;println &quot;Hello!&quot;&#39;
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>kiwi --execute &#39;println &quot;Hello!&quot;&#39;
+</span></code></pre></div>
+<p>For multi-line code, use shell <code>$'...'</code> quoting with <code>\n</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kiwi<span class="w"> </span>-e<span class="w"> </span><span class="s1">$&#39;x = 6 * 7\nprintln x&#39;</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># 42</span>
+</span></code></pre></div>
+<p>Key-value arguments can be passed alongside:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="w"> </span>kiwi<span class="w"> </span>-e<span class="w"> </span><span class="s1">&#39;println env::argv()&#39;</span><span class="w"> </span>-name<span class="o">=</span>world
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c1"># {&quot;name&quot;: &quot;world&quot;}</span>
+</span></code></pre></div>
 <h3 id="-d-debug-input_file_path"><code>-d</code>, <code>--debug &lt;input_file_path&gt;</code><a class="headerlink" href="#-d-debug-input_file_path" title="Permanent link">&para;</a></h3>
 <p>Runs a script under the <code>kdb</code> interactive debugger. Execution pauses at the first statement and presents a <code>(kdb)</code> prompt where you can step through the program, inspect variables, set breakpoints, and evaluate expressions.</p>
 <p>To learn more, see <a href="../kdb/">kdb — Kiwi Debugger</a>.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kiwi -d filename         # Debug the file with kdb.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kiwi -d filename         # Debug the file with kdb.
 </span></code></pre></div>
 <h3 id="-a-ast-input_file_path"><code>-a</code>, <code>--ast &lt;input_file_path&gt;</code><a class="headerlink" href="#-a-ast-input_file_path" title="Permanent link">&para;</a></h3>
 <p>Prints the abstract syntax tree of the input file.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kiwi -a filename         # Prints AST of the file.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kiwi -a filename         # Prints AST of the file.
 </span></code></pre></div>
 <h3 id="-t-tokens-input_file_path"><code>-t</code>, <code>--tokens &lt;input_file_path&gt;</code><a class="headerlink" href="#-t-tokens-input_file_path" title="Permanent link">&para;</a></h3>
 <p>Tokenizes a file with the Kiwi lexer and prints the results to the standard output stream.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>kiwi -t filename         # Prints tokens by line from the file
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kiwi -t filename         # Prints tokens by line from the file
 </span></code></pre></div>
 <h3 id="-n-new-file_path"><code>-n</code>, <code>--new &lt;file_path&gt;</code><a class="headerlink" href="#-n-new-file_path" title="Permanent link">&para;</a></h3>
 <p>Creates a new file with the <code>.kiwi</code> extension. If you don't include the extension in <code>&lt;file_path&gt;</code>, it will be appended automatically.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kiwi -n filename         # Creates ./filename.kiwi
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>kiwi -n ../app           # Creates ../app.kiwi in the parent directory
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>kiwi -n ./somedir/app    # Creates ./somedir/app.kiwi in the specified subdirectory
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kiwi -n filename         # Creates ./filename.kiwi
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>kiwi -n ../app           # Creates ../app.kiwi in the parent directory
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>kiwi -n ./somedir/app    # Creates ./somedir/app.kiwi in the specified subdirectory
 </span></code></pre></div>
 <p>Note: If a file with the same name already exists, the CLI will notify you to prevent accidental overwriting.<br><br></p>
 <h3 id="-sm-safemode"><code>-sm</code>, <code>--safemode</code><a class="headerlink" href="#-sm-safemode" title="Permanent link">&para;</a></h3>
 <p>Runs Kiwi in safe mode. This disables access to web, filesystem, and system shell functionality.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kiwi -sm filename        # Runs the file in safe mode.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kiwi -sm filename        # Runs the file in safe mode.
 </span></code></pre></div>
 <h3 id="-ns-no-stdlib"><code>-ns</code>, <code>--no-stdlib</code><a class="headerlink" href="#-ns-no-stdlib" title="Permanent link">&para;</a></h3>
 <p>Runs Kiwi without loading its standard library.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kiwi -ns filename.k        # Runs `filename.k` without loading the Kiwi standard library.
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>kiwi -ns filename.k        # Runs `filename.k` without loading the Kiwi standard library.
 </span></code></pre></div>
 <h3 id="-p-stdlib-path-path"><code>-p</code>, <code>--stdlib-path &lt;path&gt;</code><a class="headerlink" href="#-p-stdlib-path-path" title="Permanent link">&para;</a></h3>
 <p>Overrides the standard library path. Kiwi will load <code>.kiwi</code> files from the specified directory instead of the default stdlib location.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>kiwi -p ~/my-stdlib script.kiwi
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>kiwi -p ~/my-stdlib script.kiwi
 </span></code></pre></div>
 <h3 id="-keyvalue"><code>-&lt;key&gt;=&lt;value&gt;</code><a class="headerlink" href="#-keyvalue" title="Permanent link">&para;</a></h3>
 <p>Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kiwi myapp -theme=dark
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>kiwi myapp -theme=dark
 </span></code></pre></div>
 
 
