@@ -28,6 +28,15 @@ public class Lexer : IDisposable
         CloseOnDispose = true;
     }
 
+    public Lexer(int fileId, string code, int startLine, int startPos)
+    {
+        File = fileId;
+        stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(code));
+        CloseOnDispose = true;
+        LineNumber = startLine;
+        Position = startPos;
+    }
+
     /// <summary>
     /// Creates a lexer from a stream. Does NOT close the stream on dispose unless specified.
     /// </summary>
