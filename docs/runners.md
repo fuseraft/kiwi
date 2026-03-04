@@ -198,8 +198,10 @@ Token #               Type  Name                 Text
 ## Error Handling
 
 All runners catch:
-- `KiwiError` -> Pretty print with file/line
-- `Exception` -> Full crash log + stack trace
+- `KiwiError` → Pretty-print error type, message, and file/line to stderr
+- `Exception` → Print message and stack trace to stderr
+
+Crash dump logging is **opt-in** via the `-cd`/`--crash-dump` flag (or by setting `"crashdump_path"` in `kiwi-settings.json`). When enabled, errors are also appended to the configured log file.
 
 ## Quick Testing
 

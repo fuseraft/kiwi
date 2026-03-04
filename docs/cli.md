@@ -130,6 +130,17 @@ Overrides the standard library path. Kiwi will load `.kiwi` files from the speci
 kiwi -p ~/my-stdlib script.kiwi
 ```
 
+### `-cd`, `--crash-dump`
+
+Enables crash dump logging. When set, errors and unhandled exceptions are appended to `kiwi_crash.log` in the current directory. Without this flag, errors are only printed to stderr and no file is written.
+
+```
+kiwi -cd script.kiwi
+kiwi --crash-dump script.kiwi
+```
+
+The log path can also be set permanently via `"crashdump_path"` in `kiwi-settings.json`.
+
 ### `-<key>=<value>`
 
 Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
