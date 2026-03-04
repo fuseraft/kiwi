@@ -56,6 +56,7 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
 
 ## **Standard Library**
 
+- [`cli`](lib/cli.md) — Output helpers, tables, progress bars, prompts, and argument parsing for CLI apps.
 - [`collections`](lib/collections.md) — Specialized collection types, including `Heap` and `Set`.
 - [`compress`](lib/compress.md) — Functions for compression and decompression.
 - [`console`](lib/console.md) — An interface that wraps core I/O operations.

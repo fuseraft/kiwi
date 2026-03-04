@@ -7,6 +7,7 @@ The standard library is a collection of packages containing useful functions and
 | Package | Description |
 | --- | --- |
 | [`bench`](bench.md) | A benchmarking framework for measuring and reporting code performance. |
+| [`cli`](cli.md) | Output helpers, tables, progress bars, prompts, and argument parsing for CLI apps. |
 | [`collections`](collections.md) | Specialized collection types, including `Heap` and `Set`. |
 | [`compress`](compress.md) | Functions for compression and decompression. |
 | [`console`](console.md) | An interface that wraps core I/O operations. |
