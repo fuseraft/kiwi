@@ -53,10 +53,9 @@ tester::register_test("scoping", with do
     end
     fn serialize()
       @_buf = "v=${@val}"
+      child_str = ""
       if @child != null
         child_str = @child.serialize()
-      else
-        child_str = ""
       end
       "${@_buf}[${child_str}]"
     end

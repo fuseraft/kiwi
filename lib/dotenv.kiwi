@@ -80,6 +80,7 @@ package dotenv
 
       raw = line[eq + 1:]
 
+      val = ""
       if raw.begins_with('"')
         val = dotenv::_parse_dquoted(raw)
       elsif raw.begins_with("'")
