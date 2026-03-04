@@ -334,19 +334,10 @@ public partial class Parser
         else if (GetTokenName() == TokenName.KW_Do)
         {
             // on "event-name" do [ statements ] end
+            var openToken = token;
             Next(); // Consume 'do'
 
-            List<ASTNode?> body = [];
-            while (GetTokenName() != TokenName.KW_End)
-            {
-                var stmt = ParseStatement();
-                if (stmt != null)
-                {
-                    body.Add(stmt);
-                }
-            }
-
-            Next();  // Consume 'end'
+            var body = ParseSimpleBlock(openToken);
 
             callback = new LambdaNode
             {
@@ -379,6 +370,7 @@ public partial class Parser
 
     private ASTNode? ParseDo()
     {
+        var openToken = token;
         MatchName(TokenName.KW_Do);  // Consume 'do'
 
         /*
@@ -404,6 +396,11 @@ public partial class Parser
         ASTNode? condition = null;
         while (GetTokenName() != TokenName.KW_End)
         {
+            if (GetTokenType() == TokenType.Eof)
+            {
+                throw new UnexpectedEndOfFileError(openToken);
+            }
+
             // if we find `when`, grab the condition and check for block separator.
             if (MatchName(TokenName.KW_When))
             {
@@ -446,6 +443,7 @@ public partial class Parser
 
     private StructNode? ParseStruct(bool isAbstract = false)
     {
+        var openToken = token;
         MatchName(TokenName.KW_Struct);
 
         if (GetTokenType() != TokenType.Identifier)
@@ -495,6 +493,11 @@ public partial class Parser
 
         while (GetTokenName() != TokenName.KW_End)
         {
+            if (GetTokenType() == TokenType.Eof)
+            {
+                throw new UnexpectedEndOfFileError(openToken);
+            }
+
             if (MatchName(TokenName.KW_Static))
             {
                 isStatic = true;
@@ -717,7 +720,8 @@ public partial class Parser
         var isTypeName = GetTokenType() == TokenType.Typename;
         var isOperator = GetTokenType() == TokenType.Operator;
 
-        if (isOperator && token.Text is "=" or "+=" or "-=" or "*=" or "/=" or "%=" or "**=")
+        if (isOperator && token.Text is "=" or "+=" or "-=" or "*=" or "/=" or "%=" or "**="
+                                       or "||=" or "&&=" or "|=" or "&=" or "<<=" or ">>=")
         {
             throw new SyntaxError(fnKeyword, $"'{fnKeyword.Text}' is a reserved keyword and cannot be used as a variable name.");
         }
@@ -807,17 +811,7 @@ public partial class Parser
         }
 
         // Parse the function body
-        List<ASTNode?> body = [];
-        while (GetTokenName() != TokenName.KW_End)
-        {
-            var stmt = ParseStatement();
-            if (stmt != null)
-            {
-                body.Add(stmt);
-            }
-        }
-
-        Next();  // Consume 'end'
+        var body = ParseSimpleBlock(fnKeyword);
 
         PopNameStack();
 
@@ -839,6 +833,7 @@ public partial class Parser
 
     private ForLoopNode? ParseForLoop()
     {
+        var openToken = token;
         MatchName(TokenName.KW_For);  // Consume 'for'
 
         var mangledNames = GetNameMap();
@@ -878,17 +873,7 @@ public partial class Parser
             throw new SyntaxError(GetErrorToken(), "Expected 'do' in for-loop.");
         }
 
-        List<ASTNode?> body = [];
-        while (GetTokenName() != TokenName.KW_End)
-        {
-            var stmt = ParseStatement();
-            if (stmt != null)
-            {
-                body.Add(stmt);
-            }
-        }
-
-        Next();  // Consume 'end'
+        var body = ParseSimpleBlock(openToken);
 
         foreach (var mangledName in subMangled)
         {
@@ -905,6 +890,7 @@ public partial class Parser
 
     private WhileLoopNode? ParseWhileLoop()
     {
+        var openToken = token;
         MatchName(TokenName.KW_While);  // Consume 'while'
 
         var condition = ParseExpression();
@@ -914,17 +900,7 @@ public partial class Parser
             throw new SyntaxError(GetErrorToken(), "Expected 'do' in while-loop.");
         }
 
-        List<ASTNode?> body = [];
-        while (GetTokenName() != TokenName.KW_End)
-        {
-            var stmt = ParseStatement();
-            if (stmt != null)
-            {
-                body.Add(stmt);
-            }
-        }
-
-        Next();  // Consume 'end'
+        var body = ParseSimpleBlock(openToken);
 
         return new WhileLoopNode
         {
@@ -935,6 +911,7 @@ public partial class Parser
 
     private RepeatLoopNode? ParseRepeatLoop()
     {
+        var openToken = token;
         MatchName(TokenName.KW_Repeat);  // Consume 'repeat'
 
         var count = ParseExpression();
@@ -955,17 +932,7 @@ public partial class Parser
             throw new SyntaxError(GetErrorToken(), "Expected 'do' in repeat-loop.");
         }
 
-        List<ASTNode?> body = [];
-        while (GetTokenName() != TokenName.KW_End)
-        {
-            var stmt = ParseStatement();
-            if (stmt != null)
-            {
-                body.Add(stmt);
-            }
-        }
-
-        Next();  // Consume 'end'
+        var body = ParseSimpleBlock(openToken);
 
         return new RepeatLoopNode
         {
@@ -1153,6 +1120,7 @@ public partial class Parser
 
     private PackageNode? ParsePackage()
     {
+        var openToken = token;
         MatchName(TokenName.KW_Package);
 
         if (GetTokenType() is not TokenType.Identifier and
@@ -1163,17 +1131,7 @@ public partial class Parser
 
         var packageName = ParseIdentifier(false, true);
 
-        List<ASTNode?> body = [];
-        while (GetTokenName() != TokenName.KW_End)
-        {
-            var stmt = ParseStatement();
-            if (stmt != null)
-            {
-                body.Add(stmt);
-            }
-        }
-
-        Next();  // Consume 'end'
+        var body = ParseSimpleBlock(openToken);
 
         if (packageName != null && packageName is IdentifierNode idNode)
         {
@@ -1188,6 +1146,7 @@ public partial class Parser
 
     private CaseNode? ParseCase()
     {
+        var openToken = token;
         if (!MatchName(TokenName.KW_Case))
         {
             throw new SyntaxError(GetErrorToken(), "Expected case-statement.");
@@ -1220,6 +1179,11 @@ public partial class Parser
 
         while (GetTokenName() != TokenName.KW_End)
         {
+            if (GetTokenType() == TokenType.Eof)
+            {
+                throw new UnexpectedEndOfFileError(openToken);
+            }
+
             if (MatchName(TokenName.KW_When))
             {
                 var caseWhen = new CaseWhenNode();
@@ -1255,6 +1219,11 @@ public partial class Parser
 
                 while (GetTokenName() != TokenName.KW_End)
                 {
+                    if (GetTokenType() == TokenType.Eof)
+                    {
+                        throw new UnexpectedEndOfFileError(openToken);
+                    }
+
                     var stmt = ParseStatement();
                     if (stmt != null)
                     {
@@ -1496,12 +1465,33 @@ public partial class Parser
         return arguments;
     }
 
+    private List<ASTNode?> ParseSimpleBlock(Token openToken)
+    {
+        List<ASTNode?> body = [];
+        while (GetTokenName() != TokenName.KW_End)
+        {
+            if (GetTokenType() == TokenType.Eof)
+            {
+                throw new UnexpectedEndOfFileError(openToken);
+            }
+
+            var stmt = ParseStatement();
+            if (stmt != null)
+            {
+                body.Add(stmt);
+            }
+        }
+        Next();  // Consume 'end'
+        return body;
+    }
+
     private LambdaNode? ParseLambda()
     {
         /*
         When coming from `with`: consume otherwise assume: do (params) => statement / do (params) statements end
         This is for backwards compatibility with older syntax.
         */
+        var openToken = token;
         var assumedDoParse = GetTokenType() != TokenType.Lambda;
         if (!assumedDoParse)
         {
@@ -1605,16 +1595,7 @@ public partial class Parser
         else
         {
             // Read until `end`.
-            while (GetTokenName() != TokenName.KW_End)
-            {
-                var stmt = ParseStatement();
-                if (stmt != null)
-                {
-                    body.Add(stmt);
-                }
-            }
-
-            Next();  // Consume 'end'            
+            body = ParseSimpleBlock(openToken);
         }
 
         PopNameStack();

@@ -112,11 +112,6 @@ public partial class Parser(bool rethrowErrors = false)
                 throw;
             }
 
-            if (e is UnexpectedEndOfFileError && lastNode != null)
-            {
-                e.Token = lastNode.Token;
-            }
-
             ErrorHandler.PrintError(e);
         }
         catch (Exception e)
