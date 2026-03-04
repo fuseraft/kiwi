@@ -68,7 +68,7 @@ public class KiwiSettings
                 }
             ],
             Debug = new DebugSettings {},
-            CrashDumpPath = "./kiwi_crash.log"
+            CrashDumpPath = string.Empty
         };
     }
 }

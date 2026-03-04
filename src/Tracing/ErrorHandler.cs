@@ -51,9 +51,11 @@ public static class ErrorHandler
             }
         }
 
-        lines.Add(string.Empty);
-
-        File.AppendAllLines(Kiwi.Settings.CrashDumpPath, lines);
+        if (!string.IsNullOrEmpty(Kiwi.Settings.CrashDumpPath))
+        {
+            lines.Add(string.Empty);
+            File.AppendAllLines(Kiwi.Settings.CrashDumpPath, lines);
+        }
     }
 
     private static void PrintErrorLine(TokenSpan span)
@@ -91,8 +93,18 @@ public static class ErrorHandler
 
         lines.Add(string.Empty);
 
-        File.AppendAllLines(Kiwi.Settings.CrashDumpPath, lines);
-        PrintErrorText($"Please check the log: {Kiwi.Settings.CrashDumpPath}");
+        if (!string.IsNullOrEmpty(Kiwi.Settings.CrashDumpPath))
+        {
+            File.AppendAllLines(Kiwi.Settings.CrashDumpPath, lines);
+            PrintErrorText($"Please check the log: {Kiwi.Settings.CrashDumpPath}");
+        }
+        else
+        {
+            foreach (var line in lines.Skip(1).Where(l => !string.IsNullOrEmpty(l)))
+            {
+                PrintErrorText(line);
+            }
+        }
 
         Environment.Exit(1);
     }

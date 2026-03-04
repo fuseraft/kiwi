@@ -187,6 +187,14 @@ public class Config
                     }
                     break;
 
+                case "-cd":
+                case "--crash-dump":
+                    if (string.IsNullOrEmpty(Kiwi.Settings.CrashDumpPath))
+                    {
+                        Kiwi.Settings.CrashDumpPath = "./kiwi_crash.log";
+                    }
+                    break;
+
                 case "-e":
                 case "--execute":
                     if (!config.HasScripts && config.ExecuteCode == null)
@@ -291,6 +299,7 @@ public class Config
             ("-sm, --safemode", "run in safemode"),
             ("-p, --stdlib-path", "specify alternate stdlib path"),
             ("-d, --debug <input_path>", "run script in the kdb debugger"),
+            ("-cd, --crash-dump", $"write errors to kiwi_crash.log"),
             ("-<key>=<value>", "pass an argument as a key-value pair")
         ];
 

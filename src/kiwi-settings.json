@@ -29,6 +29,6 @@
     "environment_variables": {
       "_KIWI": ""
     },
-    "crashdump_path": "./kiwi_crash.log"
+    "crashdump_path": ""
   }
   
