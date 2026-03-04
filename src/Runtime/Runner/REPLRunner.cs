@@ -115,7 +115,7 @@ public class REPLRunner(Interpreter interpreter) : IRunner
             }
             catch (UnexpectedEndOfFileError)
             {
-                // Implicit multi-line block — wait for more input
+                // Implicit multi-line block and wait for more input
                 inContinuation = true;
             }
             catch (KiwiError e)

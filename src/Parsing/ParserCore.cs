@@ -175,6 +175,29 @@ public partial class Parser(bool rethrowErrors = false)
         return root;
     }
 
+    /// <summary>
+    /// Parses a single expression from a token stream. Used for sub-parsing
+    /// interpolation expressions.
+    /// </summary>
+    public ASTNode? ParseExpressionFromStream(TokenStream ts)
+    {
+        stream = ts;
+        token = stream.Current();
+        return ParseExpression();
+    }
+
+    /// <summary>
+    /// Skips zero or more consecutive Newline tokens. Called inside delimiters
+    /// (parens, brackets, braces) to allow multi-line expressions.
+    /// </summary>
+    private void SkipNewlines()
+    {
+        while (GetTokenType() == TokenType.Newline)
+        {
+            Next();
+        }
+    }
+
     private bool HasValue()
     {
         switch (GetTokenType())
@@ -187,6 +210,7 @@ public partial class Parser(bool rethrowErrors = false)
             case TokenType.LBrace:
             case TokenType.LBracket:
             case TokenType.Lambda:  // 'with' lambda expression
+            case TokenType.Interpolation:
                 return true;
 
             case TokenType.Conditional:

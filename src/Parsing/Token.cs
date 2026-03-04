@@ -156,5 +156,6 @@ public enum TokenType
     Question,
     Arrow,
     Error,
-    Eof
+    Eof,
+    Interpolation
 }

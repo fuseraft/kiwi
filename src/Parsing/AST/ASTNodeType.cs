@@ -19,6 +19,7 @@ public enum ASTNodeType
     HashLiteral,
     Identifier,
     If,
+    Interpolation,
     Import,
     Include,
     IndexAssignment,

@@ -135,7 +135,7 @@ public partial class Parser
                 node = ParseError();
                 break;
 
-            // @var or @@var used as a statement — route through ParseExpression so binary
+            // when @var or @@var used as a statement, route through ParseExpression so binary
             // operators (>=, ==, &&, etc.) are parsed correctly after the member access.
             case TokenType.Keyword when GetTokenName() is TokenName.KW_This or TokenName.KW_StaticSelf:
                 node = ParseExpression();
@@ -157,6 +157,7 @@ public partial class Parser
             case TokenType.Identifier:
             case TokenType.String:
             case TokenType.Bytes:
+            case TokenType.Interpolation:
                 node = ParseExpression();
                 break;
 
@@ -1589,7 +1590,7 @@ public partial class Parser
                 body.Add(stmt);
             }
 
-            // Optionally consume 'end' — arrow lambdas don't require it, but
+            // Optionally consume 'end' as arrow lambdas don't require it, but
             // users may write `do (x) => expr end` (symmetric with multi-line form).
             // Without this, a trailing 'end' would be left in the stream and cause
             // a parse error in the surrounding call argument list.
@@ -1701,6 +1702,124 @@ public partial class Parser
         var value = Value.Create(token.Value);
         Next();  // Consume literal
         return new LiteralNode(value);
+    }
+
+    private InterpolationNode ParseInterpolation()
+    {
+        var interpNode = new InterpolationNode { Token = token };
+        var text = GetTokenText();
+        Next();  // consume the Interpolation token
+
+        var sb = new System.Text.StringBuilder();
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            var c = text[i];
+
+            if (c == '$' && i + 1 < text.Length && text[i + 1] == '{')
+            {
+                // \${ escaped: treat as literal "${...}"
+                if (sb.Length > 0 && sb[^1] == '\\')
+                {
+                    sb.Remove(sb.Length - 1, 1);
+                    sb.Append("${");
+                    i += 2;  // skip '$' and '{'
+                    int depth = 1;
+                    while (i < text.Length && depth > 0)
+                    {
+                        char ci = text[i];
+                        
+                        if (ci == '{')
+                        {
+                            depth++;
+                            sb.Append(ci);
+                        }
+                        else if (ci == '}')
+                        {
+                            if (--depth > 0)
+                            {
+                                sb.Append(ci);
+                            }
+                        }
+                        else 
+                        {
+                            sb.Append(ci);
+                        }
+                        
+                        i++;
+                    }
+
+                    sb.Append('}');
+                    --i;
+                    continue;
+                }
+
+                // Flush accumulated literal segment
+                interpNode.Parts.Add(new LiteralNode(Value.CreateString(sb.ToString())) { Token = interpNode.Token });
+                sb.Clear();
+
+                i += 2;  // skip '$' and '{'
+
+                // Collect expression until matching '}'
+                int braces = 1;
+                while (i < text.Length && braces > 0)
+                {
+                    char ci = text[i];
+
+                    if (ci == '{')
+                    {
+                        braces++;
+                        sb.Append(ci);
+                    }
+                    else if (ci == '}')
+                    {
+                        if (--braces > 0)
+                        {
+                            sb.Append(ci);
+                        }
+                    }
+                    else
+                    {
+                        sb.Append(ci);
+                    }
+
+                    i++;
+                }
+
+                --i;  // compensate for loop's ++i
+
+                var code = sb.ToString();
+                sb.Clear();
+
+                if (!string.IsNullOrEmpty(code))
+                {
+                    using var lex = new Lexer(interpNode.Token.Span.File, code);
+                    var subStream = lex.GetTokenStream();
+                    var savedStream = stream;
+                    var savedToken = token;
+                    var exprNode = ParseExpressionFromStream(subStream);
+                    stream = savedStream;
+                    token = savedToken;
+                    
+                    if (exprNode != null)
+                    {
+                        interpNode.Parts.Add(exprNode);
+                    }
+                }
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+
+        // Flush remaining literal segment
+        if (sb.Length > 0)
+        {
+            interpNode.Parts.Add(new LiteralNode(Value.CreateString(sb.ToString())) { Token = interpNode.Token });
+        }
+
+        return interpNode;
     }
 
     private HashLiteralNode? ParseHashLiteral()
@@ -1876,7 +1995,8 @@ public partial class Parser
                 not ASTNodeType.FunctionCall and
                 not ASTNodeType.BinaryOperation and
                 not ASTNodeType.MethodCall and
-                not ASTNodeType.MemberAccess)
+                not ASTNodeType.MemberAccess and
+                not ASTNodeType.Interpolation)
             {
                 throw new SyntaxError(indexValueToken, "Invalid index value in indexer.");
             }
@@ -2450,6 +2570,10 @@ public partial class Parser
             case TokenType.Typename:
             case TokenType.Bytes:
                 node = ParseLiteral();
+                break;
+
+            case TokenType.Interpolation:
+                node = ParseInterpolation();
                 break;
 
             case TokenType.LParen:

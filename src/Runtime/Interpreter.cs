@@ -111,6 +111,7 @@ public class Interpreter
             ASTNodeType.Identifier => Visit((IdentifierNode)node),
             ASTNodeType.If => Visit((IfNode)node),
             ASTNodeType.Import => Visit((ImportNode)node),
+            ASTNodeType.Interpolation => Visit((InterpolationNode)node),
             ASTNodeType.Include => Visit((IncludeNode)node),
             ASTNodeType.Index => Visit((IndexingNode)node),
             ASTNodeType.IndexAssignment => Visit((IndexAssignmentNode)node),
@@ -3963,6 +3964,17 @@ public class Interpreter
     }
 
     private static Value Visit(LiteralNode node) => node.Value;
+
+    private Value Visit(InterpolationNode node)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var part in node.Parts)
+        {
+            var value = Interpret(part);
+            sb.Append(value.IsString() ? value.GetString() : ConversionOp.ToString(value));
+        }
+        return Value.CreateString(sb.ToString());
+    }
 
     private StackFrame PushFrame(StackFrame frame, bool inLambda = false)
     {
