@@ -5,7 +5,7 @@
 const KIWI_STDLIB_VERSION = "1.3.9"
 
 const STDLIB_PACKAGES = [
-  "bench", "hashable", "compress", "console", "crypto", "csv",
+  "bench", "cli", "hashable", "compress", "console", "crypto", "csv",
   "date", "dotenv", "env", "fio", "http", "iter", "list", "path", "math", "socket", "tls",
   "std", "std::error", "stdin", "string", "sys", "task", "tester", "time",
   "reflector", "regex", "xml"
