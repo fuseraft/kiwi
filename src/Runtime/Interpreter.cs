@@ -3557,6 +3557,14 @@ public class Interpreter
         }
 
         var path = FileUtil.GetAbsolutePath(token, packagePath);
+
+        if (Context.Includes.Contains(path))
+        {
+            return;
+        }
+
+        Context.Includes.Add(path);
+
         using Lexer lexer = new(path);
 
         Parser p = new(true);
@@ -3564,8 +3572,6 @@ public class Interpreter
         var ast = p.ParseTokenStream(tokenStream, true);
 
         Interpret(ast);
-
-        return;
     }
     private Value BytesLoop(ForLoopNode node, byte[] list)
     {
