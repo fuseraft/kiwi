@@ -203,6 +203,33 @@ println counts
 # { "kiwi": 3, "is": 2, "fun": 1, "awesome": 1, "wins": 1 }
 ```
 
+## Mutating Nested Collections
+
+**Direct chained mutation** on an indexed element works correctly — the change is reflected in the original container:
+
+```kiwi
+matrix = [[1, 2, 3], [4, 5, 6]]
+matrix[0].push(99)
+println matrix    # [[1, 2, 3, 99], [4, 5, 6]]
+```
+
+However, **extracting a collection to a variable** gives you a copy. Mutations to that copy are not reflected in the original — you must write it back.
+
+```kiwi
+matrix = [[1, 2, 3], [4, 5, 6]]
+
+row = matrix[0]   # row is a copy
+row.push(99)      # modifies only the copy
+println matrix    # [[1, 2, 3], [4, 5, 6]] — unchanged!
+
+row = matrix[0]
+row.push(99)
+matrix[0] = row   # write back — required
+println matrix    # [[1, 2, 3, 99], [4, 5, 6]]
+```
+
+The write-back rule applies to lists-of-hashmaps, nested lists, or any other extracted collection. When in doubt, prefer direct chained operations, or extract-mutate-reassign explicitly.
+
 ## Best Practices & Tips
 
 - Chain `.filter()`, `.map()`, `.take()`, etc. for clean data pipelines

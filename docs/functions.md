@@ -13,16 +13,29 @@ greet()        # prints: Hello, Kiwi!
 
 ### Return Value
 
-Use the `return` keyword to return a value from a method, or to exit a method early.
+A function returns the value of its **last evaluated expression** — `return` is optional. Use `return` when you need to return early or when the expression isn't naturally last.
 
 ```kiwi
-fn get_greeting(name)
-  return "Hello, ${name}"
+fn add(a, b)
+  a + b          # implicitly returned
 end
 
-greeting = get_greeting("World!")
+fn abs(n)
+  return -n when n < 0
+  n              # implicitly returned
+end
 
-println(greeting)
+println add(3, 4)  # 7
+println abs(-5)    # 5
+```
+
+`return` with no value (or `return null`) exits the function and returns `null`.
+
+```kiwi
+fn early_exit(x)
+  return when x < 0   # returns null
+  x * 2
+end
 ```
 
 ### Optional Parameters
@@ -78,7 +91,7 @@ println add(b=3, a=7) # 10
 
 ### Scope
 
-You can access all global variables from within a method.
+Functions use lexical scoping — each call gets its own local scope, and outer (global) variables are readable and writable from inside. See [Scoping](scoping.md) for the complete rules.
 
 ```kiwi
 counter = 0

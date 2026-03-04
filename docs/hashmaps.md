@@ -187,6 +187,34 @@ for k, v in config do
 end
 ```
 
+## Mutating Nested Collections
+
+**Extracting a collection to a variable** gives you a copy. Mutations to that copy are not reflected in the original — you must write the value back.
+
+```kiwi
+config = {"servers": ["a", "b"]}
+
+servers = config["servers"]   # copy
+servers.push("c")             # modifies only the copy
+println config                # {"servers": ["a", "b"]} — unchanged!
+
+servers = config["servers"]
+servers.push("c")
+config["servers"] = servers   # write back — required
+println config                # {"servers": ["a", "b", "c"]}
+```
+
+The same applies to hashmaps nested inside hashmaps:
+
+```kiwi
+data = {"user": {"name": "Kiwi", "age": 1}}
+
+user = data["user"]   # copy
+user["age"] = 2
+data["user"] = user   # write back required
+println data          # {"user": {"name": "Kiwi", "age": 2}}
+```
+
 ## Best Practices & Tips
 
 - Use **dot notation** when keys are simple identifiers -> cleaner code

@@ -167,16 +167,14 @@ zero, one =< get_zero_and_one()
 Now, `zero` is `0` and `one` is `1`.
 
 ## Variable Scope
-Variables in Kiwi are function-scoped, meaning they are only accessible within the function where they are defined unless passed as arguments or returned from a function.
-
-For example:
+Kiwi uses lexical scoping. Variables created inside a function are local to that call. Variables created inside a control-flow block (`if`, `while`, `for`, `repeat`, `do`) are local to that block. See [Scoping](scoping.md) for the full rules.
 
 ```kiwi
 fn example_scope()
-  x = 100  # `x` is only available within this function
+  x = 100  # local to this function call
 end
 
-println(x)  # null
+println x  # null
 ```
 
 #### String Interpolation with Variables

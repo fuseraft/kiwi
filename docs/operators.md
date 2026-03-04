@@ -72,6 +72,27 @@ Kiwi provides a rich set of operators with modern syntax and predictable precede
 | Logical OR Assign | `&#124;&#124;=`  | Assignment | `a &#124;&#124;= b` |
 | Logical AND Assign | `&&=` | Assignment | `a &&= b` |
 
+## Multi-line Expressions
+
+Kiwi treats newlines as whitespace, so expressions can span multiple lines freely. Operators and method chains may appear on the next line without any special syntax.
+
+```kiwi
+result = a > 0
+  && b > 0      # fine — continuation is implicit
+
+value = items
+  .filter(do (x) => x > 0)
+  .map(do (x) => x * 2)     # fine — chained calls across lines
+```
+
+For very long chains, assigning intermediate results to named variables is often more readable:
+
+```kiwi
+filtered = items.filter(do (x) => x > 0)
+sorted   = filtered.sort()
+result   = sorted.take(10)
+```
+
 ## Bitwise Assignment Operators
 
 | **Operator Category / Name** | **Operator** | **Operator Type** | **Example** |
