@@ -9,6 +9,7 @@ public class Config
     public bool PrintAST { get; set; } = false;
     public bool UseREPL { get; set; } = false;
     public bool UseDebugger { get; set; } = false;
+    public string? ExecuteCode { get; set; } = null;
     public List<string> Args { get; set; } = [];
     public List<string> Scripts { get; set; } = [];
     public bool HasScripts => Scripts.Count > 0;
@@ -186,6 +187,23 @@ public class Config
                     }
                     break;
 
+                case "-e":
+                case "--execute":
+                    if (!config.HasScripts && config.ExecuteCode == null)
+                    {
+                        if (!iter.MoveNext())
+                        {
+                            throw new CliError($"Expected code string after `{current}`.");
+                        }
+
+                        config.ExecuteCode = iter.Current;
+                    }
+                    else
+                    {
+                        config.Args.Add(current);
+                    }
+                    break;
+
                 default:
                     if (!config.HasScripts && IsScript(ref current))
                     {
@@ -266,13 +284,14 @@ public class Config
             ("-s, --settings", $"print {Kiwi.Settings.Name} settings"),
             ("-n, --new <filename>", $"create a `{Kiwi.Settings.Extensions.Primary}` file"),
             ("-i, --interactive", "run in interactive mode"),
-            ("-a, --ast <input_path>", $"print syntax tree of `{Kiwi.Settings.Extensions.Primary}` file (for debugging)"),
-            ("-t, --tokenize <input_path>", $"print token stream of `{Kiwi.Settings.Extensions.Primary}` file (for debugging)"),
+            ("-e, --execute <code>", "execute a string of code"),
+            ("-a, --ast <input_path>", $"print syntax tree of `{Kiwi.Settings.Extensions.Primary}` file"),
+            ("-t, --tokens <input_path>", $"print tokens of `{Kiwi.Settings.Extensions.Primary}` file"),
             ("-ns, --no-stdlib", "run without standard library"),
             ("-sm, --safemode", "run in safemode"),
-            ("-p, --stdlib-path", "specify an alternative standard library path"),
+            ("-p, --stdlib-path", "specify alternate stdlib path"),
             ("-d, --debug <input_path>", "run script in the kdb debugger"),
-            ("-<key>=<value>", "pass an argument to a program as a key-value pair")
+            ("-<key>=<value>", "pass an argument as a key-value pair")
         ];
 
         PrintVersion();
@@ -282,7 +301,7 @@ public class Config
 
         foreach (var (flag, description) in commands)
         {
-            Console.WriteLine($"  {flag,-40}{description}");
+            Console.WriteLine($"  {flag,-30}{description}");
         }
     }
 
