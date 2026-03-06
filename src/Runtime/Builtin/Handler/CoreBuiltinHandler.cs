@@ -1834,7 +1834,7 @@ public static class CoreBuiltinHandler
 
         if (value.IsList())
         {
-            value.GetList().Add(args[0].Clone());            
+            value.GetList().Add(args[0].Clone());
         }
         else if (value.IsBytes())
         {

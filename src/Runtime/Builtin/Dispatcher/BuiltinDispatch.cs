@@ -64,6 +64,10 @@ public struct BuiltinDispatch
         {
             return CompressionBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (CsvBuiltin.IsBuiltin(builtin))
+        {
+            return CsvBuiltinHandler.Execute(token, builtin, args);
+        }
 
         throw new FunctionUndefinedError(token, token.Text);
     }

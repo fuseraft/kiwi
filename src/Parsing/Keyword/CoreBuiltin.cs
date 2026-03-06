@@ -209,6 +209,7 @@ public static class CoreBuiltin
         if (TaskBuiltin.Map.ContainsKey(arg))        return true;
         if (ChannelBuiltin.Map.ContainsKey(arg))     return true;
         if (CompressionBuiltin.Map.ContainsKey(arg)) return true;
+        if (CsvBuiltin.Map.ContainsKey(arg))         return true;
         if (TimeBuiltin.Map.ContainsKey(arg))        return true;
 
         // not a builtin method

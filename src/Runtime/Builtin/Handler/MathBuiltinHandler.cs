@@ -11,51 +11,52 @@ public static class MathBuiltinHandler
     {
         return builtin switch
         {
-            TokenName.Builtin_Math_Abs       => Abs(token, args),
-            TokenName.Builtin_Math_Acos      => FloatUnary(token, MathBuiltin.Acos, args, Math.Acos),
-            TokenName.Builtin_Math_Asin      => FloatUnary(token, MathBuiltin.Asin, args, Math.Asin),
-            TokenName.Builtin_Math_Atan      => FloatUnary(token, MathBuiltin.Atan, args, Math.Atan),
-            TokenName.Builtin_Math_Atan2     => FloatBinary(token, MathBuiltin.Atan2, args, Math.Atan2),
-            TokenName.Builtin_Math_Cbrt      => FloatUnary(token, MathBuiltin.Cbrt, args, Math.Cbrt),
-            TokenName.Builtin_Math_Ceil      => FloatUnary(token, MathBuiltin.Ceil, args, Math.Ceiling),
-            TokenName.Builtin_Math_CopySign  => FloatBinary(token, MathBuiltin.CopySign, args, Math.CopySign),
-            TokenName.Builtin_Math_Cos       => FloatUnary(token, MathBuiltin.Cos, args, Math.Cos),
-            TokenName.Builtin_Math_Cosh      => FloatUnary(token, MathBuiltin.Cosh, args, Math.Cosh),
-            TokenName.Builtin_Math_Divisors  => Divisors(token, args),
-            TokenName.Builtin_Math_Epsilon   => Eps(token, args),
-            TokenName.Builtin_Math_Erf       => FloatUnary(token, MathBuiltin.Erf, args, ErfApprox),
-            TokenName.Builtin_Math_ErfC      => FloatUnary(token, MathBuiltin.ErfC, args, x => 1.0 - ErfApprox(x)),
-            TokenName.Builtin_Math_Exp       => FloatUnary(token, MathBuiltin.Exp, args, Math.Exp),
-            TokenName.Builtin_Math_ExpM1     => FloatUnary(token, MathBuiltin.ExpM1, args, x => Math.Exp(x) - 1.0),
-            TokenName.Builtin_Math_FDim      => FloatBinary(token, MathBuiltin.FDim, args, FDimImpl),
-            TokenName.Builtin_Math_Floor     => FloatUnary(token, MathBuiltin.Floor, args, Math.Floor),
-            TokenName.Builtin_Math_FMax      => FloatBinary(token, MathBuiltin.FMax, args, FMaxImpl),
-            TokenName.Builtin_Math_FMin      => FloatBinary(token, MathBuiltin.FMin, args, FMinImpl),
-            TokenName.Builtin_Math_Fmod      => FloatBinary(token, MathBuiltin.Fmod, args, (x, y) => x % y),
-            TokenName.Builtin_Math_Hypot     => FloatBinary(token, MathBuiltin.Hypot, args, HypotImpl),
-            TokenName.Builtin_Math_IsFinite  => FloatToBool(token, MathBuiltin.IsFinite, args, double.IsFinite),
-            TokenName.Builtin_Math_IsInf     => FloatToBool(token, MathBuiltin.IsInf, args, double.IsInfinity),
-            TokenName.Builtin_Math_IsNaN     => FloatToBool(token, MathBuiltin.IsNaN, args, double.IsNaN),
-            TokenName.Builtin_Math_IsNormal  => FloatToBool(token, MathBuiltin.IsNormal, args, double.IsNormal),
-            TokenName.Builtin_Math_LGamma    => FloatUnary(token, MathBuiltin.LGamma, args, LGammaApprox),
-            TokenName.Builtin_Math_Log       => Log(token, args),
-            TokenName.Builtin_Math_Log10     => FloatUnary(token, MathBuiltin.Log10, args, Math.Log10),
-            TokenName.Builtin_Math_Log1P     => FloatUnary(token, MathBuiltin.Log1P, args, x => Math.Log(1.0 + x)),
-            TokenName.Builtin_Math_Log2      => FloatUnary(token, MathBuiltin.Log2, args, Math.Log2),
-            TokenName.Builtin_Math_NextAfter => NextAfter(token, args),
-            TokenName.Builtin_Math_Pow       => FloatBinary(token, MathBuiltin.Pow, args, Math.Pow),
-            TokenName.Builtin_Math_Random    => Random(token, args),
-            TokenName.Builtin_Math_Remainder => FloatBinary(token, MathBuiltin.Remainder, args, Math.IEEERemainder),
+            TokenName.Builtin_Math_Abs         => Abs(token, args),
+            TokenName.Builtin_Math_Acos        => FloatUnary(token, MathBuiltin.Acos, args, Math.Acos),
+            TokenName.Builtin_Math_Asin        => FloatUnary(token, MathBuiltin.Asin, args, Math.Asin),
+            TokenName.Builtin_Math_Atan        => FloatUnary(token, MathBuiltin.Atan, args, Math.Atan),
+            TokenName.Builtin_Math_Atan2       => FloatBinary(token, MathBuiltin.Atan2, args, Math.Atan2),
+            TokenName.Builtin_Math_Cbrt        => FloatUnary(token, MathBuiltin.Cbrt, args, Math.Cbrt),
+            TokenName.Builtin_Math_Ceil        => FloatUnary(token, MathBuiltin.Ceil, args, Math.Ceiling),
+            TokenName.Builtin_Math_CopySign    => FloatBinary(token, MathBuiltin.CopySign, args, Math.CopySign),
+            TokenName.Builtin_Math_Cos         => FloatUnary(token, MathBuiltin.Cos, args, Math.Cos),
+            TokenName.Builtin_Math_Cosh        => FloatUnary(token, MathBuiltin.Cosh, args, Math.Cosh),
+            TokenName.Builtin_Math_Divisors    => Divisors(token, args),
+            TokenName.Builtin_Math_Epsilon     => Eps(token, args),
+            TokenName.Builtin_Math_Erf         => FloatUnary(token, MathBuiltin.Erf, args, ErfApprox),
+            TokenName.Builtin_Math_ErfC        => FloatUnary(token, MathBuiltin.ErfC, args, x => 1.0 - ErfApprox(x)),
+            TokenName.Builtin_Math_Exp         => FloatUnary(token, MathBuiltin.Exp, args, Math.Exp),
+            TokenName.Builtin_Math_ExpM1       => FloatUnary(token, MathBuiltin.ExpM1, args, x => Math.Exp(x) - 1.0),
+            TokenName.Builtin_Math_FDim        => FloatBinary(token, MathBuiltin.FDim, args, FDimImpl),
+            TokenName.Builtin_Math_Floor       => FloatUnary(token, MathBuiltin.Floor, args, Math.Floor),
+            TokenName.Builtin_Math_FMax        => FloatBinary(token, MathBuiltin.FMax, args, FMaxImpl),
+            TokenName.Builtin_Math_FMin        => FloatBinary(token, MathBuiltin.FMin, args, FMinImpl),
+            TokenName.Builtin_Math_Fmod        => FloatBinary(token, MathBuiltin.Fmod, args, (x, y) => x % y),
+            TokenName.Builtin_Math_Hypot       => FloatBinary(token, MathBuiltin.Hypot, args, HypotImpl),
+            TokenName.Builtin_Math_IsFinite    => FloatToBool(token, MathBuiltin.IsFinite, args, double.IsFinite),
+            TokenName.Builtin_Math_IsInf       => FloatToBool(token, MathBuiltin.IsInf, args, double.IsInfinity),
+            TokenName.Builtin_Math_IsNaN       => FloatToBool(token, MathBuiltin.IsNaN, args, double.IsNaN),
+            TokenName.Builtin_Math_IsNormal    => FloatToBool(token, MathBuiltin.IsNormal, args, double.IsNormal),
+            TokenName.Builtin_Math_LGamma      => FloatUnary(token, MathBuiltin.LGamma, args, LGammaApprox),
+            TokenName.Builtin_Math_Log         => Log(token, args),
+            TokenName.Builtin_Math_Log10       => FloatUnary(token, MathBuiltin.Log10, args, Math.Log10),
+            TokenName.Builtin_Math_Log1P       => FloatUnary(token, MathBuiltin.Log1P, args, x => Math.Log(1.0 + x)),
+            TokenName.Builtin_Math_Log2        => FloatUnary(token, MathBuiltin.Log2, args, Math.Log2),
+            TokenName.Builtin_Math_NextAfter   => NextAfter(token, args),
+            TokenName.Builtin_Math_Pow         => FloatBinary(token, MathBuiltin.Pow, args, Math.Pow),
+            TokenName.Builtin_Math_Random      => Random(token, args),
+            TokenName.Builtin_Math_RandomSet   => RandomSet(token, args),
+            TokenName.Builtin_Math_Remainder   => FloatBinary(token, MathBuiltin.Remainder, args, Math.IEEERemainder),
             TokenName.Builtin_Math_RotateLeft  => RotateLeft(token, args),
             TokenName.Builtin_Math_RotateRight => RotateRight(token, args),
-            TokenName.Builtin_Math_Round     => Round(token, args),
-            TokenName.Builtin_Math_Sin       => FloatUnary(token, MathBuiltin.Sin, args, Math.Sin),
-            TokenName.Builtin_Math_Sinh      => FloatUnary(token, MathBuiltin.Sinh, args, Math.Sinh),
-            TokenName.Builtin_Math_Sqrt      => FloatUnary(token, MathBuiltin.Sqrt, args, Math.Sqrt),
-            TokenName.Builtin_Math_Tan       => FloatUnary(token, MathBuiltin.Tan, args, Math.Tan),
-            TokenName.Builtin_Math_Tanh      => FloatUnary(token, MathBuiltin.Tanh, args, Math.Tanh),
-            TokenName.Builtin_Math_TGamma    => FloatUnary(token, MathBuiltin.TGamma, args, TGammaApprox),
-            TokenName.Builtin_Math_Trunc     => FloatUnary(token, MathBuiltin.Trunc, args, Math.Truncate),
+            TokenName.Builtin_Math_Round       => Round(token, args),
+            TokenName.Builtin_Math_Sin         => FloatUnary(token, MathBuiltin.Sin, args, Math.Sin),
+            TokenName.Builtin_Math_Sinh        => FloatUnary(token, MathBuiltin.Sinh, args, Math.Sinh),
+            TokenName.Builtin_Math_Sqrt        => FloatUnary(token, MathBuiltin.Sqrt, args, Math.Sqrt),
+            TokenName.Builtin_Math_Tan         => FloatUnary(token, MathBuiltin.Tan, args, Math.Tan),
+            TokenName.Builtin_Math_Tanh        => FloatUnary(token, MathBuiltin.Tanh, args, Math.Tanh),
+            TokenName.Builtin_Math_TGamma      => FloatUnary(token, MathBuiltin.TGamma, args, TGammaApprox),
+            TokenName.Builtin_Math_Trunc       => FloatUnary(token, MathBuiltin.Trunc, args, Math.Truncate),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
@@ -187,6 +188,50 @@ public static class MathBuiltinHandler
         }
 
         return Value.CreateFloat(System.Random.Shared.NextDouble());
+    }
+
+    private static Value RandomSet(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, MathBuiltin.RandomSet, 3, args.Count);
+        ParameterTypeMismatchError.ExpectInteger(token, MathBuiltin.RandomSet, 0, args[0]);
+        ParameterTypeMismatchError.ExpectInteger(token, MathBuiltin.RandomSet, 1, args[1]);
+        ParameterTypeMismatchError.ExpectInteger(token, MathBuiltin.RandomSet, 2, args[2]);
+
+        var min  = (int)args[0].GetInteger();
+        var max  = (int)args[1].GetInteger();
+        var size = (int)args[2].GetInteger();
+
+        if (min > max) 
+        {
+            (min, max) = (max, min);
+        }
+
+        int rangeLen = max - min + 1;
+        if (size <= 0 || rangeLen < size) 
+        {
+            return Value.CreateList([]);
+        }
+
+        var pool = new int[rangeLen];
+        for (int i = 0; i < rangeLen; i++) 
+        {
+            pool[i] = min + i;
+        }
+
+        // Partial Fisher-Yates: shuffle only the first `size` positions
+        for (int i = 0; i < size; i++)
+        {
+            int j = i + System.Random.Shared.Next(rangeLen - i);
+            (pool[i], pool[j]) = (pool[j], pool[i]);
+        }
+
+        var result = new List<Value>(size);
+        for (int i = 0; i < size; i++)
+        {
+            result.Add(Value.CreateInteger(pool[i]));
+        }
+
+        return Value.CreateList(result);
     }
 
     private static Value RotateLeft(Token token, List<Value> args)

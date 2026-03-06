@@ -2,48 +2,49 @@ namespace kiwi.Parsing.Keyword;
 
 public static class MathBuiltin
 {
-    public const string Sin    = "__sin__";
-    public const string Tan    = "__tan__";
-    public const string Asin   = "__asin__";
-    public const string Acos   = "__acos__";
-    public const string Atan   = "__atan__";
-    public const string Atan2  = "__atan2__";
-    public const string Sinh   = "__sinh__";
-    public const string Cosh   = "__cosh__";
-    public const string Tanh   = "__tanh__";
-    public const string Cos    = "__cos__";
-    public const string Log    = "__log__";
-    public const string Log2   = "__log2__";
-    public const string Log10  = "__log10__";
-    public const string Log1P  = "__log1p__";
-    public const string Fmod   = "__fmod__";
-    public const string Hypot  = "__hypot__";
-    public const string IsFinite = "__isfinite__";
-    public const string IsInf    = "__isinf__";
-    public const string IsNaN    = "__isnan__";
-    public const string IsNormal = "__isnormal__";
-    public const string Sqrt     = "__sqrt__";
-    public const string Cbrt     = "__cbrt__";
-    public const string Abs      = "__abs__";
-    public const string Floor    = "__floor__";
-    public const string Ceil     = "__ceil__";
-    public const string Round    = "__round__";
-    public const string Trunc    = "__trunc__";
-    public const string Remainder = "__remainder__";
-    public const string Exp      = "__exp__";
-    public const string ExpM1    = "__expm1__";
-    public const string Erf      = "__erf__";
-    public const string ErfC     = "__erfc__";
-    public const string LGamma   = "__lgamma__";
-    public const string TGamma   = "__tgamma__";
-    public const string FMax     = "__fmax__";
-    public const string FMin     = "__fmin__";
-    public const string FDim     = "__fdim__";
-    public const string CopySign = "__copysign__";
-    public const string NextAfter = "__nextafter__";
-    public const string Pow      = "__pow__";
-    public const string Epsilon  = "__eps__";
-    public const string Random   = "__random__";
+    public const string Sin         = "__sin__";
+    public const string Tan         = "__tan__";
+    public const string Asin        = "__asin__";
+    public const string Acos        = "__acos__";
+    public const string Atan        = "__atan__";
+    public const string Atan2       = "__atan2__";
+    public const string Sinh        = "__sinh__";
+    public const string Cosh        = "__cosh__";
+    public const string Tanh        = "__tanh__";
+    public const string Cos         = "__cos__";
+    public const string Log         = "__log__";
+    public const string Log2        = "__log2__";
+    public const string Log10       = "__log10__";
+    public const string Log1P       = "__log1p__";
+    public const string Fmod        = "__fmod__";
+    public const string Hypot       = "__hypot__";
+    public const string IsFinite    = "__isfinite__";
+    public const string IsInf       = "__isinf__";
+    public const string IsNaN       = "__isnan__";
+    public const string IsNormal    = "__isnormal__";
+    public const string Sqrt        = "__sqrt__";
+    public const string Cbrt        = "__cbrt__";
+    public const string Abs         = "__abs__";
+    public const string Floor       = "__floor__";
+    public const string Ceil        = "__ceil__";
+    public const string Round       = "__round__";
+    public const string Trunc       = "__trunc__";
+    public const string Remainder   = "__remainder__";
+    public const string Exp         = "__exp__";
+    public const string ExpM1       = "__expm1__";
+    public const string Erf         = "__erf__";
+    public const string ErfC        = "__erfc__";
+    public const string LGamma      = "__lgamma__";
+    public const string TGamma      = "__tgamma__";
+    public const string FMax        = "__fmax__";
+    public const string FMin        = "__fmin__";
+    public const string FDim        = "__fdim__";
+    public const string CopySign    = "__copysign__";
+    public const string NextAfter   = "__nextafter__";
+    public const string Pow         = "__pow__";
+    public const string Epsilon     = "__eps__";
+    public const string Random      = "__random__";
+    public const string RandomSet   = "__random_set__";
     public const string RotateLeft  = "__rotl__";
     public const string RotateRight = "__rotr__";
     public const string Divisors    = "__divisors__";
@@ -85,6 +86,7 @@ public static class MathBuiltin
             { NextAfter,   TokenName.Builtin_Math_NextAfter },
             { Pow,         TokenName.Builtin_Math_Pow },
             { Random,      TokenName.Builtin_Math_Random },
+            { RandomSet,   TokenName.Builtin_Math_RandomSet },
             { Remainder,   TokenName.Builtin_Math_Remainder },
             { RotateLeft,  TokenName.Builtin_Math_RotateLeft },
             { RotateRight, TokenName.Builtin_Math_RotateRight },

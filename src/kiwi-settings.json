@@ -18,7 +18,7 @@
         "include_subdirectories": true
       }
     ],
-    "safemode": true,
+    "safemode": false,
     "debug": {
       "cli_args": [
         "--stdlib-path",
