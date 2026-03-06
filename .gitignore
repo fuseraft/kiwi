@@ -1,5 +1,6 @@
 bin/*
 obj/*
+debug/*
 /src/bin/*
 /src/obj/*
 /.vs/kiwi

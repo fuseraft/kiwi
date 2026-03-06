@@ -955,6 +955,7 @@ public class Lexer : IDisposable
         else if (TlsSocketBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (HttpBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (CompressionBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (CsvBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);
     }

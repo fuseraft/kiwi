@@ -2548,7 +2548,7 @@ public class Interpreter
                     throw new IndexError(node.Token, "The index was outside the bounds of the string.");
                 }
 
-                return Value.CreateString(str[(int)index].ToString());
+                return Value.CreateChar(str[(int)index]);
             }
 
             throw new IndexError(node.Token, "Invalid indexing operation.");

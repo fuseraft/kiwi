@@ -13,9 +13,7 @@ package csv
     if !fio::isfile(file_path)
       throw "File does not exist: ${file_path}"
     end
-
-    content = fio::read(file_path)
-    csv::parse(content, delimiter)
+    __csv_parsefile__(file_path, delimiter)
   end
 
   /#
@@ -26,64 +24,6 @@ package csv
   @return list : A list of rows, each row being a list of string fields.
   #/
   fn parse(input: string, delimiter: string = ","): list
-    rows = []
-    current_row = []
-    current_field = ""
-    in_quote = false
-    i = 0
-    len = input.size()
-
-    while i < len do
-      c = input[i]
-
-      if in_quote
-        if c == '"'
-          # check if this is an escaped double-quote
-          if i + 1 < len && input[i + 1] == '"'
-            # escaped double-quote
-            current_field += '"'
-            i += 1  # consume second "
-          else
-            # end of quoted field
-            in_quote = false
-          end
-        else
-          # add in-quote char to current_field
-          current_field += c
-        end
-      else
-        if c == '"'
-          # start of quoted field
-          in_quote = true
-        elsif c == delimiter
-          # add current_field to current row
-          current_row.push(current_field)
-          current_field = ""
-        elsif c == "\r" || c == "\n"
-          # carriage-return or line-feed
-          if c == "\r" && i + 1 < len && input[i + 1] == "\n"
-            # skip lf after cr (crlf)
-            i += 1
-          end
-          current_row.push(current_field)
-          rows.push(current_row)
-          current_row = []
-          current_field = ""
-        else
-          # add unquoted char to current_field
-          current_field += c
-        end
-      end
-
-      i += 1
-    end
-
-    # add the last field and row (for files without a trailing newline)
-    if !current_field.empty() || !current_row.empty()
-      current_row.push(current_field)
-      rows.push(current_row)
-    end
-
-    rows
+    __csv_parse__(input, delimiter)
   end
 end

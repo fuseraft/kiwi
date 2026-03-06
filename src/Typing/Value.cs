@@ -130,6 +130,20 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public object Value_ { get; set; } = value;
     public ValueType Type { get; set; } = type;
 
+    // Cache single-char ASCII string objects to avoid ToString() allocations in tight loops
+    private static readonly string[] _charStrings;
+    static Value()
+    {
+        _charStrings = new string[128];
+        for (int i = 0; i < 128; i++)
+        {
+            _charStrings[i] = ((char)i).ToString();
+        }
+    }
+
+    public static Value CreateChar(char c)
+        => c < 128 ? new Value(_charStrings[c], ValueType.String) : new Value(c.ToString(), ValueType.String);
+
     public static Value Create(object value)
     {
         if (value is Value v)
@@ -170,7 +184,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static Value CreateBoolean(object value) => new(value, ValueType.Boolean);
     public static Value CreateString(string value) => new(value, ValueType.String);
     public static Value CreateString(object value) => new(value, ValueType.String);
-    public static Value CreateString(char value) => new($"value", ValueType.String);
+    public static Value CreateString(char value) => CreateChar(value);
     public static Value CreateList(List<Value> value) => new(value, ValueType.List);
     public static Value CreateList(object value) => new(value, ValueType.List);
     public static Value CreateList() => new(new List<Value>(), ValueType.List);

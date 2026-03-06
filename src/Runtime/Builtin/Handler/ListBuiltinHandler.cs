@@ -312,8 +312,8 @@ public class ListBuiltinHandler
                 {
                     frame.ClearFlag(FrameFlags.Return);
                 }
-                resultList.Add(result);
             }
+            resultList.Add(result);
         }
 
         scope.Remove(mapVariable);
