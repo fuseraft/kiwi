@@ -68,6 +68,14 @@ public struct BuiltinDispatch
         {
             return CsvBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (JsonBuiltin.IsBuiltin(builtin))
+        {
+            return JsonBuiltinHandler.Execute(token, builtin, args);
+        }
+        else if (XmlBuiltin.IsBuiltin(builtin))
+        {
+            return XmlBuiltinHandler.Execute(token, builtin, args);
+        }
 
         throw new FunctionUndefinedError(token, token.Text);
     }

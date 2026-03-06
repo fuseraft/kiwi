@@ -41,7 +41,6 @@ internal sealed class LineEditor
 
             switch (k.Key)
             {
-                // ── Commit ──────────────────────────────────────────────────────────
                 case ConsoleKey.Enter:
                     Console.WriteLine();
                     var line = new string([.. buf]);
@@ -52,7 +51,6 @@ internal sealed class LineEditor
                     _historyIndex = _history.Count;
                     return line;
 
-                // ── Deletion ────────────────────────────────────────────────────────
                 case ConsoleKey.Backspace:
                     if (pos > 0)
                     {
@@ -70,7 +68,6 @@ internal sealed class LineEditor
                     }
                     break;
 
-                // ── Cursor movement ─────────────────────────────────────────────────
                 case ConsoleKey.LeftArrow:
                     if (pos > 0)
                     {
@@ -95,7 +92,6 @@ internal sealed class LineEditor
                     SetCursor(promptLen + pos);
                     break;
 
-                // ── History ─────────────────────────────────────────────────────────
                 case ConsoleKey.UpArrow:
                     if (_historyIndex > 0)
                     {
@@ -192,8 +188,6 @@ internal sealed class LineEditor
                 break;
         }
     }
-
-    // ── Helpers ─────────────────────────────────────────────────────────────────────
 
     private static void SetCursor(int col)
     {

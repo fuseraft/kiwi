@@ -1847,7 +1847,7 @@ public class Interpreter
                 // Update loop alias (e.g., `i` in `repeat 5 as i`)
                 if (aliasName != null)
                 {
-                    scope.Assign(aliasName, Value.CreateInteger(i));
+                    scope.SetLocal(aliasName, Value.CreateInteger(i));
                 }
 
                 result = ExecuteLoopBody(node.Body, frame);
@@ -2418,9 +2418,9 @@ public class Interpreter
                 var (hasValue, value) = genRef.Next();
                 if (!hasValue) break;
 
-                scope.Assign(valueName, value);
+                scope.SetLocal(valueName, value);
                 if (indexName != null)
-                    scope.Assign(indexName, Value.CreateInteger(index));
+                    scope.SetLocal(indexName, Value.CreateInteger(index));
                 index++;
 
                 var skip = false;
@@ -3607,10 +3607,10 @@ public class Interpreter
                 }
 
                 // Update iterators
-                scope.Assign(valueName, Value.CreateInteger(list[i]));
+                scope.SetLocal(valueName, Value.CreateInteger(list[i]));
                 if (indexName != null)
                 {
-                    scope.Assign(indexName, Value.CreateInteger(i));
+                    scope.SetLocal(indexName, Value.CreateInteger(i));
                 }
 
                 var skip = false;
@@ -3716,10 +3716,10 @@ public class Interpreter
                 }
 
                 // Update iterators
-                scope.Assign(valueName, list[i]);
+                scope.SetLocal(valueName, list[i]);
                 if (indexName != null)
                 {
-                    scope.Assign(indexName, Value.CreateInteger(i));
+                    scope.SetLocal(indexName, Value.CreateInteger(i));
                 }
 
                 var skip = false;
@@ -3823,10 +3823,10 @@ public class Interpreter
                     break;
                 }
 
-                scope.Assign(keyName, kvp.Key);
+                scope.SetLocal(keyName, kvp.Key);
                 if (valueName != null)
                 {
-                    scope.Assign(valueName, kvp.Value);
+                    scope.SetLocal(valueName, kvp.Value);
                 }
 
                 var skip = false;

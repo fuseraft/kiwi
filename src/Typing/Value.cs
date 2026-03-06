@@ -282,24 +282,11 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
 
     public Value Clone()
     {
-        return Type switch
-        {
-            ValueType.Integer => CreateInteger(GetInteger()),
-            ValueType.Float => CreateFloat(GetFloat()),
-            ValueType.Boolean => CreateBoolean(GetBoolean()),
-            ValueType.String => CreateString(GetString()),
-            ValueType.Date => CreateDate(GetDate()),
-            ValueType.List => CreateList(Clone(GetList())),
-            ValueType.Hashmap => CreateHashmap(Clone(GetHashmap())),
-            ValueType.Object => CreateObject(GetObject()),
-            ValueType.Lambda => CreateLambda(GetLambda()),
-            ValueType.None => CreateNull(),
-            ValueType.Struct => CreateStruct(GetStruct()),
-            ValueType.Pointer => CreatePointer(GetPointer()),
-            ValueType.Bytes => CreateBytes(GetBytes()),
-            ValueType.Generator => this, // generators are stateful references, not cloned
-            _ => throw new Exception("Unsupported type for cloning"),
-        };
+        if (Type == ValueType.List)
+            return CreateList(Clone(GetList()));
+        if (Type == ValueType.Hashmap)
+            return CreateHashmap(Clone(GetHashmap()));
+        return new Value(Value_, Type);
     }
 
     public void Set(object? value, ValueType type)
