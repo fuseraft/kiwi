@@ -82,6 +82,12 @@ public class Scope(Scope? parent = null)
         _locals[name] = value ?? Value.Default;
     }
 
+    /// <summary>
+    /// Directly updates a binding in the current scope's locals, bypassing the chain walk.
+    /// Only call when the binding is guaranteed to be in this scope (e.g., loop iterators).
+    /// </summary>
+    public void SetLocal(string name, Value value) => _locals[name] = value;
+
     public void Remove(string name)
     {
         _locals.Remove(name);

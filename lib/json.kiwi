@@ -1,0 +1,23 @@
+/#
+@summary A package for parsing and serializing JSON data.
+#/
+package json
+  /#
+  @summary Parses a JSON string into a Kiwi value.
+  @param string input : The JSON-formatted string to parse.
+  @return any : A Kiwi value (hashmap, list, string, integer, float, boolean, or null).
+  #/
+  fn parse(input: string): any
+    __json_parse__(input)
+  end
+
+  /#
+  @summary Serializes a Kiwi value to a JSON string.
+  @param any value : The value to serialize.
+  @param boolean pretty : Whether to pretty-print the output (default `false`).
+  @return string : A JSON-formatted string.
+  #/
+  fn stringify(value: any, pretty: boolean = false): string
+    __json_stringify__(value, pretty)
+  end
+end
