@@ -626,7 +626,14 @@ println fio::read("out.txt")
 ```
 
 #### `writeln(_path, _text)`
-**Appends** one line (adds newline).
+**Appends** one line of text (adds newline), or multiple lines when given a list of strings.
+
+**Parameters**
+
+| Type      | Name       | Description                  |
+|-----------|------------|------------------------------|
+| `string`|`list`  | `_path`    | File path                    |
+| `integer` | `_text`    | The text to write            |
 
 **Returns**
 

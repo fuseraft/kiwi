@@ -97,6 +97,15 @@ package path
     end
 
     /#
+    @summary Creates a directory from the path.
+    @return boolean : Returns `true` when the directory is created successfully.
+    #/
+    fn mkdir(): boolean
+      return false when exists()
+      fio::mkdirp(@path)
+    end
+
+    /#
     @summary Copies data from one path to another. 
              If the path is a directory, all subdirectory contents are copied as well.
     @param any new_path : A new path either as a string or a Path.
@@ -328,6 +337,15 @@ package path
     fn read_lines(): list
       var (path: string = @path)
       is_file() ? fio::readlines(path) : []
+    end
+
+    /#
+    @summary Creates a file from the path.
+    @return boolean : Returns `true` when the file is created successfully.
+    #/
+    fn touch(): boolean
+      return false when exists()
+      fio::touch(@path)
     end
   end
 end
