@@ -231,6 +231,15 @@ Joins multiple path components to the current path.
 |-------|------------------------------|
 | `Path`| Combined path                |
 
+#### `mkdir()`
+Creates a directory from the path.
+
+**Returns**  
+
+| Type      | Description                          |
+|-----------|--------------------------------------|
+| `boolean` | `true` if creation succeeded          |
+
 #### `name()`
 Returns the final component of the path (filename or last directory).
 
@@ -323,6 +332,15 @@ Reads the file and returns its lines as a list of strings.
 | Type  | Description                  |
 |-------|------------------------------|
 | `list`| List of lines (strings)      |
+
+#### `touch()`
+Creates a file from the path.
+
+**Returns**  
+
+| Type      | Description                          |
+|-----------|--------------------------------------|
+| `boolean` | `true` if creation succeeded          |
 
 ---
 

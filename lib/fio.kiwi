@@ -332,11 +332,11 @@ package fio
   /#
   @summary Write a line of text to a file. This always appends to a file.
   @param string _path : The path to a file or a filename.
-  @param string _text : The text to append.
+  @param string|list _text : The text to append.
   @throws FileSystemError : When the file write fails.
   @return boolean : Returns `true` when the file write succeeds.
   #/
-  fn writeln(_path: string, _text: string): boolean
+  fn writeln(_path: string, _text: string|list): boolean
     __fio_writeline__(_path, _text)
   end
 
