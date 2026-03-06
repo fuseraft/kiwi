@@ -2430,6 +2430,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mkdir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mkdir()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#name" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2533,6 +2544,17 @@
     <span class="md-ellipsis">
       
         readlines() / read_lines()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#touch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        touch()
       
     </span>
   </a>
@@ -3171,6 +3193,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mkdir" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mkdir()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#name" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3274,6 +3307,17 @@
     <span class="md-ellipsis">
       
         readlines() / read_lines()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#touch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        touch()
       
     </span>
   </a>
@@ -3875,6 +3919,23 @@ It defines a single main struct <code>Path</code> that wraps a path string and o
 </tr>
 </tbody>
 </table>
+<h4 id="mkdir"><code>mkdir()</code><a class="headerlink" href="#mkdir" title="Permanent link">&para;</a></h4>
+<p>Creates a directory from the path.</p>
+<p><strong>Returns</strong>  </p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boolean</code></td>
+<td><code>true</code> if creation succeeded</td>
+</tr>
+</tbody>
+</table>
 <h4 id="name"><code>name()</code><a class="headerlink" href="#name" title="Permanent link">&para;</a></h4>
 <p>Returns the final component of the path (filename or last directory).</p>
 <p><strong>Returns</strong>  </p>
@@ -4044,6 +4105,23 @@ Error if trying to remove non-empty directory (use <code>rmdir()</code> instead)
 <tr>
 <td><code>list</code></td>
 <td>List of lines (strings)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="touch"><code>touch()</code><a class="headerlink" href="#touch" title="Permanent link">&para;</a></h4>
+<p>Creates a file from the path.</p>
+<p><strong>Returns</strong>  </p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boolean</code></td>
+<td><code>true</code> if creation succeeded</td>
 </tr>
 </tbody>
 </table>
