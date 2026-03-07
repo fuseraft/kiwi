@@ -138,7 +138,10 @@ public partial class Parser
             // when @var or @@var used as a statement, route through ParseExpression so binary
             // operators (>=, ==, &&, etc.) are parsed correctly after the member access.
             case TokenType.Keyword when GetTokenName() is TokenName.KW_This or TokenName.KW_StaticSelf:
-                node = ParseExpression();
+                if (GetTokenName() == TokenName.KW_This && IsDecoratorPattern())
+                    node = ParseDecoratedFunction();
+                else
+                    node = ParseExpression();
                 break;
 
             case TokenType.Keyword:
@@ -753,6 +756,7 @@ public partial class Parser
 
         _generatorMarks.Add(false);
         var mangledNames = PushNameStack();
+        var variadicParamName = string.Empty;
 
         if (GetTokenType() == TokenType.LParen)
         {
@@ -760,6 +764,22 @@ public partial class Parser
 
             while (GetTokenType() != TokenType.RParen)
             {
+                // Variadic parameter: *paramName (must be last)
+                if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Multiply)
+                {
+                    Next();  // consume '*'
+                    if (GetTokenType() != TokenType.Identifier)
+                        throw new SyntaxError(GetErrorToken(), "Expected parameter name after '*'.");
+                    var varParamName = token.Text;
+                    var mangledVar = mangler + varParamName;
+                    mangledNames[varParamName] = mangledVar;
+                    variadicParamName = mangledVar;
+                    Next();  // consume name
+                    if (GetTokenType() != TokenType.RParen)
+                        throw new SyntaxError(GetErrorToken(), "Variadic parameter '*' must be the last parameter.");
+                    break;
+                }
+
                 if (GetTokenType() != TokenType.Identifier)
                 {
                     throw new SyntaxError(GetErrorToken(), "Expected parameter name.");
@@ -827,7 +847,8 @@ public partial class Parser
             TypeHints = typeHints,
             ReturnTypeHint = returnTypeHint,
             IsOperatorOverload = isOperator,
-            IsGenerator = isGenerator
+            IsGenerator = isGenerator,
+            VariadicParamName = variadicParamName
         };
     }
 
@@ -1243,6 +1264,87 @@ public partial class Parser
         return node;
     }
 
+    private bool IsDecoratorPattern()
+    {
+        // Decorators are only valid outside struct definitions.
+        if (structStack.Count > 0) return false;
+
+        // Must be @ followed by an identifier.
+        var afterAt = Peek();  // position +1
+        if (afterAt.Type != TokenType.Identifier) return false;
+
+        // Check token after the identifier name.
+        var afterIdent = PeekAt(2);  // position +2
+
+        // @ident fn ... or @ident @...
+        if (afterIdent.Name == TokenName.KW_Method || afterIdent.Name == TokenName.KW_This)
+            return true;
+
+        // @ident(args...) fn ... or @ident(args...) @...
+        if (afterIdent.Type == TokenType.LParen)
+        {
+            int depth = 1;
+            int pos = stream.Position + 3;
+            while (pos < stream.Size && depth > 0)
+            {
+                var t = stream.At(pos++);
+                if (t.Type == TokenType.LParen) depth++;
+                else if (t.Type == TokenType.RParen) depth--;
+            }
+            if (pos < stream.Size)
+            {
+                var afterArgs = stream.At(pos);
+                return afterArgs.Name == TokenName.KW_Method || afterArgs.Name == TokenName.KW_This;
+            }
+        }
+
+        return false;
+    }
+
+    private DecoratedFunctionNode? ParseDecoratedFunction()
+    {
+        var openToken = token;
+        var decorators = new List<(string Name, List<ASTNode?> ExtraArgs)>();
+
+        while (GetTokenName() == TokenName.KW_This)
+        {
+            Next();  // consume '@'
+
+            if (GetTokenType() != TokenType.Identifier)
+                throw new SyntaxError(GetErrorToken(), "Expected identifier after '@'.");
+
+            var decoratorName = token.Text;
+            Next();  // consume decorator name
+
+            List<ASTNode?> extraArgs = [];
+            if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.Line)
+            {
+                Next();  // consume '('
+                while (GetTokenType() != TokenType.RParen)
+                {
+                    extraArgs.Add(ParseExpression());
+                    if (GetTokenType() == TokenType.Comma)
+                        Next();
+                }
+                Next();  // consume ')'
+            }
+
+            decorators.Add((decoratorName, extraArgs));
+        }
+
+        if (GetTokenName() != TokenName.KW_Method)
+            throw new SyntaxError(GetErrorToken(), "Expected 'fn' after decorator(s).");
+
+        var funcNode = ParseFunction() ?? throw new SyntaxError(GetErrorToken(), "Expected function definition.");
+
+        return new DecoratedFunctionNode
+        {
+            Function = funcNode,
+            Decorators = decorators,
+            Token = openToken
+        };
+    }
+
     private ASTNode? ParseCaseWhenCondition()
     {
         var expr = ParseExpression();
@@ -1451,7 +1553,13 @@ public partial class Parser
         List<ASTNode?> arguments = [];
         while (GetTokenType() != TokenType.RParen)
         {
-            if (GetTokenType() == TokenType.Identifier && (Peek().Name == TokenName.Ops_Assign || Peek().Type == TokenType.Colon))
+            if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Multiply)
+            {
+                var splatToken = token;
+                Next();  // consume '*'
+                arguments.Add(new SplatNode(ParseExpression()) { Token = splatToken });
+            }
+            else if (GetTokenType() == TokenType.Identifier && (Peek().Name == TokenName.Ops_Assign || Peek().Type == TokenType.Colon))
             {
                 var argToken = token;
                 var name = GetTokenText();
@@ -1517,6 +1625,7 @@ public partial class Parser
         Dictionary<string, List<int>> typeHints = [];
         List<int> returnTypeHint = [TypeRegistry.GetType("any")];
         var mangledNames = PushNameStack();
+        var variadicParamName = string.Empty;
 
         // Parse parameters
         List<KeyValuePair<string, ASTNode?>> parameters = [];
@@ -1526,6 +1635,22 @@ public partial class Parser
 
             while (GetTokenType() != TokenType.RParen)
             {
+                // Variadic parameter: *paramName (must be last)
+                if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Multiply)
+                {
+                    Next();  // consume '*'
+                    if (GetTokenType() != TokenType.Identifier)
+                        throw new SyntaxError(GetErrorToken(), "Expected parameter name after '*'.");
+                    var varParamName = token.Text;
+                    var mangledVar = mangler + varParamName;
+                    mangledNames[varParamName] = mangledVar;
+                    variadicParamName = mangledVar;
+                    Next();  // consume name
+                    if (GetTokenType() != TokenType.RParen)
+                        throw new SyntaxError(GetErrorToken(), "Variadic parameter '*' must be the last parameter.");
+                    break;
+                }
+
                 if (GetTokenType() != TokenType.Identifier)
                 {
                     throw new SyntaxError(GetErrorToken(), "Expected parameter name.");
@@ -1582,8 +1707,8 @@ public partial class Parser
         {
             throw new SyntaxError(GetErrorToken(), "Expected 'do' in lambda expression.");
         }
-        
-        // Parse the lambda body    
+
+        // Parse the lambda body
         List<ASTNode?> body = [];
 
         // Look for the arrow
@@ -1619,7 +1744,8 @@ public partial class Parser
             Parameters = parameters,
             Body = body,
             TypeHints = typeHints,
-            ReturnTypeHint = returnTypeHint
+            ReturnTypeHint = returnTypeHint,
+            VariadicParamName = variadicParamName
         };
     }
 

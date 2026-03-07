@@ -231,6 +231,7 @@ public partial class Parser(bool rethrowErrors = false)
     }
 
     private Token Peek() => stream.Peek();
+    private Token PeekAt(int offset) => stream.At(stream.Position + offset);
 
     private Token Previous() => stream.Previous();
 

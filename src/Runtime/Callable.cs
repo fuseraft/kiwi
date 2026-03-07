@@ -20,6 +20,7 @@ public class Callable(CallableType type)
     public List<int> ReturnTypeHint { get; set; } = [TypeRegistry.GetType("any")];
     public Dictionary<string, List<int>> TypeHints { get; set; } = [];
     public Scope? CapturedScope { get; set; }
+    public string VariadicParamName { get; set; } = string.Empty;
 }
 
 public class KBuiltin(Token token, string name) : Callable(CallableType.Builtin)
@@ -54,18 +55,19 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     {
         var cloned = new KFunction((FunctionNode)Decl.Clone())
         {
-            Name            = Name,
-            IsStatic        = IsStatic,
-            IsPrivate       = IsPrivate,
-            IsCtor          = IsCtor,
-            IsGenerator     = IsGenerator,
-            IsAbstract      = IsAbstract,
-            IsOverride      = IsOverride,
-            Parameters      = Parameters,
+            Name              = Name,
+            IsStatic          = IsStatic,
+            IsPrivate         = IsPrivate,
+            IsCtor            = IsCtor,
+            IsGenerator       = IsGenerator,
+            IsAbstract        = IsAbstract,
+            IsOverride        = IsOverride,
+            Parameters        = Parameters,
             DefaultParameters = DefaultParameters,
-            TypeHints       = TypeHints,
-            ReturnTypeHint  = ReturnTypeHint,
-            CapturedScope   = CapturedScope
+            TypeHints         = TypeHints,
+            ReturnTypeHint    = ReturnTypeHint,
+            CapturedScope     = CapturedScope,
+            VariadicParamName = VariadicParamName
         };
         return cloned;
     }
@@ -79,11 +81,12 @@ public class KLambda(ASTNode node) : Callable(CallableType.Lambda)
     {
         var cloned = new KLambda((LambdaNode)Decl.Clone())
         {
-            Parameters      = Parameters,
+            Parameters        = Parameters,
             DefaultParameters = DefaultParameters,
-            TypeHints       = TypeHints,
-            ReturnTypeHint  = ReturnTypeHint,
-            CapturedScope   = CapturedScope
+            TypeHints         = TypeHints,
+            ReturnTypeHint    = ReturnTypeHint,
+            CapturedScope     = CapturedScope,
+            VariadicParamName = VariadicParamName
         };
         return cloned;
     }

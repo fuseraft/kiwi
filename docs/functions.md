@@ -89,6 +89,50 @@ end
 println add(b=3, a=7) # 10
 ```
 
+### Variadic Parameters
+
+Prefix the last parameter with `*` to make it variadic. It collects any extra positional arguments into a list.
+
+```kiwi
+fn sum(*args)
+  total = 0
+  for x in args do
+    total += x
+  end
+  return total
+end
+
+println sum()           # 0
+println sum(1, 2, 3)    # 6
+println sum(10, 20, 30) # 60
+```
+
+Variadic parameters can follow regular parameters:
+
+```kiwi
+fn describe(label, *values)
+  println "${label}: ${values}"
+end
+
+describe("nums", 1, 2, 3) # nums: [1, 2, 3]
+describe("empty")          # empty: []
+```
+
+#### Splat operator
+
+Use `*expr` at the call site to expand a list into individual arguments:
+
+```kiwi
+nums = [1, 2, 3]
+println sum(*nums)  # 6
+
+fn add(a, b, c)
+  return a + b + c
+end
+
+println add(*nums)  # 6
+```
+
 ### Scope
 
 Functions use lexical scoping — each call gets its own local scope, and outer (global) variables are readable and writable from inside. See [Scoping](scoping.md) for the complete rules.

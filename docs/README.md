@@ -26,6 +26,7 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
 
 - [Functions](functions.md)
 - [Lambdas](lambdas.md)
+- [Decorators](decorators.md)
 
 ## **Control Flow**
 
