@@ -46,7 +46,8 @@ var (unit_tests: list = [
   "abstract_structs",
   "dotenv",
   "regex",
-  "sqlite"
+  "sqlite",
+  "protobuf"
 ])
 
 for unit_test in unit_tests do
