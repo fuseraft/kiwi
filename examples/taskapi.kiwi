@@ -1,0 +1,671 @@
+/#
+  Task API — a self-contained REST API server written in Kiwi.
+
+  Demonstrates:
+    - TCP socket server with concurrent connection handling (socket + task)
+    - HTTP request parsing and response building (http)
+    - Persistent SQLite storage with date columns (sqlite)
+    - JSON serialization (json)
+    - CSV export
+    - Regex-based routing and input validation (regex)
+    - CORS preflight + 405 Method Not Allowed
+    - Aggregate SQL queries (stats + overdue detection)
+    - Pagination with metadata (?page, ?limit)
+    - Request logging with timing (DB + console)
+    - CLI argument parsing (cli)
+
+  Usage:
+    kiwi examples/taskapi.kiwi [options]
+
+  Options:
+    --host HOST    Bind address  (default: 127.0.0.1, env: HOST)
+    --port PORT    Bind port     (default: 8080,      env: PORT)
+    --db   PATH    Database path (default: tasks.db,  env: DB_PATH)
+    --help         Show this help
+
+  Endpoints:
+    GET    /                → API info
+    GET    /health          → liveness check
+    GET    /tasks           → list tasks  (?done=0|1  ?priority=high|medium|low
+                                           ?due_before=yyyy-MM-dd  ?page=1  ?limit=20)
+    POST   /tasks           → create task { title, priority?, due_date? }
+    GET    /tasks/:id       → get task
+    PUT    /tasks/:id       → update task { title?, priority?, done?, due_date? }
+    DELETE /tasks/:id       → delete task
+    GET    /stats           → aggregate statistics + recent requests
+    GET    /export/csv      → download all tasks as CSV
+#/
+
+import "sqlite"
+import "json"
+import "http"
+import "socket"
+import "task"
+import "regex"
+import "time"
+import "cli"
+
+# ── Configuration ─────────────────────────────────────────────────────────────
+
+fn getenv(name: string, default: string): string
+  v = env::get(name)
+  v.empty() ? default : v
+end
+
+p = CliParser.new("taskapi", "A self-contained REST API task tracker.")
+p.option("host", "H", "Bind address",       getenv("HOST",    "127.0.0.1"))
+p.option("port", "p", "Bind port",          getenv("PORT",    "8080"))
+p.option("db",   "d", "SQLite DB path",     getenv("DB_PATH", "tasks.db"))
+p.flag("help",   "h", "Show help and exit")
+
+args = p.parse()
+
+if args["help"]
+  p.help()
+  exit(0)
+end
+
+var HOST       = args["host"]
+var PORT       = args["port"].to_integer()
+var DB_PATH    = args["db"]
+var START_TIME = time::ticks()
+
+# ── Database helpers ───────────────────────────────────────────────────────────
+
+fn db_open()
+  sqlite::open(DB_PATH)
+end
+
+fn init_db()
+  db = db_open()
+
+  # WAL mode + NORMAL sync for safe concurrent access without fsync overhead
+  db.exec("PRAGMA journal_mode=WAL")
+  db.exec("PRAGMA synchronous=NORMAL")
+
+  db.exec("CREATE TABLE IF NOT EXISTS tasks (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    title      TEXT    NOT NULL,
+    priority   TEXT    NOT NULL DEFAULT 'medium',
+    done       INTEGER NOT NULL DEFAULT 0,
+    due_date   TEXT,
+    created_at TEXT    NOT NULL,
+    updated_at TEXT    NOT NULL
+  )")
+
+  db.exec("CREATE TABLE IF NOT EXISTS request_log (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    method      TEXT    NOT NULL,
+    path        TEXT    NOT NULL,
+    status      INTEGER NOT NULL,
+    duration_ms REAL    NOT NULL,
+    logged_at   TEXT    NOT NULL
+  )")
+
+  # Indexes for common filter/sort patterns
+  db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_done     ON tasks (done)")
+  db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority)")
+  db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks (due_date)")
+
+  db.close()
+end
+
+# ── Time helpers ───────────────────────────────────────────────────────────────
+
+fn now_datetime(): string
+  time::now().to_string("yyyy-MM-dd HH:mm:ss")
+end
+
+fn today(): string
+  time::now().to_string("yyyy-MM-dd")
+end
+
+fn uptime_seconds(): integer
+  (time::ticksms(time::ticks() - START_TIME) / 1000).to_integer()
+end
+
+# ── Response builders ──────────────────────────────────────────────────────────
+
+fn json_resp(status: integer, data): bytes
+  body = json::stringify(data)
+  http::response_bytes(status, body, {
+    "Content-Type":                "application/json; charset=utf-8",
+    "Access-Control-Allow-Origin": "*",
+    "Connection":                  "close"
+  })
+end
+
+fn err_resp(status: integer, message: string): bytes
+  json_resp(status, { error: message, status: status })
+end
+
+fn cors_preflight(): bytes
+  http::response_bytes(204, "", {
+    "Access-Control-Allow-Origin":  "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age":       "86400",
+    "Connection":                   "close"
+  })
+end
+
+fn method_not_allowed(allowed: string): list
+  body = json::stringify({ error: "Method Not Allowed", status: 405, allowed: allowed })
+  [405, http::response_bytes(405, body, {
+    "Content-Type":                "application/json; charset=utf-8",
+    "Allow":                       allowed,
+    "Access-Control-Allow-Origin": "*",
+    "Connection":                  "close"
+  })]
+end
+
+# ── Request helpers ────────────────────────────────────────────────────────────
+
+fn require_json(req): boolean
+  ct = req["headers"].get("content-type", "")
+  ct.contains("application/json")
+end
+
+fn log_request(method: string, path: string, status: integer, elapsed_ms)
+  ts  = now_datetime()
+  msg = "${ts}  ${method.padend(7)} ${path.padend(28)} ${status}  ${elapsed_ms}ms"
+  if status >= 500
+    cli::error(msg)
+  elsif status >= 400
+    cli::warn(msg)
+  else
+    cli::info(msg)
+  end
+end
+
+fn clamp(val: integer, lo: integer, hi: integer): integer
+  val < lo ? lo : (val > hi ? hi : val)
+end
+
+# ── Domain logic ───────────────────────────────────────────────────────────────
+
+fn row_to_task(row)
+  {
+    id:         row["id"],
+    title:      row["title"],
+    priority:   row["priority"],
+    done:       row["done"] == 1,
+    due_date:   row["due_date"],
+    created_at: row["created_at"],
+    updated_at: row["updated_at"]
+  }
+end
+
+fn parse_body(req)
+  body = req["body"]
+  if typeof(body) == string && !body.empty()
+    try
+      return deserialize(body)
+    catch (_) end
+  end
+  {}
+end
+
+fn valid_priority(p: string): boolean
+  ["high", "medium", "low"].contains(p)
+end
+
+fn valid_date(s): boolean
+  return true when s == null
+  typeof(s) == string && regex::test("^\\d{4}-\\d{2}-\\d{2}$", s)
+end
+
+# ── Request handlers ───────────────────────────────────────────────────────────
+
+fn handle_health(): list
+  [200, json_resp(200, {
+    status:    "ok",
+    uptime_s:  uptime_seconds(),
+    db:        DB_PATH,
+    timestamp: now_datetime()
+  })]
+end
+
+fn handle_info(): list
+  [200, json_resp(200, {
+    name:    "Kiwi Task API",
+    version: "1.0.0",
+    db:      DB_PATH,
+    endpoints: [
+      "GET    /",
+      "GET    /health",
+      "GET    /tasks",
+      "POST   /tasks",
+      "GET    /tasks/:id",
+      "PUT    /tasks/:id",
+      "DELETE /tasks/:id",
+      "GET    /stats",
+      "GET    /export/csv"
+    ]
+  })]
+end
+
+fn handle_list(db, req): list
+  q          = req["query"]
+  conditions = []
+  params     = []
+
+  if q.has_key("done")
+    params.push(q.get("done") == "1" ? 1 : 0)
+    conditions.push("done = @p${params.size()}")
+  end
+
+  if q.has_key("priority")
+    prio = http::url_decode(q.get("priority"))
+    if !valid_priority(prio)
+      return [400, err_resp(400, "priority must be high, medium, or low")]
+    end
+    params.push(prio)
+    conditions.push("priority = @p${params.size()}")
+  end
+
+  if q.has_key("due_before")
+    due = http::url_decode(q.get("due_before"))
+    if !valid_date(due)
+      return [400, err_resp(400, "due_before must be yyyy-MM-dd")]
+    end
+    params.push(due)
+    conditions.push("due_date IS NOT NULL AND due_date <= @p${params.size()}")
+  end
+
+  # Pagination
+  page  = 1
+  limit = 20
+  try
+    page  = q.get("page",  "1").to_integer()
+    limit = q.get("limit", "20").to_integer()
+  catch (_) end
+  page  = clamp(page,  1, 10000)
+  limit = clamp(limit, 1, 100)
+  offset = (page - 1) * limit
+
+  sql_base = "SELECT * FROM tasks"
+  if !conditions.empty()
+    sql_base += " WHERE " + conditions.join(" AND ")
+  end
+  order = " ORDER BY CASE priority WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END, created_at ASC"
+
+  # Total matching rows (before pagination)
+  count_sql = "SELECT COUNT(*) AS n FROM tasks"
+  if !conditions.empty()
+    count_sql += " WHERE " + conditions.join(" AND ")
+  end
+  total = params.empty() ? db.query(count_sql)[0]["n"] : db.query_params(count_sql, params)[0]["n"]
+
+  # Paginated data
+  params.push(limit)
+  params.push(offset)
+  limit_pos  = params.size() - 1
+  offset_pos = params.size()
+  sql   = sql_base + order + " LIMIT @p${limit_pos} OFFSET @p${offset_pos}"
+  rows  = db.query_params(sql, params)
+
+  tasks = []
+  for row in rows do
+    tasks.push(row_to_task(row))
+  end
+
+  pages = total == 0 ? 1 : ((total + limit - 1) / limit).to_integer()
+
+  [200, json_resp(200, {
+    tasks:  tasks,
+    count:  tasks.size(),
+    total:  total,
+    page:   page,
+    limit:  limit,
+    pages:  pages
+  })]
+end
+
+fn handle_create(db, req): list
+  if !require_json(req)
+    return [415, err_resp(415, "Content-Type must be application/json")]
+  end
+
+  data = parse_body(req)
+
+  title = data.get("title", "")
+  if typeof(title) != string || title.trim().empty() || title.size() > 200
+    return [400, err_resp(400, "title is required and must be 1–200 characters")]
+  end
+  title = title.trim()
+
+  priority = data.get("priority", "medium")
+  if !valid_priority(priority)
+    return [400, err_resp(400, "priority must be high, medium, or low")]
+  end
+
+  due_date = data.get("due_date", null)
+  if !valid_date(due_date)
+    return [400, err_resp(400, "due_date must be yyyy-MM-dd")]
+  end
+
+  now = now_datetime()
+  db.exec_params(
+    "INSERT INTO tasks (title, priority, done, due_date, created_at, updated_at) VALUES (@p1, @p2, 0, @p3, @p4, @p5)",
+    [title, priority, due_date, now, now]
+  )
+
+  id   = db.last_insert_id()
+  rows = db.query_params("SELECT * FROM tasks WHERE id = @p1", [id])
+
+  [201, json_resp(201, row_to_task(rows[0]))]
+end
+
+fn handle_get(db, id: integer): list
+  rows = db.query_params("SELECT * FROM tasks WHERE id = @p1", [id])
+  if rows.empty()
+    return [404, err_resp(404, "Task ${id} not found")]
+  end
+  [200, json_resp(200, row_to_task(rows[0]))]
+end
+
+fn handle_update(db, id: integer, req): list
+  if !require_json(req)
+    return [415, err_resp(415, "Content-Type must be application/json")]
+  end
+
+  existing = db.query_params("SELECT * FROM tasks WHERE id = @p1", [id])
+  if existing.empty()
+    return [404, err_resp(404, "Task ${id} not found")]
+  end
+
+  data    = parse_body(req)
+  updates = []
+  params  = []
+
+  if data.has_key("title")
+    t = data.get("title", "")
+    if typeof(t) != string || t.trim().empty() || t.size() > 200
+      return [400, err_resp(400, "title must be 1–200 characters")]
+    end
+    params.push(t.trim())
+    updates.push("title = @p${params.size()}")
+  end
+
+  if data.has_key("priority")
+    p = data.get("priority", "medium")
+    if !valid_priority(p)
+      return [400, err_resp(400, "priority must be high, medium, or low")]
+    end
+    params.push(p)
+    updates.push("priority = @p${params.size()}")
+  end
+
+  if data.has_key("done")
+    params.push(data.get("done", false) ? 1 : 0)
+    updates.push("done = @p${params.size()}")
+  end
+
+  if data.has_key("due_date")
+    due = data.get("due_date", null)
+    if !valid_date(due)
+      return [400, err_resp(400, "due_date must be yyyy-MM-dd")]
+    end
+    params.push(due)
+    updates.push("due_date = @p${params.size()}")
+  end
+
+  if updates.empty()
+    return [400, err_resp(400, "No fields to update")]
+  end
+
+  params.push(now_datetime())
+  updates.push("updated_at = @p${params.size()}")
+
+  id_pos = params.size() + 1
+  params.push(id)
+
+  db.exec_params(
+    "UPDATE tasks SET ${updates.join(', ')} WHERE id = @p${id_pos}",
+    params
+  )
+
+  rows = db.query_params("SELECT * FROM tasks WHERE id = @p1", [id])
+  [200, json_resp(200, row_to_task(rows[0]))]
+end
+
+fn handle_delete(db, id: integer): list
+  rows = db.query_params("SELECT * FROM tasks WHERE id = @p1", [id])
+  if rows.empty()
+    return [404, err_resp(404, "Task ${id} not found")]
+  end
+  db.exec_params("DELETE FROM tasks WHERE id = @p1", [id])
+  [200, json_resp(200, { deleted: true, id: id })]
+end
+
+fn handle_stats(db): list
+  total  = db.query("SELECT COUNT(*) AS n FROM tasks")[0]["n"]
+  done   = db.query("SELECT COUNT(*) AS n FROM tasks WHERE done = 1")[0]["n"]
+
+  # Overdue = open tasks where due_date is in the past
+  overdue = db.query_params(
+    "SELECT COUNT(*) AS n FROM tasks WHERE done = 0 AND due_date IS NOT NULL AND due_date < @p1",
+    [today()]
+  )[0]["n"]
+
+  # Due within the next 7 days
+  next_week = time::now().add_days(7).to_string("yyyy-MM-dd")
+  due_soon = db.query_params(
+    "SELECT COUNT(*) AS n FROM tasks WHERE done = 0 AND due_date IS NOT NULL AND due_date BETWEEN @p1 AND @p2",
+    [today(), next_week]
+  )[0]["n"]
+
+  # Tasks per priority
+  prio_rows = db.query("SELECT priority, COUNT(*) AS n FROM tasks GROUP BY priority ORDER BY priority")
+  by_priority = {}
+  for row in prio_rows do
+    by_priority.set(row["priority"], row["n"])
+  end
+
+  # Monthly creation trend (last 6 months)
+  trend = db.query("
+    SELECT strftime('%Y-%m', created_at) AS month, COUNT(*) AS n
+    FROM tasks
+    GROUP BY month
+    ORDER BY month DESC
+    LIMIT 6
+  ")
+
+  # Recent requests
+  recent = db.query("
+    SELECT method, path, status, duration_ms, logged_at
+    FROM request_log
+    ORDER BY id DESC
+    LIMIT 10
+  ")
+
+  [200, json_resp(200, {
+    tasks: {
+      total:       total,
+      done:        done,
+      open:        total - done,
+      overdue:     overdue,
+      due_soon:    due_soon,
+      by_priority: by_priority
+    },
+    monthly_trend:   trend,
+    recent_requests: recent
+  })]
+end
+
+fn handle_csv(db): list
+  rows = db.query("SELECT id, title, priority, done, due_date, created_at, updated_at FROM tasks ORDER BY id")
+
+  lines = ["id,title,priority,done,due_date,created_at,updated_at"]
+  for row in rows do
+    rid      = row["id"]
+    rtitle   = row["title"].replace("\"", "\"\"")
+    rprio    = row["priority"]
+    rdone    = row["done"] == 1 ? "true" : "false"
+    rdue     = row["due_date"] == null ? "" : row["due_date"]
+    rcreated = row["created_at"]
+    rupdated = row["updated_at"]
+    lines.push("${rid},\"${rtitle}\",${rprio},${rdone},${rdue},${rcreated},${rupdated}")
+  end
+
+  [200, http::response_bytes(200, lines.join("\n"), {
+    "Content-Type":                "text/csv; charset=utf-8",
+    "Content-Disposition":         "attachment; filename=\"tasks.csv\"",
+    "Access-Control-Allow-Origin": "*",
+    "Connection":                  "close"
+  })]
+end
+
+# ── Router ─────────────────────────────────────────────────────────────────────
+
+fn route(db, method: string, path: string, req): list
+  # OPTIONS — CORS preflight for all routes
+  if method == "OPTIONS"
+    return [204, cors_preflight()]
+  end
+
+  # GET /
+  if path == "/"
+    return method == "GET" ? handle_info() : method_not_allowed("GET, OPTIONS")
+  end
+
+  # GET /health
+  if path == "/health"
+    return method == "GET" ? handle_health() : method_not_allowed("GET, OPTIONS")
+  end
+
+  # GET /stats
+  if path == "/stats"
+    return method == "GET" ? handle_stats(db) : method_not_allowed("GET, OPTIONS")
+  end
+
+  # GET /export/csv
+  if path == "/export/csv"
+    return method == "GET" ? handle_csv(db) : method_not_allowed("GET, OPTIONS")
+  end
+
+  # /tasks
+  if path == "/tasks"
+    if method == "GET"
+      return handle_list(db, req)
+    end
+    if method == "POST"
+      return handle_create(db, req)
+    end
+    return method_not_allowed("GET, POST, OPTIONS")
+  end
+
+  # /tasks/:id  — extract numeric ID from path
+  if regex::test("^/tasks/\\d+$", path)
+    id = regex::match("\\d+", path)[0].to_integer()
+
+    if method == "GET"
+      return handle_get(db, id)
+    end
+    if method == "PUT"
+      return handle_update(db, id, req)
+    end
+    if method == "DELETE"
+      return handle_delete(db, id)
+    end
+    return method_not_allowed("GET, PUT, DELETE, OPTIONS")
+  end
+
+  [404, err_resp(404, "${path} not found")]
+end
+
+# ── Connection handler (runs in a spawned task) ────────────────────────────────
+
+fn handle_connection(client_sock: integer)
+  t0 = time::ticks()
+
+  raw = null
+  try
+    raw = await(socket::recv(client_sock, 65536))
+  catch (_)
+    socket::close(client_sock)
+    return
+  end
+
+  if raw == null || raw.size() == 0
+    socket::close(client_sock)
+    return
+  end
+
+  req = http::parse(raw)
+  if req == null
+    socket::close(client_sock)
+    return
+  end
+
+  method = req["method"]
+  path   = req["path"]
+
+  # Each connection uses its own DB connection (WAL mode allows concurrent reads)
+  db = db_open()
+
+  status     = 500
+  resp_bytes = err_resp(500, "Internal server error")
+
+  try
+    result     = route(db, method, path, req)
+    status     = result[0]
+    resp_bytes = result[1]
+  catch (e)
+    resp_bytes = err_resp(500, e.to_string())
+  end
+
+  elapsed_ms = time::ticksms(time::ticks() - t0)
+
+  # Console log
+  log_request(method, path, status, elapsed_ms)
+
+  # Persist log entry
+  try
+    db.exec_params(
+      "INSERT INTO request_log (method, path, status, duration_ms, logged_at) VALUES (@p1, @p2, @p3, @p4, @p5)",
+      [method, path, status, elapsed_ms, now_datetime()]
+    )
+  catch (_) end
+
+  db.close()
+
+  try
+    await(socket::send(client_sock, resp_bytes))
+  catch (_) end
+
+  socket::close(client_sock)
+end
+
+# ── Main ───────────────────────────────────────────────────────────────────────
+
+init_db()
+
+println ""
+println "  Kiwi Task API"
+println "  ─────────────────────────────────────────"
+println "  Listening on  http://${HOST}:${PORT}"
+println "  Database:     ${DB_PATH}"
+println "  ─────────────────────────────────────────"
+println "  GET    http://${HOST}:${PORT}/"
+println "  GET    http://${HOST}:${PORT}/health"
+println "  GET    http://${HOST}:${PORT}/tasks"
+println "  POST   http://${HOST}:${PORT}/tasks"
+println "  GET    http://${HOST}:${PORT}/tasks/:id"
+println "  PUT    http://${HOST}:${PORT}/tasks/:id"
+println "  DELETE http://${HOST}:${PORT}/tasks/:id"
+println "  GET    http://${HOST}:${PORT}/stats"
+println "  GET    http://${HOST}:${PORT}/export/csv"
+println "  ─────────────────────────────────────────"
+println "  Press Ctrl+C to stop."
+println ""
+
+server = socket::tcpserver(HOST, PORT)
+
+while true do
+  client = await(socket::accept(server))
+  task::spawn(with (sock: integer) do
+    handle_connection(sock)
+  end, [client])
+end
