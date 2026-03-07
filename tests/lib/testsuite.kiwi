@@ -5,49 +5,72 @@ package testsuite
 end
 
 var (unit_tests: list = [
-  "events",
-  "packages",
-  "assignments",
-  "bytestrings",
-  "compression",
+  # Language fundamentals
   "var_declaration",
-  "operator_overloads",
   "constants",
+  "assignments",
+  "operators",
+  "operator_overloads",
   "truthiness",
   "null_coalesce",
   "unpacking",
-  "operators",
-  "http",
+
+  # Type system
+  "nulls",
+  "type_checking",
+  "bytestrings",
+
+  # Collections & data types
   "strings",
   "lists",
   "sets",
   "heaps",
   "hashmaps",
-  "structs",
-  "static_vars",
-  "builtins",
-  "standard_library",
-  "nulls",
-  "type_checking",
+  "dates",
+
+  # Control flow & scoping
   "loops",
+  "scoping",
+  "chained_access",
+
+  # Functions & callables
+  "lambdas",
   "generators",
+  "iterators",
+
+  # Error handling
   "try_finally",
   "try_catch_finally",
   "nested_try",
-  "lambdas",
+
+  # Object-oriented programming
+  "structs",
+  "static_vars",
+  "abstract_structs",
+
+  # Standard library & builtins
+  "builtins",
+  "standard_library",
+
+  # Module system
+  "packages",
+  "events",
+
+  # Crypto
   "md5",
   "sha224",
   "sha256",
-  "iterators",
-  "scoping",
-  "chained_access",
-  "dates",
-  "xml",
-  "abstract_structs",
-  "dotenv",
+
+  # Data formats
   "regex",
+  "dotenv",
+  "xml",
+  "protobuf",
+
+  # Storage & I/O
   "sqlite",
-  "protobuf"
+  "compression",
+  "http"
 ])
 
 for unit_test in unit_tests do

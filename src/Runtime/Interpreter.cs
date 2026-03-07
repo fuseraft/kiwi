@@ -424,57 +424,62 @@ public class Interpreter
 
         StructStack.Push(structName);
 
-        foreach (var method in node.Methods)
+        try
         {
-            if (method == null)
+            foreach (var method in node.Methods)
             {
-                continue;
-            }
-
-            var funcDecl = (FunctionNode)method;
-            var methodName = funcDecl.Name;
-
-            Visit(funcDecl, inStruct: true);
-
-            if (methodName == "new")
-            {
-                struc.Methods["new"] = Context.Methods[methodName];
-            }
-            else
-            {
-                struc.Methods[methodName] = Context.Methods[methodName];
-            }
-
-            if (funcDecl.IsAbstract)
-            {
-                struc.Methods[methodName].IsAbstract = true;
-                struc.AbstractMethods.Add(methodName);
-            }
-        }
-
-        // If derived from an abstract base, verify all abstract methods are implemented (only for concrete structs)
-        if (!node.IsAbstract && !string.IsNullOrEmpty(node.BaseStruct))
-        {
-            var baseKStruct = Context.Structs[node.BaseStruct];
-            foreach (var abstractMethod in baseKStruct.AbstractMethods)
-            {
-                if (!struc.Methods.ContainsKey(abstractMethod))
+                if (method == null)
                 {
-                    throw new AbstractMethodError(node.Token, structName, abstractMethod);
+                    continue;
+                }
+
+                var funcDecl = (FunctionNode)method;
+                var methodName = funcDecl.Name;
+
+                Visit(funcDecl, inStruct: true);
+
+                if (methodName == "new")
+                {
+                    struc.Methods["new"] = Context.Methods[methodName];
+                }
+                else
+                {
+                    struc.Methods[methodName] = Context.Methods[methodName];
+                }
+
+                if (funcDecl.IsAbstract)
+                {
+                    struc.Methods[methodName].IsAbstract = true;
+                    struc.AbstractMethods.Add(methodName);
                 }
             }
+
+            // If derived from an abstract base, verify all abstract methods are implemented (only for concrete structs)
+            if (!node.IsAbstract && !string.IsNullOrEmpty(node.BaseStruct))
+            {
+                var baseKStruct = Context.Structs[node.BaseStruct];
+                foreach (var abstractMethod in baseKStruct.AbstractMethods)
+                {
+                    if (!struc.Methods.ContainsKey(abstractMethod))
+                    {
+                        throw new AbstractMethodError(node.Token, structName, abstractMethod);
+                    }
+                }
+            }
+
+            Context.Structs[structName] = struc;
+
+            // Initialize static variables
+            foreach (var (varName, initializer) in node.StaticVars)
+            {
+                struc.StaticVariables[varName] = initializer != null ? Interpret(initializer) : Value.Default;
+            }
         }
-
-        Context.Structs[structName] = struc;
-
-        // Initialize static variables
-        foreach (var (varName, initializer) in node.StaticVars)
+        finally
         {
-            struc.StaticVariables[varName] = initializer != null ? Interpret(initializer) : Value.Default;
+            StructStack.Pop();
+            Context.Methods.Clear();
         }
-
-        StructStack.Pop();
-        Context.Methods.Clear();
 
         return Value.Default;
     }
