@@ -73,6 +73,7 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
 - [`socket` / `tls`](lib/socket.md) — Low-level asynchronous TCP and TLS networking.
 - [`stdin`](lib/stdin.md) — Functions for reading from standard input.
 - [`string`](lib/string.md) — String manipulation and transformation utilities.
+- [`sqlite`](lib/sqlite.md) — SQLite database access via the `SqliteDb` struct.
 - [`sys`](lib/sys.md) — For executing shell commands.
 - [`task`](lib/task.md) — Asynchronous task management, including `Channel`.
 - [`tester`](lib/tester.md) — A simple unit testing framework.
