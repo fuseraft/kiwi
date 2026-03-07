@@ -73,7 +73,7 @@ package tester
     duration = time::ticksms(test_stop - test_start)
     results.push({ name: name, result: passed, duration: duration })
 
-    println (passed ? "passed" : "failed").uppercase() + " in ${duration}ms"
+    println (passed ? "passed" : "failed").uppercase() + " in ${math::round(duration, 2)}ms"
     if !error_message.empty()
       println "  " + error_message
     end

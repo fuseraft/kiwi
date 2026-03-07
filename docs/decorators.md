@@ -172,6 +172,34 @@ c.increment()  # calling method
 
 ---
 
+## Package-qualified decorators
+
+Decorators from packages are referenced with `::` notation.
+
+```kiwi
+import "bench"
+import "math"
+
+@bench::mark("sort 500 items")
+fn sort_bench()
+  math::random_set(0, 5000, 500).sort()
+end
+
+@bench::timed
+fn slow_sum(n)
+  total = 0
+  for i in [1..n] do total += i end
+  return total
+end
+
+bench::run_all()
+slow_sum(50000)
+```
+
+See [`bench` library](lib/bench.md) for `@bench::mark`, `@bench::profile`, and `@bench::timed`.
+
+---
+
 ## See also
 
 - [Functions](functions.md) — variadic parameters, splat

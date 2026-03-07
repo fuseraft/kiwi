@@ -1273,18 +1273,22 @@ public partial class Parser
         var afterAt = Peek();  // position +1
         if (afterAt.Type != TokenType.Identifier) return false;
 
-        // Check token after the identifier name.
-        var afterIdent = PeekAt(2);  // position +2
+        // Determine the offset after the decorator name, accounting for pkg::name.
+        int nameEnd = 2;
+        if (PeekAt(2).Type == TokenType.Qualifier && PeekAt(3).Type == TokenType.Identifier)
+            nameEnd = 4;  // @pkg::name
 
-        // @ident fn ... or @ident @...
+        var afterIdent = PeekAt(nameEnd);
+
+        // @name fn ... or @name @...
         if (afterIdent.Name == TokenName.KW_Method || afterIdent.Name == TokenName.KW_This)
             return true;
 
-        // @ident(args...) fn ... or @ident(args...) @...
+        // @name(args...) fn ... or @name(args...) @...
         if (afterIdent.Type == TokenType.LParen)
         {
             int depth = 1;
-            int pos = stream.Position + 3;
+            int pos = stream.Position + nameEnd + 1;
             while (pos < stream.Size && depth > 0)
             {
                 var t = stream.At(pos++);
@@ -1314,7 +1318,17 @@ public partial class Parser
                 throw new SyntaxError(GetErrorToken(), "Expected identifier after '@'.");
 
             var decoratorName = token.Text;
-            Next();  // consume decorator name
+            Next();  // consume first name part
+
+            // Support package-qualified decorators: @pkg::name
+            if (GetTokenType() == TokenType.Qualifier)
+            {
+                Next();  // consume '::'
+                if (GetTokenType() != TokenType.Identifier)
+                    throw new SyntaxError(GetErrorToken(), "Expected identifier after '::'.");
+                decoratorName = decoratorName + "::" + token.Text;
+                Next();  // consume function name
+            }
 
             List<ASTNode?> extraArgs = [];
             if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.Line)

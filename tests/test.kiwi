@@ -25,7 +25,7 @@ fn main()
     end
   end
 
-  println "\nRan ${results.size()} test(s) in ${duration}ms\n"
+  println "\nRan ${results.size()} test(s) in ${math::round(duration, 2)}ms\n"
 
   if failed == 0
     println "All tests passed!"

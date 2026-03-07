@@ -119,6 +119,65 @@ package bench
   end
 
   /#
+  @summary Decorator — registers a function in the global benchmark registry for `bench::run_all()`.
+           The decorated function remains callable normally.
+  @param lambda f    : The function to register (injected by the decorator system).
+  @param string name : The display name of the benchmark (required).
+  @return lambda : The original function, unmodified.
+  @example
+    @bench::mark("my bench")
+    fn my_bench()
+      # ... code to benchmark ...
+    end
+    bench::run_all()
+  #/
+  fn mark(f, name: string = "benchmark")
+    bench::initialize()
+    global.benchmarks.set(name, f)
+    return f
+  end
+
+  /#
+  @summary Decorator — immediately runs a benchmark of the decorated function at definition time.
+           The decorated function remains callable normally.
+  @param lambda f         : The function to benchmark (injected by the decorator system).
+  @param string name      : The display name (default: "benchmark").
+  @param integer iterations : Number of timed iterations (default: 100).
+  @param integer warmup   : Number of warmup iterations (default: 5).
+  @return lambda : The original function, unmodified.
+  @example
+    @bench::profile("fast add", 1000, 10)
+    fn fast_add(a, b)
+      return a + b
+    end
+  #/
+  fn profile(f, name: string = "benchmark", iterations: integer = 100, warmup: integer = 5)
+    bench::run(name, f, iterations, warmup)
+    return f
+  end
+
+  /#
+  @summary Decorator — wraps a function so that every call prints its elapsed time.
+  @param lambda f : The function to wrap (injected by the decorator system).
+  @return lambda  : A wrapper that times each call and prints the result.
+  @example
+    @bench::timed
+    fn expensive(n)
+      # ... slow computation ...
+    end
+    expensive(1000)  # prints: expensive: 1.234ms
+  #/
+  fn timed(f)
+    return with (*args) do
+      t0 = time::ticks()
+      result = f(*args)
+      elapsed = time::ticksms(time::ticks() - t0)
+      println "elapsed: ${bench::fmt(elapsed)}"
+      return result
+    end
+  end
+
+  /#
   @summary Prints a formatted summary table of benchmark results.
   @param list results : A list of result hashmaps from `run()` or `run_all()`.
   #/
