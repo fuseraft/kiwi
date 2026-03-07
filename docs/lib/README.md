@@ -23,6 +23,7 @@ The standard library is a collection of packages containing useful functions and
 | [`reflector`](reflector.md) | Reflection tools, including `Callable`. |
 | [`regex`](regex.md) | Regular expression matching, searching, splitting, and replacement. |
 | [`socket` / `tls`](socket.md) | Low-level asynchronous TCP and TLS networking. |
+| [`sqlite`](sqlite.md) | SQLite database access via the `SqliteDb` struct. |
 | [`stdin`](stdin.md) | Functions for reading from standard input. |
 | [`string`](string.md) | String manipulation and transformation utilities. |
 | [`sys`](sys.md) | For executing shell commands. |

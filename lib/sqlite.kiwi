@@ -1,0 +1,131 @@
+/#
+@summary A wrapper around an open SQLite database connection.
+@see sqlite::open : Opens a database and returns a `SqliteDb` instance.
+#/
+struct SqliteDb
+  /#
+  @summary Opens a connection to the SQLite database at the given path.
+  @param string path : Path to the `.db` file. Use `":memory:"` for an in-memory database.
+  #/
+  fn new(path: string)
+    @conn = sqlite::__open__(path)
+  end
+
+  /#
+  @summary Closes the database connection and releases resources.
+  #/
+  fn close()
+    sqlite::__close__(@conn)
+  end
+
+  /#
+  @summary Executes a SQL statement (INSERT, UPDATE, DELETE, CREATE, etc.).
+  @param string sql : The SQL statement to execute.
+  @return integer : The number of rows affected.
+  #/
+  fn exec(sql: string): integer
+    sqlite::__exec__(@conn, sql)
+  end
+
+  /#
+  @summary Executes a parameterized SQL statement with positional parameters.
+  @param string sql : The SQL statement using `@p1`, `@p2`, ... placeholders.
+  @param list params : A list of values to bind in order.
+  @return integer : The number of rows affected.
+  @example
+    db.exec_params("INSERT INTO users (name, age) VALUES (@p1, @p2)", ["Alice", 30])
+  #/
+  fn exec_params(sql: string, params: list): integer
+    sqlite::__exec_params__(@conn, sql, params)
+  end
+
+  /#
+  @summary Executes a SQL query and returns all rows as a list of hashmaps.
+  @param string sql : The SELECT statement to execute.
+  @return list : A list of hashmaps, one per row, keyed by column name.
+  #/
+  fn query(sql: string): list
+    sqlite::__query__(@conn, sql)
+  end
+
+  /#
+  @summary Executes a parameterized SQL query with positional parameters.
+  @param string sql : The SELECT statement using `@p1`, `@p2`, ... placeholders.
+  @param list params : A list of values to bind in order.
+  @return list : A list of hashmaps, one per row, keyed by column name.
+  @example
+    db.query_params("SELECT * FROM users WHERE age > @p1", [18])
+  #/
+  fn query_params(sql: string, params: list): list
+    sqlite::__query_params__(@conn, sql, params)
+  end
+
+  /#
+  @summary Returns the rowid of the last successful INSERT.
+  @return integer : The rowid of the most recently inserted row.
+  #/
+  fn last_insert_id(): integer
+    sqlite::__last_insert_id__(@conn)
+  end
+
+  /#
+  @summary Returns the number of rows changed by the last INSERT, UPDATE, or DELETE.
+  @return integer : The number of rows changed.
+  #/
+  fn changes(): integer
+    sqlite::__changes__(@conn)
+  end
+end
+
+/#
+@summary A package for working with SQLite databases.
+#/
+package sqlite
+  /#
+  @summary Opens a SQLite database and returns a `SqliteDb` instance.
+  @param string path : Path to the `.db` file. Use `":memory:"` for an in-memory database.
+  @return SqliteDb : An open database connection.
+  @throws string : If the database cannot be opened.
+  @example
+    db = sqlite::open("myapp.db")
+    db.exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)")
+    db.exec_params("INSERT INTO users (name, age) VALUES (@p1, @p2)", ["Alice", 30])
+    rows = db.query("SELECT * FROM users")
+    db.close()
+  #/
+  fn open(path: string): SqliteDb
+    SqliteDb.new(path)
+  end
+
+  fn __open__(path: string)
+    __sqlite_open__(path)
+  end
+
+  fn __close__(conn)
+    __sqlite_close__(conn)
+  end
+
+  fn __exec__(conn, sql: string): integer
+    __sqlite_exec__(conn, sql)
+  end
+
+  fn __exec_params__(conn, sql: string, params: list): integer
+    __sqlite_exec_params__(conn, sql, params)
+  end
+
+  fn __query__(conn, sql: string): list
+    __sqlite_query__(conn, sql)
+  end
+
+  fn __query_params__(conn, sql: string, params: list): list
+    __sqlite_query_params__(conn, sql, params)
+  end
+
+  fn __last_insert_id__(conn): integer
+    __sqlite_last_insert_id__(conn)
+  end
+
+  fn __changes__(conn): integer
+    __sqlite_changes__(conn)
+  end
+end

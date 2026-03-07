@@ -1,0 +1,154 @@
+/# ==============================================================================
+   Testing the sqlite stdlib module: open, exec, query, params, last_insert_id,
+   changes, error handling, and date columns (TEXT ISO 8601).
+  ============================================================================== #/
+require "sqlite"
+
+tester::register_test("sqlite", with do
+  db = sqlite::open(":memory:")
+
+  # Schema setup
+  db.exec("CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER, score REAL, active INTEGER)")
+
+  # B1: exec returns affected rows (DDL = 0)
+  n = db.exec("INSERT INTO users (name, age, score, active) VALUES ('Alice', 30, 9.5, 1)")
+  tester::assert(n == 1, "B1: exec INSERT returns 1")
+
+  # B2-B3: exec_params positional binding
+  db.exec_params("INSERT INTO users (name, age, score, active) VALUES (@p1, @p2, @p3, @p4)", ["Bob", 25, 7.0, 1])
+  db.exec_params("INSERT INTO users (name, age, score, active) VALUES (@p1, @p2, @p3, @p4)", ["Carol", 35, 8.25, 0])
+
+  # B4: last_insert_id
+  tester::assert(db.last_insert_id() == 3, "B4: last_insert_id after 3 inserts")
+
+  # B5: query returns all rows
+  rows = db.query("SELECT * FROM users ORDER BY id")
+  tester::assert(rows.size() == 3, "B5: query returns 3 rows")
+
+  # B6-B8: column values for first row
+  r0 = rows[0]
+  tester::assert(r0["name"] == "Alice", "B6: row 0 name")
+  tester::assert(r0["age"] == 30,       "B7: row 0 age (integer)")
+  tester::assert(r0["score"] == 9.5,    "B8: row 0 score (float)")
+
+  # B9: query_params with filter
+  young = db.query_params("SELECT name FROM users WHERE age < @p1 ORDER BY age", [31])
+  tester::assert(young.size() == 2, "B9: query_params filter count")
+  tester::assert(young[0]["name"] == "Bob",   "B10: query_params first result")
+  tester::assert(young[1]["name"] == "Alice", "B11: query_params second result")
+
+  # B12: changes after UPDATE
+  db.exec_params("UPDATE users SET active = @p1 WHERE active = @p2", [0, 1])
+  tester::assert(db.changes() == 2, "B12: changes after UPDATE affecting 2 rows")
+
+  # B13: DELETE and changes
+  db.exec_params("DELETE FROM users WHERE name = @p1", ["Carol"])
+  tester::assert(db.changes() == 1, "B13: changes after DELETE")
+
+  # B14: query returns empty list when no rows match
+  empty_rows = db.query_params("SELECT * FROM users WHERE age > @p1", [100])
+  tester::assert(empty_rows.size() == 0, "B14: empty result set")
+
+  # B15: null value round-trip
+  db.exec("CREATE TABLE nullable (id INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT)")
+  db.exec("INSERT INTO nullable (val) VALUES (NULL)")
+  nr = db.query("SELECT val FROM nullable")
+  tester::assert(nr[0]["val"] == null, "B15: NULL column reads as null")
+
+  # B16: SqliteError thrown on bad SQL
+  caught = false
+  try
+    db.exec("THIS IS NOT SQL")
+  catch (e)
+    caught = true
+  end
+  tester::assert(caught, "B16: bad SQL raises an error")
+
+  # B17: multiple param types (boolean stored as integer)
+  db.exec("CREATE TABLE flags (id INTEGER PRIMARY KEY AUTOINCREMENT, flag INTEGER)")
+  db.exec_params("INSERT INTO flags (flag) VALUES (@p1)", [true])
+  db.exec_params("INSERT INTO flags (flag) VALUES (@p1)", [false])
+  flags = db.query("SELECT flag FROM flags ORDER BY id")
+  tester::assert(flags[0]["flag"] == 1, "B17: boolean true stored as 1")
+  tester::assert(flags[1]["flag"] == 0, "B18: boolean false stored as 0")
+
+  # -----------------------------------------------------------------------
+  # Date columns — stored as ISO 8601 TEXT (SQLite convention)
+  # -----------------------------------------------------------------------
+  db.exec("CREATE TABLE events (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    title      TEXT    NOT NULL,
+    event_date TEXT    NOT NULL,
+    created_at TEXT    NOT NULL
+  )")
+
+  # Build known date strings from fixed dates using the built-in date type.
+  # d(year, month, day, hour, minute, second, ms)
+  date_a = d(2024, 1, 15, 0, 0, 0, 0)
+  date_b = d(2024, 6, 30, 0, 0, 0, 0)
+  date_c = d(2025, 3, 7, 14, 30, 0, 0)
+
+  iso_a = date_a.to_string("yyyy-MM-dd")
+  iso_b = date_b.to_string("yyyy-MM-dd")
+  iso_c = date_c.to_string("yyyy-MM-dd")
+
+  dt_c  = date_c.to_string("yyyy-MM-dd HH:mm:ss")
+
+  db.exec_params("INSERT INTO events (title, event_date, created_at) VALUES (@p1, @p2, @p3)", ["Alpha",  iso_a, iso_a])
+  db.exec_params("INSERT INTO events (title, event_date, created_at) VALUES (@p1, @p2, @p3)", ["Beta",   iso_b, iso_b])
+  db.exec_params("INSERT INTO events (title, event_date, created_at) VALUES (@p1, @p2, @p3)", ["Gamma",  iso_c, dt_c])
+
+  # D1: DATE TEXT round-trips correctly
+  ev = db.query("SELECT * FROM events ORDER BY event_date")
+  tester::assert(ev.size() == 3,       "D1: three event rows")
+  tester::assert(ev[0]["event_date"] == iso_a, "D2: first event_date is 2024-01-15")
+  tester::assert(ev[1]["event_date"] == iso_b, "D3: second event_date is 2024-06-30")
+  tester::assert(ev[2]["event_date"] == iso_c, "D4: third event_date is 2025-03-07")
+
+  # D5: DATETIME TEXT round-trips correctly
+  tester::assert(ev[2]["created_at"] == dt_c, "D5: datetime string round-trips")
+
+  # D6: ISO 8601 strings are lexicographically ordered — range query works
+  range = db.query_params(
+    "SELECT title FROM events WHERE event_date BETWEEN @p1 AND @p2 ORDER BY event_date",
+    ["2024-01-01", "2024-12-31"]
+  )
+  tester::assert(range.size() == 2,            "D6: date range returns 2 rows")
+  tester::assert(range[0]["title"] == "Alpha", "D7: first in range is Alpha")
+  tester::assert(range[1]["title"] == "Beta",  "D8: second in range is Beta")
+
+  # D9: filter by exact date param
+  exact = db.query_params("SELECT title FROM events WHERE event_date = @p1", [iso_b])
+  tester::assert(exact.size() == 1,            "D9: exact date match returns one row")
+  tester::assert(exact[0]["title"] == "Beta",  "D10: exact date match is Beta")
+
+  # D11: SQLite date() function trims time portion, so we can compare date parts
+  date_only = db.query_params(
+    "SELECT title FROM events WHERE date(created_at) = @p1",
+    [iso_c]
+  )
+  tester::assert(date_only.size() == 1,           "D11: date() function strips time for comparison")
+  tester::assert(date_only[0]["title"] == "Gamma", "D12: date() match is Gamma")
+
+  # D13: strftime extracts year component
+  years = db.query("SELECT DISTINCT strftime('%Y', event_date) AS yr FROM events ORDER BY yr")
+  tester::assert(years.size() == 2,        "D13: two distinct years")
+  tester::assert(years[0]["yr"] == "2024", "D14: first year is 2024")
+  tester::assert(years[1]["yr"] == "2025", "D15: second year is 2025")
+
+  # D16: ORDER BY date column works (ISO format is lexicographically sortable)
+  ordered = db.query("SELECT title FROM events ORDER BY event_date DESC")
+  tester::assert(ordered[0]["title"] == "Gamma", "D16: DESC order — Gamma is most recent")
+  tester::assert(ordered[2]["title"] == "Alpha", "D17: DESC order — Alpha is oldest")
+
+  db.close()
+
+  # B19: using a closed connection raises an error
+  caught2 = false
+  try
+    db.query("SELECT 1")
+  catch (e)
+    caught2 = true
+  end
+  tester::assert(caught2, "B19: query on closed connection raises an error")
+end)

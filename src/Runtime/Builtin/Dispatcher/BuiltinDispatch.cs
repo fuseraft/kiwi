@@ -68,6 +68,10 @@ public struct BuiltinDispatch
         {
             return CsvBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (SqliteBuiltin.IsBuiltin(builtin))
+        {
+            return SqliteBuiltinHandler.Execute(token, builtin, args);
+        }
         else if (JsonBuiltin.IsBuiltin(builtin))
         {
             return JsonBuiltinHandler.Execute(token, builtin, args);
