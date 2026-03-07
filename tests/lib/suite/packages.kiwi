@@ -67,4 +67,27 @@ tester::register_test("packages", with do
 
   tester::assert(pkg_a::greet() == "hello from a", "A7: independent packages don't interfere (a)")
   tester::assert(pkg_b::greet() == "hello from b", "A8: independent packages don't interfere (b)")
+
+  # import-as-variable: `pkg = import "name"` returns a package ref
+  pkg = import "strutils"
+  tester::assert(pkg.replicate("ab", 3) == "ababab", "B1: import-as-var method call")
+  tester::assert(pkg.shout("hello") == "HELLO!!!",   "B2: import-as-var second method")
+  tester::assert(pkg.wrap("x", "[", "]") == "[x]",   "B3: import-as-var third method")
+
+  # :: syntax still works alongside the variable ref
+  tester::assert(strutils::replicate("x", 2) == "xx", "B4: :: syntax unaffected by import-as-var")
+
+  # re-import is idempotent — returns a fresh ref to same package
+  pkg2 = import "strutils"
+  tester::assert(pkg2.shout("hi") == "HI!!!", "B5: re-import idempotent")
+
+  # package ref passed as a function argument
+  fn call_shout(p, s)
+    return p.shout(s)
+  end
+  tester::assert(call_shout(pkg, "world") == "WORLD!!!", "B6: package ref as argument")
+
+  # name collision: overwriting the variable does not affect :: resolution
+  pkg = "overwritten"
+  tester::assert(strutils::shout("ok") == "OK!!!", "B7: :: unaffected after var overwrite")
 end)

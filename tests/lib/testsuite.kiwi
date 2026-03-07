@@ -53,6 +53,7 @@ var (unit_tests: list = [
   "standard_library",
 
   # Module system
+  "case_when",
   "packages",
   "events",
 

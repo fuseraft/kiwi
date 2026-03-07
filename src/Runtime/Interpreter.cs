@@ -541,6 +541,11 @@ public class Interpreter
         var packageName = Interpret(node.PackageName);
         ImportPackage(node.Token, packageName);
 
+        if (packageName.IsString())
+        {
+            return Value.CreatePackage(packageName.GetString());
+        }
+
         return Value.Default;
     }
 
@@ -1145,7 +1150,24 @@ public class Interpreter
         var obj = Interpret(node.Object);
         var memberName = node.MemberName;
 
-        if (obj.IsHashmap())
+        if (obj.IsPackage())
+        {
+            var pkgName = obj.GetPackage().Identifier;
+            var qualifiedName = pkgName + "::" + memberName;
+
+            if (Context.Constants.TryGetValue(qualifiedName, out Value? constVal))
+            {
+                return constVal;
+            }
+
+            if (Context.HasFunction(qualifiedName))
+            {
+                return Value.CreateLambda(new LambdaRef { Identifier = qualifiedName });
+            }
+
+            throw new RuntimeError(node.Token, $"Package '{pkgName}' has no member '{memberName}'.", CaptureStackTrace());
+        }
+        else if (obj.IsHashmap())
         {
             var hash = obj.GetHashmap();
             var memberKey = Value.CreateString(memberName);
@@ -1661,13 +1683,30 @@ public class Interpreter
             var matched = false;
             foreach (var condNode in whenNode.Conditions)
             {
-                var condValue = Interpret(condNode);
-                if ((!isSwitch && BooleanOp.IsTruthy(condValue))
-                    || (isSwitch && ComparisonOp.Equal(ref testValue, ref condValue)))
+                if (isSwitch && condNode?.Type == ASTNodeType.RangeLiteral)
                 {
-                    matched = true;
-                    break;
+                    var rangeNode = (RangeLiteralNode)condNode;
+                    var start = Interpret(rangeNode.RangeStart);
+                    var end = Interpret(rangeNode.RangeEnd);
+                    if ((start.IsInteger() || start.IsFloat()) && (end.IsInteger() || end.IsFloat()))
+                    {
+                        var tv = testValue.IsFloat() ? testValue.GetFloat() : (double)(testValue.IsInteger() ? testValue.GetInteger() : 0L);
+                        var sv = start.IsFloat() ? start.GetFloat() : (double)start.GetInteger();
+                        var ev = end.IsFloat() ? end.GetFloat() : (double)end.GetInteger();
+                        matched = sv <= ev ? (tv >= sv && tv <= ev) : (tv >= ev && tv <= sv);
+                    }
                 }
+                else
+                {
+                    var condValue = Interpret(condNode);
+                    if ((!isSwitch && BooleanOp.IsTruthy(condValue))
+                        || (isSwitch && ComparisonOp.Equal(ref testValue, ref condValue)))
+                    {
+                        matched = true;
+                    }
+                }
+
+                if (matched) break;
             }
 
             if (matched)
@@ -2271,7 +2310,11 @@ public class Interpreter
     {
         var obj = Interpret(node.Object);
 
-        if (obj.IsObject())
+        if (obj.IsPackage())
+        {
+            return CallPackageMethod(node, obj.GetPackage());
+        }
+        else if (obj.IsObject())
         {
             return CallObjectMethod(node, obj.GetObject());
         }
@@ -3137,6 +3180,24 @@ public class Interpreter
         }
 
         return result;
+    }
+
+    private Value CallPackageMethod(MethodCallNode node, PackageRef pkg)
+    {
+        var qualifiedName = pkg.Identifier + "::" + node.MethodName;
+
+        if (Context.Functions.TryGetValue(qualifiedName, out KFunction? func))
+        {
+            if (func.IsGenerator)
+            {
+                return CreateGenerator(func, node.Arguments, node.Token);
+            }
+
+            // CallFunction(KFunction, ...) manages push/pop internally.
+            return CallFunction(func, node.Arguments, node.Token, qualifiedName);
+        }
+
+        throw new FunctionUndefinedError(node.Token, node.MethodName);
     }
 
     private Value CallObjectBaseMethod(MethodCallNode node, InstanceRef obj, string baseStruct, string methodName)

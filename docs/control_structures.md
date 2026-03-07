@@ -90,6 +90,57 @@ label = case
 end
 ```
 
+### D. Ranges in `when`
+
+Use `start..end` (or `start to end`) in a `when` clause to match a numeric range. Both bounds are **inclusive**. No list is allocated — the check is O(1).
+
+```kiwi
+fn letter_grade(score)
+  return case score
+    when 90..100: "A"
+    when 80..89:  "B"
+    when 70..79:  "C"
+    when 60..69:  "D"
+    else:         "F"
+  end
+end
+
+println letter_grade(95)   # A
+println letter_grade(72)   # C
+println letter_grade(50)   # F
+```
+
+Ranges can be mixed freely with literal values and comma-separated lists in the same `case`:
+
+```kiwi
+fn classify(n)
+  return case n
+    when 0:       "zero"
+    when 1..9:    "single digit"
+    when 10..99:  "double digit"
+    else:         "big"
+  end
+end
+
+fn day_type(d)
+  return case d
+    when 1..5:  "weekday"
+    when 6, 7:  "weekend"
+    else:       "invalid"
+  end
+end
+```
+
+Ranges also work with floats and negative bounds:
+
+```kiwi
+result = case temp
+  when -273.15..0.0:  "below freezing"
+  when 0.0..100.0:    "liquid"
+  else:               "steam or beyond"
+end
+```
+
 ## 3. `when` – Guard clauses / conditional modifiers
 
 Append `when condition` to many statements for clean early exits.

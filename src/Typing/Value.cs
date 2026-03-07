@@ -22,6 +22,11 @@ public class StructRef
     public string Identifier { get; set; } = string.Empty;
 }
 
+public class PackageRef
+{
+    public string Identifier { get; set; } = string.Empty;
+}
+
 public class NullRef { }
 
 public class GeneratorCloseException : Exception { }
@@ -255,6 +260,9 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public bool IsBytes() => Type == ValueType.Bytes;
     public bool IsGenerator() => Type == ValueType.Generator;
     public GeneratorRef GetGenerator() => (GeneratorRef)Value_;
+    public bool IsPackage() => Type == ValueType.Package;
+    public PackageRef GetPackage() => (PackageRef)Value_;
+    public static Value CreatePackage(string name) => new(new PackageRef { Identifier = name }, ValueType.Package);
 
     public static List<Value> Clone(List<Value> list)
     {
@@ -939,6 +947,7 @@ public enum ValueType
     Date = 11,
     Bytes = 12,
     Generator = 13,
+    Package = 14,
     Unset = 20,
     Number = 21
 };
