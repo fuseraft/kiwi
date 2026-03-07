@@ -1,0 +1,80 @@
+/# ==============================================================================
+    Testing case-when: literal matching, multi-value, ranges, mixed.
+   ============================================================================== #/
+tester::register_test("case/when", with do
+  # basic literal matching
+  fn letter_grade(score)
+    return case score
+      when 90..100: "A"
+      when 80..89:  "B"
+      when 70..79:  "C"
+      when 60..69:  "D"
+      else:         "F"
+    end
+  end
+
+  tester::assert(letter_grade(95)  == "A", "A1: range 90..100")
+  tester::assert(letter_grade(83)  == "B", "A2: range 80..89")
+  tester::assert(letter_grade(71)  == "C", "A3: range 70..79")
+  tester::assert(letter_grade(65)  == "D", "A4: range 60..69")
+  tester::assert(letter_grade(50)  == "F", "A5: else branch")
+  tester::assert(letter_grade(100) == "A", "A6: upper boundary inclusive")
+  tester::assert(letter_grade(90)  == "A", "A7: lower boundary inclusive")
+  tester::assert(letter_grade(89)  == "B", "A8: boundary between ranges")
+
+  # zero-length / exact match via range
+  fn classify(n)
+    return case n
+      when 0:      "zero"
+      when 1..9:   "single digit"
+      when 10..99: "double digit"
+      else:        "big"
+    end
+  end
+
+  tester::assert(classify(0)   == "zero",         "B1: literal before range")
+  tester::assert(classify(5)   == "single digit", "B2: range 1..9")
+  tester::assert(classify(42)  == "double digit", "B3: range 10..99")
+  tester::assert(classify(100) == "big",          "B4: else after ranges")
+
+  # mix of ranges and comma-separated literals in one case
+  fn day_type(d)
+    return case d
+      when 1..5: "weekday"
+      when 6, 7: "weekend"
+      else:      "invalid"
+    end
+  end
+
+  tester::assert(day_type(1) == "weekday", "C1: range lower bound")
+  tester::assert(day_type(5) == "weekday", "C2: range upper bound")
+  tester::assert(day_type(6) == "weekend", "C3: comma literal after range")
+  tester::assert(day_type(7) == "weekend", "C4: second comma literal")
+  tester::assert(day_type(8) == "invalid", "C5: else")
+
+  # reversed range (high..low) matches symmetrically
+  fn near_zero(n)
+    return case n
+      when -5..5: "near"
+      else:       "far"
+    end
+  end
+
+  tester::assert(near_zero(0)  == "near", "D1: zero in -5..5")
+  tester::assert(near_zero(-5) == "near", "D2: negative lower bound")
+  tester::assert(near_zero(5)  == "near", "D3: positive upper bound")
+  tester::assert(near_zero(6)  == "far",  "D4: just outside")
+
+  # multiple ranges in a single when via comma
+  fn vowel_or_not(c)
+    code = c.ord()
+    return case code
+      when 97..97, 101..101, 105..105, 111..111, 117..117: "vowel"
+      else: "other"
+    end
+  end
+
+  tester::assert(vowel_or_not("a") == "vowel", "E1: 'a' matches range")
+  tester::assert(vowel_or_not("e") == "vowel", "E2: 'e' matches range")
+  tester::assert(vowel_or_not("b") == "other", "E3: 'b' does not match")
+end)

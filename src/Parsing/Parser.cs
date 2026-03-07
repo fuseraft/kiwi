@@ -1192,11 +1192,11 @@ public partial class Parser
                     throw new SyntaxError(GetErrorToken(), "Expected condition or value for case-when.");
                 }
 
-                caseWhen.Conditions.Add(ParseExpression());
+                caseWhen.Conditions.Add(ParseCaseWhenCondition());
                 while (GetTokenType() == TokenType.Comma)
                 {
                     Next();  // consume ','
-                    caseWhen.Conditions.Add(ParseExpression());
+                    caseWhen.Conditions.Add(ParseCaseWhenCondition());
                 }
 
                 MatchType(TokenType.Colon);  // optional ':' after condition(s)
@@ -1241,6 +1241,20 @@ public partial class Parser
         }
 
         return node;
+    }
+
+    private ASTNode? ParseCaseWhenCondition()
+    {
+        var expr = ParseExpression();
+
+        if (GetTokenType() == TokenType.Range || GetTokenName() == TokenName.KW_To)
+        {
+            Next();  // consume '..' or 'to'
+            var rangeEnd = ParseExpression();
+            return new RangeLiteralNode(expr, rangeEnd) { Token = expr?.Token ?? token };
+        }
+
+        return expr;
     }
 
     private IfNode? ParseIf()

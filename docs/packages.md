@@ -95,6 +95,54 @@ export "math_utils"
 println math_utils::square(5)  # 25
 ```
 
+## Import as a Variable
+
+Assigning the result of `import` to a variable gives you a **package reference** — an object you can call methods on using dot syntax instead of `::`.
+
+```kiwi
+m = import "math"
+
+println m.sqrt(16.0)      # 4.0
+println m.abs(-7)         # 7
+println m.pow(2.0, 10.0)  # 1024.0
+```
+
+This is exactly equivalent to calling `math::sqrt(16.0)` etc. — the `::` form still works alongside the variable reference and neither affects the other.
+
+```kiwi
+csv = import "csv"
+
+rows = csv.parse("name,age\nAlice,30\nBob,25")
+
+# :: syntax still works
+rows2 = csv::parse("x,y\n1,2")
+```
+
+Package references can be stored in variables, passed to functions, and returned from functions:
+
+```kiwi
+fn make_parser(fmt)
+  return case fmt
+    when "csv": import "csv"
+    when "xml": import "xml"
+    else:       null
+  end
+end
+
+parser = make_parser("csv")
+result = parser.parse(data)
+```
+
+Overwriting the variable has no effect on the `::` namespace:
+
+```kiwi
+m = import "math"
+m = "something else"        # variable reassigned
+println math::sqrt(9.0)     # 3.0 — still works
+```
+
+Re-importing is idempotent — the package is loaded once; subsequent `import` calls for the same package return a new reference without re-executing the package body.
+
 ## Nested Packages
 
 Packages support namespaced names using `::`.
