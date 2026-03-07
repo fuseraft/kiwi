@@ -63,7 +63,7 @@ Kiwi accepts both symbol and keyword forms — they are identical in behavior.
 | Symbol | Keyword | Description |
 | :--- | :--- | :--- |
 | `&&` | `and` | True when both operands are truthy |
-| `\|\|` | `or` | True when at least one operand is truthy |
+| `||` | `or` | True when at least one operand is truthy |
 | `!` | `not` | Inverts a boolean |
 
 Both forms short-circuit: `&&`/`and` stops at the first falsy value; `||`/`or` stops at the first truthy value.
@@ -130,7 +130,7 @@ end
 | Operator | Name | Example | Notes |
 | :--- | :--- | :--- | :--- |
 | `&` | AND | `5 & 9` → `1` | Bit-by-bit AND |
-| `\|` | OR | `5 \| 9` → `13` | Bit-by-bit OR |
+| `|` | OR | `5 | 9` → `13` | Bit-by-bit OR |
 | `^` | XOR | `5 ^ 9` → `12` | Bit-by-bit XOR |
 | `~` | NOT | `~5` → `-6` | Bitwise complement |
 | `<<` | Left shift | `5 << 1` → `10` | Shift bits left |
@@ -241,7 +241,7 @@ Short-circuit assignment using the logical operators.
 | Operator | Meaning |
 | :--- | :--- |
 | `&&=` | Assign right side only if left side is truthy |
-| `\|\|=` | Assign right side only if left side is falsy |
+| `||=` | Assign right side only if left side is falsy |
 
 ```kiwi
 x = true
@@ -261,7 +261,7 @@ z ||= "fallback"  # z stays "existing" (was truthy, short-circuits)
 | Operator | Equivalent to |
 | :--- | :--- |
 | `&=` | `a = a & b` |
-| `\|=` | `a = a \| b` |
+| `|=` | `a = a | b` |
 | `^=` | `a = a ^ b` |
 | `~=` | `a = ~b` |
 | `<<=` | `a = a << b` |
@@ -291,10 +291,10 @@ Operators are evaluated in the following order (highest to lowest). Operators on
 | 5 | `<<`, `>>`, `>>>` | |
 | 6 | `&` | |
 | 7 | `^` | |
-| 8 | `\|` | |
+| 8 | `|` | |
 | 9 | `==`, `!=`, `<`, `<=`, `>`, `>=` | |
 | 10 | `&&`, `and` | |
-| 11 | `\|\|`, `or` | |
+| 11 | `||`, `or` | |
 | 12 | `??` | |
 | 13 | `? :` | Right-associative |
 | 14 (lowest) | `=`, `+=`, `-=`, `*=`, etc. | Right-associative |
