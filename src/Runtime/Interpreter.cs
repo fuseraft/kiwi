@@ -110,6 +110,7 @@ public class Interpreter
             ASTNodeType.HashLiteral => Visit((HashLiteralNode)node),
             ASTNodeType.Identifier => Visit((IdentifierNode)node),
             ASTNodeType.If => Visit((IfNode)node),
+            ASTNodeType.DecoratedFunction => Visit((DecoratedFunctionNode)node),
             ASTNodeType.Import => Visit((ImportNode)node),
             ASTNodeType.Interpolation => Visit((InterpolationNode)node),
             ASTNodeType.Include => Visit((IncludeNode)node),
@@ -1371,6 +1372,13 @@ public class Interpreter
 
             scope.Declare(param.Key, argValue);
         }
+
+        // Collect overflow args into variadic list
+        if (!string.IsNullOrEmpty(callable.VariadicParamName))
+        {
+            var varargs = args.Skip(callable.Parameters.Count).ToList();
+            scope.Declare(callable.VariadicParamName, Value.CreateList(varargs));
+        }
     }
 
     private Value ExecuteBody(List<ASTNode?> body, StackFrame frame)
@@ -2100,7 +2108,8 @@ public class Interpreter
             DefaultParameters = defaultParameters,
             TypeHints = node.TypeHints,
             ReturnTypeHint = node.ReturnTypeHint,
-            CapturedScope = CallStack.Peek().Scope
+            CapturedScope = CallStack.Peek().Scope,
+            VariadicParamName = node.VariadicParamName
         };
 
         if (map)
@@ -2109,6 +2118,85 @@ public class Interpreter
         }
 
         return Value.CreateLambda(new LambdaRef { Identifier = internalName });
+    }
+
+    private Value Visit(DecoratedFunctionNode node)
+    {
+        var inStruct = StructStack.Count > 0;
+
+        // 1. Define the function normally.
+        Visit(node.Function, inStruct);
+
+        // 2. Compute the qualified registered name (mirrors Visit(FunctionNode) prefix logic).
+        var funcName = node.Function.Name;
+        var registeredName = funcName;
+        if (PackageStack.Count > 0 && !inStruct)
+        {
+            Stack<string> tmpStack = new([.. PackageStack]);
+            var prefix = string.Empty;
+            while (tmpStack.Count > 0) { prefix += tmpStack.Peek() + "::"; tmpStack.Pop(); }
+            registeredName = prefix + funcName;
+        }
+
+        if (!Context.HasFunction(registeredName))
+            return Value.Default;
+
+        // 3. Wrap the original function as a lambda so it can be passed as a value.
+        var kfunc = Context.Functions[registeredName];
+        var klambda = new KLambda(kfunc.Decl.ToLambda())
+        {
+            Parameters = kfunc.Parameters,
+            DefaultParameters = kfunc.DefaultParameters,
+            TypeHints = kfunc.TypeHints,
+            ReturnTypeHint = kfunc.ReturnTypeHint,
+            CapturedScope = kfunc.CapturedScope
+        };
+        var internalName = $"_deco_{Guid.NewGuid().ToString()[..8]}_";
+        Context.Lambdas[internalName] = klambda;
+        Value current = Value.CreateLambda(new LambdaRef { Identifier = internalName });
+
+        // 4. Apply decorators bottom-to-top: @A @B fn f => f = A(B(f)).
+        for (int i = node.Decorators.Count - 1; i >= 0; i--)
+        {
+            var (decoName, extraArgs) = node.Decorators[i];
+            List<ASTNode?> argNodes = [new LiteralNode(current) { Token = node.Token }];
+            argNodes.AddRange(extraArgs);
+            current = CallDecoratorByName(node.Token, decoName, argNodes);
+        }
+
+        // 5. Replace the function entry with the decorated result.
+        Context.Functions.Remove(registeredName);
+        if (current.IsLambda())
+        {
+            Context.AddMappedLambda(registeredName, current.GetLambda().Identifier);
+        }
+        else
+        {
+            _globalScope.Assign(registeredName, current);
+        }
+
+        return Value.Default;
+    }
+
+    private Value CallDecoratorByName(Token token, string name, List<ASTNode?> argNodes)
+    {
+        if (Context.HasFunction(name))
+            return CallFunction(Context.Functions[name], argNodes, token, name);
+
+        if (Context.HasMappedLambda(name))
+        {
+            var lambda = Context.Lambdas[Context.LambdaTable[name]];
+            var args = argNodes.Select(a => Interpret(a)).ToList();
+            return InvokeCallable(lambda, args, token, name);
+        }
+
+        if (Context.HasLambda(name))
+        {
+            var args = argNodes.Select(a => Interpret(a)).ToList();
+            return InvokeCallable(Context.Lambdas[name], args, token, name);
+        }
+
+        throw new FunctionUndefinedError(token, name);
     }
 
     private Value Visit(FunctionNode node, bool inStruct = false)
@@ -2686,7 +2774,8 @@ public class Interpreter
             IsGenerator = node.IsGenerator,
             TypeHints = node.TypeHints,
             ReturnTypeHint = node.ReturnTypeHint,
-            CapturedScope = CallStack.Peek().Scope
+            CapturedScope = CallStack.Peek().Scope,
+            VariadicParamName = node.VariadicParamName
         };
     }
 
@@ -2908,10 +2997,43 @@ public class Interpreter
 
         foreach (var arg in args)
         {
-            arguments.Add(Interpret(arg));
+            if (arg is SplatNode splat)
+            {
+                var listVal = Interpret(splat.Expression);
+                if (listVal.IsList())
+                    arguments.AddRange(listVal.GetList());
+                else
+                    arguments.Add(listVal);
+            }
+            else
+            {
+                arguments.Add(Interpret(arg));
+            }
         }
 
         return arguments;
+    }
+
+    // Evaluate call arguments in the current scope, expanding SplatNodes.
+    private List<Value> EvaluateCallArgs(List<ASTNode?> args)
+    {
+        List<Value> result = [];
+        foreach (var arg in args)
+        {
+            if (arg is SplatNode splat)
+            {
+                var listVal = Interpret(splat.Expression);
+                if (listVal.IsList())
+                    result.AddRange(listVal.GetList());
+                else
+                    result.Add(listVal);
+            }
+            else
+            {
+                result.Add(Interpret(arg));
+            }
+        }
+        return result;
     }
 
     private Value CallObjectMethod(MethodCallNode node, InstanceRef obj)
@@ -3127,7 +3249,7 @@ public class Interpreter
 
     private void ProcessFunctionParameters(KFunction function, List<ASTNode?> args, Token token, string functionName, HashSet<string> defaultParameters, Scope scope, Dictionary<string, List<int>> typeHints)
     {
-        var slots = ResolveArguments(function.Parameters, args, defaultParameters, token, functionName);
+        var slots = ResolveArguments(function.Parameters, args, defaultParameters, token, functionName, function.VariadicParamName, scope);
         for (var i = 0; i < function.Parameters.Count; ++i)
         {
             var param = function.Parameters[i];
@@ -3138,8 +3260,6 @@ public class Interpreter
 
     private Value CallLambda(Token token, string lambdaName, List<ASTNode?> args, ref bool doPop)
     {
-        var scope = new Scope(CallStack.Peek().Scope);
-        var lambdaFrame = PushFrame(lambdaName, token, scope, true);
         var targetLambda = lambdaName;
         var result = Value.Default;
 
@@ -3158,7 +3278,15 @@ public class Interpreter
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
 
-        PrepareLambdaCall(func, args, defaultParameters, token, targetLambda, typeHints, lambdaName, scope);
+        // Evaluate args in CALLER's scope (before pushing the new frame), so
+        // splat expressions and closured variables resolve correctly.
+        List<Value> evaluatedArgs = EvaluateCallArgs(args);
+
+        // Push new frame with captured scope as parent (enables closures).
+        var scope = new Scope(func.CapturedScope ?? CallStack.Peek().Scope);
+        var lambdaFrame = PushFrame(lambdaName, token, scope, true);
+
+        PrepareLambdaCall(func, evaluatedArgs, defaultParameters, token, targetLambda, typeHints, lambdaName, scope);
 
         lambdaFrame.SetFlag(FrameFlags.InLambda);
         doPop = true;
@@ -3260,7 +3388,7 @@ public class Interpreter
         var parms = func.Parameters;
         var nodeArguments = node.Arguments;
         var scope = functionFrame.Scope;
-        var slots = ResolveArguments(parms, nodeArguments, defaultParameters, node.Token, node.FunctionName);
+        var slots = ResolveArguments(parms, nodeArguments, defaultParameters, node.Token, node.FunctionName, func.VariadicParamName, scope);
 
         for (var i = 0; i < parms.Count; ++i)
         {
@@ -3294,9 +3422,12 @@ public class Interpreter
         List<KeyValuePair<string, Value>> parms,
         List<ASTNode?> nodeArguments,
         HashSet<string> defaultParameters,
-        Token token, string callableName)
+        Token token, string callableName,
+        string variadicParamName = "",
+        Scope? variadicScope = null)
     {
         var slots = new Value?[parms.Count];
+        List<Value>? varargs = string.IsNullOrEmpty(variadicParamName) ? null : [];
 
         // 1. Fill named args
         foreach (var arg in nodeArguments.OfType<NamedArgumentNode>())
@@ -3309,15 +3440,35 @@ public class Interpreter
             slots[idx] = Interpret(arg.Value);
         }
 
-        // 2. Fill positional args into unfilled slots left-to-right
+        // 2. Fill positional args into unfilled slots left-to-right; overflow into varargs
         int pos = 0;
         foreach (var arg in nodeArguments.Where(a => a is not NamedArgumentNode))
         {
-            while (pos < slots.Length && slots[pos] != null) pos++;
-            if (pos >= slots.Length)
-                throw new ParameterCountMismatchError(token, callableName, parms.Count, nodeArguments.Count);
-            slots[pos] = Interpret(arg);
-            pos++;
+            // Splat: expand a list into positional args
+            IEnumerable<Value> expanded;
+            if (arg is SplatNode splat)
+            {
+                var listVal = Interpret(splat.Expression);
+                expanded = listVal.IsList() ? listVal.GetList() : [listVal];
+            }
+            else
+            {
+                expanded = [Interpret(arg)];
+            }
+
+            foreach (var v in expanded)
+            {
+                while (pos < slots.Length && slots[pos] != null) pos++;
+                if (pos >= slots.Length)
+                {
+                    if (varargs == null)
+                        throw new ParameterCountMismatchError(token, callableName, parms.Count, nodeArguments.Count);
+                    varargs.Add(v);
+                    continue;
+                }
+                slots[pos] = v;
+                pos++;
+            }
         }
 
         // 3. Fill remaining slots with defaults; error on missing
@@ -3330,6 +3481,12 @@ public class Interpreter
                 else
                     throw new ParameterCountMismatchError(token, callableName, parms.Count, nodeArguments.Count);
             }
+        }
+
+        // 4. Bind varargs list if variadic
+        if (varargs != null && variadicScope != null)
+        {
+            variadicScope.Declare(variadicParamName, Value.CreateList(varargs));
         }
 
         return slots!;
@@ -3356,7 +3513,7 @@ public class Interpreter
     private void PrepareLambdaCall(KLambda func, List<ASTNode?> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, List<int>> typeHints, string lambdaName, Scope scope)
     {
         var parms = func.Parameters;
-        var slots = ResolveArguments(parms, args, defaultParameters, token, targetLambda);
+        var slots = ResolveArguments(parms, args, defaultParameters, token, targetLambda, func.VariadicParamName, scope);
         for (var i = 0; i < parms.Count; ++i)
         {
             var param = parms[i];
@@ -3386,8 +3543,14 @@ public class Interpreter
                 throw new ParameterCountMismatchError(token, targetLambda, parms.Count, args.Count);
             }
 
-
             PrepareLambdaVariables(typeHints, param, ref argValue, token, i, lambdaName, scope);
+        }
+
+        // Collect overflow args into variadic list
+        if (!string.IsNullOrEmpty(func.VariadicParamName))
+        {
+            var varargs = args.Skip(parms.Count).ToList();
+            scope.Declare(func.VariadicParamName, Value.CreateList(varargs));
         }
     }
 

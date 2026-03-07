@@ -15,6 +15,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
     public bool IsGenerator { get; set; }
     public bool IsAbstract { get; set; }
     public bool IsOverride { get; set; }
+    public string VariadicParamName { get; set; } = string.Empty;
 
     public LambdaNode ToLambda()
     {
@@ -37,6 +38,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
             Body = clonedBody,
             TypeHints = TypeHints,
             ReturnTypeHint = ReturnTypeHint,
+            VariadicParamName = VariadicParamName,
             Token = Token
         };
     }
@@ -115,6 +117,7 @@ public class FunctionNode() : ASTNode(ASTNodeType.Function)
             IsOverride = IsOverride,
             TypeHints = TypeHints,
             ReturnTypeHint = ReturnTypeHint,
+            VariadicParamName = VariadicParamName,
             Token = Token
         };
     }

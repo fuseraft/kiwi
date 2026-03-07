@@ -1,0 +1,115 @@
+/# ==============================================================================
+    Testing the decorator syntax (@decorator before fn) and variadic parameters.
+   ============================================================================== #/
+tester::register_test("decorators", with do
+  # -- Variadic params --
+
+  fn sum(*args)
+    total = 0
+    for x in args do
+      total += x
+    end
+    return total
+  end
+
+  tester::assert(sum() == 0, "A1")
+  tester::assert(sum(1, 2, 3) == 6, "A2")
+  tester::assert(sum(10, 20, 30, 40) == 100, "A3")
+
+  fn first_and_rest(head, *tail)
+    return [head, tail]
+  end
+
+  result = first_and_rest(1, 2, 3, 4)
+  tester::assert(result[0] == 1, "A4")
+  tester::assert(result[1] == [2, 3, 4], "A5")
+
+  # Variadic lambda
+  adder = with (*vals) do
+    s = 0
+    for v in vals do
+      s += v
+    end
+    return s
+  end
+
+  tester::assert(adder(5, 10, 15) == 30, "A6")
+
+  # -- Splat operator in calls --
+
+  nums = [1, 2, 3]
+  tester::assert(sum(*nums) == 6, "A7")
+  tester::assert(first_and_rest(*nums)[0] == 1, "A8")
+
+  # -- Decorator syntax --
+
+  fn identity(f)
+    return f
+  end
+
+  @identity
+  fn get_one()
+    return 1
+  end
+
+  tester::assert(get_one() == 1, "B1")
+
+  fn double_result(f)
+    return with (*args) do
+      return f(*args) * 2
+    end
+  end
+
+  @double_result
+  fn add(a, b)
+    return a + b
+  end
+
+  tester::assert(add(3, 4) == 14, "B2")
+
+  # Stacked decorators — applied bottom-to-top
+  fn add_one(f)
+    return with (*args) do
+      return f(*args) + 1
+    end
+  end
+
+  @add_one
+  @double_result
+  fn mul(a, b)
+    return a * b
+  end
+
+  # mul(3, 4) = 12, double_result => 24, add_one => 25
+  tester::assert(mul(3, 4) == 25, "B3")
+
+  # Decorator with extra args: @ntimes(n)
+  fn ntimes(f, n)
+    return with (*args) do
+      result = null
+      for i in [1..n] do
+        result = f(*args)
+      end
+      return result
+    end
+  end
+
+  count = 0
+
+  @ntimes(3)
+  fn increment()
+    count += 1
+  end
+
+  increment()
+  tester::assert(count == 3, "B4")
+
+  # Closure: decorator captures extra arg correctly
+  @ntimes(5)
+  fn inc2()
+    count += 1
+  end
+
+  inc2()
+  tester::assert(count == 8, "B5")
+end)

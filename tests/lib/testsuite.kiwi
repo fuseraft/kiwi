@@ -35,6 +35,7 @@ var (unit_tests: list = [
 
   # Functions & callables
   "lambdas",
+  "decorators",
   "generators",
   "iterators",
 

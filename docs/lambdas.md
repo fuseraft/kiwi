@@ -139,3 +139,20 @@ add = with (a, b) do a + b end
 println apply(f=add, x=3, y=4) # 7
 println apply(add, y: 10, x: 2)  # 12
 ```
+
+## Variadic lambdas
+
+Lambdas support variadic parameters with `*` the same way functions do.
+
+```kiwi
+sum = with (*args) do
+  total = 0
+  for x in args do
+    total += x
+  end
+  return total
+end
+
+println sum(1, 2, 3)     # 6
+println sum(*[10, 20])   # 30 (splat)
+```

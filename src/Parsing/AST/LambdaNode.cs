@@ -8,6 +8,7 @@ public class LambdaNode() : ASTNode(ASTNodeType.Lambda)
     public List<ASTNode?> Body { get; set; } = [];
     public Dictionary<string, List<int>> TypeHints { get; set; } = [];
     public List<int> ReturnTypeHint { get; set; } = [TypeRegistry.GetType("any")];
+    public string VariadicParamName { get; set; } = string.Empty;
 
     public override void Print(int depth = 0)
     {
@@ -69,6 +70,7 @@ public class LambdaNode() : ASTNode(ASTNodeType.Lambda)
             Body = clonedBody,
             TypeHints = TypeHints,
             ReturnTypeHint = ReturnTypeHint,
+            VariadicParamName = VariadicParamName,
             Token = Token
         };
     }
