@@ -39,7 +39,7 @@ Encodes data as a base64 string.
 
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `string`&#124;`list`&#124;`bytes` | `_input` | The input data. |
+| `string`\|`list`\|`bytes` | `_input` | The input data. |
 
 **Returns**
 

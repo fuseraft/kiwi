@@ -51,8 +51,8 @@ Any binary operator can be overloaded. The overload is triggered when the **left
 | ------------ | ------------- |
 | Arithmetic | `+` `-` `*` `/` `%` `**` |
 | Comparison | `==` `!=` `<` `<=` `>` `>=` |
-| Logical | `&&` `&#124;&#124;` |
-| Bitwise | `&` `&#124;` `^` `<<` `>>` `>>>` |
+| Logical | `&&` `\|\|` |
+| Bitwise | `&` `\|` `^` `<<` `>>` `>>>` |
 
 > Unary operators (`!`, `~`, `-` as negation) and assignment operators (`=`, `+=`, etc.) cannot be overloaded.
 
