@@ -62,14 +62,14 @@ Returns a random number between x and y.
 
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `integer`&#124;`float` | `_valueX` | The number x. |
-| `integer`&#124;`float` | `_valueY` | The number y. |
+| `integer`\|`float` | `_valueX` | The number x. |
+| `integer`\|`float` | `_valueY` | The number y. |
 
 **Returns**
 
 | Type | Description |
 | :--- | :---|
-| `integer`&#124;`float` | A random number. |
+| `integer`\|`float` | A random number. |
 
 ### `random(_base, _limit)`
 
@@ -79,7 +79,7 @@ Returns a random string or list from a string or list with a limited number of c
 
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `string`&#124;`list` | `_base` | The base string or list containing the elements to build a random distribution from. |
+| `string`\|`list` | `_base` | The base string or list containing the elements to build a random distribution from. |
 | `integer` | `_limit` | The total number of characters (in a string) or elements (in a list) to produce from the base. |
 
 ### `random_set(x, y, n)`
@@ -90,8 +90,8 @@ Returns a list of `n` unique random numbers between `x` and `y`.
 
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `integer`&#124;`float` | `x` | The lower bound. |
-| `integer`&#124;`float` | `y` | The upper bound. |
+| `integer`\|`float` | `x` | The lower bound. |
+| `integer`\|`float` | `y` | The upper bound. |
 | `integer` | `n` | The total number of values in the set. |
 
 **Returns**
@@ -1044,7 +1044,7 @@ Get the absolute value of a number.
 
 | Type | Description |
 | :--- | :---|
-| `integer`&#124;`float` | The absolute value of the number. |
+| `integer`\|`float` | The absolute value of the number. |
 
 **Example**
 

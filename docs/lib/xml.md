@@ -140,7 +140,7 @@ Returns the first direct child element whose tag matches `tag_name`, or `null` i
 
 | Type | Description |
 | :--- | :--- |
-| `XmlNode`&#124;`null` | The first matching child, or `null`. |
+| `XmlNode`\|`null` | The first matching child, or `null`. |
 
 **Example**
 
