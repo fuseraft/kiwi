@@ -1,0 +1,93 @@
+/#
+@summary A package for encoding and decoding Protocol Buffer (protobuf) binary data.
+
+@description
+Fields in the schema hashmap are keyed by field number (integer) and each field
+descriptor is a hashmap with the following keys:
+
+  name     : string   — the field name used in data hashmaps
+  type     : string   — one of: int32, int64, uint32, uint64, sint32, sint64,
+                        bool, enum, float, double, fixed32, fixed64, sfixed32,
+                        sfixed64, string, bytes, message
+  repeated : boolean  — true for repeated (list) fields (optional, default false)
+  schema   : hashmap  — nested schema for "message" type fields (optional)
+
+@example
+---
+person_schema = {
+  1: { name: "id",    type: "int32"  },
+  2: { name: "name",  type: "string" },
+  3: { name: "email", type: "string" },
+  4: { name: "score", type: "double" },
+  5: { name: "tags",  type: "string", repeated: true },
+}
+
+data = { id: 1, name: "Alice", email: "alice@example.com", score: 9.5, tags: ["dev", "kiwi"] }
+
+encoded = protobuf::encode(person_schema, data)
+decoded = protobuf::decode(person_schema, encoded)
+
+println decoded["name"]   # Alice
+println decoded["score"]  # 9.5
+println decoded["tags"]   # ["dev", "kiwi"]
+---
+#/
+package protobuf
+  /#
+  @summary Encodes a Kiwi hashmap into Protocol Buffer binary format.
+  @param hashmap schema : Field descriptor hashmap keyed by field number.
+  @param hashmap data   : Data to encode, keyed by field name.
+  @return bytes         : The encoded binary data.
+  #/
+  fn encode(schema: hashmap, data: hashmap): bytes
+    __protobuf_encode__(schema, data)
+  end
+
+  /#
+  @summary Decodes Protocol Buffer binary data into a Kiwi hashmap.
+  @param hashmap schema : Field descriptor hashmap keyed by field number.
+  @param bytes   data   : The binary data to decode.
+  @return hashmap       : Decoded data keyed by field name.
+  #/
+  fn decode(schema: hashmap, data: bytes): hashmap
+    __protobuf_decode__(schema, data)
+  end
+
+  /#
+  @summary Encodes a protobuf message and writes it to a file.
+  @param hashmap schema    : Field descriptor hashmap keyed by field number.
+  @param hashmap data      : Data to encode.
+  @param string  file_path : Output file path.
+  #/
+  fn encode_file(schema: hashmap, data: hashmap, file_path: string)
+    fio::writebytes(file_path, protobuf::encode(schema, data))
+  end
+
+  /#
+  @summary Reads a file and decodes it as a protobuf message.
+  @param hashmap schema    : Field descriptor hashmap keyed by field number.
+  @param string  file_path : Path to the binary file.
+  @return hashmap          : Decoded data keyed by field name.
+  @throws string           : If the file does not exist.
+  #/
+  fn decode_file(schema: hashmap, file_path: string): hashmap
+    throw "File does not exist: ${file_path}" when !fio::isfile(file_path)
+    protobuf::decode(schema, fio::readbytes(file_path))
+  end
+
+  /#
+  @summary Builds a field descriptor hashmap.
+  @param string  name     : Field name.
+  @param string  type     : Field type.
+  @param boolean repeated : Whether the field is repeated (default false).
+  @param hashmap schema   : Nested schema for message fields (default {}).
+  @return hashmap         : A field descriptor.
+  #/
+  fn field(name: string, type: string, repeated: boolean = false, schema: hashmap = {}): hashmap
+    desc = { name: name, type: type, repeated: repeated }
+    desc.set("schema", schema) when !schema.empty()
+    desc
+  end
+end
+
+export "protobuf"

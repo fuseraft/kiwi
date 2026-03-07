@@ -958,6 +958,7 @@ public class Lexer : IDisposable
         else if (CsvBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (SqliteBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (JsonBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (ProtobufBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (XmlBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);

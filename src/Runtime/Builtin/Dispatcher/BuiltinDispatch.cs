@@ -76,6 +76,10 @@ public struct BuiltinDispatch
         {
             return JsonBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (ProtobufBuiltin.IsBuiltin(builtin))
+        {
+            return ProtobufBuiltinHandler.Execute(token, builtin, args);
+        }
         else if (XmlBuiltin.IsBuiltin(builtin))
         {
             return XmlBuiltinHandler.Execute(token, builtin, args);
