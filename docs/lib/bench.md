@@ -72,6 +72,102 @@ Runs every benchmark registered via `register()`, prints a one-line result for e
 
 ---
 
+### `mark(f, name = "benchmark")`
+Decorator that registers a function in the global benchmark registry for later execution by `bench::run_all()`. The decorated function remains callable normally.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `lambda` | `f` | The wrapped function (injected by the decorator system). |
+| `string` | `name` | Display name for the benchmark (default `"benchmark"`). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `lambda` | The original function, unmodified. |
+
+```kiwi
+@bench::mark("sum 1k")
+fn sum_1k()
+  total = 0
+  for i in [1..1000] do total += i end
+end
+
+@bench::mark("sum 5k")
+fn sum_5k()
+  total = 0
+  for i in [1..5000] do total += i end
+end
+
+bench::run_all(iterations: 20, warmup: 2)
+```
+
+---
+
+### `profile(f, name = "benchmark", iterations = 100, warmup = 5)`
+Decorator that immediately runs a benchmark of the decorated function at definition time. The decorated function remains callable normally afterward.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `lambda` | `f` | The wrapped function (injected by the decorator system). |
+| `string` | `name` | Display name (default `"benchmark"`). |
+| `integer` | `iterations` | Number of timed iterations (default `100`). |
+| `integer` | `warmup` | Number of warmup iterations (default `5`). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `lambda` | The original function, unmodified. |
+
+```kiwi
+@bench::profile("sqrt loop", 50, 3)
+fn sqrt_loop()
+  for i in [1..100] do
+    math::sqrt(i * 1.0)
+  end
+end
+
+# Function is still callable normally:
+sqrt_loop()
+```
+
+---
+
+### `timed(f)`
+Decorator that wraps a function so that every call prints its elapsed time. The return value of the original function is preserved.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `lambda` | `f` | The function to wrap (injected by the decorator system). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `lambda` | A wrapper that times each call and prints `elapsed: Xms`. |
+
+```kiwi
+@bench::timed
+fn slow_sum(n)
+  total = 0
+  for i in [1..n] do total += i end
+  return total
+end
+
+result = slow_sum(10000)
+# elapsed: 10.069ms
+println result  # 50005000
+```
+
+---
+
 ### `print_summary(results)`
 Prints a formatted table of benchmark results with columns for iterations, mean, median, min, max, and standard deviation. Called automatically by `run_all()`, but can also be called manually on a list of results collected via `run()`.
 
@@ -208,4 +304,46 @@ end
 
 s = bench::stats(timings)
 println "mean: ${bench::fmt(s.mean)}  stddev: ${bench::fmt(s.stddev)}"
+```
+
+### Using decorators
+
+```kiwi
+import "bench"
+import "math"
+
+# Register multiple benchmarks declaratively, then run them all at once.
+@bench::mark("fibonacci 20")
+fn fib_bench()
+  fn fib(n)
+    return n when n <= 1
+    fib(n - 1) + fib(n - 2)
+  end
+  fib(20)
+end
+
+@bench::mark("sort 500 items")
+fn sort_bench()
+  math::random_set(0, 5000, 500).sort()
+end
+
+bench::run_all(iterations: 50, warmup: 3)
+
+# Immediately profile a single function at definition time.
+@bench::profile("string concat 200x", 50, 3)
+fn concat_bench()
+  s = ""
+  repeat 200 do s += "kiwi" end
+  s
+end
+
+# Per-call timing — each invocation prints elapsed time.
+@bench::timed
+fn slow_sum(n)
+  total = 0
+  for i in [1..n] do total += i end
+  return total
+end
+
+slow_sum(100000)  # elapsed: Xms
 ```
