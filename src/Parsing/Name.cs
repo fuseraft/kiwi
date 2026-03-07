@@ -35,6 +35,8 @@ public enum TokenName
   Builtin_Sqlite_Changes,
   Builtin_Json_Parse,
   Builtin_Json_Stringify,
+  Builtin_Protobuf_Encode,
+  Builtin_Protobuf_Decode,
   Builtin_Xml_Parse,
   Builtin_Xml_ParseFile,
   Builtin_Console_Background,
