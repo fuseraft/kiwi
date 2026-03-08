@@ -1482,7 +1482,8 @@ public partial class Parser
                 if (building != TokenName.KW_Catch)
                 {
                     Next();  // Consume 'catch'
-                    if (MatchType(TokenType.LParen))
+                    bool hasCatchParen = MatchType(TokenType.LParen);
+                    if (hasCatchParen || (GetTokenType() == TokenType.Identifier && token.Span.Line == Previous().Span.Line))
                     {
                         if (GetTokenType() != TokenType.Identifier)
                         {
@@ -1504,7 +1505,7 @@ public partial class Parser
                             errorMessage = firstParameter;
                         }
 
-                        if (!MatchType(TokenType.RParen))
+                        if (hasCatchParen && !MatchType(TokenType.RParen))
                         {
                             throw new SyntaxError(GetErrorToken(), "Expected ')' in catch parameter expression.");
                         }

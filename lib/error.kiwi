@@ -1,0 +1,257 @@
+/#
+@summary A package of helpers for constructing, throwing, and inspecting structured errors.
+@see std::error : Lower-level error hashmap creator.
+#/
+package error
+  /#
+  @summary Creates a structured error hashmap.
+  @param string error_type : The error type name (default `"Error"`).
+  @param string error_message : The error message (default `"An error occurred."`).
+  @return hashmap : A hashmap with `error` and `message` keys.
+  @example
+  ---
+  throw error::new("NotFound", "record 42 does not exist")
+  ---
+  #/
+  fn new(error_type: string = "Error", error_message: string = "An error occurred."): hashmap
+    return { error: error_type, message: error_message }
+  end
+
+  /#
+  @summary Returns the type string of a caught error.
+  @param any err : A caught error hashmap (from single-param `catch e`) or a plain string.
+  @return string : The `error` key if `err` is a structured hashmap, otherwise `err` as a string.
+  @example
+  ---
+  try
+    throw error::NotFoundError("item missing")
+  catch e
+    println error::type_of(e)     # NotFoundError
+    println error::message_of(e)  # item missing
+  end
+  ---
+  #/
+  fn type_of(err): string
+    return err["error"] when err.is_a(hashmap) && err.has_key("error")
+    return err.to_string()
+  end
+
+  /#
+  @summary Returns the message of a caught error.
+  @param any err : A caught error hashmap (from single-param `catch e`) or a plain string.
+  @return string : The `message` key if `err` is a structured hashmap, otherwise `err` as a string.
+  #/
+  fn message_of(err): string
+    return err["message"] when err.is_a(hashmap) && err.has_key("message")
+    return err.to_string()
+  end
+
+  /#
+  @summary Returns true if the caught error matches a specific type name.
+  @param any err : A caught error hashmap (from single-param `catch e`) or a plain string.
+  @param string error_type : The type name to match against.
+  @return boolean : `true` if the error type matches.
+  @example
+  ---
+  # single-param catch — e is a hashmap
+  try
+    throw error::KeyError("missing_key")
+  catch e
+    if error::is_type(e, "KeyError")
+      println "handle missing key"
+    end
+  end
+
+  # two-param catch — pass the type string directly
+  try
+    throw error::KeyError("missing_key")
+  catch type, msg
+    if error::is_type(type, "KeyError")
+      println "handle missing key: ${msg}"
+    end
+  end
+  ---
+  #/
+  fn is_type(err, error_type: string): boolean
+    return error::type_of(err) == error_type
+  end
+
+  /#
+  @summary Throws an `AssertionError` if `condition` is false.
+  @param boolean condition : The condition to check.
+  @param string msg : The error message (default `"Assertion failed."`).
+  @throws AssertionError : If `condition` is `false`.
+  @example
+  ---
+  error::assert(x > 0, "x must be positive")
+  ---
+  #/
+  fn assert(condition: boolean, msg: string = "Assertion failed.")
+    throw error::AssertionError(msg) when !condition
+  end
+
+  /#
+  @summary Throws a `TypeError` if `val` is not of the expected type.
+  @param any val : The value to check.
+  @param string expected_type : The expected type name (e.g., `"integer"`, `"string"`).
+  @param string name : An optional label for the value, used in the error message.
+  @throws TypeError : If `val.type()` does not match `expected_type`.
+  @example
+  ---
+  fn add(a, b)
+    error::expect_type(a, "integer", "a")
+    error::expect_type(b, "integer", "b")
+    return a + b
+  end
+  ---
+  #/
+  fn expect_type(val, expected_type: string, name: string = "value")
+    actual = val.type()
+    throw error::TypeError("Expected ${name} to be ${expected_type}, got ${actual}.") when actual != expected_type
+  end
+
+  /#
+  @summary Throws a `ValueError` if `val` is null.
+  @param any val : The value to check.
+  @param string name : An optional label for the value, used in the error message.
+  @throws ValueError : If `val == null`.
+  @example
+  ---
+  fn process(record)
+    error::expect_not_null(record, "record")
+    # ...
+  end
+  ---
+  #/
+  fn expect_not_null(val, name: string = "value")
+    throw error::ValueError("${name} must not be null.") when val == null
+  end
+
+  # ── Named constructors ────────────────────────────────────────
+
+  /#
+  @summary Creates an `ArgumentError` hashmap.
+  @param string msg : The error message (default `"Invalid argument."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn ArgumentError(msg: string = "Invalid argument."): hashmap
+    return error::new("ArgumentError", msg)
+  end
+
+  /#
+  @summary Creates an `AssertionError` hashmap.
+  @param string msg : The error message (default `"Assertion failed."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn AssertionError(msg: string = "Assertion failed."): hashmap
+    return error::new("AssertionError", msg)
+  end
+
+  /#
+  @summary Creates an `IndexError` hashmap.
+  @param string msg : The error message (default `"Index out of bounds."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn IndexError(msg: string = "Index out of bounds."): hashmap
+    return error::new("IndexError", msg)
+  end
+
+  /#
+  @summary Creates an `IOError` hashmap.
+  @param string msg : The error message (default `"I/O error."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn IOError(msg: string = "I/O error."): hashmap
+    return error::new("IOError", msg)
+  end
+
+  /#
+  @summary Creates a `KeyError` hashmap.
+  @param string msg : The error message (default `"Key not found."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn KeyError(msg: string = "Key not found."): hashmap
+    return error::new("KeyError", msg)
+  end
+
+  /#
+  @summary Creates a `NetworkError` hashmap.
+  @param string msg : The error message (default `"Network error."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn NetworkError(msg: string = "Network error."): hashmap
+    return error::new("NetworkError", msg)
+  end
+
+  /#
+  @summary Creates a `NotFoundError` hashmap.
+  @param string msg : The error message (default `"Not found."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn NotFoundError(msg: string = "Not found."): hashmap
+    return error::new("NotFoundError", msg)
+  end
+
+  /#
+  @summary Creates a `NotImplementedError` hashmap.
+  @param string msg : The error message (default `"Not implemented."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn NotImplementedError(msg: string = "Not implemented."): hashmap
+    return error::new("NotImplementedError", msg)
+  end
+
+  /#
+  @summary Creates an `OverflowError` hashmap.
+  @param string msg : The error message (default `"Overflow."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn OverflowError(msg: string = "Overflow."): hashmap
+    return error::new("OverflowError", msg)
+  end
+
+  /#
+  @summary Creates a `ParseError` hashmap.
+  @param string msg : The error message (default `"Parse error."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn ParseError(msg: string = "Parse error."): hashmap
+    return error::new("ParseError", msg)
+  end
+
+  /#
+  @summary Creates a `PermissionError` hashmap.
+  @param string msg : The error message (default `"Permission denied."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn PermissionError(msg: string = "Permission denied."): hashmap
+    return error::new("PermissionError", msg)
+  end
+
+  /#
+  @summary Creates a `TimeoutError` hashmap.
+  @param string msg : The error message (default `"Operation timed out."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn TimeoutError(msg: string = "Operation timed out."): hashmap
+    return error::new("TimeoutError", msg)
+  end
+
+  /#
+  @summary Creates a `TypeError` hashmap.
+  @param string msg : The error message (default `"Type error."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn TypeError(msg: string = "Type error."): hashmap
+    return error::new("TypeError", msg)
+  end
+
+  /#
+  @summary Creates a `ValueError` hashmap.
+  @param string msg : The error message (default `"Invalid value."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn ValueError(msg: string = "Invalid value."): hashmap
+    return error::new("ValueError", msg)
+  end
+end
