@@ -16,7 +16,49 @@ public class Scope(Scope? parent = null)
     /// <summary>
     /// Gets the parent scope.
     /// </summary>
-    public Scope? Parent { get; } = parent;
+    public Scope? Parent { get; private set; } = parent;
+
+    /// <summary>
+    /// True when this scope was rented from the block-scope pool (and is therefore eligible
+    /// to be returned to the pool when its block exits, provided nothing captured it).
+    /// </summary>
+    internal bool IsBlockScope { get; private set; }
+
+    /// <summary>
+    /// True when a lambda or nested function captured this scope (or a child block scope
+    /// whose parent chain includes this scope). Captured scopes are never returned to the pool.
+    /// </summary>
+    private bool _captured;
+
+    /// <summary>
+    /// Resets a pooled scope for reuse as a block scope.
+    /// </summary>
+    internal void Reset(Scope? newParent)
+    {
+        Parent = newParent;
+        IsBlockScope = true;
+        _captured = false;
+        _locals.Clear();
+    }
+
+    /// <summary>
+    /// Marks this scope and all parent block scopes as captured so they are not returned
+    /// to the pool. Called whenever a lambda or function definition closes over the current scope.
+    /// </summary>
+    internal void MarkCaptured()
+    {
+        var cur = this;
+        while (cur != null && cur.IsBlockScope && !cur._captured)
+        {
+            cur._captured = true;
+            cur = cur.Parent;
+        }
+    }
+
+    /// <summary>
+    /// True when it is safe to return this scope to the block-scope pool.
+    /// </summary>
+    internal bool CanPool => IsBlockScope && !_captured;
 
     /// <summary>
     /// Perform a lexical search to lookup a binding in the scope chain and return its value.

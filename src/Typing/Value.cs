@@ -362,7 +362,21 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             return false;
         }
 
-        // deeper structural check with cycle-protection
+        // Fast path: scalar types can't form cycles, skip HashSet allocation
+        switch (Type)
+        {
+            case ValueType.Integer:  return GetInteger() == other.GetInteger();
+            case ValueType.Float:    return GetFloat().Equals(other.GetFloat());
+            case ValueType.Boolean:  return GetBoolean() == other.GetBoolean();
+            case ValueType.String:   return GetString().Equals(other.GetString());
+            case ValueType.Date:     return GetDate().Equals(other.GetDate());
+            case ValueType.Bytes:    return GetBytes().SequenceEqual(other.GetBytes());
+            case ValueType.Lambda:   return GetLambda().Identifier == other.GetLambda().Identifier;
+            case ValueType.Struct:   return GetStruct().Identifier == other.GetStruct().Identifier;
+            case ValueType.None:     return true;
+        }
+
+        // Only List, Hashmap, Object can form cycles — cycle-protection needed
         HashSet<(Value, Value)> visitedPairs = [];
         return StructuralEquals(other, visitedPairs);
     }

@@ -16,6 +16,7 @@ public class Interpreter
 {
     private const int SafemodeMaxIterations = 1000000;
     private Scope _globalScope = new();
+    private readonly Stack<Scope> _scopePool = new(32);
 
     public Interpreter()
     {
@@ -2108,7 +2109,7 @@ public class Interpreter
             DefaultParameters = defaultParameters,
             TypeHints = node.TypeHints,
             ReturnTypeHint = node.ReturnTypeHint,
-            CapturedScope = CallStack.Peek().Scope,
+            CapturedScope = CaptureCurrentScope(),
             VariadicParamName = node.VariadicParamName
         };
 
@@ -2774,7 +2775,7 @@ public class Interpreter
             IsGenerator = node.IsGenerator,
             TypeHints = node.TypeHints,
             ReturnTypeHint = node.ReturnTypeHint,
-            CapturedScope = CallStack.Peek().Scope,
+            CapturedScope = CaptureCurrentScope(),
             VariadicParamName = node.VariadicParamName
         };
     }
@@ -4282,18 +4283,42 @@ public class Interpreter
     }
 
     /// <summary>
-    /// Enters a block scope by creating a child Scope and pointing the frame at it.
-    /// Returns the previous (parent) scope so the caller can restore it in finally.
+    /// Enters a block scope by renting a Scope from the pool (or allocating a new one)
+    /// and pointing the frame at it. Returns the previous (parent) scope so the caller
+    /// can restore it in finally.
     /// </summary>
-    private static Scope EnterBlockScope(StackFrame frame)
+    private Scope EnterBlockScope(StackFrame frame)
     {
         var parent = frame.Scope;
-        frame.Scope = new Scope(parent);
+        Scope block = _scopePool.Count > 0 ? _scopePool.Pop() : new Scope();
+        block.Reset(parent);
+        frame.Scope = block;
         return parent;
     }
 
-    /// <summary>Restores the frame to the scope saved by EnterBlockScope.</summary>
-    private static void ExitBlockScope(StackFrame frame, Scope parent) => frame.Scope = parent;
+    /// <summary>
+    /// Restores the frame to the scope saved by EnterBlockScope and returns the block scope
+    /// to the pool if it was not captured by a lambda or nested function.
+    /// </summary>
+    private void ExitBlockScope(StackFrame frame, Scope parent)
+    {
+        var block = frame.Scope;
+        frame.Scope = parent;
+        if (block.CanPool)
+            _scopePool.Push(block);
+    }
+
+    /// <summary>
+    /// Returns the current frame's scope and marks it (and its parent block scopes) as
+    /// captured so they are never returned to the pool. Call whenever a lambda or function
+    /// definition closes over the current scope.
+    /// </summary>
+    private Scope CaptureCurrentScope()
+    {
+        var scope = CallStack.Peek().Scope;
+        scope.MarkCaptured();
+        return scope;
+    }
 
     private bool InTry()
     {
