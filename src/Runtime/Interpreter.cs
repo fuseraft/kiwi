@@ -2039,7 +2039,21 @@ public class Interpreter
                 if (node.ErrorMessage != null)
                 {
                     var msgName = Id(node.ErrorMessage);
-                    catchScope.Declare(msgName, Value.CreateString(e.Message));
+                    if (node.ErrorType == null)
+                    {
+                        // Single-param catch: bind a structured hashmap { error, message }
+                        var errorMap = new Dictionary<Value, Value>
+                        {
+                            [Value.CreateString("error")]   = Value.CreateString(e.Type),
+                            [Value.CreateString("message")] = Value.CreateString(e.Message ?? string.Empty)
+                        };
+                        catchScope.Declare(msgName, Value.CreateHashmap(errorMap));
+                    }
+                    else
+                    {
+                        // Two-param catch: bind message string
+                        catchScope.Declare(msgName, Value.CreateString(e.Message ?? string.Empty));
+                    }
                 }
 
                 result = ExecuteBody(node.CatchBody, catchFrame);

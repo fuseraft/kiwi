@@ -194,6 +194,39 @@ See [Generators](generators.md).
 ## Structs
 
 ### `abstract`
+The `abstract` keyword has two uses:
+
+**Abstract structs** — mark a struct as abstract so it cannot be instantiated directly. Other structs can inherit from it.
+
+```kiwi
+abstract struct Shape
+  abstract fn area(): float
+  abstract fn perimeter(): float
+end
+
+struct Circle : Shape
+  fn new(r: float)
+    @r = r
+  end
+
+  fn area(): float
+    math::PI * @r * @r
+  end
+
+  fn perimeter(): float
+    2.0 * math::PI * @r
+  end
+end
+
+c = Circle.new(5.0)
+println(c.area())  # 78.53981633974483
+```
+
+**Abstract methods** — declare a method signature in an abstract struct that derived structs must implement. Concrete structs that inherit from an abstract base are checked for completeness at definition time.
+
+See [Structs](structs.md).
+
+### `interface`
 Reserved for future use.
 
 ### `struct`
@@ -207,7 +240,7 @@ The `new` keyword is used to instantiate a struct.
 See [Structs](structs.md).
 
 ### `override`
-Reserved for future use.
+The `override` keyword marks a method in a derived struct as intentionally overriding a method from its base struct. The keyword is accepted by the parser and recorded on the method, but override enforcement is not yet implemented at runtime.
 
 ### `@` (self)
 The `@` symbol is used inside a struct method to access or assign instance variables.

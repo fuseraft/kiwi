@@ -43,6 +43,7 @@ var (unit_tests: list = [
   "try_finally",
   "try_catch_finally",
   "nested_try",
+  "error_pkg",
 
   # Object-oriented programming
   "structs",

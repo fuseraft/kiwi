@@ -65,8 +65,8 @@ package tester
     try
       test()
       passed = true
-    catch (err)
-      error_message = err
+    catch (err, err_msg)
+      error_message = err_msg
     end
 
     test_stop = time::ticks()

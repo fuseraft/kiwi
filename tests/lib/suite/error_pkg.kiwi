@@ -1,0 +1,163 @@
+/# ==============================================================================
+    Testing the error package.
+   ============================================================================== #/
+tester::register_test("error_pkg", with do
+
+  # error::new — basic construction
+  e = error::new("MyError", "something went wrong")
+  tester::assert(e.has_key("error"),   "new: has error key")
+  tester::assert(e.has_key("message"), "new: has message key")
+  tester::assert(e["error"]   == "MyError",             "new: error type")
+  tester::assert(e["message"] == "something went wrong", "new: message")
+
+  # error::new — defaults
+  d = error::new()
+  tester::assert(d["error"]   == "Error",              "new: default type")
+  tester::assert(d["message"] == "An error occurred.", "new: default message")
+
+  # Named constructors — spot-check type and default message
+  tester::assert(error::ArgumentError()["error"]       == "ArgumentError",       "ctor: ArgumentError")
+  tester::assert(error::AssertionError()["error"]      == "AssertionError",      "ctor: AssertionError")
+  tester::assert(error::IndexError()["error"]          == "IndexError",          "ctor: IndexError")
+  tester::assert(error::IOError()["error"]             == "IOError",             "ctor: IOError")
+  tester::assert(error::KeyError()["error"]            == "KeyError",            "ctor: KeyError")
+  tester::assert(error::NetworkError()["error"]        == "NetworkError",        "ctor: NetworkError")
+  tester::assert(error::NotFoundError()["error"]       == "NotFoundError",       "ctor: NotFoundError")
+  tester::assert(error::NotImplementedError()["error"] == "NotImplementedError", "ctor: NotImplementedError")
+  tester::assert(error::OverflowError()["error"]       == "OverflowError",       "ctor: OverflowError")
+  tester::assert(error::ParseError()["error"]          == "ParseError",          "ctor: ParseError")
+  tester::assert(error::PermissionError()["error"]     == "PermissionError",     "ctor: PermissionError")
+  tester::assert(error::TimeoutError()["error"]        == "TimeoutError",        "ctor: TimeoutError")
+  tester::assert(error::TypeError()["error"]           == "TypeError",           "ctor: TypeError")
+  tester::assert(error::ValueError()["error"]          == "ValueError",          "ctor: ValueError")
+
+  # Named constructors — custom message
+  tester::assert(error::NotFoundError("record 42")["message"] == "record 42", "ctor: custom message")
+
+  # error::type_of / error::message_of — called on a hashmap directly
+  nfe = error::NotFoundError("item missing")
+  tester::assert(error::type_of(nfe)    == "NotFoundError", "type_of: hashmap")
+  tester::assert(error::message_of(nfe) == "item missing",  "message_of: hashmap")
+
+  # error::type_of / error::message_of — plain string fallback
+  tester::assert(error::type_of("oops")    == "oops", "type_of: string")
+  tester::assert(error::message_of("oops") == "oops", "message_of: string")
+
+  # error::is_type — on a hashmap
+  ke = error::KeyError("missing_key")
+  tester::assert(error::is_type(ke, "KeyError")      == true,  "is_type: match")
+  tester::assert(error::is_type(ke, "NotFoundError") == false, "is_type: no match")
+
+  # single-param catch returns a hashmap with error + message keys
+  caught_hash = null
+  try
+    throw error::ValueError("bad input")
+  catch e
+    caught_hash = e
+  end
+  tester::assert(caught_hash != null,                      "catch(e): hashmap not null")
+  tester::assert(caught_hash.is_a(hashmap),               "catch(e): is a hashmap")
+  tester::assert(caught_hash.has_key("error"),             "catch(e): has error key")
+  tester::assert(caught_hash.has_key("message"),           "catch(e): has message key")
+  tester::assert(caught_hash["error"]   == "ValueError",   "catch(e): error key value")
+  tester::assert(caught_hash["message"] == "bad input",    "catch(e): message key value")
+
+  # single-param catch — error::type_of / message_of work on the hashmap
+  caught_type = ""
+  caught_msg  = ""
+  try
+    throw error::ParseError("line 12")
+  catch e
+    caught_type = error::type_of(e)
+    caught_msg  = error::message_of(e)
+  end
+  tester::assert(caught_type == "ParseError", "type_of: from catch(e)")
+  tester::assert(caught_msg  == "line 12",    "message_of: from catch(e)")
+
+  # single-param catch — error::is_type works on the hashmap
+  is_match = false
+  try
+    throw error::IOError("disk full")
+  catch e
+    is_match = error::is_type(e, "IOError")
+  end
+  tester::assert(is_match, "is_type: from catch(e)")
+
+  # two-param catch still gives type string + message string
+  two_type = ""
+  two_msg  = ""
+  try
+    throw error::TimeoutError("30s exceeded")
+  catch t, m
+    two_type = t
+    two_msg  = m
+  end
+  tester::assert(two_type == "TimeoutError",  "catch(t,m): type string")
+  tester::assert(two_msg  == "30s exceeded",  "catch(t,m): message string")
+
+  # plain string throw — single-param catch wraps in hashmap with KiwiError type
+  plain_hash = null
+  try
+    throw "plain error"
+  catch e
+    plain_hash = e
+  end
+  tester::assert(plain_hash.is_a(hashmap),            "plain throw: catch(e) is hashmap")
+  tester::assert(plain_hash["error"]   == "KiwiError", "plain throw: error key is KiwiError")
+  tester::assert(plain_hash["message"] == "plain error","plain throw: message key is string")
+
+  # error::assert — passes when true
+  assert_ok = true
+  try
+    error::assert(true, "should not throw")
+  catch err
+    assert_ok = false
+  end
+  tester::assert(assert_ok, "assert: passes on true")
+
+  # error::assert — throws AssertionError when false
+  caught_type = ""
+  try
+    error::assert(false, "bad condition")
+  catch e
+    caught_type = error::type_of(e)
+  end
+  tester::assert(caught_type == "AssertionError", "assert: throws AssertionError")
+
+  # error::expect_type — passes on correct type
+  type_ok = true
+  try
+    error::expect_type(42, "integer", "n")
+  catch err
+    type_ok = false
+  end
+  tester::assert(type_ok, "expect_type: passes for correct type")
+
+  # error::expect_type — throws TypeError on mismatch
+  type_err = ""
+  try
+    error::expect_type("hello", "integer", "n")
+  catch e
+    type_err = error::type_of(e)
+  end
+  tester::assert(type_err == "TypeError", "expect_type: throws TypeError")
+
+  # error::expect_not_null — passes for non-null
+  null_ok = true
+  try
+    error::expect_not_null(0, "val")
+  catch err
+    null_ok = false
+  end
+  tester::assert(null_ok, "expect_not_null: passes for non-null")
+
+  # error::expect_not_null — throws ValueError for null
+  null_err = ""
+  try
+    error::expect_not_null(null, "val")
+  catch e
+    null_err = error::type_of(e)
+  end
+  tester::assert(null_err == "ValueError", "expect_not_null: throws ValueError")
+
+end)
