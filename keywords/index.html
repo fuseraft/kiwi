@@ -1311,6 +1311,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#struct" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3647,6 +3658,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#struct" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4178,6 +4200,33 @@
 <p>See <a href="../generators/">Generators</a>.</p>
 <h2 id="structs">Structs<a class="headerlink" href="#structs" title="Permanent link">&para;</a></h2>
 <h3 id="abstract"><code>abstract</code><a class="headerlink" href="#abstract" title="Permanent link">&para;</a></h3>
+<p>The <code>abstract</code> keyword has two uses:</p>
+<p><strong>Abstract structs</strong> — mark a struct as abstract so it cannot be instantiated directly. Other structs can inherit from it.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>abstract struct Shape
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  abstract fn area(): float
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  abstract fn perimeter(): float
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>end
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>struct Circle : Shape
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  fn new(r: float)
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    @r = r
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  end
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  fn area(): float
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    math::PI * @r * @r
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  end
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>  fn perimeter(): float
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    2.0 * math::PI * @r
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>  end
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>end
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>c = Circle.new(5.0)
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>println(c.area())  # 78.53981633974483
+</span></code></pre></div>
+<p><strong>Abstract methods</strong> — declare a method signature in an abstract struct that derived structs must implement. Concrete structs that inherit from an abstract base are checked for completeness at definition time.</p>
+<p>See <a href="../structs/">Structs</a>.</p>
+<h3 id="interface"><code>interface</code><a class="headerlink" href="#interface" title="Permanent link">&para;</a></h3>
 <p>Reserved for future use.</p>
 <h3 id="struct"><code>struct</code><a class="headerlink" href="#struct" title="Permanent link">&para;</a></h3>
 <p>The <code>struct</code> keyword is used to define a struct.</p>
@@ -4186,22 +4235,22 @@
 <p>The <code>new</code> keyword is used to instantiate a struct.</p>
 <p>See <a href="../structs/">Structs</a>.</p>
 <h3 id="override"><code>override</code><a class="headerlink" href="#override" title="Permanent link">&para;</a></h3>
-<p>Reserved for future use.</p>
+<p>The <code>override</code> keyword marks a method in a derived struct as intentionally overriding a method from its base struct. The keyword is accepted by the parser and recorded on the method, but override enforcement is not yet implemented at runtime.</p>
 <h3 id="self"><code>@</code> (self)<a class="headerlink" href="#self" title="Permanent link">&para;</a></h3>
 <p>The <code>@</code> symbol is used inside a struct method to access or assign instance variables.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>struct Point
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  fn new(x, y)
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    @x = x
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    @y = y
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  end
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  fn to_string(): string
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    &quot;(${@x}, ${@y})&quot;
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  end
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>end
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>p = Point.new(3, 4)
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>println(p.to_string())  # (3, 4)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>struct Point
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  fn new(x, y)
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    @x = x
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    @y = y
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  end
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  fn to_string(): string
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    &quot;(${@x}, ${@y})&quot;
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  end
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>end
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>p = Point.new(3, 4)
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>println(p.to_string())  # (3, 4)
 </span></code></pre></div>
 <p>See <a href="../structs/">Structs</a>.</p>
 <h2 id="packages">Packages<a class="headerlink" href="#packages" title="Permanent link">&para;</a></h2>
@@ -4216,39 +4265,39 @@
 <p>See <a href="../packages/">Packages</a>.</p>
 <h3 id="include"><code>include</code><a class="headerlink" href="#include" title="Permanent link">&para;</a></h3>
 <p>The <code>include</code> keyword executes another Kiwi file inline in the current scope, making its definitions immediately available.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>include &quot;lib/helpers&quot;
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a># functions and variables from helpers.kiwi are now in scope
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>include &quot;lib/helpers&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a># functions and variables from helpers.kiwi are now in scope
 </span></code></pre></div>
 <h3 id="package"><code>package</code><a class="headerlink" href="#package" title="Permanent link">&para;</a></h3>
 <p>The <code>package</code> keyword is used to define a package.</p>
 <p>See <a href="../packages/">Packages</a>.</p>
 <h3 id="require"><code>require</code><a class="headerlink" href="#require" title="Permanent link">&para;</a></h3>
 <p>The <code>require</code> keyword loads a package by name if it has not already been imported. Unlike <code>include</code>, it looks up the package by name rather than file path.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>require &quot;xml&quot;
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>doc = xml::parse(&quot;&lt;root&gt;&lt;item&gt;hello&lt;/item&gt;&lt;/root&gt;&quot;)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>require &quot;xml&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>doc = xml::parse(&quot;&lt;root&gt;&lt;item&gt;hello&lt;/item&gt;&lt;/root&gt;&quot;)
 </span></code></pre></div>
 <h2 id="events">Events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h2>
 <h3 id="emit"><code>emit</code><a class="headerlink" href="#emit" title="Permanent link">&para;</a></h3>
 <p>The <code>emit</code> keyword fires a named event, optionally passing arguments to registered handlers.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>emit &quot;user.login&quot;, { name: &quot;Scotty&quot; }
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>emit &quot;user.login&quot;, { name: &quot;Scotty&quot; }
 </span></code></pre></div>
 <h3 id="off"><code>off</code><a class="headerlink" href="#off" title="Permanent link">&para;</a></h3>
 <p>The <code>off</code> keyword removes all handlers registered for a named event.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>off &quot;user.login&quot;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>off &quot;user.login&quot;
 </span></code></pre></div>
 <h3 id="on"><code>on</code><a class="headerlink" href="#on" title="Permanent link">&para;</a></h3>
 <p>The <code>on</code> keyword registers a handler that runs every time the named event is emitted.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>on &quot;user.login&quot; with (user) do
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  println(&quot;Welcome, ${user.name}!&quot;)
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>end
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>on &quot;user.login&quot; with (user) do
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  println(&quot;Welcome, ${user.name}!&quot;)
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>end
 </span></code></pre></div>
 <h3 id="once"><code>once</code><a class="headerlink" href="#once" title="Permanent link">&para;</a></h3>
 <p>The <code>once</code> keyword registers a handler that runs only the first time the named event is emitted.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>once &quot;app.start&quot; do
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  println(&quot;Application started.&quot;)
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>end
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>once &quot;app.start&quot; do
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  println(&quot;Application started.&quot;)
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>end
 </span></code></pre></div>
 <p>See <a href="../events/">Events</a>.</p>
 <h2 id="console-io">Console I/O<a class="headerlink" href="#console-io" title="Permanent link">&para;</a></h2>
@@ -4268,7 +4317,7 @@
 <p>See <a href="../console_io/">Console I/O</a>.</p>
 <h3 id="printxy"><code>printxy</code><a class="headerlink" href="#printxy" title="Permanent link">&para;</a></h3>
 <p>The <code>printxy</code> keyword prints output at a specific terminal cursor position.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>printxy(10, 5, &quot;Hello!&quot;)  # prints &quot;Hello!&quot; at column 10, row 5
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>printxy(10, 5, &quot;Hello!&quot;)  # prints &quot;Hello!&quot; at column 10, row 5
 </span></code></pre></div>
 <h2 id="miscellaneous">Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permanent link">&para;</a></h2>
 <h3 id="delete"><code>delete</code><a class="headerlink" href="#delete" title="Permanent link">&para;</a></h3>
@@ -4277,10 +4326,10 @@
 <p>See <a href="../hashmaps/">Hashmaps</a> and <a href="../lists/">Lists</a>.</p>
 <h3 id="eval"><code>eval</code><a class="headerlink" href="#eval" title="Permanent link">&para;</a></h3>
 <p>The <code>eval</code> keyword parses and executes a string as Kiwi code.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>eval &#39;println(&quot;hello, world!&quot;)&#39;  # prints: hello, world!
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>code = &quot;1 + 2&quot;
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>println(eval code)  # 3
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>eval &#39;println(&quot;hello, world!&quot;)&#39;  # prints: hello, world!
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>code = &quot;1 + 2&quot;
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>println(eval code)  # 3
 </span></code></pre></div>
 <h3 id="global"><code>global</code><a class="headerlink" href="#global" title="Permanent link">&para;</a></h3>
 <p>The <code>global</code> variable is a hashmap used to share data between scripts.</p>
