@@ -10,11 +10,14 @@ public struct LogicalOp
 
         if (doAssign)
         {
-            left.SetValue(res);
-            return left;
+            // Guard: never mutate the global singletons Value.True/False/Default.
+            // The caller always stores the return value back anyway (see Interpreter.cs scope.Assign calls).
+            if (!ReferenceEquals(left, Value.True) && !ReferenceEquals(left, Value.False))
+                left.SetValue(res);
+            return res ? Value.True : Value.False;
         }
-        
-        return Value.CreateBoolean(res);
+
+        return res ? Value.True : Value.False;
     }
 
     public static Value Or(ref Value left, ref Value right, bool doAssign = false)
@@ -23,18 +26,19 @@ public struct LogicalOp
 
         if (doAssign)
         {
-            left.SetValue(res);
-            return left;
+            if (!ReferenceEquals(left, Value.True) && !ReferenceEquals(left, Value.False))
+                left.SetValue(res);
+            return res ? Value.True : Value.False;
         }
-        
-        return Value.CreateBoolean(res);
+
+        return res ? Value.True : Value.False;
     }
 
     public static Value Not(ref Value right)
     {
         if (right.IsBoolean())
         {
-            return Value.CreateBoolean(!right.GetBoolean());
+            return right.GetBoolean() ? Value.False : Value.True;
         }
         else if (right.IsNull())
         {
@@ -42,31 +46,31 @@ public struct LogicalOp
         }
         else if (right.IsInteger())
         {
-            return Value.CreateBoolean(right.GetInteger() == 0);
+            return right.GetInteger() == 0 ? Value.True : Value.False;
         }
         else if (right.IsFloat())
         {
-            return Value.CreateBoolean(right.GetFloat() == 0.0);
+            return right.GetFloat() == 0.0 ? Value.True : Value.False;
         }
         else if (right.IsString())
         {
-            return Value.CreateBoolean(string.IsNullOrEmpty(right.GetString()));
+            return string.IsNullOrEmpty(right.GetString()) ? Value.True : Value.False;
         }
         else if (right.IsDate())
         {
-            return Value.CreateBoolean(right.GetDate() == default);
+            return right.GetDate() == default ? Value.True : Value.False;
         }
         else if (right.IsList())
         {
-            return Value.CreateBoolean(right.GetList().Count == 0);
+            return right.GetList().Count == 0 ? Value.True : Value.False;
         }
         else if (right.IsHashmap())
         {
-            return Value.CreateBoolean(right.GetHashmap().Count == 0);
+            return right.GetHashmap().Count == 0 ? Value.True : Value.False;
         }
         else if (right.IsBytes())
         {
-            return Value.CreateBoolean(right.GetBytes().Length == 0);
+            return right.GetBytes().Length == 0 ? Value.True : Value.False;
         }
         else
         {

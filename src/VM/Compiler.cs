@@ -346,7 +346,7 @@ public sealed class Compiler
             case ASTNodeType.HashLiteral:      CompileHash           ((HashLiteralNode)node,       ln); return true;
             case ASTNodeType.RangeLiteral:     CompileRange          ((RangeLiteralNode)node,      ln); return true;
             case ASTNodeType.Index:            CompileIndex          ((IndexingNode)node,          ln); return true;
-            case ASTNodeType.IndexAssignment:  Fallback              (node);                            return true;
+            case ASTNodeType.IndexAssignment:  CompileIndexAssign    ((IndexAssignmentNode)node,   ln); return true;
             case ASTNodeType.Slice:            CompileSlice          ((SliceNode)node,             ln); return true;
             case ASTNodeType.MemberAccess:     CompileMemberAccess   ((MemberAccessNode)node,      ln); return true;
             case ASTNodeType.MemberAssignment: CompileMemberAssign   ((MemberAssignmentNode)node,  ln); return true;
@@ -609,6 +609,25 @@ public sealed class Compiler
         if (node.IndexedObject != null) CompileNode(node.IndexedObject);
         CompileNode(node.IndexExpression);
         _chunk.Emit(Opcode.IndexGet, 0, 0, ln);
+    }
+
+    private void CompileIndexAssign(IndexAssignmentNode node, int ln)
+    {
+        // Only handle simple assignment (op == =). Compound (+=, -=, …) falls back.
+        if (node.Op != TokenName.Ops_Assign)
+        {
+            Fallback(node);
+            return;
+        }
+
+        var idx = (IndexingNode)node.Object!;
+        // IndexSet pops: val (top), key, obj (bottom) — push obj, key, val
+        if (idx.IndexedObject != null) CompileNode(idx.IndexedObject);
+        else                           EmitLoad(idx.Name ?? "", ln); // bare name[key] = v
+        CompileNode(idx.IndexExpression);
+        if (node.Initializer != null) CompileNode(node.Initializer);
+        else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
+        _chunk.Emit(Opcode.IndexSet, 0, 0, ln);
     }
 
     private void CompileSlice(SliceNode node, int ln)

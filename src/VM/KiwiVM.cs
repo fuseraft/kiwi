@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
 using kiwi.Runtime;
@@ -18,6 +19,7 @@ internal sealed class ForIterState
     public List<Value>? List;
     public Dictionary<Value, Value>? Hashmap;
     public byte[]? Bytes;
+    public string? StringData; // lazy string iteration: avoids upfront char-Value allocation
     public int     Index;
     public List<Value>? HashmapKeys; // pre-enumerated keys for hashmap iteration
 }
@@ -53,6 +55,16 @@ public sealed class KiwiVM
     // -- Native object store (for ForIterState etc.) ---------------------------
     private int _nextNativeId;
     private readonly Dictionary<int, object> _nativeObjects = [];
+
+    // -- Name resolution cache (LoadGlobal fast-path) --------------------------
+    // Caches resolved Values for stable global names (functions, constants,
+    // packages, structs).  Invalidated on DefFunc and StoreGlobal so that
+    // redefined functions and reassigned globals are never served stale.
+    private readonly Dictionary<string, Value> _nameCache = new(StringComparer.Ordinal);
+
+    // -- Closure ID counter (replaces Guid.NewGuid) ----------------------------
+    private int _closureIdCounter;
+
 
     // -- Shared runtime state (shared with the tree-walking interpreter) -------
     private readonly Interpreter _interp;
@@ -181,12 +193,12 @@ public sealed class KiwiVM
 
         while (_frameCount > stopAt)
         {
-            var frame = _frames[_frameCount - 1];
-            var code  = frame.Chunk.Code;
+            var frame    = _frames[_frameCount - 1];
+            var codeSpan = CollectionsMarshal.AsSpan(frame.Chunk.Code);
 
-            while (frame.IP < code.Count)
+            while (frame.IP < codeSpan.Length)
             {
-                var instr = code[frame.IP++];
+                var instr = codeSpan[frame.IP++];
                 var op    = instr.Op;
                 var A     = instr.A;
                 var B     = instr.B;
@@ -195,8 +207,8 @@ public sealed class KiwiVM
                 {
                     // -- Constants ----------------------------------------
                     case Opcode.Null:  Push(Value.Default); break;
-                    case Opcode.True:  Push(Value.CreateBoolean(true));  break;
-                    case Opcode.False: Push(Value.CreateBoolean(false)); break;
+                    case Opcode.True:  Push(Value.True);  break;
+                    case Opcode.False: Push(Value.False); break;
                     case Opcode.Const: Push(frame.Chunk.Constants[A]);   break;
 
                     // -- Locals -------------------------------------------
@@ -211,20 +223,31 @@ public sealed class KiwiVM
                     case Opcode.LoadGlobal:
                     {
                         var name = frame.Chunk.Names[A];
-                        // Check context first (functions, lambdas, constants)
+
+                        // Fast path: cached resolution from a prior lookup
+                        if (_nameCache.TryGetValue(name, out var cachedVal))
+                        {
+                            Push(cachedVal);
+                            break;
+                        }
+
+                        // Slow path: full resolution (result cached for stable entries)
                         if (_context.HasFunction(name))
                         {
                             var fn = _context.Functions[name];
-                            Push(Value.CreateLambda(new LambdaRef { Identifier = name, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues }));
+                            var v  = Value.CreateLambda(new LambdaRef { Identifier = name, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues });
+                            _nameCache[name] = v; // cached; invalidated on DefFunc
+                            Push(v);
                         }
                         else if (_context.HasLambda(name))
                         {
                             // Prefer the stored globals value (has the correct VMChunk reference).
-                            // Fall back to reconstructing from the KLambda.Ref.
                             _globals.TryGet(name, out var storedLambda);
-                            Push(storedLambda.IsNull()
+                            var v = storedLambda.IsNull()
                                 ? Value.CreateLambda(_context.Lambdas[name].Ref)
-                                : storedLambda);
+                                : storedLambda;
+                            // Don't cache lambdas: they may be reassigned via StoreGlobal.
+                            Push(v);
                         }
                         else if (_context.HasMappedLambda(name))
                         {
@@ -233,20 +256,27 @@ public sealed class KiwiVM
                         }
                         else if (_context.HasConstant(name))
                         {
-                            Push(_context.Constants[name]);
+                            var v = _context.Constants[name];
+                            _nameCache[name] = v; // constants never change
+                            Push(v);
                         }
                         else if (_context.HasStruct(name))
                         {
-                            Push(Value.CreateStruct(new StructRef { Identifier = name }));
+                            var v = Value.CreateStruct(new StructRef { Identifier = name });
+                            _nameCache[name] = v; // struct definitions are stable
+                            Push(v);
                         }
                         else if (_context.HasPackage(name))
                         {
-                            Push(Value.CreatePackage(name));
+                            var v = Value.CreatePackage(name);
+                            _nameCache[name] = v; // packages never change
+                            Push(v);
                         }
                         else
                         {
                             _globals.TryGet(name, out var v);
                             Push(v);
+                            // Don't cache mutable globals
                         }
                         break;
                     }
@@ -261,6 +291,7 @@ public sealed class KiwiVM
                                 _context.Lambdas[name] = _context.Lambdas[lr.Identifier];
                         }
                         _globals.Assign(name, v);
+                        _nameCache.Remove(name); // invalidate any cached resolution
                         break;
                     }
 
@@ -533,6 +564,7 @@ public sealed class KiwiVM
                         kfunc.CapturedScope = _globals;
 
                         _context.Functions[funcName] = kfunc;
+                        _nameCache.Remove(funcName); // invalidate stale cached lambda ref
                         break;
                     }
 
@@ -553,7 +585,7 @@ public sealed class KiwiVM
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             klambda.VariadicParamName = sub.VariadicParamName;
 
-                        var id   = Guid.NewGuid().ToString("N");
+                        var id   = $"__lam_{_closureIdCounter++}";
                         var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues };
                         klambda.Ref = lref;
                         _context.Lambdas[id] = klambda;
@@ -750,10 +782,9 @@ public sealed class KiwiVM
                         }
                         else if (coll.IsString())
                         {
-                            // Treat string as list of single-char strings
-                            var s = coll.GetString();
-                            state.List = [..s.Select(c => Value.CreateString(c.ToString()))];
-                            state.Index = 0;
+                            // Lazy: store the raw string; chars are produced one at a time in ForIterNext
+                            state.StringData = coll.GetString();
+                            state.Index      = 0;
                         }
                         else
                         {
@@ -802,6 +833,21 @@ public sealed class KiwiVM
                                     Push(val ?? Value.Default);
                                 }
                                 else Push(key);
+                            }
+                        }
+                        else if (state.StringData != null)
+                        {
+                            done = state.Index >= state.StringData.Length;
+                            if (!done)
+                            {
+                                char c = state.StringData[state.Index++];
+                                var  sv = Value.CreateString(c.ToString());
+                                if (numVars == 2)
+                                {
+                                    Push(Value.CreateInteger(state.Index - 1)); // key = index
+                                    Push(sv);
+                                }
+                                else Push(sv);
                             }
                         }
                         else if (state.Bytes != null)

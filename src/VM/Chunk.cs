@@ -44,6 +44,7 @@ public class Chunk
 
     // -- Name pool -------------------------------------------------------------
     public List<string>            Names     { get; } = [];
+    private readonly Dictionary<string, int> _nameIndex = new(StringComparer.Ordinal);
 
     // -- Nested function / lambda chunks --------------------------------------
     public List<Chunk>             SubChunks { get; } = [];
@@ -105,10 +106,11 @@ public class Chunk
     /// </summary>
     public int AddName(string name)
     {
-        var idx = Names.IndexOf(name);
-        if (idx >= 0) return idx;
+        if (_nameIndex.TryGetValue(name, out var idx)) return idx;
+        idx = Names.Count;
         Names.Add(name);
-        return Names.Count - 1;
+        _nameIndex[name] = idx;
+        return idx;
     }
 
     /// <summary>
