@@ -163,6 +163,17 @@ public class Interpreter
 
     public Value InvokeCallable(Callable callable, List<Value> args, Token token, string displayName, InstanceRef? instance = null)
     {
+        // If this callable was compiled as a VM function/lambda, delegate to the VM so the
+        // bytecode body executes instead of the synthetic (empty) AST Decl.Body.
+        var vm = VM.KiwiVM.Current;
+        if (vm != null)
+        {
+            if (callable is KFunction kf && kf.VMChunk != null)
+                return vm.InvokeVMCallable(kf, args, token);
+            if (callable is KLambda kl && kl.VMChunk != null)
+                return vm.InvokeVMCallable(kl, args, token);
+        }
+
         var scope = new Scope(callable.CapturedScope ?? _globalScope);
         var frame = new StackFrame(displayName, scope, token);
 
@@ -740,7 +751,10 @@ public class Interpreter
                 }
 
                 var lambdaId = value.GetLambda().Identifier;
-                Context.Lambdas.Add(name, Context.Lambdas[lambdaId]);
+                Context.Lambdas[name] = Context.Lambdas[lambdaId];
+
+                var enclosingForLambda = CallStack.FirstOrDefault(f => f.IsFunction);
+                enclosingForLambda?.LocalLambdas.Add(name);
 
                 return value;
             }
@@ -2237,6 +2251,10 @@ public class Interpreter
         else
         {
             Context.Functions[name] = CreateFunction(node, name);
+
+            // If declared inside a user function, track it for cleanup on return.
+            var enclosing = CallStack.FirstOrDefault(f => f.IsFunction);
+            enclosing?.LocalFunctions.Add(name);
         }
 
         return Value.Default;
@@ -3196,8 +3214,18 @@ public class Interpreter
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
         var functionScope = new Scope(func.CapturedScope ?? _globalScope);
-        var functionFrame = new StackFrame(functionName, functionScope, node.Token);
+        var functionFrame = new StackFrame(functionName, functionScope, node.Token) { IsFunction = true };
         var result = Value.Default;
+
+        // If the function was compiled as VM bytecode, evaluate args and delegate to the VM.
+        // The frame is still pushed so the caller's doPop=true path pops it correctly.
+        var vm = VM.KiwiVM.Current;
+        if (vm != null && func.VMChunk != null)
+        {
+            var evaluatedArgs = node.Arguments.Select(a => a != null ? Interpret(a) : Value.Default).ToList();
+            PushFrame(functionFrame); // placeholder so caller's PopFrame is balanced
+            return vm.InvokeVMCallable(func, evaluatedArgs, node.Token);
+        }
 
         // Evaluate arguments while caller's frame is still on top of the stack,
         // then push the callee's frame so argument expressions resolve correctly.
@@ -3229,6 +3257,7 @@ public class Interpreter
         var defaultParameters = function.DefaultParameters;
         var functionFrame = CreateFrame(functionName, token, function.CapturedScope);
         functionFrame.StructName = structName;
+        functionFrame.IsFunction = true;
         var scope = functionFrame.Scope;
         var typeHints = function.TypeHints;
         var returnTypeHint = function.ReturnTypeHint;
@@ -3300,6 +3329,7 @@ public class Interpreter
         // Push new frame with captured scope as parent (enables closures).
         var scope = new Scope(func.CapturedScope ?? CallStack.Peek().Scope);
         var lambdaFrame = PushFrame(lambdaName, token, scope, true);
+        lambdaFrame.IsFunction = true;
 
         PrepareLambdaCall(func, evaluatedArgs, defaultParameters, token, targetLambda, typeHints, lambdaName, scope);
 
@@ -3647,6 +3677,7 @@ public class Interpreter
         var func = strucMethods[functionName];
         var defaultParameters = func.DefaultParameters;
         var functionFrame = CreateFrame(functionName, node.Token, func.CapturedScope);
+        functionFrame.IsFunction = true;
         var result = Value.Default;
 
         var typeHints = func.TypeHints;
@@ -4280,6 +4311,14 @@ public class Interpreter
         var frame = CallStack.Pop();
         FuncStack.Pop();
 
+        if (frame.IsFunction)
+        {
+            foreach (var fname in frame.LocalFunctions)
+                Context.Functions.Remove(fname);
+            foreach (var lname in frame.LocalLambdas)
+                Context.Lambdas.Remove(lname);
+        }
+
         var ret = frame.ReturnValue ?? Value.Default;
         if (CallStack.Count > 0)
         {
@@ -4370,4 +4409,268 @@ public class Interpreter
     }
 
     private static string Id(ASTNode node) => ((IdentifierNode)node).Name;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // VM Bridge — public surface used by KiwiVM to delegate work back to the
+    // tree-walking interpreter for operations not yet compiled natively.
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Returns the interpreter's global scope (shared with the VM).
+    /// </summary>
+    public Scope GetGlobalScope() => _globalScope;
+
+    /// <summary>
+    /// Execute a single AST node and return its value (used by InterpFallback).
+    /// </summary>
+    public Value InterpretNode(ASTNode node)
+    {
+        // When called from the VM, the interpreter's CallStack may be empty.
+        // EntryPoint sets up a proper global-scope frame for the execution.
+        if (CallStack.Count == 0)
+            return EntryPoint(node);
+        return Interpret(node);
+    }
+
+    /// <summary>
+    /// Dispatch a method call given a pre-evaluated receiver object and argument list.
+    /// Used by the VM's CallMethod opcode.
+    /// </summary>
+    public Value DispatchMethod(Value obj, string methodName, List<Value> args, Token token)
+    {
+        // Build a synthetic MethodCallNode so existing dispatch logic can be reused.
+        // The arguments are already evaluated, so we wrap each in a LiteralNode.
+        var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
+        var node = new MethodCallNode(null, methodName, TokenName.Ops_Assign, argNodes) { Token = token };
+
+        // Pre-supply the already-evaluated object
+        if (obj.IsPackage())  return CallPackageMethod(node, obj.GetPackage());
+        if (obj.IsObject())   return CallObjectMethodDirect(token, methodName, obj.GetObject(), args);
+        if (obj.IsStruct())   return CallStructMethodDirect(token, methodName, obj.GetStruct(), args);
+
+        // Builtin method dispatch — resolve string name → TokenName
+        if (ListBuiltin.Map.TryGetValue(methodName, out TokenName listOp))
+            return ListBuiltinHandler.HandleListBuiltin(token, ref obj, listOp, args);
+        if (CallableBuiltin.Map.TryGetValue(methodName, out _))
+            return HandleCallableBuiltinDirect(token, obj, methodName, args);
+        if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))
+            return BuiltinDispatch.Execute(token, coreOp, obj, args);
+
+        var typeId = TypeRegistry.GetType(token, obj);
+        if (TypeBuiltins.TryGetBuiltin(typeId, methodName, out KFunction? typeBuiltin) && typeBuiltin != null)
+        {
+            var tArgs = new List<Value>(args.Count + 1) { obj };
+            tArgs.AddRange(args);
+            return InvokeCallable(typeBuiltin, tArgs, token, methodName);
+        }
+
+        throw new FunctionUndefinedError(token, methodName);
+    }
+
+    private Value CallObjectMethodDirect(Token token, string methodName, InstanceRef obj, List<Value> args)
+    {
+        if (!Context.HasStruct(obj.StructName))
+            throw new StructUndefinedError(token, obj.StructName);
+
+        var struc = Context.Structs[obj.StructName];
+        return ResolveAndCallMethod(token, struc, obj, methodName, args);
+    }
+
+    private Value ResolveAndCallMethod(Token token, KStruct struc, InstanceRef obj, string methodName, List<Value> args)
+    {
+        if (!struc.Methods.TryGetValue(methodName, out KFunction? fn))
+        {
+            if (!string.IsNullOrEmpty(struc.BaseStruct) && Context.HasStruct(struc.BaseStruct))
+                return ResolveAndCallMethod(token, Context.Structs[struc.BaseStruct], obj, methodName, args);
+            throw new UnimplementedMethodError(token, obj.StructName, methodName);
+        }
+
+        bool isCtor = methodName == "new";
+        if (isCtor)
+        {
+            var inst = new InstanceRef { StructName = obj.StructName, Identifier = obj.StructName };
+            return InvokeCallable(fn, args, token, methodName, inst);
+        }
+        return InvokeCallable(fn, args, token, methodName, obj);
+    }
+
+    private Value CallStructMethodDirect(Token token, string methodName, StructRef sref, List<Value> args)
+    {
+        var structName = sref.Identifier;
+        if (!Context.HasStruct(structName))
+            throw new StructUndefinedError(token, structName);
+        var struc = Context.Structs[structName];
+        if (!struc.Methods.TryGetValue(methodName, out KFunction? fn))
+            throw new UnimplementedMethodError(token, structName, methodName);
+        return InvokeCallable(fn, args, token, methodName);
+    }
+
+    private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, List<Value> args)
+    {
+        // Reuse the existing callable builtin handler via a synthetic node
+        var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
+        var node = new MethodCallNode(
+            new LiteralNode(obj) { Token = token },
+            methodName, TokenName.Ops_Assign, argNodes) { Token = token };
+        return HandleCallableBuiltin(node, args);
+    }
+
+    /// <summary>
+    /// Get the value at obj[key].  Used by the VM's IndexGet opcode.
+    /// </summary>
+    public Value GetIndex(Value obj, Value key, Token token)
+    {
+        if (obj.IsList())
+        {
+            var idx  = Builtin.Operation.ConversionOp.GetInteger(token, key);
+            var list = obj.GetList();
+            if (idx < 0 || idx >= list.Count)
+                throw new IndexError(token, "List index out of bounds.");
+            return list[(int)idx];
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap().TryGetValue(key, out var v);
+            return v ?? Value.CreateNull();
+        }
+        if (obj.IsString())
+        {
+            var s   = obj.GetString();
+            var idx = Builtin.Operation.ConversionOp.GetInteger(token, key);
+            if (idx < 0 || idx >= s.Length)
+                throw new IndexError(token, "String index out of bounds.");
+            return Value.CreateString(s[(int)idx].ToString());
+        }
+        if (obj.IsBytes())
+        {
+            var bytes = obj.GetBytes();
+            var idx   = Builtin.Operation.ConversionOp.GetInteger(token, key);
+            if (idx < 0 || idx >= bytes.Length)
+                throw new IndexError(token, "Bytes index out of bounds.");
+            return Value.CreateInteger(bytes[(int)idx]);
+        }
+        throw new InvalidOperationError(token, "Cannot index this type.");
+    }
+
+    /// <summary>
+    /// Set obj[key] = value.  Used by the VM's IndexSet opcode.
+    /// </summary>
+    public void SetIndex(Value obj, Value key, Value value, Token token)
+    {
+        if (obj.IsList())
+        {
+            var idx  = Builtin.Operation.ConversionOp.GetInteger(token, key);
+            var list = obj.GetList();
+            if (idx < 0 || idx >= list.Count)
+                throw new IndexError(token, "List index out of bounds.");
+            list[(int)idx] = value;
+            return;
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap()[key] = value;
+            return;
+        }
+        throw new InvalidOperationError(token, "Cannot index-assign this type.");
+    }
+
+    /// <summary>
+    /// Perform a slice on obj.  Used by the VM's SliceGet opcode.
+    /// </summary>
+    public Value GetSlice(Value obj, Value? startV, Value? stopV, Value? stepV, Token token)
+    {
+        var startVal = startV ?? Value.CreateInteger(0L);
+        var stopVal  = stopV  ?? (obj.IsList()   ? Value.CreateInteger(obj.GetList().Count) :
+                                  obj.IsString() ? Value.CreateInteger(obj.GetString().Length) :
+                                  obj.IsBytes()  ? Value.CreateInteger(obj.GetBytes().Length) :
+                                                   Value.CreateInteger(0L));
+        var stepVal  = stepV  ?? Value.CreateInteger(1L);
+        var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
+
+        if (obj.IsString()) return Builtin.Util.SliceUtil.StringSlice(token, slice, obj.GetString());
+        if (obj.IsList())   return Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList());
+        if (obj.IsBytes())  return Builtin.Util.SliceUtil.BytesSlice(token, slice, obj.GetBytes());
+        throw new InvalidOperationError(token, "Cannot slice this type.");
+    }
+
+    /// <summary>
+    /// Get obj.memberName (package/struct instance variable).
+    /// Used by the VM's GetMember opcode.
+    /// </summary>
+    public Value GetMember(Value obj, string memberName, Token token)
+    {
+        if (obj.IsObject())
+        {
+            var inst = obj.GetObject();
+            inst.InstanceVariables.TryGetValue(memberName, out var v);
+            return v ?? Value.Default;
+        }
+        if (obj.IsPackage())
+        {
+            var pkgName = obj.GetPackage().Identifier;
+            var qualifiedName = pkgName + "::" + memberName;
+            if (Context.Constants.TryGetValue(qualifiedName, out Value? constVal))
+                return constVal;
+            if (Context.HasFunction(qualifiedName))
+                return Value.CreateLambda(new LambdaRef { Identifier = qualifiedName });
+            return Value.Default;
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap().TryGetValue(Value.CreateString(memberName), out var v);
+            return v ?? Value.Default;
+        }
+        throw new InvalidOperationError(token, $"Cannot access member '{memberName}' on this type.");
+    }
+
+    /// <summary>
+    /// Set obj.memberName = value.
+    /// Used by the VM's SetMember opcode.
+    /// </summary>
+    public void SetMember(Value obj, string memberName, Value value, Token token)
+    {
+        if (obj.IsObject())
+        {
+            obj.GetObject().InstanceVariables[memberName] = value;
+            return;
+        }
+        if (obj.IsPackage())
+        {
+            // Package members (constants/functions) are not directly settable via member assignment;
+            // fall through to instance variable assignment if obj is also an object, otherwise no-op.
+            return;
+        }
+        throw new InvalidOperationError(token, $"Cannot set member '{memberName}' on this type.");
+    }
+
+    /// <summary>
+    /// Create a new struct instance with the given args.
+    /// Used by the VM's NewObject opcode.
+    /// </summary>
+    public Value CreateObject(string structName, List<Value> args, Token token)
+    {
+        if (!Context.HasStruct(structName))
+            throw new StructUndefinedError(token, structName);
+        var struc = Context.Structs[structName];
+        var inst  = new InstanceRef { StructName = structName, Identifier = structName };
+        if (struc.Methods.TryGetValue("new", out KFunction? ctor))
+            InvokeCallable(ctor, args, token, "new", inst);
+        return Value.CreateObject(inst);
+    }
+
+    /// <summary>
+    /// Serialize a value to a string (for interpolation / print).
+    /// </summary>
+    public string Serialize(Value v) => Serializer.Serialize(v);
+
+    /// <summary>
+    /// Yield a value from inside a VM-executed generator body.
+    /// Delegates to the active GeneratorRef.
+    /// </summary>
+    public void YieldFromVM(Value v)
+    {
+        if (_activeGenerator == null)
+            throw new RuntimeError(Token.Eof, "'yield' used outside of a generator.", []);
+        _activeGenerator.Yield(v);
+    }
 }

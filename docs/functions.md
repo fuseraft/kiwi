@@ -154,6 +154,24 @@ end
 println(counter)
 ```
 
+### Nested Functions
+
+A `fn` declaration inside another function is local to that function — it is callable anywhere in the enclosing body but does not leak into outer scope after the function returns.
+
+```kiwi
+fn make_adder(n)
+  fn add(x)
+    return x + n
+  end
+  return add(10)  # 10 + n
+end
+
+println make_adder(5)  # 15
+add(1)                 # error — add is not defined here
+```
+
+This is useful for encapsulating helper logic without polluting the global namespace.
+
 ### Generator Functions
 
 A function that contains `yield` is a **generator function**. Calling it returns a lazy generator object instead of executing the body. See [Generators](generators.md) for full details.

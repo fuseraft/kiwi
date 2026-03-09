@@ -43,6 +43,34 @@ println c.call([])  # 2
 
 Reading an outer variable works because scope lookup walks up the chain. Writing to an outer name updates the existing binding; writing a **new** name creates a local variable.
 
+### Nested Functions
+
+A `fn` declaration inside another function is local to that function. It is callable anywhere within the enclosing function body — including after `try`/`catch` blocks — but ceases to exist when the function returns.
+
+```kiwi
+fn outer()
+  fn helper()
+    return 42
+  end
+  return helper()  # ok
+end
+
+outer()
+helper()  # error — helper is not defined here
+```
+
+Lambda aliases assigned inside a function follow the same rule:
+
+```kiwi
+fn run()
+  double = with (x) do x * 2 end
+  return double(5)  # 10
+end
+
+run()
+double(3)  # error — double is not defined here
+```
+
 ```kiwi
 x = 10
 

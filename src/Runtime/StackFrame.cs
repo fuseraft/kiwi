@@ -18,23 +18,19 @@ public enum FrameFlags : ushort
     InLambda   = 1 << 7,
 }
 
-public sealed class StackFrame
+public sealed class StackFrame(string name, Scope scope, Token? callSiteToken = null)
 {
-    public Scope Scope { get; set; }
+    public Scope Scope { get; set; } = scope;
     public Value? ReturnValue { get; set; }
     public InstanceRef? ObjectContext { get; private set; }
     public FrameFlags Flags { get; private set; } = FrameFlags.None;
-    public string Name { get; }
-    public Token? CallSiteToken { get; set; }
+    public string Name { get; } = name;
+    public Token? CallSiteToken { get; set; } = callSiteToken;
+    public bool IsFunction { get; set; } = false;
+    public HashSet<string> LocalFunctions { get; } = [];
+    public HashSet<string> LocalLambdas { get; } = [];
 
     public string StructName { get; set; } = string.Empty;
-
-    public StackFrame(string name, Scope scope, Token? callSiteToken = null)
-    {
-        Name = name;
-        Scope = scope;
-        CallSiteToken = callSiteToken;
-    }
 
     public void SetObjectContext(InstanceRef? obj)
     {

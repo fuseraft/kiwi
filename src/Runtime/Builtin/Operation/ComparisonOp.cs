@@ -11,7 +11,7 @@ public struct ComparisonOp
         if (right.IsList())
         {
             var leftValue = left;
-            return Value.CreateBoolean(right.GetList().Any(item => BooleanOp.IsSame(leftValue, item)));
+            return right.GetList().Any(item => BooleanOp.IsSame(leftValue, item)) ? Value.True : Value.False;
         }
         if (right.IsString())
         {
@@ -19,11 +19,11 @@ public struct ComparisonOp
             {
                 throw new ConversionError(token, "Left operand must be a string when right operand is a string for 'in' operator.");
             }
-            return Value.CreateBoolean(right.GetString().Contains(left.GetString()));
+            return right.GetString().Contains(left.GetString()) ? Value.True : Value.False;
         }
         if (right.IsHashmap())
         {
-            return Value.CreateBoolean(right.GetHashmap().ContainsKey(left));
+            return right.GetHashmap().ContainsKey(left) ? Value.True : Value.False;
         }
         if (right.IsBytes())
         {
@@ -31,24 +31,24 @@ public struct ComparisonOp
             {
                 throw new ConversionError(token, "Left operand must be an integer between 0 and 255 when right operand is bytes for 'in' operator.");
             }
-            return Value.CreateBoolean(Array.IndexOf(right.GetBytes(), (byte)left.GetInteger()) >= 0);
+            return Array.IndexOf(right.GetBytes(), (byte)left.GetInteger()) >= 0 ? Value.True : Value.False;
         }
         throw new InvalidOperationError(token, "The 'in' operator is not supported for the provided types.");
     }
 
     public static bool Equal(ref Value v1, ref Value v2) => BooleanOp.IsSame(v1, v2);
 
-    public static Value NotEqual(ref Value left, ref Value right) => Value.CreateBoolean(!BooleanOp.IsSame(left, right));
+    public static Value NotEqual(ref Value left, ref Value right) => BooleanOp.IsSame(left, right) ? Value.False : Value.True;
 
     public static Value NullCoalesce(ref Value left, ref Value right) => left.IsNull() ? right : left;
 
-    public static Value LessThan(ref Value left, ref Value right) => Value.CreateBoolean(GetLtResult(ref left, ref right));
+    public static Value LessThan(ref Value left, ref Value right) => GetLtResult(ref left, ref right) ? Value.True : Value.False;
 
-    public static Value LessThanOrEqual(ref Value left, ref Value right) => Value.CreateBoolean(GetLteResult(ref left, ref right));
+    public static Value LessThanOrEqual(ref Value left, ref Value right) => GetLteResult(ref left, ref right) ? Value.True : Value.False;
 
-    public static Value GreaterThan(ref Value left, ref Value right) => Value.CreateBoolean(GetGtResult(ref left, ref right));
+    public static Value GreaterThan(ref Value left, ref Value right) => GetGtResult(ref left, ref right) ? Value.True : Value.False;
 
-    public static Value GreaterThanOrEqual(ref Value left, ref Value right) => Value.CreateBoolean(GetGteResult(ref left, ref right));
+    public static Value GreaterThanOrEqual(ref Value left, ref Value right) => GetGteResult(ref left, ref right) ? Value.True : Value.False;
 
     private static bool IsNumeric(Value v) => v.IsInteger() || v.IsFloat();
     
