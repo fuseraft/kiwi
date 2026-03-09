@@ -80,6 +80,10 @@ public enum Opcode : byte
 
     // -- Comparison -----------------------------------------------------------
     Eq, NEq, Lt, LtE, Gt, GtE,
+    /// <summary>
+    /// pop right, pop left → push left in right  (collection membership)
+    /// </summary>
+    In,
 
     // -- Logical --------------------------------------------------------------
     /// <summary>
@@ -188,6 +192,17 @@ public enum Opcode : byte
     /// </summary>
     IndexSet,
     /// <summary>
+    /// A = inner opcode (as int).  pop rhs, pop key, pop obj →
+    ///   old = obj[key]; new = op(old, rhs); obj[key] = new  (pushes new).
+    /// Handles compound index assignment: lst[i] += v.
+    /// </summary>
+    IndexOpAssign,
+    /// <summary>
+    /// A = count.  Pop a value; if it's a list unpack A elements; else push value then A-1 nulls.
+    /// Used for PackAssignment: a, b = func_returning_list().
+    /// </summary>
+    UnpackList,
+    /// <summary>
     /// A = flags: bit0=hasStart, bit1=hasStop, bit2=hasStep.
     /// Pops (in order): obj, start?, stop?, step? → push slice.
     /// </summary>
@@ -278,6 +293,23 @@ public enum Opcode : byte
     /// Pop value and throw it as a Kiwi runtime error.
     /// </summary>
     Throw,
+    /// <summary>
+    /// A = catch IP, B = finally IP (0 = none).
+    /// Pushes a try-handler frame: on KiwiError, restore _sp to current value,
+    /// jump to catch IP, and store the caught error in _caughtError.
+    /// </summary>
+    PushTryHandler,
+    /// <summary>
+    /// Pop the top try-handler frame (try body completed normally).
+    /// </summary>
+    PopTryHandler,
+    /// <summary>
+    /// A = 0 → push error hashmap {error, message}  (single-param catch)
+    /// A = 1 → push error type string               (first of two-param catch)
+    /// A = 2 → push error message string             (second of two-param catch)
+    /// Reads from the VM's _caughtError field set when a handler fires.
+    /// </summary>
+    LoadCatchError,
 
     // -- Interpreter Fallback --------------------------------------------------
     /// <summary>

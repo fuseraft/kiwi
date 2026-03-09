@@ -46,6 +46,30 @@ public sealed class VMFrame(string name, Chunk chunk, int stackBase, Upvalue[] u
     /// </summary>
     public Token?      CallSiteToken { get; set; }
 
+    // -- Try handler stack (nested try/catch within this frame) ----------------
+    // Each entry: (catchIP, finallyIP, savedSP)
+    // null until first try block is entered (avoids alloc for non-try functions).
+    private Stack<(int CatchIP, int FinallyIP, int SavedSP)>? _tryHandlers;
+    public bool HasTryHandlers => _tryHandlers?.Count > 0;
+
+    public void PushTryHandler(int catchIP, int finallyIP, int savedSP)
+    {
+        _tryHandlers ??= new Stack<(int, int, int)>();
+        _tryHandlers.Push((catchIP, finallyIP, savedSP));
+    }
+
+    public bool PopTryHandler(out int catchIP, out int finallyIP, out int savedSP)
+    {
+        if (_tryHandlers?.Count > 0)
+        {
+            var (c, f, s) = _tryHandlers.Pop();
+            catchIP = c; finallyIP = f; savedSP = s;
+            return true;
+        }
+        catchIP = finallyIP = savedSP = 0;
+        return false;
+    }
+
     /// <summary>
     /// Human-readable name of this function/lambda for stack traces.
     /// </summary>
