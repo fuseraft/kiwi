@@ -70,27 +70,28 @@ public class ListBuiltinHandler
             switch (op)
             {
                 case TokenName.Builtin_List_Sort:
-                    result = LambdaSort(interp, lambda, list);
+                    result = LambdaSort(interp, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_Each:
-                    result = LambdaEach(interp, lambda, list);
+                    result = LambdaEach(interp, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_Map:
-                    result = LambdaMap(interp, lambda, list);
+                    result = LambdaMap(interp, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_None:
-                    result = LambdaNone(interp, lambda, list);
+                    result = LambdaNone(interp, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_Filter:
-                    result = LambdaFilter(interp, lambda, list);
+                    result = LambdaFilter(interp, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_All:
-                    result = LambdaAll(interp, lambda, list);
+                    result = LambdaAll(interp, lambda, list, token);
+
                     break;
 
                 default:
@@ -126,15 +127,25 @@ public class ListBuiltinHandler
 
             var lambda = interp.Context.Lambdas[lambdaRef.Identifier];
 
-            return LambdaReduce(interp, lambda, args[0], list);
+            return LambdaReduce(interp, lambda, args[0], list, token);
         }
 
         throw new InvalidOperationError(token, "Invalid specialized list builtin invocation.");
     }
 
 
-    private static Value LambdaSort(Interpreter interp, KLambda lambda, List<Value> list)
+    private static Value LambdaSort(Interpreter interp, KLambda lambda, List<Value> list, Token token)
     {
+        if (lambda.VMChunk != null)
+        {
+            list.Sort((a, b) =>
+            {
+                if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [a, b], token, "<sort>"))) return -1;
+                if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [b, a], token, "<sort>"))) return 1;
+                return 0;
+            });
+            return Value.CreateList(list);
+        }
         var frame = interp.CallStack.Peek();
         var scope = frame.Scope;
 
@@ -201,8 +212,14 @@ public class ListBuiltinHandler
         return Value.CreateList(list);
     }
 
-    private static Value LambdaEach(Interpreter interp, KLambda lambda, List<Value> list)
+    private static Value LambdaEach(Interpreter interp, KLambda lambda, List<Value> list, Token token)
     {
+        if (lambda.VMChunk != null)
+        {
+            for (int i = 0; i < list.Count; i++)
+                interp.InvokeCallable(lambda, lambda.Parameters.Count > 1 ? [list[i], Value.CreateInteger(i)] : [list[i]], token, "<each>");
+            return Value.Default;
+        }
         var defaultParameters = lambda.DefaultParameters;
         var scope = interp.CallStack.Peek().Scope;
 
@@ -260,9 +277,9 @@ public class ListBuiltinHandler
         return result;
     }
 
-    private static Value LambdaNone(Interpreter interp, KLambda lambda, List<Value> list)
+    private static Value LambdaNone(Interpreter interp, KLambda lambda, List<Value> list, Token token)
     {
-        var filtered = LambdaFilter(interp, lambda, list);
+        var filtered = LambdaFilter(interp, lambda, list, token);
         var noneFound = Value.False;
 
         if (filtered.IsList())
@@ -274,8 +291,15 @@ public class ListBuiltinHandler
         return noneFound;
     }
 
-    private static Value LambdaMap(Interpreter interp, KLambda lambda, List<Value> list)
+    private static Value LambdaMap(Interpreter interp, KLambda lambda, List<Value> list, Token token)
     {
+        if (lambda.VMChunk != null)
+        {
+            var mapped = new List<Value>(list.Count);
+            foreach (var item in list)
+                mapped.Add(interp.InvokeCallable(lambda, [item], token, "<map>"));
+            return Value.CreateList(mapped);
+        }
         var defaultParameters = lambda.DefaultParameters;
         var frame = interp.CallStack.Peek();
         var scope = frame.Scope;
@@ -321,8 +345,15 @@ public class ListBuiltinHandler
         return Value.CreateList(resultList);
     }
 
-    private static Value LambdaReduce(Interpreter interp, KLambda lambda, Value accumulator, List<Value> list)
+    private static Value LambdaReduce(Interpreter interp, KLambda lambda, Value accumulator, List<Value> list, Token token)
     {
+        if (lambda.VMChunk != null)
+        {
+            var acc = accumulator;
+            foreach (var item in list)
+                acc = interp.InvokeCallable(lambda, [acc, item], token, "<reduce>");
+            return acc;
+        }
         var defaultParameters = lambda.DefaultParameters;
         var scope = interp.CallStack.Peek().Scope;
 
@@ -370,8 +401,15 @@ public class ListBuiltinHandler
         return result;
     }
 
-    private static Value LambdaAll(Interpreter interp, KLambda lambda, List<Value> list)
+    private static Value LambdaAll(Interpreter interp, KLambda lambda, List<Value> list, Token token)
     {
+        if (lambda.VMChunk != null)
+        {
+            foreach (var item in list)
+                if (!BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [item], token, "<all>")))
+                    return Value.False;
+            return Value.True;
+        }
         var defaultParameters = lambda.DefaultParameters;
         var scope = interp.CallStack.Peek().Scope;
 
@@ -432,8 +470,16 @@ public class ListBuiltinHandler
         return Value.CreateBoolean(newListSize == listSize);
     }
 
-    private static Value LambdaFilter(Interpreter interp, KLambda lambda, List<Value> list)
+    private static Value LambdaFilter(Interpreter interp, KLambda lambda, List<Value> list, Token token)
     {
+        if (lambda.VMChunk != null)
+        {
+            var filtered = new List<Value>();
+            foreach (var item in list)
+                if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [item], token, "<filter>")))
+                    filtered.Add(item);
+            return Value.CreateList(filtered);
+        }
         var defaultParameters = lambda.DefaultParameters;
         var scope = interp.CallStack.Peek().Scope;
 

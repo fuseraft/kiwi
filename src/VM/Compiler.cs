@@ -1,5 +1,6 @@
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
+using kiwi.Parsing.Keyword;
 using kiwi.Typing;
 
 namespace kiwi.VM;
@@ -71,6 +72,7 @@ public sealed class Compiler
     {
         var c = new Compiler(fn.Name, enclosing, isGlobal: false);
         c.SetupLocals(fn.Parameters, fn.VariadicParamName, fn.Body);
+        c.EmitDefaultInits(fn.Parameters);
         if (!c.CompileFunctionBody(fn.Body))
             c.EmitFinalReturn();
         foreach (var uv in c._upvalues) c._chunk.Upvalues.Add(uv);
@@ -81,10 +83,41 @@ public sealed class Compiler
     {
         var c = new Compiler("<lambda>", enclosing, isGlobal: false);
         c.SetupLocals(fn.Parameters, fn.VariadicParamName, fn.Body);
+        c.EmitDefaultInits(fn.Parameters);
         if (!c.CompileFunctionBody(fn.Body))
             c.EmitFinalReturn();
         foreach (var uv in c._upvalues) c._chunk.Upvalues.Add(uv);
         return c._chunk;
+    }
+
+    // -- Default parameter initialization --------------------------------------
+
+    /// <summary>
+    /// For each parameter that has a default expression, emits a null-check at
+    /// function entry: if the slot is still null (caller omitted the arg), evaluate
+    /// the default expression and store it into the slot.
+    ///   LoadLocal slot; Null; Eq; JumpF skip; [default expr]; StoreLocal slot; skip:
+    /// </summary>
+    private void EmitDefaultInits(List<KeyValuePair<string, ASTNode?>> parameters)
+    {
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            var (name, defaultExpr) = parameters[i];
+            if (defaultExpr == null) continue;
+
+            int slot = _locals.FindIndex(l => l.Name == name);
+            if (slot < 0) continue;
+
+            _chunk.Emit(Opcode.LoadLocal, slot);
+            _chunk.Emit(Opcode.Null);
+            _chunk.Emit(Opcode.Eq);
+            int jumpIdx = _chunk.Emit(Opcode.JumpF, 0); // jump over default if arg was provided
+            if (CompileNode(defaultExpr))
+                _chunk.Emit(Opcode.StoreLocal, slot);
+            else
+                _chunk.Emit(Opcode.Null); // no-op fallback (shouldn't happen for valid defaults)
+            _chunk.PatchJump(jumpIdx, _chunk.Code.Count);
+        }
     }
 
     // -- Local variable setup --------------------------------------------------
@@ -115,6 +148,10 @@ public sealed class Compiler
         }
 
         _chunk.LocalCount = _slotCount;
+
+        // Publish name→slot mapping so the VM can expose locals to interpreter fallbacks.
+        foreach (var lv in _locals)
+            _chunk.LocalNames.Add((lv.Name, lv.Slot));
     }
 
     // -- Name pre-scan ---------------------------------------------------------
@@ -1254,6 +1291,9 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void CompileFuncCall(FunctionCallNode node, int ln)
     {
         if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
+        // KiwiBuiltins (typeof, __execpath__, __entrypath__, __tokenize__) are handled
+        // entirely by the interpreter and are not findable via LoadGlobal, so fall back.
+        if (KiwiBuiltin.IsBuiltin(node.Op)) { Fallback(node); return; }
         // Package-prefixed calls (e.g. math::round): evaluate arguments via VM so that
         // VM-local variables (e.g. mangled var-block names) are read from the correct
         // stack slots, then dispatch through DoCall which invokes the interpreter with

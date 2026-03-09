@@ -115,6 +115,11 @@ public sealed class KiwiVM
         var upvalues = callable is KFunction kf2 ? (kf2.VMUpvalues ?? []) : (((KLambda)callable).VMUpvalues ?? []);
 
         int calleeBase = _sp;
+        // When called re-entrantly from C# (e.g. LambdaMap), the Return handler writes
+        // the result to _stack[calleeBase - 1] via Push(result). Save and restore that
+        // slot so the caller's temp stack is not clobbered.
+        var savedBelow = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+
         // Push args onto the stack
         foreach (var a in args) Push(a);
         // Zero-initialize remaining local slots beyond args
@@ -122,7 +127,11 @@ public sealed class KiwiVM
 
         int stopAt = _frameCount; // run only until this frame completes
         PushFrame(sub.Name, sub, calleeBase, upvalues, token);
-        return RunLoop(stopAt);
+        var r = RunLoop(stopAt);
+
+        // Restore the slot clobbered by the Return handler's Push(result).
+        if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
+        return r;
     }
 
     // -- Frame management ------------------------------------------------------
@@ -319,37 +328,37 @@ public sealed class KiwiVM
                     case Opcode.Add:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Add(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Add) ?? MathOp.Add(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Sub:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Sub(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Subtract) ?? MathOp.Sub(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Mul:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Mul(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Multiply) ?? MathOp.Mul(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Div:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Div(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Divide) ?? MathOp.Div(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Mod:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Mod(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Modulus) ?? MathOp.Mod(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Pow:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Exp(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Exponent) ?? MathOp.Exp(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Neg:
@@ -1007,7 +1016,27 @@ public sealed class KiwiVM
                     case Opcode.InterpFallback:
                     {
                         var node = frame.Chunk.NodePool[A];
-                        var r    = _interp.InterpretNode(node);
+                        Value r;
+                        // If there are named locals in the current frame, expose them to the
+                        // interpreter so that sub-expressions (e.g. named-arg values) can
+                        // resolve VM-local variables by name.
+                        if (frame.Chunk.LocalNames.Count > 0)
+                        {
+                            var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                            foreach (var (name, slot) in frame.Chunk.LocalNames)
+                                locals[name] = _stack[frame.StackBase + slot];
+                            r = _interp.InterpretNodeWithLocals(node, locals);
+                            // Sync any updated locals back to the VM stack.
+                            foreach (var (name, slot) in frame.Chunk.LocalNames)
+                            {
+                                if (locals.TryGetValue(name, out var updated))
+                                    _stack[frame.StackBase + slot] = updated;
+                            }
+                        }
+                        else
+                        {
+                            r = _interp.InterpretNode(node);
+                        }
                         Push(r);
                         break;
                     }
@@ -1145,6 +1174,37 @@ public sealed class KiwiVM
             Push(callResult);
             return false;
         }
+    }
+
+    // -- Struct operator overload dispatch -------------------------------------
+
+    /// <summary>
+    /// If <paramref name="left"/> is a struct instance that defines an operator
+    /// method matching <paramref name="op"/>, invoke it and return the result.
+    /// Returns null when no overload is found (caller should fall through to
+    /// the built-in arithmetic/comparison handler).
+    /// </summary>
+    private Value? TryStructOpOverload(Token token, Value left, Value right, TokenName op)
+    {
+        if (!left.IsObject()) return null;
+
+        var inst = left.GetObject();
+        if (!_context.HasStruct(inst.StructName)) return null;
+
+        var struc = _context.Structs[inst.StructName];
+        var opString = Serializer.GetOperatorString(op);
+        if (string.IsNullOrEmpty(opString)) return null;
+
+        KFunction? func = null;
+        if (!struc.Methods.TryGetValue(opString, out func) && !string.IsNullOrEmpty(struc.BaseStruct))
+        {
+            if (_context.HasStruct(struc.BaseStruct))
+                _context.Structs[struc.BaseStruct].Methods.TryGetValue(opString, out func);
+        }
+
+        if (func == null) return null;
+
+        return _interp.InvokeCallable(func, [right], token, $"{inst.StructName}#{func.Name}", inst);
     }
 
     // -- Call helpers ----------------------------------------------------------
