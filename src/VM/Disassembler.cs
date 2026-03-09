@@ -1,0 +1,161 @@
+using System.Text;
+
+namespace kiwi.VM;
+
+/// <summary>
+/// Produces a human-readable disassembly of a Chunk's bytecode.
+/// Useful for debugging the compiler and VM.
+/// </summary>
+public static class Disassembler
+{
+    public static string Disassemble(Chunk chunk, int depth = 0)
+    {
+        var sb  = new StringBuilder();
+        var pad = new string(' ', depth * 2);
+
+        sb.AppendLine($"{pad}=== {chunk.Name} (arity={chunk.Arity}, locals={chunk.LocalCount}, upvalues={chunk.Upvalues.Count}) ===");
+
+        if (chunk.ParamNames.Count > 0)
+            sb.AppendLine($"{pad}  params: {string.Join(", ", chunk.ParamNames)}");
+
+        for (int i = 0; i < chunk.Code.Count; i++)
+        {
+            var instr = chunk.Code[i];
+            int line  = chunk.GetLine(i);
+            sb.Append($"{pad}  {i,4}  [{line,4}]  {instr.Op,-18}");
+
+            switch (instr.Op)
+            {
+                case Opcode.Const:
+                    var cv = chunk.Constants.Count > instr.A ? chunk.Constants[instr.A] : null;
+                    sb.Append($" {instr.A,4}   ({cv})");
+                    break;
+
+                case Opcode.LoadLocal:
+                case Opcode.StoreLocal:
+                    sb.Append($" slot={instr.A}");
+                    break;
+
+                case Opcode.LoadGlobal:
+                case Opcode.StoreGlobal:
+                {
+                    var nm = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{nm}\"");
+                    break;
+                }
+
+                case Opcode.LoadUpvalue:
+                case Opcode.StoreUpvalue:
+                    sb.Append($" uv={instr.A}");
+                    break;
+
+                case Opcode.Jump:
+                case Opcode.JumpF:
+                case Opcode.JumpT:
+                case Opcode.JumpAnd:
+                case Opcode.JumpOr:
+                    sb.Append($" -> {instr.A}");
+                    break;
+
+                case Opcode.ForIterNext:
+                    sb.Append($" done->{instr.A}  vars={instr.B}");
+                    break;
+
+                case Opcode.Call:
+                    sb.Append($" argc={instr.A}");
+                    break;
+
+                case Opcode.CallMethod:
+                {
+                    var mn = chunk.Names.Count > instr.B ? chunk.Names[instr.B] : "?";
+                    sb.Append($" .{mn}  argc={instr.A}");
+                    break;
+                }
+
+                case Opcode.DefFunc:
+                {
+                    var fn = chunk.Names.Count > instr.B ? chunk.Names[instr.B] : "?";
+                    sb.Append($" sub[{instr.A}]  name=\"{fn}\"");
+                    break;
+                }
+
+                case Opcode.MakeClosure:
+                    sb.Append($" sub[{instr.A}]  upvalues={instr.B}");
+                    break;
+
+                case Opcode.BuildList:
+                case Opcode.BuildHashmap:
+                    sb.Append($" count={instr.A}");
+                    break;
+
+                case Opcode.Interpolate:
+                    sb.Append($" parts={instr.A}");
+                    break;
+
+                case Opcode.Print:
+                {
+                    bool nl  = (instr.A & 1) != 0;
+                    bool err = (instr.A & 2) != 0;
+                    sb.Append($" newline={nl}  stderr={err}");
+                    break;
+                }
+
+                case Opcode.GetMember:
+                case Opcode.SetMember:
+                case Opcode.LoadSelfAttr:
+                case Opcode.StoreSelfAttr:
+                case Opcode.LoadStaticAttr:
+                case Opcode.StoreStaticAttr:
+                {
+                    var nm = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{nm}\"");
+                    break;
+                }
+
+                case Opcode.NewObject:
+                {
+                    var nm = chunk.Names.Count > instr.B ? chunk.Names[instr.B] : "?";
+                    sb.Append($" \"{nm}\"  argc={instr.A}");
+                    break;
+                }
+
+                case Opcode.InterpFallback:
+                {
+                    var nodeType = chunk.NodePool.Count > instr.A
+                        ? chunk.NodePool[instr.A].Type.ToString() : "?";
+                    sb.Append($" node[{instr.A}] ({nodeType})");
+                    break;
+                }
+
+                case Opcode.CloseUpvalue:
+                    sb.Append($" from_slot={instr.A}");
+                    break;
+
+                case Opcode.SliceGet:
+                    sb.Append($" flags=0x{instr.A:X}");
+                    break;
+
+                default:
+                    if (instr.A != 0 || instr.B != 0)
+                        sb.Append($" a={instr.A}  b={instr.B}");
+                    break;
+            }
+
+            sb.AppendLine();
+        }
+
+        // Recursively disassemble sub-chunks
+        for (int i = 0; i < chunk.SubChunks.Count; i++)
+        {
+            sb.AppendLine();
+            sb.Append(Disassemble(chunk.SubChunks[i], depth + 1));
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Print disassembly to stdout.
+    /// </summary>
+    public static void Dump(Chunk chunk) => Console.Write(Disassemble(chunk));
+}

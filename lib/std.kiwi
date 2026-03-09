@@ -1,6 +1,5 @@
 /#
-@summary A package of general-purpose utility functions and structured error helpers.
-@see std::error : For creating structured error hashmaps.
+@summary A package of general-purpose utility functions.
 #/
 package std
   /#
@@ -65,41 +64,7 @@ package std
   @throws InvalidRange : If either argument is not an integer.
   #/
   fn range(x, y)
-    throw std::error::InvalidRange() when ![x, y].all(with (n) do std::is_int(n) end)
+    throw error::InvalidRange() when ![x, y].all(with (n) do std::is_int(n) end)
     return [x to y - 1]
-  end
-end
-
-/#
-@summary A package of helpers for constructing structured error hashmaps.
-@see std : For general utility functions.
-#/
-package std::error
-  /#
-  @summary Creates a structured error hashmap.
-  @param string error_type : The error type name (default `"KiwiError"`).
-  @param string error_message : The error message (default `"An error occurred."`).
-  @return hashmap : A hashmap with `error` and `message` keys.
-  #/
-  fn create(error_type: string = "KiwiError", error_message: string = "An error occurred."): hashmap
-    return { error: error_type, message: error_message }
-  end
-
-  /#
-  @summary Creates an `InvalidRange` error hashmap.
-  @param string msg : An optional message (default `"Invalid range."`).
-  @return hashmap : A structured error hashmap.
-  #/
-  fn InvalidRange(msg = "Invalid range.")
-    return std::error::create("InvalidRange", msg)
-  end
-
-  /#
-  @summary Creates an `InvalidOperation` error hashmap.
-  @param string msg : An optional message (default `"Invalid operation."`).
-  @return hashmap : A structured error hashmap.
-  #/
-  fn InvalidOperation(msg = "Invalid operation.")
-    return std::error::create("InvalidOperation", msg)
   end
 end

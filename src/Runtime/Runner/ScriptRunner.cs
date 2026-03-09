@@ -25,7 +25,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
     /// <summary>
     /// Gets or sets the path of execution.
     /// </summary>
-    private string ExecutionPath { get; set; } = string.Empty;
+    protected string ExecutionPath { get; set; } = string.Empty;
 
     /// <summary>
     /// Runs a given script as the entrypoint to the program.
@@ -144,7 +144,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
         StandardLibraryLoaded = true;
     }
 
-    private void AwaitTasksAndShutdown()
+    protected void AwaitTasksAndShutdown()
     {
         if (TaskManager.Instance.Busy().GetBoolean() == true)
         {
