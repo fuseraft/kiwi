@@ -169,9 +169,9 @@ public class Interpreter
         if (vm != null)
         {
             if (callable is KFunction kf && kf.VMChunk != null)
-                return vm.InvokeVMCallable(kf, args, token);
+                return vm.InvokeVMCallable(kf, args, token, instance);
             if (callable is KLambda kl && kl.VMChunk != null)
-                return vm.InvokeVMCallable(kl, args, token);
+                return vm.InvokeVMCallable(kl, args, token, instance);
         }
 
         var scope = new Scope(callable.CapturedScope ?? _globalScope);
@@ -4542,6 +4542,13 @@ public class Interpreter
         var struc = Context.Structs[structName];
         if (!struc.Methods.TryGetValue(methodName, out KFunction? fn))
             throw new UnimplementedMethodError(token, structName, methodName);
+        // Constructor: create an instance, pass it as context, and return the object.
+        if (methodName == "new")
+        {
+            var inst = new InstanceRef { StructName = structName, Identifier = structName };
+            InvokeCallable(fn, args, token, methodName, inst);
+            return Value.CreateObject(inst);
+        }
         return InvokeCallable(fn, args, token, methodName);
     }
 
