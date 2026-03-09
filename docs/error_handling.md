@@ -98,6 +98,23 @@ end
 
 ## `finally` block
 
+`finally` always runs — even if an error is thrown and there is no `catch` block. In that case the error is swallowed and execution continues after the `end`.
+
+```kiwi
+# try/finally without catch — error is swallowed, finally always runs
+x = 0
+try
+  x = 1
+  throw "something failed"
+  x = 2
+finally
+  x += 100
+end
+println x  # 101
+```
+
+With both `catch` and `finally`:
+
 ```kiwi
 fn read_file(path)
   f = null
