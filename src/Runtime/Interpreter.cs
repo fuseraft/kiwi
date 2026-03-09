@@ -751,7 +751,10 @@ public class Interpreter
                 }
 
                 var lambdaId = value.GetLambda().Identifier;
-                Context.Lambdas.Add(name, Context.Lambdas[lambdaId]);
+                Context.Lambdas[name] = Context.Lambdas[lambdaId];
+
+                var enclosingForLambda = CallStack.FirstOrDefault(f => f.IsFunction);
+                enclosingForLambda?.LocalLambdas.Add(name);
 
                 return value;
             }
@@ -2248,6 +2251,10 @@ public class Interpreter
         else
         {
             Context.Functions[name] = CreateFunction(node, name);
+
+            // If declared inside a user function, track it for cleanup on return.
+            var enclosing = CallStack.FirstOrDefault(f => f.IsFunction);
+            enclosing?.LocalFunctions.Add(name);
         }
 
         return Value.Default;
@@ -3207,7 +3214,7 @@ public class Interpreter
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
         var functionScope = new Scope(func.CapturedScope ?? _globalScope);
-        var functionFrame = new StackFrame(functionName, functionScope, node.Token);
+        var functionFrame = new StackFrame(functionName, functionScope, node.Token) { IsFunction = true };
         var result = Value.Default;
 
         // If the function was compiled as VM bytecode, evaluate args and delegate to the VM.
@@ -3250,6 +3257,7 @@ public class Interpreter
         var defaultParameters = function.DefaultParameters;
         var functionFrame = CreateFrame(functionName, token, function.CapturedScope);
         functionFrame.StructName = structName;
+        functionFrame.IsFunction = true;
         var scope = functionFrame.Scope;
         var typeHints = function.TypeHints;
         var returnTypeHint = function.ReturnTypeHint;
@@ -3321,6 +3329,7 @@ public class Interpreter
         // Push new frame with captured scope as parent (enables closures).
         var scope = new Scope(func.CapturedScope ?? CallStack.Peek().Scope);
         var lambdaFrame = PushFrame(lambdaName, token, scope, true);
+        lambdaFrame.IsFunction = true;
 
         PrepareLambdaCall(func, evaluatedArgs, defaultParameters, token, targetLambda, typeHints, lambdaName, scope);
 
@@ -3668,6 +3677,7 @@ public class Interpreter
         var func = strucMethods[functionName];
         var defaultParameters = func.DefaultParameters;
         var functionFrame = CreateFrame(functionName, node.Token, func.CapturedScope);
+        functionFrame.IsFunction = true;
         var result = Value.Default;
 
         var typeHints = func.TypeHints;
@@ -4300,6 +4310,14 @@ public class Interpreter
 
         var frame = CallStack.Pop();
         FuncStack.Pop();
+
+        if (frame.IsFunction)
+        {
+            foreach (var fname in frame.LocalFunctions)
+                Context.Functions.Remove(fname);
+            foreach (var lname in frame.LocalLambdas)
+                Context.Lambdas.Remove(lname);
+        }
 
         var ret = frame.ReturnValue ?? Value.Default;
         if (CallStack.Count > 0)
