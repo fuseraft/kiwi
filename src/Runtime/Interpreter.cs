@@ -3222,7 +3222,9 @@ public class Interpreter
         var vm = VM.KiwiVM.Current;
         if (vm != null && func.VMChunk != null)
         {
-            var evaluatedArgs = node.Arguments.Select(a => a != null ? Interpret(a) : Value.Default).ToList();
+            // Named args must be resolved to positional order matching the parameter list.
+            var slots = ResolveArguments(func.Parameters, node.Arguments, defaultParameters, node.Token, functionName, func.VariadicParamName);
+            var evaluatedArgs = slots.Select(v => v ?? Value.Default).ToList();
             PushFrame(functionFrame); // placeholder so caller's PopFrame is balanced
             return vm.InvokeVMCallable(func, evaluatedArgs, node.Token);
         }
@@ -4433,6 +4435,37 @@ public class Interpreter
     }
 
     /// <summary>
+    /// Execute a single AST node with VM-local variables injected into a temporary
+    /// interpreter scope so that expressions inside the node (e.g. argument sub-expressions
+    /// in named-arg calls) can resolve VM locals by name.
+    /// After execution, any variables that were modified in the interpreter scope are
+    /// written back into <paramref name="locals"/> so the VM can update its stack.
+    /// </summary>
+    public Value InterpretNodeWithLocals(ASTNode node, Dictionary<string, Value> locals)
+    {
+        var scope = new Scope(_globalScope);
+        foreach (var kv in locals)
+            scope.Declare(kv.Key, kv.Value);
+
+        var frame = new StackFrame("<vm-fallback>", scope);
+        CallStack.Push(frame);
+        try
+        {
+            return Interpret(node);
+        }
+        finally
+        {
+            CallStack.Pop();
+            // Sync any written-back values to the caller's dictionary.
+            foreach (var kv in locals.Keys.ToList())
+            {
+                if (scope.TryGet(kv, out var updated))
+                    locals[kv] = updated;
+            }
+        }
+    }
+
+    /// <summary>
     /// Dispatch a method call given a pre-evaluated receiver object and argument list.
     /// Used by the VM's CallMethod opcode.
     /// </summary>
@@ -4450,7 +4483,14 @@ public class Interpreter
 
         // Builtin method dispatch — resolve string name → TokenName
         if (ListBuiltin.Map.TryGetValue(methodName, out TokenName listOp))
-            return ListBuiltinHandler.HandleListBuiltin(token, ref obj, listOp, args);
+        {
+            // HandleListBuiltin peeks the call stack to detect early returns from lambdas.
+            // Push a synthetic frame when the VM calls us with an empty stack.
+            bool pushedFrame = CallStack.Count == 0;
+            if (pushedFrame) CallStack.Push(new StackFrame("<vm-dispatch>", _globalScope));
+            try   { return ListBuiltinHandler.HandleListBuiltin(token, ref obj, listOp, args); }
+            finally { if (pushedFrame) CallStack.Pop(); }
+        }
         if (CallableBuiltin.Map.TryGetValue(methodName, out _))
             return HandleCallableBuiltinDirect(token, obj, methodName, args);
         if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))

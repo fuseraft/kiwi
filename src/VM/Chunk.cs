@@ -80,6 +80,12 @@ public class Chunk
     /// </summary>
     public string VariadicParamName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Maps every pre-scanned local variable to its stack slot index (relative to frame base).
+    /// Populated by the compiler so the VM can build an interpreter scope for InterpFallback.
+    /// </summary>
+    public List<(string Name, int Slot)> LocalNames { get; } = [];
+
     // -- Emit helpers ----------------------------------------------------------
 
     /// <summary>

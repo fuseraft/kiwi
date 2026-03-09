@@ -267,6 +267,15 @@ public partial class Parser(bool rethrowErrors = false)
 
         for (; pos + 1 < stream.Size; ++pos)
         {
+            var tokenType = stream.At(pos).Type;
+
+            // Stop scanning at scope-closing tokens — the target can't be in the
+            // current expression if we've already left it.
+            if (tokenType is TokenType.RBracket or TokenType.RParen or TokenType.RBrace)
+            {
+                return false;
+            }
+
             int matches = 0;
 
             for (int i = 0; i < nameLength; ++i)
