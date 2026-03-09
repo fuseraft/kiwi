@@ -1,6 +1,5 @@
 /#
 @summary A package of helpers for constructing, throwing, and inspecting structured errors.
-@see std::error : Lower-level error hashmap creator.
 #/
 package error
   /#
@@ -253,5 +252,23 @@ package error
   #/
   fn ValueError(msg: string = "Invalid value."): hashmap
     return error::new("ValueError", msg)
+  end
+
+  /#
+  @summary Creates an `InvalidRange` hashmap.
+  @param string msg : The error message (default `"Invalid range."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn InvalidRange(msg: string = "Invalid range."): hashmap
+    return error::new("InvalidRange", msg)
+  end
+
+  /#
+  @summary Creates an `InvalidOperation` hashmap.
+  @param string msg : The error message (default `"Invalid operation."`).
+  @return hashmap : A structured error hashmap.
+  #/
+  fn InvalidOperation(msg: string = "Invalid operation."): hashmap
+    return error::new("InvalidOperation", msg)
   end
 end

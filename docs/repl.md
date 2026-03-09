@@ -4,7 +4,7 @@ To use the REPL, run `kiwi -i` or `kiwi --interactive`.
 
 ```
 $ kiwi -i
-kiwi 1.3.9 — type 'exit' or press Ctrl+C to quit.
+kiwi 1.4.0 — type 'exit' or press Ctrl+C to quit.
 >>
 ```
 

@@ -1,6 +1,6 @@
 # `std`
 
-The `std` package provides general-purpose utility functions for introspection and common operations. It is automatically loaded by the Kiwi runtime — no explicit import is needed. The `std::error` sub-package provides helpers for constructing structured error hashmaps.
+The `std` package provides general-purpose utility functions for introspection and common operations. It is automatically loaded by the Kiwi runtime — no explicit import is needed.
 
 ```kiwi
 # std is pre-loaded; no import required.
@@ -203,99 +203,6 @@ end
 
 ---
 
-## `std::error` Sub-Package
+## See Also
 
-The `std::error` package provides helpers for creating structured error hashmaps. Errors in Kiwi can be thrown as any value, including hashmaps, which allows structured error handling.
-
----
-
-### `std::error::create(error_type, error_message)`
-
-Creates a structured error hashmap with `error` and `message` keys.
-
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `error_type` | The error type name. | `"KiwiError"` |
-| `string` | `error_message` | The error message. | `"An error occurred."` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `hashmap` | A hashmap of the form `{error: error_type, message: error_message}`. |
-
-**Example**
-
-```kiwi
-err = std::error::create("ValueError", "Value must be positive.")
-println err["error"]    # prints: ValueError
-println err["message"]  # prints: Value must be positive.
-```
-
----
-
-### `std::error::InvalidRange(msg?)`
-
-Creates an `InvalidRange` error hashmap. Useful for signaling that a range argument is out of bounds or otherwise invalid.
-
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `msg` | Optional custom message. | `"Invalid range."` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `hashmap` | `{error: "InvalidRange", message: msg}` |
-
-**Example**
-
-```kiwi
-throw std::error::InvalidRange("Start must be less than end.")
-```
-
----
-
-### `std::error::InvalidOperation(msg?)`
-
-Creates an `InvalidOperation` error hashmap. Useful for signaling that a requested operation cannot be performed given the current state or arguments.
-
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `msg` | Optional custom message. | `"Invalid operation."` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `hashmap` | `{error: "InvalidOperation", message: msg}` |
-
-**Example**
-
-```kiwi
-throw std::error::InvalidOperation("Cannot divide by zero.")
-```
-
----
-
-## Error Handling Example
-
-```kiwi
-fn safe_divide(a, b)
-  throw std::error::InvalidOperation("Division by zero.") when b == 0
-  a / b
-end
-
-try
-  result = safe_divide(10, 0)
-catch err
-  println err["error"]    # prints: InvalidOperation
-  println err["message"]  # prints: Division by zero.
-end
-```
+- [`error`](error.md) — helpers for constructing, throwing, and inspecting structured errors.

@@ -1,3 +1,5 @@
+using kiwi.VM;
+
 namespace kiwi.Typing;
 
 public class InstanceRef
@@ -14,7 +16,17 @@ public class InstanceRef
 
 public class LambdaRef
 {
-    public string Identifier { get; set; } = string.Empty;
+    public string    Identifier { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// VM-compiled chunk for this lambda, or null for tree-walker.
+    /// </summary>
+    public Chunk?    VMChunk    { get; set; }
+    
+    /// <summary>
+    /// Captured upvalue cells (set when MakeClosure creates the closure).
+    /// </summary>
+    public Upvalue[]? VMUpvalues { get; set; }
 }
 
 public class StructRef

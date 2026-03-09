@@ -141,6 +141,14 @@ kiwi --crash-dump script.kiwi
 
 The log path can also be set permanently via `"crashdump_path"` in `kiwi-settings.json`.
 
+### `--vm`
+
+Runs a script using the bytecode VM (experimental). This flag must appear before the script path.
+
+```
+kiwi --vm script.kiwi
+```
+
 ### `-<key>=<value>`
 
 Sets a specific argument as a key-value pair, which can be used for various configuration purposes or to pass parameters into scripts.
