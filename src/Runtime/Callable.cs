@@ -1,6 +1,7 @@
 using kiwi.Parsing.AST;
 using kiwi.Parsing;
 using kiwi.Typing;
+using kiwi.VM;
 
 namespace kiwi.Runtime;
 
@@ -51,6 +52,17 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     public bool IsAbstract { get; set; }
     public bool IsOverride { get; set; }
 
+    // -- VM bytecode fields ----------------------------------------------------
+    /// <summary>
+    /// Compiled bytecode chunk, or null if interpreted via tree-walker.
+    /// </summary>
+    public Chunk? VMChunk { get; set; }
+
+    /// <summary>
+    /// Captured upvalue cells for VM closure execution.
+    /// </summary>
+    public Upvalue[]? VMUpvalues { get; set; }
+
     public KFunction Clone()
     {
         var cloned = new KFunction((FunctionNode)Decl.Clone())
@@ -76,6 +88,22 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
 public class KLambda(ASTNode node) : Callable(CallableType.Lambda)
 {
     public LambdaNode Decl { get; set; } = (LambdaNode)node.Clone();
+
+    // -- VM bytecode fields ----------------------------------------------------
+    /// <summary>
+    /// Compiled bytecode chunk, or null if interpreted via tree-walker.
+    /// </summary>
+    public Chunk? VMChunk { get; set; }
+    
+    /// <summary>
+    /// Captured upvalue cells for VM closure execution.
+    /// </summary>
+    public Upvalue[]? VMUpvalues { get; set; }
+
+    /// <summary>
+    /// LambdaRef used to identify this lambda in the VM.
+    /// </summary>
+    public LambdaRef Ref { get; set; } = new LambdaRef();
 
     public KLambda Clone()
     {

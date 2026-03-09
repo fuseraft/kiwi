@@ -1,0 +1,1040 @@
+using kiwi.Parsing;
+using kiwi.Parsing.AST;
+using kiwi.Runtime;
+using kiwi.Runtime.Builtin.Handler;
+using kiwi.Runtime.Builtin.Operation;
+using kiwi.Runtime.Builtin.Dispatcher;
+using kiwi.Tracing;
+using kiwi.Tracing.Error;
+using kiwi.Typing;
+
+namespace kiwi.VM;
+
+/// <summary>
+/// Internal iterator state used by ForIterInit / ForIterNext.
+/// </summary>
+internal sealed class ForIterState
+{
+    public List<Value>? List;
+    public Dictionary<Value, Value>? Hashmap;
+    public byte[]? Bytes;
+    public int     Index;
+    public List<Value>? HashmapKeys; // pre-enumerated keys for hashmap iteration
+}
+
+/// <summary>
+/// Stack-based bytecode virtual machine for Kiwi.
+///
+/// Execution model:
+///   - Shared value stack: _stack[0..MaxStack-1]
+///   - Frame stack:        _frames[0..MaxFrames-1]
+///   - Locals for a frame live at absolute indices [frame.StackBase .. frame.StackBase + Chunk.LocalCount - 1]
+///   - Temporaries live above that region (tracked by _sp)
+///   - On Call: new frame's StackBase = _sp - argCount (args were pushed into correct slots)
+///   - On Return: _sp is restored to StackBase - 1, return value pushed there
+/// </summary>
+public sealed class KiwiVM
+{
+    // -- Limits ----------------------------------------------------------------
+    private const int MaxStack  = 8192;
+    private const int MaxFrames = 512;
+
+    // -- Value stack -----------------------------------------------------------
+    private readonly Value[] _stack = new Value[MaxStack];
+    private int _sp; // next free slot
+
+    // -- Frame stack -----------------------------------------------------------
+    private readonly VMFrame[] _frames = new VMFrame[MaxFrames];
+    private int _frameCount;
+
+    // -- Open upvalue linked list ----------------------------------------------
+    private Upvalue? _openUpvalues;
+
+    // -- Native object store (for ForIterState etc.) ---------------------------
+    private int _nextNativeId;
+    private readonly Dictionary<int, object> _nativeObjects = [];
+
+    // -- Shared runtime state (shared with the tree-walking interpreter) -------
+    private readonly Interpreter _interp;
+    private readonly Scope       _globals;   // = interp._globalScope
+    private readonly KContext    _context;   // = interp.Context
+
+    // -- Thread-local slot -----------------------------------------------------
+    [ThreadStatic]
+    public static KiwiVM? Current;
+
+    // -- Construction ----------------------------------------------------------
+
+    public KiwiVM(Interpreter interp)
+    {
+        _interp  = interp;
+        _globals = interp.GetGlobalScope();
+        _context = interp.Context;
+        Current  = this;
+    }
+
+    // -- Public entry points ---------------------------------------------------
+
+    /// <summary>
+    /// Execute a compiled top-level chunk and return the final value.
+    /// </summary>
+    public Value Execute(Chunk chunk)
+    {
+        PushFrame("<main>", chunk, stackBase: 0, upvalues: []);
+        // Initialize locals to null (LocalCount slots)
+        for (int i = 0; i < chunk.LocalCount; i++)
+            _stack[i] = Value.Default;
+        _sp = chunk.LocalCount;
+
+        return RunLoop();
+    }
+
+    /// <summary>
+    /// Invoke a VM-compiled callable (KFunction or KLambda with a VMChunk) from within
+    /// an interpreter-side call (e.g. an interpreted lambda calling a VM-compiled function).
+    /// Sets up a new VM frame, runs to completion, and returns the result.
+    /// </summary>
+    public Value InvokeVMCallable(Callable callable, List<Value> args, Token token)
+    {
+        var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
+        var upvalues = callable is KFunction kf2 ? (kf2.VMUpvalues ?? []) : (((KLambda)callable).VMUpvalues ?? []);
+
+        int calleeBase = _sp;
+        // Push args onto the stack
+        foreach (var a in args) Push(a);
+        // Zero-initialize remaining local slots beyond args
+        SetupCalleeLocals(sub, calleeBase, args.Count);
+
+        int stopAt = _frameCount; // run only until this frame completes
+        PushFrame(sub.Name, sub, calleeBase, upvalues, token);
+        return RunLoop(stopAt);
+    }
+
+    // -- Frame management ------------------------------------------------------
+
+    private void PushFrame(string name, Chunk chunk, int stackBase, Upvalue[] upvalues,
+                           Token? callSiteToken = null, InstanceRef? self = null)
+    {
+        if (_frameCount >= MaxFrames)
+            throw new RuntimeError(callSiteToken ?? Token.Eof,
+                "Stack overflow.", []);
+
+        var frame = new VMFrame(name, chunk, stackBase, upvalues)
+        {
+            CallSiteToken = callSiteToken,
+            Self          = self
+        };
+        _frames[_frameCount++] = frame;
+    }
+
+    private VMFrame CurrentFrame => _frames[_frameCount - 1];
+
+    // -- Stack helpers ---------------------------------------------------------
+
+    private void Push(Value v)
+    {
+        if (_sp >= MaxStack)
+            throw new RuntimeError(Token.Eof, "Stack overflow.", []);
+        _stack[_sp++] = v;
+    }
+
+    private Value Pop()  => _stack[--_sp];
+    private Value Peek() => _stack[_sp - 1];
+
+    // -- Upvalue management ----------------------------------------------------
+
+    private Upvalue CaptureUpvalue(int absoluteSlot)
+    {
+        // Reuse existing open upvalue if one already exists for this slot
+        Upvalue? prev = null;
+        var cur = _openUpvalues;
+        while (cur != null && cur.AbsoluteSlot > absoluteSlot)
+        {
+            prev = cur;
+            cur  = cur.Next;
+        }
+        if (cur != null && cur.AbsoluteSlot == absoluteSlot)
+            return cur;
+
+        var uv = new Upvalue(_stack, absoluteSlot) { Next = cur };
+        if (prev == null) _openUpvalues = uv;
+        else              prev.Next     = uv;
+        return uv;
+    }
+
+    private void CloseUpvalues(int fromAbsoluteSlot)
+    {
+        while (_openUpvalues != null && _openUpvalues.AbsoluteSlot >= fromAbsoluteSlot)
+        {
+            _openUpvalues.Close();
+            _openUpvalues = _openUpvalues.Next;
+        }
+    }
+
+    // -- Main execution loop ---------------------------------------------------
+
+    private Value RunLoop() => RunLoop(0);
+
+    private Value RunLoop(int stopAt)
+    {
+        Value result = Value.Default;
+
+        while (_frameCount > stopAt)
+        {
+            var frame = _frames[_frameCount - 1];
+            var code  = frame.Chunk.Code;
+
+            while (frame.IP < code.Count)
+            {
+                var instr = code[frame.IP++];
+                var op    = instr.Op;
+                var A     = instr.A;
+                var B     = instr.B;
+
+                switch (op)
+                {
+                    // -- Constants ----------------------------------------
+                    case Opcode.Null:  Push(Value.Default); break;
+                    case Opcode.True:  Push(Value.CreateBoolean(true));  break;
+                    case Opcode.False: Push(Value.CreateBoolean(false)); break;
+                    case Opcode.Const: Push(frame.Chunk.Constants[A]);   break;
+
+                    // -- Locals -------------------------------------------
+                    case Opcode.LoadLocal:
+                        Push(_stack[frame.StackBase + A]);
+                        break;
+                    case Opcode.StoreLocal:
+                        _stack[frame.StackBase + A] = Pop();
+                        break;
+
+                    // -- Globals ------------------------------------------
+                    case Opcode.LoadGlobal:
+                    {
+                        var name = frame.Chunk.Names[A];
+                        // Check context first (functions, lambdas, constants)
+                        if (_context.HasFunction(name))
+                        {
+                            var fn = _context.Functions[name];
+                            Push(Value.CreateLambda(new LambdaRef { Identifier = name, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues }));
+                        }
+                        else if (_context.HasLambda(name))
+                        {
+                            // Prefer the stored globals value (has the correct VMChunk reference).
+                            // Fall back to reconstructing from the KLambda.Ref.
+                            _globals.TryGet(name, out var storedLambda);
+                            Push(storedLambda.IsNull()
+                                ? Value.CreateLambda(_context.Lambdas[name].Ref)
+                                : storedLambda);
+                        }
+                        else if (_context.HasMappedLambda(name))
+                        {
+                            var mapped = _context.LambdaTable[name];
+                            Push(Value.CreateLambda(_context.Lambdas[mapped].Ref));
+                        }
+                        else if (_context.HasConstant(name))
+                        {
+                            Push(_context.Constants[name]);
+                        }
+                        else if (_context.HasStruct(name))
+                        {
+                            Push(Value.CreateStruct(new StructRef { Identifier = name }));
+                        }
+                        else if (_context.HasPackage(name))
+                        {
+                            Push(Value.CreatePackage(name));
+                        }
+                        else
+                        {
+                            _globals.TryGet(name, out var v);
+                            Push(v);
+                        }
+                        break;
+                    }
+                    case Opcode.StoreGlobal:
+                    {
+                        var name = frame.Chunk.Names[A];
+                        var v    = Pop();
+                        if (v.IsLambda())
+                        {
+                            var lr = v.GetLambda();
+                            if (!string.IsNullOrEmpty(lr.Identifier) && _context.HasLambda(lr.Identifier))
+                                _context.Lambdas[name] = _context.Lambdas[lr.Identifier];
+                        }
+                        _globals.Assign(name, v);
+                        break;
+                    }
+
+                    // -- Upvalues -----------------------------------------
+                    case Opcode.LoadUpvalue:
+                        Push(frame.Upvalues[A].Get());
+                        break;
+                    case Opcode.StoreUpvalue:
+                        frame.Upvalues[A].Set(Pop());
+                        break;
+                    case Opcode.CloseUpvalue:
+                        CloseUpvalues(frame.StackBase + A);
+                        break;
+
+                    // -- Stack ops -----------------------------------------
+                    case Opcode.Pop: _sp--; break;
+                    case Opcode.Dup: Push(_stack[_sp - 1]); break;
+
+                    // -- Arithmetic ----------------------------------------
+                    case Opcode.Add:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(MathOp.Add(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Sub:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(MathOp.Sub(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Mul:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(MathOp.Mul(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Div:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(MathOp.Div(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Mod:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(MathOp.Mod(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Pow:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(MathOp.Exp(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Neg:
+                    {
+                        var v = Pop();
+                        Push(MathOp.Negate(frame.GetToken(), ref v));
+                        break;
+                    }
+
+                    // -- Bitwise -------------------------------------------
+                    case Opcode.BAnd:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(BitwiseOp.And(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.BOr:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(BitwiseOp.Or(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.BXor:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(BitwiseOp.Xor(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.BNot:
+                    {
+                        var v = Pop();
+                        Push(BitwiseOp.Not(frame.GetToken(), ref v));
+                        break;
+                    }
+                    case Opcode.BLSh:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(BitwiseOp.Leftshift(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.BRSh:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(BitwiseOp.Rightshift(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+                    case Opcode.BURSh:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(BitwiseOp.UnsignedRightshift(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
+
+                    // -- Comparison ----------------------------------------
+                    case Opcode.Eq:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(Value.CreateBoolean(ComparisonOp.Equal(ref l, ref r)));
+                        break;
+                    }
+                    case Opcode.NEq:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(ComparisonOp.NotEqual(ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Lt:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(ComparisonOp.LessThan(ref l, ref r));
+                        break;
+                    }
+                    case Opcode.LtE:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(ComparisonOp.LessThanOrEqual(ref l, ref r));
+                        break;
+                    }
+                    case Opcode.Gt:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(ComparisonOp.GreaterThan(ref l, ref r));
+                        break;
+                    }
+                    case Opcode.GtE:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(ComparisonOp.GreaterThanOrEqual(ref l, ref r));
+                        break;
+                    }
+
+                    // -- Logical -------------------------------------------
+                    case Opcode.Not:
+                    {
+                        var v = Pop();
+                        Push(LogicalOp.Not(ref v));
+                        break;
+                    }
+                    case Opcode.JumpAnd:
+                    {
+                        // Peek: if falsy, jump to A (leave value); else pop and continue
+                        if (!BooleanOp.IsTruthy(Peek()))
+                            frame.IP = A;
+                        else
+                            _sp--;
+                        break;
+                    }
+                    case Opcode.JumpOr:
+                    {
+                        // Peek: if truthy, jump to A (leave value); else pop and continue
+                        if (BooleanOp.IsTruthy(Peek()))
+                            frame.IP = A;
+                        else
+                            _sp--;
+                        break;
+                    }
+
+                    // -- Null coalesce -------------------------------------
+                    case Opcode.NullCoalesce:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(ComparisonOp.NullCoalesce(ref l, ref r));
+                        break;
+                    }
+
+                    // -- Concat (string ..) --------------------------------
+                    case Opcode.Concat:
+                    {
+                        var r = Pop(); var l = Pop();
+                        var ls = l.IsString() ? l.GetString() : _interp.Serialize(l);
+                        var rs = r.IsString() ? r.GetString() : _interp.Serialize(r);
+                        Push(Value.CreateString(ls + rs));
+                        break;
+                    }
+
+                    // -- Jumps ---------------------------------------------
+                    case Opcode.Jump:
+                        frame.IP = A;
+                        break;
+                    case Opcode.JumpF:
+                        if (!BooleanOp.IsTruthy(Pop())) frame.IP = A;
+                        break;
+                    case Opcode.JumpT:
+                        if (BooleanOp.IsTruthy(Pop())) frame.IP = A;
+                        break;
+
+                    // -- Call ---------------------------------------------
+                    case Opcode.Call:
+                    {
+                        int argc = A;
+                        // Stack: [..., func, arg0, ..., argN-1]
+                        // func is at _sp - argc - 1
+                        int funcSlot = _sp - argc - 1;
+                        var funcVal  = _stack[funcSlot];
+                        if (DoCall(funcVal, argc, funcSlot, frame.GetToken()))
+                            goto nextFrame; // new VM frame pushed; switch to it
+                        break;             // interpreter handled in-place; continue current frame
+                    }
+
+                    // -- CallMethod ----------------------------------------
+                    case Opcode.CallMethod:
+                    {
+                        int argc       = A;
+                        var methodName = frame.Chunk.Names[B];
+                        // Stack: [..., obj, arg0, ..., argN-1]
+                        int objSlot = _sp - argc - 1;
+                        var obj     = _stack[objSlot];
+
+                        // Collect args
+                        var args = new List<Value>(argc);
+                        for (int i = _sp - argc; i < _sp; i++) args.Add(_stack[i]);
+                        _sp = objSlot; // collapse obj+args
+
+                        // Dispatch
+                        var callResult = _interp.DispatchMethod(obj, methodName, args, frame.GetToken());
+                        Push(callResult);
+                        break;
+                    }
+
+                    // -- Return --------------------------------------------
+                    case Opcode.Return:
+                    {
+                        result = Pop();
+                        CloseUpvalues(frame.StackBase);
+                        _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
+                        _frameCount--;
+                        if (_frameCount > 0) Push(result);
+                        goto nextFrame;
+                    }
+                    case Opcode.ReturnNull:
+                    {
+                        result = Value.Default;
+                        CloseUpvalues(frame.StackBase);
+                        _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
+                        _frameCount--;
+                        if (_frameCount > 0) Push(result);
+                        goto nextFrame;
+                    }
+
+                    // -- DefFunc -------------------------------------------
+                    case Opcode.DefFunc:
+                    {
+                        var sub      = frame.Chunk.SubChunks[A];
+                        var funcName = frame.Chunk.Names[B];
+
+                        // Build upvalue array for the closure (even for named functions)
+                        var upvalues = BuildUpvalues(sub, frame);
+
+                        var kfunc = new KFunction(BuildFunctionNode(sub, funcName))
+                        {
+                            Name      = funcName,
+                            VMChunk   = sub,
+                            VMUpvalues = upvalues
+                        };
+                        foreach (var (pn, _) in kfunc.Decl.Parameters)
+                            kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        kfunc.CapturedScope = _globals;
+
+                        _context.Functions[funcName] = kfunc;
+                        break;
+                    }
+
+                    // -- MakeClosure ---------------------------------------
+                    case Opcode.MakeClosure:
+                    {
+                        var sub      = frame.Chunk.SubChunks[A];
+                        var upvalues = BuildUpvalues(sub, frame);
+
+                        var klambda = new KLambda(BuildLambdaNode(sub))
+                        {
+                            VMChunk    = sub,
+                            VMUpvalues = upvalues,
+                            CapturedScope = _globals
+                        };
+                        foreach (var pn in sub.ParamNames)
+                            klambda.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        if (!string.IsNullOrEmpty(sub.VariadicParamName))
+                            klambda.VariadicParamName = sub.VariadicParamName;
+
+                        var id   = Guid.NewGuid().ToString("N");
+                        var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues };
+                        klambda.Ref = lref;
+                        _context.Lambdas[id] = klambda;
+                        Push(Value.CreateLambda(lref));
+                        break;
+                    }
+
+                    // -- Collections ---------------------------------------
+                    case Opcode.BuildList:
+                    {
+                        var list = new List<Value>(A);
+                        for (int i = _sp - A; i < _sp; i++) list.Add(_stack[i]);
+                        _sp -= A;
+                        Push(Value.CreateList(list));
+                        break;
+                    }
+                    case Opcode.BuildHashmap:
+                    {
+                        var map = new Dictionary<Value, Value>(A);
+                        // Pairs on stack: k0, v0, k1, v1, ...
+                        int start = _sp - A * 2;
+                        for (int i = 0; i < A; i++)
+                            map[_stack[start + i * 2]] = _stack[start + i * 2 + 1];
+                        _sp = start;
+                        Push(Value.CreateHashmap(map));
+                        break;
+                    }
+                    case Opcode.BuildRange:
+                    {
+                        var stop  = Pop();
+                        var start = Pop();
+                        if (!start.IsInteger() || !stop.IsInteger())
+                            throw new RangeError(frame.GetToken(), "Range values must be integers.");
+                        long s = start.GetInteger(), e = stop.GetInteger();
+                        int  step = e < s ? -1 : 1;
+                        var list = new List<Value>();
+                        for (long i = s; i != e; i += step) list.Add(Value.CreateInteger(i));
+                        list.Add(Value.CreateInteger(e));
+                        Push(Value.CreateList(list));
+                        break;
+                    }
+
+                    // -- Indexing ------------------------------------------
+                    case Opcode.IndexGet:
+                    {
+                        var key = Pop();
+                        var obj = Pop();
+                        Push(_interp.GetIndex(obj, key, frame.GetToken()));
+                        break;
+                    }
+                    case Opcode.IndexSet:
+                    {
+                        var val = Pop();
+                        var key = Pop();
+                        var obj = Pop();
+                        _interp.SetIndex(obj, key, val, frame.GetToken());
+                        Push(val);
+                        break;
+                    }
+                    case Opcode.SliceGet:
+                    {
+                        Value? startV = null, stopV = null, stepV = null;
+                        if ((A & 4) != 0) stepV  = Pop();
+                        if ((A & 2) != 0) stopV  = Pop();
+                        if ((A & 1) != 0) startV = Pop();
+                        var obj = Pop();
+                        Push(_interp.GetSlice(obj, startV, stopV, stepV, frame.GetToken()));
+                        break;
+                    }
+
+                    // -- Member access -------------------------------------
+                    case Opcode.GetMember:
+                    {
+                        var memberName = frame.Chunk.Names[A];
+                        var obj        = Pop();
+                        Push(_interp.GetMember(obj, memberName, frame.GetToken()));
+                        break;
+                    }
+                    case Opcode.SetMember:
+                    {
+                        var memberName = frame.Chunk.Names[A];
+                        var obj        = Pop();
+                        var val        = Pop();
+                        _interp.SetMember(obj, memberName, val, frame.GetToken());
+                        Push(val);
+                        break;
+                    }
+
+                    // -- Self ----------------------------------------------
+                    case Opcode.LoadSelf:
+                        Push(frame.Self != null ? Value.CreateObject(frame.Self) : Value.Default);
+                        break;
+                    case Opcode.LoadSelfAttr:
+                    {
+                        var attrName = frame.Chunk.Names[A];
+                        if (frame.Self != null)
+                        {
+                            frame.Self.InstanceVariables.TryGetValue(attrName, out var v);
+                            Push(v ?? Value.Default);
+                        }
+                        else Push(Value.Default);
+                        break;
+                    }
+                    case Opcode.StoreSelfAttr:
+                    {
+                        var attrName = frame.Chunk.Names[A];
+                        var val      = Pop();
+                        if (frame.Self != null)
+                            frame.Self.InstanceVariables[attrName] = val;
+                        Push(val);
+                        break;
+                    }
+                    case Opcode.LoadStaticAttr:
+                    {
+                        var attrName   = frame.Chunk.Names[A];
+                        var structName = frame.StructName;
+                        if (!string.IsNullOrEmpty(structName) && _context.HasStruct(structName))
+                        {
+                            _context.Structs[structName].StaticVariables.TryGetValue(attrName, out var v);
+                            Push(v ?? Value.Default);
+                        }
+                        else Push(Value.Default);
+                        break;
+                    }
+                    case Opcode.StoreStaticAttr:
+                    {
+                        var attrName   = frame.Chunk.Names[A];
+                        var structName = frame.StructName;
+                        var val        = Pop();
+                        if (!string.IsNullOrEmpty(structName) && _context.HasStruct(structName))
+                            _context.Structs[structName].StaticVariables[attrName] = val;
+                        Push(val);
+                        break;
+                    }
+
+                    // -- New object ----------------------------------------
+                    case Opcode.NewObject:
+                    {
+                        var structName = frame.Chunk.Names[B];
+                        int argc       = A;
+                        var args       = new List<Value>(argc);
+                        for (int i = _sp - argc; i < _sp; i++) args.Add(_stack[i]);
+                        _sp -= argc;
+                        Push(_interp.CreateObject(structName, args, frame.GetToken()));
+                        break;
+                    }
+
+                    // -- Interpolation -------------------------------------
+                    case Opcode.Interpolate:
+                    {
+                        var parts = new string[A];
+                        for (int i = A - 1; i >= 0; i--)
+                        {
+                            var v = Pop();
+                            parts[i] = _interp.Serialize(v);
+                        }
+                        Push(Value.CreateString(string.Concat(parts)));
+                        break;
+                    }
+
+                    // -- Print ---------------------------------------------
+                    case Opcode.Print:
+                    {
+                        var v         = Pop();
+                        var text      = _interp.Serialize(v);
+                        bool newline  = (A & 1) != 0;
+                        bool stderr   = (A & 2) != 0;
+                        var writer    = stderr ? Console.Error : Console.Out;
+                        if (newline) writer.WriteLine(text);
+                        else         writer.Write(text);
+                        break;
+                    }
+
+                    // -- For iterator --------------------------------------
+                    case Opcode.ForIterInit:
+                    {
+                        var coll = Pop();
+                        var state = new ForIterState();
+                        if (coll.IsList())
+                        {
+                            state.List  = coll.GetList();
+                            state.Index = 0;
+                        }
+                        else if (coll.IsHashmap())
+                        {
+                            state.Hashmap     = coll.GetHashmap();
+                            state.HashmapKeys = [..coll.GetHashmap().Keys];
+                            state.Index       = 0;
+                        }
+                        else if (coll.IsBytes())
+                        {
+                            state.Bytes = coll.GetBytes();
+                            state.Index = 0;
+                        }
+                        else if (coll.IsString())
+                        {
+                            // Treat string as list of single-char strings
+                            var s = coll.GetString();
+                            state.List = [..s.Select(c => Value.CreateString(c.ToString()))];
+                            state.Index = 0;
+                        }
+                        else
+                        {
+                            // Unsupported collection type — push null state so we stop immediately
+                            state.List  = [];
+                            state.Index = 0;
+                        }
+                        var stateId = _nextNativeId++;
+                        _nativeObjects[stateId] = state;
+                        Push(Value.CreateInteger(stateId));
+                        break;
+                    }
+                    case Opcode.ForIterNext:
+                    {
+                        // Peek at ForIterState id on top of stack
+                        var stateVal = Peek();
+                        var stateId  = (int)stateVal.GetInteger();
+                        var state    = (ForIterState)_nativeObjects[stateId];
+                        int numVars  = B;
+
+                        bool done;
+                        if (state.List != null)
+                        {
+                            done = state.Index >= state.List.Count;
+                            if (!done)
+                            {
+                                var item = state.List[state.Index++];
+                                if (numVars == 2)
+                                {
+                                    Push(Value.CreateInteger(state.Index - 1)); // key = index
+                                    Push(item);                                  // val
+                                }
+                                else Push(item);
+                            }
+                        }
+                        else if (state.Hashmap != null)
+                        {
+                            done = state.Index >= state.HashmapKeys!.Count;
+                            if (!done)
+                            {
+                                var key = state.HashmapKeys![state.Index++];
+                                state.Hashmap.TryGetValue(key, out var val);
+                                if (numVars == 2)
+                                {
+                                    Push(key);
+                                    Push(val ?? Value.Default);
+                                }
+                                else Push(key);
+                            }
+                        }
+                        else if (state.Bytes != null)
+                        {
+                            done = state.Index >= state.Bytes.Length;
+                            if (!done)
+                            {
+                                var b = state.Bytes[state.Index++];
+                                Push(Value.CreateInteger(b));
+                            }
+                        }
+                        else
+                        {
+                            done = true;
+                        }
+
+                        if (done)
+                        {
+                            _nativeObjects.Remove(stateId);
+                            _sp--; // pop ForIterState id
+                            frame.IP = A; // jump to after loop
+                        }
+                        break;
+                    }
+
+                    // -- Yield ---------------------------------------------
+                    case Opcode.Yield:
+                    {
+                        var v = Pop();
+                        _interp.YieldFromVM(v);
+                        break;
+                    }
+
+                    // -- Throw ---------------------------------------------
+                    case Opcode.Throw:
+                    {
+                        var v   = Pop();
+                        var tok = frame.GetToken();
+                        string msg = v.IsString() ? v.GetString() : _interp.Serialize(v);
+                        throw new RuntimeError(tok, "KiwiError", msg, [frame.FormatTrace()]);
+                    }
+
+                    // -- Interpreter fallback ------------------------------
+                    case Opcode.InterpFallback:
+                    {
+                        var node = frame.Chunk.NodePool[A];
+                        var r    = _interp.InterpretNode(node);
+                        Push(r);
+                        break;
+                    }
+
+                    // -- Misc ----------------------------------------------
+                    case Opcode.Nop: break;
+                    case Opcode.Halt:
+                        goto done;
+
+                    default:
+                        throw new RuntimeError(frame.GetToken(),
+                            $"Unknown opcode: {op}", []);
+                }
+                continue;
+
+            nextFrame:
+                break; // re-enter outer while with new frame
+            }
+            // If we reach end of frame's code without Return/Halt → implicit null return
+            if (_frameCount > 0 && _frames[_frameCount - 1] == frame)
+            {
+                CloseUpvalues(frame.StackBase);
+                _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
+                _frameCount--;
+                if (_frameCount > 0) Push(Value.Default);
+            }
+        }
+
+    done:
+        return result;
+    }
+
+    // -- Call dispatch ---------------------------------------------------------
+
+    /// <summary>
+    /// Dispatch a call. Returns <c>true</c> if a new VM frame was pushed (caller must
+    /// <c>goto nextFrame</c>); returns <c>false</c> if the call was handled in-place
+    /// by the interpreter (result already on stack, caller must NOT goto nextFrame).
+    /// </summary>
+    private bool DoCall(Value funcVal, int argc, int funcSlot, Token token)
+    {
+        // StackBase of callee = position of first arg
+        int calleeBase = funcSlot + 1;
+
+        if (funcVal.IsLambda())
+        {
+            var lr = funcVal.GetLambda();
+
+            // VM-compiled lambda?
+            if (lr.VMChunk != null)
+            {
+                var sub      = lr.VMChunk;
+                var upvalues = lr.VMUpvalues ?? [];
+                SetupCalleeLocals(sub, calleeBase, argc);
+                PushFrame(sub.Name, sub, calleeBase, upvalues, token);
+                return true;
+            }
+
+            // Check if this is a named KFunction (e.g. package functions like math::round)
+            if (_context.HasFunction(lr.Identifier))
+            {
+                var kf = _context.Functions[lr.Identifier];
+                if (kf.VMChunk != null)
+                {
+                    SetupCalleeLocals(kf.VMChunk, calleeBase, argc);
+                    PushFrame(kf.VMChunk.Name, kf.VMChunk, calleeBase, kf.VMUpvalues ?? [], token);
+                    return true;
+                }
+                var args = CollectArgs(calleeBase, argc);
+                _sp = funcSlot;
+                Push(_interp.InvokeCallable(kf, args, token, lr.Identifier));
+                return false;
+            }
+
+            // Check if this is actually a named lambda alias
+            if (_context.HasLambda(lr.Identifier))
+            {
+                var kl = _context.Lambdas[lr.Identifier];
+                if (kl.VMChunk != null)
+                {
+                    SetupCalleeLocals(kl.VMChunk, calleeBase, argc);
+                    PushFrame(kl.VMChunk.Name, kl.VMChunk, calleeBase, kl.VMUpvalues ?? [], token);
+                    return true;
+                }
+                // Fallback to interpreter
+                var args = CollectArgs(calleeBase, argc);
+                _sp = funcSlot;
+                Push(_interp.InvokeCallable(kl, args, token, kl.VMChunk?.Name ?? "<lambda>"));
+                return false;
+            }
+        }
+
+        if (funcVal.IsNull())
+        {
+            // Could be a function looked up by LoadGlobal as Null (not found)
+            // Try to find it as a named function in context using the stack position
+            // For now, error out
+            throw new FunctionUndefinedError(token, "<unknown>");
+        }
+
+        // Interpreter fallback for builtins / tree-walked functions
+        {
+            var args = CollectArgs(calleeBase, argc);
+            _sp = funcSlot;
+            Value callResult;
+
+            if (funcVal.IsLambda())
+            {
+                var lr = funcVal.GetLambda();
+                if (_context.HasLambda(lr.Identifier))
+                    callResult = _interp.InvokeCallable(_context.Lambdas[lr.Identifier], args, token, lr.Identifier);
+                else
+                    callResult = Value.Default;
+            }
+            else
+            {
+                callResult = Value.Default;
+            }
+            Push(callResult);
+            return false;
+        }
+    }
+
+    // -- Call helpers ----------------------------------------------------------
+
+    private void SetupCalleeLocals(Chunk sub, int calleeBase, int argc)
+    {
+        // Zero-initialize slots beyond argc (pre-scanned locals)
+        int end = calleeBase + sub.LocalCount;
+        if (end > MaxStack) throw new RuntimeError(Token.Eof, "Stack overflow.", []);
+        for (int i = calleeBase + argc; i < end; i++)
+            _stack[i] = Value.Default;
+        _sp = end;
+    }
+
+    private List<Value> CollectArgs(int calleeBase, int argc)
+    {
+        var args = new List<Value>(argc);
+        for (int i = calleeBase; i < calleeBase + argc; i++)
+            args.Add(_stack[i]);
+        return args;
+    }
+
+    // -- Upvalue construction (for DefFunc / MakeClosure) ----------------------
+
+    private Upvalue[] BuildUpvalues(Chunk sub, VMFrame frame)
+    {
+        var uvs = new Upvalue[sub.Upvalues.Count];
+        for (int i = 0; i < sub.Upvalues.Count; i++)
+        {
+            var desc = sub.Upvalues[i];
+            if (desc.IsLocal)
+                uvs[i] = CaptureUpvalue(frame.StackBase + desc.Index);
+            else
+                uvs[i] = frame.Upvalues[desc.Index];
+        }
+        return uvs;
+    }
+
+    // -- Synthetic AST nodes (for DefFunc / MakeClosure) -----------------------
+
+    private static FunctionNode BuildFunctionNode(Chunk sub, string name)
+    {
+        var fn = new FunctionNode { Name = name };
+        foreach (var pn in sub.ParamNames)
+            fn.Parameters.Add(new KeyValuePair<string, ASTNode?>(pn, null));
+        fn.VariadicParamName = sub.VariadicParamName;
+        return fn;
+    }
+
+    private static LambdaNode BuildLambdaNode(Chunk sub)
+    {
+        var ln = new LambdaNode();
+        foreach (var pn in sub.ParamNames)
+            ln.Parameters.Add(new KeyValuePair<string, ASTNode?>(pn, null));
+        ln.VariadicParamName = sub.VariadicParamName;
+        return ln;
+    }
+}
+
+// -- Extension on VMFrame ------------------------------------------------------
+
+internal static class VMFrameExt
+{
+    internal static Token GetToken(this VMFrame frame)
+    {
+        return frame.CallSiteToken ?? Token.Eof;
+    }
+}

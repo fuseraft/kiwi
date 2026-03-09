@@ -87,6 +87,13 @@ public class Program
                 CliArgs = ParseKeyValueArgs(config.Args),
             });
         }
+        else if (config.UseVM && config.HasScripts)
+        {
+            return new VMScriptRunner(new()
+            {
+                CliArgs = ParseKeyValueArgs(config.Args),
+            });
+        }
         else if (config.HasScripts)
         {
             return new ScriptRunner(new()
