@@ -358,7 +358,7 @@ public sealed class Compiler
             case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return false;
             case ASTNodeType.CaseWhen:         return false; // handled inside CompileCase
             case ASTNodeType.WhileLoop:        CompileWhile          ((WhileLoopNode)node,         ln); return false;
-            case ASTNodeType.RepeatLoop:       CompileRepeat         ((RepeatLoopNode)node,        ln); return true;
+            case ASTNodeType.RepeatLoop:       CompileRepeat         ((RepeatLoopNode)node,        ln); return false;
             case ASTNodeType.ForLoop:          CompileForLoop        ((ForLoopNode)node,           ln); return false;
             case ASTNodeType.Break:            CompileBreak          ((BreakNode)node,             ln); return false;
             case ASTNodeType.Next:             CompileNext           ((NextNode)node,              ln); return false;
@@ -438,9 +438,48 @@ public sealed class Compiler
     private void DoAssignment(AssignmentNode node, int ln)
     {
         // Simple identifier LHS is when Left is null or is an IdentifierNode.
-        // Complex LHS (index/member/self/static-self) → fallback.
         bool isSimple = node.Left == null || node.Left is IdentifierNode;
-        if (!isSimple) { Fallback(node); return; }
+        if (!isSimple)
+        {
+            // @.name = val  or  @.name op= val  → StoreSelfAttr
+            if (node.Left is SelfNode)
+            {
+                int ni = _chunk.AddName(node.Name);
+                if (node.Op != TokenName.Ops_Assign)
+                {
+                    _chunk.Emit(Opcode.LoadSelfAttr, ni, 0, ln);
+                    if (node.Initializer != null) CompileNode(node.Initializer);
+                    EmitCompoundOp(node.Op, ln);
+                }
+                else
+                {
+                    if (node.Initializer != null) CompileNode(node.Initializer);
+                    else _chunk.Emit(Opcode.Null, 0, 0, ln);
+                }
+                _chunk.Emit(Opcode.StoreSelfAttr, ni, 0, ln);
+                return;
+            }
+            // @@name = val  or  @@name op= val  → StoreStaticAttr
+            if (node.Left is StaticSelfNode)
+            {
+                int ni = _chunk.AddName(node.Name);
+                if (node.Op != TokenName.Ops_Assign)
+                {
+                    _chunk.Emit(Opcode.LoadStaticAttr, ni, 0, ln);
+                    if (node.Initializer != null) CompileNode(node.Initializer);
+                    EmitCompoundOp(node.Op, ln);
+                }
+                else
+                {
+                    if (node.Initializer != null) CompileNode(node.Initializer);
+                    else _chunk.Emit(Opcode.Null, 0, 0, ln);
+                }
+                _chunk.Emit(Opcode.StoreStaticAttr, ni, 0, ln);
+                return;
+            }
+            // Other complex LHS → fallback
+            Fallback(node); return;
+        }
 
         bool compound = node.Op != TokenName.Ops_Assign;
         if (compound)
@@ -918,7 +957,60 @@ public sealed class Compiler
 
     // -- Repeat ----------------------------------------------------------------
 
-    private void CompileRepeat(RepeatLoopNode node, int ln) => Fallback(node);
+    private void CompileRepeat(RepeatLoopNode node, int ln)
+    {
+        // Allocate two hidden local slots that live beyond the pre-scanned locals.
+        // We must update LocalCount so the VM frame reserves enough stack space.
+        int limitSlot   = _slotCount++;
+        int counterSlot = _slotCount++;
+        _chunk.LocalCount = _slotCount;
+
+        // Optional alias name (pre-scanned by ScanNode; use EmitStore to handle global scope too).
+        string? aliasName = node.Alias is IdentifierNode ali ? ali.Name : null;
+
+        // limit = evaluate count expression
+        CompileNode(node.Count!);
+        _chunk.Emit(Opcode.StoreLocal, limitSlot, 0, ln);
+
+        // counter = 1
+        int one = _chunk.AddConstant(Value.CreateInteger(1));
+        _chunk.Emit(Opcode.Const,       one, 0, ln);
+        _chunk.Emit(Opcode.StoreLocal,  counterSlot, 0, ln);
+
+        // LOOP TOP: if counter > limit → exit
+        int loopTop  = _chunk.Code.Count;
+        _chunk.Emit(Opcode.LoadLocal, counterSlot, 0, ln);
+        _chunk.Emit(Opcode.LoadLocal, limitSlot,   0, ln);
+        _chunk.Emit(Opcode.Gt, 0, 0, ln);
+        int doneJump = EmitJump(Opcode.JumpT, ln);
+
+        // if alias: store counter into the alias variable
+        if (aliasName != null)
+        {
+            _chunk.Emit(Opcode.LoadLocal, counterSlot, 0, ln);
+            EmitStore(aliasName, ln);
+        }
+
+        // Body
+        var ctx = new LoopCtx { LoopTop = loopTop, ForIterSlot = -1 };
+        _loops.Add(ctx);
+        CompileBody(node.Body);
+
+        // INCREMENT POINT — next patches jump here
+        int incTop = _chunk.Code.Count;
+        _chunk.Emit(Opcode.LoadLocal, counterSlot, 0, ln);
+        _chunk.Emit(Opcode.Const,     one, 0, ln);
+        _chunk.Emit(Opcode.Add, 0, 0, ln);
+        _chunk.Emit(Opcode.StoreLocal, counterSlot, 0, ln);
+        _chunk.Emit(Opcode.Jump, loopTop, 0, ln);
+
+        int done = _chunk.Code.Count;
+        PatchJump(doneJump);
+
+foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
+        foreach (var j in ctx.NextPatches)  PatchJumpTo(j, incTop);
+        _loops.RemoveAt(_loops.Count - 1);
+    }
 
     // -- For loop --------------------------------------------------------------
 
@@ -1151,6 +1243,7 @@ public sealed class Compiler
 
     private void CompileLambdaCall(LambdaCallNode node, int ln)
     {
+        if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
         CompileNode(node.LambdaNode!);
         int argc = CompileArgs(node.Arguments);
         _chunk.Emit(Opcode.Call, argc, 0, ln);
@@ -1160,6 +1253,7 @@ public sealed class Compiler
 
     private void CompileFuncCall(FunctionCallNode node, int ln)
     {
+        if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
         // Package-prefixed calls (e.g. math::round): evaluate arguments via VM so that
         // VM-local variables (e.g. mangled var-block names) are read from the correct
         // stack slots, then dispatch through DoCall which invokes the interpreter with
@@ -1173,6 +1267,7 @@ public sealed class Compiler
 
     private void CompileMethodCall(MethodCallNode node, int ln)
     {
+        if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
         CompileNode(node.Object!);
         int argc    = CompileArgs(node.Arguments);
         int nameIdx = _chunk.AddName(node.MethodName);
@@ -1213,6 +1308,9 @@ public sealed class Compiler
         // Caller will emit EmitFinalReturn as a safety net (unreachable after explicit returns).
         return false;
     }
+
+    private static bool HasSplatArg(IEnumerable<ASTNode?> args)
+        => args.Any(a => a is SplatNode or NamedArgumentNode);
 
     private int CompileArgs(IEnumerable<ASTNode?> args)
     {
