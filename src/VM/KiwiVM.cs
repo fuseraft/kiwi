@@ -1134,6 +1134,10 @@ public sealed class KiwiVM
                 else
                     callResult = Value.Default;
             }
+            else if (funcVal.IsStruct())
+            {
+                callResult = _interp.CreateObject(funcVal.GetStruct().Identifier, args, token);
+            }
             else
             {
                 callResult = Value.Default;
