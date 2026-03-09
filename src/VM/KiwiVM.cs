@@ -109,7 +109,7 @@ public sealed class KiwiVM
     /// an interpreter-side call (e.g. an interpreted lambda calling a VM-compiled function).
     /// Sets up a new VM frame, runs to completion, and returns the result.
     /// </summary>
-    public Value InvokeVMCallable(Callable callable, List<Value> args, Token token)
+    public Value InvokeVMCallable(Callable callable, List<Value> args, Token token, InstanceRef? instance = null)
     {
         var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
         var upvalues = callable is KFunction kf2 ? (kf2.VMUpvalues ?? []) : (((KLambda)callable).VMUpvalues ?? []);
@@ -126,7 +126,7 @@ public sealed class KiwiVM
         SetupCalleeLocals(sub, calleeBase, args.Count);
 
         int stopAt = _frameCount; // run only until this frame completes
-        PushFrame(sub.Name, sub, calleeBase, upvalues, token);
+        PushFrame(sub.Name, sub, calleeBase, upvalues, token, instance);
         var r = RunLoop(stopAt);
 
         // Restore the slot clobbered by the Return handler's Push(result).
@@ -146,7 +146,8 @@ public sealed class KiwiVM
         var frame = new VMFrame(name, chunk, stackBase, upvalues)
         {
             CallSiteToken = callSiteToken,
-            Self          = self
+            Self          = self,
+            StructName    = self?.StructName ?? string.Empty
         };
         _frames[_frameCount++] = frame;
     }
@@ -288,8 +289,13 @@ public sealed class KiwiVM
                         }
                         else
                         {
-                            _globals.TryGet(name, out var v);
-                            Push(v);
+                            bool found = _globals.TryGet(name, out var v);
+                            // When not found globally and we're inside a struct method,
+                            // treat it as an implicit @.name() call on self.
+                            if (!found && frame.Self != null)
+                                Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
+                            else
+                                Push(v);
                             // Don't cache mutable globals
                         }
                         break;
@@ -1096,6 +1102,17 @@ public sealed class KiwiVM
         if (funcVal.IsLambda())
         {
             var lr = funcVal.GetLambda();
+
+            // Bare method call on self inside a struct method: dispatch as @.method()
+            if (lr.BoundSelf != null)
+            {
+                var selfVal = Value.CreateObject(lr.BoundSelf);
+                var args    = CollectArgs(calleeBase, argc);
+                _sp = funcSlot;
+                Push(_interp.DispatchMethod(selfVal, lr.Identifier, args, token));
+                return false;
+            }
+
 
             // VM-compiled lambda?
             if (lr.VMChunk != null)
