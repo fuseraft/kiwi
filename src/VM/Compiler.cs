@@ -182,6 +182,7 @@ public sealed class Compiler
                 foreach (var s in tn.TryBody)     if (s != null) ScanNode(s, out_);
                 foreach (var s in tn.CatchBody)   if (s != null) ScanNode(s, out_);
                 foreach (var s in tn.FinallyBody) if (s != null) ScanNode(s, out_);
+                if (tn.ErrorType    is IdentifierNode et) out_.Add(et.Name);
                 if (tn.ErrorMessage is IdentifierNode em) out_.Add(em.Name);
                 break;
             }
@@ -337,7 +338,7 @@ public sealed class Compiler
             case ASTNodeType.Variable:         CompileVariable       ((VariableNode)node,          ln); return false;
             case ASTNodeType.Assignment:       CompileAssignment     ((AssignmentNode)node,        ln); return false;
             case ASTNodeType.ConstAssignment:  CompileConstAssign    ((ConstAssignmentNode)node,   ln); return false;
-            case ASTNodeType.PackAssignment:   Fallback              (node);                            return true;
+            case ASTNodeType.PackAssignment:   CompilePackAssign     ((PackAssignmentNode)node,    ln); return false;
             case ASTNodeType.BinaryOperation:  CompileBinary         ((BinaryOperationNode)node,   ln); return true;
             case ASTNodeType.UnaryOperation:   CompileUnary          ((UnaryOperationNode)node,    ln); return true;
             case ASTNodeType.TernaryOperation: CompileTernary        ((TernaryOperationNode)node,  ln); return true;
@@ -354,8 +355,8 @@ public sealed class Compiler
             case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
             case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
             case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return false;
-            case ASTNodeType.Case:             Fallback              (node);                            return true;
-            case ASTNodeType.CaseWhen:         Fallback              (node);                            return true;
+            case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return false;
+            case ASTNodeType.CaseWhen:         return false; // handled inside CompileCase
             case ASTNodeType.WhileLoop:        CompileWhile          ((WhileLoopNode)node,         ln); return false;
             case ASTNodeType.RepeatLoop:       CompileRepeat         ((RepeatLoopNode)node,        ln); return true;
             case ASTNodeType.ForLoop:          CompileForLoop        ((ForLoopNode)node,           ln); return false;
@@ -364,7 +365,7 @@ public sealed class Compiler
             case ASTNodeType.Return:           CompileReturn         ((ReturnNode)node,            ln); return false;
             case ASTNodeType.Yield:            CompileYield          ((YieldNode)node,             ln); return false;
             case ASTNodeType.Throw:            CompileThrow          ((ThrowNode)node,             ln); return false;
-            case ASTNodeType.Try:              Fallback              (node);                            return true;
+            case ASTNodeType.Try:              CompileTry            ((TryNode)node,               ln); return false;
             case ASTNodeType.Function:         CompileFunction       ((FunctionNode)node,          ln); return false;
             case ASTNodeType.DecoratedFunction: Fallback             (node);                            return true;
             case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
@@ -521,7 +522,7 @@ public sealed class Compiler
             TokenName.Ops_LessThanOrEqual  => Opcode.LtE,
             TokenName.Ops_GreaterThan      => Opcode.Gt,
             TokenName.Ops_GreaterThanOrEqual => Opcode.GtE,
-            TokenName.KW_In                => (Opcode)255,
+            TokenName.KW_In                => Opcode.In,
             _                              => (Opcode)255,
         };
 
@@ -611,23 +612,196 @@ public sealed class Compiler
         _chunk.Emit(Opcode.IndexGet, 0, 0, ln);
     }
 
-    private void CompileIndexAssign(IndexAssignmentNode node, int ln)
+    // -- Case / when -----------------------------------------------------------
+
+    private void CompileCase(CaseNode node, int ln)
     {
-        // Only handle simple assignment (op == =). Compound (+=, -=, …) falls back.
-        if (node.Op != TokenName.Ops_Assign)
+        bool isSwitch = node.TestValue != null;
+        var endJumps = new List<int>();
+
+        if (isSwitch)
         {
-            Fallback(node);
-            return;
+            // Switch-style: evaluate test value and keep it on stack throughout
+            CompileNode(node.TestValue!);
+
+            // Store alias if present (Dup so testVal stays on stack)
+            if (node.TestValueAlias is IdentifierNode ali)
+            {
+                _chunk.Emit(Opcode.Dup, 0, 0, ln);
+                EmitStore(ali.Name, ln);
+            }
+
+            foreach (var when in node.WhenNodes)
+            {
+                // testVal is at top of stack.  For each condition, Dup then compare.
+                var nextWhenJumps = new List<int>();
+                var bodyJumps     = new List<int>();
+
+                foreach (var condNode in when.Conditions)
+                {
+                    if (condNode == null) continue;
+
+                    if (condNode is RangeLiteralNode rng)
+                    {
+                        // Range check: testVal >= start AND testVal <= end
+                        // Stack before: [testVal]
+                        _chunk.Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
+                        CompileNode(rng.RangeStart!);          // [testVal, testVal, start]
+                        _chunk.Emit(Opcode.GtE, 0, 0, ln);    // [testVal, tv>=start]
+                        int failLow = _chunk.Emit(Opcode.JumpF, 0, 0, ln); // skip if out of range
+                        _chunk.Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
+                        CompileNode(rng.RangeEnd!);            // [testVal, testVal, end]
+                        _chunk.Emit(Opcode.LtE, 0, 0, ln);    // [testVal, tv<=end]
+                        bodyJumps.Add(_chunk.Emit(Opcode.JumpT, 0, 0, ln)); // match → body
+                        PatchJump(failLow);
+                    }
+                    else
+                    {
+                        _chunk.Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
+                        CompileNode(condNode);                 // [testVal, testVal, cond]
+                        _chunk.Emit(Opcode.Eq, 0, 0, ln);     // [testVal, matched?]
+                        bodyJumps.Add(_chunk.Emit(Opcode.JumpT, 0, 0, ln));
+                    }
+                }
+
+                // No condition matched → skip to next when
+                nextWhenJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+
+                // Body target: pop testVal and run body
+                int bodyTarget = _chunk.Code.Count;
+                foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
+                _chunk.Emit(Opcode.Pop, 0, 0, ln); // discard testVal
+                CompileBody(when.Body);
+                endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+
+                // Patch "no match" jumps to here
+                int nextTarget = _chunk.Code.Count;
+                foreach (var j in nextWhenJumps) PatchJumpTo(j, nextTarget);
+            }
+
+            // Else: pop testVal then run else body
+            _chunk.Emit(Opcode.Pop, 0, 0, ln);
+        }
+        else
+        {
+            // Guard-style: each condition is evaluated as truthy/falsy
+            foreach (var when in node.WhenNodes)
+            {
+                var bodyJumps    = new List<int>();
+                var nextWhenJump = new List<int>();
+
+                foreach (var condNode in when.Conditions)
+                {
+                    if (condNode == null) continue;
+                    CompileNode(condNode);
+                    bodyJumps.Add(_chunk.Emit(Opcode.JumpT, 0, 0, ln));
+                }
+
+                nextWhenJump.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+
+                int bodyTarget = _chunk.Code.Count;
+                foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
+                CompileBody(when.Body);
+                endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+
+                int nextTarget = _chunk.Code.Count;
+                foreach (var j in nextWhenJump) PatchJumpTo(j, nextTarget);
+            }
         }
 
+        CompileBody(node.ElseBody);
+
+        int end = _chunk.Code.Count;
+        foreach (var j in endJumps) PatchJumpTo(j, end);
+    }
+
+    private void CompilePackAssign(PackAssignmentNode node, int ln)
+    {
+        // All LHS elements must be simple identifiers
+        foreach (var lhs in node.Left)
+            if (lhs != null && lhs is not IdentifierNode)
+            { Fallback(node); return; }
+
+        int lhsCount = node.Left.Count;
+        int rhsCount = node.Right.Count(r => r != null);
+
+        if (rhsCount == 1 && lhsCount > 1)
+        {
+            // Single RHS: evaluate it, then unpack (runtime list detection)
+            var rhs = node.Right.First(r => r != null)!;
+            CompileNode(rhs);
+            _chunk.Emit(Opcode.UnpackList, lhsCount, 0, ln);
+            // Stack now has lhsCount values (bottom=index0, top=indexN-1)
+            // Store in reverse order (pop from top = index N-1 first)
+            for (int i = lhsCount - 1; i >= 0; i--)
+            {
+                var lhs = node.Left[i];
+                if (lhs is IdentifierNode id) EmitStore(id.Name, ln);
+                else _chunk.Emit(Opcode.Pop, 0, 0, ln);
+            }
+        }
+        else
+        {
+            // Multiple RHS (or 1:1 mapping): evaluate all RHS first, then store in reverse
+            int n = Math.Min(lhsCount, rhsCount);
+            foreach (var rhs in node.Right.Where(r => r != null).Take(lhsCount))
+                CompileNode(rhs!);
+            // Push nulls for any extra LHS
+            for (int i = rhsCount; i < lhsCount; i++)
+                _chunk.Emit(Opcode.Null, 0, 0, ln);
+            // Store in reverse (top of stack = last RHS)
+            for (int i = lhsCount - 1; i >= 0; i--)
+            {
+                var lhs = node.Left[i];
+                if (lhs is IdentifierNode id) EmitStore(id.Name, ln);
+                else _chunk.Emit(Opcode.Pop, 0, 0, ln);
+            }
+        }
+    }
+
+    private void CompileIndexAssign(IndexAssignmentNode node, int ln)
+    {
         var idx = (IndexingNode)node.Object!;
-        // IndexSet pops: val (top), key, obj (bottom) — push obj, key, val
-        if (idx.IndexedObject != null) CompileNode(idx.IndexedObject);
-        else                           EmitLoad(idx.Name ?? "", ln); // bare name[key] = v
-        CompileNode(idx.IndexExpression);
-        if (node.Initializer != null) CompileNode(node.Initializer);
-        else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
-        _chunk.Emit(Opcode.IndexSet, 0, 0, ln);
+
+        if (node.Op == TokenName.Ops_Assign)
+        {
+            // Simple assignment: push obj, key, val → IndexSet
+            if (idx.IndexedObject != null) CompileNode(idx.IndexedObject);
+            else                           EmitLoad(idx.Name ?? "", ln);
+            CompileNode(idx.IndexExpression);
+            if (node.Initializer != null) CompileNode(node.Initializer);
+            else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
+            _chunk.Emit(Opcode.IndexSet, 0, 0, ln);
+        }
+        else
+        {
+            // Compound assignment (lst[i] += v): push obj, key, rhs → IndexOpAssign(inner_op)
+            Opcode innerOp = node.Op switch
+            {
+                TokenName.Ops_AddAssign              => Opcode.Add,
+                TokenName.Ops_SubtractAssign         => Opcode.Sub,
+                TokenName.Ops_MultiplyAssign         => Opcode.Mul,
+                TokenName.Ops_DivideAssign           => Opcode.Div,
+                TokenName.Ops_ModuloAssign           => Opcode.Mod,
+                TokenName.Ops_ExponentAssign         => Opcode.Pow,
+                TokenName.Ops_BitwiseAndAssign       => Opcode.BAnd,
+                TokenName.Ops_BitwiseOrAssign        => Opcode.BOr,
+                TokenName.Ops_BitwiseXorAssign       => Opcode.BXor,
+                TokenName.Ops_BitwiseLeftShiftAssign => Opcode.BLSh,
+                TokenName.Ops_BitwiseRightShiftAssign=> Opcode.BRSh,
+                TokenName.Ops_BitwiseUnsignedRightShiftAssign => Opcode.BURSh,
+                _ => (Opcode)255
+            };
+
+            if (innerOp == (Opcode)255) { Fallback(node); return; }
+
+            if (idx.IndexedObject != null) CompileNode(idx.IndexedObject);
+            else                           EmitLoad(idx.Name ?? "", ln);
+            CompileNode(idx.IndexExpression);
+            if (node.Initializer != null) CompileNode(node.Initializer);
+            else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
+            _chunk.Emit(Opcode.IndexOpAssign, (int)innerOp, 0, ln);
+        }
     }
 
     private void CompileSlice(SliceNode node, int ln)
@@ -888,6 +1062,70 @@ public sealed class Compiler
             else                        _chunk.Emit(Opcode.Null, 0, 0, ln);
             _chunk.Emit(Opcode.Throw, 0, 0, ln);
         }
+    }
+
+    // -- Try/catch/finally -----------------------------------------------------
+
+    private void CompileTry(TryNode node, int ln)
+    {
+        bool hasCatch   = node.CatchBody.Count  > 0;
+        bool hasFinally = node.FinallyBody.Count > 0;
+
+        // Emit PushTryHandler with placeholder catchIP (A); finallyIP unused (B=0).
+        int handlerInstr = EmitJump(Opcode.PushTryHandler, ln); // A=0 placeholder
+
+        // --- Try body ---
+        foreach (var s in node.TryBody)
+            if (s != null) CompileStatement(s);
+
+        // Try body completed normally: disarm the handler.
+        _chunk.Emit(Opcode.PopTryHandler, 0, 0, ln);
+
+        // Inline finally for the success path.
+        if (hasFinally)
+            foreach (var s in node.FinallyBody)
+                if (s != null) CompileStatement(s);
+
+        // Jump past the catch section (patched after catch is emitted).
+        int jumpPastCatch = EmitJump(Opcode.Jump, ln);
+
+        // --- Catch section ---
+        int catchStart = _chunk.Code.Count;
+        // Patch PushTryHandler.A to point here.
+        _chunk.PatchJump(handlerInstr, catchStart);
+
+        if (hasCatch)
+        {
+            // Load error variable(s) from _caughtError.
+            if (node.ErrorType != null)
+            {
+                // Two-param catch(type, msg): push type string.
+                _chunk.Emit(Opcode.LoadCatchError, 1, 0, ln);
+                EmitStore(((IdentifierNode)node.ErrorType).Name, ln);
+            }
+            if (node.ErrorMessage != null)
+            {
+                if (node.ErrorType == null)
+                    // Single-param catch(err): push {error, message} hashmap.
+                    _chunk.Emit(Opcode.LoadCatchError, 0, 0, ln);
+                else
+                    // Two-param catch(type, msg): push message string.
+                    _chunk.Emit(Opcode.LoadCatchError, 2, 0, ln);
+                EmitStore(((IdentifierNode)node.ErrorMessage).Name, ln);
+            }
+
+            // Catch body.
+            foreach (var s in node.CatchBody)
+                if (s != null) CompileStatement(s);
+        }
+
+        // Inline finally for the catch/error path.
+        if (hasFinally)
+            foreach (var s in node.FinallyBody)
+                if (s != null) CompileStatement(s);
+
+        // Patch the jump that skips the catch section.
+        PatchJump(jumpPastCatch);
     }
 
     // -- Function definition ---------------------------------------------------

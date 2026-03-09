@@ -56,6 +56,9 @@ public sealed class KiwiVM
     private int _nextNativeId;
     private readonly Dictionary<int, object> _nativeObjects = [];
 
+    // -- Caught error (for LoadCatchError inside catch bodies) ------------------
+    private KiwiError? _caughtError;
+
     // -- Name resolution cache (LoadGlobal fast-path) --------------------------
     // Caches resolved Values for stable global names (functions, constants,
     // packages, structs).  Invalidated on DefFunc and StoreGlobal so that
@@ -196,6 +199,8 @@ public sealed class KiwiVM
             var frame    = _frames[_frameCount - 1];
             var codeSpan = CollectionsMarshal.AsSpan(frame.Chunk.Code);
 
+            try
+            {
             while (frame.IP < codeSpan.Length)
             {
                 var instr = codeSpan[frame.IP++];
@@ -435,6 +440,12 @@ public sealed class KiwiVM
                         Push(ComparisonOp.GreaterThanOrEqual(ref l, ref r));
                         break;
                     }
+                    case Opcode.In:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(ComparisonOp.In(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
 
                     // -- Logical -------------------------------------------
                     case Opcode.Not:
@@ -643,6 +654,50 @@ public sealed class KiwiVM
                         var obj = Pop();
                         _interp.SetIndex(obj, key, val, frame.GetToken());
                         Push(val);
+                        break;
+                    }
+                    case Opcode.IndexOpAssign:
+                    {
+                        var rhs = Pop();
+                        var key = Pop();
+                        var obj = Pop();
+                        var tok = frame.GetToken();
+                        var old = _interp.GetIndex(obj, key, tok);
+                        Value newVal = (Opcode)A switch
+                        {
+                            Opcode.Add  => MathOp.Add(tok, ref old, ref rhs),
+                            Opcode.Sub  => MathOp.Sub(tok, ref old, ref rhs),
+                            Opcode.Mul  => MathOp.Mul(tok, ref old, ref rhs),
+                            Opcode.Div  => MathOp.Div(tok, ref old, ref rhs),
+                            Opcode.Mod  => MathOp.Mod(tok, ref old, ref rhs),
+                            Opcode.Pow  => MathOp.Exp(tok, ref old, ref rhs),
+                            Opcode.BAnd => BitwiseOp.And(tok, ref old, ref rhs),
+                            Opcode.BOr  => BitwiseOp.Or(tok, ref old, ref rhs),
+                            Opcode.BXor => BitwiseOp.Xor(tok, ref old, ref rhs),
+                            Opcode.BLSh => BitwiseOp.Leftshift(tok, ref old, ref rhs),
+                            Opcode.BRSh => BitwiseOp.Rightshift(tok, ref old, ref rhs),
+                            Opcode.BURSh=> BitwiseOp.UnsignedRightshift(tok, ref old, ref rhs),
+                            _           => rhs
+                        };
+                        _interp.SetIndex(obj, key, newVal, tok);
+                        Push(newVal);
+                        break;
+                    }
+                    case Opcode.UnpackList:
+                    {
+                        int n   = A;
+                        var val = Pop();
+                        if (val.IsList())
+                        {
+                            var list = val.GetList();
+                            for (int i = 0; i < n; i++)
+                                Push(i < list.Count ? list[i] : Value.Default);
+                        }
+                        else
+                        {
+                            Push(val);
+                            for (int i = 1; i < n; i++) Push(Value.Default);
+                        }
                         break;
                     }
                     case Opcode.SliceGet:
@@ -886,8 +941,66 @@ public sealed class KiwiVM
                     {
                         var v   = Pop();
                         var tok = frame.GetToken();
-                        string msg = v.IsString() ? v.GetString() : _interp.Serialize(v);
-                        throw new RuntimeError(tok, "KiwiError", msg, [frame.FormatTrace()]);
+                        // Preserve structured error type from { error: ..., message: ... } hashmaps
+                        string errType, errMsg;
+                        if (v.IsHashmap())
+                        {
+                            var map     = v.GetHashmap();
+                            var typeKey = Value.CreateString("error");
+                            var msgKey  = Value.CreateString("message");
+                            errType = map.TryGetValue(typeKey, out var tv) ? tv.GetString() : "Error";
+                            errMsg  = map.TryGetValue(msgKey,  out var mv) ? mv.GetString() : string.Empty;
+                        }
+                        else if (v.IsString())
+                        {
+                            errType = KiwiError.DefaultErrorType;
+                            errMsg  = v.GetString();
+                        }
+                        else
+                        {
+                            errType = KiwiError.DefaultErrorType;
+                            errMsg  = _interp.Serialize(v);
+                        }
+                        throw new RuntimeError(tok, errType, errMsg, [frame.FormatTrace()]);
+                    }
+
+                    // -- Try handler management ----------------------------
+                    case Opcode.PushTryHandler:
+                    {
+                        int catchIP   = A;
+                        int finallyIP = B;
+                        frame.PushTryHandler(catchIP, finallyIP, _sp);
+                        break;
+                    }
+                    case Opcode.PopTryHandler:
+                    {
+                        frame.PopTryHandler(out _, out _, out _);
+                        break;
+                    }
+                    case Opcode.LoadCatchError:
+                    {
+                        var e = _caughtError;
+                        if (e == null) { Push(Value.Default); break; }
+                        if (A == 0)
+                        {
+                            // Single-param catch: push hashmap {error, message}
+                            var map = new Dictionary<Value, Value>
+                            {
+                                [Value.CreateString("error")]   = Value.CreateString(e.Type ?? "Error"),
+                                [Value.CreateString("message")] = Value.CreateString(e.Message ?? string.Empty)
+                            };
+                            Push(Value.CreateHashmap(map));
+                        }
+                        else if (A == 1)
+                        {
+                            Push(Value.CreateString(e.Type ?? "Error"));
+                        }
+                        else
+                        {
+                            Push(Value.CreateString(e.Message ?? string.Empty));
+                        }
+                        _caughtError = null; // consumed
+                        break;
                     }
 
                     // -- Interpreter fallback ------------------------------
@@ -912,6 +1025,18 @@ public sealed class KiwiVM
 
             nextFrame:
                 break; // re-enter outer while with new frame
+            }
+            } // end try
+            catch (KiwiError e) when (frame.HasTryHandlers)
+            {
+                if (frame.PopTryHandler(out int catchIP, out _, out int savedSP))
+                {
+                    _sp = savedSP;
+                    _caughtError = e;
+                    frame.IP = catchIP;
+                    continue; // re-enter outer loop → inner loop resumes at catchIP
+                }
+                throw;
             }
             // If we reach end of frame's code without Return/Halt → implicit null return
             if (_frameCount > 0 && _frames[_frameCount - 1] == frame)
