@@ -1,0 +1,55 @@
+/# ==============================================================================
+   Testing the splat operator (*expr) at call sites.
+   ============================================================================== #/
+tester::register_test("splat", with do
+  fn splat_sum(*args)
+    total = 0
+    for x in args do
+      total += x
+    end
+    return total
+  end
+
+  fn splat_add(a, b, c)
+    return a + b + c
+  end
+
+  fn splat_head_rest(head, *tail)
+    return [head, tail]
+  end
+
+  # Splat into variadic function
+  nums = [1, 2, 3]
+  tester::assert(splat_sum(*nums) == 6, "A1")
+
+  # Splat into fixed-arity function
+  tester::assert(splat_add(*nums) == 6, "A2")
+
+  # Splat with mixed positional args
+  tester::assert(splat_add(1, *[2, 3]) == 6, "A3")
+
+  # Splat into head+rest function
+  result = splat_head_rest(*nums)
+  tester::assert(result[0] == 1, "A4")
+  tester::assert(result[1] == [2, 3], "A5")
+
+  # Splat an empty list into variadic
+  tester::assert(splat_sum(*[]) == 0, "A6")
+
+  # Splat inline list literal
+  tester::assert(splat_sum(*[10, 20, 30]) == 60, "A7")
+
+  # Splat in lambda call
+  splat_adder = with (*vals) do
+    s = 0
+    for v in vals do
+      s += v
+    end
+    return s
+  end
+
+  tester::assert(splat_adder(*nums) == 6, "A8")
+
+  # Splat result of expression
+  tester::assert(splat_sum(*[1..3]) == 6, "A9")
+end)
