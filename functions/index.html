@@ -1129,6 +1129,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nested-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#generator-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2623,6 +2634,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#nested-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#generator-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2778,19 +2800,32 @@
 </span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a># 5
 </span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>println(counter)
 </span></code></pre></div>
-<h3 id="generator-functions">Generator Functions<a class="headerlink" href="#generator-functions" title="Permanent link">&para;</a></h3>
-<p>A function that contains <code>yield</code> is a <strong>generator function</strong>. Calling it returns a lazy generator object instead of executing the body. See <a href="../generators/">Generators</a> for full details.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>fn countdown(n)
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  while n &gt;= 0 do
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    yield n
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    n -= 1
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>  end
+<h3 id="nested-functions">Nested Functions<a class="headerlink" href="#nested-functions" title="Permanent link">&para;</a></h3>
+<p>A <code>fn</code> declaration inside another function is local to that function — it is callable anywhere in the enclosing body but does not leak into outer scope after the function returns.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>fn make_adder(n)
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  fn add(x)
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    return x + n
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  end
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>  return add(10)  # 10 + n
 </span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>end
 </span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>for x in countdown(5) do
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>  print &quot;${x} &quot;
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>end
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a># 5 4 3 2 1 0
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>println make_adder(5)  # 15
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>add(1)                 # error — add is not defined here
+</span></code></pre></div>
+<p>This is useful for encapsulating helper logic without polluting the global namespace.</p>
+<h3 id="generator-functions">Generator Functions<a class="headerlink" href="#generator-functions" title="Permanent link">&para;</a></h3>
+<p>A function that contains <code>yield</code> is a <strong>generator function</strong>. Calling it returns a lazy generator object instead of executing the body. See <a href="../generators/">Generators</a> for full details.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>fn countdown(n)
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  while n &gt;= 0 do
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    yield n
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    n -= 1
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>  end
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>end
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>for x in countdown(5) do
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>  print &quot;${x} &quot;
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>end
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a># 5 4 3 2 1 0
 </span></code></pre></div>
 
 

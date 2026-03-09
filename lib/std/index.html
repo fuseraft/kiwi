@@ -2506,60 +2506,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#stderror-sub-package" class="md-nav__link">
+  <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
-        std::error Sub-Package
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="std::error Sub-Package">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#stderrorcreateerror_type-error_message" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        std::error::create(error_type, error_message)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stderrorinvalidrangemsg" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        std::error::InvalidRange(msg?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stderrorinvalidoperationmsg" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        std::error::InvalidOperation(msg?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-handling-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Handling Example
+        See Also
       
     </span>
   </a>
@@ -2592,7 +2542,7 @@
 
 
 <h1 id="std"><code>std</code><a class="headerlink" href="#std" title="Permanent link">&para;</a></h1>
-<p>The <code>std</code> package provides general-purpose utility functions for introspection and common operations. It is automatically loaded by the Kiwi runtime — no explicit import is needed. The <code>std::error</code> sub-package provides helpers for constructing structured error hashmaps.</p>
+<p>The <code>std</code> package provides general-purpose utility functions for introspection and common operations. It is automatically loaded by the Kiwi runtime — no explicit import is needed.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># std is pre-loaded; no import required.
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a># To import explicitly:
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>import &quot;std&quot;
@@ -2890,150 +2840,10 @@
 </span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a># prints: 1, 2, 3
 </span></code></pre></div>
 <hr />
-<h2 id="stderror-sub-package"><code>std::error</code> Sub-Package<a class="headerlink" href="#stderror-sub-package" title="Permanent link">&para;</a></h2>
-<p>The <code>std::error</code> package provides helpers for creating structured error hashmaps. Errors in Kiwi can be thrown as any value, including hashmaps, which allows structured error handling.</p>
-<hr />
-<h3 id="stderrorcreateerror_type-error_message"><code>std::error::create(error_type, error_message)</code><a class="headerlink" href="#stderrorcreateerror_type-error_message" title="Permanent link">&para;</a></h3>
-<p>Creates a structured error hashmap with <code>error</code> and <code>message</code> keys.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-<th style="text-align: left;">Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>error_type</code></td>
-<td style="text-align: left;">The error type name.</td>
-<td style="text-align: left;"><code>"KiwiError"</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>error_message</code></td>
-<td style="text-align: left;">The error message.</td>
-<td style="text-align: left;"><code>"An error occurred."</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>hashmap</code></td>
-<td style="text-align: left;">A hashmap of the form <code>{error: error_type, message: error_message}</code>.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>err = std::error::create(&quot;ValueError&quot;, &quot;Value must be positive.&quot;)
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>println err[&quot;error&quot;]    # prints: ValueError
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>println err[&quot;message&quot;]  # prints: Value must be positive.
-</span></code></pre></div>
-<hr />
-<h3 id="stderrorinvalidrangemsg"><code>std::error::InvalidRange(msg?)</code><a class="headerlink" href="#stderrorinvalidrangemsg" title="Permanent link">&para;</a></h3>
-<p>Creates an <code>InvalidRange</code> error hashmap. Useful for signaling that a range argument is out of bounds or otherwise invalid.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-<th style="text-align: left;">Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>msg</code></td>
-<td style="text-align: left;">Optional custom message.</td>
-<td style="text-align: left;"><code>"Invalid range."</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>hashmap</code></td>
-<td style="text-align: left;"><code>{error: "InvalidRange", message: msg}</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>throw std::error::InvalidRange(&quot;Start must be less than end.&quot;)
-</span></code></pre></div>
-<hr />
-<h3 id="stderrorinvalidoperationmsg"><code>std::error::InvalidOperation(msg?)</code><a class="headerlink" href="#stderrorinvalidoperationmsg" title="Permanent link">&para;</a></h3>
-<p>Creates an <code>InvalidOperation</code> error hashmap. Useful for signaling that a requested operation cannot be performed given the current state or arguments.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-<th style="text-align: left;">Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>msg</code></td>
-<td style="text-align: left;">Optional custom message.</td>
-<td style="text-align: left;"><code>"Invalid operation."</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>hashmap</code></td>
-<td style="text-align: left;"><code>{error: "InvalidOperation", message: msg}</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>throw std::error::InvalidOperation(&quot;Cannot divide by zero.&quot;)
-</span></code></pre></div>
-<hr />
-<h2 id="error-handling-example">Error Handling Example<a class="headerlink" href="#error-handling-example" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>fn safe_divide(a, b)
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  throw std::error::InvalidOperation(&quot;Division by zero.&quot;) when b == 0
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  a / b
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>end
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>try
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>  result = safe_divide(10, 0)
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>catch err
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>  println err[&quot;error&quot;]    # prints: InvalidOperation
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>  println err[&quot;message&quot;]  # prints: Division by zero.
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>end
-</span></code></pre></div>
+<h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../error/"><code>error</code></a> — helpers for constructing, throwing, and inspecting structured errors.</li>
+</ul>
 
 
 

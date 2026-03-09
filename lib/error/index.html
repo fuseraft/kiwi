@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/sys/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/error/">
       
       
-        <link rel="prev" href="../string/">
-      
-      
-        <link rel="next" href="../task/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>sys - Kiwi</title>
+        <title>error - Kiwi</title>
       
     
     
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sys" class="md-skip">
+        <a href="#error" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              sys
+              error
             
           </span>
         </div>
@@ -380,12 +376,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../" class="md-tabs__link">
           
   
@@ -1746,31 +1740,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -1788,7 +1779,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2279,37 +2270,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sys
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../sys/" class="md-nav__link">
         
   
   
@@ -2325,87 +2289,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Package Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Package Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#open_program-_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        open(_program, _args)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exec_program-_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        exec(_program, _args)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#execout_program-_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        execout(_program, _args)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#important-notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Important Notes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2529,22 +2412,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
+  <a href="#functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Package Functions
+        Functions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Package Functions">
+    <nav class="md-nav" aria-label="Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#open_program-_args" class="md-nav__link">
+  <a href="#errornewerror_type-error_message" class="md-nav__link">
     <span class="md-ellipsis">
       
-        open(_program, _args)
+        error::new(error_type?, error_message?)
       
     </span>
   </a>
@@ -2552,10 +2435,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#exec_program-_args" class="md-nav__link">
+  <a href="#errortype_oferr" class="md-nav__link">
     <span class="md-ellipsis">
       
-        exec(_program, _args)
+        error::type_of(err)
       
     </span>
   </a>
@@ -2563,10 +2446,54 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#execout_program-_args" class="md-nav__link">
+  <a href="#errormessage_oferr" class="md-nav__link">
     <span class="md-ellipsis">
       
-        execout(_program, _args)
+        error::message_of(err)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#erroris_typeerr-error_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        error::is_type(err, error_type)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#errorassertcondition-msg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        error::assert(condition, msg?)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#errorexpect_typeval-expected_type-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        error::expect_type(val, expected_type, name?)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#errorexpect_not_nullval-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        error::expect_not_null(val, name?)
       
     </span>
   </a>
@@ -2579,10 +2506,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#important-notes" class="md-nav__link">
+  <a href="#named-error-constructors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Important Notes
+        Named Error Constructors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structured-error-handling-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Error Handling Example
       
     </span>
   </a>
@@ -2606,7 +2544,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/sys.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/error.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2614,212 +2552,409 @@
   
 
 
-<h1 id="sys"><code>sys</code><a class="headerlink" href="#sys" title="Permanent link">&para;</a></h1>
-<p>The <code>sys</code> package provides simple, cross-platform ways to <strong>launch external processes</strong> from Kiwi code.<br />
-It offers three main functions with different levels of control and output capture:</p>
-<ul>
-<li><code>open</code>: fire-and-forget (non-blocking, no output capture)</li>
-<li><code>exec</code>: blocking, returns only the exit code</li>
-<li><code>execout</code>: blocking, captures stdout, stderr, and exit code</li>
-</ul>
-<p>These functions are the foundation for running shell commands, external tools, scripts, or desktop applications from Kiwi.</p>
-<hr />
-<h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
-<h3 id="open_program-_args"><code>open(_program, _args)</code><a class="headerlink" href="#open_program-_args" title="Permanent link">&para;</a></h3>
-<p>Launches an external program <strong>without waiting</strong> for it to finish and <strong>without capturing</strong> any output.</p>
-<p>Most useful for:</p>
-<ul>
-<li>Opening files with their default application (<code>sys::open("document.pdf")</code>)</li>
-<li>Starting GUI tools or background daemons</li>
-<li>Launching editors, browsers, media players, etc.</li>
-</ul>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Name</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>string</code></td>
-<td><code>_program</code></td>
-<td>Executable name or full path</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>list</code></td>
-<td><code>_args</code></td>
-<td>List of command-line arguments (strings)</td>
-<td><code>[]</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong>  </p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>boolean</code></td>
-<td><code>true</code> if the process was successfully started, and <code>false</code> if for any reason it fails to start</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong><br />
-- <code>TypeError</code> — if <code>_args</code> is not a list of strings</p>
-<p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># Open Kiwi in VS Code
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>const KIWI_PATH = env::bin().to_path().parent().find(&#39;kiwi&#39;).path
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>sys::open(&quot;code&quot;, [KIWI_PATH, &quot;--new-window&quot;])
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a># Open our favorite repository in Firefox (a superior browser).
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>sys::open(&quot;firefox&quot;, [&quot;https://github.com/fuseraft/kiwi&quot;])
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a># Windows: open notepad.exe
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>sys::open(&quot;start&quot;, [&quot;notepad.exe&quot;])
-</span></code></pre></div></p>
-<h3 id="exec_program-_args"><code>exec(_program, _args)</code><a class="headerlink" href="#exec_program-_args" title="Permanent link">&para;</a></h3>
-<p>Runs an external program <strong>synchronously</strong> (blocks until it exits) and returns only the <strong>exit code</strong>.</p>
-<p>Ideal when you only care whether the command succeeded (exit code 0) or failed.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Name</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>string</code></td>
-<td><code>_program</code></td>
-<td>Executable name or full path</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>list</code></td>
-<td><code>_args</code></td>
-<td>List of command-line arguments (strings)</td>
-<td><code>[]</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong>  </p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>integer</code></td>
-<td>Process exit code (0 = success)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong><br />
-- <code>TypeError</code>: if <code>_args</code> is not a list of strings
-- <code>SystemError</code>: if the process cannot be started</p>
-<p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>exit_code = sys::exec(&quot;git&quot;, [&quot;status&quot;, &quot;--porcelain&quot;])
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>if exit_code != 0
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  println &quot;Git command failed with code ${exit_code}&quot;
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>end
-</span></code></pre></div></p>
-<h3 id="execout_program-_args"><code>execout(_program, _args)</code><a class="headerlink" href="#execout_program-_args" title="Permanent link">&para;</a></h3>
-<p>Runs an external program <strong>synchronously</strong> and captures <strong>both stdout and stderr</strong> as strings, along with the exit code.</p>
-<p>This is the most commonly used function when you need to:</p>
-<ul>
-<li>Read command output</li>
-<li>Parse results from tools (git, ffmpeg, curl, etc.)</li>
-<li>Handle both normal output and errors</li>
-</ul>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Name</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>string</code></td>
-<td><code>_program</code></td>
-<td>Executable name or full path</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>list</code></td>
-<td><code>_args</code></td>
-<td>List of command-line arguments (strings)</td>
-<td><code>[]</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong>  </p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>hashmap</code></td>
-<td><code>{ "stdout": string, "stderr": string, "exit_code": integer }</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong><br />
-- <code>TypeError</code>: if <code>_args</code> is not a list of strings
-- <code>SystemError</code>: if the process cannot be started</p>
-<p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>result = sys::execout(&quot;curl&quot;, [
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  &quot;-X&quot;, &quot;POST&quot;,
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  &quot;-H&quot;, &quot;Content-Type: application/json&quot;,
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  &quot;-d&quot;, &#39;{&quot;name&quot;: &quot;Kiwi&quot;, &quot;version&quot;: &quot;1.4.0&quot;}&#39;,
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  &quot;https://httpbin.org/post&quot;
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>])
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>if result.exit_code == 0
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  println &quot;Files:\n${result.stdout}&quot;
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>else
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>  println &quot;Error: ${result.stderr} (code ${result.exit_code})&quot;
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>end
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a># One-liner example: get current git branch
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>branch = sys::execout(&quot;git&quot;, [&quot;rev-parse&quot;, &quot;--abbrev-ref&quot;, &quot;HEAD&quot;]).stdout.trim()
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>println &quot;We are in ${branch}&quot;
-</span></code></pre></div></p>
-<h2 id="important-notes">Important Notes<a class="headerlink" href="#important-notes" title="Permanent link">&para;</a></h2>
-<ul>
-<li>All three functions expect arguments as a <strong>list of strings</strong>. No automatic shell parsing or quoting is performed.</li>
-<li>No shell is involved by default (<code>cmd.exe</code>, <code>bash</code>, <code>/bin/sh</code> etc. are <strong>not</strong> used unless you explicitly pass them as <code>_program</code>).</li>
-<li>To run shell commands with pipes/redirection, you must invoke the shell yourself:</li>
-</ul>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># Run a shell command with pipes
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sys::execout(&quot;bash&quot;, [&quot;-c&quot;, &quot;git log --oneline | head -n 5&quot;])
+<h1 id="error"><code>error</code><a class="headerlink" href="#error" title="Permanent link">&para;</a></h1>
+<p>The <code>error</code> package provides helpers for constructing, throwing, and inspecting structured errors. It is automatically loaded by the Kiwi runtime — no explicit import is needed.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># error is pre-loaded; no import required.
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a># To import explicitly:
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>import &quot;error&quot;
 </span></code></pre></div>
-<ul>
-<li>On Windows, you may need to use <code>"cmd.exe"</code> or full paths to executables.</li>
-<li><code>open()</code> usually starts the process detached (no waiting), but behavior depends on OS and program type.</li>
-</ul>
+<p>Errors in Kiwi can be thrown as any value. This package uses hashmaps with <code>error</code> and <code>message</code> keys as a convention for structured error handling.</p>
+<hr />
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
+<h3 id="errornewerror_type-error_message"><code>error::new(error_type?, error_message?)</code><a class="headerlink" href="#errornewerror_type-error_message" title="Permanent link">&para;</a></h3>
+<p>Creates a structured error hashmap.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>error_type</code></td>
+<td style="text-align: left;">The error type name.</td>
+<td style="text-align: left;"><code>"Error"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>error_message</code></td>
+<td style="text-align: left;">The error message.</td>
+<td style="text-align: left;"><code>"An error occurred."</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>hashmap</code></td>
+<td style="text-align: left;">A hashmap with <code>error</code> and <code>message</code> keys.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>throw error::new(&quot;NotFound&quot;, &quot;record 42 does not exist&quot;)
+</span></code></pre></div>
+<hr />
+<h3 id="errortype_oferr"><code>error::type_of(err)</code><a class="headerlink" href="#errortype_oferr" title="Permanent link">&para;</a></h3>
+<p>Returns the type string of a caught error.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>err</code></td>
+<td style="text-align: left;">A caught error hashmap or a plain string.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The <code>error</code> key if <code>err</code> is a structured hashmap, otherwise <code>err</code> as a string.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>try
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  throw error::NotFoundError(&quot;item missing&quot;)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>catch e
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  println error::type_of(e)     # NotFoundError
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  println error::message_of(e)  # item missing
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>end
+</span></code></pre></div>
+<hr />
+<h3 id="errormessage_oferr"><code>error::message_of(err)</code><a class="headerlink" href="#errormessage_oferr" title="Permanent link">&para;</a></h3>
+<p>Returns the message of a caught error.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>err</code></td>
+<td style="text-align: left;">A caught error hashmap or a plain string.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The <code>message</code> key if <code>err</code> is a structured hashmap, otherwise <code>err</code> as a string.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="erroris_typeerr-error_type"><code>error::is_type(err, error_type)</code><a class="headerlink" href="#erroris_typeerr-error_type" title="Permanent link">&para;</a></h3>
+<p>Returns <code>true</code> if the caught error matches a specific type name.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>err</code></td>
+<td style="text-align: left;">A caught error hashmap or a plain string.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>error_type</code></td>
+<td style="text-align: left;">The type name to match against.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>true</code> if the error type matches.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># single-param catch — e is a hashmap
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>try
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  throw error::KeyError(&quot;missing_key&quot;)
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>catch e
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  if error::is_type(e, &quot;KeyError&quot;)
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    println &quot;handle missing key&quot;
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  end
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>end
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a># two-param catch — pass the type string directly
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>try
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>  throw error::KeyError(&quot;missing_key&quot;)
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>catch type, msg
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>  if error::is_type(type, &quot;KeyError&quot;)
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    println &quot;handle missing key: ${msg}&quot;
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>  end
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>end
+</span></code></pre></div>
+<hr />
+<h3 id="errorassertcondition-msg"><code>error::assert(condition, msg?)</code><a class="headerlink" href="#errorassertcondition-msg" title="Permanent link">&para;</a></h3>
+<p>Throws an <code>AssertionError</code> if <code>condition</code> is false.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>condition</code></td>
+<td style="text-align: left;">The condition to check.</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>msg</code></td>
+<td style="text-align: left;">The error message.</td>
+<td style="text-align: left;"><code>"Assertion failed."</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Throws</strong></p>
+<p><code>AssertionError</code> if <code>condition</code> is <code>false</code>.</p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>error::assert(x &gt; 0, &quot;x must be positive&quot;)
+</span></code></pre></div>
+<hr />
+<h3 id="errorexpect_typeval-expected_type-name"><code>error::expect_type(val, expected_type, name?)</code><a class="headerlink" href="#errorexpect_typeval-expected_type-name" title="Permanent link">&para;</a></h3>
+<p>Throws a <code>TypeError</code> if <code>val</code> is not of the expected type.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>val</code></td>
+<td style="text-align: left;">The value to check.</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>expected_type</code></td>
+<td style="text-align: left;">The expected type name (e.g., <code>"integer"</code>, <code>"string"</code>).</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>name</code></td>
+<td style="text-align: left;">A label for the value, used in the error message.</td>
+<td style="text-align: left;"><code>"value"</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Throws</strong></p>
+<p><code>TypeError</code> if <code>val.type()</code> does not match <code>expected_type</code>.</p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>fn add(a, b)
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  error::expect_type(a, &quot;integer&quot;, &quot;a&quot;)
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  error::expect_type(b, &quot;integer&quot;, &quot;b&quot;)
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  return a + b
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>end
+</span></code></pre></div>
+<hr />
+<h3 id="errorexpect_not_nullval-name"><code>error::expect_not_null(val, name?)</code><a class="headerlink" href="#errorexpect_not_nullval-name" title="Permanent link">&para;</a></h3>
+<p>Throws a <code>ValueError</code> if <code>val</code> is null.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>val</code></td>
+<td style="text-align: left;">The value to check.</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>name</code></td>
+<td style="text-align: left;">A label for the value, used in the error message.</td>
+<td style="text-align: left;"><code>"value"</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Throws</strong></p>
+<p><code>ValueError</code> if <code>val == null</code>.</p>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>fn process(record)
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  error::expect_not_null(record, &quot;record&quot;)
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  # ...
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>end
+</span></code></pre></div>
+<hr />
+<h2 id="named-error-constructors">Named Error Constructors<a class="headerlink" href="#named-error-constructors" title="Permanent link">&para;</a></h2>
+<p>Each constructor creates a structured error hashmap with a specific type name. All accept an optional <code>msg</code> string parameter.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Function</th>
+<th style="text-align: left;">Default message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>error::ArgumentError(msg?)</code></td>
+<td style="text-align: left;"><code>"Invalid argument."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::AssertionError(msg?)</code></td>
+<td style="text-align: left;"><code>"Assertion failed."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::IndexError(msg?)</code></td>
+<td style="text-align: left;"><code>"Index out of bounds."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::IOError(msg?)</code></td>
+<td style="text-align: left;"><code>"I/O error."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::KeyError(msg?)</code></td>
+<td style="text-align: left;"><code>"Key not found."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::NetworkError(msg?)</code></td>
+<td style="text-align: left;"><code>"Network error."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::NotFoundError(msg?)</code></td>
+<td style="text-align: left;"><code>"Not found."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::NotImplementedError(msg?)</code></td>
+<td style="text-align: left;"><code>"Not implemented."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::OverflowError(msg?)</code></td>
+<td style="text-align: left;"><code>"Overflow."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::ParseError(msg?)</code></td>
+<td style="text-align: left;"><code>"Parse error."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::PermissionError(msg?)</code></td>
+<td style="text-align: left;"><code>"Permission denied."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::TimeoutError(msg?)</code></td>
+<td style="text-align: left;"><code>"Operation timed out."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::TypeError(msg?)</code></td>
+<td style="text-align: left;"><code>"Type error."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::ValueError(msg?)</code></td>
+<td style="text-align: left;"><code>"Invalid value."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::InvalidRange(msg?)</code></td>
+<td style="text-align: left;"><code>"Invalid range."</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>error::InvalidOperation(msg?)</code></td>
+<td style="text-align: left;"><code>"Invalid operation."</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>throw error::ValueError(&quot;count must be positive&quot;)
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>throw error::NotFoundError(&quot;user ${id} does not exist&quot;)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>throw error::NotImplementedError()
+</span></code></pre></div>
+<hr />
+<h2 id="structured-error-handling-example">Structured Error Handling Example<a class="headerlink" href="#structured-error-handling-example" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>fn divide(a, b)
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  error::expect_type(a, &quot;integer&quot;, &quot;a&quot;)
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>  error::expect_type(b, &quot;integer&quot;, &quot;b&quot;)
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  throw error::ArgumentError(&quot;Cannot divide by zero.&quot;) when b == 0
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  return a / b
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>end
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>try
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>  result = divide(10, 0)
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>catch e
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>  if error::is_type(e, &quot;ArgumentError&quot;)
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    println &quot;caught: ${error::message_of(e)}&quot;
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>  end
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>end
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a># prints: caught: Cannot divide by zero.
+</span></code></pre></div>
 
 
 

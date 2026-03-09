@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/sys/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/json/">
       
       
-        <link rel="prev" href="../string/">
-      
-      
-        <link rel="next" href="../task/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>sys - Kiwi</title>
+        <title>json - Kiwi</title>
       
     
     
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sys" class="md-skip">
+        <a href="#json" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              sys
+              json
             
           </span>
         </div>
@@ -380,12 +376,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../" class="md-tabs__link">
           
   
@@ -1746,31 +1740,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -1788,7 +1779,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2279,37 +2270,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    sys
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../sys/" class="md-nav__link">
         
   
   
@@ -2325,87 +2289,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Package Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Package Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#open_program-_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        open(_program, _args)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exec_program-_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        exec(_program, _args)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#execout_program-_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        execout(_program, _args)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#important-notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Important Notes
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2529,22 +2412,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
+  <a href="#functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Package Functions
+        Functions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Package Functions">
+    <nav class="md-nav" aria-label="Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#open_program-_args" class="md-nav__link">
+  <a href="#jsonparseinput" class="md-nav__link">
     <span class="md-ellipsis">
       
-        open(_program, _args)
+        json::parse(input)
       
     </span>
   </a>
@@ -2552,21 +2435,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#exec_program-_args" class="md-nav__link">
+  <a href="#jsonstringifyvalue-pretty" class="md-nav__link">
     <span class="md-ellipsis">
       
-        exec(_program, _args)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#execout_program-_args" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        execout(_program, _args)
+        json::stringify(value, pretty?)
       
     </span>
   </a>
@@ -2579,10 +2451,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#important-notes" class="md-nav__link">
+  <a href="#round-trip-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Important Notes
+        Round-Trip Example
       
     </span>
   </a>
@@ -2606,7 +2478,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/sys.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/json.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2614,212 +2486,125 @@
   
 
 
-<h1 id="sys"><code>sys</code><a class="headerlink" href="#sys" title="Permanent link">&para;</a></h1>
-<p>The <code>sys</code> package provides simple, cross-platform ways to <strong>launch external processes</strong> from Kiwi code.<br />
-It offers three main functions with different levels of control and output capture:</p>
-<ul>
-<li><code>open</code>: fire-and-forget (non-blocking, no output capture)</li>
-<li><code>exec</code>: blocking, returns only the exit code</li>
-<li><code>execout</code>: blocking, captures stdout, stderr, and exit code</li>
-</ul>
-<p>These functions are the foundation for running shell commands, external tools, scripts, or desktop applications from Kiwi.</p>
-<hr />
-<h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
-<h3 id="open_program-_args"><code>open(_program, _args)</code><a class="headerlink" href="#open_program-_args" title="Permanent link">&para;</a></h3>
-<p>Launches an external program <strong>without waiting</strong> for it to finish and <strong>without capturing</strong> any output.</p>
-<p>Most useful for:</p>
-<ul>
-<li>Opening files with their default application (<code>sys::open("document.pdf")</code>)</li>
-<li>Starting GUI tools or background daemons</li>
-<li>Launching editors, browsers, media players, etc.</li>
-</ul>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Name</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>string</code></td>
-<td><code>_program</code></td>
-<td>Executable name or full path</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>list</code></td>
-<td><code>_args</code></td>
-<td>List of command-line arguments (strings)</td>
-<td><code>[]</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong>  </p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>boolean</code></td>
-<td><code>true</code> if the process was successfully started, and <code>false</code> if for any reason it fails to start</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong><br />
-- <code>TypeError</code> — if <code>_args</code> is not a list of strings</p>
-<p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># Open Kiwi in VS Code
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>const KIWI_PATH = env::bin().to_path().parent().find(&#39;kiwi&#39;).path
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>sys::open(&quot;code&quot;, [KIWI_PATH, &quot;--new-window&quot;])
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a># Open our favorite repository in Firefox (a superior browser).
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>sys::open(&quot;firefox&quot;, [&quot;https://github.com/fuseraft/kiwi&quot;])
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a># Windows: open notepad.exe
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>sys::open(&quot;start&quot;, [&quot;notepad.exe&quot;])
-</span></code></pre></div></p>
-<h3 id="exec_program-_args"><code>exec(_program, _args)</code><a class="headerlink" href="#exec_program-_args" title="Permanent link">&para;</a></h3>
-<p>Runs an external program <strong>synchronously</strong> (blocks until it exits) and returns only the <strong>exit code</strong>.</p>
-<p>Ideal when you only care whether the command succeeded (exit code 0) or failed.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Name</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>string</code></td>
-<td><code>_program</code></td>
-<td>Executable name or full path</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>list</code></td>
-<td><code>_args</code></td>
-<td>List of command-line arguments (strings)</td>
-<td><code>[]</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong>  </p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>integer</code></td>
-<td>Process exit code (0 = success)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong><br />
-- <code>TypeError</code>: if <code>_args</code> is not a list of strings
-- <code>SystemError</code>: if the process cannot be started</p>
-<p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>exit_code = sys::exec(&quot;git&quot;, [&quot;status&quot;, &quot;--porcelain&quot;])
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>if exit_code != 0
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  println &quot;Git command failed with code ${exit_code}&quot;
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>end
-</span></code></pre></div></p>
-<h3 id="execout_program-_args"><code>execout(_program, _args)</code><a class="headerlink" href="#execout_program-_args" title="Permanent link">&para;</a></h3>
-<p>Runs an external program <strong>synchronously</strong> and captures <strong>both stdout and stderr</strong> as strings, along with the exit code.</p>
-<p>This is the most commonly used function when you need to:</p>
-<ul>
-<li>Read command output</li>
-<li>Parse results from tools (git, ffmpeg, curl, etc.)</li>
-<li>Handle both normal output and errors</li>
-</ul>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Name</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>string</code></td>
-<td><code>_program</code></td>
-<td>Executable name or full path</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>list</code></td>
-<td><code>_args</code></td>
-<td>List of command-line arguments (strings)</td>
-<td><code>[]</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong>  </p>
-<table>
-<thead>
-<tr>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>hashmap</code></td>
-<td><code>{ "stdout": string, "stderr": string, "exit_code": integer }</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong><br />
-- <code>TypeError</code>: if <code>_args</code> is not a list of strings
-- <code>SystemError</code>: if the process cannot be started</p>
-<p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>result = sys::execout(&quot;curl&quot;, [
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  &quot;-X&quot;, &quot;POST&quot;,
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  &quot;-H&quot;, &quot;Content-Type: application/json&quot;,
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  &quot;-d&quot;, &#39;{&quot;name&quot;: &quot;Kiwi&quot;, &quot;version&quot;: &quot;1.4.0&quot;}&#39;,
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  &quot;https://httpbin.org/post&quot;
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>])
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>if result.exit_code == 0
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  println &quot;Files:\n${result.stdout}&quot;
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>else
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>  println &quot;Error: ${result.stderr} (code ${result.exit_code})&quot;
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>end
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a># One-liner example: get current git branch
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>branch = sys::execout(&quot;git&quot;, [&quot;rev-parse&quot;, &quot;--abbrev-ref&quot;, &quot;HEAD&quot;]).stdout.trim()
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>println &quot;We are in ${branch}&quot;
-</span></code></pre></div></p>
-<h2 id="important-notes">Important Notes<a class="headerlink" href="#important-notes" title="Permanent link">&para;</a></h2>
-<ul>
-<li>All three functions expect arguments as a <strong>list of strings</strong>. No automatic shell parsing or quoting is performed.</li>
-<li>No shell is involved by default (<code>cmd.exe</code>, <code>bash</code>, <code>/bin/sh</code> etc. are <strong>not</strong> used unless you explicitly pass them as <code>_program</code>).</li>
-<li>To run shell commands with pipes/redirection, you must invoke the shell yourself:</li>
-</ul>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># Run a shell command with pipes
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sys::execout(&quot;bash&quot;, [&quot;-c&quot;, &quot;git log --oneline | head -n 5&quot;])
+<h1 id="json"><code>json</code><a class="headerlink" href="#json" title="Permanent link">&para;</a></h1>
+<p>The <code>json</code> package provides functions for parsing and serializing JSON data. It is automatically loaded by the Kiwi runtime — no explicit import is needed.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># json is pre-loaded; no import required.
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a># To import explicitly:
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>import &quot;json&quot;
 </span></code></pre></div>
-<ul>
-<li>On Windows, you may need to use <code>"cmd.exe"</code> or full paths to executables.</li>
-<li><code>open()</code> usually starts the process detached (no waiting), but behavior depends on OS and program type.</li>
-</ul>
+<hr />
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
+<h3 id="jsonparseinput"><code>json::parse(input)</code><a class="headerlink" href="#jsonparseinput" title="Permanent link">&para;</a></h3>
+<p>Parses a JSON string into a Kiwi value.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>input</code></td>
+<td style="text-align: left;">A JSON-formatted string.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;">A Kiwi value: <code>hashmap</code>, <code>list</code>, <code>string</code>, <code>integer</code>, <code>float</code>, <code>boolean</code>, or <code>null</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>data = json::parse(&#39;{&quot;name&quot;: &quot;Alice&quot;, &quot;age&quot;: 30}&#39;)
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>println data[&quot;name&quot;]  # Alice
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>println data[&quot;age&quot;]   # 30
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>items = json::parse(&#39;[1, 2, 3]&#39;)
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>println items.first()  # 1
+</span></code></pre></div>
+<hr />
+<h3 id="jsonstringifyvalue-pretty"><code>json::stringify(value, pretty?)</code><a class="headerlink" href="#jsonstringifyvalue-pretty" title="Permanent link">&para;</a></h3>
+<p>Serializes a Kiwi value to a JSON string.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>any</code></td>
+<td style="text-align: left;"><code>value</code></td>
+<td style="text-align: left;">The value to serialize.</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>pretty</code></td>
+<td style="text-align: left;">Whether to pretty-print the output.</td>
+<td style="text-align: left;"><code>false</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">A JSON-formatted string.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>data = {name: &quot;Alice&quot;, scores: [95, 87, 92]}
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>println json::stringify(data)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a># {&quot;name&quot;:&quot;Alice&quot;,&quot;scores&quot;:[95,87,92]}
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>println json::stringify(data, true)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a># {
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>#   &quot;name&quot;: &quot;Alice&quot;,
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>#   &quot;scores&quot;: [
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>#     95,
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>#     87,
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>#     92
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>#   ]
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a># }
+</span></code></pre></div>
+<hr />
+<h2 id="round-trip-example">Round-Trip Example<a class="headerlink" href="#round-trip-example" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>original = {id: 1, tags: [&quot;kiwi&quot;, &quot;json&quot;], active: true}
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>encoded = json::stringify(original)
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>decoded = json::parse(encoded)
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>println decoded[&quot;id&quot;]          # 1
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>println decoded[&quot;tags&quot;].first() # kiwi
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>println decoded[&quot;active&quot;]      # true
+</span></code></pre></div>
 
 
 
