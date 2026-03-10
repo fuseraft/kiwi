@@ -2089,10 +2089,7 @@ public class Interpreter
                 }
                 PopFrame();
             }
-            else if (node.FinallyBody.Count == 0)
-            {
-                throw; // Re-throw if no finally-block
-            }
+            // No catch and no finally: bare try...end silently swallows the error.
         }
 
         if (node.FinallyBody.Count > 0)
