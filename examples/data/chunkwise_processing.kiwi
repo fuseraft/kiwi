@@ -45,12 +45,7 @@ fn main()
             end
 
   # Process the data, 200 chunks at a time.
-  process_chunkwise
-  (
-    data,
-    chunk_size,
-    process
-  )
+  process_chunkwise(data, chunk_size, process)
 
   println "finished in ${time::ticksms(time::ticks() - start) / 1000} seconds"
 end
