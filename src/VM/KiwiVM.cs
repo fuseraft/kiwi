@@ -782,7 +782,6 @@ public sealed class KiwiVM
                         var val      = Pop();
                         if (frame.Self != null)
                             frame.Self.InstanceVariables[attrName] = val;
-                        Push(val);
                         break;
                     }
                     case Opcode.LoadStaticAttr:
@@ -804,7 +803,6 @@ public sealed class KiwiVM
                         var val        = Pop();
                         if (!string.IsNullOrEmpty(structName) && _context.HasStruct(structName))
                             _context.Structs[structName].StaticVariables[attrName] = val;
-                        Push(val);
                         break;
                     }
 
