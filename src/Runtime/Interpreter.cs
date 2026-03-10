@@ -4682,7 +4682,10 @@ public class Interpreter
         if (obj.IsObject())
         {
             var inst = obj.GetObject();
-            inst.InstanceVariables.TryGetValue(memberName, out var v);
+            // Instance variables are stored with "@" prefix (e.g. "@tag"); try that first,
+            // then fall back to the bare name for dynamically-set fields.
+            if (!inst.InstanceVariables.TryGetValue("@" + memberName, out var v))
+                inst.InstanceVariables.TryGetValue(memberName, out v);
             return v ?? Value.Default;
         }
         if (obj.IsPackage())
@@ -4711,7 +4714,11 @@ public class Interpreter
     {
         if (obj.IsObject())
         {
-            obj.GetObject().InstanceVariables[memberName] = value;
+            // Instance variables use "@" prefix; write to "@name" if that key exists,
+            // otherwise use the bare name (for dynamically-added fields).
+            var iv = obj.GetObject().InstanceVariables;
+            var key = iv.ContainsKey("@" + memberName) ? "@" + memberName : memberName;
+            iv[key] = value;
             return;
         }
         if (obj.IsPackage())
