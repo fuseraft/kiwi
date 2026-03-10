@@ -4721,6 +4721,11 @@ public class Interpreter
             iv[key] = value;
             return;
         }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap()[Value.CreateString(memberName)] = value;
+            return;
+        }
         if (obj.IsPackage())
         {
             // Package members (constants/functions) are not directly settable via member assignment;
