@@ -558,7 +558,7 @@ fn route(db, method: string, path: string, req): list
 
   # /tasks/:id  — extract numeric ID from path
   if regex::test("^/tasks/\\d+$", path)
-    id = regex::match("\\d+", path)[0].to_integer()
+    id = regex::find("\\d+", path).to_integer()
 
     if method == "GET"
       return handle_get(db, id)

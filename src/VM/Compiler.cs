@@ -105,6 +105,8 @@ public sealed class Compiler
             var (name, defaultExpr) = parameters[i];
             if (defaultExpr == null) continue;
 
+            _chunk.DefaultParamNames.Add(name);
+
             int slot = _locals.FindIndex(l => l.Name == name);
             if (slot < 0) continue;
 
@@ -391,8 +393,8 @@ public sealed class Compiler
             case ASTNodeType.Self:             CompileSelf           ((SelfNode)node,              ln); return true;
             case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
             case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
-            case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return false;
-            case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return false;
+            case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return true;
+            case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return true;
             case ASTNodeType.CaseWhen:         return false; // handled inside CompileCase
             case ASTNodeType.WhileLoop:        CompileWhile          ((WhileLoopNode)node,         ln); return false;
             case ASTNodeType.RepeatLoop:       CompileRepeat         ((RepeatLoopNode)node,        ln); return false;
@@ -743,11 +745,11 @@ public sealed class Compiler
                 // No condition matched → skip to next when
                 nextWhenJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
 
-                // Body target: pop testVal and run body
+                // Body target: pop testVal and run body as expression
                 int bodyTarget = _chunk.Code.Count;
                 foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
                 _chunk.Emit(Opcode.Pop, 0, 0, ln); // discard testVal
-                CompileBody(when.Body);
+                CompileBodyExpr(when.Body);         // leaves value on stack
                 endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
 
                 // Patch "no match" jumps to here
@@ -755,7 +757,7 @@ public sealed class Compiler
                 foreach (var j in nextWhenJumps) PatchJumpTo(j, nextTarget);
             }
 
-            // Else: pop testVal then run else body
+            // Else: pop testVal then run else body as expression
             _chunk.Emit(Opcode.Pop, 0, 0, ln);
         }
         else
@@ -777,7 +779,7 @@ public sealed class Compiler
 
                 int bodyTarget = _chunk.Code.Count;
                 foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
-                CompileBody(when.Body);
+                CompileBodyExpr(when.Body);         // leaves value on stack
                 endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
 
                 int nextTarget = _chunk.Code.Count;
@@ -785,7 +787,8 @@ public sealed class Compiler
             }
         }
 
-        CompileBody(node.ElseBody);
+        // Else body (or null if absent)
+        CompileBodyExpr(node.ElseBody);
 
         int end = _chunk.Code.Count;
         foreach (var j in endJumps) PatchJumpTo(j, end);
@@ -947,7 +950,7 @@ public sealed class Compiler
         // Main branch
         CompileNode(node.Condition!);
         int nextBranch = EmitJump(Opcode.JumpF, ln);
-        CompileBody(node.Body);
+        CompileBodyExpr(node.Body);
         endJumps.Add(EmitJump(Opcode.Jump, ln));
         PatchJump(nextBranch);
 
@@ -957,13 +960,13 @@ public sealed class Compiler
             if (elsif == null) continue;
             CompileNode(elsif.Condition!);
             nextBranch = EmitJump(Opcode.JumpF, ln);
-            CompileBody(elsif.Body);
+            CompileBodyExpr(elsif.Body);
             endJumps.Add(EmitJump(Opcode.Jump, ln));
             PatchJump(nextBranch);
         }
 
-        // Else
-        CompileBody(node.ElseBody);
+        // Else (or null if absent)
+        CompileBodyExpr(node.ElseBody);
 
         int end = _chunk.Code.Count;
         foreach (var j in endJumps) PatchJumpTo(j, end);
@@ -1291,9 +1294,10 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void CompileFuncCall(FunctionCallNode node, int ln)
     {
         if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
-        // KiwiBuiltins (typeof, __execpath__, __entrypath__, __tokenize__) are handled
-        // entirely by the interpreter and are not findable via LoadGlobal, so fall back.
-        if (KiwiBuiltin.IsBuiltin(node.Op)) { Fallback(node); return; }
+        // Any function whose Op is not a plain Identifier token is a language builtin
+        // (e.g. typeof, deserialize, serialize) handled entirely by the interpreter —
+        // not findable via LoadGlobal, so fall back.
+        if (node.Op != TokenName.Default) { Fallback(node); return; }
         // Package-prefixed calls (e.g. math::round): evaluate arguments via VM so that
         // VM-local variables (e.g. mangled var-block names) are read from the correct
         // stack slots, then dispatch through DoCall which invokes the interpreter with
@@ -1323,6 +1327,23 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     }
 
     /// <summary>
+    /// Compile a body as an expression: all but the last statement in statement context;
+    /// the last statement is compiled via CompileNode so its value stays on the stack.
+    /// If the body is empty or the last node is not an expression, pushes Null.
+    /// </summary>
+    private void CompileBodyExpr(IEnumerable<ASTNode?> stmts)
+    {
+        var body = stmts.Where(s => s != null).ToList();
+        if (body.Count == 0) { _chunk.Emit(Opcode.Null); return; }
+
+        for (int i = 0; i < body.Count - 1; i++)
+            CompileStatement(body[i]!);
+
+        if (!CompileNode(body[^1]!))
+            _chunk.Emit(Opcode.Null);
+    }
+
+    /// <summary>
     /// Compile a function/lambda body: all but the last statement in statement context;
     /// the last statement is compiled in expression context so its value is implicitly
     /// returned (matching the tree-walker's ExecuteBody semantics).
@@ -1344,7 +1365,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             _chunk.Emit(Opcode.Return);
             return true;
         }
-        // Last statement was control-flow (Return, If, loop, etc.) — it handled its own return.
+        // Last statement was control-flow (Return, loop, etc.) — it handled its own return.
         // Caller will emit EmitFinalReturn as a safety net (unreachable after explicit returns).
         return false;
     }

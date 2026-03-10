@@ -241,6 +241,20 @@ public class Interpreter
             }
 
             var func = Context.Lambdas[targetLambda];
+
+            // If the lambda was compiled to VM bytecode, delegate to a fresh per-task VM.
+            // InvokeEvent is called from TaskManager.Spawn on a thread-pool thread.  Thread-pool
+            // threads are reused, so KiwiVM.Current may still hold a stale VM from a previous
+            // task on this thread — always create a new one here.
+            // Use func.CapturedScope (= main interpreter's global scope) so the task can see
+            // globals like DB_PATH, HOST, etc. that were set at program startup.
+            if (func.VMChunk != null)
+            {
+                PopFrame(); // undo the lambdaFrame pushed above
+                var vm = new VM.KiwiVM(this, func.CapturedScope ?? GetGlobalScope());
+                return vm.InvokeVMCallable(func, args, token, null);
+            }
+
             var typeHints = func.TypeHints;
             var returnTypeHint = func.ReturnTypeHint;
             var defaultParameters = func.DefaultParameters;
@@ -268,10 +282,9 @@ public class Interpreter
 
             return result;
         }
-        catch (Exception ex)
+        catch
         {
-            ErrorHandler.DumpCrashLog(ex);
-            throw;
+            throw; // Let TaskManager.Spawn catch and record it; don't call DumpCrashLog
         }
         finally
         {
@@ -4421,6 +4434,17 @@ public class Interpreter
     /// Returns the interpreter's global scope (shared with the VM).
     /// </summary>
     public Scope GetGlobalScope() => _globalScope;
+
+    /// <summary>
+    /// Push a synthetic call-stack frame so builtins can safely call CallStack.Peek().
+    /// Used by the VM's InterpFallback handler before delegating to the tree-walker.
+    /// </summary>
+    public void PushVMDispatchFrame(Scope globals)
+        => CallStack.Push(new StackFrame("<vm-dispatch>", globals));
+
+    /// <summary>Pop the synthetic frame pushed by <see cref="PushVMDispatchFrame"/>.</summary>
+    public void PopVMDispatchFrame()
+        => CallStack.Pop();
 
     /// <summary>
     /// Execute a single AST node and return its value (used by InterpFallback).
