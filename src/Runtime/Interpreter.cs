@@ -4584,11 +4584,13 @@ public class Interpreter
 
     private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, List<Value> args)
     {
-        // Reuse the existing callable builtin handler via a synthetic node
+        // Resolve the method name to its TokenName op so CallableBuiltinHandler dispatches correctly.
+        if (!CallableBuiltin.Map.TryGetValue(methodName, out var op))
+            throw new FunctionUndefinedError(token, methodName);
         var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
         var node = new MethodCallNode(
             new LiteralNode(obj) { Token = token },
-            methodName, TokenName.Ops_Assign, argNodes) { Token = token };
+            methodName, op, argNodes) { Token = token };
         return HandleCallableBuiltin(node, args);
     }
 
