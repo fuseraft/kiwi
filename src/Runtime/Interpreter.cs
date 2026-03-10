@@ -21,6 +21,7 @@ public class Interpreter
     public Interpreter()
     {
         _threadCurrent = this;
+        _globalScope.Declare("global", Value.CreateHashmap());
     }
 
     // Used by generator threads to share the global scope and context
@@ -169,9 +170,9 @@ public class Interpreter
         if (vm != null)
         {
             if (callable is KFunction kf && kf.VMChunk != null)
-                return vm.InvokeVMCallable(kf, args, token);
+                return vm.InvokeVMCallable(kf, args, token, instance);
             if (callable is KLambda kl && kl.VMChunk != null)
-                return vm.InvokeVMCallable(kl, args, token);
+                return vm.InvokeVMCallable(kl, args, token, instance);
         }
 
         var scope = new Scope(callable.CapturedScope ?? _globalScope);
@@ -241,6 +242,20 @@ public class Interpreter
             }
 
             var func = Context.Lambdas[targetLambda];
+
+            // If the lambda was compiled to VM bytecode, delegate to a fresh per-task VM.
+            // InvokeEvent is called from TaskManager.Spawn on a thread-pool thread.  Thread-pool
+            // threads are reused, so KiwiVM.Current may still hold a stale VM from a previous
+            // task on this thread — always create a new one here.
+            // Use func.CapturedScope (= main interpreter's global scope) so the task can see
+            // globals like DB_PATH, HOST, etc. that were set at program startup.
+            if (func.VMChunk != null)
+            {
+                PopFrame(); // undo the lambdaFrame pushed above
+                var vm = new VM.KiwiVM(this, func.CapturedScope ?? GetGlobalScope());
+                return vm.InvokeVMCallable(func, args, token, null);
+            }
+
             var typeHints = func.TypeHints;
             var returnTypeHint = func.ReturnTypeHint;
             var defaultParameters = func.DefaultParameters;
@@ -268,10 +283,9 @@ public class Interpreter
 
             return result;
         }
-        catch (Exception ex)
+        catch
         {
-            ErrorHandler.DumpCrashLog(ex);
-            throw;
+            throw; // Let TaskManager.Spawn catch and record it; don't call DumpCrashLog
         }
         finally
         {
@@ -339,9 +353,6 @@ public class Interpreter
         if (node.IsEntryPoint && !Initialized)
         {
             PushFrame("<kiwi>", node.Token, _globalScope);
-
-            // Add the "global" hashmap.
-            _globalScope.Declare("global", Value.CreateHashmap());
             Initialized = true;
         }
 
@@ -2078,10 +2089,7 @@ public class Interpreter
                 }
                 PopFrame();
             }
-            else if (node.FinallyBody.Count == 0)
-            {
-                throw; // Re-throw if no finally-block
-            }
+            // No catch and no finally: bare try...end silently swallows the error.
         }
 
         if (node.FinallyBody.Count > 0)
@@ -2359,7 +2367,7 @@ public class Interpreter
         try
         {
             result = CallLambda(node.Token, lambdaName, node.Arguments, ref doPop);
-            PopFrame();
+            if (doPop) PopFrame();
         }
         catch (KiwiError)
         {
@@ -3222,7 +3230,9 @@ public class Interpreter
         var vm = VM.KiwiVM.Current;
         if (vm != null && func.VMChunk != null)
         {
-            var evaluatedArgs = node.Arguments.Select(a => a != null ? Interpret(a) : Value.Default).ToList();
+            // Named args must be resolved to positional order matching the parameter list.
+            var slots = ResolveArguments(func.Parameters, node.Arguments, defaultParameters, node.Token, functionName, func.VariadicParamName);
+            var evaluatedArgs = slots.Select(v => v ?? Value.Default).ToList();
             PushFrame(functionFrame); // placeholder so caller's PopFrame is balanced
             return vm.InvokeVMCallable(func, evaluatedArgs, node.Token);
         }
@@ -3318,6 +3328,17 @@ public class Interpreter
         }
 
         var func = Context.Lambdas[targetLambda];
+
+        // If this lambda was compiled to VM bytecode, delegate to the VM.
+        // The synthetic LambdaNode built at compile time has an empty body,
+        // so we must NOT fall through to the AST-walk path below.
+        var vm = VM.KiwiVM.Current;
+        if (vm != null && func.VMChunk != null)
+        {
+            doPop = false; // no interpreter frame was pushed; caller must NOT PopFrame()
+            return vm.InvokeVMCallable(func, EvaluateCallArgs(args), token);
+        }
+
         var typeHints = func.TypeHints;
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
@@ -4421,6 +4442,17 @@ public class Interpreter
     public Scope GetGlobalScope() => _globalScope;
 
     /// <summary>
+    /// Push a synthetic call-stack frame so builtins can safely call CallStack.Peek().
+    /// Used by the VM's InterpFallback handler before delegating to the tree-walker.
+    /// </summary>
+    public void PushVMDispatchFrame(Scope globals)
+        => CallStack.Push(new StackFrame("<vm-dispatch>", globals));
+
+    /// <summary>Pop the synthetic frame pushed by <see cref="PushVMDispatchFrame"/>.</summary>
+    public void PopVMDispatchFrame()
+        => CallStack.Pop();
+
+    /// <summary>
     /// Execute a single AST node and return its value (used by InterpFallback).
     /// </summary>
     public Value InterpretNode(ASTNode node)
@@ -4430,6 +4462,37 @@ public class Interpreter
         if (CallStack.Count == 0)
             return EntryPoint(node);
         return Interpret(node);
+    }
+
+    /// <summary>
+    /// Execute a single AST node with VM-local variables injected into a temporary
+    /// interpreter scope so that expressions inside the node (e.g. argument sub-expressions
+    /// in named-arg calls) can resolve VM locals by name.
+    /// After execution, any variables that were modified in the interpreter scope are
+    /// written back into <paramref name="locals"/> so the VM can update its stack.
+    /// </summary>
+    public Value InterpretNodeWithLocals(ASTNode node, Dictionary<string, Value> locals)
+    {
+        var scope = new Scope(_globalScope);
+        foreach (var kv in locals)
+            scope.Declare(kv.Key, kv.Value);
+
+        var frame = new StackFrame("<vm-fallback>", scope);
+        CallStack.Push(frame);
+        try
+        {
+            return Interpret(node);
+        }
+        finally
+        {
+            CallStack.Pop();
+            // Sync any written-back values to the caller's dictionary.
+            foreach (var kv in locals.Keys.ToList())
+            {
+                if (scope.TryGet(kv, out var updated))
+                    locals[kv] = updated;
+            }
+        }
     }
 
     /// <summary>
@@ -4450,7 +4513,14 @@ public class Interpreter
 
         // Builtin method dispatch — resolve string name → TokenName
         if (ListBuiltin.Map.TryGetValue(methodName, out TokenName listOp))
-            return ListBuiltinHandler.HandleListBuiltin(token, ref obj, listOp, args);
+        {
+            // HandleListBuiltin peeks the call stack to detect early returns from lambdas.
+            // Push a synthetic frame when the VM calls us with an empty stack.
+            bool pushedFrame = CallStack.Count == 0;
+            if (pushedFrame) CallStack.Push(new StackFrame("<vm-dispatch>", _globalScope));
+            try   { return ListBuiltinHandler.HandleListBuiltin(token, ref obj, listOp, args); }
+            finally { if (pushedFrame) CallStack.Pop(); }
+        }
         if (CallableBuiltin.Map.TryGetValue(methodName, out _))
             return HandleCallableBuiltinDirect(token, obj, methodName, args);
         if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))
@@ -4502,16 +4572,25 @@ public class Interpreter
         var struc = Context.Structs[structName];
         if (!struc.Methods.TryGetValue(methodName, out KFunction? fn))
             throw new UnimplementedMethodError(token, structName, methodName);
+        // Constructor: create an instance, pass it as context, and return the object.
+        if (methodName == "new")
+        {
+            var inst = new InstanceRef { StructName = structName, Identifier = structName };
+            InvokeCallable(fn, args, token, methodName, inst);
+            return Value.CreateObject(inst);
+        }
         return InvokeCallable(fn, args, token, methodName);
     }
 
     private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, List<Value> args)
     {
-        // Reuse the existing callable builtin handler via a synthetic node
+        // Resolve the method name to its TokenName op so CallableBuiltinHandler dispatches correctly.
+        if (!CallableBuiltin.Map.TryGetValue(methodName, out var op))
+            throw new FunctionUndefinedError(token, methodName);
         var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
         var node = new MethodCallNode(
             new LiteralNode(obj) { Token = token },
-            methodName, TokenName.Ops_Assign, argNodes) { Token = token };
+            methodName, op, argNodes) { Token = token };
         return HandleCallableBuiltin(node, args);
     }
 
@@ -4602,7 +4681,10 @@ public class Interpreter
         if (obj.IsObject())
         {
             var inst = obj.GetObject();
-            inst.InstanceVariables.TryGetValue(memberName, out var v);
+            // Instance variables are stored with "@" prefix (e.g. "@tag"); try that first,
+            // then fall back to the bare name for dynamically-set fields.
+            if (!inst.InstanceVariables.TryGetValue("@" + memberName, out var v))
+                inst.InstanceVariables.TryGetValue(memberName, out v);
             return v ?? Value.Default;
         }
         if (obj.IsPackage())
@@ -4631,7 +4713,16 @@ public class Interpreter
     {
         if (obj.IsObject())
         {
-            obj.GetObject().InstanceVariables[memberName] = value;
+            // Instance variables use "@" prefix; write to "@name" if that key exists,
+            // otherwise use the bare name (for dynamically-added fields).
+            var iv = obj.GetObject().InstanceVariables;
+            var key = iv.ContainsKey("@" + memberName) ? "@" + memberName : memberName;
+            iv[key] = value;
+            return;
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap()[Value.CreateString(memberName)] = value;
             return;
         }
         if (obj.IsPackage())

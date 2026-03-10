@@ -4,8 +4,7 @@ A demonstration of the xml stdlib package.
 
 require "xml"
 
-doc = xml::parse('
-<?xml version="1.0" encoding="UTF-8"?>
+doc = xml::parse('<?xml version="1.0" encoding="UTF-8"?>
 <!-- A simple bookstore catalog -->
 <bookstore country="US">
   <book id="b1" genre="fiction">
