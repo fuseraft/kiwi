@@ -294,6 +294,11 @@ public sealed class KiwiVM
                             _nameCache[name] = v; // struct definitions are stable
                             Push(v);
                         }
+                        else if (_globals.TryGet(name, out var gv) && !gv.IsNull())
+                        {
+                            Push(gv); // user-assigned global shadows package names
+                            // Don't cache: mutable
+                        }
                         else if (_context.HasPackage(name))
                         {
                             var v = Value.CreatePackage(name);
@@ -302,13 +307,12 @@ public sealed class KiwiVM
                         }
                         else
                         {
-                            bool found = _globals.TryGet(name, out var v);
                             // When not found globally and we're inside a struct method,
                             // treat it as an implicit @.name() call on self.
-                            if (!found && frame.Self != null)
+                            if (frame.Self != null)
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
-                                Push(v);
+                                Push(gv); // gv is null/default here
                             // Don't cache mutable globals
                         }
                         break;
