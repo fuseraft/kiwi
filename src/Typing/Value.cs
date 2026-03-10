@@ -17,16 +17,23 @@ public class InstanceRef
 public class LambdaRef
 {
     public string    Identifier { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// VM-compiled chunk for this lambda, or null for tree-walker.
     /// </summary>
     public Chunk?    VMChunk    { get; set; }
-    
+
     /// <summary>
     /// Captured upvalue cells (set when MakeClosure creates the closure).
     /// </summary>
     public Upvalue[]? VMUpvalues { get; set; }
+
+    /// <summary>
+    /// When non-null, this lambda ref represents a bare method call on self
+    /// inside a struct method (e.g. <c>get_scheme()</c> instead of <c>@.get_scheme()</c>).
+    /// DoCall will dispatch via DispatchMethod on this instance.
+    /// </summary>
+    public InstanceRef? BoundSelf { get; set; }
 }
 
 public class StructRef

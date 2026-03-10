@@ -88,6 +88,19 @@ public sealed class KiwiVM
         Current  = this;
     }
 
+    /// <summary>
+    /// Constructor for task-thread VMs: uses an explicit globals scope (typically the
+    /// main interpreter's global scope, obtained from <see cref="Callable.CapturedScope"/>)
+    /// rather than the fresh task-interpreter scope.
+    /// </summary>
+    public KiwiVM(Interpreter interp, Scope globals)
+    {
+        _interp  = interp;
+        _globals = globals;
+        _context = interp.Context;
+        Current  = this;
+    }
+
     // -- Public entry points ---------------------------------------------------
 
     /// <summary>
@@ -109,20 +122,29 @@ public sealed class KiwiVM
     /// an interpreter-side call (e.g. an interpreted lambda calling a VM-compiled function).
     /// Sets up a new VM frame, runs to completion, and returns the result.
     /// </summary>
-    public Value InvokeVMCallable(Callable callable, List<Value> args, Token token)
+    public Value InvokeVMCallable(Callable callable, List<Value> args, Token token, InstanceRef? instance = null)
     {
         var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
         var upvalues = callable is KFunction kf2 ? (kf2.VMUpvalues ?? []) : (((KLambda)callable).VMUpvalues ?? []);
 
         int calleeBase = _sp;
+        // When called re-entrantly from C# (e.g. LambdaMap), the Return handler writes
+        // the result to _stack[calleeBase - 1] via Push(result). Save and restore that
+        // slot so the caller's temp stack is not clobbered.
+        var savedBelow = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+
         // Push args onto the stack
         foreach (var a in args) Push(a);
         // Zero-initialize remaining local slots beyond args
         SetupCalleeLocals(sub, calleeBase, args.Count);
 
         int stopAt = _frameCount; // run only until this frame completes
-        PushFrame(sub.Name, sub, calleeBase, upvalues, token);
-        return RunLoop(stopAt);
+        PushFrame(sub.Name, sub, calleeBase, upvalues, token, instance);
+        var r = RunLoop(stopAt);
+
+        // Restore the slot clobbered by the Return handler's Push(result).
+        if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
+        return r;
     }
 
     // -- Frame management ------------------------------------------------------
@@ -137,7 +159,8 @@ public sealed class KiwiVM
         var frame = new VMFrame(name, chunk, stackBase, upvalues)
         {
             CallSiteToken = callSiteToken,
-            Self          = self
+            Self          = self,
+            StructName    = self?.StructName ?? string.Empty
         };
         _frames[_frameCount++] = frame;
     }
@@ -271,6 +294,11 @@ public sealed class KiwiVM
                             _nameCache[name] = v; // struct definitions are stable
                             Push(v);
                         }
+                        else if (_globals.TryGet(name, out var gv) && !gv.IsNull())
+                        {
+                            Push(gv); // user-assigned global shadows package names
+                            // Don't cache: mutable
+                        }
                         else if (_context.HasPackage(name))
                         {
                             var v = Value.CreatePackage(name);
@@ -279,8 +307,12 @@ public sealed class KiwiVM
                         }
                         else
                         {
-                            _globals.TryGet(name, out var v);
-                            Push(v);
+                            // When not found globally and we're inside a struct method,
+                            // treat it as an implicit @.name() call on self.
+                            if (frame.Self != null)
+                                Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
+                            else
+                                Push(gv); // gv is null/default here
                             // Don't cache mutable globals
                         }
                         break;
@@ -319,37 +351,37 @@ public sealed class KiwiVM
                     case Opcode.Add:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Add(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Add) ?? MathOp.Add(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Sub:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Sub(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Subtract) ?? MathOp.Sub(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Mul:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Mul(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Multiply) ?? MathOp.Mul(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Div:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Div(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Divide) ?? MathOp.Div(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Mod:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Mod(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Modulus) ?? MathOp.Mod(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Pow:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(MathOp.Exp(frame.GetToken(), ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Exponent) ?? MathOp.Exp(frame.GetToken(), ref l, ref r));
                         break;
                     }
                     case Opcode.Neg:
@@ -572,6 +604,8 @@ public sealed class KiwiVM
                         };
                         foreach (var (pn, _) in kfunc.Decl.Parameters)
                             kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            kfunc.DefaultParameters.Add(pn);
                         kfunc.CapturedScope = _globals;
 
                         _context.Functions[funcName] = kfunc;
@@ -593,6 +627,8 @@ public sealed class KiwiVM
                         };
                         foreach (var pn in sub.ParamNames)
                             klambda.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            klambda.DefaultParameters.Add(pn);
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             klambda.VariadicParamName = sub.VariadicParamName;
 
@@ -750,7 +786,6 @@ public sealed class KiwiVM
                         var val      = Pop();
                         if (frame.Self != null)
                             frame.Self.InstanceVariables[attrName] = val;
-                        Push(val);
                         break;
                     }
                     case Opcode.LoadStaticAttr:
@@ -772,7 +807,6 @@ public sealed class KiwiVM
                         var val        = Pop();
                         if (!string.IsNullOrEmpty(structName) && _context.HasStruct(structName))
                             _context.Structs[structName].StaticVariables[attrName] = val;
-                        Push(val);
                         break;
                     }
 
@@ -884,8 +918,11 @@ public sealed class KiwiVM
                                 state.Hashmap.TryGetValue(key, out var val);
                                 if (numVars == 2)
                                 {
-                                    Push(key);
+                                    // Push val first so key ends up on top.
+                                    // CompileForLoop pops top into valName (first var = key)
+                                    // and next into idxName (second var = value).
                                     Push(val ?? Value.Default);
+                                    Push(key);
                                 }
                                 else Push(key);
                             }
@@ -1007,7 +1044,38 @@ public sealed class KiwiVM
                     case Opcode.InterpFallback:
                     {
                         var node = frame.Chunk.NodePool[A];
-                        var r    = _interp.InterpretNode(node);
+                        Value r;
+                        // Ensure the interpreter call-stack is non-empty so that builtins
+                        // (e.g. ListBuiltinHandler) can safely call CallStack.Peek().
+                        bool pushedFrame = _interp.CallStack.Count == 0;
+                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals);
+                        try
+                        {
+                            // If there are named locals in the current frame, expose them to the
+                            // interpreter so that sub-expressions (e.g. named-arg values) can
+                            // resolve VM-local variables by name.
+                            if (frame.Chunk.LocalNames.Count > 0)
+                            {
+                                var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                                foreach (var (name, slot) in frame.Chunk.LocalNames)
+                                    locals[name] = _stack[frame.StackBase + slot];
+                                r = _interp.InterpretNodeWithLocals(node, locals);
+                                // Sync any updated locals back to the VM stack.
+                                foreach (var (name, slot) in frame.Chunk.LocalNames)
+                                {
+                                    if (locals.TryGetValue(name, out var updated))
+                                        _stack[frame.StackBase + slot] = updated;
+                                }
+                            }
+                            else
+                            {
+                                r = _interp.InterpretNode(node);
+                            }
+                        }
+                        finally
+                        {
+                            if (pushedFrame) _interp.PopVMDispatchFrame();
+                        }
                         Push(r);
                         break;
                     }
@@ -1067,6 +1135,17 @@ public sealed class KiwiVM
         if (funcVal.IsLambda())
         {
             var lr = funcVal.GetLambda();
+
+            // Bare method call on self inside a struct method: dispatch as @.method()
+            if (lr.BoundSelf != null)
+            {
+                var selfVal = Value.CreateObject(lr.BoundSelf);
+                var args    = CollectArgs(calleeBase, argc);
+                _sp = funcSlot;
+                Push(_interp.DispatchMethod(selfVal, lr.Identifier, args, token));
+                return false;
+            }
+
 
             // VM-compiled lambda?
             if (lr.VMChunk != null)
@@ -1145,6 +1224,37 @@ public sealed class KiwiVM
             Push(callResult);
             return false;
         }
+    }
+
+    // -- Struct operator overload dispatch -------------------------------------
+
+    /// <summary>
+    /// If <paramref name="left"/> is a struct instance that defines an operator
+    /// method matching <paramref name="op"/>, invoke it and return the result.
+    /// Returns null when no overload is found (caller should fall through to
+    /// the built-in arithmetic/comparison handler).
+    /// </summary>
+    private Value? TryStructOpOverload(Token token, Value left, Value right, TokenName op)
+    {
+        if (!left.IsObject()) return null;
+
+        var inst = left.GetObject();
+        if (!_context.HasStruct(inst.StructName)) return null;
+
+        var struc = _context.Structs[inst.StructName];
+        var opString = Serializer.GetOperatorString(op);
+        if (string.IsNullOrEmpty(opString)) return null;
+
+        KFunction? func = null;
+        if (!struc.Methods.TryGetValue(opString, out func) && !string.IsNullOrEmpty(struc.BaseStruct))
+        {
+            if (_context.HasStruct(struc.BaseStruct))
+                _context.Structs[struc.BaseStruct].Methods.TryGetValue(opString, out func);
+        }
+
+        if (func == null) return null;
+
+        return _interp.InvokeCallable(func, [right], token, $"{inst.StructName}#{func.Name}", inst);
     }
 
     // -- Call helpers ----------------------------------------------------------

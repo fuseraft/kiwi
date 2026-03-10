@@ -1,5 +1,6 @@
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
+using kiwi.Parsing.Keyword;
 using kiwi.Typing;
 
 namespace kiwi.VM;
@@ -71,6 +72,7 @@ public sealed class Compiler
     {
         var c = new Compiler(fn.Name, enclosing, isGlobal: false);
         c.SetupLocals(fn.Parameters, fn.VariadicParamName, fn.Body);
+        c.EmitDefaultInits(fn.Parameters);
         if (!c.CompileFunctionBody(fn.Body))
             c.EmitFinalReturn();
         foreach (var uv in c._upvalues) c._chunk.Upvalues.Add(uv);
@@ -81,10 +83,43 @@ public sealed class Compiler
     {
         var c = new Compiler("<lambda>", enclosing, isGlobal: false);
         c.SetupLocals(fn.Parameters, fn.VariadicParamName, fn.Body);
+        c.EmitDefaultInits(fn.Parameters);
         if (!c.CompileFunctionBody(fn.Body))
             c.EmitFinalReturn();
         foreach (var uv in c._upvalues) c._chunk.Upvalues.Add(uv);
         return c._chunk;
+    }
+
+    // -- Default parameter initialization --------------------------------------
+
+    /// <summary>
+    /// For each parameter that has a default expression, emits a null-check at
+    /// function entry: if the slot is still null (caller omitted the arg), evaluate
+    /// the default expression and store it into the slot.
+    ///   LoadLocal slot; Null; Eq; JumpF skip; [default expr]; StoreLocal slot; skip:
+    /// </summary>
+    private void EmitDefaultInits(List<KeyValuePair<string, ASTNode?>> parameters)
+    {
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            var (name, defaultExpr) = parameters[i];
+            if (defaultExpr == null) continue;
+
+            _chunk.DefaultParamNames.Add(name);
+
+            int slot = _locals.FindIndex(l => l.Name == name);
+            if (slot < 0) continue;
+
+            _chunk.Emit(Opcode.LoadLocal, slot);
+            _chunk.Emit(Opcode.Null);
+            _chunk.Emit(Opcode.Eq);
+            int jumpIdx = _chunk.Emit(Opcode.JumpF, 0); // jump over default if arg was provided
+            if (CompileNode(defaultExpr))
+                _chunk.Emit(Opcode.StoreLocal, slot);
+            else
+                _chunk.Emit(Opcode.Null); // no-op fallback (shouldn't happen for valid defaults)
+            _chunk.PatchJump(jumpIdx, _chunk.Code.Count);
+        }
     }
 
     // -- Local variable setup --------------------------------------------------
@@ -115,6 +150,10 @@ public sealed class Compiler
         }
 
         _chunk.LocalCount = _slotCount;
+
+        // Publish name→slot mapping so the VM can expose locals to interpreter fallbacks.
+        foreach (var lv in _locals)
+            _chunk.LocalNames.Add((lv.Name, lv.Slot));
     }
 
     // -- Name pre-scan ---------------------------------------------------------
@@ -152,36 +191,30 @@ public sealed class Compiler
                 break;
             case ASTNodeType.ForLoop:
             {
+                // Iterator variables are always loop-locals; body assignments follow
+                // outer-scope shadowing (resolved at runtime via EmitStore).
                 var fl = (ForLoopNode)node;
                 if (fl.ValueIterator is IdentifierNode vi) out_.Add(vi.Name);
                 if (fl.IndexIterator is IdentifierNode ii) out_.Add(ii.Name);
-                foreach (var s in fl.Body) if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.RepeatLoop:
             {
                 var rl = (RepeatLoopNode)node;
                 if (rl.Alias is IdentifierNode al) out_.Add(al.Name);
-                foreach (var s in rl.Body) if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.If:
-            {
-                var ifn = (IfNode)node;
-                foreach (var s in ifn.Body)      if (s != null) ScanNode(s, out_);
-                foreach (var ei in ifn.ElsifNodes) if (ei != null) ScanNode(ei, out_);
-                foreach (var s in ifn.ElseBody)  if (s != null) ScanNode(s, out_);
+                // Do not recurse: assignments inside conditional branches should resolve
+                // against outer scope at runtime (StoreLocal if already a local, StoreGlobal
+                // otherwise), matching the tree-walker's dynamic-scope behaviour.
                 break;
-            }
             case ASTNodeType.WhileLoop:
-                foreach (var s in ((WhileLoopNode)node).Body) if (s != null) ScanNode(s, out_);
-                break;
+                break; // same reasoning as If
             case ASTNodeType.Try:
             {
                 var tn = (TryNode)node;
-                foreach (var s in tn.TryBody)     if (s != null) ScanNode(s, out_);
-                foreach (var s in tn.CatchBody)   if (s != null) ScanNode(s, out_);
-                foreach (var s in tn.FinallyBody) if (s != null) ScanNode(s, out_);
+                // Only the catch-clause binding names are explicit locals.
                 if (tn.ErrorType    is IdentifierNode et) out_.Add(et.Name);
                 if (tn.ErrorMessage is IdentifierNode em) out_.Add(em.Name);
                 break;
@@ -190,12 +223,9 @@ public sealed class Compiler
             {
                 var cn = (CaseNode)node;
                 if (cn.TestValueAlias is IdentifierNode tva) out_.Add(tva.Name);
-                foreach (var w in cn.WhenNodes) ScanNode(w, out_);
-                foreach (var s in cn.ElseBody)  if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.CaseWhen:
-                foreach (var s in ((CaseWhenNode)node).Body) if (s != null) ScanNode(s, out_);
                 break;
             // Never recurse into nested function scopes
             case ASTNodeType.Function:
@@ -336,7 +366,7 @@ public sealed class Compiler
             case ASTNodeType.Literal:          CompileLiteral        ((LiteralNode)node,          ln); return true;
             case ASTNodeType.Identifier:       EmitLoad              (((IdentifierNode)node).Name, ln); return true;
             case ASTNodeType.Variable:         CompileVariable       ((VariableNode)node,          ln); return false;
-            case ASTNodeType.Assignment:       CompileAssignment     ((AssignmentNode)node,        ln); return false;
+            case ASTNodeType.Assignment:       return CompileAssignment((AssignmentNode)node,        ln);
             case ASTNodeType.ConstAssignment:  CompileConstAssign    ((ConstAssignmentNode)node,   ln); return false;
             case ASTNodeType.PackAssignment:   CompilePackAssign     ((PackAssignmentNode)node,    ln); return false;
             case ASTNodeType.BinaryOperation:  CompileBinary         ((BinaryOperationNode)node,   ln); return true;
@@ -354,8 +384,8 @@ public sealed class Compiler
             case ASTNodeType.Self:             CompileSelf           ((SelfNode)node,              ln); return true;
             case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
             case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
-            case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return false;
-            case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return false;
+            case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return true;
+            case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return true;
             case ASTNodeType.CaseWhen:         return false; // handled inside CompileCase
             case ASTNodeType.WhileLoop:        CompileWhile          ((WhileLoopNode)node,         ln); return false;
             case ASTNodeType.RepeatLoop:       CompileRepeat         ((RepeatLoopNode)node,        ln); return false;
@@ -414,28 +444,57 @@ public sealed class Compiler
     {
         foreach (var (name, init) in node.Variables)
         {
-            if (init != null) { CompileNode(init); EmitStore(name, ln); }
+            if (init != null)
+            {
+                CompileNode(init);
+                EmitStore(name, ln);
+            }
+            else if (node.TypeHints.TryGetValue(name, out var hints) && hints.Count > 0
+                     && TypeRegistry.IsPrimitive(hints[0]))
+            {
+                // Emit a type-appropriate zero/default so that compound ops like += work.
+                switch (TypeRegistry.GetValueType(hints[0]))
+                {
+                    case Typing.ValueType.Boolean: _chunk.Emit(Opcode.False,  0, 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Integer: _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateInteger(0)), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Float:   _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateFloat(0.0)), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.String:  _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateString("")), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.List:    _chunk.Emit(Opcode.BuildList, 0, 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Hashmap: _chunk.Emit(Opcode.BuildHashmap, 0, 0, ln); EmitStore(name, ln); break;
+                }
+            }
         }
     }
 
     // -- Assignment ------------------------------------------------------------
 
-    private void CompileAssignment(AssignmentNode node, int ln)
+    /// <summary>
+    /// Returns true if a value is left on the stack (expression context).
+    /// Conditional (when-guard) assignments never leave a value — the condition may be
+    /// false, making the stack state after the skip-jump unpredictable.
+    /// </summary>
+    private bool CompileAssignment(AssignmentNode node, int ln)
     {
         if (node.Condition != null)
         {
             CompileNode(node.Condition);
             int skip = EmitJump(Opcode.JumpF, ln);
-            DoAssignment(node, ln);
+            DoAssignment(node, ln, leaveValue: false);
             PatchJump(skip);
+            return false;
         }
-        else
-        {
-            DoAssignment(node, ln);
-        }
+
+        return DoAssignment(node, ln, leaveValue: true);
     }
 
-    private void DoAssignment(AssignmentNode node, int ln)
+    /// <summary>
+    /// Emits code that evaluates and stores an assignment.
+    /// When <paramref name="leaveValue"/> is true, leaves the assigned value on the stack
+    /// for use as an expression (e.g. implicit return from a lambda body).
+    /// StoreSelfAttr / StoreStaticAttr already push the value back in the VM, so they
+    /// always leave a value regardless of <paramref name="leaveValue"/>.
+    /// </summary>
+    private bool DoAssignment(AssignmentNode node, int ln, bool leaveValue = false)
     {
         // Simple identifier LHS is when Left is null or is an IdentifierNode.
         bool isSimple = node.Left == null || node.Left is IdentifierNode;
@@ -456,8 +515,9 @@ public sealed class Compiler
                     if (node.Initializer != null) CompileNode(node.Initializer);
                     else _chunk.Emit(Opcode.Null, 0, 0, ln);
                 }
+                if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
                 _chunk.Emit(Opcode.StoreSelfAttr, ni, 0, ln);
-                return;
+                return leaveValue;
             }
             // @@name = val  or  @@name op= val  → StoreStaticAttr
             if (node.Left is StaticSelfNode)
@@ -474,11 +534,12 @@ public sealed class Compiler
                     if (node.Initializer != null) CompileNode(node.Initializer);
                     else _chunk.Emit(Opcode.Null, 0, 0, ln);
                 }
+                if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
                 _chunk.Emit(Opcode.StoreStaticAttr, ni, 0, ln);
-                return;
+                return leaveValue;
             }
             // Other complex LHS → fallback
-            Fallback(node); return;
+            Fallback(node); return false;
         }
 
         bool compound = node.Op != TokenName.Ops_Assign;
@@ -493,7 +554,9 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
         }
+        if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
         EmitStore(node.Name, ln);
+        return leaveValue;
     }
 
     // -- Const assignment ------------------------------------------------------
@@ -706,11 +769,11 @@ public sealed class Compiler
                 // No condition matched → skip to next when
                 nextWhenJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
 
-                // Body target: pop testVal and run body
+                // Body target: pop testVal and run body as expression
                 int bodyTarget = _chunk.Code.Count;
                 foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
                 _chunk.Emit(Opcode.Pop, 0, 0, ln); // discard testVal
-                CompileBody(when.Body);
+                CompileBodyExpr(when.Body);         // leaves value on stack
                 endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
 
                 // Patch "no match" jumps to here
@@ -718,7 +781,7 @@ public sealed class Compiler
                 foreach (var j in nextWhenJumps) PatchJumpTo(j, nextTarget);
             }
 
-            // Else: pop testVal then run else body
+            // Else: pop testVal then run else body as expression
             _chunk.Emit(Opcode.Pop, 0, 0, ln);
         }
         else
@@ -740,7 +803,7 @@ public sealed class Compiler
 
                 int bodyTarget = _chunk.Code.Count;
                 foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
-                CompileBody(when.Body);
+                CompileBodyExpr(when.Body);         // leaves value on stack
                 endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
 
                 int nextTarget = _chunk.Code.Count;
@@ -748,7 +811,8 @@ public sealed class Compiler
             }
         }
 
-        CompileBody(node.ElseBody);
+        // Else body (or null if absent)
+        CompileBodyExpr(node.ElseBody);
 
         int end = _chunk.Code.Count;
         foreach (var j in endJumps) PatchJumpTo(j, end);
@@ -910,7 +974,7 @@ public sealed class Compiler
         // Main branch
         CompileNode(node.Condition!);
         int nextBranch = EmitJump(Opcode.JumpF, ln);
-        CompileBody(node.Body);
+        CompileBodyExpr(node.Body);
         endJumps.Add(EmitJump(Opcode.Jump, ln));
         PatchJump(nextBranch);
 
@@ -920,13 +984,13 @@ public sealed class Compiler
             if (elsif == null) continue;
             CompileNode(elsif.Condition!);
             nextBranch = EmitJump(Opcode.JumpF, ln);
-            CompileBody(elsif.Body);
+            CompileBodyExpr(elsif.Body);
             endJumps.Add(EmitJump(Opcode.Jump, ln));
             PatchJump(nextBranch);
         }
 
-        // Else
-        CompileBody(node.ElseBody);
+        // Else (or null if absent)
+        CompileBodyExpr(node.ElseBody);
 
         int end = _chunk.Code.Count;
         foreach (var j in endJumps) PatchJumpTo(j, end);
@@ -1254,6 +1318,10 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void CompileFuncCall(FunctionCallNode node, int ln)
     {
         if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
+        // Any function whose Op is not a plain Identifier token is a language builtin
+        // (e.g. typeof, deserialize, serialize) handled entirely by the interpreter —
+        // not findable via LoadGlobal, so fall back.
+        if (node.Op != TokenName.Default) { Fallback(node); return; }
         // Package-prefixed calls (e.g. math::round): evaluate arguments via VM so that
         // VM-local variables (e.g. mangled var-block names) are read from the correct
         // stack slots, then dispatch through DoCall which invokes the interpreter with
@@ -1283,6 +1351,23 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     }
 
     /// <summary>
+    /// Compile a body as an expression: all but the last statement in statement context;
+    /// the last statement is compiled via CompileNode so its value stays on the stack.
+    /// If the body is empty or the last node is not an expression, pushes Null.
+    /// </summary>
+    private void CompileBodyExpr(IEnumerable<ASTNode?> stmts)
+    {
+        var body = stmts.Where(s => s != null).ToList();
+        if (body.Count == 0) { _chunk.Emit(Opcode.Null); return; }
+
+        for (int i = 0; i < body.Count - 1; i++)
+            CompileStatement(body[i]!);
+
+        if (!CompileNode(body[^1]!))
+            _chunk.Emit(Opcode.Null);
+    }
+
+    /// <summary>
     /// Compile a function/lambda body: all but the last statement in statement context;
     /// the last statement is compiled in expression context so its value is implicitly
     /// returned (matching the tree-walker's ExecuteBody semantics).
@@ -1304,7 +1389,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             _chunk.Emit(Opcode.Return);
             return true;
         }
-        // Last statement was control-flow (Return, If, loop, etc.) — it handled its own return.
+        // Last statement was control-flow (Return, loop, etc.) — it handled its own return.
         // Caller will emit EmitFinalReturn as a safety net (unreachable after explicit returns).
         return false;
     }
