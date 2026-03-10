@@ -21,6 +21,7 @@ public class Interpreter
     public Interpreter()
     {
         _threadCurrent = this;
+        _globalScope.Declare("global", Value.CreateHashmap());
     }
 
     // Used by generator threads to share the global scope and context
@@ -352,9 +353,6 @@ public class Interpreter
         if (node.IsEntryPoint && !Initialized)
         {
             PushFrame("<kiwi>", node.Token, _globalScope);
-
-            // Add the "global" hashmap.
-            _globalScope.Declare("global", Value.CreateHashmap());
             Initialized = true;
         }
 
