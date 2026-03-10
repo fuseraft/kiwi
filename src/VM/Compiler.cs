@@ -375,7 +375,7 @@ public sealed class Compiler
             case ASTNodeType.Literal:          CompileLiteral        ((LiteralNode)node,          ln); return true;
             case ASTNodeType.Identifier:       EmitLoad              (((IdentifierNode)node).Name, ln); return true;
             case ASTNodeType.Variable:         CompileVariable       ((VariableNode)node,          ln); return false;
-            case ASTNodeType.Assignment:       CompileAssignment     ((AssignmentNode)node,        ln); return false;
+            case ASTNodeType.Assignment:       return CompileAssignment((AssignmentNode)node,        ln);
             case ASTNodeType.ConstAssignment:  CompileConstAssign    ((ConstAssignmentNode)node,   ln); return false;
             case ASTNodeType.PackAssignment:   CompilePackAssign     ((PackAssignmentNode)node,    ln); return false;
             case ASTNodeType.BinaryOperation:  CompileBinary         ((BinaryOperationNode)node,   ln); return true;
@@ -459,22 +459,33 @@ public sealed class Compiler
 
     // -- Assignment ------------------------------------------------------------
 
-    private void CompileAssignment(AssignmentNode node, int ln)
+    /// <summary>
+    /// Returns true if a value is left on the stack (expression context).
+    /// Conditional (when-guard) assignments never leave a value — the condition may be
+    /// false, making the stack state after the skip-jump unpredictable.
+    /// </summary>
+    private bool CompileAssignment(AssignmentNode node, int ln)
     {
         if (node.Condition != null)
         {
             CompileNode(node.Condition);
             int skip = EmitJump(Opcode.JumpF, ln);
-            DoAssignment(node, ln);
+            DoAssignment(node, ln, leaveValue: false);
             PatchJump(skip);
+            return false;
         }
-        else
-        {
-            DoAssignment(node, ln);
-        }
+
+        return DoAssignment(node, ln, leaveValue: true);
     }
 
-    private void DoAssignment(AssignmentNode node, int ln)
+    /// <summary>
+    /// Emits code that evaluates and stores an assignment.
+    /// When <paramref name="leaveValue"/> is true, leaves the assigned value on the stack
+    /// for use as an expression (e.g. implicit return from a lambda body).
+    /// StoreSelfAttr / StoreStaticAttr already push the value back in the VM, so they
+    /// always leave a value regardless of <paramref name="leaveValue"/>.
+    /// </summary>
+    private bool DoAssignment(AssignmentNode node, int ln, bool leaveValue = false)
     {
         // Simple identifier LHS is when Left is null or is an IdentifierNode.
         bool isSimple = node.Left == null || node.Left is IdentifierNode;
@@ -495,8 +506,9 @@ public sealed class Compiler
                     if (node.Initializer != null) CompileNode(node.Initializer);
                     else _chunk.Emit(Opcode.Null, 0, 0, ln);
                 }
+                if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
                 _chunk.Emit(Opcode.StoreSelfAttr, ni, 0, ln);
-                return;
+                return leaveValue;
             }
             // @@name = val  or  @@name op= val  → StoreStaticAttr
             if (node.Left is StaticSelfNode)
@@ -513,11 +525,12 @@ public sealed class Compiler
                     if (node.Initializer != null) CompileNode(node.Initializer);
                     else _chunk.Emit(Opcode.Null, 0, 0, ln);
                 }
+                if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
                 _chunk.Emit(Opcode.StoreStaticAttr, ni, 0, ln);
-                return;
+                return leaveValue;
             }
             // Other complex LHS → fallback
-            Fallback(node); return;
+            Fallback(node); return false;
         }
 
         bool compound = node.Op != TokenName.Ops_Assign;
@@ -532,7 +545,9 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
         }
+        if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
         EmitStore(node.Name, ln);
+        return leaveValue;
     }
 
     // -- Const assignment ------------------------------------------------------
