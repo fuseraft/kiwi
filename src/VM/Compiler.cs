@@ -191,36 +191,30 @@ public sealed class Compiler
                 break;
             case ASTNodeType.ForLoop:
             {
+                // Iterator variables are always loop-locals; body assignments follow
+                // outer-scope shadowing (resolved at runtime via EmitStore).
                 var fl = (ForLoopNode)node;
                 if (fl.ValueIterator is IdentifierNode vi) out_.Add(vi.Name);
                 if (fl.IndexIterator is IdentifierNode ii) out_.Add(ii.Name);
-                foreach (var s in fl.Body) if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.RepeatLoop:
             {
                 var rl = (RepeatLoopNode)node;
                 if (rl.Alias is IdentifierNode al) out_.Add(al.Name);
-                foreach (var s in rl.Body) if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.If:
-            {
-                var ifn = (IfNode)node;
-                foreach (var s in ifn.Body)      if (s != null) ScanNode(s, out_);
-                foreach (var ei in ifn.ElsifNodes) if (ei != null) ScanNode(ei, out_);
-                foreach (var s in ifn.ElseBody)  if (s != null) ScanNode(s, out_);
+                // Do not recurse: assignments inside conditional branches should resolve
+                // against outer scope at runtime (StoreLocal if already a local, StoreGlobal
+                // otherwise), matching the tree-walker's dynamic-scope behaviour.
                 break;
-            }
             case ASTNodeType.WhileLoop:
-                foreach (var s in ((WhileLoopNode)node).Body) if (s != null) ScanNode(s, out_);
-                break;
+                break; // same reasoning as If
             case ASTNodeType.Try:
             {
                 var tn = (TryNode)node;
-                foreach (var s in tn.TryBody)     if (s != null) ScanNode(s, out_);
-                foreach (var s in tn.CatchBody)   if (s != null) ScanNode(s, out_);
-                foreach (var s in tn.FinallyBody) if (s != null) ScanNode(s, out_);
+                // Only the catch-clause binding names are explicit locals.
                 if (tn.ErrorType    is IdentifierNode et) out_.Add(et.Name);
                 if (tn.ErrorMessage is IdentifierNode em) out_.Add(em.Name);
                 break;
@@ -229,12 +223,9 @@ public sealed class Compiler
             {
                 var cn = (CaseNode)node;
                 if (cn.TestValueAlias is IdentifierNode tva) out_.Add(tva.Name);
-                foreach (var w in cn.WhenNodes) ScanNode(w, out_);
-                foreach (var s in cn.ElseBody)  if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.CaseWhen:
-                foreach (var s in ((CaseWhenNode)node).Body) if (s != null) ScanNode(s, out_);
                 break;
             // Never recurse into nested function scopes
             case ASTNodeType.Function:
