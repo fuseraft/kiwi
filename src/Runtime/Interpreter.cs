@@ -2370,7 +2370,7 @@ public class Interpreter
         try
         {
             result = CallLambda(node.Token, lambdaName, node.Arguments, ref doPop);
-            PopFrame();
+            if (doPop) PopFrame();
         }
         catch (KiwiError)
         {
@@ -3331,6 +3331,17 @@ public class Interpreter
         }
 
         var func = Context.Lambdas[targetLambda];
+
+        // If this lambda was compiled to VM bytecode, delegate to the VM.
+        // The synthetic LambdaNode built at compile time has an empty body,
+        // so we must NOT fall through to the AST-walk path below.
+        var vm = VM.KiwiVM.Current;
+        if (vm != null && func.VMChunk != null)
+        {
+            doPop = false; // no interpreter frame was pushed; caller must NOT PopFrame()
+            return vm.InvokeVMCallable(func, EvaluateCallArgs(args), token);
+        }
+
         var typeHints = func.TypeHints;
         var returnTypeHint = func.ReturnTypeHint;
         var defaultParameters = func.DefaultParameters;
