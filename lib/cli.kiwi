@@ -255,48 +255,72 @@ struct CliParser
       result[name] = @options[name]["default"]
     end
 
-    argv = env::argv().keys()
-    flag_short = {}
+    # env::argv() returns a pre-parsed hashmap: { "key" => "value", "flag" => "true" }
+    argv = env::argv()
 
+    # Build short-name -> long-name maps
+    flag_short = {}
     for name in @flags.keys() do
       s = @flags[name]["short"]
       flag_short[s] = name when s != ""
     end
 
     opt_short = {}
-
     for name in @options.keys() do
       s = @options[name]["short"]
       opt_short[s] = name when s != ""
     end
 
-    i = 0
-    while i < argv.size() do
-      arg = argv[i]
-
-      if arg.starts_with("--")
-        key = arg[2:]
-        if @flags.keys().contains(key)
-          result[key] = true
-        elsif @options.keys().contains(key)
-          i = i + 1
-          result[key] = argv[i] when i < argv.size()
-        end
-      elsif arg.starts_with("-") && arg.size() == 2
-        c = arg[1]
-        if flag_short.keys().contains(c)
-          result[flag_short[c]] = true
-        elsif opt_short.keys().contains(c)
-          i = i + 1
-          result[opt_short[c]] = argv[i] when i < argv.size()
-        end
-      else
-        positional = result["_args"]
-        positional.push(arg)
-        result["_args"] = positional
+    # Match flags (boolean) by long name or short name
+    for name in @flags.keys() do
+      if argv.has_key(name)
+        result[name] = true
       end
 
-      i = i + 1
+      s = @flags[name]["short"]
+      
+      if s != "" && argv.has_key(s)
+        result[name] = true
+      end
+    end
+
+    # Match options (value) by long name or short name
+    for name in @options.keys() do
+      if argv.has_key(name)
+        v = argv.get(name, @options[name]["default"])
+        result[name] = v when v != "true"
+        result[name] = @options[name]["default"] when v == "true"
+      end
+
+      s = @options[name]["short"]
+      
+      if s != "" && argv.has_key(s)
+        v = argv.get(s, @options[name]["default"])
+        result[name] = v when v != "true"
+        result[name] = @options[name]["default"] when v == "true"
+      end
+    end
+
+    # Positional args: keys not matching any flag/option name, with value equal to key
+    all_names = @flags.keys() + @options.keys()
+    all_short = []
+    for name in @flags.keys() do
+      s = @flags[name]["short"]
+      all_short.push(s) when s != ""
+    end
+
+    for name in @options.keys() do
+      s = @options[name]["short"]
+      all_short.push(s) when s != ""
+    end
+
+    for k in argv.keys() do
+      if !all_names.contains(k) && !all_short.contains(k)
+        v = argv.get(k, k)
+        positional = result["_args"]
+        positional.push(k) when v == k
+        result["_args"] = positional
+      end
     end
 
     result

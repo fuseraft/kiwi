@@ -88,6 +88,19 @@ public sealed class KiwiVM
         Current  = this;
     }
 
+    /// <summary>
+    /// Constructor for task-thread VMs: uses an explicit globals scope (typically the
+    /// main interpreter's global scope, obtained from <see cref="Callable.CapturedScope"/>)
+    /// rather than the fresh task-interpreter scope.
+    /// </summary>
+    public KiwiVM(Interpreter interp, Scope globals)
+    {
+        _interp  = interp;
+        _globals = globals;
+        _context = interp.Context;
+        Current  = this;
+    }
+
     // -- Public entry points ---------------------------------------------------
 
     /// <summary>
@@ -587,6 +600,8 @@ public sealed class KiwiVM
                         };
                         foreach (var (pn, _) in kfunc.Decl.Parameters)
                             kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            kfunc.DefaultParameters.Add(pn);
                         kfunc.CapturedScope = _globals;
 
                         _context.Functions[funcName] = kfunc;
@@ -608,6 +623,8 @@ public sealed class KiwiVM
                         };
                         foreach (var pn in sub.ParamNames)
                             klambda.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            klambda.DefaultParameters.Add(pn);
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             klambda.VariadicParamName = sub.VariadicParamName;
 
@@ -899,8 +916,11 @@ public sealed class KiwiVM
                                 state.Hashmap.TryGetValue(key, out var val);
                                 if (numVars == 2)
                                 {
-                                    Push(key);
+                                    // Push val first so key ends up on top.
+                                    // CompileForLoop pops top into valName (first var = key)
+                                    // and next into idxName (second var = value).
                                     Push(val ?? Value.Default);
+                                    Push(key);
                                 }
                                 else Push(key);
                             }
@@ -1023,25 +1043,36 @@ public sealed class KiwiVM
                     {
                         var node = frame.Chunk.NodePool[A];
                         Value r;
-                        // If there are named locals in the current frame, expose them to the
-                        // interpreter so that sub-expressions (e.g. named-arg values) can
-                        // resolve VM-local variables by name.
-                        if (frame.Chunk.LocalNames.Count > 0)
+                        // Ensure the interpreter call-stack is non-empty so that builtins
+                        // (e.g. ListBuiltinHandler) can safely call CallStack.Peek().
+                        bool pushedFrame = _interp.CallStack.Count == 0;
+                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals);
+                        try
                         {
-                            var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
-                            foreach (var (name, slot) in frame.Chunk.LocalNames)
-                                locals[name] = _stack[frame.StackBase + slot];
-                            r = _interp.InterpretNodeWithLocals(node, locals);
-                            // Sync any updated locals back to the VM stack.
-                            foreach (var (name, slot) in frame.Chunk.LocalNames)
+                            // If there are named locals in the current frame, expose them to the
+                            // interpreter so that sub-expressions (e.g. named-arg values) can
+                            // resolve VM-local variables by name.
+                            if (frame.Chunk.LocalNames.Count > 0)
                             {
-                                if (locals.TryGetValue(name, out var updated))
-                                    _stack[frame.StackBase + slot] = updated;
+                                var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                                foreach (var (name, slot) in frame.Chunk.LocalNames)
+                                    locals[name] = _stack[frame.StackBase + slot];
+                                r = _interp.InterpretNodeWithLocals(node, locals);
+                                // Sync any updated locals back to the VM stack.
+                                foreach (var (name, slot) in frame.Chunk.LocalNames)
+                                {
+                                    if (locals.TryGetValue(name, out var updated))
+                                        _stack[frame.StackBase + slot] = updated;
+                                }
+                            }
+                            else
+                            {
+                                r = _interp.InterpretNode(node);
                             }
                         }
-                        else
+                        finally
                         {
-                            r = _interp.InterpretNode(node);
+                            if (pushedFrame) _interp.PopVMDispatchFrame();
                         }
                         Push(r);
                         break;
