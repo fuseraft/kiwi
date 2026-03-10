@@ -444,7 +444,25 @@ public sealed class Compiler
     {
         foreach (var (name, init) in node.Variables)
         {
-            if (init != null) { CompileNode(init); EmitStore(name, ln); }
+            if (init != null)
+            {
+                CompileNode(init);
+                EmitStore(name, ln);
+            }
+            else if (node.TypeHints.TryGetValue(name, out var hints) && hints.Count > 0
+                     && TypeRegistry.IsPrimitive(hints[0]))
+            {
+                // Emit a type-appropriate zero/default so that compound ops like += work.
+                switch (TypeRegistry.GetValueType(hints[0]))
+                {
+                    case Typing.ValueType.Boolean: _chunk.Emit(Opcode.False,  0, 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Integer: _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateInteger(0)), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Float:   _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateFloat(0.0)), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.String:  _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateString("")), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.List:    _chunk.Emit(Opcode.BuildList, 0, 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Hashmap: _chunk.Emit(Opcode.BuildHashmap, 0, 0, ln); EmitStore(name, ln); break;
+                }
+            }
         }
     }
 
