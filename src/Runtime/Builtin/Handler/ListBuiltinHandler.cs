@@ -246,7 +246,7 @@ public class ListBuiltinHandler
         }
 
         var result = Value.Default;
-        var indexValue = Value.Default;
+        var indexValue = Value.CreateInteger(0);
         var decl = lambda.Decl;
 
         for (var i = 0; i < list.Count; ++i)
@@ -428,7 +428,7 @@ public class ListBuiltinHandler
         }
 
         var result = Value.Default;
-        var indexValue = Value.Default;
+        var indexValue = Value.CreateInteger(0);
         var decl = lambda.Decl;
 
         for (var i = 0; i < list.Count; ++i)
@@ -495,7 +495,7 @@ public class ListBuiltinHandler
         }
 
         var result = Value.Default;
-        var indexValue = Value.Default;
+        var indexValue = Value.CreateInteger(0);
         var decl = lambda.Decl;
         List<Value> resultList = [];
 

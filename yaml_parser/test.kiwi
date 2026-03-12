@@ -1,0 +1,227 @@
+/#
+  YAML Parser Test Suite
+  Run: kiwi yaml_parser/test
+#/
+
+include "yaml"
+
+passed = 0
+failed = 0
+
+fn check(label, got, expected)
+  if got == expected
+    println "  [PASS] ${label}"
+    passed += 1
+  else
+    println "  [FAIL] ${label}"
+    println "         expected: ${expected}"
+    println "         got:      ${got}"
+    failed += 1
+  end
+end
+
+fn check_type(label, got, expected_type)
+  t = typeof(got)
+  if t == expected_type
+    println "  [PASS] ${label} (type=${t})"
+    passed += 1
+  else
+    println "  [FAIL] ${label}"
+    println "         expected type: ${expected_type}"
+    println "         got type:      ${t}, value: ${got}"
+    failed += 1
+  end
+end
+
+println "-- Scalars -----------------------------------------------------------------"
+
+check("null ~",          yaml::parse("~"),          null)
+check("null keyword",    yaml::parse("null"),        null)
+check("true",            yaml::parse("true"),        true)
+check("True",            yaml::parse("True"),        true)
+check("false",           yaml::parse("false"),       false)
+check("integer 42",      yaml::parse("42"),          42)
+check("integer -7",      yaml::parse("-7"),          -7)
+check("float 3.14",      yaml::parse("3.14"),        3.14)
+check("plain string",    yaml::parse("hello"),       "hello")
+check("empty string dq", yaml::parse("\"\""),        "")
+check("dq string",       yaml::parse("\"hello\""),   "hello")
+check("sq string",       yaml::parse("'world'"),     "world")
+check("dq escape \\n",   yaml::parse("\"a\\nb\""),   "a\nb")
+check("dq escape \\t",   yaml::parse("\"a\\tb\""),   "a\tb")
+check("sq '' escape",    yaml::parse("'it''s'"),     "it's")
+
+println ""
+println "-- Simple mapping ----------------------------------------------------------"
+
+doc = yaml::parse("name: Alice\nage: 30\nactive: true")
+check("map name",   doc["name"],   "Alice")
+check("map age",    doc["age"],    30)
+check("map active", doc["active"], true)
+
+println ""
+println "-- Nested mapping ----------------------------------------------------------"
+
+yaml2 = "person:\n  name: Bob\n  address:\n    city: Paris\n    zip: 75001"
+doc2 = yaml::parse(yaml2)
+check("nested name",    doc2["person"]["name"],              "Bob")
+check("nested city",    doc2["person"]["address"]["city"],   "Paris")
+check("nested zip",     doc2["person"]["address"]["zip"],    75001)
+
+println ""
+println "-- Sequences ---------------------------------------------------------------"
+
+doc3 = yaml::parse("- apple\n- banana\n- cherry")
+check("seq type",   typeof(doc3),  "list")
+check("seq size",   doc3.size(),   3)
+check("seq[0]",     doc3[0],       "apple")
+check("seq[2]",     doc3[2],       "cherry")
+
+doc4 = yaml::parse("fruits:\n  - apple\n  - banana\nnumber: 99")
+check("map+seq size", doc4["fruits"].size(), 2)
+check("map+seq[1]",   doc4["fruits"][1],     "banana")
+check("map after seq",doc4["number"],         99)
+
+println ""
+println "-- Sequence of mappings ----------------------------------------------------"
+
+people_yaml = "- name: Alice\n  age: 30\n- name: Bob\n  age: 25"
+people = yaml::parse(people_yaml)
+check("people size",     people.size(),        2)
+check("people[0].name",  people[0]["name"],    "Alice")
+check("people[0].age",   people[0]["age"],     30)
+check("people[1].name",  people[1]["name"],    "Bob")
+check("people[1].age",   people[1]["age"],     25)
+
+println ""
+println "-- Flow collections --------------------------------------------------------"
+
+doc5 = yaml::parse("{a: 1, b: 2, c: 3}")
+check("flow map a", doc5["a"], 1)
+check("flow map b", doc5["b"], 2)
+check("flow map c", doc5["c"], 3)
+
+doc6 = yaml::parse("[1, 2, 3, 4, 5]")
+check("flow seq size", doc6.size(), 5)
+check("flow seq[3]",   doc6[3],     4)
+
+doc7 = yaml::parse("coords: {x: 10, y: 20}\ntags: [a, b, c]")
+check("inline map x",   doc7["coords"]["x"], 10)
+check("inline map y",   doc7["coords"]["y"], 20)
+check("inline seq[1]",  doc7["tags"][1],     "b")
+
+println ""
+println "-- Block scalars -----------------------------------------------------------"
+
+lit_yaml = "text: |\n  line one\n  line two\n  line three"
+doc8 = yaml::parse(lit_yaml)
+check("literal block", doc8["text"], "line one\nline two\nline three\n")
+
+fold_yaml = "desc: >\n  This is a long\n  sentence that folds.\n  \n  New paragraph."
+doc9 = yaml::parse(fold_yaml)
+# folded: adjacent lines joined with space, blank line becomes newline
+check("folded type", typeof(doc9["desc"]), "string")
+
+println ""
+println "-- Comments ----------------------------------------------------------------"
+
+cmt_yaml = "# top comment\nname: Kiwi  # inline comment\nversion: 2  # another"
+doc10 = yaml::parse(cmt_yaml)
+check("comment stripped name",    doc10["name"],    "Kiwi")
+check("comment stripped version", doc10["version"], 2)
+
+println ""
+println "-- Document markers --------------------------------------------------------"
+
+doc11 = yaml::parse("---\nname: test\nvalue: 42")
+check("--- marker name",  doc11["name"],  "test")
+check("--- marker value", doc11["value"], 42)
+
+println ""
+println "-- Multi-document ----------------------------------------------------------"
+
+multi = "---\nname: first\n---\nname: second\n---\nname: third"
+docs  = yaml::parse_all(multi)
+check("multidoc count",   docs.size(),       3)
+check("multidoc[0].name", docs[0]["name"],   "first")
+check("multidoc[1].name", docs[1]["name"],   "second")
+check("multidoc[2].name", docs[2]["name"],   "third")
+
+println ""
+println "-- Anchors and aliases -----------------------------------------------------"
+
+anch_yaml = "base: &base\n  x: 10\n  y: 20\npoint:\n  ref: *base"
+doc12 = yaml::parse(anch_yaml)
+check("anchor base x", doc12["base"]["x"], 10)
+check("alias ref",     doc12["point"]["ref"]["x"], 10)
+
+println ""
+println "-- Quoted keys -------------------------------------------------------------"
+
+qk_yaml = "\"key with spaces\": 1\n'another key': 2"
+doc13 = yaml::parse(qk_yaml)
+check("dq key", doc13["key with spaces"], 1)
+check("sq key", doc13["another key"],     2)
+
+println ""
+println "-- Null and boolean values -------------------------------------------------"
+
+nb_yaml = "a: null\nb: ~\nc: true\nd: false\ne: True\nf: False"
+doc14 = yaml::parse(nb_yaml)
+check("null keyword", doc14["a"], null)
+check("tilde null",   doc14["b"], null)
+check("true lc",      doc14["c"], true)
+check("false lc",     doc14["d"], false)
+check("True uc",      doc14["e"], true)
+check("False uc",     doc14["f"], false)
+
+println ""
+println "-- Mixed nesting ------------------------------------------------------------"
+
+mixed_yaml = "project:\n  name: Kiwi\n  tags:\n    - scripting\n    - language\n  version: 1\n  meta:\n    author: fuseraft\n    year: 2024"
+doc15 = yaml::parse(mixed_yaml)
+p = doc15["project"]
+check("mixed name",       p["name"],       "Kiwi")
+check("mixed tags[0]",    p["tags"][0],    "scripting")
+check("mixed tags[1]",    p["tags"][1],    "language")
+check("mixed version",    p["version"],    1)
+check("mixed author",     p["meta"]["author"], "fuseraft")
+check("mixed year",       p["meta"]["year"],   2024)
+
+println ""
+println "-- Stringify ----------------------------------------------------------------"
+
+val_to_str = { name: "Alice", age: 30, active: true }
+s1 = yaml::stringify(val_to_str)
+check_type("stringify map returns string", s1, "string")
+
+# Round-trip: stringify then parse
+rt = yaml::parse(yaml::stringify({ x: 1, y: 2, label: "point" }))
+check("round-trip x",     rt["x"],     1)
+check("round-trip y",     rt["y"],     2)
+check("round-trip label", rt["label"], "point")
+
+rt_list = yaml::parse(yaml::stringify([1, 2, 3]))
+check("round-trip list size", rt_list.size(), 3)
+check("round-trip list[1]",   rt_list[1],     2)
+
+rt_null = yaml::stringify(null)
+check("stringify null", rt_null, "null")
+
+rt_bool = yaml::stringify(true)
+check("stringify true", rt_bool, "true")
+
+println ""
+println "-- Special string values ----------------------------------------------------"
+
+# Strings that look like booleans/null must be quoted on stringify
+s_true  = yaml::stringify("true")
+s_null  = yaml::stringify("null")
+check_type("quoted 'true' string",  yaml::parse(s_true),  "string")
+check_type("quoted 'null' string",  yaml::parse(s_null),  "string")
+
+println ""
+println "----------------------------------------------------------------------------"
+total = passed + failed
+println "Results: ${passed}/${total} passed, ${failed} failed"
+println ""

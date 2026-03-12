@@ -23,7 +23,7 @@ fn section(title)
   println("\n-- ${title} " + ("-" * (40 - title.size())))
 end
 
-# ── Unit circle: sin, cos, tan at common angles ──────────────────────────────
+# -- Unit circle: sin, cos, tan at common angles ------------------------------
 
 section("Unit circle")
 
@@ -41,7 +41,7 @@ for deg in angles do
   println("${label}  sin=${string::padend(s.to_string(), 10)}  cos=${string::padend(c.to_string(), 10)}  tan=${t}")
 end
 
-# ── Pythagorean identity: sin²(θ) + cos²(θ) = 1 ─────────────────────────────
+# -- Pythagorean identity: sin²(θ) + cos²(θ) = 1 -----------------------------
 
 section("Pythagorean identity")
 
@@ -51,7 +51,7 @@ for deg in [0, 30, 45, 60, 90, 123, 210, 315] do
   println("  sin²(${deg}°) + cos²(${deg}°) = ${identity}")
 end
 
-# ── Inverse trig ──────────────────────────────────────────────────────────────
+# -- Inverse trig --------------------------------------------------------------
 
 section("Inverse trig")
 
@@ -61,7 +61,7 @@ println("  atan(1.0)    = ${rnd(rad_to_deg(math::atan(1.0)))}°  (expected 45°)
 println("  atan2(1, 1)  = ${rnd(rad_to_deg(math::atan2(1.0, 1.0)))}°  (expected 45°)")
 println("  atan2(-1, 0) = ${rnd(rad_to_deg(math::atan2(-1.0, 0.0)))}°  (expected -90°)")
 
-# ── Hypotenuse and angle from components ─────────────────────────────────────
+# -- Hypotenuse and angle from components -------------------------------------
 
 section("Hypotenuse and angle from components")
 
@@ -75,7 +75,7 @@ for pair in pairs do
   println("  hypot(${x}, ${y}) = ${h}   angle = ${angle}°")
 end
 
-# ── Hyperbolic functions: cosh²(x) - sinh²(x) = 1 ───────────────────────────
+# -- Hyperbolic functions: cosh²(x) - sinh²(x) = 1 ---------------------------
 
 section("Hyperbolic identity: cosh²(x) - sinh²(x)")
 
@@ -84,7 +84,7 @@ for x in [0.0, 0.5, 1.0, 1.5, 2.0] do
   println("  x=${x}  cosh²(x) - sinh²(x) = ${identity}")
 end
 
-# ── Law of cosines ────────────────────────────────────────────────────────────
+# -- Law of cosines ------------------------------------------------------------
 
 section("Law of cosines: c² = a² + b² - 2ab·cos(C)")
 
@@ -99,7 +99,7 @@ println("  a=${a}, b=${b}, C=60°  →  c = ${rnd(c_side)}")
 recovered = rad_to_deg(math::acos((a ** 2 + b ** 2 - c_side ** 2) / (2.0 * a * b)))
 println("  verify:  acos(...)  →  C = ${rnd(recovered)}°  (expected 60°)")
 
-# ── ASCII sine wave ───────────────────────────────────────────────────────────
+# -- ASCII sine wave -----------------------------------------------------------
 
 section("ASCII sine wave")
 

@@ -18,7 +18,7 @@
 #/
 
 
-/# ─────────────────────────── helpers ──────────────────────────────────────── #/
+/# --------------------------- helpers ---------------------------------------- #/
 
 fn fib(n)
   return n when n < 2
@@ -62,9 +62,9 @@ struct Counter
   fn value() @value end
 end
 
-/# ──────────────────────── register benchmarks ──────────────────────────────── #/
+/# ------------------------ register benchmarks -------------------------------- #/
 
-# ── Integer arithmetic ─────────────────────────────────────────────────────────
+# -- Integer arithmetic ---------------------------------------------------------
 
 bench::register("int: sum while 1..10000", with do
   sum = 0
@@ -100,7 +100,7 @@ bench::register("int: fizzbuzz while 5000", with do
   count
 end)
 
-# ── Float arithmetic ───────────────────────────────────────────────────────────
+# -- Float arithmetic -----------------------------------------------------------
 
 bench::register("float: sum of reciprocals 5000", with do
   sum = 0.0
@@ -120,7 +120,7 @@ bench::register("float: newton sqrt 200 iters", with do
   x
 end)
 
-# ── String operations ──────────────────────────────────────────────────────────
+# -- String operations ----------------------------------------------------------
 
 bench::register("string: join 500-element list", with do
   parts = []
@@ -159,7 +159,7 @@ bench::register("string: contains and index 500x", with do
   found
 end)
 
-# ── List operations ────────────────────────────────────────────────────────────
+# -- List operations ------------------------------------------------------------
 
 bench::register("list: push 2000 elements", with do
   lst = []
@@ -234,7 +234,7 @@ bench::register("list: flatten 100 inner lists", with do
   lst.flatten().sum()
 end)
 
-# ── Hashmap operations ─────────────────────────────────────────────────────────
+# -- Hashmap operations ---------------------------------------------------------
 
 bench::register("hashmap: 500 string-key writes", with do
   h = {}
@@ -274,7 +274,7 @@ bench::register("hashmap: iterate 200 entries", with do
   sum
 end)
 
-# ── Functions & closures ───────────────────────────────────────────────────────
+# -- Functions & closures -------------------------------------------------------
 
 bench::register("fn: 2000 simple calls", with do
   fn add(a, b)
@@ -320,7 +320,7 @@ bench::register("closure: adder factory, 500 calls", with do
   sum
 end)
 
-# ── Structs ────────────────────────────────────────────────────────────────────
+# -- Structs --------------------------------------------------------------------
 
 bench::register("struct: construct 500 Points", with do
   pts = []
@@ -352,7 +352,7 @@ bench::register("struct: Counter.increment 2000x", with do
   c.value()
 end)
 
-# ── Range & repeat ─────────────────────────────────────────────────────────────
+# -- Range & repeat -------------------------------------------------------------
 
 bench::register("range: for i in [1..2000]", with do
   sum = 0
@@ -372,7 +372,7 @@ bench::register("range: nested 80x80", with do
   sum
 end)
 
-# ── Mixed / real-world ─────────────────────────────────────────────────────────
+# -- Mixed / real-world ---------------------------------------------------------
 
 bench::register("mixed: word frequency map", with do
   words = "the quick brown fox jumps over the lazy dog the fox the".split(" ")
@@ -432,10 +432,10 @@ bench::register("mixed: build string via list+join", with do
   parts.join("\n").size()
 end)
 
-/# ─────────────────────────── run all ───────────────────────────────────────── #/
+/# --------------------------- run all ----------------------------------------- #/
 
 bench::run_all(50, 3)
 
-/# ── Generators (tree-walker only) ──────────────────────────────────────────── #/
+/# -- Generators (tree-walker only) -------------------------------------------- #/
 # To benchmark generators, run without --vm:
 #   kiwi tests/bench_generators
