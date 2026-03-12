@@ -1,0 +1,171 @@
+/#
+  Complex YAML round-trip test.
+  Run: kiwi yaml_parser/complex_test
+#/
+
+include "yaml"
+
+passed = 0
+failed = 0
+
+fn check(label, got, expected)
+  if got == expected
+    println "  [PASS] ${label}"
+    passed += 1
+  else
+    println "  [FAIL] ${label}"
+    println "         expected: ${expected}"
+    println "         got:      ${got}"
+    failed += 1
+  end
+end
+
+fn check_type(label, got, expected_type)
+  t = typeof(got)
+  if t == expected_type
+    println "  [PASS] ${label} (type=${t})"
+    passed += 1
+  else
+    println "  [FAIL] ${label}"
+    println "         expected type: ${expected_type}"
+    println "         got type:      ${t}, value: ${got}"
+    failed += 1
+  end
+end
+
+doc = yaml::parse_file("yaml_parser/complex.yaml")
+p   = doc["project"]
+
+println "── Top-level project keys ───────────────────────────────────────────────────"
+check("name",         p["name"],        "Kiwi")
+check("version",      p["version"],     "2.1.0")
+check("active",       p["active"],      true)
+check("deprecated",   p["deprecated"],  false)
+check("maintainer",   p["maintainer"],  null)
+
+println ""
+println "── Authors (sequence of mappings) ───────────────────────────────────────────"
+authors = p["authors"]
+check("authors count",          authors.size(),                   2)
+check("authors[0].name",        authors[0]["name"],               "fuseraft")
+check("authors[0].role",        authors[0]["role"],               "lead")
+check("authors[0].contact.email",  authors[0]["contact"]["email"],   "fuseraft@example.com")
+check("authors[0].contact.github", authors[0]["contact"]["github"],  "fuseraft")
+check("authors[1].name",        authors[1]["name"],               "contributor")
+check("authors[1].contact.github", authors[1]["contact"]["github"],  "contrib99")
+
+println ""
+println "── Flow sequence (tags) ─────────────────────────────────────────────────────"
+tags = p["tags"]
+check("tags count",  tags.size(), 4)
+check("tags[0]",     tags[0],     "scripting")
+check("tags[1]",     tags[1],     "language")
+check("tags[2]",     tags[2],     "dynamic")
+check("tags[3]",     tags[3],     "aot")
+
+println ""
+println "── Numeric types ────────────────────────────────────────────────────────────"
+m = p["metrics"]
+check("stars (int)",        m["stars"],       1024)
+check("forks (int)",        m["forks"],       87)
+check("open_issues (int)",  m["open_issues"], 3)
+check_type("score (float)", m["score"],       "float")
+check_type("ratio (float)", m["ratio"],       "float")
+
+println ""
+println "── Nested config ────────────────────────────────────────────────────────────"
+cfg = p["config"]
+check("max_stack",  cfg["max_stack"], 512)
+check("timeout",    cfg["timeout"],   30)
+check("debug",      cfg["debug"],     false)
+flags = cfg["flags"]
+check("flags count", flags.size(),  3)
+check("flags[0]",    flags[0],      "--vm")
+check("flags[1]",    flags[1],      "--safe")
+check("flags[2]",    flags[2],      "--no-stdlib")
+thr = cfg["thresholds"]
+check("threshold warn",     thr["warn"],     80)
+check("threshold error",    thr["error"],    95)
+check("threshold critical", thr["critical"], 99)
+
+println ""
+println "── Block scalars ────────────────────────────────────────────────────────────"
+cl = p["changelog"]
+notes_210 = cl["2.1.0"]["notes"]
+check_type("literal block type", notes_210, "string")
+check("literal block contains 'VM'",        notes_210.contains("VM backend"),          true)
+check("literal block contains 'scope'",     notes_210.contains("scope bugs"),          true)
+check("literal block contains 'performance'", notes_210.contains("performance"),       true)
+notes_200 = cl["2.0.0"]["notes"]
+check_type("folded block type", notes_200, "string")
+check("folded block contains 'rewrite'", notes_200.contains("rewrite"), true)
+
+println ""
+println "── Matrix (list of lists) ───────────────────────────────────────────────────"
+mat = p["matrix"]
+check("matrix rows",     mat.size(),      3)
+check("matrix[0][0]",    mat[0][0],       1)
+check("matrix[0][2]",    mat[0][2],       3)
+check("matrix[1][1]",    mat[1][1],       5)
+check("matrix[2][2]",    mat[2][2],       9)
+
+println ""
+println "── Env map (string values) ──────────────────────────────────────────────────"
+env = p["env"]
+check("PATH",         env["PATH"],         "/usr/local/bin:/usr/bin")
+check("DEBUG",        env["DEBUG"],        "false")
+check("MAX_WORKERS",  env["MAX_WORKERS"],  "8")
+
+println ""
+println "── Special strings ──────────────────────────────────────────────────────────"
+ss = p["special_strings"]
+check("colon in value",  ss["colon_in_value"],  "key: value")
+check("hash in value",   ss["hash_in_value"],   "color: #ff0000")
+check("quoted null",     ss["quoted_null"],      "null")
+check("quoted true",     ss["quoted_true"],      "true")
+check("single-quoted ''", ss["single_quoted"],   "it's alive")
+check("escape \\n in dq", ss["escape_seq"],      "line1\nline2\ttabbed")
+
+println ""
+println "── Flow collections (nested) ────────────────────────────────────────────────"
+nf = p["nested_flow"]
+check("point.x",   nf["point"]["x"],              42)
+check("point.y",   nf["point"]["y"],              -7)
+check("point.z",   nf["point"]["z"],              0)
+check("colors[0]", nf["colors"][0],               "red")
+check("colors[2]", nf["colors"][2],               "blue")
+check("deep.a.b.c", nf["deep"]["a"]["b"]["c"],    99)
+
+println ""
+println "── Anchors ──────────────────────────────────────────────────────────────────"
+anch = p["anchors"]
+check("anchors.retries", anch["retries"], 3)
+check("anchors.timeout", anch["timeout"], 60)
+check("anchors.verbose", anch["verbose"], false)
+
+println ""
+println "── Number edge cases ────────────────────────────────────────────────────────"
+nums = p["numbers"]
+check("zero",       nums["zero"],     0)
+check("negative",   nums["negative"], -42)
+check("big",        nums["big"],      1000000)
+check_type("pi (float)",        nums["pi"],        "float")
+check_type("neg_float (float)", nums["neg_float"], "float")
+check_type("scientific",        nums["scientific"], "float")
+
+println ""
+println "── Stringify round-trip ─────────────────────────────────────────────────────"
+serialized = yaml::stringify(p)
+check_type("stringify returns string", serialized, "string")
+rt = yaml::parse(serialized)
+check("round-trip name",     rt["name"],              "Kiwi")
+check("round-trip active",   rt["active"],            true)
+check("round-trip stars",    rt["metrics"]["stars"],  1024)
+check("round-trip tags[2]",  rt["tags"][2],           "dynamic")
+check("round-trip mat[1][1]",rt["matrix"][1][1],      5)
+
+println ""
+println "────────────────────────────────────────────────────────────────────────────"
+total = passed + failed
+println "Results: ${passed}/${total} passed, ${failed} failed"
+println ""
