@@ -58,12 +58,11 @@ public class ListBuiltinHandler
 
             var lambdaRef = arg.GetLambda();
 
-            if (!interp.Context.HasLambda(lambdaRef.Identifier))
+            if (!interp.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var lambda))
             {
                 throw new InvalidOperationError(token, $"Unrecognized lambda '{lambdaRef.Identifier}'.");
             }
 
-            var lambda = interp.Context.Lambdas[lambdaRef.Identifier];
             var isReturnSet = interp.CallStack.Peek().IsFlagSet(FrameFlags.Return);
             var result = Value.Default;
 
@@ -120,12 +119,10 @@ public class ListBuiltinHandler
             }
             var lambdaRef = arg.GetLambda();
 
-            if (!interp.Context.HasLambda(lambdaRef.Identifier))
+            if (!interp.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var lambda))
             {
                 throw new InvalidOperationError(token, $"Unrecognized lambda '{lambdaRef.Identifier}'.");
             }
-
-            var lambda = interp.Context.Lambdas[lambdaRef.Identifier];
 
             return LambdaReduce(interp, lambda, args[0], list, token);
         }
@@ -164,8 +161,8 @@ public class ListBuiltinHandler
 
         list.Sort((a, b) =>
         {
-            scope.Assign(lhsVar, a);
-            scope.Assign(rhsVar, b);
+            scope.SetLocal(lhsVar, a);
+            scope.SetLocal(rhsVar, b);
 
             Value result = Value.Default;
 
@@ -182,8 +179,8 @@ public class ListBuiltinHandler
 
             if (isLess) return -1;
 
-            scope.Assign(lhsVar, b);
-            scope.Assign(rhsVar, a);
+            scope.SetLocal(lhsVar, b);
+            scope.SetLocal(rhsVar, a);
 
             result = Value.Default;
 
@@ -238,13 +235,13 @@ public class ListBuiltinHandler
             if (i == 0)
             {
                 valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
+                scope.Declare(valueVariable, Value.Default);
             }
             else if (i == 1)
             {
                 indexVariable = param.Key;
                 hasIndexVariable = true;
-                scope.Assign(indexVariable, Value.Default);
+                scope.Declare(indexVariable, Value.Default);
             }
         }
 
@@ -254,12 +251,12 @@ public class ListBuiltinHandler
 
         for (var i = 0; i < list.Count; ++i)
         {
-            scope.Assign(valueVariable, list[i]);
+            scope.SetLocal(valueVariable, list[i]);
 
             if (hasIndexVariable)
             {
                 indexValue.SetValue(i);
-                scope.Assign(indexVariable, indexValue);
+                scope.SetLocal(indexVariable, indexValue);
             }
 
             foreach (var stmt in decl.Body)
@@ -280,15 +277,9 @@ public class ListBuiltinHandler
     private static Value LambdaNone(Interpreter interp, KLambda lambda, List<Value> list, Token token)
     {
         var filtered = LambdaFilter(interp, lambda, list, token);
-        var noneFound = Value.False;
-
         if (filtered.IsList())
-        {
-            var isEmpty = filtered.GetList().Count == 0;
-            noneFound.SetValue(isEmpty);
-        }
-
-        return noneFound;
+            return filtered.GetList().Count == 0 ? Value.True : Value.False;
+        return Value.False;
     }
 
     private static Value LambdaMap(Interpreter interp, KLambda lambda, List<Value> list, Token token)
@@ -317,17 +308,17 @@ public class ListBuiltinHandler
             if (i == 0)
             {
                 mapVariable = param.Key;
-                scope.Assign(mapVariable, Value.Default);
+                scope.Declare(mapVariable, Value.Default);
             }
         }
 
         var decl = lambda.Decl;
-        List<Value> resultList = [];
+        List<Value> resultList = new(list.Count);
         Value result = Value.Default;
 
         for (var i = 0; i < list.Count; ++i)
         {
-            scope.Assign(mapVariable, list[i]);
+            scope.SetLocal(mapVariable, list[i]);
 
             foreach (var stmt in decl.Body)
             {
@@ -371,12 +362,12 @@ public class ListBuiltinHandler
             if (i == 0)
             {
                 accumVariable = param.Key;
-                scope.Assign(accumVariable, accumulator);
+                scope.Declare(accumVariable, accumulator);
             }
             else if (i == 1)
             {
                 valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
+                scope.Declare(valueVariable, Value.Default);
             }
         }
 
@@ -385,7 +376,7 @@ public class ListBuiltinHandler
 
         for (var i = 0; i < list.Count; ++i)
         {
-            scope.Assign(valueVariable, list[i]);
+            scope.SetLocal(valueVariable, list[i]);
 
             foreach (var stmt in decl.Body)
             {
@@ -426,13 +417,13 @@ public class ListBuiltinHandler
             if (i == 0)
             {
                 valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
+                scope.Declare(valueVariable, Value.Default);
             }
             else if (i == 1)
             {
                 indexVariable = param.Key;
                 hasIndexVariable = true;
-                scope.Assign(indexVariable, Value.Default);
+                scope.Declare(indexVariable, Value.Default);
             }
         }
 
@@ -442,12 +433,12 @@ public class ListBuiltinHandler
 
         for (var i = 0; i < list.Count; ++i)
         {
-            scope.Assign(valueVariable, list[i]);
+            scope.SetLocal(valueVariable, list[i]);
 
             if (hasIndexVariable)
             {
                 indexValue.SetValue(i);
-                scope.Assign(indexVariable, indexValue);
+                scope.SetLocal(indexVariable, indexValue);
             }
 
             foreach (var stmt in decl.Body)
@@ -493,13 +484,13 @@ public class ListBuiltinHandler
             if (i == 0)
             {
                 valueVariable = param.Key;
-                scope.Assign(valueVariable, Value.Default);
+                scope.Declare(valueVariable, Value.Default);
             }
             else if (i == 1)
             {
                 indexVariable = param.Key;
                 hasIndexVariable = true;
-                scope.Assign(indexVariable, Value.Default);
+                scope.Declare(indexVariable, Value.Default);
             }
         }
 
@@ -510,12 +501,12 @@ public class ListBuiltinHandler
 
         for (var i = 0; i < list.Count; ++i)
         {
-            scope.Assign(valueVariable, list[i]);
+            scope.SetLocal(valueVariable, list[i]);
 
             if (hasIndexVariable)
             {
                 indexValue.SetValue(i);
-                scope.Assign(indexVariable, indexValue);
+                scope.SetLocal(indexVariable, indexValue);
             }
 
             foreach (var stmt in decl.Body)

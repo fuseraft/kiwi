@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using kiwi.Typing;
 
 namespace kiwi.Runtime;
@@ -102,9 +103,10 @@ public class Scope(Scope? parent = null)
         var cur = this;
         while (cur != null)
         {
-            if (cur._locals.ContainsKey(name))
+            ref Value slot = ref CollectionsMarshal.GetValueRefOrNullRef(cur._locals, name);
+            if (!System.Runtime.CompilerServices.Unsafe.IsNullRef(ref slot))
             {
-                cur._locals[name] = value;
+                slot = value;
                 return;
             }
             cur = cur.Parent;

@@ -1342,18 +1342,16 @@ public class Interpreter
         {
             return Value.CreateLambda(new LambdaRef { Identifier = name });
         }
-        else if (Context.HasMappedLambda(name))
+        else if (Context.LambdaTable.TryGetValue(name, out var mappedId))
         {
-            var id = Context.LambdaTable[name];
-
-            if (Context.HasLambda(id))
+            if (Context.Lambdas.ContainsKey(mappedId))
             {
-                return Value.CreateLambda(new LambdaRef { Identifier = id });
+                return Value.CreateLambda(new LambdaRef { Identifier = mappedId });
             }
         }
-        else if (Context.HasConstant(name))
+        else if (Context.Constants.TryGetValue(name, out var constant))
         {
-            return Context.Constants[name];
+            return constant;
         }
         else if (_globalScope.TryGet(node.Name, out val))
         {
@@ -2949,44 +2947,34 @@ public class Interpreter
 
     private SliceIndex GetSlice(SliceNode node, Value obj)
     {
-        var isSlice = true;
-        var indexOrStart = Value.CreateInteger(0L);
-        var stopIndex = Value.CreateInteger(0L);
-        var stepValue = Value.CreateInteger(0L);
-
-        if (obj.IsList())
-        {
-            stopIndex.SetValue(obj.GetList().Count);
-        }
-        else if (obj.IsString())
-        {
-            stopIndex.SetValue(obj.GetString().Length);
-        }
-        else if (obj.IsBytes())
-        {
-            stopIndex.SetValue(obj.GetBytes().Length);
-        }
-
-        stepValue.SetValue(1);
+        long start = 0L;
+        long stop = obj.IsList() ? obj.GetList().Count
+                  : obj.IsString() ? obj.GetString().Length
+                  : obj.IsBytes() ? (long)obj.GetBytes().Length
+                  : 0L;
+        long step = 1L;
 
         if (node.StartExpression != null)
         {
-            indexOrStart.SetValue(Interpret(node.StartExpression));
+            var v = Interpret(node.StartExpression);
+            start = v.IsInteger() ? v.GetInteger() : (long)v.GetFloat();
         }
 
         if (node.StopExpression != null)
         {
-            stopIndex.SetValue(Interpret(node.StopExpression));
+            var v = Interpret(node.StopExpression);
+            stop = v.IsInteger() ? v.GetInteger() : (long)v.GetFloat();
         }
 
         if (node.StepExpression != null)
         {
-            stepValue.SetValue(Interpret(node.StepExpression));
+            var v = Interpret(node.StepExpression);
+            step = v.IsInteger() ? v.GetInteger() : (long)v.GetFloat();
         }
 
-        return new(indexOrStart, stopIndex, stepValue)
+        return new(Value.CreateInteger(start), Value.CreateInteger(stop), Value.CreateInteger(step))
         {
-            IsSlice = isSlice
+            IsSlice = true
         };
     }
 

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using kiwi.VM;
 
 namespace kiwi.Typing;
@@ -156,12 +157,24 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
 
     // Cache single-char ASCII string objects to avoid ToString() allocations in tight loops
     private static readonly string[] _charStrings;
+
+    // Pre-box small integers (0–1023) so CreateInteger avoids a boxing allocation.
+    // Value wrappers are still freshly allocated each time, keeping mutation safe.
+    private const int BoxCacheSize = 1024;
+    private static readonly object[] _boxedInts;
+
     static Value()
     {
         _charStrings = new string[128];
         for (int i = 0; i < 128; i++)
         {
             _charStrings[i] = ((char)i).ToString();
+        }
+
+        _boxedInts = new object[BoxCacheSize];
+        for (int i = 0; i < BoxCacheSize; i++)
+        {
+            _boxedInts[i] = (long)i;
         }
     }
 
@@ -200,7 +213,13 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static readonly Value False = CreateBoolean(false);
     public static Value CreateDate(DateTime value) => new(value, ValueType.Date);
     public static Value CreateDate(object value) => new(value, ValueType.Date);
-    public static Value CreateInteger(long value) => new(value, ValueType.Integer);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Value CreateInteger(long value)
+    {
+        if ((ulong)value < BoxCacheSize)
+            return new Value(_boxedInts[value], ValueType.Integer);
+        return new Value(value, ValueType.Integer);
+    }
     public static Value CreateInteger(object value) => new(value, ValueType.Integer);
     public static Value CreateFloat(double value) => new(value, ValueType.Float);
     public static Value CreateFloat(object value) => new(value, ValueType.Float);
@@ -243,15 +262,15 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
         return 0D;
     }
 
-    public long GetInteger() => (long)Value_;
-    public double GetFloat() => (double)Value_;
-    public bool GetBoolean() => (bool)Value_;
-    public string GetString() => (string)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public long GetInteger() => (long)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public double GetFloat() => (double)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool GetBoolean() => (bool)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetString() => (string)Value_;
     public DateTime GetDate() => (DateTime)Value_;
-    public List<Value> GetList() => (List<Value>)Value_;
-    public Dictionary<Value, Value> GetHashmap() => (Dictionary<Value, Value>)Value_;
-    public InstanceRef GetObject() => (InstanceRef)Value_;
-    public LambdaRef GetLambda() => (LambdaRef)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public List<Value> GetList() => (List<Value>)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public Dictionary<Value, Value> GetHashmap() => (Dictionary<Value, Value>)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public InstanceRef GetObject() => (InstanceRef)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public LambdaRef GetLambda() => (LambdaRef)Value_;
     public StructRef GetStruct() => (StructRef)Value_;
     public IntPtr GetPointer() => (IntPtr)(Value_ ?? IntPtr.Zero);
     public byte[] GetBytes() => (byte[])(Value_ ?? ""u8.ToArray());
@@ -263,17 +282,17 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
         return (NullRef)Value_;
     }
 
-    public bool IsNumber() => Type == ValueType.Integer || Type == ValueType.Float;
-    public bool IsInteger() => Type == ValueType.Integer;
-    public bool IsFloat() => Type == ValueType.Float;
-    public bool IsBoolean() => Type == ValueType.Boolean;
-    public bool IsString() => Type == ValueType.String;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsNumber() => Type == ValueType.Integer || Type == ValueType.Float;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsInteger() => Type == ValueType.Integer;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsFloat() => Type == ValueType.Float;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsBoolean() => Type == ValueType.Boolean;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsString() => Type == ValueType.String;
     public bool IsDate() => Type == ValueType.Date;
-    public bool IsList() => Type == ValueType.List;
-    public bool IsHashmap() => Type == ValueType.Hashmap;
-    public bool IsObject() => Type == ValueType.Object;
-    public bool IsLambda() => Type == ValueType.Lambda;
-    public bool IsNull() => Type == ValueType.None;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsList() => Type == ValueType.List;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsHashmap() => Type == ValueType.Hashmap;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsObject() => Type == ValueType.Object;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsLambda() => Type == ValueType.Lambda;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsNull() => Type == ValueType.None;
     public bool IsStruct() => Type == ValueType.Struct;
     public bool IsPointer() => Type == ValueType.Pointer;
     public bool IsBytes() => Type == ValueType.Bytes;
