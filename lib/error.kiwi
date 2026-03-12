@@ -126,7 +126,7 @@ package error
     throw error::ValueError("${name} must not be null.") when val == null
   end
 
-  # ── Named constructors ────────────────────────────────────────
+  # -- Named constructors ----------------------------------------
 
   /#
   @summary Creates an `ArgumentError` hashmap.
