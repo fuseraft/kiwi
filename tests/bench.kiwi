@@ -1,0 +1,441 @@
+/#
+  Kiwi Runtime Benchmark Suite
+
+  Covers the hot paths most relevant to daily scripting work:
+    - Integer & float arithmetic
+    - String building and interpolation
+    - List operations (push, map, filter, reduce, sort, each)
+    - Hashmap read/write/iteration
+    - Function call overhead
+    - Closures and higher-order functions
+    - Struct construction and method dispatch
+    - Recursion (Fibonacci)
+    - Range/repeat iteration
+    - Generators
+    - Mixed / real-world patterns
+
+  Run from the project root: kiwi tests/bench
+#/
+
+
+/# ─────────────────────────── helpers ──────────────────────────────────────── #/
+
+fn fib(n)
+  return n when n < 2
+  return fib(n - 1) + fib(n - 2)
+end
+
+fn factorial(n)
+  return 1 when n <= 1
+  return n * factorial(n - 1)
+end
+
+struct Point
+  fn new(x, y)
+    @x = x
+    @y = y
+  end
+
+  fn x() @x end
+  fn y() @y end
+
+  fn distance_sq(other)
+    dx = @x - other.x()
+    dy = @y - other.y()
+    dx * dx + dy * dy
+  end
+
+  fn to_string()
+    "(${@x}, ${@y})"
+  end
+end
+
+struct Counter
+  fn new(start)
+    @value = start
+  end
+
+  fn increment()
+    @value += 1
+  end
+
+  fn value() @value end
+end
+
+/# ──────────────────────── register benchmarks ──────────────────────────────── #/
+
+# ── Integer arithmetic ─────────────────────────────────────────────────────────
+
+bench::register("int: sum while 1..10000", with do
+  sum = 0
+  i = 1
+  while i <= 10000 do
+    sum += i
+    i += 1
+  end
+  sum
+end)
+
+bench::register("int: repeat 5000 squares", with do
+  sum = 0
+  repeat 5000 as i do
+    sum += i * i
+  end
+  sum
+end)
+
+bench::register("int: fizzbuzz while 5000", with do
+  count = 0
+  i = 1
+  while i <= 5000 do
+    if i % 15 == 0
+      count += 1
+    elsif i % 3 == 0
+      count += 1
+    elsif i % 5 == 0
+      count += 1
+    end
+    i += 1
+  end
+  count
+end)
+
+# ── Float arithmetic ───────────────────────────────────────────────────────────
+
+bench::register("float: sum of reciprocals 5000", with do
+  sum = 0.0
+  i = 1
+  while i <= 5000 do
+    sum += 1.0 / i
+    i += 1
+  end
+  sum
+end)
+
+bench::register("float: newton sqrt 200 iters", with do
+  x = 2.0
+  repeat 200 do
+    x = (x + 2.0 / x) / 2.0
+  end
+  x
+end)
+
+# ── String operations ──────────────────────────────────────────────────────────
+
+bench::register("string: join 500-element list", with do
+  parts = []
+  repeat 500 do
+    parts.push("kiwi")
+  end
+  parts.join("-")
+end)
+
+bench::register("string: interpolation 500x", with do
+  result = ""
+  i = 1
+  while i <= 500 do
+    result = "item_${i}_of_500"
+    i += 1
+  end
+  result
+end)
+
+bench::register("string: split and rejoin 100x", with do
+  s = "the quick brown fox jumps over the lazy dog"
+  result = ""
+  repeat 100 do
+    result = s.split(" ").join("-")
+  end
+  result
+end)
+
+bench::register("string: contains and index 500x", with do
+  s = "the quick brown fox jumps over the lazy dog"
+  found = 0
+  repeat 500 do
+    found += 1 when s.contains("fox")
+    found += 1 when s.index("lazy") >= 0
+  end
+  found
+end)
+
+# ── List operations ────────────────────────────────────────────────────────────
+
+bench::register("list: push 2000 elements", with do
+  lst = []
+  i = 0
+  while i < 2000 do
+    lst.push(i)
+    i += 1
+  end
+  lst.size()
+end)
+
+bench::register("list: map 1000 elements", with do
+  lst = []
+  repeat 1000 as i do
+    lst.push(i)
+  end
+  lst.map(with (x) do x * 2 + 1 end).sum()
+end)
+
+bench::register("list: filter 1000 elements", with do
+  lst = []
+  repeat 1000 as i do
+    lst.push(i)
+  end
+  lst.filter(with (x) do x % 3 == 0 end).size()
+end)
+
+bench::register("list: map then filter 1000 elements", with do
+  lst = []
+  repeat 1000 as i do
+    lst.push(i)
+  end
+  lst.map(with (x) do x * x end).filter(with (x) do x % 2 == 0 end).sum()
+end)
+
+bench::register("list: reduce 1000 elements", with do
+  lst = []
+  repeat 1000 as i do
+    lst.push(i)
+  end
+  lst.reduce(0, with (acc, x) do
+    acc += x
+  end)
+end)
+
+bench::register("list: sort 500 (custom comparator)", with do
+  lst = []
+  i = 500
+  while i > 0 do
+    lst.push(i)
+    i -= 1
+  end
+  lst.sort(with (a, b) do a < b end)
+  lst[0]
+end)
+
+bench::register("list: each 1000 elements", with do
+  lst = []
+  repeat 1000 as i do
+    lst.push(i)
+  end
+  total = 0
+  lst.each(with (x) do total += x end)
+  total
+end)
+
+bench::register("list: flatten 100 inner lists", with do
+  lst = []
+  repeat 100 do
+    lst.push([1, 2, 3, 4, 5])
+  end
+  lst.flatten().sum()
+end)
+
+# ── Hashmap operations ─────────────────────────────────────────────────────────
+
+bench::register("hashmap: 500 string-key writes", with do
+  h = {}
+  i = 0
+  while i < 500 do
+    h["key${i}"] = i
+    i += 1
+  end
+  h.size()
+end)
+
+bench::register("hashmap: 500 string-key reads", with do
+  h = {}
+  i = 0
+  while i < 500 do
+    h["key${i}"] = i
+    i += 1
+  end
+  sum = 0
+  i = 0
+  while i < 500 do
+    sum += h.get("key${i}")
+    i += 1
+  end
+  sum
+end)
+
+bench::register("hashmap: iterate 200 entries", with do
+  h = {}
+  repeat 200 as i do
+    h[i] = i * i
+  end
+  sum = 0
+  for k, v in h do
+    sum += v
+  end
+  sum
+end)
+
+# ── Functions & closures ───────────────────────────────────────────────────────
+
+bench::register("fn: 2000 simple calls", with do
+  fn add(a, b)
+    a + b
+  end
+
+  total = 0
+  repeat 2000 do
+    total = add(total, 1)
+  end
+  total
+end)
+
+bench::register("fn: fib(20) recursive", with do
+  fib(20)
+end)
+
+bench::register("fn: factorial(15) recursive", with do
+  factorial(15)
+end)
+
+bench::register("closure: counter closed-over 1000x", with do
+  count = 0
+  inc = with do
+    count += 1
+  end
+  repeat 1000 do
+    inc()
+  end
+  count
+end)
+
+bench::register("closure: adder factory, 500 calls", with do
+  fn make_adder(n)
+    return with (x) do x + n end
+  end
+
+  add10 = make_adder(10)
+  sum = 0
+  repeat 500 do
+    sum = add10(sum)
+  end
+  sum
+end)
+
+# ── Structs ────────────────────────────────────────────────────────────────────
+
+bench::register("struct: construct 500 Points", with do
+  pts = []
+  i = 0
+  while i < 500 do
+    pts.push(Point.new(i, i * 2))
+    i += 1
+  end
+  pts.size()
+end)
+
+bench::register("struct: 500 distance_sq calls", with do
+  origin = Point.new(0, 0)
+  total = 0
+  i = 1
+  while i <= 500 do
+    p = Point.new(i, i)
+    total += p.distance_sq(origin)
+    i += 1
+  end
+  total
+end)
+
+bench::register("struct: Counter.increment 2000x", with do
+  c = Counter.new(0)
+  repeat 2000 do
+    c.increment()
+  end
+  c.value()
+end)
+
+# ── Range & repeat ─────────────────────────────────────────────────────────────
+
+bench::register("range: for i in [1..2000]", with do
+  sum = 0
+  for i in [1..2000] do
+    sum += i
+  end
+  sum
+end)
+
+bench::register("range: nested 80x80", with do
+  sum = 0
+  for i in [1..80] do
+    for j in [1..80] do
+      sum += i * j
+    end
+  end
+  sum
+end)
+
+# ── Mixed / real-world ─────────────────────────────────────────────────────────
+
+bench::register("mixed: word frequency map", with do
+  words = "the quick brown fox jumps over the lazy dog the fox the".split(" ")
+  freq = {}
+  for word in words do
+    if freq.has_key(word)
+      freq[word] += 1
+    else
+      freq[word] = 1
+    end
+  end
+  freq.size()
+end)
+
+bench::register("mixed: sieve of eratosthenes to 1000", with do
+  limit = 1000
+  sieve = []
+  i = 0
+  while i <= limit do
+    sieve.push(true)
+    i += 1
+  end
+  sieve[0] = false
+  sieve[1] = false
+  i = 2
+  while i * i <= limit do
+    if sieve[i]
+      j = i * i
+      while j <= limit do
+        sieve[j] = false
+        j += i
+      end
+    end
+    i += 1
+  end
+  count = 0
+  for flag in sieve do
+    count += 1 when flag
+  end
+  count
+end)
+
+bench::register("mixed: in-memory table filter+sum", with do
+  rows = []
+  repeat 200 as i do
+    rows.push({ id: i, name: "user_${i}", score: i % 100 })
+  end
+  filtered = rows.filter(with (r) do r.score >= 50 end)
+  filtered.reduce(0, with (acc, r) do acc += r.score end)
+end)
+
+bench::register("mixed: build string via list+join", with do
+  parts = []
+  repeat 300 as i do
+    parts.push("line ${i}: the quick brown fox")
+  end
+  parts.join("\n").size()
+end)
+
+/# ─────────────────────────── run all ───────────────────────────────────────── #/
+
+bench::run_all(50, 3)
+
+/# ── Generators (tree-walker only) ──────────────────────────────────────────── #/
+# To benchmark generators, run without --vm:
+#   kiwi tests/bench_generators
