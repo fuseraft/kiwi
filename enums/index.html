@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/generators/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/enums/">
       
       
-        <link rel="prev" href="../loops/">
-      
-      
-        <link rel="next" href="../error_handling/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>Generators - Kiwi</title>
+        <title>Enums - Kiwi</title>
       
     
     
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#generators" class="md-skip">
+        <a href="#enums" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Generators
+              Enums
             
           </span>
         </div>
@@ -300,12 +296,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../control_structures/" class="md-tabs__link">
           
   
@@ -1054,31 +1048,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -1096,7 +1087,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1167,37 +1158,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Generators
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../generators/" class="md-nav__link">
         
   
   
@@ -1213,181 +1177,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#defining-a-generator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Defining a generator
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#yield" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        yield
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#iterating-a-generator-with-for" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Iterating a generator with for
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Iterating a generator with for">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#with-an-index-variable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With an index variable
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#infinite-generators" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Infinite generators
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Parameters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#storing-a-generator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Storing a generator
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#typeof" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        typeof
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-generators-work" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How generators work
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Examples
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sieve-of-eratosthenes-lazy-prime-sequence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sieve of Eratosthenes (lazy prime sequence)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#chunked-file-processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Chunked file processing
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#see-also" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        See also
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2623,10 +2412,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#defining-a-generator" class="md-nav__link">
+  <a href="#defining-an-enum" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Defining a generator
+        Defining an Enum
       
     </span>
   </a>
@@ -2634,10 +2423,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#yield" class="md-nav__link">
+  <a href="#accessing-members" class="md-nav__link">
     <span class="md-ellipsis">
       
-        yield
+        Accessing Members
       
     </span>
   </a>
@@ -2645,38 +2434,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#iterating-a-generator-with-for" class="md-nav__link">
+  <a href="#explicit-values" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Iterating a generator with for
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Iterating a generator with for">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#with-an-index-variable" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With an index variable
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#infinite-generators" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Infinite generators
+        Explicit Values
       
     </span>
   </a>
@@ -2684,10 +2445,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#parameters" class="md-nav__link">
+  <a href="#comparing-enum-values" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Parameters
+        Comparing Enum Values
       
     </span>
   </a>
@@ -2695,10 +2456,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storing-a-generator" class="md-nav__link">
+  <a href="#non-integer-values" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Storing a generator
+        Non-Integer Values
       
     </span>
   </a>
@@ -2706,71 +2467,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#typeof" class="md-nav__link">
+  <a href="#using-enums-in-collections" class="md-nav__link">
     <span class="md-ellipsis">
       
-        typeof
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-generators-work" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How generators work
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Examples
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sieve-of-eratosthenes-lazy-prime-sequence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sieve of Eratosthenes (lazy prime sequence)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#chunked-file-processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Chunked file processing
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#see-also" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        See also
+        Using Enums in Collections
       
     </span>
   </a>
@@ -2794,7 +2494,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/generators.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/enums.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2802,149 +2502,82 @@
   
 
 
-<h1 id="generators">Generators<a class="headerlink" href="#generators" title="Permanent link">&para;</a></h1>
-<p>A <strong>generator</strong> is a function that can pause its execution and yield a sequence of values one at a time, resuming where it left off each time the next value is requested.</p>
-<p>Generators are useful for:</p>
-<ul>
-<li>Producing sequences lazily (values computed on demand, not all at once)</li>
-<li>Infinite sequences (e.g. Fibonacci numbers, event streams)</li>
-<li>Memory-efficient pipelines over large data sets</li>
-</ul>
-<h2 id="defining-a-generator">Defining a generator<a class="headerlink" href="#defining-a-generator" title="Permanent link">&para;</a></h2>
-<p>Any function that contains at least one <code>yield</code> statement is a <strong>generator function</strong>. Calling it returns a generator object rather than executing the body immediately.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>fn counter(n)
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  var i = 0
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  while i &lt; n do
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    yield i
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    i += 1
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  end
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>end
+<h1 id="enums">Enums<a class="headerlink" href="#enums" title="Permanent link">&para;</a></h1>
+<p>Enums define a named set of constant values. They are useful for representing a fixed collection of related states, codes, or categories.</p>
+<hr />
+<h2 id="defining-an-enum">Defining an Enum<a class="headerlink" href="#defining-an-enum" title="Permanent link">&para;</a></h2>
+<p>Use the <code>enum</code> keyword followed by a name and a block of member declarations, closed with <code>end</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>enum Direction
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  North
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  East
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  South
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  West
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>end
 </span></code></pre></div>
-<h2 id="yield"><code>yield</code><a class="headerlink" href="#yield" title="Permanent link">&para;</a></h2>
-<p>The <code>yield</code> keyword suspends the function and produces the given value to the caller. The function body resumes from that point the next time a value is requested.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>fn greet()
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  yield &quot;Hello&quot;
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  yield &quot;World&quot;
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>end
+<p>Members are assigned integer values starting at <code>0</code>, incrementing by <code>1</code> for each subsequent member.</p>
+<h2 id="accessing-members">Accessing Members<a class="headerlink" href="#accessing-members" title="Permanent link">&para;</a></h2>
+<p>Access enum members with dot notation: <code>EnumName.MemberName</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>d = Direction.North
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>println d              # 0
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>println Direction.East # 1
 </span></code></pre></div>
-<p>Yielding nothing produces a <code>null</code> value:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>fn silent()
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  yield        # yields null
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  yield &quot;ok&quot;
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>end
+<h2 id="explicit-values">Explicit Values<a class="headerlink" href="#explicit-values" title="Permanent link">&para;</a></h2>
+<p>Assign an explicit value to a member with <code>=</code>. Auto-increment resumes from that value for subsequent members.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>enum HttpStatus
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  OK        = 200
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  Created   = 201
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  NotFound  = 404
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  Error     = 500
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>end
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>println HttpStatus.OK       # 200
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>println HttpStatus.NotFound # 404
 </span></code></pre></div>
-<h2 id="iterating-a-generator-with-for">Iterating a generator with <code>for</code><a class="headerlink" href="#iterating-a-generator-with-for" title="Permanent link">&para;</a></h2>
-<p>Pass a generator call directly to a <code>for</code> loop. The loop advances the generator one step per iteration and stops automatically when the generator is exhausted.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>for word in greet() do
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  println word
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>end
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># Hello
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a># World
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>enum Priority
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  Low           # 0
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  Medium        # 1
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  High   = 10
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  Critical      # 11
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>end
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>println Priority.High     # 10
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>println Priority.Critical # 11
 </span></code></pre></div>
-<h3 id="with-an-index-variable">With an index variable<a class="headerlink" href="#with-an-index-variable" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>for word, i in greet() do
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  println &quot;${i}: ${word}&quot;
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>end
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a># 0: Hello
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a># 1: World
+<h2 id="comparing-enum-values">Comparing Enum Values<a class="headerlink" href="#comparing-enum-values" title="Permanent link">&para;</a></h2>
+<p>Since members are plain values (integers by default), use <code>==</code> to compare them.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>enum Status
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  Pending
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  Active
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  Inactive
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>end
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>s = Status.Active
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>if s == Status.Active
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  println &quot;active&quot;
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>end
 </span></code></pre></div>
-<h2 id="infinite-generators">Infinite generators<a class="headerlink" href="#infinite-generators" title="Permanent link">&para;</a></h2>
-<p>Because values are produced lazily, a generator can yield infinitely. Use <code>break</code> (optionally with <code>when</code>) to stop consuming it.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>fn fibonacci()
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  var a = 0
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  var b = 1
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  while true do
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    yield a
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    var tmp = a + b
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    a = b
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    b = tmp
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  end
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>end
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>for f in fibonacci() do
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  println f
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  break when f &gt; 100
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>end
-</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a># 0 1 1 2 3 5 8 13 21 34 55 89 144
+<h2 id="non-integer-values">Non-Integer Values<a class="headerlink" href="#non-integer-values" title="Permanent link">&para;</a></h2>
+<p>Enum members can hold any value type, not just integers.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>enum Color
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  Red   = &quot;red&quot;
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  Green = &quot;green&quot;
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  Blue  = &quot;blue&quot;
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>end
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>println Color.Red  # red
 </span></code></pre></div>
-<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
-<p>Generator functions accept parameters just like regular functions.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>fn range_step(start, stop, step)
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  var i = start
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  while i &lt; stop do
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    yield i
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    i += step
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  end
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>end
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>for x in range_step(0, 20, 3) do
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  print &quot;${x} &quot;
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>end
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a># 0 3 6 9 12 15 18
+<h2 id="using-enums-in-collections">Using Enums in Collections<a class="headerlink" href="#using-enums-in-collections" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>enum Level
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  Debug = 0
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  Info  = 1
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  Warn  = 2
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  Error = 3
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>end
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>log_levels = [Level.Info, Level.Warn, Level.Error]
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>println log_levels  # [1, 2, 3]
 </span></code></pre></div>
-<h2 id="storing-a-generator">Storing a generator<a class="headerlink" href="#storing-a-generator" title="Permanent link">&para;</a></h2>
-<p>You can store a generator in a variable and iterate it later. Each variable holds an independent generator instance.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>var evens = range_step(0, 10, 2)
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>var odds  = range_step(1, 10, 2)
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>for x in evens do
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  print &quot;${x} &quot;
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>end
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a># 0 2 4 6 8
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>for x in odds do
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>  print &quot;${x} &quot;
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>end
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a># 1 3 5 7 9
-</span></code></pre></div>
-<h2 id="typeof"><code>typeof</code><a class="headerlink" href="#typeof" title="Permanent link">&para;</a></h2>
-<p><code>typeof</code> on a generator object returns <code>"generator"</code>.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>var g = counter(5)
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>println typeof(g)  # generator
-</span></code></pre></div>
-<h2 id="how-generators-work">How generators work<a class="headerlink" href="#how-generators-work" title="Permanent link">&para;</a></h2>
-<p>When a generator function is called it does <strong>not</strong> execute any of its body. Instead, it returns a generator object. Each iteration of a <code>for</code> loop (or each call requesting the next value) resumes the body from after the last <code>yield</code> until it hits the next <code>yield</code> or the function returns. Once the body returns, the generator is exhausted and the <code>for</code> loop ends.</p>
-<p>This is analogous to Python generators and C# <code>IEnumerable</code>/<code>yield return</code>.</p>
-<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<h3 id="sieve-of-eratosthenes-lazy-prime-sequence">Sieve of Eratosthenes (lazy prime sequence)<a class="headerlink" href="#sieve-of-eratosthenes-lazy-prime-sequence" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>fn naturals(start)
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  var n = start
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  while true do
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    yield n
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    n += 1
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  end
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>end
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>fn primes()
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>  var candidates = naturals(2)
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>  for p in candidates do
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    yield p
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>    # filter out multiples — illustrative; a full sieve needs pipelines
-</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>    break
-</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>  end
-</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>end
-</span></code></pre></div>
-<h3 id="chunked-file-processing">Chunked file processing<a class="headerlink" href="#chunked-file-processing" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>fn read_chunks(filename, size)
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  var f = fio::read_bytes(filename)
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  var i = 0
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  while i &lt; f.size() do
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    yield f.slice(i, i + size)
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    i += size
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>  end
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>end
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>for chunk in read_chunks(&quot;data.bin&quot;, 1024) do
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>  process(chunk)
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>end
-</span></code></pre></div>
-<h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="../loops/">Loops</a></li>
-<li><a href="../functions/">Functions</a></li>
-<li><a href="../lambdas/">Lambdas</a></li>
-<li><a href="../control_structures/">Control Structures</a></li>
-</ul>
 
 
 
