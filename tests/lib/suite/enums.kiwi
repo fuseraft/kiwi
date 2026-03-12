@@ -1,0 +1,81 @@
+/# ==============================================================================
+    Testing enums: auto-increment, explicit values, value continuation,
+    member access, comparison, non-integer values, and collections.
+   ============================================================================== #/
+tester::register_test("enums", with do
+  # auto-increment from 0
+  enum Direction
+    North
+    East
+    South
+    West
+  end
+
+  tester::assert(Direction.North == 0, "A1: first member is 0")
+  tester::assert(Direction.East  == 1, "A2: second member is 1")
+  tester::assert(Direction.South == 2, "A3: third member is 2")
+  tester::assert(Direction.West  == 3, "A4: fourth member is 3")
+
+  # explicit values
+  enum HttpStatus
+    OK       = 200
+    Created  = 201
+    NotFound = 404
+    Error    = 500
+  end
+
+  tester::assert(HttpStatus.OK       == 200, "A5: explicit value 200")
+  tester::assert(HttpStatus.Created  == 201, "A6: explicit value 201")
+  tester::assert(HttpStatus.NotFound == 404, "A7: explicit value 404")
+  tester::assert(HttpStatus.Error    == 500, "A8: explicit value 500")
+
+  # auto-increment resumes after explicit value
+  enum Priority
+    Low           # 0
+    Medium        # 1
+    High   = 10
+    Critical      # 11
+  end
+
+  tester::assert(Priority.Low      == 0,  "A9: auto before explicit")
+  tester::assert(Priority.Medium   == 1,  "A10: auto before explicit")
+  tester::assert(Priority.High     == 10, "A11: explicit value")
+  tester::assert(Priority.Critical == 11, "A12: auto resumes after explicit")
+
+  # member stored in variable and compared
+  status = HttpStatus.NotFound
+  tester::assert(status == HttpStatus.NotFound, "A13: member stored in variable")
+  tester::assert(status != HttpStatus.OK,       "A14: inequality between members")
+
+  # non-integer values
+  enum Color
+    Red   = "red"
+    Green = "green"
+    Blue  = "blue"
+  end
+
+  tester::assert(Color.Red   == "red",   "A15: string member Red")
+  tester::assert(Color.Green == "green", "A16: string member Green")
+  tester::assert(Color.Blue  == "blue",  "A17: string member Blue")
+
+  # enum values in a list
+  enum Level
+    Debug = 0
+    Info  = 1
+    Warn  = 2
+    Error = 3
+  end
+
+  levels = [Level.Debug, Level.Info, Level.Warn, Level.Error]
+  tester::assert(levels.size() == 4,    "A18: list of enum values has correct size")
+  tester::assert(levels[0] == 0,        "A19: first element is Debug")
+  tester::assert(levels[3] == 3,        "A20: last element is Error")
+
+  # enum used in conditional
+  code = HttpStatus.NotFound
+  result = "unknown"
+  if code == HttpStatus.NotFound
+    result = "not found"
+  end
+  tester::assert(result == "not found", "A21: enum value works in conditional")
+end)
