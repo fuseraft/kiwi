@@ -1176,6 +1176,7 @@ public class Lexer : IDisposable
             "require" => TokenName.KW_Require,
             "return" => TokenName.KW_Return,
             "static" => TokenName.KW_Static,
+            "enum" => TokenName.KW_Enum,
             "struct" => TokenName.KW_Struct,
             "throw" => TokenName.KW_Throw,
             "to" => TokenName.KW_To,

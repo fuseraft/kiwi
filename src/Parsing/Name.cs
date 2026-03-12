@@ -312,6 +312,7 @@ public enum TokenName
   KW_ElseIf,
   KW_Emit,
   KW_End,
+  KW_Enum,
   KW_EPrint,
   KW_EPrintLn,
   KW_Eval,

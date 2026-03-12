@@ -229,6 +229,11 @@ See [Structs](structs.md).
 ### `interface`
 Reserved for future use.
 
+### `enum`
+The `enum` keyword is used to define a named set of constant values.
+
+See [Enums](enums.md).
+
 ### `struct`
 The `struct` keyword is used to define a struct.
 

@@ -99,6 +99,9 @@ public partial class Parser
                 }
                 return ParseStruct(isAbstract: true);
 
+            case TokenName.KW_Enum:
+                return ParseEnum();
+
             case TokenName.KW_Struct:
                 return ParseStruct();
 
@@ -575,6 +578,50 @@ public partial class Parser
         structStack.Pop();
 
         return new StructNode(structName, baseStruct, interfaces, methods, staticVars, isAbstract);
+    }
+
+    private EnumNode ParseEnum()
+    {
+        var openToken = token;
+        MatchName(TokenName.KW_Enum);
+
+        if (GetTokenType() != TokenType.Identifier)
+        {
+            throw new SyntaxError(GetErrorToken(), "Expected identifier for enum name.");
+        }
+
+        var enumName = token.Text;
+        Next();
+
+        List<(string Name, ASTNode? Value)> members = [];
+
+        while (GetTokenName() != TokenName.KW_End)
+        {
+            if (GetTokenType() == TokenType.Eof)
+            {
+                throw new UnexpectedEndOfFileError(openToken);
+            }
+
+            if (GetTokenType() != TokenType.Identifier)
+            {
+                throw new SyntaxError(GetErrorToken(), "Expected identifier for enum member name.");
+            }
+
+            var memberName = token.Text;
+            Next();
+
+            ASTNode? valueExpr = null;
+            if (GetTokenName() == TokenName.Ops_Assign)
+            {
+                Next(); // consume '='
+                valueExpr = ParseExpression();
+            }
+
+            members.Add((memberName, valueExpr));
+        }
+
+        Next(); // consume 'end'
+        return new EnumNode(enumName, members);
     }
 
     private ASTNode? ParseInterface()
