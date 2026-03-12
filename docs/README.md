@@ -47,6 +47,7 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
 
 - [Structs](structs.md)
 - [Abstract Structs](abstract_structs.md)
+- [Enums](enums.md)
 - [Operator Overloading](operator_overloading.md)
 
 ## **Modules & I/O**

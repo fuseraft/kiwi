@@ -127,6 +127,7 @@ public class KStruct
     public Dictionary<string, KFunction> Methods { get; set; } = [];
     public Dictionary<string, Value> StaticVariables { get; set; } = [];
     public bool IsAbstract { get; set; }
+    public bool IsEnum { get; set; }
     public HashSet<string> AbstractMethods { get; set; } = [];
 
     public KStruct Clone()
@@ -136,6 +137,7 @@ public class KStruct
             Name = Name,
             BaseStruct = BaseStruct,
             IsAbstract = IsAbstract,
+            IsEnum = IsEnum,
             AbstractMethods = new HashSet<string>(AbstractMethods)
         };
 

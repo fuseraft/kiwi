@@ -143,6 +143,7 @@ public class Interpreter
             ASTNodeType.Self => Visit((SelfNode)node),
             ASTNodeType.StaticSelf => Visit((StaticSelfNode)node),
             ASTNodeType.Slice => Visit((SliceNode)node),
+            ASTNodeType.Enum => Visit((EnumNode)node),
             ASTNodeType.Struct => Visit((StructNode)node),
             ASTNodeType.TernaryOperation => Visit((TernaryOperationNode)node),
             ASTNodeType.Throw => Visit((ThrowNode)node),
@@ -425,6 +426,39 @@ public class Interpreter
         }
 
         return kstruct.StaticVariables[varName];
+    }
+
+    private Value Visit(EnumNode node)
+    {
+        KStruct kenum = new()
+        {
+            Name = node.Name,
+            IsEnum = true
+        };
+
+        long counter = 0;
+        foreach (var (memberName, valueExpr) in node.Members)
+        {
+            Value memberValue;
+            if (valueExpr != null)
+            {
+                memberValue = Interpret(valueExpr);
+                if (memberValue.IsInteger())
+                {
+                    counter = memberValue.GetInteger();
+                }
+            }
+            else
+            {
+                memberValue = Value.CreateInteger(counter);
+            }
+
+            kenum.StaticVariables["@@" + memberName] = memberValue;
+            counter++;
+        }
+
+        Context.Structs[node.Name] = kenum;
+        return Value.Default;
     }
 
     private Value Visit(StructNode node)
@@ -4701,6 +4735,13 @@ public class Interpreter
         {
             obj.GetHashmap().TryGetValue(Value.CreateString(memberName), out var v);
             return v ?? Value.Default;
+        }
+        if (obj.IsStruct())
+        {
+            var kstruct = Context.Structs[obj.GetStruct().Identifier];
+            if (kstruct.StaticVariables.TryGetValue("@@" + memberName, out var sv))
+                return sv;
+            return Value.Default;
         }
         throw new InvalidOperationError(token, $"Cannot access member '{memberName}' on this type.");
     }
