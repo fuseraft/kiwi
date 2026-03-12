@@ -10,6 +10,7 @@ public enum ASTNodeType
     ConstAssignment,
     Do,
     Emit,
+    Enum,
     Eval,
     Exit,
     Export,

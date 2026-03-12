@@ -50,6 +50,7 @@ var (unit_tests: list = [
   "structs",
   "static_vars",
   "abstract_structs",
+  "enums",
 
   # Standard library & builtins
   "builtins",

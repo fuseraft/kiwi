@@ -233,6 +233,7 @@ public sealed class Compiler
             case ASTNodeType.Lambda:
             case ASTNodeType.Package:
             case ASTNodeType.Struct:
+            case ASTNodeType.Enum:
                 break;
         }
     }
