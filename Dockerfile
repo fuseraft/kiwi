@@ -22,10 +22,15 @@ RUN dotnet publish src/kiwi.csproj \
       -p:IncludeNativeLibrariesForSelfExtract=true \
       -p:UseSystemTextJsonSourceGeneration=true \
       -p:JsonSerializerIsReflectionEnabled=false \
+      -p:InvariantGlobalization=true \
       -o /out
 
 # Runtime stage
 FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl3 \
+  && rm -rf /var/lib/apt/lists/*
 
 # kiwi-settings.json references ../lib relative to the binary, so the layout is:
 #   /opt/kiwi/bin/kiwi
