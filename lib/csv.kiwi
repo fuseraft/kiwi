@@ -26,4 +26,54 @@ package csv
   fn parse(input: string, delimiter: string = ","): list
     __csv_parse__(input, delimiter)
   end
+
+  /#
+  @summary Parses a CSV string into a list of hashmaps using the first row as headers.
+  @param string input : The CSV-formatted string to parse.
+  @param string delimiter : The field delimiter (default `","`).
+  @return list : A list of hashmaps, each mapping header names to field values.
+  #/
+  fn to_maps(input: string, delimiter: string = ","): list
+    rows = __csv_parse__(input, delimiter)
+    result = []
+    if rows.size() < 2
+      return result
+    end
+    headers = rows[0]
+    for row in rows[1:] do
+      record = {}
+      for i in [0 to headers.size() - 1] do
+        record[headers[i]] = row[i]
+      end
+      result.push(record)
+    end
+    result
+  end
+
+  /#
+  @summary Parses a CSV file into a list of hashmaps using the first row as headers.
+  @param string file_path : The path to the CSV file.
+  @param string delimiter : The field delimiter (default `","`).
+  @return list : A list of hashmaps, each mapping header names to field values.
+  @throws string : If the file does not exist.
+  #/
+  fn file_to_maps(file_path: string, delimiter: string = ","): list
+    if !fio::isfile(file_path)
+      throw "File does not exist: ${file_path}"
+    end
+    rows = __csv_parsefile__(file_path, delimiter)
+    result = []
+    if rows.size() < 2
+      return result
+    end
+    headers = rows[0]
+    for row in rows[1:] do
+      record = {}
+      for i in [0 to headers.size() - 1] do
+        record[headers[i]] = row[i]
+      end
+      result.push(record)
+    end
+    result
+  end
 end

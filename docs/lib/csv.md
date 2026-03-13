@@ -83,3 +83,72 @@ end
 var tsv_rows = csv::parse_file("/data/report.tsv", "\t")
 println "Row count: " + (tsv_rows.size() - 1).to_string()
 ```
+
+---
+
+### `to_maps(input, delimiter)`
+
+Parses a CSV string into a list of hashmaps, using the first row as header keys.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `input` | The CSV data. |
+| `string` | `delimiter` | The delimiter to use. (optional, defaults to `,`). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `list` | A list of hashmaps mapping header names to field values. |
+
+**Example**
+
+```kiwi
+import "csv"
+
+var data = "name,age\nAlice,30\nBob,25"
+var records = csv::to_maps(data)
+
+for r in records do
+  println r["name"] + " is " + r["age"] + " years old"
+end
+# Alice is 30 years old
+# Bob is 25 years old
+```
+
+---
+
+### `file_to_maps(file_path, delimiter)`
+
+Parses a CSV file into a list of hashmaps, using the first row as header keys.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `file_path` | The path to a file. |
+| `string` | `delimiter` | The delimiter to use. (optional, defaults to `,`). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `list` | A list of hashmaps mapping header names to field values. |
+
+**Throws**
+
+`string` — if the file does not exist.
+
+**Example**
+
+```kiwi
+import "csv"
+
+var records = csv::file_to_maps("/data/employees.csv")
+
+for r in records do
+  println r["name"] + " earns " + r["salary"]
+end
+```
