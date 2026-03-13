@@ -7,10 +7,9 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public class ObjectBuiltinHandler
 {
-    public static Value Handle(Token token, TokenName builtin, InstanceRef obj, string baseStruct, List<Value> args)
+    public static Value Handle(Interpreter interp, Token token, TokenName builtin, InstanceRef obj, string baseStruct, List<Value> args)
     {
         var instVars = obj.InstanceVariables;
-        var interp = Interpreter.Current ?? throw new RuntimeError(token, "Could not get runtime interpreter.", []);
 
         switch (builtin)
         {

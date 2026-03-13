@@ -12,7 +12,7 @@ fn section(title)
   println("\n-- ${title} " + ("-" * (44 - title.size())))
 end
 
-# ── Numerical differentiation (central difference) ───────────────────────────
+# -- Numerical differentiation (central difference) ---------------------------
 #
 #   f'(x) ≈ (f(x+h) - f(x-h)) / 2h
 #
@@ -22,7 +22,7 @@ fn derivative(f, x, h = 0.0000001)
   (f.call([x + h]) - f.call([x - h])) / (2.0 * h)
 end
 
-# ── Numerical integration (Simpson's rule) ───────────────────────────────────
+# -- Numerical integration (Simpson's rule) -----------------------------------
 #
 #   ∫ f(x) dx ≈ (h/3)[f(x₀) + 4f(x₁) + 2f(x₂) + 4f(x₃) + … + f(xₙ)]
 #
@@ -41,7 +41,7 @@ fn integrate(f, a, b, n = 1000)
   sum * h / 3.0
 end
 
-# ── Root finding (Newton's method) ───────────────────────────────────────────
+# -- Root finding (Newton's method) -------------------------------------------
 #
 #   xₙ₊₁ = xₙ - f(xₙ) / f'(xₙ)
 #
@@ -59,7 +59,7 @@ fn newton(f, df, x0, tol = 0.0000000001, max_iter = 100)
   x
 end
 
-# ── Arc length ────────────────────────────────────────────────────────────────
+# -- Arc length ----------------------------------------------------------------
 #
 #   L = ∫ sqrt(1 + f'(x)²) dx   approximated with the trapezoid rule directly.
 
@@ -79,7 +79,7 @@ fn arc_length(f, a, b, n = 2000)
   sum
 end
 
-# ── Demonstrations ────────────────────────────────────────────────────────────
+# -- Demonstrations ------------------------------------------------------------
 
 section("Differentiation")
 

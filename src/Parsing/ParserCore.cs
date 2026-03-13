@@ -88,9 +88,10 @@ public partial class Parser(bool rethrowErrors = false)
     private (ASTNode?, string) ParseNode(ProgramNode root, ASTNode? lastNode)
     {
         var requires = string.Empty;
-        try
+        while (GetTokenType() != TokenType.Eof)
         {
-            while (GetTokenType() != TokenType.Eof)
+            var positionBefore = stream.Position;
+            try
             {
                 lastNode = ParseStatement();
                 if (lastNode != null)
@@ -104,24 +105,28 @@ public partial class Parser(bool rethrowErrors = false)
                     root.Statements.Add(lastNode);
                 }
             }
-        }
-        catch (KiwiError e)
-        {
-            if (rethrow)
+            catch (KiwiError e)
             {
-                throw;
-            }
+                if (rethrow)
+                {
+                    throw;
+                }
 
-            ErrorHandler.PrintError(e);
-        }
-        catch (Exception e)
-        {
-            if (rethrow)
+                HasError = true;
+                ErrorHandler.PrintError(e);
+                RecoverAfterError(positionBefore);
+            }
+            catch (Exception e)
             {
-                throw;
-            }
+                if (rethrow)
+                {
+                    throw;
+                }
 
-            ErrorHandler.PrintError(e, GetErrorToken());
+                HasError = true;
+                ErrorHandler.PrintError(e, GetErrorToken(false));
+                RecoverAfterError(positionBefore);
+            }
         }
 
         return (lastNode, requires);
@@ -137,9 +142,10 @@ public partial class Parser(bool rethrowErrors = false)
             IsEntryPoint = isEntryPoint
         };
 
-        try
+        while (GetTokenType() != TokenType.Eof)
         {
-            while (GetTokenType() != TokenType.Eof)
+            var positionBefore = stream.Position;
+            try
             {
                 var statement = ParseStatement();
                 if (statement != null)
@@ -147,24 +153,28 @@ public partial class Parser(bool rethrowErrors = false)
                     root.Statements.Add(statement);
                 }
             }
-        }
-        catch (KiwiError e)
-        {
-            if (rethrow)
+            catch (KiwiError e)
             {
-                throw;
-            }
+                if (rethrow)
+                {
+                    throw;
+                }
 
-            ErrorHandler.PrintError(e);
-        }
-        catch (Exception e)
-        {
-            if (rethrow)
+                HasError = true;
+                ErrorHandler.PrintError(e);
+                RecoverAfterError(positionBefore);
+            }
+            catch (Exception e)
             {
-                throw;
-            }
+                if (rethrow)
+                {
+                    throw;
+                }
 
-            ErrorHandler.PrintError(e, GetErrorToken());
+                HasError = true;
+                ErrorHandler.PrintError(e, GetErrorToken(false));
+                RecoverAfterError(positionBefore);
+            }
         }
 
         return root;
@@ -192,6 +202,41 @@ public partial class Parser(bool rethrowErrors = false)
             Next();
         }
     }
+
+    /// <summary>
+    /// Recovers after a syntax error. If the current token cannot start a new
+    /// statement (e.g. we are mid-expression), skip to the next newline so the
+    /// next parse iteration begins on a fresh statement. Also handles the case
+    /// where the parser has not advanced at all (preventing an infinite loop).
+    /// </summary>
+    private void RecoverAfterError(int positionBefore)
+    {
+        if (stream.Position <= positionBefore || !IsStatementStartToken())
+        {
+            // Advance past all tokens that belong to the same source line as the
+            // statement that failed. Because the lexer doesn't always emit Newline
+            // tokens, we use the token's Span.Line to find the line boundary.
+            var statementLine = stream.At(positionBefore).Span.Line;
+            while (GetTokenType() != TokenType.Eof && token.Span.Line == statementLine)
+            {
+                Next();
+            }
+        }
+        // Current token is either on a new line or a valid statement-start token;
+        // the outer loop will continue from here.
+    }
+
+    /// <summary>
+    /// Returns true when the current token can legally begin a new statement,
+    /// meaning we can safely resume parsing from this position after an error.
+    /// </summary>
+    private bool IsStatementStartToken() => GetTokenType() switch
+    {
+        TokenType.Operator or TokenType.Comma or TokenType.Colon
+            or TokenType.RParen or TokenType.RBracket or TokenType.RBrace
+            or TokenType.Dot or TokenType.Range or TokenType.Arrow => false,
+        _ => true
+    };
 
     private bool HasValue()
     {
@@ -269,7 +314,7 @@ public partial class Parser(bool rethrowErrors = false)
         {
             var tokenType = stream.At(pos).Type;
 
-            // Stop scanning at scope-closing tokens — the target can't be in the
+            // Stop scanning at scope-closing tokens - the target can't be in the
             // current expression if we've already left it.
             if (tokenType is TokenType.RBracket or TokenType.RParen or TokenType.RBrace)
             {

@@ -7,30 +7,12 @@ public struct LogicalOp
     public static Value And(ref Value left, ref Value right, bool doAssign = false)
     {
         var res = BooleanOp.IsTruthy(left) && BooleanOp.IsTruthy(right);
-
-        if (doAssign)
-        {
-            // Guard: never mutate the global singletons Value.True/False/Default.
-            // The caller always stores the return value back anyway (see Interpreter.cs scope.Assign calls).
-            if (!ReferenceEquals(left, Value.True) && !ReferenceEquals(left, Value.False))
-                left.SetValue(res);
-            return res ? Value.True : Value.False;
-        }
-
         return res ? Value.True : Value.False;
     }
 
     public static Value Or(ref Value left, ref Value right, bool doAssign = false)
     {
         var res = BooleanOp.IsTruthy(left) || BooleanOp.IsTruthy(right);
-
-        if (doAssign)
-        {
-            if (!ReferenceEquals(left, Value.True) && !ReferenceEquals(left, Value.False))
-                left.SetValue(res);
-            return res ? Value.True : Value.False;
-        }
-
         return res ? Value.True : Value.False;
     }
 

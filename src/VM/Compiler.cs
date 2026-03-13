@@ -9,9 +9,9 @@ namespace kiwi.VM;
 /// Compiles a Kiwi AST into bytecode Chunks for the KiwiVM.
 ///
 /// Variable resolution order (inside a function):
-///   1. Local slot   — name assigned anywhere in the function body (pre-scanned)
-///   2. Upvalue      — local in an enclosing function captured by this closure
-///   3. Global       — everything else (runtime Scope lookup)
+///   1. Local slot   - name assigned anywhere in the function body (pre-scanned)
+///   2. Upvalue      - local in an enclosing function captured by this closure
+///   3. Global       - everything else (runtime Scope lookup)
 ///
 /// At top level (isGlobal=true) every name resolves as global.
 /// </summary>
@@ -348,7 +348,7 @@ public sealed class Compiler
             case TokenName.Ops_BitwiseLeftShiftAssign: _chunk.Emit(Opcode.BLSh,  0, 0, line); break;
             case TokenName.Ops_BitwiseRightShiftAssign: _chunk.Emit(Opcode.BRSh, 0, 0, line); break;
             case TokenName.Ops_BitwiseUnsignedRightShiftAssign: _chunk.Emit(Opcode.BURSh, 0, 0, line); break;
-            default: /* leave as-is — callers handle && / || */ break;
+            default: /* leave as-is - callers handle && / || */ break;
         }
     }
 
@@ -471,7 +471,7 @@ public sealed class Compiler
 
     /// <summary>
     /// Returns true if a value is left on the stack (expression context).
-    /// Conditional (when-guard) assignments never leave a value — the condition may be
+    /// Conditional (when-guard) assignments never leave a value - the condition may be
     /// false, making the stack state after the skip-jump unpredictable.
     /// </summary>
     private bool CompileAssignment(AssignmentNode node, int ln)
@@ -631,8 +631,8 @@ public sealed class Compiler
 
         if (op == (Opcode)255)
         {
-            // Unknown binary op — reconstruct the node and fallback
-            // (stack already has left and right on it — pop them first)
+            // Unknown binary op - reconstruct the node and fallback
+            // (stack already has left and right on it - pop them first)
             _chunk.Emit(Opcode.Pop, 0, 0, ln);
             _chunk.Emit(Opcode.Pop, 0, 0, ln);
             Fallback(node);
@@ -1061,7 +1061,7 @@ public sealed class Compiler
         _loops.Add(ctx);
         CompileBody(node.Body);
 
-        // INCREMENT POINT — next patches jump here
+        // INCREMENT POINT - next patches jump here
         int incTop = _chunk.Code.Count;
         _chunk.Emit(Opcode.LoadLocal, counterSlot, 0, ln);
         _chunk.Emit(Opcode.Const,     one, 0, ln);
@@ -1320,7 +1320,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
         // Any function whose Op is not a plain Identifier token is a language builtin
-        // (e.g. typeof, deserialize, serialize) handled entirely by the interpreter —
+        // (e.g. typeof, deserialize, serialize) handled entirely by the interpreter -
         // not findable via LoadGlobal, so fall back.
         if (node.Op != TokenName.Default) { Fallback(node); return; }
         // Package-prefixed calls (e.g. math::round): evaluate arguments via VM so that
@@ -1390,7 +1390,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             _chunk.Emit(Opcode.Return);
             return true;
         }
-        // Last statement was control-flow (Return, loop, etc.) — it handled its own return.
+        // Last statement was control-flow (Return, loop, etc.) - it handled its own return.
         // Caller will emit EmitFinalReturn as a safety net (unreachable after explicit returns).
         return false;
     }

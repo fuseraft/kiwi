@@ -100,7 +100,7 @@ fn test_response_custom_headers_override()
   tester::assert(resp_str.contains("X-Powered-By: Kiwi"))
 end
 
-# ────────────────────────────────────────────────────────────────
+# ----------------------------------------------------------------
 
 tester::register_test("http: parse basic GET", test_parse_basic_get.to_lambda())
 tester::register_test("http: parse with query params", test_parse_with_query_params.to_lambda())

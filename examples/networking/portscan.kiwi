@@ -21,7 +21,7 @@
 import "socket"
 import "task"
 
-# ── defaults ────────────────────────────────────────────────────────────────────
+# -- defaults --------------------------------------------------------------------
 
 host        = "127.0.0.1"
 port_start  = 1
@@ -45,10 +45,10 @@ end
 port_start = [1,     port_start].max()
 port_end   = [65535, port_end].min()
 
-# ── banner ───────────────────────────────────────────────────────────────────────
+# -- banner -----------------------------------------------------------------------
 
 fn banner(text: string)
-  bar = "─" * 54
+  bar = "-" * 54
   console::fg("dark_gray")
   println bar
   console::fg("cyan")
@@ -58,7 +58,7 @@ fn banner(text: string)
   console::reset()
 end
 
-# ── probe ────────────────────────────────────────────────────────────────────────
+# -- probe ------------------------------------------------------------------------
 /#
   probe(host, port, ch, timeout_ms)
 
@@ -104,7 +104,7 @@ fn probe(host: string, port: integer, ch, timeout_ms: integer)
   end
 end
 
-# ── main ─────────────────────────────────────────────────────────────────────────
+# -- main -------------------------------------------------------------------------
 
 banner("Kiwi Port Scanner  ·  ${host}  ·  ${port_start}-${port_end}  ·  ${timeout_ms}ms timeout")
 
@@ -134,7 +134,7 @@ while received < total do
   end
 end
 
-# ── summary ──────────────────────────────────────────────────────────────────────
+# -- summary ----------------------------------------------------------------------
 
 elapsed = math::round(time::ticksms(time::ticks() - t_start), 1)
 open_ports.sort()

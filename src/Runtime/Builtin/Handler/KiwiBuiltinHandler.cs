@@ -7,34 +7,33 @@ using kiwi.Typing;
 namespace kiwi.Runtime.Builtin.Handler;
 public static class KiwiBuiltinHandler
 {
-    public static Value Execute(Token token, TokenName builtin, List<Value> args)
+    public static Value Execute(Token token, TokenName builtin, List<Value> args, string executionPath, string entryPath)
     {
         return builtin switch
         {
-            TokenName.Builtin_Kiwi_ExecPath => ExecPath(token, args),
-            TokenName.Builtin_Kiwi_Main => Main_(token, args),
+            TokenName.Builtin_Kiwi_ExecPath => ExecPath(token, args, executionPath),
+            TokenName.Builtin_Kiwi_Main => Main_(token, args, entryPath),
             TokenName.Builtin_Kiwi_Tokenize => Tokenize(token, args),
             TokenName.Builtin_Kiwi_TypeOf => TypeOf(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
     
-    private static Value ExecPath(Token token, List<Value> args)
+    private static Value ExecPath(Token token, List<Value> args, string executionPath)
     {
         ParameterCountMismatchError.Check(token, KiwiBuiltin.ExecPath, 0, args.Count);
-        var execPath = Interpreter.Current?.ExecutionPath ?? string.Empty;
-        if (string.IsNullOrEmpty(execPath))
+        if (string.IsNullOrEmpty(executionPath))
         {
             return Value.EmptyString;
         }
 
-        return Value.CreateString(FileUtil.GetAbsolutePath(token, execPath));
+        return Value.CreateString(FileUtil.GetAbsolutePath(token, executionPath));
     }
 
-    private static Value Main_(Token token, List<Value> args)
+    private static Value Main_(Token token, List<Value> args, string entryPath)
     {
         ParameterCountMismatchError.Check(token, KiwiBuiltin.Main, 0, args.Count);
-        return Value.CreateString(Interpreter.Current?.EntryPath ?? string.Empty);
+        return Value.CreateString(entryPath);
     }
 
     private static Value Tokenize(Token token, List<Value> args)

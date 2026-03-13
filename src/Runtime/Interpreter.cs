@@ -17,11 +17,13 @@ public class Interpreter
     private const int SafemodeMaxIterations = 1000000;
     private Scope _globalScope = new();
     private readonly Stack<Scope> _scopePool = new(32);
+    private FrameManager _frames = null!;
+    private BuiltinMethodDispatcher _builtinDispatcher = null!;
 
     public Interpreter()
     {
-        _threadCurrent = this;
         _globalScope.Declare("global", Value.CreateHashmap());
+        InitManagers();
     }
 
     // Used by generator threads to share the global scope and context
@@ -29,12 +31,14 @@ public class Interpreter
     {
         _globalScope = globalScope;
         Context = context;
-        _threadCurrent = this;
+        InitManagers();
     }
 
-    [ThreadStatic]
-    private static Interpreter? _threadCurrent;
-    public static Interpreter? Current => _threadCurrent;
+    private void InitManagers()
+    {
+        _frames = new FrameManager(CallStack, FuncStack, _scopePool, _globalScope, () => Context);
+        _builtinDispatcher = new BuiltinMethodDispatcher(this);
+    }
 
     private GeneratorRef? _activeGenerator;
 
@@ -42,6 +46,7 @@ public class Interpreter
     public KContext Context { get; private set; } = new();
     public string ExecutionPath { get; set; } = string.Empty;
     public string EntryPath { get; set; } = string.Empty;
+    public CancellationToken GeneratorCancellationToken { get; private set; } = CancellationToken.None;
     public Stack<StackFrame> CallStack { get; set; } = [];
     private Stack<string> PackageStack { get; set; } = [];
     private Stack<string> StructStack { get; set; } = [];
@@ -75,15 +80,7 @@ public class Interpreter
         }
     }
 
-    private List<string> CaptureStackTrace()
-    {
-        var trace = new List<string>();
-        foreach (var frame in CallStack.Reverse())
-        {
-            trace.Add(frame.FormatTraceLine());
-        }
-        return trace;
-    }
+    private List<string> CaptureStackTrace() => _frames.CaptureStackTrace();
 
     public Value Interpret(ASTNode? node)
     {
@@ -247,7 +244,7 @@ public class Interpreter
             // If the lambda was compiled to VM bytecode, delegate to a fresh per-task VM.
             // InvokeEvent is called from TaskManager.Spawn on a thread-pool thread.  Thread-pool
             // threads are reused, so KiwiVM.Current may still hold a stale VM from a previous
-            // task on this thread — always create a new one here.
+            // task on this thread - always create a new one here.
             // Use func.CapturedScope (= main interpreter's global scope) so the task can see
             // globals like DB_PATH, HOST, etc. that were set at program startup.
             if (func.VMChunk != null)
@@ -322,7 +319,7 @@ public class Interpreter
         var eventName = Interpret(node.EventName);
         var args = node.EventArgs.Select(Interpret).ToList();
 
-        Context.Events.Emit(node.Token, eventName.GetString(), args);
+        Context.Events.Emit(this, node.Token, eventName.GetString(), args);
 
         return Value.Default;
     }
@@ -747,7 +744,7 @@ public class Interpreter
             }
         }
 
-        var value = Interpret(node.Initializer).Clone();
+        var value = CloneIfCollection(Interpret(node.Initializer));
 
         // Static variable assignment: @@varname = expr or @@varname += expr etc.
         if (node.Left?.Type == ASTNodeType.StaticSelf)
@@ -1334,26 +1331,22 @@ public class Interpreter
         {
             return val;
         }
-        else if (Context.HasStruct(name))
+        else if (Context.Structs.TryGetValue(name, out var kstruct))
         {
-            return Value.CreateStruct(new StructRef { Identifier = name });
+            return kstruct.AsValue;
         }
         else if (Context.HasLambda(name))
         {
             return Value.CreateLambda(new LambdaRef { Identifier = name });
         }
-        else if (Context.HasMappedLambda(name))
+        else if (Context.LambdaTable.TryGetValue(name, out var mappedId) &&
+                 Context.Lambdas.ContainsKey(mappedId))
         {
-            var id = Context.LambdaTable[name];
-
-            if (Context.HasLambda(id))
-            {
-                return Value.CreateLambda(new LambdaRef { Identifier = id });
-            }
+            return Value.CreateLambda(new LambdaRef { Identifier = mappedId });
         }
-        else if (Context.HasConstant(name))
+        else if (Context.Constants.TryGetValue(name, out var constant))
         {
-            return Context.Constants[name];
+            return constant;
         }
         else if (_globalScope.TryGet(node.Name, out val))
         {
@@ -2487,7 +2480,7 @@ public class Interpreter
         }
         else if (ListBuiltin.IsBuiltin(node.Op))
         {
-            return ListBuiltinHandler.HandleListBuiltin(node.Token, ref obj, node.Op, GetMethodCallArguments(node.Arguments));
+            return ListBuiltinHandler.HandleListBuiltin(this, node.Token, ref obj, node.Op, GetMethodCallArguments(node.Arguments));
         }
         else if (CallableBuiltin.IsBuiltin(node.Op))
         {
@@ -2564,7 +2557,8 @@ public class Interpreter
             var genInterp = new Interpreter(capturedGlobal, capturedContext)
             {
                 ExecutionPath = capturedExecPath,
-                EntryPath = capturedEntryPath
+                EntryPath = capturedEntryPath,
+                GeneratorCancellationToken = generatorRef.CancellationToken
             };
             genInterp.RunGeneratorBody(capturedFunc, args, capturedToken, generatorRef);
         });
@@ -2590,6 +2584,8 @@ public class Interpreter
             foreach (var stmt in func.Decl.Body)
             {
                 if (stmt == null) continue;
+                if (GeneratorCancellationToken.IsCancellationRequested)
+                    break;
                 Interpret(stmt);
                 if (functionFrame.IsFlagSet(FrameFlags.Return))
                     break;
@@ -2949,44 +2945,34 @@ public class Interpreter
 
     private SliceIndex GetSlice(SliceNode node, Value obj)
     {
-        var isSlice = true;
-        var indexOrStart = Value.CreateInteger(0L);
-        var stopIndex = Value.CreateInteger(0L);
-        var stepValue = Value.CreateInteger(0L);
-
-        if (obj.IsList())
-        {
-            stopIndex.SetValue(obj.GetList().Count);
-        }
-        else if (obj.IsString())
-        {
-            stopIndex.SetValue(obj.GetString().Length);
-        }
-        else if (obj.IsBytes())
-        {
-            stopIndex.SetValue(obj.GetBytes().Length);
-        }
-
-        stepValue.SetValue(1);
+        long start = 0L;
+        long stop = obj.IsList() ? obj.GetList().Count
+                  : obj.IsString() ? obj.GetString().Length
+                  : obj.IsBytes() ? (long)obj.GetBytes().Length
+                  : 0L;
+        long step = 1L;
 
         if (node.StartExpression != null)
         {
-            indexOrStart.SetValue(Interpret(node.StartExpression));
+            var v = Interpret(node.StartExpression);
+            start = v.IsInteger() ? v.GetInteger() : (long)v.GetFloat();
         }
 
         if (node.StopExpression != null)
         {
-            stopIndex.SetValue(Interpret(node.StopExpression));
+            var v = Interpret(node.StopExpression);
+            stop = v.IsInteger() ? v.GetInteger() : (long)v.GetFloat();
         }
 
         if (node.StepExpression != null)
         {
-            stepValue.SetValue(Interpret(node.StepExpression));
+            var v = Interpret(node.StepExpression);
+            step = v.IsInteger() ? v.GetInteger() : (long)v.GetFloat();
         }
 
-        return new(indexOrStart, stopIndex, stepValue)
+        return new(Value.CreateInteger(start), Value.CreateInteger(stop), Value.CreateInteger(step))
         {
-            IsSlice = isSlice
+            IsSlice = true
         };
     }
 
@@ -3222,11 +3208,11 @@ public class Interpreter
 
         if (KiwiBuiltin.IsBuiltin(op))
         {
-            return KiwiBuiltinHandler.Execute(node.Token, op, args);
+            return KiwiBuiltinHandler.Execute(node.Token, op, args, ExecutionPath, EntryPath);
         }
         else if (ReflectorBuiltin.IsBuiltin(op))
         {
-            return ReflectorBuiltinHandler.Execute(node.Token, op, args, Context, CallStack, FuncStack);
+            return ReflectorBuiltinHandler.Execute(this, node.Token, op, args, Context, CallStack, FuncStack);
         }
         else if (TaskBuiltin.IsBuiltin(op))
         {
@@ -4228,65 +4214,10 @@ public class Interpreter
     }
 
     private Value HandleObjectBuiltin(MethodCallNode node, InstanceRef obj, string baseStruct, TokenName builtin)
-    {
-        var token = node.Token;
-        List<Value> args = [];
-        foreach (var arg in node.Arguments)
-        {
-            var value = Interpret(arg);
-            args.Add(value);
-        }
-
-        return ObjectBuiltinHandler.Handle(token, builtin, obj, baseStruct, args);
-    }
+        => _builtinDispatcher.HandleObjectBuiltin(node, obj, baseStruct, builtin);
 
     private Value HandleCallableBuiltin(MethodCallNode node, List<Value> args)
-    {
-        var result = Value.Default;
-        var obj = Interpret(node.Object);
-
-        Callable? callable = null;
-        string? callableName = null;
-        if (obj.IsLambda())
-        {
-            callableName = obj.GetLambda().Identifier;
-            
-            if (Context.HasLambda(callableName))
-            {
-                callable = Context.Lambdas[callableName];
-            }
-            else if (Context.HasMappedLambda(callableName))
-            {
-                callable = Context.Lambdas[Context.LambdaTable[callableName]];
-            }
-        }
-        else if (node.Object?.Type == ASTNodeType.Identifier)
-        {
-            callableName = Id(node.Object);
-
-            if (Context.HasFunction(callableName))
-            {
-                callable = Context.Functions[callableName];
-            }
-        }
-
-        if (callableName == null)
-        {
-            throw new InvalidOperationError(node.Token, $"Expected a callable for function `{CallableBuiltin.MapName(node.Op)}`.");
-        }
-
-        if (callable == null)
-        {
-            throw new InvalidOperationError(node.Token, $"Expected a callable for function `{CallableBuiltin.MapName(node.Op)}` on `{callableName}`.");
-        }
-
-        if (!(callable is KFunction || callable is KLambda))
-        {
-            throw new InvalidOperationError(node.Token, $"Expected a function or lambda for function `{CallableBuiltin.MapName(node.Op)}` on `{callableName}`.");
-        }
-
-        return CallableBuiltinHandler.Execute(this, node.Token, node.Op, callable, callableName, args);
-    }
+        => _builtinDispatcher.HandleCallableBuiltin(node, args);
 
     private static bool RequiresSigCheck(ASTNodeType type)
     {
@@ -4330,143 +4261,20 @@ public class Interpreter
         return Value.CreateString(sb.ToString());
     }
 
-    private StackFrame PushFrame(StackFrame frame, bool inLambda = false)
-    {
-        if (inLambda)
-        {
-            frame.SetFlag(FrameFlags.InLambda);
-        }
-
-        CallStack.Push(frame);
-        FuncStack.Push(frame.Name);
-        return frame;
-    }
-
-    private StackFrame PushFrame(string name, Token token, Scope scope, bool inLambda = false)
-    {
-        var frame = new StackFrame(name, scope, token);
-
-        if (inLambda)
-        {
-            frame.SetFlag(FrameFlags.InLambda);
-        }
-
-        CallStack.Push(frame);
-        FuncStack.Push(name);
-        return frame;
-    }
-
-    private Value PopFrame()
-    {
-        if (CallStack.Count == 0)
-        {
-            return Value.Default;
-        }
-
-        var frame = CallStack.Pop();
-        FuncStack.Pop();
-
-        if (frame.IsFunction)
-        {
-            foreach (var fname in frame.LocalFunctions)
-                Context.Functions.Remove(fname);
-            foreach (var lname in frame.LocalLambdas)
-                Context.Lambdas.Remove(lname);
-        }
-
-        var ret = frame.ReturnValue ?? Value.Default;
-        if (CallStack.Count > 0)
-        {
-            CallStack.Peek().ReturnValue = ret;
-        }
-
-        return ret;
-    }
-
-    private bool PushFrame(StackFrame frame)
-    {
-        CallStack.Push(frame);
-        FuncStack.Push(frame.Name);
-        return true;
-    }
-
-    /// <summary>
-    /// Enters a block scope by renting a Scope from the pool (or allocating a new one)
-    /// and pointing the frame at it. Returns the previous (parent) scope so the caller
-    /// can restore it in finally.
-    /// </summary>
-    private Scope EnterBlockScope(StackFrame frame)
-    {
-        var parent = frame.Scope;
-        Scope block = _scopePool.Count > 0 ? _scopePool.Pop() : new Scope();
-        block.Reset(parent);
-        frame.Scope = block;
-        return parent;
-    }
-
-    /// <summary>
-    /// Restores the frame to the scope saved by EnterBlockScope and returns the block scope
-    /// to the pool if it was not captured by a lambda or nested function.
-    /// </summary>
-    private void ExitBlockScope(StackFrame frame, Scope parent)
-    {
-        var block = frame.Scope;
-        frame.Scope = parent;
-        if (block.CanPool)
-            _scopePool.Push(block);
-    }
-
-    /// <summary>
-    /// Returns the current frame's scope and marks it (and its parent block scopes) as
-    /// captured so they are never returned to the pool. Call whenever a lambda or function
-    /// definition closes over the current scope.
-    /// </summary>
-    private Scope CaptureCurrentScope()
-    {
-        var scope = CallStack.Peek().Scope;
-        scope.MarkCaptured();
-        return scope;
-    }
-
-    private bool InTry()
-    {
-        if (CallStack.Count == 0)
-        {
-            return false;
-        }
-
-        return CallStack.Peek().IsFlagSet(FrameFlags.InTry);
-    }
-
-    private StackFrame CreateFrame(string name, Token token, Scope? parentScope = null)
-    {
-        StackFrame frame = CallStack.Peek();
-        Scope scope = new(parentScope ?? _globalScope);
-        StackFrame subFrame = new(name, scope, token);
-
-        if (frame.InObjectContext())
-        {
-            var objectContext = frame.GetObjectContext();
-            subFrame.SetObjectContext(objectContext);
-        }
-
-        if (frame.IsFlagSet(FrameFlags.InTry))
-        {
-            subFrame.SetFlag(FrameFlags.InTry);
-        }
-
-        if (frame.IsFlagSet(FrameFlags.SubFrame))
-        {
-            subFrame.SetFlag(FrameFlags.SubFrame);
-        }
-
-        return subFrame;
-    }
+    private StackFrame PushFrame(StackFrame frame, bool inLambda = false) => _frames.Push(frame, inLambda);
+    private StackFrame PushFrame(string name, Token token, Scope scope, bool inLambda = false) => _frames.Push(name, token, scope, inLambda);
+    private Value PopFrame() => _frames.Pop();
+    private bool PushFrame(StackFrame frame) => _frames.PushRaw(frame);
+    private Scope EnterBlockScope(StackFrame frame) => _frames.EnterBlock(frame);
+    private void ExitBlockScope(StackFrame frame, Scope parent) => _frames.ExitBlock(frame, parent);
+    private Scope CaptureCurrentScope() => _frames.CaptureCurrentScope();
+    private bool InTry() => _frames.InTry();
+    private StackFrame CreateFrame(string name, Token token, Scope? parentScope = null) => _frames.CreateFrame(name, token, parentScope);
 
     private static string Id(ASTNode node) => ((IdentifierNode)node).Name;
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // VM Bridge — public surface used by KiwiVM to delegate work back to the
+    // VM Bridge - public surface used by KiwiVM to delegate work back to the
     // tree-walking interpreter for operations not yet compiled natively.
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -4545,14 +4353,14 @@ public class Interpreter
         if (obj.IsObject())   return CallObjectMethodDirect(token, methodName, obj.GetObject(), args);
         if (obj.IsStruct())   return CallStructMethodDirect(token, methodName, obj.GetStruct(), args);
 
-        // Builtin method dispatch — resolve string name → TokenName
+        // Builtin method dispatch - resolve string name → TokenName
         if (ListBuiltin.Map.TryGetValue(methodName, out TokenName listOp))
         {
             // HandleListBuiltin peeks the call stack to detect early returns from lambdas.
             // Push a synthetic frame when the VM calls us with an empty stack.
             bool pushedFrame = CallStack.Count == 0;
             if (pushedFrame) CallStack.Push(new StackFrame("<vm-dispatch>", _globalScope));
-            try   { return ListBuiltinHandler.HandleListBuiltin(token, ref obj, listOp, args); }
+            try   { return ListBuiltinHandler.HandleListBuiltin(this, token, ref obj, listOp, args); }
             finally { if (pushedFrame) CallStack.Pop(); }
         }
         if (CallableBuiltin.Map.TryGetValue(methodName, out _))
@@ -4617,16 +4425,7 @@ public class Interpreter
     }
 
     private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, List<Value> args)
-    {
-        // Resolve the method name to its TokenName op so CallableBuiltinHandler dispatches correctly.
-        if (!CallableBuiltin.Map.TryGetValue(methodName, out var op))
-            throw new FunctionUndefinedError(token, methodName);
-        var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
-        var node = new MethodCallNode(
-            new LiteralNode(obj) { Token = token },
-            methodName, op, argNodes) { Token = token };
-        return HandleCallableBuiltin(node, args);
-    }
+        => _builtinDispatcher.HandleCallableBuiltinDirect(token, obj, methodName, args);
 
     /// <summary>
     /// Get the value at obj[key].  Used by the VM's IndexGet opcode.
@@ -4805,4 +4604,12 @@ public class Interpreter
             throw new RuntimeError(Token.Eof, "'yield' used outside of a generator.", []);
         _activeGenerator.Yield(v);
     }
+
+    /// <summary>
+    /// Returns the value itself for primitive/immutable types (int, float, bool, string, null)
+    /// where sharing the Value wrapper is safe. Clones only mutable collections.
+    /// </summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private static Value CloneIfCollection(Value v) =>
+        (v.IsList() || v.IsHashmap()) ? v.Clone() : v;
 }
