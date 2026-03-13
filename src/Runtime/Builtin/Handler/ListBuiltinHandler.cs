@@ -7,7 +7,7 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public class ListBuiltinHandler
 {    
-    public static Value HandleListBuiltin(Token token, ref Value obj, TokenName op, List<Value> args)
+    public static Value HandleListBuiltin(Interpreter interp, Token token, ref Value obj, TokenName op, List<Value> args)
     {
         if (!obj.IsList())
         {
@@ -49,8 +49,6 @@ public class ListBuiltinHandler
                     return ListTake(ref obj, (int)args[0].GetInteger());
             }
         }
-
-        var interp = Interpreter.Current ?? throw new RuntimeError(token, $"{op}", []);
 
         if (args.Count == 1 && args[0].IsLambda())
         {
