@@ -124,6 +124,11 @@ public class KStruct
 {
     public string Name { get; set; } = string.Empty;
     public string BaseStruct { get; set; } = string.Empty;
+
+    // Cached Value wrapper for when this struct name appears as an identifier.
+    // Avoids allocating a new StructRef+Value on every lookup.
+    private Value? _cachedValue;
+    public Value AsValue => _cachedValue ??= Value.CreateStruct(new StructRef { Identifier = Name });
     public Dictionary<string, KFunction> Methods { get; set; } = [];
     public Dictionary<string, Value> StaticVariables { get; set; } = [];
     public bool IsAbstract { get; set; }

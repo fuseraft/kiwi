@@ -163,6 +163,9 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     private const int BoxCacheSize = 1024;
     private static readonly object[] _boxedInts;
 
+    // Shared NullRef singleton — NullRef has no state, so all nulls can share one instance.
+    private static readonly NullRef _sharedNull = new();
+
     static Value()
     {
         _charStrings = new string[128];
@@ -236,7 +239,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static Value CreateHashmap() => new(new Dictionary<Value, Value>(), ValueType.Hashmap);
     public static Value CreateNull(NullRef value) => new(value, ValueType.None);
     public static Value CreateNull(object value) => new(value, ValueType.None);
-    public static Value CreateNull() => new(new NullRef(), ValueType.None);
+    public static Value CreateNull() => new(_sharedNull, ValueType.None);
     public static Value CreateObject(InstanceRef value) => new(value, ValueType.Object);
     public static Value CreateObject(object value) => new(value, ValueType.Object);
     public static Value CreateLambda(LambdaRef value) => new(value, ValueType.Lambda);
@@ -274,8 +277,22 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public StructRef GetStruct() => (StructRef)Value_;
     public IntPtr GetPointer() => (IntPtr)(Value_ ?? IntPtr.Zero);
     public byte[] GetBytes() => (byte[])(Value_ ?? ""u8.ToArray());
-    public List<Value> GetStringAsList() => [.. ((string)Value_).ToCharArray().Select(x => CreateString(x))];
-    public List<Value> GetBytesAsList() => [.. ((byte[])Value_).Select(x => CreateInteger(x))];
+    public List<Value> GetStringAsList()
+    {
+        var s = (string)Value_;
+        var result = new List<Value>(s.Length);
+        foreach (char c in s)
+            result.Add(CreateString(c));
+        return result;
+    }
+    public List<Value> GetBytesAsList()
+    {
+        var bytes = (byte[])Value_;
+        var result = new List<Value>(bytes.Length);
+        foreach (byte b in bytes)
+            result.Add(CreateInteger(b));
+        return result;
+    }
     public NullRef GetNull()
     {
         Value_ ??= new NullRef();
