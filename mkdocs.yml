@@ -83,13 +83,16 @@ nav:
     - Variables: variables.md
     - Types: types.md
     - Type Hints: type_hints.md
+    - Conditionals: conditionals.md
     - Operators: operators.md
     - Keywords: keywords.md
     - Comments: comments.md
     - Docstrings: docstrings.md
+    - Scoping: scoping.md
   - Functions:
     - Functions: functions.md
     - Lambdas: lambdas.md
+    - Decorators: decorators.md
   - Control Flow:
     - Control Structures: control_structures.md
     - Loops: loops.md
@@ -104,6 +107,7 @@ nav:
   - Object-Oriented:
     - Structs: structs.md
     - Abstract Structs: abstract_structs.md
+    - Enums: enums.md
     - Operator Overloading: operator_overloading.md
   - Modules & I/O:
     - Packages: packages.md
@@ -113,22 +117,35 @@ nav:
   - Standard Library:
     - Overview: lib/README.md
     - bench: lib/bench.md
+    - cli: lib/cli.md
     - collections: lib/collections.md
     - compress: lib/compress.md
     - console: lib/console.md
     - crypto: lib/crypto.md
     - csv: lib/csv.md
+    - curl: lib/curl.md
+    - date: lib/date.md
+    - dotenv: lib/dotenv.md
     - env: lib/env.md
+    - error: lib/error.md
     - fio: lib/fio.md
+    - hashable: lib/hashable.md
     - http: lib/http.md
     - iter: lib/iter.md
+    - json: lib/json.md
+    - list: lib/list.md
     - math: lib/math.md
     - path: lib/path.md
+    - protobuf: lib/protobuf.md
     - reflector: lib/reflector.md
+    - regex: lib/regex.md
     - socket: lib/socket.md
+    - sqlite: lib/sqlite.md
+    - std: lib/std.md
     - stdin: lib/stdin.md
     - string: lib/string.md
     - sys: lib/sys.md
     - task: lib/task.md
     - tester: lib/tester.md
     - time: lib/time.md
+    - xml: lib/xml.md

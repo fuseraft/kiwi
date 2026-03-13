@@ -2,7 +2,7 @@
     Testing operator overloads.
    ============================================================================== #/
 
-# ── Number: arithmetic and equality ────────────────────────────────────────────
+# -- Number: arithmetic and equality --------------------------------------------
 
 struct Number
   fn new(_value: any = 0)
@@ -140,7 +140,7 @@ tester::register_test("operator overloads: comparison", with do
   tester::assert(pi < 4,          "pi < 4")
 end)
 
-# ── Vec2: multi-operator struct ─────────────────────────────────────────────────
+# -- Vec2: multi-operator struct -------------------------------------------------
 
 tester::register_test("operator overloads: Vec2", with do
   struct Vec2
@@ -194,7 +194,7 @@ tester::register_test("operator overloads: Vec2", with do
   tester::assert(chain.x == 8 && chain.y == 12, "Vec2 chained (a+b)*2 == (8,12)")
 end)
 
-# ── Inheritance: overloads flow to derived structs ──────────────────────────────
+# -- Inheritance: overloads flow to derived structs ------------------------------
 
 tester::register_test("operator overloads: inheritance", with do
   struct BaseVal

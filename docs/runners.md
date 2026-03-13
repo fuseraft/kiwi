@@ -10,9 +10,10 @@ Kiwi supports **multiple execution modes** via the `IRunner` interface. Each mod
 |--------|--------|-------|--------|
 | `ScriptRunner` | Run `.kiwi` files | File path | `kiwi script.kiwi` |
 | `CodeRunner` | Execute a code string inline | `-e` flag | `kiwi -e 'println "hi"'` |
-| `StdInRunner` | Run from piped input | `stdin` | `cat script.kiwi | kiwi` |
-| `REPLRunner` | Interactive shell | Keyboard | `kiwi --interactive` |
+| `StdInRunner` | Run from piped stdin | `stdin` | `cat script.kiwi \| kiwi` |
+| `REPLRunner` | Interactive shell | Keyboard | `kiwi` or `kiwi -i` |
 | `DebugRunner` | Step-debug a script (kdb) | File | `kiwi --debug script.kiwi` |
+| `SyntaxChecker` | Check a file for syntax errors | File | `kiwi --check script.kiwi` |
 | `ASTPrinter` | Print AST for debugging | File | `kiwi --ast script.kiwi` |
 | `TokenPrinter` | Print tokens for debugging | File | `kiwi --tokens script.kiwi` |
 
@@ -65,9 +66,13 @@ kiwi -e 'println(__argv__)' -name=world
 
 **Use Case**: Shell pipelines, filters, one-liners.
 
+Selected automatically when no script is given and stdin is **not** a terminal (i.e. it is piped or redirected).
+
 ```bash
 echo "println 'Hello from pipe'" | kiwi
 # Hello from pipe
+
+cat script.kiwi | kiwi -theme=dark
 
 find . -name "*.kiwi" | xargs -I {} sh -c "echo '--- {} ---'; kiwi {}"
 ```
@@ -81,9 +86,13 @@ find . -name "*.kiwi" | xargs -I {} sh -c "echo '--- {} ---'; kiwi {}"
 
 **Use Case**: Learning, debugging, rapid prototyping.
 
+Selected automatically when no script is given and stdin **is** a terminal. Can also be forced explicitly.
+
 ```bash
-kiwi --interactive   # long form
-kiwi -i              # short form
+kiwi                 # auto-selected when stdin is a terminal
+kiwi -i              # explicit short form
+kiwi --interactive   # explicit long form
+kiwi -name=scotty    # key-value args are available inside the session
 ```
 
 ```text
@@ -103,6 +112,39 @@ kiwi -i              # short form
 - **Immediate execution**
 - **`.exit`** to quit
 - Full access to the standard library and CLI args
+
+## `SyntaxChecker` – Check for Errors
+
+**Use Case**: Validate a script before running it; integrate with editors or CI.
+
+```bash
+kiwi --check script.kiwi   # long form
+kiwi -c script.kiwi        # short form
+```
+
+Parses the script (including the standard library) and reports **all** syntax errors — not just the first one. The script is never executed.
+
+- Exits `0` and prints a confirmation message if no errors are found.
+- Exits `1` and prints every error (with file, line, column, and source context) if any are found.
+
+**Sample output — clean file:**
+```text
+No syntax errors found in: script.kiwi
+```
+
+**Sample output — file with errors:**
+```text
+[SyntaxError]: Unexpected token `*`.
+File: script.kiwi:1:9
+x = 1 + *
+        ^
+[SyntaxError]: Unexpected token `/`.
+File: script.kiwi:2:9
+y = 2 + /
+        ^
+```
+
+---
 
 ## `ASTPrinter` – Debug the Parser
 
@@ -190,7 +232,7 @@ Token #               Type  Name                 Text
 
 ## Standard Library
 
-- **Loaded automatically** in `ScriptRunner`, `CodeRunner`, `StdInRunner`, and `REPLRunner`
+- **Loaded automatically** in `ScriptRunner`, `CodeRunner`, `StdInRunner`, `REPLRunner`, and `SyntaxChecker`
 - **Skipped** in `--ast` and `--tokens`
 - Configured in [`kiwi-settings.json`](../src/kiwi-settings.json)
 - **Last file wins** (for overrides)
@@ -201,11 +243,24 @@ All runners catch:
 - `KiwiError` → Pretty-print error type, message, and file/line to stderr
 - `Exception` → Print message and stack trace to stderr
 
+### Multiple syntax errors
+
+When a script contains syntax errors, the parser reports **all** of them rather than stopping at the first. After each error the parser recovers and continues from the next statement, so every problem in the file is surfaced in one pass. This applies to all runners — `ScriptRunner`, `SyntaxChecker`, etc.
+
 Crash dump logging is **opt-in** via the `-cd`/`--crash-dump` flag (or by setting `"crashdump_path"` in `kiwi-settings.json`). When enabled, errors are also appended to the configured log file.
 
 ## Quick Testing
 
 ```bash
+# REPL (auto, stdin is a terminal)
+kiwi
+
+# REPL with args
+kiwi -name=scotty
+
+# REPL (explicit)
+kiwi -i
+
 # Run a script
 kiwi test.kiwi
 
@@ -215,11 +270,11 @@ kiwi -e 'println("hello")'
 # Pipe input
 echo "println 100" | kiwi
 
-# Interactive
-kiwi -i
-
 # Step debugger
 kiwi -d test.kiwi
+
+# Check for syntax errors
+kiwi -c test.kiwi
 
 # Debug parser
 kiwi -a test.kiwi

@@ -1,11 +1,24 @@
 # REPL
 
-To use the REPL, run `kiwi -i` or `kiwi --interactive`.
+The REPL starts automatically when you run `kiwi` with no script and stdin is a terminal. You can also start it explicitly with `-i` or `--interactive`.
 
 ```
+$ kiwi
+kiwi 1.4.0 — type 'exit' or press Ctrl+C to quit.
+>>
+
 $ kiwi -i
 kiwi 1.4.0 — type 'exit' or press Ctrl+C to quit.
 >>
+```
+
+Key-value arguments can be passed alongside and will be available inside the session via `env::argv()`:
+
+```
+$ kiwi -name=scotty
+kiwi 1.4.0 — type 'exit' or press Ctrl+C to quit.
+>> env::argv()
+=> {"name": "scotty"}
 ```
 
 ## Expressions are printed automatically

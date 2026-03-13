@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using kiwi.VM;
 
 namespace kiwi.Typing;
@@ -54,12 +55,22 @@ public class GeneratorRef : IDisposable
 {
     private readonly SemaphoreSlim _ready = new(0, 1);
     private readonly SemaphoreSlim _advance = new(0, 1);
+    private readonly CancellationTokenSource _cts = new();
     private Value? _yieldedValue;
     private volatile bool _done;
     private bool _closed;
+    private bool _disposed;
     private Exception? _exception;
 
     public bool IsDone => _done;
+    public CancellationToken CancellationToken => _cts.Token;
+
+    ~GeneratorRef()
+    {
+        // Safety net: cancel so a blocked Yield() can unblock even if Dispose() was never called.
+        if (!_disposed)
+            CloseInternal();
+    }
 
     public void Start(Action generatorBody)
     {
@@ -71,10 +82,10 @@ public class GeneratorRef : IDisposable
             {
                 _done = true; _ready.Release(); return;
             }
-            
+
             try
             {
-                generatorBody(); 
+                generatorBody();
             }
             catch (GeneratorCloseException) { /* normal close */ }
             catch (Exception e) { _exception = e; }
@@ -97,9 +108,17 @@ public class GeneratorRef : IDisposable
     {
         _yieldedValue = value;
         _ready.Release();   // signal consumer that a value is ready
-        _advance.Wait();    // wait for the next Next() call
-        
-        if (_closed) 
+
+        try
+        {
+            _advance.Wait(_cts.Token); // wait for the next Next() call; unblocks immediately on cancel
+        }
+        catch (OperationCanceledException)
+        {
+            throw new GeneratorCloseException();
+        }
+
+        if (_closed)
         {
             throw new GeneratorCloseException();
         }
@@ -115,14 +134,14 @@ public class GeneratorRef : IDisposable
 
         _advance.Release(); // allow generator to run
         _ready.Wait();      // wait for yield or completion
-        
+
         if (_exception != null)
         {
             var ex = _exception;
             _exception = null;
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex).Throw();
         }
-        
+
         if (_done)
         {
             return (false, Value.Default);
@@ -133,10 +152,21 @@ public class GeneratorRef : IDisposable
 
     public void Dispose()
     {
+        if (!_disposed)
+        {
+            _disposed = true;
+            CloseInternal();
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    private void CloseInternal()
+    {
         if (!_done)
         {
             _closed = true;
-            _advance.Release(); // unblock generator thread so it can exit
+            _cts.Cancel();         // unblock Yield() waiting on _advance.Wait(_cts.Token)
+            _advance.Release();    // belt-and-suspenders: also release the semaphore
         }
     }
 }
@@ -156,12 +186,27 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
 
     // Cache single-char ASCII string objects to avoid ToString() allocations in tight loops
     private static readonly string[] _charStrings;
+
+    // Pre-box small integers (0–1023) so CreateInteger avoids a boxing allocation.
+    // Value wrappers are still freshly allocated each time, keeping mutation safe.
+    private const int BoxCacheSize = 1024;
+    private static readonly object[] _boxedInts;
+
+    // Shared NullRef singleton - NullRef has no state, so all nulls can share one instance.
+    private static readonly NullRef _sharedNull = new();
+
     static Value()
     {
         _charStrings = new string[128];
         for (int i = 0; i < 128; i++)
         {
             _charStrings[i] = ((char)i).ToString();
+        }
+
+        _boxedInts = new object[BoxCacheSize];
+        for (int i = 0; i < BoxCacheSize; i++)
+        {
+            _boxedInts[i] = (long)i;
         }
     }
 
@@ -200,7 +245,13 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static readonly Value False = CreateBoolean(false);
     public static Value CreateDate(DateTime value) => new(value, ValueType.Date);
     public static Value CreateDate(object value) => new(value, ValueType.Date);
-    public static Value CreateInteger(long value) => new(value, ValueType.Integer);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Value CreateInteger(long value)
+    {
+        if ((ulong)value < BoxCacheSize)
+            return new Value(_boxedInts[value], ValueType.Integer);
+        return new Value(value, ValueType.Integer);
+    }
     public static Value CreateInteger(object value) => new(value, ValueType.Integer);
     public static Value CreateFloat(double value) => new(value, ValueType.Float);
     public static Value CreateFloat(object value) => new(value, ValueType.Float);
@@ -217,7 +268,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static Value CreateHashmap() => new(new Dictionary<Value, Value>(), ValueType.Hashmap);
     public static Value CreateNull(NullRef value) => new(value, ValueType.None);
     public static Value CreateNull(object value) => new(value, ValueType.None);
-    public static Value CreateNull() => new(new NullRef(), ValueType.None);
+    public static Value CreateNull() => new(_sharedNull, ValueType.None);
     public static Value CreateObject(InstanceRef value) => new(value, ValueType.Object);
     public static Value CreateObject(object value) => new(value, ValueType.Object);
     public static Value CreateLambda(LambdaRef value) => new(value, ValueType.Lambda);
@@ -243,37 +294,51 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
         return 0D;
     }
 
-    public long GetInteger() => (long)Value_;
-    public double GetFloat() => (double)Value_;
-    public bool GetBoolean() => (bool)Value_;
-    public string GetString() => (string)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public long GetInteger() => (long)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public double GetFloat() => (double)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool GetBoolean() => (bool)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetString() => (string)Value_;
     public DateTime GetDate() => (DateTime)Value_;
-    public List<Value> GetList() => (List<Value>)Value_;
-    public Dictionary<Value, Value> GetHashmap() => (Dictionary<Value, Value>)Value_;
-    public InstanceRef GetObject() => (InstanceRef)Value_;
-    public LambdaRef GetLambda() => (LambdaRef)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public List<Value> GetList() => (List<Value>)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public Dictionary<Value, Value> GetHashmap() => (Dictionary<Value, Value>)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public InstanceRef GetObject() => (InstanceRef)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public LambdaRef GetLambda() => (LambdaRef)Value_;
     public StructRef GetStruct() => (StructRef)Value_;
     public IntPtr GetPointer() => (IntPtr)(Value_ ?? IntPtr.Zero);
     public byte[] GetBytes() => (byte[])(Value_ ?? ""u8.ToArray());
-    public List<Value> GetStringAsList() => [.. ((string)Value_).ToCharArray().Select(x => CreateString(x))];
-    public List<Value> GetBytesAsList() => [.. ((byte[])Value_).Select(x => CreateInteger(x))];
+    public List<Value> GetStringAsList()
+    {
+        var s = (string)Value_;
+        var result = new List<Value>(s.Length);
+        foreach (char c in s)
+            result.Add(CreateString(c));
+        return result;
+    }
+    public List<Value> GetBytesAsList()
+    {
+        var bytes = (byte[])Value_;
+        var result = new List<Value>(bytes.Length);
+        foreach (byte b in bytes)
+            result.Add(CreateInteger(b));
+        return result;
+    }
     public NullRef GetNull()
     {
         Value_ ??= new NullRef();
         return (NullRef)Value_;
     }
 
-    public bool IsNumber() => Type == ValueType.Integer || Type == ValueType.Float;
-    public bool IsInteger() => Type == ValueType.Integer;
-    public bool IsFloat() => Type == ValueType.Float;
-    public bool IsBoolean() => Type == ValueType.Boolean;
-    public bool IsString() => Type == ValueType.String;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsNumber() => Type == ValueType.Integer || Type == ValueType.Float;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsInteger() => Type == ValueType.Integer;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsFloat() => Type == ValueType.Float;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsBoolean() => Type == ValueType.Boolean;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsString() => Type == ValueType.String;
     public bool IsDate() => Type == ValueType.Date;
-    public bool IsList() => Type == ValueType.List;
-    public bool IsHashmap() => Type == ValueType.Hashmap;
-    public bool IsObject() => Type == ValueType.Object;
-    public bool IsLambda() => Type == ValueType.Lambda;
-    public bool IsNull() => Type == ValueType.None;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsList() => Type == ValueType.List;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsHashmap() => Type == ValueType.Hashmap;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsObject() => Type == ValueType.Object;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsLambda() => Type == ValueType.Lambda;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsNull() => Type == ValueType.None;
     public bool IsStruct() => Type == ValueType.Struct;
     public bool IsPointer() => Type == ValueType.Pointer;
     public bool IsBytes() => Type == ValueType.Bytes;
@@ -395,7 +460,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             case ValueType.None:     return true;
         }
 
-        // Only List, Hashmap, Object can form cycles — cycle-protection needed
+        // Only List, Hashmap, Object can form cycles - cycle-protection needed
         HashSet<(Value, Value)> visitedPairs = [];
         return StructuralEquals(other, visitedPairs);
     }

@@ -45,7 +45,7 @@ import "regex"
 import "time"
 import "cli"
 
-# ── Configuration ─────────────────────────────────────────────────────────────
+# -- Configuration -------------------------------------------------------------
 
 fn getenv(name: string, default: string): string
   v = env::get(name)
@@ -70,7 +70,7 @@ var PORT       = args["port"].to_integer()
 var DB_PATH    = args["db"]
 var START_TIME = time::ticks()
 
-# ── Database helpers ───────────────────────────────────────────────────────────
+# -- Database helpers -----------------------------------------------------------
 
 fn db_open()
   sqlite::open(DB_PATH)
@@ -110,7 +110,7 @@ fn init_db()
   db.close()
 end
 
-# ── Time helpers ───────────────────────────────────────────────────────────────
+# -- Time helpers ---------------------------------------------------------------
 
 fn now_datetime(): string
   time::now().to_string("yyyy-MM-dd HH:mm:ss")
@@ -124,7 +124,7 @@ fn uptime_seconds(): integer
   (time::ticksms(time::ticks() - START_TIME) / 1000).to_integer()
 end
 
-# ── Response builders ──────────────────────────────────────────────────────────
+# -- Response builders ----------------------------------------------------------
 
 fn json_resp(status: integer, data): bytes
   body = json::stringify(data)
@@ -159,7 +159,7 @@ fn method_not_allowed(allowed: string): list
   })]
 end
 
-# ── Request helpers ────────────────────────────────────────────────────────────
+# -- Request helpers ------------------------------------------------------------
 
 fn require_json(req): boolean
   ct = req["headers"].get("content-type", "")
@@ -182,7 +182,7 @@ fn clamp(val: integer, lo: integer, hi: integer): integer
   val < lo ? lo : (val > hi ? hi : val)
 end
 
-# ── Domain logic ───────────────────────────────────────────────────────────────
+# -- Domain logic ---------------------------------------------------------------
 
 fn row_to_task(row)
   {
@@ -215,7 +215,7 @@ fn valid_date(s): boolean
   typeof(s) == string && regex::test("^\\d{4}-\\d{2}-\\d{2}$", s)
 end
 
-# ── Request handlers ───────────────────────────────────────────────────────────
+# -- Request handlers -----------------------------------------------------------
 
 fn handle_health(): list
   [200, json_resp(200, {
@@ -517,7 +517,7 @@ fn handle_csv(db): list
   })]
 end
 
-# ── Router ─────────────────────────────────────────────────────────────────────
+# -- Router ---------------------------------------------------------------------
 
 fn route(db, method: string, path: string, req): list
   # OPTIONS — CORS preflight for all routes
@@ -575,7 +575,7 @@ fn route(db, method: string, path: string, req): list
   [404, err_resp(404, "${path} not found")]
 end
 
-# ── Connection handler (runs in a spawned task) ────────────────────────────────
+# -- Connection handler (runs in a spawned task) --------------------------------
 
 fn handle_connection(client_sock: integer)
   t0 = time::ticks()
@@ -638,16 +638,16 @@ fn handle_connection(client_sock: integer)
   socket::close(client_sock)
 end
 
-# ── Main ───────────────────────────────────────────────────────────────────────
+# -- Main -----------------------------------------------------------------------
 
 init_db()
 
 println ""
 println "  Kiwi Task API"
-println "  ─────────────────────────────────────────"
+println "  -----------------------------------------"
 println "  Listening on  http://${HOST}:${PORT}"
 println "  Database:     ${DB_PATH}"
-println "  ─────────────────────────────────────────"
+println "  -----------------------------------------"
 println "  GET    http://${HOST}:${PORT}/"
 println "  GET    http://${HOST}:${PORT}/health"
 println "  GET    http://${HOST}:${PORT}/tasks"
@@ -657,7 +657,7 @@ println "  PUT    http://${HOST}:${PORT}/tasks/:id"
 println "  DELETE http://${HOST}:${PORT}/tasks/:id"
 println "  GET    http://${HOST}:${PORT}/stats"
 println "  GET    http://${HOST}:${PORT}/export/csv"
-println "  ─────────────────────────────────────────"
+println "  -----------------------------------------"
 println "  Press Ctrl+C to stop."
 println ""
 

@@ -7,6 +7,7 @@ public class Config
 {
     public bool PrintTokens { get; set; } = false;
     public bool PrintAST { get; set; } = false;
+    public bool CheckSyntax { get; set; } = false;
     public bool UseREPL { get; set; } = false;
     public bool UseDebugger { get; set; } = false;
     public bool UseVM { get; set; } = false;
@@ -103,6 +104,20 @@ public class Config
                         var filename = GetFilename(ref iter);
                         config.Scripts.Add(filename);
                         config.PrintTokens = true;
+                    }
+                    else
+                    {
+                        config.Args.Add(current);
+                    }
+                    break;
+
+                case "-c":
+                case "--check":
+                    if (!config.HasScripts)
+                    {
+                        var filename = GetFilename(ref iter);
+                        config.Scripts.Add(filename);
+                        config.CheckSyntax = true;
                     }
                     else
                     {
@@ -229,6 +244,10 @@ public class Config
                     {
                         config.Scripts.Add(current);
                     }
+                    else if (!config.HasScripts && current.StartsWith('-') && !current.Contains('='))
+                    {
+                        throw new CliError($"Unknown option: {current}");
+                    }
                     else
                     {
                         config.Args.Add(current);
@@ -305,6 +324,7 @@ public class Config
             ("-n, --new <filename>", $"create a `{Kiwi.Settings.Extensions.Primary}` file"),
             ("-i, --interactive", "run in interactive mode"),
             ("-e, --execute <code>", "execute a string of code"),
+            ("-c, --check <input_path>", $"check `{Kiwi.Settings.Extensions.Primary}` file for syntax errors"),
             ("-a, --ast <input_path>", $"print syntax tree of `{Kiwi.Settings.Extensions.Primary}` file"),
             ("-t, --tokens <input_path>", $"print tokens of `{Kiwi.Settings.Extensions.Primary}` file"),
             ("-ns, --no-stdlib", "run without standard library"),

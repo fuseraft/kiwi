@@ -1,0 +1,90 @@
+---
+# Complex YAML test fixture
+project:
+  name: Kiwi
+  version: "2.1.0"
+  active: true
+  deprecated: false
+  maintainer: ~
+
+  authors:
+    - name: fuseraft
+      role: lead
+      contact:
+        email: "fuseraft@example.com"
+        github: fuseraft
+    - name: contributor
+      role: reviewer
+      contact:
+        email: "contrib@example.com"
+        github: contrib99
+
+  tags: [scripting, language, dynamic, aot]
+
+  metrics:
+    stars: 1024
+    forks: 87
+    open_issues: 3
+    score: 9.85
+    ratio: 0.953
+
+  config:
+    max_stack: 512
+    timeout: 30
+    debug: false
+    flags: [--vm, --safe, --no-stdlib]
+    thresholds: {warn: 80, error: 95, critical: 99}
+
+  changelog:
+    "2.1.0":
+      date: 2026-01-15
+      notes: |
+        Added VM backend.
+        Fixed scope bugs.
+        Improved performance by 40%.
+    "2.0.0":
+      date: 2025-06-01
+      notes: >
+        Major rewrite from C++ to C#.
+        Introduced struct system and closures.
+
+  matrix:
+    - [1, 2, 3]
+    - [4, 5, 6]
+    - [7, 8, 9]
+
+  env:
+    PATH: "/usr/local/bin:/usr/bin"
+    DEBUG: "false"
+    MAX_WORKERS: "8"
+
+  special_strings:
+    colon_in_value: "key: value"
+    hash_in_value: "color: #ff0000"
+    quoted_null: "null"
+    quoted_true: "true"
+    single_quoted: 'it''s alive'
+    escape_seq: "line1\nline2\ttabbed"
+
+  nested_flow:
+    point: {x: 42, y: -7, z: 0}
+    colors: [red, green, blue]
+    deep: {a: {b: {c: 99}}}
+
+  anchors: &base_cfg
+    retries: 3
+    timeout: 60
+    verbose: false
+
+  production:
+    <<: *base_cfg
+    host: "prod.example.com"
+    port: 443
+
+  numbers:
+    zero: 0
+    negative: -42
+    big: 1000000
+    pi: 3.14159
+    neg_float: -2.718
+    scientific: 1.5e2

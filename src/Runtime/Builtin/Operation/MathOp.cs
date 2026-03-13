@@ -9,86 +9,38 @@ public struct MathOp
     public static Value Add(Token token, ref Value left, ref Value right, bool doAssign = false)
     {
         Typing.ValueType type = Typing.ValueType.None;
-        Value res = GetAddResult(token, ref left, ref right, ref type);
-
-        if (doAssign)
-        {
-            left.Set(res, type);
-            return left;
-        }
-
-        return res;
+        return GetAddResult(token, ref left, ref right, ref type);
     }
 
     public static Value Sub(Token token, ref Value left, ref Value right, bool doAssign = false)
     {
         Typing.ValueType type = Typing.ValueType.None;
-        Value res = GetSubResult(token, ref left, ref right, ref type);
-
-        if (doAssign)
-        {
-            left.Set(res, type);
-            return left;
-        }
-
-        return res;
+        return GetSubResult(token, ref left, ref right, ref type);
     }
 
     public static Value Exp(Token token, ref Value left, ref Value right, bool doAssign = false)
     {
         Typing.ValueType type = Typing.ValueType.None;
-        Value res = GetExpResult(token, ref left, ref right, ref type);
-
-        if (doAssign)
-        {
-            left.Set(res, type);
-            return left;
-        }
-
-        return res;
+        return GetExpResult(token, ref left, ref right, ref type);
     }
 
     public static Value Mod(Token token, ref Value left, ref Value right, bool doAssign = false)
     {
         Typing.ValueType type = Typing.ValueType.None;
-        Value res = GetModResult(token, ref left, ref right, ref type);
-
-        if (doAssign)
-        {
-            left.Set(res, type);
-            return left;
-        }
-
-        return res;
+        return GetModResult(token, ref left, ref right, ref type);
     }
 
     public static Value Div(Token token, ref Value left, ref Value right,
                        bool doAssign = false)
     {
         Typing.ValueType type = Typing.ValueType.None;
-        Value res = GetDivResult(token, ref left, ref right, ref type);
-
-        if (doAssign)
-        {
-            left.Set(res, type);
-            return left;
-        }
-
-        return res;
+        return GetDivResult(token, ref left, ref right, ref type);
     }
 
     public static Value Mul(Token token, ref Value left, ref Value right, bool doAssign = false)
     {
         Typing.ValueType type = Typing.ValueType.None;
-        var res = GetMulResult(token, ref left, ref right, ref type);
-
-        if (doAssign)
-        {
-            left.Set(res, type);
-            return left;
-        }
-
-        return res;
+        return GetMulResult(token, ref left, ref right, ref type);
     }
 
     public static Value Negate(Token token, ref Value right)

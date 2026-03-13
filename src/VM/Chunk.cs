@@ -30,7 +30,7 @@ public struct UpvalueDescriptor
 }
 
 /// <summary>
-/// A compiled code unit — one Chunk per function, lambda, or top-level program.
+/// A compiled code unit - one Chunk per function, lambda, or top-level program.
 /// </summary>
 public class Chunk
 {

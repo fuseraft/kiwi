@@ -36,13 +36,15 @@ kiwi -s
 
 ### `-i`, `--interactive`
 
-Starts an interactive Read-Evaluate-Print Loop (REPL) where you can type and execute Kiwi code directly in the terminal. 
+Starts an interactive Read-Evaluate-Print Loop (REPL) where you can type and execute Kiwi code directly in the terminal.
+
+The REPL also starts automatically when you run `kiwi` with no script and stdin is a terminal — `-i` is only needed when you want to force interactive mode explicitly (e.g. after loading a script).
 
 To learn more about the REPL, please see [REPL](repl.md).
 
-
 ```
-kiwi -i
+kiwi          # starts REPL automatically when stdin is a terminal
+kiwi -i       # explicit
 ```
 
 ### `-e`, `--execute <code>`
@@ -76,6 +78,34 @@ To learn more, see [kdb — Kiwi Debugger](kdb.md).
 
 ```
 kiwi -d filename         # Debug the file with kdb.
+```
+
+### `-c`, `--check <input_file_path>`
+
+Checks a script for syntax errors without executing it. All errors in the file are reported — not just the first one. Exits with code `0` if the file is clean, `1` if any errors were found.
+
+```
+kiwi -c script.kiwi      # Check for syntax errors.
+kiwi --check script.kiwi
+```
+
+Example output for a file with two errors:
+
+```
+[SyntaxError]: Unexpected token `*`.
+File: script.kiwi:1:9
+x = 1 + *
+        ^
+[SyntaxError]: Unexpected token `/`.
+File: script.kiwi:2:9
+y = 2 + /
+        ^
+```
+
+Example output for a clean file:
+
+```
+No syntax errors found in: script.kiwi
 ```
 
 ### `-a`, `--ast <input_file_path>`
@@ -143,7 +173,7 @@ The log path can also be set permanently via `"crashdump_path"` in `kiwi-setting
 
 ### `--vm`
 
-Runs a script using the bytecode VM (experimental). This flag must appear before the script path.
+Runs a script using the bytecode VM (experimental). This flag must appear before the script path. A script is required — running `kiwi --vm` without one is an error.
 
 ```
 kiwi --vm script.kiwi
@@ -155,4 +185,17 @@ Sets a specific argument as a key-value pair, which can be used for various conf
 
 ```
 kiwi myapp -theme=dark
+```
+
+Key-value arguments can also be passed without a script. When stdin is a terminal, the REPL starts and the arguments are available via `env::argv()`:
+
+```
+kiwi -name=scotty
+```
+
+If stdin is piped, the piped code is run with the arguments available as usual:
+
+```
+echo 'println env::argv()' | kiwi -name=scotty
+# {"name": "scotty"}
 ```

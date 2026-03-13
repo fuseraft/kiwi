@@ -877,7 +877,7 @@ public sealed class KiwiVM
                         }
                         else
                         {
-                            // Unsupported collection type — push null state so we stop immediately
+                            // Unsupported collection type - push null state so we stop immediately
                             state.List  = [];
                             state.Index = 0;
                         }

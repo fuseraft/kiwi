@@ -69,9 +69,16 @@ public class Program
         {
             return new TokenPrinter();
         }
+        else if (config.CheckSyntax)
+        {
+            return new SyntaxChecker();
+        }
         else if (config.UseREPL)
         {
-            return new REPLRunner(new());
+            return new REPLRunner(new()
+            {
+                CliArgs = ParseKeyValueArgs(config.Args),
+            });
         }
         else if (config.ExecuteCode != null)
         {
@@ -94,9 +101,21 @@ public class Program
                 CliArgs = ParseKeyValueArgs(config.Args),
             });
         }
+        else if (config.UseVM)
+        {
+            throw new CliError("--vm requires a script.");
+        }
         else if (config.HasScripts)
         {
             return new ScriptRunner(new()
+            {
+                CliArgs = ParseKeyValueArgs(config.Args),
+            });
+        }
+
+        if (!Console.IsInputRedirected)
+        {
+            return new REPLRunner(new()
             {
                 CliArgs = ParseKeyValueArgs(config.Args),
             });

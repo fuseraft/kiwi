@@ -1,0 +1,55 @@
+/#
+  Generator benchmarks — tree-walker only (not compatible with --vm).
+  Run: kiwi tests/bench_generators
+#/
+
+bench::run("generator: consume 500-yield sequence", with do
+  fn gen_range(n)
+    i = 0
+    while i < n do
+      yield i
+      i += 1
+    end
+  end
+
+  sum = 0
+  for v in gen_range(500) do
+    sum += v
+  end
+  sum
+end)
+
+bench::run("generator: fibonacci sequence to 1000", with do
+  fn fib_gen()
+    a = 0
+    b = 1
+    while a <= 1000 do
+      yield a
+      tmp = a + b
+      a = b
+      b = tmp
+    end
+  end
+
+  result = []
+  for v in fib_gen() do
+    result.push(v)
+  end
+  result.size()
+end)
+
+bench::run("generator: chained map via generator", with do
+  fn squares(n)
+    i = 1
+    while i <= n do
+      yield i * i
+      i += 1
+    end
+  end
+
+  sum = 0
+  for v in squares(200) do
+    sum += v
+  end
+  sum
+end)

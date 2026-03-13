@@ -41,7 +41,7 @@ public sealed class EventBus
         }
     }
 
-    public void Emit(Token token, string name, List<Value> data)
+    public void Emit(Interpreter interp, Token token, string name, List<Value> data)
     {
         if (!_handlers.TryGetValue(name, out var list))
         {
@@ -52,7 +52,7 @@ public sealed class EventBus
 
         foreach (var (cb, once) in list)
         {
-            if (once) 
+            if (once)
             {
                 toRemove.Add((cb, once));
             }
@@ -61,7 +61,7 @@ public sealed class EventBus
             {
                 if (cb.IsLambda())
                 {
-                    Interpreter.Current?.InvokeEvent(token, cb.GetLambda(), data);
+                    interp.InvokeEvent(token, cb.GetLambda(), data);
                 }
             }
             catch (Exception ex)
