@@ -69,6 +69,10 @@ public class Program
         {
             return new TokenPrinter();
         }
+        else if (config.CheckSyntax)
+        {
+            return new SyntaxChecker();
+        }
         else if (config.UseREPL)
         {
             return new REPLRunner(new()
