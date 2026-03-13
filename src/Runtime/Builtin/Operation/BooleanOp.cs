@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using kiwi.Parsing;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
@@ -6,6 +7,7 @@ namespace kiwi.Runtime.Builtin.Operation;
 
 public struct BooleanOp
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsTruthy(Value value)
     {
         return value.Type switch

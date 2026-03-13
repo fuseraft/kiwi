@@ -747,7 +747,7 @@ public class Interpreter
             }
         }
 
-        var value = Interpret(node.Initializer).Clone();
+        var value = CloneIfCollection(Interpret(node.Initializer));
 
         // Static variable assignment: @@varname = expr or @@varname += expr etc.
         if (node.Left?.Type == ASTNodeType.StaticSelf)
@@ -1334,20 +1334,18 @@ public class Interpreter
         {
             return val;
         }
-        else if (Context.HasStruct(name))
+        else if (Context.Structs.TryGetValue(name, out var kstruct))
         {
-            return Value.CreateStruct(new StructRef { Identifier = name });
+            return kstruct.AsValue;
         }
         else if (Context.HasLambda(name))
         {
             return Value.CreateLambda(new LambdaRef { Identifier = name });
         }
-        else if (Context.LambdaTable.TryGetValue(name, out var mappedId))
+        else if (Context.LambdaTable.TryGetValue(name, out var mappedId) &&
+                 Context.Lambdas.ContainsKey(mappedId))
         {
-            if (Context.Lambdas.ContainsKey(mappedId))
-            {
-                return Value.CreateLambda(new LambdaRef { Identifier = mappedId });
-            }
+            return Value.CreateLambda(new LambdaRef { Identifier = mappedId });
         }
         else if (Context.Constants.TryGetValue(name, out var constant))
         {
@@ -4793,4 +4791,12 @@ public class Interpreter
             throw new RuntimeError(Token.Eof, "'yield' used outside of a generator.", []);
         _activeGenerator.Yield(v);
     }
+
+    /// <summary>
+    /// Returns the value itself for primitive/immutable types (int, float, bool, string, null)
+    /// where sharing the Value wrapper is safe. Clones only mutable collections.
+    /// </summary>
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    private static Value CloneIfCollection(Value v) =>
+        (v.IsList() || v.IsHashmap()) ? v.Clone() : v;
 }
