@@ -9,20 +9,17 @@ Clone the repository:
 $ git clone https://github.com/fuseraft/kiwi.git
 ```
 
-Run the build script:
+**Option 1 — Build from source** (requires .NET 8 SDK):
 ```bash
 $ ./build.sh
-```
-
-Create a symlink to run `kiwi` from anywhere:
-```bash
-$ mkdir -p ~/bin
-$ ln -sf "$(pwd)/bin/kiwi" ~/bin/kiwi
-```
-
-Verify setup:
-```bash
+$ mkdir -p ~/bin && ln -sf "$(pwd)/bin/kiwi" ~/bin/kiwi
 $ kiwi -v
+```
+
+**Option 2 — Docker:**
+```bash
+$ docker build -t kiwi .
+$ docker run --rm -v $(pwd):/scripts kiwi /scripts/hello.kiwi
 ```
 
 ## Visual Studio Code Integration
