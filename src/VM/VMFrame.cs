@@ -42,7 +42,7 @@ public sealed class VMFrame(string name, Chunk chunk, int stackBase, Upvalue[] u
     public string      StructName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Token at the call site — used for error tracing.
+    /// Token at the call site - used for error tracing.
     /// </summary>
     public Token?      CallSiteToken { get; set; }
 

@@ -244,7 +244,7 @@ public class Interpreter
             // If the lambda was compiled to VM bytecode, delegate to a fresh per-task VM.
             // InvokeEvent is called from TaskManager.Spawn on a thread-pool thread.  Thread-pool
             // threads are reused, so KiwiVM.Current may still hold a stale VM from a previous
-            // task on this thread — always create a new one here.
+            // task on this thread - always create a new one here.
             // Use func.CapturedScope (= main interpreter's global scope) so the task can see
             // globals like DB_PATH, HOST, etc. that were set at program startup.
             if (func.VMChunk != null)
@@ -4274,7 +4274,7 @@ public class Interpreter
     private static string Id(ASTNode node) => ((IdentifierNode)node).Name;
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // VM Bridge — public surface used by KiwiVM to delegate work back to the
+    // VM Bridge - public surface used by KiwiVM to delegate work back to the
     // tree-walking interpreter for operations not yet compiled natively.
     // ═══════════════════════════════════════════════════════════════════════════
 
@@ -4353,7 +4353,7 @@ public class Interpreter
         if (obj.IsObject())   return CallObjectMethodDirect(token, methodName, obj.GetObject(), args);
         if (obj.IsStruct())   return CallStructMethodDirect(token, methodName, obj.GetStruct(), args);
 
-        // Builtin method dispatch — resolve string name → TokenName
+        // Builtin method dispatch - resolve string name → TokenName
         if (ListBuiltin.Map.TryGetValue(methodName, out TokenName listOp))
         {
             // HandleListBuiltin peeks the call stack to detect early returns from lambdas.

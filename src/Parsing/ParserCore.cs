@@ -314,7 +314,7 @@ public partial class Parser(bool rethrowErrors = false)
         {
             var tokenType = stream.At(pos).Type;
 
-            // Stop scanning at scope-closing tokens — the target can't be in the
+            // Stop scanning at scope-closing tokens - the target can't be in the
             // current expression if we've already left it.
             if (tokenType is TokenType.RBracket or TokenType.RParen or TokenType.RBrace)
             {

@@ -192,7 +192,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     private const int BoxCacheSize = 1024;
     private static readonly object[] _boxedInts;
 
-    // Shared NullRef singleton — NullRef has no state, so all nulls can share one instance.
+    // Shared NullRef singleton - NullRef has no state, so all nulls can share one instance.
     private static readonly NullRef _sharedNull = new();
 
     static Value()
@@ -460,7 +460,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             case ValueType.None:     return true;
         }
 
-        // Only List, Hashmap, Object can form cycles — cycle-protection needed
+        // Only List, Hashmap, Object can form cycles - cycle-protection needed
         HashSet<(Value, Value)> visitedPairs = [];
         return StructuralEquals(other, visitedPairs);
     }

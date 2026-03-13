@@ -1,6 +1,6 @@
 namespace kiwi.Parsing.AST;
 
-// Represents *expr in a call argument list — spreads a list into positional args.
+// Represents *expr in a call argument list - spreads a list into positional args.
 public class SplatNode(ASTNode? expression) : ASTNode(ASTNodeType.Splat)
 {
     public ASTNode? Expression { get; set; } = expression;
