@@ -55,12 +55,22 @@ public class GeneratorRef : IDisposable
 {
     private readonly SemaphoreSlim _ready = new(0, 1);
     private readonly SemaphoreSlim _advance = new(0, 1);
+    private readonly CancellationTokenSource _cts = new();
     private Value? _yieldedValue;
     private volatile bool _done;
     private bool _closed;
+    private bool _disposed;
     private Exception? _exception;
 
     public bool IsDone => _done;
+    public CancellationToken CancellationToken => _cts.Token;
+
+    ~GeneratorRef()
+    {
+        // Safety net: cancel so a blocked Yield() can unblock even if Dispose() was never called.
+        if (!_disposed)
+            CloseInternal();
+    }
 
     public void Start(Action generatorBody)
     {
@@ -72,10 +82,10 @@ public class GeneratorRef : IDisposable
             {
                 _done = true; _ready.Release(); return;
             }
-            
+
             try
             {
-                generatorBody(); 
+                generatorBody();
             }
             catch (GeneratorCloseException) { /* normal close */ }
             catch (Exception e) { _exception = e; }
@@ -98,9 +108,17 @@ public class GeneratorRef : IDisposable
     {
         _yieldedValue = value;
         _ready.Release();   // signal consumer that a value is ready
-        _advance.Wait();    // wait for the next Next() call
-        
-        if (_closed) 
+
+        try
+        {
+            _advance.Wait(_cts.Token); // wait for the next Next() call; unblocks immediately on cancel
+        }
+        catch (OperationCanceledException)
+        {
+            throw new GeneratorCloseException();
+        }
+
+        if (_closed)
         {
             throw new GeneratorCloseException();
         }
@@ -116,14 +134,14 @@ public class GeneratorRef : IDisposable
 
         _advance.Release(); // allow generator to run
         _ready.Wait();      // wait for yield or completion
-        
+
         if (_exception != null)
         {
             var ex = _exception;
             _exception = null;
             System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(ex).Throw();
         }
-        
+
         if (_done)
         {
             return (false, Value.Default);
@@ -134,10 +152,21 @@ public class GeneratorRef : IDisposable
 
     public void Dispose()
     {
+        if (!_disposed)
+        {
+            _disposed = true;
+            CloseInternal();
+            GC.SuppressFinalize(this);
+        }
+    }
+
+    private void CloseInternal()
+    {
         if (!_done)
         {
             _closed = true;
-            _advance.Release(); // unblock generator thread so it can exit
+            _cts.Cancel();         // unblock Yield() waiting on _advance.Wait(_cts.Token)
+            _advance.Release();    // belt-and-suspenders: also release the semaphore
         }
     }
 }
