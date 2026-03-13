@@ -44,7 +44,7 @@ public class REPLRunner(Interpreter interpreter) : IRunner
         const int replId = 0;
         const bool rethrowErrors = true;
 
-        Console.WriteLine($"{Kiwi.Settings.Name} {Kiwi.Settings.Version} — type 'exit' or press Ctrl+C to quit.");
+        Console.WriteLine($"{Kiwi.Settings.Name} {Kiwi.Settings.Version} - type 'exit' or press Ctrl+C to quit.");
 
         LoadStandardLibrary();
 
