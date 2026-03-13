@@ -229,6 +229,10 @@ public class Config
                     {
                         config.Scripts.Add(current);
                     }
+                    else if (!config.HasScripts && current.StartsWith('-') && !current.Contains('='))
+                    {
+                        throw new CliError($"Unknown option: {current}");
+                    }
                     else
                     {
                         config.Args.Add(current);

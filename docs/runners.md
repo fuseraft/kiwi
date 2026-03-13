@@ -10,8 +10,8 @@ Kiwi supports **multiple execution modes** via the `IRunner` interface. Each mod
 |--------|--------|-------|--------|
 | `ScriptRunner` | Run `.kiwi` files | File path | `kiwi script.kiwi` |
 | `CodeRunner` | Execute a code string inline | `-e` flag | `kiwi -e 'println "hi"'` |
-| `StdInRunner` | Run from piped input | `stdin` | `cat script.kiwi | kiwi` |
-| `REPLRunner` | Interactive shell | Keyboard | `kiwi --interactive` |
+| `StdInRunner` | Run from piped stdin | `stdin` | `cat script.kiwi \| kiwi` |
+| `REPLRunner` | Interactive shell | Keyboard | `kiwi` or `kiwi -i` |
 | `DebugRunner` | Step-debug a script (kdb) | File | `kiwi --debug script.kiwi` |
 | `ASTPrinter` | Print AST for debugging | File | `kiwi --ast script.kiwi` |
 | `TokenPrinter` | Print tokens for debugging | File | `kiwi --tokens script.kiwi` |
@@ -65,9 +65,13 @@ kiwi -e 'println(__argv__)' -name=world
 
 **Use Case**: Shell pipelines, filters, one-liners.
 
+Selected automatically when no script is given and stdin is **not** a terminal (i.e. it is piped or redirected).
+
 ```bash
 echo "println 'Hello from pipe'" | kiwi
 # Hello from pipe
+
+cat script.kiwi | kiwi -theme=dark
 
 find . -name "*.kiwi" | xargs -I {} sh -c "echo '--- {} ---'; kiwi {}"
 ```
@@ -81,9 +85,13 @@ find . -name "*.kiwi" | xargs -I {} sh -c "echo '--- {} ---'; kiwi {}"
 
 **Use Case**: Learning, debugging, rapid prototyping.
 
+Selected automatically when no script is given and stdin **is** a terminal. Can also be forced explicitly.
+
 ```bash
-kiwi --interactive   # long form
-kiwi -i              # short form
+kiwi                 # auto-selected when stdin is a terminal
+kiwi -i              # explicit short form
+kiwi --interactive   # explicit long form
+kiwi -name=scotty    # key-value args are available inside the session
 ```
 
 ```text
@@ -206,6 +214,15 @@ Crash dump logging is **opt-in** via the `-cd`/`--crash-dump` flag (or by settin
 ## Quick Testing
 
 ```bash
+# REPL (auto, stdin is a terminal)
+kiwi
+
+# REPL with args
+kiwi -name=scotty
+
+# REPL (explicit)
+kiwi -i
+
 # Run a script
 kiwi test.kiwi
 
@@ -214,9 +231,6 @@ kiwi -e 'println("hello")'
 
 # Pipe input
 echo "println 100" | kiwi
-
-# Interactive
-kiwi -i
 
 # Step debugger
 kiwi -d test.kiwi
