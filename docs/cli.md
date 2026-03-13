@@ -80,6 +80,34 @@ To learn more, see [kdb — Kiwi Debugger](kdb.md).
 kiwi -d filename         # Debug the file with kdb.
 ```
 
+### `-c`, `--check <input_file_path>`
+
+Checks a script for syntax errors without executing it. All errors in the file are reported — not just the first one. Exits with code `0` if the file is clean, `1` if any errors were found.
+
+```
+kiwi -c script.kiwi      # Check for syntax errors.
+kiwi --check script.kiwi
+```
+
+Example output for a file with two errors:
+
+```
+[SyntaxError]: Unexpected token `*`.
+File: script.kiwi:1:9
+x = 1 + *
+        ^
+[SyntaxError]: Unexpected token `/`.
+File: script.kiwi:2:9
+y = 2 + /
+        ^
+```
+
+Example output for a clean file:
+
+```
+No syntax errors found in: script.kiwi
+```
+
 ### `-a`, `--ast <input_file_path>`
 
 Prints the abstract syntax tree of the input file.
