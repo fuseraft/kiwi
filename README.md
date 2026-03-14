@@ -2,24 +2,54 @@
 
 Kiwi is a modern, lightweight scripting language built for expressiveness and utility.
 
-## Getting Started
+## Installation
 
-Clone the repository:
+**Linux / macOS** — one-liner installer:
 ```bash
-$ git clone https://github.com/fuseraft/kiwi.git
+curl -sSL https://raw.githubusercontent.com/fuseraft/kiwi/main/install.sh | bash
 ```
 
-**Option 1 — Build from source** (requires .NET 8 SDK):
-```bash
-$ ./build.sh
-$ mkdir -p ~/bin && ln -sf "$(pwd)/bin/kiwi" ~/bin/kiwi
-$ kiwi -v
+**Windows** — run in PowerShell:
+```powershell
+irm https://raw.githubusercontent.com/fuseraft/kiwi/main/install.ps1 | iex
 ```
 
-**Option 2 — Docker:**
+Both installers build Kiwi from source (requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)) and add `kiwi` to your PATH. Open a new terminal and you're ready:
 ```bash
-$ docker build -t kiwi .
-$ docker run --rm -v $(pwd):/scripts kiwi /scripts/hello.kiwi
+kiwi --help
+```
+
+### Installer options
+
+| Flag | Description |
+|------|-------------|
+| `--user` | Install for current user only — `~/.kiwi` (default) |
+| `--system` | Install system-wide — `/opt/kiwi`, symlinked to `/usr/local/bin` |
+| `--prefix=PATH` | Install to a custom directory |
+| `--url=URL` | Download a pre-built binary instead of building from source |
+| `--update` | Update to the latest version |
+| `--uninstall` | Remove Kiwi from the system |
+
+```bash
+# Examples
+./install.sh --system          # system-wide install (Linux/macOS)
+./install.sh --prefix=/usr/local
+./install.sh --uninstall
+```
+
+### Manual install (build from source)
+
+```bash
+git clone https://github.com/fuseraft/kiwi.git
+cd kiwi
+./build.sh
+```
+
+### Docker
+
+```bash
+docker build -t kiwi .
+docker run --rm -v $(pwd):/scripts kiwi /scripts/hello.kiwi
 ```
 
 ## Visual Studio Code Integration
