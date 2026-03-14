@@ -71,6 +71,7 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
 - [`iter`](lib/iter.md) — An explicit iterator pattern for safely traversing lists.
 - [`math`](lib/math.md) — Common mathematical functions and utilities.
 - [`path`](lib/path.md) — Contains the definition for the `Path` struct.
+- [`pipeline`](lib/pipeline.md) — A DSL for building named, step-based data pipelines with hooks and error recovery.
 - [`reflector`](lib/reflector.md) — Reflection tools, including `Callable`.
 - [`socket` / `tls`](lib/socket.md) — Low-level asynchronous TCP and TLS networking.
 - [`stdin`](lib/stdin.md) — Functions for reading from standard input.
@@ -81,3 +82,4 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
 - [`task`](lib/task.md) — Asynchronous task management, including `Channel`.
 - [`tester`](lib/tester.md) — A simple unit testing framework.
 - [`time`](lib/time.md) — Time and date utilities.
+- [`yaml`](lib/yaml.md) — YAML 1.2 parser and serializer.

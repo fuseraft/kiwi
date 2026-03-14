@@ -1,0 +1,117 @@
+/#
+@summary Pipeline DSL demo.
+@description
+  Demonstrates building a named data pipeline with steps, before/after hooks,
+  and error recovery.
+#/
+
+# Helper
+fn banner(title: string)
+  sep = "=" * 50
+  println("\n${sep}")
+  println("  ${title}")
+  println(sep)
+end
+
+# Demo 1: Basic ETL
+banner("Demo 1: Basic ETL pipeline")
+
+etl = pipeline::build("etl")
+
+etl.before_each(do (name, ctx)
+  println("  [start] ${name}")
+end)
+
+etl.after_each(do (name, ctx)
+  rows = ctx["rows"]
+  println("  [ end ] ${name}  rows=${rows.size()}")
+end)
+
+etl.step("load", do (ctx)
+  ctx["rows"] = [
+    {name: "Alice",   age: 32, active: true},
+    {name: "Bob",     age: 17, active: true},
+    {name: "Carol",   age: 25, active: false},
+    {name: "Dave",    age: 41, active: true},
+    {name: "Eve",     age: 15, active: true}
+  ]
+end)
+
+etl.step("filter_active", do (ctx)
+  rows = ctx["rows"]
+  ctx["rows"] = rows.filter(do (r) => r["active"] end)
+end)
+
+etl.step("filter_adults", do (ctx)
+  rows = ctx["rows"]
+  ctx["rows"] = rows.filter(do (r) => r["age"] >= 18 end)
+end)
+
+etl.step("extract_names", do (ctx)
+  rows = ctx["rows"]
+  ctx["names"] = rows.map(do (r) => r["name"] end)
+end)
+
+result = etl.run({})
+names = result["names"]
+println("\nFinal names: ${names}")
+
+# Demo 2: Error recovery
+banner("Demo 2: Error recovery with on_error")
+
+risky = pipeline::build("risky")
+
+risky.on_error(do (name, err, ctx)
+  msg = error::message_of(err)
+  errors = ctx["errors"]
+  ctx["errors"] = errors + ["${name}: ${msg}"]
+  println("  [error] step '${name}' failed — continuing")
+end)
+
+risky.step("step_a", do (ctx)
+  ctx["result"] = "step_a ok"
+  ctx["errors"] = []
+  println("  step_a: ok")
+end)
+
+risky.step("step_b_fail", do (ctx)
+  throw error::ValueError("something went wrong in step_b")
+end)
+
+risky.step("step_c", do (ctx)
+  prev = ctx["result"]
+  ctx["result"] = prev + ", step_c ok"
+  println("  step_c: ok")
+end)
+
+r2 = risky.run({})
+r2_result = r2["result"]
+r2_errors = r2["errors"]
+println("\nResult: ${r2_result}")
+println("Errors: ${r2_errors}")
+
+# Demo 3: Timing each step
+banner("Demo 3: Timing steps with before/after hooks")
+
+timed = pipeline::build("timed")
+
+timed.before_each(do (name, ctx)
+  ctx["__t"] = time::ticks()
+end)
+
+timed.after_each(do (name, ctx)
+  t0 = ctx["__t"]
+  elapsed = time::ticksms(time::ticks() - t0)
+  println("  ${name.padend(20)} ${elapsed}ms")
+end)
+
+timed.step("quick",  do (ctx) => ctx["a"] = [1 to 1000].sum() end)
+timed.step("medium", do (ctx) => ctx["b"] = [1 to 10000].map(do (x) => x * x end).sum() end)
+timed.step("report", do (ctx)
+  a = ctx["a"]
+  b = ctx["b"]
+  println("\n  a = ${a}")
+  println("  b = ${b}")
+end)
+
+timed.run({})
