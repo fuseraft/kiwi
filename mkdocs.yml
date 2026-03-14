@@ -136,6 +136,7 @@ nav:
     - list: lib/list.md
     - math: lib/math.md
     - path: lib/path.md
+    - pipeline: lib/pipeline.md
     - protobuf: lib/protobuf.md
     - reflector: lib/reflector.md
     - regex: lib/regex.md
@@ -149,3 +150,4 @@ nav:
     - tester: lib/tester.md
     - time: lib/time.md
     - xml: lib/xml.md
+    - yaml: lib/yaml.md
