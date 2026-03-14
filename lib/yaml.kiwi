@@ -1,0 +1,739 @@
+/#
+@summary A YAML 1.2 parser and serializer written in pure Kiwi.
+
+Supports:
+  - Block mappings and sequences (any indentation)
+  - Flow collections: {} and []
+  - Scalars: null, boolean, integer, float, plain and quoted strings
+  - Single- and double-quoted strings with escape sequences
+  - Block scalars: | (literal) and > (folded)
+  - Inline comments
+  - Anchors (&name) and aliases (*name)
+  - Document markers (--- and ...)
+  - Multi-document streams via parse_all()
+  - Serialization via stringify()
+
+Usage:
+  import "yaml_parser/yaml"
+  doc = yaml::parse("name: Kiwi\nversion: 1")
+  println doc["name"]  # => Kiwi
+#/
+
+struct YamlParser
+  fn new(text)
+    @lines = text.lines()
+    @n     = @lines.size()
+    @pos   = 0
+    @anch  = {}
+  end
+
+  # -- utilities ----------------------------------------------------------------
+
+  fn _ind(line)
+    i = 0
+    while i < line.size() && line[i] == " " do
+      i += 1
+    end
+    i
+  end
+
+  fn _blank(line)
+    t = line.trim()
+    t.empty() || t.begins_with("#")
+  end
+
+  fn _skip()
+    while @pos < @n && _blank(@lines[@pos]) do
+      @pos += 1
+    end
+  end
+
+  # -- scalar coercion ----------------------------------------------------------
+
+  fn _coerce(s)
+    return null  when s == "~" || s == "null" || s == "Null" || s == "NULL"
+    return true  when s == "true"  || s == "True"  || s == "TRUE"
+    return false when s == "false" || s == "False" || s == "FALSE"
+
+    # Integer check: optional leading sign then all digits
+    src = s
+    if src.begins_with("-") || src.begins_with("+")
+      src = src[1:]
+    end
+    if !src.empty()
+      all_dig = true
+      for ch in src.chars() do
+        if !(ch >= "0" && ch <= "9")
+          all_dig = false
+          break
+        end
+      end
+      if all_dig
+        try
+          return s.to_integer()
+        end
+      end
+    end
+
+    # Float
+    if s.contains(".") || s.contains("e") || s.contains("E")
+      try
+        return s.to_float()
+      end
+    end
+
+    s
+  end
+
+  # -- comment stripping (outside quotes) ---------------------------------------
+
+  fn _strip_cmt(s)
+    in_sq = false
+    in_dq = false
+    i = 0
+    while i < s.size() do
+      c = s[i]
+      if c == "'" && !in_dq
+        in_sq = !in_sq
+      elsif c == "\"" && !in_sq
+        in_dq = !in_dq
+      elsif c == "#" && !in_sq && !in_dq && i > 0 && s[i - 1] == " "
+        return s[:i].rtrim()
+      end
+      i += 1
+    end
+    s
+  end
+
+  # -- string escape helpers ----------------------------------------------------
+
+  fn _esc(c)
+    return "\n" when c == "n"
+    return "\t" when c == "t"
+    return "\r" when c == "r"
+    return "\\" when c == "\\"
+    return "\"" when c == "\""
+    return "'"  when c == "'"
+    return "\0" when c == "0"
+    c
+  end
+
+  fn _dq(s)
+    r = ""
+    i = 0
+    while i < s.size() do
+      if s[i] == "\\" && i + 1 < s.size()
+        r += _esc(s[i + 1])
+        i += 2
+      else
+        r += s[i]
+        i += 1
+      end
+    end
+    r
+  end
+
+  fn _sq(s)
+    r = ""
+    i = 0
+    while i < s.size() do
+      if s[i] == "'" && i + 1 < s.size() && s[i + 1] == "'"
+        r += "'"
+        i += 2
+      else
+        r += s[i]
+        i += 1
+      end
+    end
+    r
+  end
+
+  # -- key-colon finder (colon + space/EOL, outside quotes) ---------------------
+
+  fn _kcolon(line)
+    in_sq = false
+    in_dq = false
+    i = 0
+    while i < line.size() do
+      c = line[i]
+      if c == "'" && !in_dq
+        in_sq = !in_sq
+      elsif c == "\"" && !in_sq
+        in_dq = !in_dq
+      elsif c == ":" && !in_sq && !in_dq
+        ni = i + 1
+        if ni >= line.size() || line[ni] == " " || line[ni] == "\t"
+          return i
+        end
+      end
+      i += 1
+    end
+    -1
+  end
+
+  fn _pkey(raw)
+    raw = raw.trim()
+    if raw.size() >= 2 && raw.begins_with("\"") && raw.ends_with("\"")
+      return _dq(raw[1 : raw.size() - 1])
+    end
+    if raw.size() >= 2 && raw.begins_with("'") && raw.ends_with("'")
+      return _sq(raw[1 : raw.size() - 1])
+    end
+    raw
+  end
+
+  # -- inline scalar parser -----------------------------------------------------
+
+  fn _inline(text)
+    text = text.trim()
+    return null when text.empty()
+
+    # Alias
+    if text.begins_with("*")
+      name = text[1:].trim()
+      return @anch.get(name) when @anch.has_key(name)
+      return null
+    end
+
+    # Anchor with inline value: &name rest
+    if text.begins_with("&")
+      sp = text.index(" ")
+      if sp >= 0
+        name = text[1 : sp]
+        val  = _inline(text[sp + 1:])
+        @anch[name] = val
+        return val
+      end
+      return null
+    end
+
+    # Flow mapping
+    if text.begins_with("{")
+      res = _fmap(text, 0)
+      return res[0]
+    end
+
+    # Flow sequence
+    if text.begins_with("[")
+      res = _fseq(text, 0)
+      return res[0]
+    end
+
+    # Double-quoted string
+    if text.begins_with("\"")
+      ep = 1
+      while ep < text.size() do
+        ch = text[ep]
+        if ch == "\\"
+          ep += 2
+        elsif ch == "\""
+          break
+        else
+          ep += 1
+        end
+      end
+      return _dq(text[1 : ep])
+    end
+
+    # Single-quoted string
+    if text.begins_with("'")
+      ep = 1
+      while ep < text.size() do
+        if text[ep] == "'" && ep + 1 < text.size() && text[ep + 1] == "'"
+          ep += 2
+        elsif text[ep] == "'"
+          break
+        else
+          ep += 1
+        end
+      end
+      return _sq(text[1 : ep])
+    end
+
+    _coerce(_strip_cmt(text))
+  end
+
+  # -- flow collection parsers --------------------------------------------------
+
+  fn _fws(s, p)
+    while p < s.size() && (s[p] == " " || s[p] == "\t") do
+      p += 1
+    end
+    p
+  end
+
+  # Read a quoted or plain scalar.
+  # stop_colon=true stops plain scalars at ':' (for map key parsing).
+  fn _fread(s, p, stop_colon)
+    p = _fws(s, p)
+    return [null, p] when p >= s.size()
+    c = s[p]
+    if c == "{"
+      return _fmap(s, p)
+    end
+    if c == "["
+      return _fseq(s, p)
+    end
+    if c == "\""
+      ep = p + 1
+      while ep < s.size() do
+        if s[ep] == "\\"
+          ep += 2
+        elsif s[ep] == "\""
+          break
+        else
+          ep += 1
+        end
+      end
+      return [_dq(s[p + 1 : ep]), ep + 1]
+    end
+    if c == "'"
+      ep = p + 1
+      while ep < s.size() do
+        if s[ep] == "'" && ep + 1 < s.size() && s[ep + 1] == "'"
+          ep += 2
+        elsif s[ep] == "'"
+          break
+        else
+          ep += 1
+        end
+      end
+      return [_sq(s[p + 1 : ep]), ep + 1]
+    end
+    # plain scalar: read until delimiter
+    rstart = p
+    while p < s.size() do
+      ch = s[p]
+      break when ch == "," || ch == "]" || ch == "}"
+      break when stop_colon && ch == ":"
+      p += 1
+    end
+    [_coerce(s[rstart : p].rtrim()), p]
+  end
+
+  fn _fscalar(s, p)
+    _fread(s, p, false)
+  end
+
+  fn _fmap(s, p)
+    hm = {}
+    p += 1  # skip {
+    p = _fws(s, p)
+    if p < s.size() && s[p] == "}"
+      return [hm, p + 1]
+    end
+    while p < s.size() do
+      p = _fws(s, p)
+      if p >= s.size() || s[p] == "}"
+        break
+      end
+      kr = _fread(s, p, true)   # key: stop at colon
+      k  = "${kr[0]}"
+      p  = kr[1]
+      p  = _fws(s, p)
+      if p < s.size() && s[p] == ":"
+        p += 1
+      end
+      p  = _fws(s, p)
+      vr = _fread(s, p, false)  # value: stop at , or }
+      hm[k] = vr[0]
+      p  = vr[1]
+      p  = _fws(s, p)
+      if p >= s.size() || s[p] == "}"
+        break
+      end
+      if p < s.size() && s[p] == ","
+        p += 1
+      end
+    end
+    if p < s.size() && s[p] == "}"
+      p += 1
+    end
+    [hm, p]
+  end
+
+  fn _fseq(s, p)
+    ar = []
+    p += 1  # skip [
+    p  = _fws(s, p)
+    if p < s.size() && s[p] == "]"
+      return [ar, p + 1]
+    end
+    while p < s.size() do
+      p = _fws(s, p)
+      if p >= s.size() || s[p] == "]"
+        break
+      end
+      vr = _fread(s, p, false)
+      ar.push(vr[0])
+      p  = vr[1]
+      p  = _fws(s, p)
+      if p >= s.size() || s[p] == "]"
+        break
+      end
+      if p < s.size() && s[p] == ","
+        p += 1
+      end
+    end
+    if p < s.size() && s[p] == "]"
+      p += 1
+    end
+    [ar, p]
+  end
+
+  # -- block scalar (| and >) ----------------------------------------------------
+
+  fn _bscalar(style)
+    # Auto-detect content indent from first non-blank line
+    ci  = -1
+    tmp = @pos
+    while tmp < @n do
+      ln = @lines[tmp]
+      if !ln.trim().empty()
+        ci = _ind(ln)
+        break
+      end
+      tmp += 1
+    end
+    return "" when ci < 0
+
+    lines = []
+    while @pos < @n do
+      ln = @lines[@pos]
+      if ln.trim().empty()
+        lines.push("")
+        @pos += 1
+      elsif _ind(ln) < ci
+        break
+      else
+        lines.push(ln[ci:])
+        @pos += 1
+      end
+    end
+
+    # Drop leading blank lines
+    while lines.size() > 0 && lines[0].empty() do
+      lines = lines[1:]
+    end
+
+    if style == "|"
+      return lines.join("\n") + "\n"
+    end
+
+    # Folded: adjacent non-blank lines joined with space; blank lines become newlines
+    r = ""
+    i = 0
+    while i < lines.size() do
+      ln = lines[i]
+      if ln.empty()
+        r += "\n"
+      else
+        r += ln
+        if i + 1 < lines.size() && !lines[i + 1].empty()
+          r += " "
+        else
+          r += "\n"
+        end
+      end
+      i += 1
+    end
+    r
+  end
+
+  # -- block node dispatch -------------------------------------------------------
+
+  fn _node(min_ind)
+    _skip()
+    return null when @pos >= @n
+
+    ln  = @lines[@pos]
+    ind = _ind(ln)
+    return null when ind < min_ind
+
+    st = ln.ltrim()
+    return null when st == "..." || st.begins_with("... ")
+    return null when st == "---" || st.begins_with("--- ")
+
+    if st == "-" || st.begins_with("- ")
+      return _seq(ind)
+    end
+
+    # Flow collection at block level — parse as inline scalar
+    if st.begins_with("{") || st.begins_with("[")
+      @pos += 1
+      return _inline(st)
+    end
+
+    cp = _kcolon(st)
+    return _map(ind) when cp >= 0
+
+    @pos += 1
+    _inline(st)
+  end
+
+  # -- block mapping -------------------------------------------------------------
+
+  fn _map(map_ind)
+    mhm = {}
+    while @pos < @n do
+      _skip()
+      break when @pos >= @n
+
+      ln  = @lines[@pos]
+      ind = _ind(ln)
+      break when ind < map_ind
+
+      st = ln.ltrim()
+      break when st == "---" || st == "..." || st.begins_with("--- ") || st.begins_with("... ")
+      break when st == "-" || st.begins_with("- ")
+
+      cp = _kcolon(st)
+      break when cp < 0
+
+      @pos += 1
+      key    = _pkey(st[:cp])
+      valraw = ""
+      if cp + 1 < st.size()
+        valraw = st[cp + 1:].ltrim()
+      end
+
+      mhm["${key}"] = _mapval(valraw, map_ind)
+    end
+    mhm
+  end
+
+  fn _mapval(valraw, map_ind)
+    # Block literal
+    if valraw == "|" || valraw == "|-" || valraw == "|+" || valraw.begins_with("| ")
+      return _bscalar("|")
+    end
+    # Block folded
+    if valraw == ">" || valraw == ">-" || valraw == ">+" || valraw.begins_with("> ")
+      return _bscalar(">")
+    end
+    # Bare anchor (value is the next block node)
+    if valraw.begins_with("&") && valraw.index(" ") < 0
+      name = valraw[1:]
+      val  = _node(map_ind + 1)
+      @anch[name] = val
+      return val
+    end
+    # Empty → child block node
+    if valraw.empty() || valraw.begins_with("#")
+      return _node(map_ind + 1)
+    end
+    # Inline
+    _inline(valraw)
+  end
+
+  # -- block sequence ------------------------------------------------------------
+
+  fn _seq(seq_ind)
+    ar = []
+    while @pos < @n do
+      _skip()
+      break when @pos >= @n
+
+      ln  = @lines[@pos]
+      ind = _ind(ln)
+      break when ind < seq_ind
+
+      st = ln.ltrim()
+      break when st == "---" || st == "..." || st.begins_with("--- ") || st.begins_with("... ")
+      break when !st.begins_with("- ") && st != "-"
+
+      @pos += 1
+      item_raw = ""
+      if st.begins_with("- ")
+        item_raw = st[2:].ltrim()
+      end
+
+      ar.push(_seqitem(item_raw, seq_ind + 2))
+    end
+    ar
+  end
+
+  fn _seqitem(item_raw, child_ind)
+    if item_raw.empty() || item_raw.begins_with("#")
+      return _node(child_ind)
+    end
+    if item_raw == "|" || item_raw == "|-" || item_raw == "|+" || item_raw.begins_with("| ")
+      return _bscalar("|")
+    end
+    if item_raw == ">" || item_raw == ">-" || item_raw == ">+" || item_raw.begins_with("> ")
+      return _bscalar(">")
+    end
+    # Inline mapping (sequence of mappings pattern: - key: val)
+    cp = _kcolon(item_raw)
+    if cp >= 0
+      return _seqmap(item_raw, child_ind)
+    end
+    _inline(item_raw)
+  end
+
+  # Parse a sequence item that starts with a mapping key (- key: val)
+  fn _seqmap(first_line, child_ind)
+    sm = {}
+    cp  = _kcolon(first_line)
+    key = _pkey(first_line[:cp])
+    vr  = ""
+    if cp + 1 < first_line.size()
+      vr = first_line[cp + 1:].ltrim()
+    end
+    sm["${key}"] = _mapval(vr, child_ind)
+    # Collect sibling keys at child_ind
+    more = _map(child_ind)
+    for k, v in more do
+      sm[k] = v
+    end
+    sm
+  end
+
+  # -- document ------------------------------------------------------------------
+
+  fn _doc()
+    _skip()
+    return null when @pos >= @n
+    ln = @lines[@pos].trim()
+    if ln == "---" || ln.begins_with("--- ")
+      @pos += 1
+    end
+    _node(0)
+  end
+
+  fn parse()
+    _doc()
+  end
+
+  fn parse_all()
+    docs = []
+    while @pos < @n do
+      _skip()
+      break when @pos >= @n
+      doc = _doc()
+      docs.push(doc) when doc != null
+    end
+    docs
+  end
+end
+
+# -- stringify helpers (module-level) ---------------------------------------------
+
+fn _yml_needq(s)
+  return true when s.empty()
+  for ch in [":", "#", "&", "*", "!", "|", ">", "'", "\"", "%", "@", "`", "{", "}", "[", "]", ","] do
+    return true when s.begins_with(ch)
+  end
+  return true when s.contains(": ") || s.contains(" #") || s.contains("\n") || s.contains("\t")
+  for kw in ["true", "false", "null", "~", "True", "False", "Null", "TRUE", "FALSE", "NULL"] do
+    return true when s == kw
+  end
+  # Leading dash or question mark is special in YAML
+  return true when s.begins_with("- ") || s.begins_with("? ")
+  false
+end
+
+fn _yml_str(s)
+  inner = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\t", "\\t")
+  "\"${inner}\""
+end
+
+fn _yml_val(val, depth, as_map_val)
+  pad = "  " * depth
+
+  if val == null
+    return "null"
+  end
+
+  t = typeof(val)
+
+  if t == "boolean"
+    return val ? "true" : "false"
+  end
+
+  if t == "integer" || t == "float"
+    return "${val}"
+  end
+
+  if t == "string"
+    return _yml_needq(val) ? _yml_str(val) : val
+  end
+
+  if t == "list"
+    return "[]" when val.empty()
+    lines = []
+    for item in val do
+      sv = _yml_val(item, depth + 1, false)
+      if typeof(item) == "hashmap" || typeof(item) == "list"
+        lines.push("${pad}-\n${sv}")
+      else
+        lines.push("${pad}- ${sv}")
+      end
+    end
+    prefix = as_map_val ? "\n" : ""
+    return prefix + lines.join("\n") + "\n"
+  end
+
+  if t == "hashmap"
+    return "{}" when val.empty()
+    lines = []
+    for k, v in val do
+      sv = _yml_val(v, depth + 1, true)
+      if sv.begins_with("\n")
+        lines.push("${pad}${k}:${sv}")
+      else
+        lines.push("${pad}${k}: ${sv}")
+      end
+    end
+    prefix = as_map_val ? "\n" : ""
+    return prefix + lines.join("\n") + "\n"
+  end
+
+  "${val}"
+end
+
+# -- package -----------------------------------------------------------------------
+
+/#
+@summary A package for parsing and serializing YAML data.
+#/
+package yaml
+  /#
+  @summary Parses a YAML string and returns the first document as a Kiwi value.
+  @param string input : The YAML-formatted string to parse.
+  @return any : A Kiwi value (hashmap, list, string, integer, float, boolean, or null).
+  #/
+  fn parse(input: string): any
+    YamlParser.new(input).parse()
+  end
+
+  /#
+  @summary Parses a YAML file and returns the first document.
+  @param string file_path : Path to the YAML file.
+  @return any : Parsed value.
+  #/
+  fn parse_file(file_path: string): any
+    throw "File not found: ${file_path}" when !fio::isfile(file_path)
+    yaml::parse(fio::read(file_path))
+  end
+
+  /#
+  @summary Parses a YAML string and returns all documents as a list.
+  @param string input : The YAML-formatted string.
+  @return list : List of parsed documents, one per --- section.
+  #/
+  fn parse_all(input: string): list
+    YamlParser.new(input).parse_all()
+  end
+
+  /#
+  @summary Serializes a Kiwi value to a YAML-formatted string.
+  @param any value : The value to serialize.
+  @return string : YAML-formatted string.
+  #/
+  fn stringify(value: any): string
+    _yml_val(value, 0, false)
+  end
+end
+
+export "yaml"

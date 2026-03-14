@@ -1,0 +1,135 @@
+/#
+@summary A package for building named, step-based data pipelines.
+@description
+  Pipelines pass a shared context hashmap through a sequence of named steps.
+  Each step is a lambda that receives the context and may read from or write to it.
+  Optional hooks let you log, time, or guard each step, and an error handler lets
+  you recover from failures without crashing the pipeline.
+@example
+---
+p = pipeline::build("etl")
+
+p.before_each(do (name, ctx) => println("  -> ${name}") end)
+
+p.step("load",      do (ctx) => ctx["rows"] = [1, 2, 3, 4, 5] end)
+p.step("filter",    do (ctx) => ctx["rows"] = ctx["rows"].filter(do (x) => x % 2 == 0 end) end)
+p.step("transform", do (ctx) => ctx["rows"] = ctx["rows"].map(do (x) => x * 10 end) end)
+
+result = p.run({})
+println(result["rows"])  # [20, 40]
+---
+#/
+package pipeline
+  /#
+  @summary Represents a single named step in a pipeline.
+  #/
+  struct Step
+    /#
+    @summary Creates a new step.
+    @param string name   : The display name of the step.
+    @param lambda action : A lambda accepting the context hashmap.
+    #/
+    fn new(name: string, action: lambda)
+      @name = name
+      @action = action
+    end
+
+    /#
+    @summary Executes the step action with the given context.
+    @param hashmap ctx : The shared pipeline context.
+    #/
+    fn run(ctx: hashmap)
+      action = @action
+      action(ctx)
+    end
+  end
+
+  /#
+  @summary A named sequence of steps that share a context hashmap.
+  #/
+  struct Pipeline
+    /#
+    @summary Creates a new pipeline.
+    @param string name : A label for this pipeline (used in output and errors).
+    #/
+    fn new(name: string)
+      @name = name
+      @steps = []
+      @error_hook = null
+      @before_hook = null
+      @after_hook = null
+    end
+
+    /#
+    @summary Appends a named step to the pipeline.
+    @param string name   : The display name of the step.
+    @param lambda action : A lambda accepting the context hashmap.
+    #/
+    fn step(name: string, action: lambda)
+      @steps.push(Step.new(name, action))
+    end
+
+    /#
+    @summary Registers a hook called before each step.
+    @param lambda hook : A lambda accepting (step_name: string, ctx: hashmap).
+    #/
+    fn before_each(hook: lambda)
+      @before_hook = hook
+    end
+
+    /#
+    @summary Registers a hook called after each successful step.
+    @param lambda hook : A lambda accepting (step_name: string, ctx: hashmap).
+    #/
+    fn after_each(hook: lambda)
+      @after_hook = hook
+    end
+
+    /#
+    @summary Registers an error handler called when a step throws.
+    @description
+      The handler receives (step_name: string, err: hashmap, ctx: hashmap).
+      If no handler is registered, the error is re-thrown and the pipeline halts.
+    @param lambda handler : A lambda accepting (step_name, err, ctx).
+    #/
+    fn on_error(handler: lambda)
+      @error_hook = handler
+    end
+
+    /#
+    @summary Runs all steps in order, passing the context through each.
+    @param hashmap ctx : The initial context. Defaults to an empty hashmap.
+    @return hashmap : The context after all steps have run.
+    #/
+    fn run(ctx: hashmap = {})
+      bh = @before_hook
+      ah = @after_hook
+      eh = @error_hook
+      for s in @steps do
+        try
+          bh(s.name, ctx) when bh != null
+          s.run(ctx)
+          ah(s.name, ctx) when ah != null
+        catch err
+          if eh != null
+            eh(s.name, err, ctx)
+          else
+            throw err
+          end
+        end
+      end
+      ctx
+    end
+  end
+
+  /#
+  @summary Creates and returns a new Pipeline.
+  @param string name : A label for the pipeline.
+  @return Pipeline : A new empty pipeline.
+  #/
+  fn build(name: string): Pipeline
+    Pipeline.new(name)
+  end
+end
+
+export "pipeline"

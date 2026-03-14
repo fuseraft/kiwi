@@ -3,8 +3,6 @@
   Run: kiwi yaml_parser/complex_test
 #/
 
-include "yaml"
-
 passed = 0
 failed = 0
 
