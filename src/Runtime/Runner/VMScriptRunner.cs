@@ -50,6 +50,7 @@ public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
             streams.Clear();
 
             Interpreter.ExecutionPath = ExecutionPath;
+            Interpreter.ProjectRoot   = Directory.GetCurrentDirectory();
             Interpreter.EntryPath = string.IsNullOrEmpty(ExecutionPath)
                 ? Directory.GetCurrentDirectory()
                 : Path.GetFullPath(ExecutionPath);

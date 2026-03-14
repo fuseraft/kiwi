@@ -46,6 +46,9 @@ public class Interpreter
     public KContext Context { get; private set; } = new();
     public string ExecutionPath { get; set; } = string.Empty;
     public string EntryPath { get; set; } = string.Empty;
+    /// <summary>Working directory at the time kiwi was invoked — used as the
+    /// project root when resolving bare include paths.</summary>
+    public string ProjectRoot { get; set; } = Directory.GetCurrentDirectory();
     public CancellationToken GeneratorCancellationToken { get; private set; } = CancellationToken.None;
     public Stack<StackFrame> CallStack { get; set; } = [];
     private Stack<string> PackageStack { get; set; } = [];
@@ -635,13 +638,7 @@ public class Interpreter
         }
 
         var filePath = pathValue.GetString();
-        var parentPath = FileUtil.GetParentPath(node.Token, ExecutionPath);
-        var fullPath = Path.GetFullPath(Path.Combine(parentPath, filePath));
-
-        if (!Path.HasExtension(fullPath))
-        {
-            fullPath = FileUtil.TryGetExtensionless(node.Token, fullPath);
-        }
+        var fullPath = ResolveIncludePath(node.Token, filePath);
 
         if (Context.Includes.Contains(fullPath))
         {
@@ -660,11 +657,66 @@ public class Interpreter
 
         using var lexer = new Lexer(fullPath);
         var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
-        var result = Interpret(ast);
+        Interpret(ast);
 
         ExecutionPath = oldExecutionPath;
 
         return Value.Default;
+    }
+
+    /// <summary>
+    /// Resolves an include path using two-phase lookup:
+    ///   1. Explicit-relative paths (starting with ./ or ../) always resolve
+    ///      relative to the currently executing file — same as before.
+    ///   2. All other (bare) paths are tried relative to the entry-script's
+    ///      directory (the project root) first, then fall back to the current
+    ///      file's directory.
+    /// This matches the behaviour developers expect from languages like Python,
+    /// Ruby, and Node.js, where bare names resolve from the project root while
+    /// explicit relative paths resolve from the caller.
+    /// </summary>
+    private string ResolveIncludePath(Token token, string filePath)
+    {
+        var currentDir = FileUtil.GetParentPath(token, ExecutionPath);
+
+        bool isExplicitRelative = filePath.StartsWith("./",  StringComparison.Ordinal)
+                               || filePath.StartsWith("../", StringComparison.Ordinal);
+
+        if (isExplicitRelative)
+        {
+            // Explicit relative — always resolve from the including file's directory.
+            return FindWithExtensions(Path.GetFullPath(Path.Combine(currentDir, filePath)));
+        }
+
+        // Bare path — try the project root (CWD at startup) first.
+        var fromRoot = FindWithExtensions(Path.GetFullPath(Path.Combine(ProjectRoot, filePath)));
+        if (File.Exists(fromRoot))
+        {
+            return fromRoot;
+        }
+
+        // Fall back to the including file's directory (preserves prior behaviour).
+        return FindWithExtensions(Path.GetFullPath(Path.Combine(currentDir, filePath)));
+    }
+
+    // Try the path as-is, then with each recognised Kiwi extension in order.
+    private static string FindWithExtensions(string p)
+    {
+        if (Path.HasExtension(p))
+        {
+            return p;
+        }
+
+        foreach (var ext in Kiwi.Settings.Extensions.Recognized)
+        {
+            if (File.Exists(p + ext))
+            {
+                return p + ext;
+            }
+        }
+
+        // Return with the primary extension so the error message is readable.
+        return p + Kiwi.Settings.Extensions.Primary;
     }
 
     /// <summary>

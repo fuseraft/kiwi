@@ -136,24 +136,25 @@ public class Program
     {
         Dictionary<string, string> result = [];
 
-        foreach (var arg in args)
+        int i = 0;
+        while (i < args.Count)
         {
+            var arg = args[i];
             string argWithoutPrefix;
 
             if (arg.StartsWith("--"))
             {
-                // e.g. "--key=value"
                 argWithoutPrefix = arg[2..];
             }
             else if (arg.StartsWith('-') || arg.StartsWith('/'))
             {
-                // e.g. "-key=value" or "/key=value"
                 argWithoutPrefix = arg[1..];
             }
             else
             {
-                // Doesn't match any known prefix, skip it
+                // Positional: key and value are both the arg itself
                 result[arg] = arg;
+                i++;
                 continue;
             }
 
@@ -162,20 +163,36 @@ public class Program
 
             if (parts.Length == 2)
             {
-                // e.g. "key=value"
-                var key = parts[0];
-                var value = parts[1];
-                result[key] = value;
+                result[parts[0]] = parts[1];
             }
-            else
+            else if (!string.IsNullOrWhiteSpace(argWithoutPrefix))
             {
-                // No '=' => treat as a boolean or a key-only argument
-                // e.g. "/verbose" => (Key = "verbose", Value = "true")
-                if (!string.IsNullOrWhiteSpace(argWithoutPrefix))
+                // Lookahead: consume next token as value when it isn't another flag or a URL.
+                // This enables `--key value` syntax in addition to `--key=value`.
+                bool consumedNext = false;
+                if (i + 1 < args.Count)
+                {
+                    var next = args[i + 1];
+                    // A "flag" must start with '-'. Paths starting with '/' are values, not flags.
+                    bool nextIsFlag = next.StartsWith('-');
+                    bool nextIsUrl  = next.StartsWith("http://",  StringComparison.OrdinalIgnoreCase)
+                                   || next.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+
+                    if (!nextIsFlag && !nextIsUrl)
+                    {
+                        result[argWithoutPrefix] = next;
+                        i++;
+                        consumedNext = true;
+                    }
+                }
+
+                if (!consumedNext)
                 {
                     result[argWithoutPrefix] = "true";
                 }
             }
+
+            i++;
         }
 
         return result;
