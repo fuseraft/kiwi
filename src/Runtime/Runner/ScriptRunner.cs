@@ -76,6 +76,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
             streams.Clear();
 
             Interpreter.ExecutionPath = ExecutionPath;
+            Interpreter.ProjectRoot   = Directory.GetCurrentDirectory();
             Interpreter.EntryPath = string.IsNullOrEmpty(ExecutionPath)
                 ? Directory.GetCurrentDirectory()
                 : Path.GetFullPath(ExecutionPath);
