@@ -345,26 +345,8 @@ package table
     @return Table : self, for chaining.
     #/
     fn group_by(field: string): Table
-      # Pass 1: collect unique keys in insertion order (O(n), no list copies)
-      key_order = []
-      seen = {}
-      for row in @rows do
-        k = "${row[field]}"
-        if !seen.has_key(k)
-          seen[k] = true
-          key_order.push(k)
-        end
-      end
-
-      # Pass 2: one filter pass per unique key (O(k*n), avoids copy-on-read O(n^2))
-      grouped = {}
-      for k in key_order do
-        kk = k
-        ff = field
-        grouped[k] = @rows.filter(with (row) do "${row[ff]}" == kk end)
-      end
-
-      @grouped     = grouped
+      # Native builtin: O(n) single pass in C#, no lambda calls, no copy-on-read.
+      @grouped     = @rows.group_by_field(field)
       @group_field = field
       @
     end

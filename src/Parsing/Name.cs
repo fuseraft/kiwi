@@ -192,6 +192,7 @@ public enum TokenName
   Builtin_List_All,
   Builtin_List_Each,
   Builtin_List_Filter,
+  Builtin_List_GroupByField,
   Builtin_List_Map,
   Builtin_List_Max,
   Builtin_List_Min,

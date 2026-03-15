@@ -50,6 +50,11 @@ public class ListBuiltinHandler
             }
         }
 
+        if (args.Count == 1 && args[0].IsString() && op == TokenName.Builtin_List_GroupByField)
+        {
+            return ListGroupByField(token, list, args[0].GetString());
+        }
+
         if (args.Count == 1 && args[0].IsLambda())
         {
             var arg = args[0];
@@ -192,6 +197,39 @@ public class ListBuiltinHandler
             if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [item], token, "<filter>")))
                 filtered.Add(item);
         return Value.CreateList(filtered);
+    }
+
+    /// <summary>
+    /// Groups a list of hashmaps by a string field in O(n) with no Kiwi lambda calls.
+    /// Returns a hashmap whose keys are the distinct field values (as strings) and whose
+    /// values are lists of the matching rows. Insertion order of keys is preserved.
+    /// </summary>
+    private static Value ListGroupByField(Token token, List<Value> list, string field)
+    {
+        var fieldKey = Value.CreateString(field);
+        // groups[key] = C# list — built directly, no copy-on-read overhead.
+        var groups     = new Dictionary<string, List<Value>>(StringComparer.Ordinal);
+        var keyOrder   = new List<string>();
+
+        foreach (var row in list)
+        {
+            if (!row.IsHashmap()) continue;
+            var hash = row.GetHashmap();
+            if (!hash.TryGetValue(fieldKey, out var fieldVal)) continue;
+            var key = fieldVal.Value_?.ToString() ?? string.Empty;
+            if (!groups.TryGetValue(key, out var bucket))
+            {
+                bucket = new List<Value>();
+                groups[key] = bucket;
+                keyOrder.Add(key);
+            }
+            bucket.Add(row);
+        }
+
+        var result = new Dictionary<Value, Value>(keyOrder.Count);
+        foreach (var k in keyOrder)
+            result[Value.CreateString(k)] = Value.CreateList(groups[k]);
+        return Value.CreateHashmap(result);
     }
 
     private static Value ListSkip(ref Value obj, int count)
