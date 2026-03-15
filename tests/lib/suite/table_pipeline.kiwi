@@ -1,0 +1,229 @@
+/# ==============================================================================
+   Testing table::from() — in-memory tabular transforms, joins, grouping.
+  ============================================================================== #/
+@tester::test("table pipeline")
+fn test_table_pipeline()
+  users = [
+    {"id": 1, "name": "Alice", "dept": "eng",   "score": 9},
+    {"id": 2, "name": "Bob",   "dept": "sales",  "score": 7},
+    {"id": 3, "name": "Carol", "dept": "eng",    "score": 8},
+    {"id": 4, "name": "Dave",  "dept": "sales",  "score": 6}
+  ]
+
+  orders = [
+    {"user_id": 1, "product": "Widget", "qty": 3},
+    {"user_id": 1, "product": "Gadget", "qty": 1},
+    {"user_id": 3, "product": "Widget", "qty": 2},
+    {"user_id": 9, "product": "Thing",  "qty": 5}
+  ]
+
+  # -----------------------------------------------------------------------
+  # D1: where
+  # -----------------------------------------------------------------------
+  eng = table::from(users).where(do (r) => r["dept"] == "eng" end).to_list()
+  tester::assert(eng.size() == 2,           "D1a: two eng rows")
+  tester::assert(eng[0]["name"] == "Alice", "D1b: first eng row")
+
+  # -----------------------------------------------------------------------
+  # D2: select
+  # -----------------------------------------------------------------------
+  slim = table::from(users).select(["id", "name"]).to_list()
+  tester::assert(slim[0].keys().size() == 2,    "D2a: two fields after select")
+  tester::assert(slim[0]["name"] == "Alice",    "D2b: name field retained")
+  tester::assert(!slim[0].keys().contains("score"), "D2c: score dropped")
+
+  # -----------------------------------------------------------------------
+  # D3: rename
+  # -----------------------------------------------------------------------
+  renamed = table::from(users).rename("score", "rating").to_list()
+  tester::assert(renamed[0].keys().contains("rating"),  "D3a: new field name present")
+  tester::assert(!renamed[0].keys().contains("score"),  "D3b: old field name gone")
+  tester::assert(renamed[0]["rating"] == 9,             "D3c: value preserved")
+
+  # -----------------------------------------------------------------------
+  # D4: add_field
+  # -----------------------------------------------------------------------
+  graded = table::from(users)
+    .add_field("grade", do (r) => r["score"] >= 8 ? "A" : "B" end)
+    .to_list()
+  tester::assert(graded[0]["grade"] == "A",  "D4a: Alice gets A")
+  tester::assert(graded[1]["grade"] == "B",  "D4b: Bob gets B")
+  tester::assert(graded[2]["grade"] == "A",  "D4c: Carol gets A")
+
+  # -----------------------------------------------------------------------
+  # D5: drop
+  # -----------------------------------------------------------------------
+  dropped = table::from(users).drop(["dept", "score"]).to_list()
+  tester::assert(dropped[0].keys().size() == 2,        "D5a: two fields remain")
+  tester::assert(dropped[0].keys().contains("id"),     "D5b: id kept")
+  tester::assert(dropped[0].keys().contains("name"),   "D5c: name kept")
+  tester::assert(!dropped[0].keys().contains("dept"),  "D5d: dept dropped")
+
+  # -----------------------------------------------------------------------
+  # D6: map
+  # -----------------------------------------------------------------------
+  mapped = table::from(users)
+    .map(do (r) => {"name": r["name"].uppercase(), "score": r["score"]} end)
+    .to_list()
+  tester::assert(mapped[0]["name"] == "ALICE",  "D6a: name uppercased")
+  tester::assert(mapped[0]["score"] == 9,       "D6b: score preserved")
+
+  # -----------------------------------------------------------------------
+  # D7: order_by
+  # -----------------------------------------------------------------------
+  asc_sorted = table::from(users).order_by("score").to_list()
+  tester::assert(asc_sorted[0]["name"] == "Dave",   "D7a: lowest score first")
+  tester::assert(asc_sorted[3]["name"] == "Alice",  "D7b: highest score last")
+
+  desc_sorted = table::from(users).order_by("score", false).to_list()
+  tester::assert(desc_sorted[0]["name"] == "Alice", "D7c: highest score first desc")
+  tester::assert(desc_sorted[3]["name"] == "Dave",  "D7d: lowest score last desc")
+
+  str_sorted = table::from(users).order_by("name").to_list()
+  tester::assert(str_sorted[0]["name"] == "Alice",  "D7e: string sort first")
+  tester::assert(str_sorted[3]["name"] == "Dave",   "D7f: string sort last")
+
+  # -----------------------------------------------------------------------
+  # D8: limit / offset
+  # -----------------------------------------------------------------------
+  limited = table::from(users).order_by("id").limit(2).to_list()
+  tester::assert(limited.size() == 2,           "D8a: limit 2")
+  tester::assert(limited[0]["id"] == 1,         "D8b: first row id")
+
+  paged = table::from(users).order_by("id").offset(2).limit(2).to_list()
+  tester::assert(paged.size() == 2,             "D8c: offset+limit size")
+  tester::assert(paged[0]["id"] == 3,           "D8d: offset correct")
+
+  # -----------------------------------------------------------------------
+  # D9: distinct
+  # -----------------------------------------------------------------------
+  dupes = [
+    {"x": 1, "y": 2},
+    {"x": 1, "y": 2},
+    {"x": 3, "y": 4}
+  ]
+  deduped = table::from(dupes).distinct().to_list()
+  tester::assert(deduped.size() == 2,  "D9: distinct removes duplicate row")
+
+  # -----------------------------------------------------------------------
+  # D10: inner_join
+  # -----------------------------------------------------------------------
+  joined = table::from(users).inner_join(orders, "id", "user_id").to_list()
+  tester::assert(joined.size() == 3,                   "D10a: three inner matches")
+  tester::assert(joined[0]["name"] == "Alice",         "D10b: first match name")
+  tester::assert(joined[0]["product"] == "Widget",     "D10c: first match product")
+
+  # -----------------------------------------------------------------------
+  # D11: left_join
+  # -----------------------------------------------------------------------
+  left = table::from(users).left_join(orders, "id", "user_id").to_list()
+  tester::assert(left.size() == 5,            "D11a: left join keeps all left rows")
+  # Bob (id=2) and Dave (id=4) have no orders — they appear unjoined
+  unmatched = table::from(left)
+    .where(do (r) => !r.keys().contains("product") end)
+    .to_list()
+  tester::assert(unmatched.size() == 2,       "D11b: two unmatched left rows")
+
+  # -----------------------------------------------------------------------
+  # D12: right_join
+  # -----------------------------------------------------------------------
+  right = table::from(users).right_join(orders, "id", "user_id").to_list()
+  tester::assert(right.size() == 4,           "D12a: right join keeps all right rows")
+  # order with user_id=9 has no user — appears unjoined (no "name" field)
+  unmatched_r = table::from(right)
+    .where(do (r) => !r.keys().contains("name") end)
+    .to_list()
+  tester::assert(unmatched_r.size() == 1,     "D12b: one unmatched right row")
+  tester::assert(unmatched_r[0]["product"] == "Thing", "D12c: unmatched right row content")
+
+  # -----------------------------------------------------------------------
+  # D13: full_join
+  # -----------------------------------------------------------------------
+  full = table::from(users).full_join(orders, "id", "user_id").to_list()
+  # 3 matched + 2 unmatched left (Bob, Dave) + 1 unmatched right (user_id=9)
+  tester::assert(full.size() == 6,            "D13: full join total rows")
+
+  # -----------------------------------------------------------------------
+  # D14: group_by + agg
+  # -----------------------------------------------------------------------
+  dept_stats = table::from(users)
+    .group_by("dept")
+    .agg({
+      "headcount": do (rows) => rows.size() end,
+      "avg_score": do (rows) => rows.map(do (r) => r["score"] end).sum() / rows.size() end
+    })
+    .order_by("dept")
+    .to_list()
+  tester::assert(dept_stats.size() == 2,                "D14a: two groups")
+  eng_row   = dept_stats[0]
+  sales_row = dept_stats[1]
+  tester::assert(eng_row["dept"] == "eng",              "D14b: eng group key")
+  tester::assert(eng_row["headcount"] == 2,             "D14c: eng headcount")
+  tester::assert(eng_row["avg_score"] == 8,             "D14d: eng avg score (9+8)/2")
+  tester::assert(sales_row["headcount"] == 2,           "D14e: sales headcount")
+
+  # agg without group_by raises error
+  agg_err = false
+  try
+    table::from(users).agg({"n": do (rows) => rows.size() end})
+  catch err
+    agg_err = true
+  end
+  tester::assert(agg_err, "D14f: agg without group_by raises error")
+
+  # -----------------------------------------------------------------------
+  # D15: to_hashmap, pluck, first, count
+  # -----------------------------------------------------------------------
+  lookup = table::from(users).to_hashmap("id")
+  tester::assert(typeof(lookup) == "hashmap",    "D15a: to_hashmap returns hashmap")
+  tester::assert(lookup["1"]["name"] == "Alice", "D15b: lookup by id=1")
+  tester::assert(lookup["3"]["name"] == "Carol", "D15c: lookup by id=3")
+
+  names = table::from(users).order_by("id").pluck("name")
+  tester::assert(typeof(names) == "list",        "D15d: pluck returns list")
+  tester::assert(names[0] == "Alice",            "D15e: pluck first name")
+  tester::assert(names.size() == 4,              "D15f: pluck all names")
+
+  f = table::from(users).order_by("score", false).first()
+  tester::assert(f["name"] == "Alice",           "D15g: first returns top scorer")
+
+  tester::assert(table::from(users).count() == 4,    "D15h: count all rows")
+  tester::assert(table::from([]).first() == null,    "D15i: first on empty is null")
+
+  # -----------------------------------------------------------------------
+  # D16: chained pipeline (load -> filter -> join -> group -> agg -> sort)
+  # -----------------------------------------------------------------------
+  result = table::from(users)
+    .where(do (r) => r["score"] >= 7 end)
+    .inner_join(orders, "id", "user_id")
+    .group_by("name")
+    .agg({"order_count": do (rows) => rows.size() end})
+    .order_by("order_count", false)
+    .to_list()
+  tester::assert(result.size() == 2,                   "D16a: two users with orders and score>=7")
+  tester::assert(result[0]["name"] == "Alice",         "D16b: Alice has most orders")
+  tester::assert(result[0]["order_count"] == 2,        "D16c: Alice has 2 orders")
+
+  # -----------------------------------------------------------------------
+  # D17: anti-join — find left rows with no matching right row
+  #   Equivalent to: SELECT * FROM users LEFT JOIN orders ON users.id = orders.user_id
+  #                  WHERE orders.user_id IS NULL
+  # -----------------------------------------------------------------------
+  no_orders = table::from(users)
+    .left_join(orders, "id", "user_id")
+    .where(do (r) => !r.keys().contains("user_id") end)
+    .to_list()
+  tester::assert(no_orders.size() == 2,             "D17a: two users have no orders")
+  no_order_names = table::from(no_orders).order_by("name").pluck("name")
+  tester::assert(no_order_names[0] == "Bob",        "D17b: Bob has no orders")
+  tester::assert(no_order_names[1] == "Dave",       "D17c: Dave has no orders")
+
+  # Anti-join the other way: orders with no matching user
+  orphan_orders = table::from(users)
+    .right_join(orders, "id", "user_id")
+    .where(do (r) => !r.keys().contains("name") end)
+    .to_list()
+  tester::assert(orphan_orders.size() == 1,                  "D17d: one orphan order")
+  tester::assert(orphan_orders[0]["product"] == "Thing",     "D17e: orphan order product")
+  tester::assert(orphan_orders[0]["user_id"] == 9,           "D17f: orphan order user_id")
+end

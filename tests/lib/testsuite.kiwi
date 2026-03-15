@@ -74,6 +74,7 @@ var (unit_tests: list = [
   "csv_pipeline",
   "json_pipeline",
   "text_pipeline",
+  "table_pipeline",
 
   # Storage & I/O
   "sqlite",
