@@ -11,10 +11,11 @@ public static class KiwiBuiltinHandler
     {
         return builtin switch
         {
-            TokenName.Builtin_Kiwi_ExecPath => ExecPath(token, args, executionPath),
-            TokenName.Builtin_Kiwi_Main => Main_(token, args, entryPath),
-            TokenName.Builtin_Kiwi_Tokenize => Tokenize(token, args),
-            TokenName.Builtin_Kiwi_TypeOf => TypeOf(token, args),
+            TokenName.Builtin_Kiwi_ExecPath  => ExecPath(token, args, executionPath),
+            TokenName.Builtin_Kiwi_Main      => Main_(token, args, entryPath),
+            TokenName.Builtin_Kiwi_MemUsage  => MemUsage(token, args),
+            TokenName.Builtin_Kiwi_Tokenize  => Tokenize(token, args),
+            TokenName.Builtin_Kiwi_TypeOf    => TypeOf(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
@@ -83,6 +84,25 @@ public static class KiwiBuiltinHandler
         }
 
         return Value.CreateHashmap(res);
+    }
+
+    private static Value MemUsage(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, KiwiBuiltin.MemUsage, 0, args.Count);
+
+        var proc = System.Diagnostics.Process.GetCurrentProcess();
+
+        Dictionary<Value, Value> result = new()
+        {
+            [Value.CreateString("working_set")]       = Value.CreateInteger(proc.WorkingSet64),
+            [Value.CreateString("gc_heap")]           = Value.CreateInteger(GC.GetTotalMemory(false)),
+            [Value.CreateString("gc_total_allocated")]= Value.CreateInteger((long)GC.GetTotalAllocatedBytes()),
+            [Value.CreateString("gen0_collections")]  = Value.CreateInteger(GC.CollectionCount(0)),
+            [Value.CreateString("gen1_collections")]  = Value.CreateInteger(GC.CollectionCount(1)),
+            [Value.CreateString("gen2_collections")]  = Value.CreateInteger(GC.CollectionCount(2)),
+        };
+
+        return Value.CreateHashmap(result);
     }
 
     private static Value TypeOf(Token token, List<Value> args)
