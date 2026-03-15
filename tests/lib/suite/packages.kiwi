@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing package definitions, exports, and inter-function calls.
-   ============================================================================== #/
-tester::register_test("packages", with do
+   Testing package definitions, exports, and inter-function calls.
+  ============================================================================== #/
+@tester::test("packages")
+fn test_packages()
   # basic package with multiple functions
   package strutils
     fn replicate(s, n)
@@ -90,4 +91,4 @@ tester::register_test("packages", with do
   # name collision: overwriting the variable does not affect :: resolution
   pkg = "overwritten"
   tester::assert(strutils::shout("ok") == "OK!!!", "B7: :: unaffected after var overwrite")
-end)
+end

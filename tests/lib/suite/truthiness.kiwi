@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing truthy and falsy values.
-   ============================================================================== #/
-tester::register_test("truthiness", with do
+   Testing truthy and falsy values.
+  ============================================================================== #/
+@tester::test("truthiness")
+fn test_truthiness()
   tester::assert(not null.truthy(), "null is never truthy")
   tester::assert(not (0).truthy(), "zero is the only non-truthy number")
   tester::assert((1).truthy(), "non-zero numbers are always truthy")
@@ -13,4 +14,4 @@ tester::register_test("truthiness", with do
   tester::assert({a: 1}.truthy(), "non-empty hashmaps are truthy")
   tester::assert(not false.truthy(), "false is never truthy")
   tester::assert(true.truthy(), "true is always truthy")
-end)
+end

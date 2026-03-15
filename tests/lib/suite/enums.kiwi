@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing enums: auto-increment, explicit values, value continuation,
-    member access, comparison, non-integer values, and collections.
-   ============================================================================== #/
-tester::register_test("enums", with do
+   Testing enums: auto-increment, explicit values, value continuation,
+   member access, comparison, non-integer values, and collections.
+  ============================================================================== #/
+@tester::test("enums")
+fn test_enums()
   # auto-increment from 0
   enum Direction
     North
@@ -78,4 +79,4 @@ tester::register_test("enums", with do
     result = "not found"
   end
   tester::assert(result == "not found", "A21: enum value works in conditional")
-end)
+end

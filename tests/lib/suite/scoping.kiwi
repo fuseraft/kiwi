@@ -1,8 +1,9 @@
 /# ==============================================================================
-   Testing lexical scoping: inner function calls must not clobber the caller's
-   local variables, and recursion must work correctly.
-  ============================================================================== #/
-tester::register_test("scoping", with do
+  Testing lexical scoping: inner function calls must not clobber the caller's
+  local variables, and recursion must work correctly.
+ ============================================================================== #/
+@tester::test("scoping")
+fn test_scoping()
   # Two structs with identically-named locals — must not interfere
   struct ScopeA
     fn new(v)
@@ -94,4 +95,4 @@ tester::register_test("scoping", with do
   end
 
   tester::assert(countdown(3) == "n=3:n=2:n=1:done", "A8: top-level recursive function isolation")
-end)
+end

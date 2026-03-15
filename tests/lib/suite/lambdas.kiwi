@@ -1,34 +1,35 @@
 /# ==============================================================================
-    Testing lambdas (both assigned and inline), mostly redundant as lambdas are
-    used throughout (including in each call to `tester::register_test`).
-   ============================================================================== #/
-tester::register_test("lambdas", with do
+   Testing lambdas (both assigned and inline), mostly redundant as lambdas are
+   used throughout (including in each call to `tester::register_test`).
+  ============================================================================== #/
+@tester::test("lambdas")
+fn test_lambdas()
   # setup
   new_list = [{id: 0}, {id: 1}, {id: 2}, {id: 3}, {id: 4},
               {id: 5}, {id: 6}, {id: 7}, {id: 8}, {id: 9}]
 
   # Assigned and inline lambdas
-  odd_item_id = with (item) do 
-    return item.id % 2 != 0 
+  odd_item_id = with (item) do
+    return item.id % 2 != 0
   end
 
-  puts = with (s) do 
+  puts = with (s) do
     return s
   end
 
   tester::assert(puts("Hello, World!") == "Hello, World!", "A1")
 
   # Lambdas as first-class citizens
-  fn use_lambda(print_func, message) 
+  fn use_lambda(print_func, message)
     return print_func(message)
   end
-  
+
   # passing a lambda to a function
   tester::assert(use_lambda(puts, "Hello, Kiwi!") == "Hello, Kiwi!", "A2")
 
   # using an inline lambda
   tester::assert(new_list.filter(with (item) do return item["id"] % 2 == 0 end).map(with (item) do item["id"]end).sum() == 20, "A3")
-  
+
   # using the `odd_item_id` assigned lambda
   tester::assert(new_list.filter(odd_item_id).map(with (item) do item["id"]end).sum() == 25, "A4")
 
@@ -44,7 +45,7 @@ tester::register_test("lambdas", with do
                         end)
     )
     .keys()
-    .reduce("", with (acc, key) do 
+    .reduce("", with (acc, key) do
                   acc += key
                 end) == "key1key2key3key4key5", "A7")
 
@@ -67,4 +68,4 @@ tester::register_test("lambdas", with do
     caught = true
   end
   tester::assert(caught, "A10: calling non-callable raises error")
-end)
+end

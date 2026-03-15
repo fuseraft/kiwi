@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing structs: constructors, instance variables, methods, method calling
-    method via @., inheritance with override, and default constructors.
-   ============================================================================== #/
-tester::register_test("structs", with do
+   Testing structs: constructors, instance variables, methods, method calling
+   method via @., inheritance with override, and default constructors.
+  ============================================================================== #/
+@tester::test("structs")
+fn test_structs()
   # basic struct with constructor and instance variables
   struct Point
     fn new(x, y)
@@ -132,4 +133,4 @@ tester::register_test("structs", with do
   ctr2.increment()
   tester::assert(ctr.value() == 3,  "A16: first counter unaffected by second")
   tester::assert(ctr2.value() == 1, "A17: second counter independent")
-end)
+end

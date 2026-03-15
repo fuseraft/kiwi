@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing every kind of loop available in kiwi: `for`, `while`, `repeat`
-   ============================================================================== #/
-tester::register_test("loops", with do
+   Testing every kind of loop available in kiwi: `for`, `while`, `repeat`
+  ============================================================================== #/
+@tester::test("loops")
+fn test_loops()
   fruits = ["kiwi", "strawberry", "pineapple", "lime", "mango", "guava"]
   new_list = []
 
@@ -14,7 +15,7 @@ tester::register_test("loops", with do
   new_list.clear()
 
   # iterate index
-  for fruit, index in fruits do 
+  for fruit, index in fruits do
     new_list.push(index)
   end
 
@@ -98,4 +99,4 @@ tester::register_test("loops", with do
   end
 
   tester::assert(x == 65536, "A11")
-end)
+end

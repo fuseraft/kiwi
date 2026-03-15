@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing the unpack operator `=<`. Useful for when a function returns more
-    than one value and you want to capture each as a separate variable.
-   ============================================================================== #/
-tester::register_test("unpacking", with do
+   Testing the unpack operator `=<`. Useful for when a function returns more
+   than one value and you want to capture each as a separate variable.
+  ============================================================================== #/
+@tester::test("unpacking")
+fn test_unpacking()
   a, b, c =< true, {a: false}, [1, 2, 3]
 
   tester::assert(a == true, "A1")
@@ -22,4 +23,4 @@ tester::register_test("unpacking", with do
 
   tester::assert(a.size() == 2 and a.sum() == 3, "A6")
   tester::assert(b.size() == 2 and b.join() == "ab", "A7")
-end)
+end

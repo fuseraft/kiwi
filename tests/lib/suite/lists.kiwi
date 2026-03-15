@@ -1,8 +1,9 @@
 /# ==============================================================================
-    A pretty comprehensive list test. Kiwi's ability to work with list-like data
-    is its meat and potatoes so-to-speak.
-   ============================================================================== #/
-tester::register_test("lists", with do
+   A pretty comprehensive list test. Kiwi's ability to work with list-like data
+   is its meat and potatoes so-to-speak.
+  ============================================================================== #/
+@tester::test("lists")
+fn test_lists()
   # Basic List Operations
   basic_list = [1, 2, 3]
   tester::assert(basic_list.size() == 3, "List size check")
@@ -36,7 +37,7 @@ tester::register_test("lists", with do
 
   # Empty List Verification
   new_list = []
-  
+
   while not char_list.empty() do
     new_list.push(char_list.first())
     char_list.remove_at(0)
@@ -60,9 +61,9 @@ tester::register_test("lists", with do
   # lists library
   var (fruits: list = [
     { id: 0, name: "apple",  price: 0.75, qty: 100 },
-    { id: 1, name: "banana", price: 0.25, qty: 50  }, 
-    { id: 2, name: "mango",  price: 1.00, qty: 30  }, 
-    { id: 3, name: "banana", price: 0.25, qty: 50  }, 
+    { id: 1, name: "banana", price: 0.25, qty: 50  },
+    { id: 2, name: "mango",  price: 1.00, qty: 30  },
+    { id: 3, name: "banana", price: 0.25, qty: 50  },
     { id: 4, name: "kiwi",   price: 0.50, qty: 70, favorite: true }
   ])
 
@@ -87,4 +88,4 @@ tester::register_test("lists", with do
   tester::assert(list::reject(fruits, with (fruit) do fruit.id < 4 end).first().name == "kiwi", "reject(id < 4) -> kiwi")
   tester::assert(list::sum_float(fruits.map(with (fruit) do fruit.price end)) == 2.75, "sum_float() -> 2.75")
   tester::assert(list::sum_integer(fruits.map(with (fruit) do fruit.qty end)) == 300, "sum_integer() -> 300")
-end)
+end

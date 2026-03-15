@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing abstract structs.
-   ============================================================================== #/
-tester::register_test("abstract structs", with do
+   Testing abstract structs.
+  ============================================================================== #/
+@tester::test("abstract structs")
+fn test_abstract_structs()
   # Basic abstract struct with concrete derived struct works
   abstract struct Animal
     abstract fn speak(): string end
@@ -100,4 +101,4 @@ tester::register_test("abstract structs", with do
   u = Upper.new()
   tester::assert(u.transform("hello") == "HELLO")
   tester::assert(u.name() == "upper")
-end)
+end

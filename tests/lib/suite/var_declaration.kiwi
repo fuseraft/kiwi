@@ -1,11 +1,12 @@
 /# ==============================================================================
-    Testing `var` declarations. These are special variable declarations that are
-    always guaranteed to be unique to the scope they are defined within.
-   ============================================================================== #/
-tester::register_test("var declaration", with do
+   Testing `var` declarations. These are special variable declarations that are
+   always guaranteed to be unique to the scope they are defined within.
+  ============================================================================== #/
+@tester::test("var declaration")
+fn test_var_declaration()
   fn var_decl_one(): list
     var (
-      f: float = 0.5,            # type-hint with initializer 
+      f: float = 0.5,            # type-hint with initializer
       s = "string",              # regular variable declaration
       n,                         # uninitialized variable defaults to null
       b: boolean,                # type-hint without initializer (`boolean` defaults to false)
@@ -19,7 +20,7 @@ tester::register_test("var declaration", with do
   end
 
   fn var_decl_two(): list
-    var (f: float = 0.5)          # type-hint with initializer 
+    var (f: float = 0.5)          # type-hint with initializer
     var (s = "string")            # regular variable declaration
     var (n)                       # uninitialized variable defaults to null
     var (b: boolean)              # type-hint without initializer (`boolean` defaults to false)
@@ -40,4 +41,4 @@ tester::register_test("var declaration", with do
   for i in [0 to one.size() - 1] do
     tester::assert(one[i].to_string() == two[i].to_string(), "A2")
   end
-end)
+end

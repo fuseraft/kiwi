@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing case-when: literal matching, multi-value, ranges, mixed.
-   ============================================================================== #/
-tester::register_test("case/when", with do
+   Testing case-when: literal matching, multi-value, ranges, mixed.
+  ============================================================================== #/
+@tester::test("case/when")
+fn test_case_when()
   # basic literal matching
   fn letter_grade(score)
     return case score
@@ -77,4 +78,4 @@ tester::register_test("case/when", with do
   tester::assert(vowel_or_not("a") == "vowel", "E1: 'a' matches range")
   tester::assert(vowel_or_not("e") == "vowel", "E2: 'e' matches range")
   tester::assert(vowel_or_not("b") == "other", "E3: 'b' does not match")
-end)
+end

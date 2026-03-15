@@ -1,10 +1,11 @@
 /# ==============================================================================
-   Testing the sqlite stdlib module: open, exec, query, params, last_insert_id,
-   changes, error handling, and date columns (TEXT ISO 8601).
-  ============================================================================== #/
+  Testing the sqlite stdlib module: open, exec, query, params, last_insert_id,
+  changes, error handling, and date columns (TEXT ISO 8601).
+ ============================================================================== #/
 require "sqlite"
 
-tester::register_test("sqlite", with do
+@tester::test("sqlite")
+fn test_sqlite()
   db = sqlite::open(":memory:")
 
   # Schema setup
@@ -151,4 +152,4 @@ tester::register_test("sqlite", with do
     caught2 = true
   end
   tester::assert(caught2, "B19: query on closed connection raises an error")
-end)
+end

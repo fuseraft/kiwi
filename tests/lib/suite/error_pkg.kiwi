@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing the error package.
-   ============================================================================== #/
-tester::register_test("error_pkg", with do
+   Testing the error package.
+  ============================================================================== #/
+@tester::test("error_pkg")
+fn test_error_pkg()
 
   # error::new — basic construction
   e = error::new("MyError", "something went wrong")
@@ -160,4 +161,4 @@ tester::register_test("error_pkg", with do
   end
   tester::assert(null_err == "ValueError", "expect_not_null: throws ValueError")
 
-end)
+end

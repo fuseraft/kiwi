@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing try-finally.
-   ============================================================================== #/
-tester::register_test("try-finally", with do
+   Testing try-finally.
+  ============================================================================== #/
+@tester::test("try-finally")
+fn test_try_finally()
   a = 0, b = 0
 
   try
@@ -11,7 +12,7 @@ tester::register_test("try-finally", with do
   finally
     b += 1
   end
-  
+
   tester::assert(a == 1)
   tester::assert(b == 1)
-end)
+end

@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing functions from the standard library modules: string and math.
-   ============================================================================== #/
-tester::register_test("standard library", with do
+   Testing functions from the standard library modules: string and math.
+  ============================================================================== #/
+@tester::test("standard library")
+fn test_standard_library()
   # --- string::pad* ---
   tester::assert(string::padstart("3", 2, "0") == "03",        "A1: padstart pads to width")
   tester::assert(string::padstart("hello", 3, "0") == "hello", "A2: padstart no-op when already wide")
@@ -53,4 +54,4 @@ tester::register_test("standard library", with do
 
   # --- math::log10 ---
   tester::assert(math::log10(1000.0) == 3.0,   "A27: log10(1000) == 3")
-end)
+end

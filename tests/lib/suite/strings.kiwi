@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing string builtins: concatenation, interpolation, split, trim,
-    contains, reverse, lines, substring, size, to_integer/to_float, and more.
-   ============================================================================== #/
-tester::register_test("strings", with do
+   Testing string builtins: concatenation, interpolation, split, trim,
+   contains, reverse, lines, substring, size, to_integer/to_float, and more.
+  ============================================================================== #/
+@tester::test("strings")
+fn test_strings()
   # concatenation and interpolation
   a = "Hello"
   b = "World"
@@ -60,4 +61,4 @@ tester::register_test("strings", with do
     return "${open}${s}${close}"
   end
   tester::assert(wrap_string("div", "<", ">") == "<div>", "A24: lambda building string")
-end)
+end
