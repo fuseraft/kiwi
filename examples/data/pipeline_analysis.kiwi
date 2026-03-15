@@ -1,0 +1,241 @@
+#!/usr/bin/env kiwi
+
+/#
+@summary Sales analysis using CsvPipeline, JsonPipeline, and the Table pipeline.
+@description
+  A self-contained demo that writes fixture files, loads them through the
+  structured-data pipelines, then runs a series of analytical queries:
+
+    1. Load product catalog (JSON) + sales reps (JSON) via json::pipeline
+    2. Load regions (CSV) + transactions (CSV) via csv::pipeline with type schemas
+    3. Enrich transactions with product and region details, compute revenue
+    4. Summarise revenue by category
+    5. Summarise revenue by region
+    6. Build a sales-rep performance leaderboard
+    7. Anti-join: find reps who have recorded no transactions
+    8. Find the single best-selling product by unit volume
+
+  Run:  kiwi examples/data/pipeline_analysis.kiwi
+#/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+fn banner(title: string)
+  line = "=" * 62
+  println "\n${line}"
+  println "  ${title}"
+  println line
+end
+
+fn round2(n)
+  (n * 100).to_integer().to_float() / 100
+end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Fixture data
+# ─────────────────────────────────────────────────────────────────────────────
+
+products_json    = "/tmp/kiwi_ex_products.json"
+reps_json        = "/tmp/kiwi_ex_reps.json"
+regions_csv      = "/tmp/kiwi_ex_regions.csv"
+transactions_csv = "/tmp/kiwi_ex_transactions.csv"
+
+fio::write(products_json, '[
+  {"id": 1, "name": "Widget Pro", "category": "hardware", "unit_price": 49.99},
+  {"id": 2, "name": "Gadget X",   "category": "hardware", "unit_price": 79.99},
+  {"id": 3, "name": "DataSync",   "category": "software", "unit_price": 199.00},
+  {"id": 4, "name": "CloudKit",   "category": "software", "unit_price": 149.00},
+  {"id": 5, "name": "CableSet",   "category": "hardware", "unit_price":  14.99},
+  {"id": 6, "name": "VaultPass",  "category": "software", "unit_price":  89.00}
+]')
+
+fio::write(reps_json, '[
+  {"rep_id": 101, "name": "Alice",  "region_id": 1},
+  {"rep_id": 102, "name": "Bob",    "region_id": 2},
+  {"rep_id": 103, "name": "Carol",  "region_id": 3},
+  {"rep_id": 104, "name": "Dave",   "region_id": 2},
+  {"rep_id": 105, "name": "Eve",    "region_id": 4},
+  {"rep_id": 106, "name": "Frank",  "region_id": 3}
+]')
+
+fio::write(regions_csv,
+  "region_id,region_name,country\n" +
+  "1,Pacific,NZ\n" +
+  "2,Americas,US\n" +
+  "3,Europe,UK\n" +
+  "4,Asia,JP"
+)
+
+fio::write(transactions_csv,
+  "txn_id,product_id,region_id,rep_id,qty,date\n" +
+  "1,1,1,101,10,2025-01-15\n" +
+  "2,3,2,102,5,2025-01-20\n" +
+  "3,2,1,101,3,2025-02-01\n" +
+  "4,4,3,103,8,2025-02-10\n" +
+  "5,1,2,102,15,2025-02-14\n" +
+  "6,5,1,101,20,2025-03-01\n" +
+  "7,6,2,104,12,2025-03-05\n" +
+  "8,3,3,103,4,2025-03-10\n" +
+  "9,2,4,105,6,2025-03-15\n" +
+  "10,4,1,101,2,2025-03-20"
+)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. Load — JSON sources via json::pipeline, CSV sources via csv::pipeline
+# ─────────────────────────────────────────────────────────────────────────────
+
+banner("1. Loading data")
+
+# Load both JSON files in one pipeline call, naming each as a dataset
+catalog = json::pipeline()
+  .from_file(products_json).as_dataset("products")
+  .from_file(reps_json).as_dataset("reps")
+  .parse()
+
+products = catalog["products"]
+reps     = catalog["reps"]
+
+# Load CSV files with explicit type schemas so join keys are integers, not strings.
+# Regions schema:     region_id(int), region_name(str), country(str)
+# Transactions schema: txn_id(int), product_id(int), region_id(int), rep_id(int), qty(int), date(str)
+
+regions = csv::pipeline()
+  .with_schema(["integer", "string", "string"])
+  .from_file(regions_csv)
+  .parse()
+
+transactions = csv::pipeline()
+  .with_schema(["integer", "integer", "integer", "integer", "integer", "string"])
+  .from_file(transactions_csv)
+  .parse()
+
+println "  products:     ${products.size()} records  (json::pipeline)"
+println "  reps:         ${reps.size()} records  (json::pipeline)"
+println "  regions:      ${regions.size()} records  (csv::pipeline + schema)"
+println "  transactions: ${transactions.size()} records  (csv::pipeline + schema)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. Enrich — join all sources into one flat view
+# ─────────────────────────────────────────────────────────────────────────────
+
+banner("2. Enriched transaction view")
+
+# transactions  --(product_id = id)-->  products  --(region_id = region_id)-->  regions
+# Then compute revenue and tidy up the column set.
+#
+# Note: products and regions both contribute a "region_id" field; since they
+# are equal on the join key the right-side overwrite is harmless.
+
+enriched = table::from(transactions)
+  .inner_join(products, "product_id", "id")
+  .inner_join(regions,  "region_id",  "region_id")
+  .add_field("revenue", do (r) => round2(r["qty"] * r["unit_price"]) end)
+  .select(["txn_id", "date", "name", "category", "region_name", "rep_id", "qty", "unit_price", "revenue"])
+  .rename("name",        "product")
+  .rename("region_name", "region")
+  .order_by("revenue", false)
+
+enriched.display()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Revenue by category
+# ─────────────────────────────────────────────────────────────────────────────
+
+banner("3. Revenue by category")
+
+table::from(enriched.to_list())
+  .group_by("category")
+  .agg({
+    "transactions": do (rows) => rows.size() end,
+    "units_sold":   do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+    "revenue":      do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end
+  })
+  .order_by("revenue", false)
+  .display()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. Revenue by region
+# ─────────────────────────────────────────────────────────────────────────────
+
+banner("4. Revenue by region")
+
+table::from(enriched.to_list())
+  .group_by("region")
+  .agg({
+    "transactions": do (rows) => rows.size() end,
+    "units_sold":   do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+    "revenue":      do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end
+  })
+  .order_by("revenue", false)
+  .display()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Sales rep leaderboard
+# ─────────────────────────────────────────────────────────────────────────────
+
+banner("5. Sales rep leaderboard")
+
+# Reps carry a "name" field that would collide with the product "name" already
+# present in the enriched view.  Select and rename before joining.
+rep_lookup = table::from(reps)
+  .select(["rep_id", "name"])
+  .rename("name", "rep")
+  .to_list()
+
+table::from(enriched.to_list())
+  .inner_join(rep_lookup, "rep_id", "rep_id")
+  .group_by("rep")
+  .agg({
+    "transactions": do (rows) => rows.size() end,
+    "units_sold":   do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+    "revenue":      do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end
+  })
+  .order_by("revenue", false)
+  .display()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. Anti-join: reps with no transactions
+#    Equivalent to: SELECT * FROM reps LEFT JOIN transactions ON rep_id WHERE txn_id IS NULL
+# ─────────────────────────────────────────────────────────────────────────────
+
+banner("6. Reps with no transactions")
+
+region_lookup = table::from(regions)
+  .select(["region_id", "region_name"])
+  .to_list()
+
+table::from(reps)
+  .left_join(transactions, "rep_id", "rep_id")
+  .where(do (r) => !r.keys().contains("txn_id") end)
+  .select(["rep_id", "name", "region_id"])
+  .inner_join(region_lookup, "region_id", "region_id")
+  .select(["rep_id", "name", "region_name"])
+  .rename("region_name", "region")
+  .display()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. Best-selling product by units sold
+# ─────────────────────────────────────────────────────────────────────────────
+
+banner("7. Best-selling product by units sold")
+
+table::from(enriched.to_list())
+  .group_by("product")
+  .agg({
+    "category":   do (rows) => rows[0]["category"] end,
+    "units_sold": do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+    "revenue":    do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end
+  })
+  .order_by("units_sold", false)
+  .display()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cleanup
+# ─────────────────────────────────────────────────────────────────────────────
+
+fio::remove(products_json)
+fio::remove(reps_json)
+fio::remove(regions_csv)
+fio::remove(transactions_csv)
