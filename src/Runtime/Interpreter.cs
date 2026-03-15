@@ -4485,13 +4485,53 @@ public class Interpreter
         throw new FunctionUndefinedError(token, methodName);
     }
 
+    private static readonly HashSet<TokenName> _objectSpecificBuiltins =
+    [
+        TokenName.Builtin_Core_Clone,
+        TokenName.Builtin_Core_Get,
+        TokenName.Builtin_Core_HasKey,
+        TokenName.Builtin_Core_IsA,
+        TokenName.Builtin_Core_Keys,
+        TokenName.Builtin_Core_Set,
+        TokenName.Builtin_Core_Values,
+    ];
+
     private Value CallObjectMethodDirect(Token token, string methodName, InstanceRef obj, List<Value> args)
     {
         if (!Context.HasStruct(obj.StructName))
             throw new StructUndefinedError(token, obj.StructName);
 
         var struc = Context.Structs[obj.StructName];
-        return ResolveAndCallMethod(token, struc, obj, methodName, args);
+        // Try the struct method chain first; fall through to builtins if not found.
+        if (!TryResolveStructMethod(struc, obj, methodName, out KFunction? fn))
+        {
+            if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))
+            {
+                // Object-specific builtins (is_a, clone, has_key, etc.) need struct context.
+                if (_objectSpecificBuiltins.Contains(coreOp))
+                    return ObjectBuiltinHandler.Handle(this, token, coreOp, obj, struc.BaseStruct, args);
+                return BuiltinDispatch.Execute(token, coreOp, Value.CreateObject(obj), args);
+            }
+            throw new UnimplementedMethodError(token, obj.StructName, methodName);
+        }
+
+        bool isCtor = methodName == "new";
+        if (isCtor)
+        {
+            var inst = new InstanceRef { StructName = obj.StructName, Identifier = obj.StructName };
+            return InvokeCallable(fn!, args, token, methodName, inst);
+        }
+        return InvokeCallable(fn!, args, token, methodName, obj);
+    }
+
+    private bool TryResolveStructMethod(KStruct struc, InstanceRef obj, string methodName, out KFunction? fn)
+    {
+        if (struc.Methods.TryGetValue(methodName, out fn))
+            return true;
+        if (!string.IsNullOrEmpty(struc.BaseStruct) && Context.HasStruct(struc.BaseStruct))
+            return TryResolveStructMethod(Context.Structs[struc.BaseStruct], obj, methodName, out fn);
+        fn = null;
+        return false;
     }
 
     private Value ResolveAndCallMethod(Token token, KStruct struc, InstanceRef obj, string methodName, List<Value> args)
@@ -4518,9 +4558,35 @@ public class Interpreter
         if (!Context.HasStruct(structName))
             throw new StructUndefinedError(token, structName);
         var struc = Context.Structs[structName];
-        if (!struc.Methods.TryGetValue(methodName, out KFunction? fn))
+
+        // Abstract structs cannot be instantiated directly.
+        if (methodName == "new" && struc.IsAbstract)
+            throw new AbstractInstantiationError(token, structName);
+
+        // Walk the inheritance chain to find the method (handles inherited fn new, etc.).
+        KFunction? fn = null;
+        var search = struc;
+        while (search != null)
+        {
+            if (search.Methods.TryGetValue(methodName, out fn)) break;
+            fn = null;
+            search = !string.IsNullOrEmpty(search.BaseStruct) && Context.HasStruct(search.BaseStruct)
+                ? Context.Structs[search.BaseStruct]
+                : null;
+        }
+
+        if (fn == null)
+        {
+            // Default constructor: no fn new() found anywhere in hierarchy → empty instance.
+            if (methodName == "new")
+            {
+                var inst = new InstanceRef { StructName = structName, Identifier = structName };
+                return Value.CreateObject(inst);
+            }
             throw new UnimplementedMethodError(token, structName, methodName);
-        // Constructor: create an instance, pass it as context, and return the object.
+        }
+
+        // Constructor: use the concrete type for StructName so the instance has the right type.
         if (methodName == "new")
         {
             var inst = new InstanceRef { StructName = structName, Identifier = structName };
