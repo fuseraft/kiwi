@@ -1,0 +1,479 @@
+/#
+@summary A package for in-memory tabular data transformation and querying.
+#/
+package table
+  /#
+  @summary An in-memory table of rows (list of hashmaps) with a fluent transform API.
+  @description
+    Created via `table::from(rows)`. Each transform operates eagerly and returns `self`
+    for chaining. Call a terminal method (`.to_list()`, `.first()`, `.count()`, etc.)
+    to retrieve results.
+
+    **Transform methods**: `where`, `select`, `rename`, `add_field`, `drop`, `map`,
+    `order_by`, `limit`, `offset`, `distinct`
+
+    **Join methods**: `inner_join`, `left_join`, `right_join`, `full_join`
+
+    **Grouping**: `group_by` followed by `agg`
+
+    **Terminals**: `to_list`, `to_hashmap`, `pluck`, `first`, `count`
+  @example
+  ---
+  # Filter, project, sort
+  result = table::from(rows)
+    .where(do (r) => r["active"] == true end)
+    .select(["id", "name", "score"])
+    .order_by("score", false)
+    .limit(10)
+    .to_list()
+
+  # Join two datasets
+  result = table::from(users)
+    .inner_join(orders, "id", "user_id")
+    .select(["name", "product", "qty"])
+    .to_list()
+
+  # Group and aggregate
+  result = table::from(orders)
+    .group_by("product")
+    .agg({
+      "total": do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+      "n":     do (rows) => rows.size() end
+    })
+    .order_by("total", false)
+    .to_list()
+  ---
+  #/
+  struct Table
+    /#
+    @summary Creates a new Table wrapping a list of hashmaps.
+    @param list rows : The source data — a list of hashmaps.
+    #/
+    fn new(rows: list)
+      @rows        = rows
+      @grouped     = null
+      @group_field = null
+    end
+
+    # -------------------------------------------------------------------------
+    # Transforms
+    # -------------------------------------------------------------------------
+
+    /#
+    @summary Keeps only rows for which `predicate(row)` is truthy.
+    @param lambda predicate : A lambda accepting a row hashmap.
+    @return Table : self, for chaining.
+    #/
+    fn where(predicate: lambda): Table
+      @rows = @rows.filter(predicate)
+      @
+    end
+
+    /#
+    @summary Projects each row to only the specified keys.
+    @param list keys : The field names to retain.
+    @return Table : self, for chaining.
+    #/
+    fn select(keys: list): Table
+      @rows = @rows.map(with (row) do
+        out = {}
+        for k in keys do
+          out[k] = row[k]
+        end
+        out
+      end)
+      @
+    end
+
+    /#
+    @summary Renames a field in every row.
+    @param string old_name : The existing field name.
+    @param string new_name : The replacement field name.
+    @return Table : self, for chaining.
+    #/
+    fn rename(old_name: string, new_name: string): Table
+      @rows = @rows.map(with (row) do
+        out = {}
+        for k in row.keys() do
+          target = k == old_name ? new_name : k
+          out[target] = row[k]
+        end
+        out
+      end)
+      @
+    end
+
+    /#
+    @summary Adds a computed field to every row.
+    @param string  name    : The new field name.
+    @param lambda  compute : A lambda accepting a row and returning the field value.
+    @return Table : self, for chaining.
+    #/
+    fn add_field(name: string, compute: lambda): Table
+      @rows = @rows.map(with (row) do
+        out = {}
+        for k in row.keys() do
+          out[k] = row[k]
+        end
+        out[name] = compute(row)
+        out
+      end)
+      @
+    end
+
+    /#
+    @summary Removes the specified fields from every row.
+    @param list keys : The field names to drop.
+    @return Table : self, for chaining.
+    #/
+    fn drop(keys: list): Table
+      @rows = @rows.map(with (row) do
+        out = {}
+        for k in row.keys() do
+          out[k] = row[k] when !keys.contains(k)
+        end
+        out
+      end)
+      @
+    end
+
+    /#
+    @summary Applies a custom transform lambda to every row.
+    @description The lambda receives a row hashmap and must return the new row.
+    @param lambda transform : A lambda accepting a row hashmap and returning a hashmap.
+    @return Table : self, for chaining.
+    #/
+    fn map(transform: lambda): Table
+      @rows = @rows.map(transform)
+      @
+    end
+
+    /#
+    @summary Sorts rows by a field value.
+    @param string  field : The field name to sort by.
+    @param boolean asc   : `true` for ascending (default), `false` for descending.
+    @return Table : self, for chaining.
+    #/
+    fn order_by(field: string, asc: boolean = true): Table
+      n = @rows.size()
+      if n > 1
+        for i in [0 to n - 2] do
+          best = i
+          for j in [i + 1 to n - 1] do
+            row_j    = @rows[j]
+            row_best = @rows[best]
+            vj = row_j[field]
+            vb = row_best[field]
+            cond = asc ? vj < vb : vj > vb
+            best = j when cond
+          end
+          @rows.swap(i, best) when best != i
+        end
+      end
+      @
+    end
+
+    /#
+    @summary Keeps only the first `n` rows.
+    @param integer n : Maximum number of rows to keep.
+    @return Table : self, for chaining.
+    #/
+    fn limit(n: integer): Table
+      if n < @rows.size()
+        @rows = @rows[0:n]
+      end
+      @
+    end
+
+    /#
+    @summary Skips the first `n` rows.
+    @param integer n : Number of rows to skip.
+    @return Table : self, for chaining.
+    #/
+    fn offset(n: integer): Table
+      if n >= @rows.size()
+        @rows = []
+      elsif n > 0
+        @rows = @rows[n:]
+      end
+      @
+    end
+
+    /#
+    @summary Removes duplicate rows (compares all fields).
+    @return Table : self, for chaining.
+    #/
+    fn distinct(): Table
+      seen = {}
+      result = []
+      for row in @rows do
+        k = json::stringify(row)
+        if !seen.keys().contains(k)
+          seen[k] = true
+          result.push(row)
+        end
+      end
+      @rows = result
+      @
+    end
+
+    # -------------------------------------------------------------------------
+    # Joins
+    # -------------------------------------------------------------------------
+
+    /#
+    @summary Merges two row hashmaps (right-side fields overwrite left on conflict).
+    @param hashmap left_row  : Fields from the left row.
+    @param hashmap right_row : Fields from the right row.
+    @return hashmap : The merged row.
+    #/
+    fn _merge_rows(left_row: hashmap, right_row: hashmap): hashmap
+      out = {}
+      for k in left_row.keys() do
+        out[k] = left_row[k]
+      end
+      for k in right_row.keys() do
+        out[k] = right_row[k]
+      end
+      out
+    end
+
+    /#
+    @summary Keeps only rows that have a matching row in `other`.
+    @param list   other     : The right-side list of hashmaps.
+    @param string left_key  : The join field on the left (this table).
+    @param string right_key : The join field on the right (`other`).
+    @return Table : self, for chaining.
+    #/
+    fn inner_join(other: list, left_key: string, right_key: string): Table
+      result = []
+      for lr in @rows do
+        lv = lr[left_key]
+        for rr in other do
+          rv = rr[right_key]
+          result.push(@._merge_rows(lr, rr)) when lv == rv
+        end
+      end
+      @rows = result
+      @
+    end
+
+    /#
+    @summary Keeps all left rows; right-side fields are null when there is no match.
+    @param list   other     : The right-side list of hashmaps.
+    @param string left_key  : The join field on the left (this table).
+    @param string right_key : The join field on the right (`other`).
+    @return Table : self, for chaining.
+    #/
+    fn left_join(other: list, left_key: string, right_key: string): Table
+      result = []
+      for lr in @rows do
+        lv = lr[left_key]
+        match_count = 0
+        for rr in other do
+          rv = rr[right_key]
+          if lv == rv
+            result.push(@._merge_rows(lr, rr))
+            match_count += 1
+          end
+        end
+        result.push(lr) when match_count == 0
+      end
+      @rows = result
+      @
+    end
+
+    /#
+    @summary Keeps all right rows; left-side fields are absent when there is no match.
+    @param list   other     : The right-side list of hashmaps.
+    @param string left_key  : The join field on the left (this table).
+    @param string right_key : The join field on the right (`other`).
+    @return Table : self, for chaining.
+    #/
+    fn right_join(other: list, left_key: string, right_key: string): Table
+      result = []
+      for rr in other do
+        rv = rr[right_key]
+        match_count = 0
+        for lr in @rows do
+          lv = lr[left_key]
+          if lv == rv
+            result.push(@._merge_rows(lr, rr))
+            match_count += 1
+          end
+        end
+        result.push(rr) when match_count == 0
+      end
+      @rows = result
+      @
+    end
+
+    /#
+    @summary Keeps all rows from both sides; unmatched rows have fields only from their side.
+    @param list   other     : The right-side list of hashmaps.
+    @param string left_key  : The join field on the left (this table).
+    @param string right_key : The join field on the right (`other`).
+    @return Table : self, for chaining.
+    #/
+    fn full_join(other: list, left_key: string, right_key: string): Table
+      result = []
+      matched_ri = {}
+      for lr in @rows do
+        lv = lr[left_key]
+        match_count = 0
+        ri = 0
+        for rr in other do
+          rv = rr[right_key]
+          if lv == rv
+            result.push(@._merge_rows(lr, rr))
+            matched_ri["${ri}"] = true
+            match_count += 1
+          end
+          ri += 1
+        end
+        result.push(lr) when match_count == 0
+      end
+      ri = 0
+      for rr in other do
+        result.push(rr) when !matched_ri.keys().contains("${ri}")
+        ri += 1
+      end
+      @rows = result
+      @
+    end
+
+    # -------------------------------------------------------------------------
+    # Grouping & Aggregation
+    # -------------------------------------------------------------------------
+
+    /#
+    @summary Groups rows by the unique values of `field`.
+    @description Must be followed by `.agg()` to produce a flat result.
+    @param string field : The field to group by.
+    @return Table : self, for chaining.
+    #/
+    fn group_by(field: string): Table
+      grouped = {}
+      for row in @rows do
+        key = "${row[field]}"
+        if !grouped.keys().contains(key)
+          grouped[key] = []
+        end
+        grp = grouped[key]
+        grp.push(row)
+        grouped[key] = grp
+      end
+      @grouped     = grouped
+      @group_field = field
+      @
+    end
+
+    /#
+    @summary Collapses groups into one row per group using aggregate functions.
+    @description
+      `specs` is a hashmap mapping output field names to lambdas. Each lambda
+      receives the list of rows in its group and returns the aggregated value.
+      The group-by field is automatically included in the output.
+    @param hashmap specs : `{ "out_field": do (rows) => ... end, ... }`
+    @return Table : self, for chaining.
+    @throws string : If called without a preceding `group_by()`.
+    @example
+    ---
+    table::from(orders)
+      .group_by("product")
+      .agg({
+        "total": do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+        "n":     do (rows) => rows.size() end
+      })
+      .to_list()
+    ---
+    #/
+    fn agg(specs: hashmap): Table
+      if @grouped == null
+        throw "Table: agg() must be called after group_by()"
+      end
+      result = []
+      gf = @group_field
+      for key in @grouped.keys() do
+        group_rows = @grouped[key]
+        first_row  = group_rows[0]
+        out = {}
+        out[gf] = first_row[gf]
+        for sk in specs.keys() do
+          fn_ref = specs[sk]
+          out[sk] = fn_ref(group_rows)
+        end
+        result.push(out)
+      end
+      @rows        = result
+      @grouped     = null
+      @group_field = null
+      @
+    end
+
+    # -------------------------------------------------------------------------
+    # Terminal methods
+    # -------------------------------------------------------------------------
+
+    /#
+    @summary Returns the current rows as a plain list.
+    @return list : List of row hashmaps.
+    #/
+    fn to_list(): list
+      @rows
+    end
+
+    /#
+    @summary Returns a hashmap keyed by the values of `key_field`.
+    @description Useful for fast lookups. If multiple rows share the same key value,
+                 the last one wins.
+    @param string key_field : The field whose value becomes each hashmap key.
+    @return hashmap : A hashmap mapping key values to row hashmaps.
+    #/
+    fn to_hashmap(key_field: string): hashmap
+      result = {}
+      for row in @rows do
+        k = "${row[key_field]}"
+        result[k] = row
+      end
+      result
+    end
+
+    /#
+    @summary Extracts a single field's values as a flat list.
+    @param string field : The field name to extract.
+    @return list : A list of the field values.
+    #/
+    fn pluck(field: string): list
+      @rows.map(with (row) do row[field] end)
+    end
+
+    /#
+    @summary Returns the first row, or `null` if the table is empty.
+    @return hashmap|null : The first row, or null.
+    #/
+    fn first()
+      return null when @rows.size() == 0
+      @rows[0]
+    end
+
+    /#
+    @summary Returns the number of rows.
+    @return integer : Row count.
+    #/
+    fn count(): integer
+      @rows.size()
+    end
+  end
+
+  /#
+  @summary Creates a new Table from a list of hashmaps.
+  @param list rows : The source data.
+  @return Table : A new Table instance.
+  #/
+  fn from(rows: list): Table
+    Table.new(rows)
+  end
+end
+
+export "table"
