@@ -20,4 +20,196 @@ package json
   fn stringify(value: any, pretty: boolean = false): string
     __json_stringify__(value, pretty)
   end
+
+  /#
+  @summary A fluent builder for loading and selecting fields from one or more JSON sources.
+  @description
+    Created via `json::pipeline()`. Chain `.select()`, `.from_file()` or `.from_string()`,
+    and optionally `.as_dataset()` to configure each source, then call `.parse()` to execute.
+
+    JSON sources must contain either an array of objects or a single object (wrapped into
+    a one-element list automatically). `.select(keys)` retains only the named fields from
+    each object in the next registered source.
+
+    **Return value of `.parse()`**:
+    - No datasets: single source → list of hashmaps; multiple sources → list of lists.
+    - All datasets: hashmap mapping each dataset name to its list of hashmaps.
+    - Mixed (some named, some not) → raises a pipeline error.
+  @example
+  ---
+  # Single file
+  users = json::pipeline().from_file("users.json").parse()
+
+  # Select specific fields
+  rows = json::pipeline()
+    .select(["id", "name"])
+    .from_file("users.json")
+    .parse()
+
+  # Multiple named datasets
+  data = json::pipeline()
+    .from_file("users.json").as_dataset("users")
+    .from_file("roles.json").as_dataset("roles")
+    .parse()
+  ---
+  #/
+  struct JsonPipeline
+    /#
+    @summary Initialises an empty pipeline builder.
+    #/
+    fn new()
+      @sources  = []
+      @_select  = null
+      @_dataset = null
+    end
+
+    /#
+    @summary Specifies which keys to retain from each object in the next source.
+    @param list keys : List of key name strings to keep.
+    @return JsonPipeline : self, for chaining.
+    #/
+    fn select(keys: list): JsonPipeline
+      @_select = keys
+      @
+    end
+
+    /#
+    @summary Registers a JSON file as a source using the current pending settings.
+    @param string path : Path to the JSON file.
+    @return JsonPipeline : self, for chaining.
+    @throws string : If the file does not exist at parse time.
+    #/
+    fn from_file(path: string): JsonPipeline
+      entry = {
+        kind:    "file",
+        source:  path,
+        select:  @_select,
+        dataset: @_dataset
+      }
+      @sources.push(entry)
+      @_select  = null
+      @_dataset = null
+      @
+    end
+
+    /#
+    @summary Registers a JSON string as a source using the current pending settings.
+    @param string input : A JSON-formatted string.
+    @return JsonPipeline : self, for chaining.
+    #/
+    fn from_string(input: string): JsonPipeline
+      entry = {
+        kind:    "string",
+        source:  input,
+        select:  @_select,
+        dataset: @_dataset
+      }
+      @sources.push(entry)
+      @_select  = null
+      @_dataset = null
+      @
+    end
+
+    /#
+    @summary Names the most recently registered source as a dataset.
+    @description Must be called after `from_file()` or `from_string()`.
+    @param string name : The dataset key name.
+    @return JsonPipeline : self, for chaining.
+    @throws string : If called before any source is registered.
+    #/
+    fn as_dataset(name: string): JsonPipeline
+      if @sources.size() == 0
+        throw "JsonPipeline: as_dataset() called before from_file() or from_string()"
+      end
+      last = @sources[@sources.size() - 1]
+      last["dataset"] = name
+      @sources[@sources.size() - 1] = last
+      @
+    end
+
+    /#
+    @summary Executes the pipeline and returns parsed results.
+    @description
+      - If all sources are unnamed: a single source returns a list of hashmaps;
+        multiple sources return a list of lists of hashmaps.
+      - If all sources are named datasets: returns a hashmap keyed by dataset name.
+      - Mixed named/unnamed sources raise a pipeline error.
+    @return list|hashmap : Parsed JSON data.
+    @throws string : On missing file or mixed dataset/non-dataset sources.
+    #/
+    fn parse()
+      has_dataset = false
+      has_unnamed = false
+      for s in @sources do
+        if s["dataset"] != null
+          has_dataset = true
+        else
+          has_unnamed = true
+        end
+      end
+      if has_dataset && has_unnamed
+        throw "JsonPipeline: cannot mix named datasets with unnamed sources — either name all sources with as_dataset() or none"
+      end
+      if has_dataset
+        result = {}
+        for s in @sources do
+          result[s["dataset"]] = @._load(s)
+        end
+        return result
+      end
+      if @sources.size() == 1
+        return @._load(@sources[0])
+      end
+      result = []
+      for s in @sources do
+        result.push(@._load(s))
+      end
+      result
+    end
+
+    /#
+    @summary Loads a single source entry and applies optional field selection.
+    @param hashmap entry : A source descriptor created by `from_file()` or `from_string()`.
+    @return list : List of hashmaps (one per JSON object).
+    @throws string : If the file does not exist.
+    #/
+    fn _load(entry: hashmap)
+      kind   = entry["kind"]
+      source = entry["source"]
+      raw    = null
+      if kind == "file"
+        if !fio::isfile(source)
+          throw "JsonPipeline: file does not exist: ${source}"
+        end
+        raw = __json_parse__(fio::read(source))
+      else
+        raw = __json_parse__(source)
+      end
+      rows = []
+      if typeof(raw) == "list"
+        rows = raw
+      else
+        rows = [raw]
+      end
+      keys = entry["select"]
+      if keys != null
+        rows = rows.map(with (obj) do
+          out = {}
+          for k in keys do
+            out[k] = obj[k]
+          end
+          out
+        end)
+      end
+      rows
+    end
+  end
+
+  /#
+  @summary Creates a new JsonPipeline builder for fluent JSON loading.
+  @return JsonPipeline : A new pipeline builder instance.
+  #/
+  fn pipeline(): JsonPipeline
+    JsonPipeline.new()
+  end
 end

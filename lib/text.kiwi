@@ -1,0 +1,196 @@
+/#
+@summary A package for line-oriented text processing pipelines.
+#/
+package text
+  /#
+  @summary Represents a single processing step in a TextPipeline.
+  #/
+  struct TextStep
+    /#
+    @summary Creates a new step.
+    @param string kind   : The step kind ("skip", "filter", "reject", "map", "match", "split_on").
+    @param any    action : A lambda for transform/filter steps; a value for skip/match/split_on.
+    #/
+    fn new(kind: string, action)
+      @kind   = kind
+      @action = action
+    end
+  end
+
+  /#
+  @summary A fluent pipeline for processing text line by line.
+  @description
+    Created via `text::pipeline()`. Set a source with `.from_file()` or `.from_string()`,
+    chain processing steps, then call `.run()` to execute.
+
+    **Available steps** (applied in order):
+    - `.skip(n)`          — drop the first `n` lines
+    - `.filter(action)`   — keep lines where `action(line)` is truthy
+    - `.reject(action)`   — drop lines where `action(line)` is truthy
+    - `.map(action)`      — transform each line via `action(line)`
+    - `.match(pattern)`   — keep lines matching the regex `pattern`
+    - `.split_on(delim)`  — split each line into a list on `delim`
+  @example
+  ---
+  # Read an error log, extract ERROR lines, split on space
+  rows = text::pipeline()
+    .from_file("app.log")
+    .skip(1)
+    .match('ERROR')
+    .split_on(" ")
+    .run()
+
+  # Process an in-memory string
+  words = text::pipeline()
+    .from_string("hello world\nfoo bar")
+    .map(do (line) => line.uppercase() end)
+    .run()
+  ---
+  #/
+  struct TextPipeline
+    /#
+    @summary Initialises an empty pipeline builder.
+    #/
+    fn new()
+      @source      = null
+      @source_kind = null
+      @steps       = []
+    end
+
+    /#
+    @summary Sets a text file as the source (one line per element).
+    @param string path : Path to the text file.
+    @return TextPipeline : self, for chaining.
+    @throws string : If the file does not exist at run time.
+    #/
+    fn from_file(path: string): TextPipeline
+      @source      = path
+      @source_kind = "file"
+      @
+    end
+
+    /#
+    @summary Sets a string as the source, split on newlines.
+    @param string input : A multi-line string.
+    @return TextPipeline : self, for chaining.
+    #/
+    fn from_string(input: string): TextPipeline
+      @source      = input
+      @source_kind = "string"
+      @
+    end
+
+    /#
+    @summary Drops the first `n` lines.
+    @param integer n : Number of lines to skip.
+    @return TextPipeline : self, for chaining.
+    #/
+    fn skip(n: integer): TextPipeline
+      @steps.push(TextStep.new("skip", n))
+      @
+    end
+
+    /#
+    @summary Keeps only lines for which `action(line)` is truthy.
+    @param lambda action : A lambda accepting a line string.
+    @return TextPipeline : self, for chaining.
+    #/
+    fn filter(action: lambda): TextPipeline
+      @steps.push(TextStep.new("filter", action))
+      @
+    end
+
+    /#
+    @summary Drops lines for which `action(line)` is truthy.
+    @param lambda action : A lambda accepting a line string.
+    @return TextPipeline : self, for chaining.
+    #/
+    fn reject(action: lambda): TextPipeline
+      @steps.push(TextStep.new("reject", action))
+      @
+    end
+
+    /#
+    @summary Transforms each line by passing it through `action`.
+    @param lambda action : A lambda accepting a line and returning a new value.
+    @return TextPipeline : self, for chaining.
+    #/
+    fn map(action: lambda): TextPipeline
+      @steps.push(TextStep.new("map", action))
+      @
+    end
+
+    /#
+    @summary Keeps only lines that match the given regex pattern.
+    @param string pattern : A regex pattern string (passed to `regex::test`).
+    @return TextPipeline : self, for chaining.
+    #/
+    fn match(pattern: string): TextPipeline
+      @steps.push(TextStep.new("match", pattern))
+      @
+    end
+
+    /#
+    @summary Splits each line into a list using `delimiter`.
+    @param string delimiter : The delimiter string.
+    @return TextPipeline : self, for chaining.
+    #/
+    fn split_on(delimiter: string): TextPipeline
+      @steps.push(TextStep.new("split_on", delimiter))
+      @
+    end
+
+    /#
+    @summary Executes the pipeline and returns the resulting list.
+    @return list : Processed lines (strings, or lists if `split_on` was used).
+    @throws string : If no source was configured or the file is missing.
+    #/
+    fn run()
+      if @source == null
+        throw "TextPipeline: no source configured — call from_file() or from_string() first"
+      end
+      src   = @source
+      lines = []
+      if @source_kind == "file"
+        if !fio::isfile(src)
+          throw "TextPipeline: file does not exist: ${src}"
+        end
+        lines = fio::read(src).lines()
+      else
+        lines = src.lines()
+      end
+      for step in @steps do
+        if step.kind == "skip"
+          n = step.action
+          lines = lines[n:]
+        elsif step.kind == "filter"
+          fn_ref = step.action
+          lines = lines.filter(fn_ref)
+        elsif step.kind == "reject"
+          fn_ref = step.action
+          lines = lines.filter(with (l) do not fn_ref(l) end)
+        elsif step.kind == "map"
+          fn_ref = step.action
+          lines = lines.map(fn_ref)
+        elsif step.kind == "match"
+          pattern = step.action
+          lines = lines.filter(with (l) do regex::test(pattern, l) end)
+        elsif step.kind == "split_on"
+          delim = step.action
+          lines = lines.map(with (l) do l.split(delim) end)
+        end
+      end
+      lines
+    end
+  end
+
+  /#
+  @summary Creates a new TextPipeline builder for fluent line-oriented text processing.
+  @return TextPipeline : A new pipeline builder instance.
+  #/
+  fn pipeline(): TextPipeline
+    TextPipeline.new()
+  end
+end
+
+export "text"

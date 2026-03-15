@@ -72,6 +72,8 @@ var (unit_tests: list = [
   "xml",
   "protobuf",
   "csv_pipeline",
+  "json_pipeline",
+  "text_pipeline",
 
   # Storage & I/O
   "sqlite",
