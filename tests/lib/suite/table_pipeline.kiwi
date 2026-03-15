@@ -218,6 +218,20 @@ fn test_table_pipeline()
   tester::assert(no_order_names[0] == "Bob",        "D17b: Bob has no orders")
   tester::assert(no_order_names[1] == "Dave",       "D17c: Dave has no orders")
 
+  # -----------------------------------------------------------------------
+  # D18: display — formatted ASCII grid, returns self for chaining
+  # -----------------------------------------------------------------------
+  # Verify display() returns self so chaining still works
+  displayed_count = table::from(users)
+    .where(do (r) => r["dept"] == "eng" end)
+    .display()
+    .count()
+  tester::assert(displayed_count == 2, "D18a: display returns self, count still works")
+
+  # Empty table prints without crashing
+  empty_count = table::from([]).display().count()
+  tester::assert(empty_count == 0, "D18b: display on empty table")
+
   # Anti-join the other way: orders with no matching user
   orphan_orders = table::from(users)
     .right_join(orders, "id", "user_id")
