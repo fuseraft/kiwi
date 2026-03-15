@@ -1,0 +1,105 @@
+/# ==============================================================================
+   Testing polymorphism: virtual dispatch, is_a/typeof, inherited constructors,
+   polymorphic collections, deep inheritance, inherited operator overloads.
+  ============================================================================== #/
+@tester::test("polymorphism")
+fn test_polymorphism()
+  # ---- virtual dispatch -------------------------------------------------------
+  struct Animal
+    fn speak(): string  "..." end
+    fn kind(): string   "animal" end
+  end
+
+  struct Dog < Animal
+    fn speak(): string  "woof" end
+    fn kind(): string   "dog" end
+  end
+
+  struct Cat < Animal
+    fn speak(): string  "meow" end
+    fn kind(): string   "cat" end
+  end
+
+  dog = Dog.new()
+  cat = Cat.new()
+  tester::assert(dog.speak() == "woof", "P1: Dog.speak() virtual dispatch")
+  tester::assert(cat.speak() == "meow", "P2: Cat.speak() virtual dispatch")
+  tester::assert(dog.kind()  == "dog",  "P3: Dog.kind() virtual dispatch")
+
+  # ---- polymorphic collection -------------------------------------------------
+  animals = [Dog.new(), Cat.new(), Dog.new()]
+  sounds  = animals.map(do (a) => a.speak())
+  tester::assert(sounds == ["woof", "meow", "woof"], "P4: map .speak() over mixed list")
+
+  dogs_only = animals.filter(do (a) => a.kind() == "dog")
+  tester::assert(dogs_only.size() == 2, "P5: filter by kind == dog")
+
+  # ---- is_a hierarchy checks --------------------------------------------------
+  tester::assert(dog.is_a(Dog),    "P6: dog.is_a(Dog)")
+  tester::assert(dog.is_a(Animal), "P7: dog.is_a(Animal) — hierarchy check")
+  tester::assert(cat.is_a(Cat),    "P8: cat.is_a(Cat)")
+  tester::assert(cat.is_a(Animal), "P9: cat.is_a(Animal) — hierarchy check")
+  tester::assert(!dog.is_a(Cat),   "P10: dog.is_a(Cat) == false")
+  tester::assert(!cat.is_a(Dog),   "P11: cat.is_a(Dog) == false")
+
+  # ---- typeof returns concrete type -------------------------------------------
+  tester::assert(typeof(dog) == "Dog",    "P12: typeof(dog) == 'Dog'")
+  tester::assert(typeof(cat) == "Cat",    "P13: typeof(cat) == 'Cat'")
+  tester::assert(typeof(dog) != "Animal", "P14: typeof(dog) != 'Animal'")
+
+  types = animals.map(do (a) => typeof(a))
+  tester::assert(types == ["Dog", "Cat", "Dog"], "P15: typeof via map gives concrete types")
+
+  # ---- inherited constructor (subclass has no fn new) -------------------------
+  struct Measure
+    fn new(v)
+      @v = v
+    end
+    fn value() @v end
+    fn +(other): Measure  Measure.new(@v + other.value()) end
+    fn ==(other): boolean @v == other.value() end
+  end
+
+  struct Weight < Measure
+    fn unit(): string "kg" end
+  end
+
+  w1 = Weight.new(10)
+  w2 = Weight.new(5)
+  tester::assert(w1.value() == 10, "P16: inherited ctor sets @v on subclass instance")
+  tester::assert(w2.value() == 5,  "P17: inherited ctor independent instance")
+  tester::assert(w1.unit() == "kg", "P18: subclass-own method still works")
+
+  # ---- inherited operator overloads -------------------------------------------
+  sum = w1 + w2
+  tester::assert(sum.value() == 15,      "P19: inherited + operator")
+  tester::assert(w1 == Weight.new(10),   "P20: inherited == operator")
+  tester::assert(!(w1 == w2),            "P21: inherited == returns false when unequal")
+  tester::assert(w1.is_a(Weight),        "P22: w1.is_a(Weight)")
+  tester::assert(w1.is_a(Measure),       "P23: w1.is_a(Measure) — hierarchy check")
+
+  # ---- deep inheritance (3 levels) --------------------------------------------
+  struct Vehicle
+    fn wheels(): integer 0 end
+    fn engine(): string  "unknown" end
+  end
+
+  struct Car < Vehicle
+    fn wheels(): integer 4 end
+    fn engine(): string  "petrol" end
+  end
+
+  struct SportsCar < Car
+    fn engine(): string       "turbo" end
+    fn turbo_boost(): boolean true end
+  end
+
+  sc = SportsCar.new()
+  tester::assert(sc.engine() == "turbo",   "P24: SportsCar.engine() own override")
+  tester::assert(sc.wheels() == 4,         "P25: SportsCar.wheels() inherited from Car")
+  tester::assert(sc.turbo_boost() == true, "P26: SportsCar own method")
+  tester::assert(sc.is_a(SportsCar),       "P27: sc.is_a(SportsCar)")
+  tester::assert(sc.is_a(Car),             "P28: sc.is_a(Car) — 2 levels up")
+  tester::assert(sc.is_a(Vehicle),         "P29: sc.is_a(Vehicle) — 3 levels up")
+  tester::assert(typeof(sc) == "SportsCar","P30: typeof(sc) == 'SportsCar'")
+end
