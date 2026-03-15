@@ -155,21 +155,13 @@ package table
     @return Table : self, for chaining.
     #/
     fn order_by(field: string, asc: boolean = true): Table
-      n = @rows.size()
-      if n > 1
-        for i in [0 to n - 2] do
-          best = i
-          for j in [i + 1 to n - 1] do
-            row_j    = @rows[j]
-            row_best = @rows[best]
-            vj = row_j[field]
-            vb = row_best[field]
-            cond = asc ? vj < vb : vj > vb
-            best = j when cond
-          end
-          @rows.swap(i, best) when best != i
-        end
-      end
+      ff = field
+      aa = asc
+      @rows = @rows.sort(with (a, b) do
+        va = a[ff]
+        vb = b[ff]
+        aa ? va < vb : va > vb
+      end)
       @
     end
 
@@ -353,16 +345,25 @@ package table
     @return Table : self, for chaining.
     #/
     fn group_by(field: string): Table
-      grouped = {}
+      # Pass 1: collect unique keys in insertion order (O(n), no list copies)
+      key_order = []
+      seen = {}
       for row in @rows do
-        key = "${row[field]}"
-        if !grouped.keys().contains(key)
-          grouped[key] = []
+        k = "${row[field]}"
+        if !seen.has_key(k)
+          seen[k] = true
+          key_order.push(k)
         end
-        grp = grouped[key]
-        grp.push(row)
-        grouped[key] = grp
       end
+
+      # Pass 2: one filter pass per unique key (O(k*n), avoids copy-on-read O(n^2))
+      grouped = {}
+      for k in key_order do
+        kk = k
+        ff = field
+        grouped[k] = @rows.filter(with (row) do "${row[ff]}" == kk end)
+      end
+
       @grouped     = grouped
       @group_field = field
       @

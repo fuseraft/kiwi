@@ -2808,63 +2808,55 @@ public class Interpreter
         var obj = Interpret(node.IndexedObject);
         var indexValue = Interpret(node.IndexExpression);
 
-        if (node.IndexExpression.Type == ASTNodeType.Index)
+        if (obj.IsList())
         {
-            var indexExpr = (IndexingNode)node.IndexExpression;
-            return HandleNestedIndexing(indexExpr, obj, TokenName.Ops_Assign, Value.CreateInteger(0L));
+            var index = ConversionOp.GetInteger(node.Token, indexValue);
+            var list = obj.GetList();
+
+            if (index < 0 || index >= list.Count)
+            {
+                throw new IndexError(node.Token, "The index was outside the bounds of the list.");
+            }
+
+            return list[(int)index];
         }
-        else
+        else if (obj.IsBytes())
         {
-            if (obj.IsList())
+            var index = ConversionOp.GetInteger(node.Token, indexValue);
+            var list = obj.GetBytes();
+
+            if (index < 0 || index >= list.Length)
             {
-                var index = ConversionOp.GetInteger(node.Token, indexValue);
-                var list = obj.GetList();
-
-                if (index < 0 || index >= list.Count)
-                {
-                    throw new IndexError(node.Token, "The index was outside the bounds of the list.");
-                }
-
-                return list[(int)index];
-            }
-            else if (obj.IsBytes())
-            {
-                var index = ConversionOp.GetInteger(node.Token, indexValue);
-                var list = obj.GetBytes();
-
-                if (index < 0 || index >= list.Length)
-                {
-                    throw new IndexError(node.Token, "The index was outside the bounds of the bytes.");
-                }
-
-                return Value.CreateInteger(list[(int)index]);
-            }
-            else if (obj.IsHashmap())
-            {
-                var hash = obj.GetHashmap();
-
-                if (!hash.TryGetValue(indexValue, out Value? value))
-                {
-                    return Value.CreateNull();
-                }
-
-                return value;
-            }
-            else if (obj.IsString())
-            {
-                var str = obj.GetString();
-                var index = ConversionOp.GetInteger(node.Token, indexValue);
-
-                if (index < 0 || index >= str.Length)
-                {
-                    throw new IndexError(node.Token, "The index was outside the bounds of the string.");
-                }
-
-                return Value.CreateChar(str[(int)index]);
+                throw new IndexError(node.Token, "The index was outside the bounds of the bytes.");
             }
 
-            throw new IndexError(node.Token, "Invalid indexing operation.");
+            return Value.CreateInteger(list[(int)index]);
         }
+        else if (obj.IsHashmap())
+        {
+            var hash = obj.GetHashmap();
+
+            if (!hash.TryGetValue(indexValue, out Value? value))
+            {
+                return Value.CreateNull();
+            }
+
+            return value;
+        }
+        else if (obj.IsString())
+        {
+            var str = obj.GetString();
+            var index = ConversionOp.GetInteger(node.Token, indexValue);
+
+            if (index < 0 || index >= str.Length)
+            {
+                throw new IndexError(node.Token, "The index was outside the bounds of the string.");
+            }
+
+            return Value.CreateChar(str[(int)index]);
+        }
+
+        throw new IndexError(node.Token, "Invalid indexing operation.");
     }
 
     private Value Visit(SliceNode node)
