@@ -26,6 +26,7 @@ The standard library is a collection of packages containing useful functions and
 | [`list`](list.md) | Higher-order utility functions for working with lists. |
 | [`math`](math.md) | Common mathematical functions and utilities. |
 | [`path`](path.md) | Contains the definition for the `Path` struct. |
+| [`pipeline`](pipeline.md) | Named, step-based data pipelines with before/after hooks and error recovery. |
 | [`protobuf`](protobuf.md) | Encode and decode data in Protocol Buffer binary wire format (proto3). |
 | [`reflector`](reflector.md) | Reflection tools, including `Callable`. |
 | [`regex`](regex.md) | Regular expression matching, searching, splitting, and replacement. |
@@ -35,7 +36,9 @@ The standard library is a collection of packages containing useful functions and
 | [`stdin`](stdin.md) | Functions for reading from standard input. |
 | [`string`](string.md) | String manipulation and transformation utilities. |
 | [`sys`](sys.md) | For executing shell commands. |
+| [`table`](table.md) | In-memory tabular data pipeline: filter, join, group, aggregate, and display lists of hashmaps. |
 | [`task`](task.md) | Asynchronous task management, including `Channel`. |
 | [`tester`](tester.md) | A simple unit testing framework. |
+| [`text`](text.md) | Fluent line-oriented text processing pipeline with filter, map, match, and split steps. |
 | [`time`](time.md) | Time and date utilities. |
 | [`xml`](xml.md) | XML parser and serializer using a tree of `XmlNode` structs. |
