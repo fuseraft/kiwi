@@ -464,6 +464,66 @@ package table
     fn count(): integer
       @rows.size()
     end
+
+    /#
+    @summary Prints the table as a formatted ASCII grid and returns self.
+    @description
+      Columns are derived from the first row's keys. Each column is wide enough
+      to fit its header and all its values. Returns `self` so it can be inserted
+      anywhere in a chain without breaking it.
+    @return Table : self, for chaining.
+    @example
+    ---
+    table::from(rows)
+      .where(do (r) => r["active"] end)
+      .order_by("name")
+      .display()
+    ---
+    #/
+    fn display(): Table
+      if @rows.size() == 0
+        println "(empty table)"
+        return @
+      end
+      cols = @rows[0].keys()
+      # Seed widths with header lengths
+      widths = {}
+      for col in cols do
+        widths[col] = col.size()
+      end
+      # Expand widths to fit data values
+      for row in @rows do
+        for col in cols do
+          w = "${row[col]}".size()
+          widths[col] = w when w > widths[col]
+        end
+      end
+      # Build separator line: +-------+------+...
+      sep = "+"
+      for col in cols do
+        sep += ("-" * (widths[col] + 2)) + "+"
+      end
+      # Header
+      println sep
+      header = "|"
+      for col in cols do
+        header += " " + string::padend(col, widths[col]) + " |"
+      end
+      println header
+      println sep
+      # Data rows
+      for row in @rows do
+        line = "|"
+        for col in cols do
+          line += " " + string::padend("${row[col]}", widths[col]) + " |"
+        end
+        println line
+      end
+      println sep
+      n = @rows.size()
+      println "(${n} row(s))"
+      @
+    end
   end
 
   /#
