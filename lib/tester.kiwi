@@ -49,6 +49,22 @@ package tester
   end
 
   /#
+  @summary Decorator that registers a function as a named unit test.
+  @param lambda f : The test function (injected by the decorator machinery).
+  @param string name : The display name shown in the test runner output.
+  @return lambda : The original function, unchanged.
+  @example
+    @tester::test("addition works")
+    fn test_addition()
+      tester::assert(1 + 1 == 2, "basic addition")
+    end
+  #/
+  fn test(f: lambda, name: string): lambda
+    tester::register_test(name, f)
+    return f
+  end
+
+  /#
   @summary Runs a single named test and prints the result.
   @param string name : The display name of the test.
   @param lambda test : The test lambda to execute.
@@ -87,8 +103,11 @@ package tester
     tester::initialize()
     results = []
 
-    for name, t in global.unit_tests do
-      tester::run_test(name, t, results)
+    # Snapshot keys before iterating so that tests which register additional
+    # tests via @tester::test do not cause a "collection modified" error.
+    names = global.unit_tests.keys()
+    for name in names do
+      tester::run_test(name, global.unit_tests[name], results)
     end
 
     return results

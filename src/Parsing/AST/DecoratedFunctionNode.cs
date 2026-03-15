@@ -10,9 +10,10 @@ public class DecoratedFunctionNode() : ASTNode(ASTNodeType.DecoratedFunction)
 {
     public FunctionNode Function { get; set; } = new();
 
-    // Each entry is (decoratorName, extraArgs).
+    // Each entry is (decoratorExpr, extraArgs).
+    // decoratorExpr is an AST node that evaluates to (or names) the decorator callable.
     // At runtime the decorated function is prepended as the first argument.
-    public List<(string Name, List<ASTNode?> ExtraArgs)> Decorators { get; set; } = [];
+    public List<(ASTNode? Expr, List<ASTNode?> ExtraArgs)> Decorators { get; set; } = [];
 
     public override void Print(int depth = 0)
     {
@@ -21,10 +22,10 @@ public class DecoratedFunctionNode() : ASTNode(ASTNodeType.DecoratedFunction)
 
         ASTTracer.PrintDepth(1 + depth);
         Print("Decorators:");
-        foreach (var (name, args) in Decorators)
+        foreach (var (expr, args) in Decorators)
         {
             ASTTracer.PrintDepth(2 + depth);
-            Print($"@{name}" + (args.Count > 0 ? $"({args.Count} args)" : ""));
+            Print($"@<expr>" + (args.Count > 0 ? $"({args.Count} args)" : ""));
         }
 
         Function.Print(1 + depth);
@@ -33,7 +34,7 @@ public class DecoratedFunctionNode() : ASTNode(ASTNodeType.DecoratedFunction)
     public override ASTNode Clone()
     {
         var clonedDecorators = Decorators
-            .Select(d => (d.Name, d.ExtraArgs.Select(a => a?.Clone()).ToList() as List<ASTNode?>))
+            .Select(d => (d.Expr?.Clone(), d.ExtraArgs.Select(a => a?.Clone()).ToList() as List<ASTNode?>))
             .ToList();
 
         return new DecoratedFunctionNode

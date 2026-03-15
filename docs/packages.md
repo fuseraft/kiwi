@@ -145,7 +145,11 @@ Re-importing is idempotent — the package is loaded once; subsequent `import` c
 
 ## Nested Packages
 
-Packages support namespaced names using `::`.
+There are two ways to define a nested package.
+
+### Inline `::` name
+
+Declare the full qualified name directly in the `package` keyword:
 
 ```kiwi
 package app::utils
@@ -157,6 +161,45 @@ end
 export "app::utils"
 
 app::utils::greet("World")
+```
+
+### Nested `package` blocks
+
+Define a `package` block inside another `package` block. The inner package is automatically qualified under the outer one:
+
+```kiwi
+package app
+  fn version()
+    return "1.0"
+  end
+
+  package utils
+    fn greet(name)
+      println("Hello, ${name}!")
+    end
+  end
+end
+
+export "app"
+export "app::utils"
+
+app::version()              # 1.0
+app::utils::greet("World")  # Hello, World!
+```
+
+### Importing a nested package
+
+`import` accepts a fully-qualified package name and returns a package reference. Call its functions using dot syntax:
+
+```kiwi
+utils = import "app::utils"
+utils.greet("World")  # Hello, World!
+```
+
+The `::` static call form is always available alongside the imported reference:
+
+```kiwi
+app::utils::greet("World")  # also works
 ```
 
 ---

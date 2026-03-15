@@ -92,6 +92,41 @@ tick()
 println count  # 3
 ```
 
+Arguments can also be passed by name using `name: value` or `name = value` syntax.
+
+```kiwi
+fn tag(f, value: string): lambda
+  return with (*args) do
+    println "${value}: ${f(*args)}"
+  end
+end
+
+@tag(value: "INFO")
+fn compute(x)
+  return x * 2
+end
+
+compute(5)  # INFO: 10
+```
+
+Positional and keyword arguments can be mixed — positional args are filled left-to-right into unfilled parameter slots.
+
+```kiwi
+fn ntimes_labeled(f, n, label: string): lambda
+  return with (*args) do
+    for i in [1..n] do f(*args) end
+    println "ran ${label} ${n} times"
+  end
+end
+
+@ntimes_labeled(3, label: "benchmark")
+fn work()
+  # ...
+end
+
+work()  # ran benchmark 3 times
+```
+
 ---
 
 ## Timing decorator
@@ -197,6 +232,34 @@ slow_sum(50000)
 ```
 
 See [`bench` library](lib/bench.md) for `@bench::mark`, `@bench::profile`, and `@bench::timed`.
+
+---
+
+---
+
+## Unit test registration
+
+`@tester::test` is a built-in decorator that registers a function as a named unit test and returns it unchanged. It is the idiomatic way to write test suites in Kiwi.
+
+```kiwi
+import "tester"
+
+@tester::test("addition works")
+fn test_addition()
+  tester::assert_eq(1 + 1, 2, "basic addition")
+end
+
+@tester::test("string concat")
+fn test_strings()
+  tester::assert("hello" + " world" == "hello world", "concat")
+end
+
+results = tester::run_tests()
+```
+
+The functions remain directly callable (`test_addition()`, `test_strings()`) in addition to being registered in the test runner.
+
+See [`tester` library](lib/tester.md) for `assert`, `assert_eq`, and `run_tests`.
 
 ---
 

@@ -47,6 +47,7 @@ public sealed class Compiler
     private readonly List<LoopCtx>           _loops    = []; // last = innermost
 
     private int _slotCount;
+    private int _currentFileId; // updated per node; stored in every instruction for error reporting
 
     // -- Construction ----------------------------------------------------------
 
@@ -64,7 +65,7 @@ public sealed class Compiler
         var c = new Compiler("<main>", null, isGlobal: true);
         foreach (var s in program.Statements)
             if (s != null) c.CompileStatement(s);
-        c._chunk.Emit(Opcode.Halt);
+        c.Emit(Opcode.Halt);
         return c._chunk;
     }
 
@@ -110,14 +111,14 @@ public sealed class Compiler
             int slot = _locals.FindIndex(l => l.Name == name);
             if (slot < 0) continue;
 
-            _chunk.Emit(Opcode.LoadLocal, slot);
-            _chunk.Emit(Opcode.Null);
-            _chunk.Emit(Opcode.Eq);
-            int jumpIdx = _chunk.Emit(Opcode.JumpF, 0); // jump over default if arg was provided
+            Emit(Opcode.LoadLocal, slot);
+            Emit(Opcode.Null);
+            Emit(Opcode.Eq);
+            int jumpIdx = Emit(Opcode.JumpF, 0); // jump over default if arg was provided
             if (CompileNode(defaultExpr))
-                _chunk.Emit(Opcode.StoreLocal, slot);
+                Emit(Opcode.StoreLocal, slot);
             else
-                _chunk.Emit(Opcode.Null); // no-op fallback (shouldn't happen for valid defaults)
+                Emit(Opcode.Null); // no-op fallback (shouldn't happen for valid defaults)
             _chunk.PatchJump(jumpIdx, _chunk.Code.Count);
         }
     }
@@ -294,11 +295,11 @@ public sealed class Compiler
         if (!_isGlobal)
         {
             int s = ResolveLocal(name);
-            if (s >= 0) { _chunk.Emit(Opcode.LoadLocal,   s,                   0, line); return; }
+            if (s >= 0) { Emit(Opcode.LoadLocal,   s,                   0, line); return; }
             int u = ResolveUpvalue(name);
-            if (u >= 0) { _chunk.Emit(Opcode.LoadUpvalue, u,                   0, line); return; }
+            if (u >= 0) { Emit(Opcode.LoadUpvalue, u,                   0, line); return; }
         }
-        _chunk.Emit(Opcode.LoadGlobal, _chunk.AddName(name), 0, line);
+        Emit(Opcode.LoadGlobal, _chunk.AddName(name), 0, line);
     }
 
     private void EmitStore(string name, int line = 0)
@@ -306,16 +307,21 @@ public sealed class Compiler
         if (!_isGlobal)
         {
             int s = ResolveLocal(name);
-            if (s >= 0) { _chunk.Emit(Opcode.StoreLocal,   s,                   0, line); return; }
+            if (s >= 0) { Emit(Opcode.StoreLocal,   s,                   0, line); return; }
             int u = ResolveUpvalue(name);
-            if (u >= 0) { _chunk.Emit(Opcode.StoreUpvalue, u,                   0, line); return; }
+            if (u >= 0) { Emit(Opcode.StoreUpvalue, u,                   0, line); return; }
         }
-        _chunk.Emit(Opcode.StoreGlobal, _chunk.AddName(name), 0, line);
+        Emit(Opcode.StoreGlobal, _chunk.AddName(name), 0, line);
     }
+
+    // -- Emit wrapper (automatically carries current file ID) ------------------
+
+    private int Emit(Opcode op, int a = 0, int b = 0, int line = 0) =>
+        _chunk.Emit(op, a, b, line, _currentFileId);
 
     // -- Jump helpers ----------------------------------------------------------
 
-    private int EmitJump(Opcode op, int line = 0) => _chunk.Emit(op, 0, 0, line);
+    private int EmitJump(Opcode op, int line = 0) => Emit(op, 0, 0, line);
 
     private void PatchJump(int idx) => _chunk.PatchJump(idx, _chunk.Code.Count);
 
@@ -326,8 +332,8 @@ public sealed class Compiler
     private void EmitFinalReturn()
     {
         if (!_isGlobal && _locals.Any(l => l.Captured))
-            _chunk.Emit(Opcode.CloseUpvalue, 0);
-        _chunk.Emit(Opcode.ReturnNull);
+            Emit(Opcode.CloseUpvalue, 0);
+        Emit(Opcode.ReturnNull);
     }
 
     // -- Compound-op helper ----------------------------------------------------
@@ -336,18 +342,18 @@ public sealed class Compiler
     {
         switch (op)
         {
-            case TokenName.Ops_AddAssign:              _chunk.Emit(Opcode.Add,   0, 0, line); break;
-            case TokenName.Ops_SubtractAssign:         _chunk.Emit(Opcode.Sub,   0, 0, line); break;
-            case TokenName.Ops_MultiplyAssign:         _chunk.Emit(Opcode.Mul,   0, 0, line); break;
-            case TokenName.Ops_DivideAssign:           _chunk.Emit(Opcode.Div,   0, 0, line); break;
-            case TokenName.Ops_ModuloAssign:           _chunk.Emit(Opcode.Mod,   0, 0, line); break;
-            case TokenName.Ops_ExponentAssign:         _chunk.Emit(Opcode.Pow,   0, 0, line); break;
-            case TokenName.Ops_BitwiseAndAssign:       _chunk.Emit(Opcode.BAnd,  0, 0, line); break;
-            case TokenName.Ops_BitwiseOrAssign:        _chunk.Emit(Opcode.BOr,   0, 0, line); break;
-            case TokenName.Ops_BitwiseXorAssign:       _chunk.Emit(Opcode.BXor,  0, 0, line); break;
-            case TokenName.Ops_BitwiseLeftShiftAssign: _chunk.Emit(Opcode.BLSh,  0, 0, line); break;
-            case TokenName.Ops_BitwiseRightShiftAssign: _chunk.Emit(Opcode.BRSh, 0, 0, line); break;
-            case TokenName.Ops_BitwiseUnsignedRightShiftAssign: _chunk.Emit(Opcode.BURSh, 0, 0, line); break;
+            case TokenName.Ops_AddAssign:              Emit(Opcode.Add,   0, 0, line); break;
+            case TokenName.Ops_SubtractAssign:         Emit(Opcode.Sub,   0, 0, line); break;
+            case TokenName.Ops_MultiplyAssign:         Emit(Opcode.Mul,   0, 0, line); break;
+            case TokenName.Ops_DivideAssign:           Emit(Opcode.Div,   0, 0, line); break;
+            case TokenName.Ops_ModuloAssign:           Emit(Opcode.Mod,   0, 0, line); break;
+            case TokenName.Ops_ExponentAssign:         Emit(Opcode.Pow,   0, 0, line); break;
+            case TokenName.Ops_BitwiseAndAssign:       Emit(Opcode.BAnd,  0, 0, line); break;
+            case TokenName.Ops_BitwiseOrAssign:        Emit(Opcode.BOr,   0, 0, line); break;
+            case TokenName.Ops_BitwiseXorAssign:       Emit(Opcode.BXor,  0, 0, line); break;
+            case TokenName.Ops_BitwiseLeftShiftAssign: Emit(Opcode.BLSh,  0, 0, line); break;
+            case TokenName.Ops_BitwiseRightShiftAssign: Emit(Opcode.BRSh, 0, 0, line); break;
+            case TokenName.Ops_BitwiseUnsignedRightShiftAssign: Emit(Opcode.BURSh, 0, 0, line); break;
             default: /* leave as-is - callers handle && / || */ break;
         }
     }
@@ -361,6 +367,7 @@ public sealed class Compiler
     private bool CompileNode(ASTNode node)
     {
         int ln = node.Token.Span.Line;
+        _currentFileId = node.Token.Span.File;
         switch (node.Type)
         {
             case ASTNodeType.NoOp:             return false;
@@ -418,7 +425,7 @@ public sealed class Compiler
     private void CompileStatement(ASTNode node)
     {
         if (CompileNode(node))
-            _chunk.Emit(Opcode.Pop);
+            Emit(Opcode.Pop);
     }
 
     // -- Fallback to interpreter -----------------------------------------------
@@ -426,7 +433,7 @@ public sealed class Compiler
     private void Fallback(ASTNode node)
     {
         int idx = _chunk.AddNodeFallback(node);
-        _chunk.Emit(Opcode.InterpFallback, idx, 0, node.Token.Span.Line);
+        Emit(Opcode.InterpFallback, idx, 0, node.Token.Span.Line);
     }
 
     // -- Literal ---------------------------------------------------------------
@@ -434,9 +441,9 @@ public sealed class Compiler
     private void CompileLiteral(LiteralNode node, int ln)
     {
         var v = node.Value;
-        if      (v.IsNull())    _chunk.Emit(Opcode.Null,  0, 0, ln);
-        else if (v.IsBoolean()) _chunk.Emit(v.GetBoolean() ? Opcode.True : Opcode.False, 0, 0, ln);
-        else                   _chunk.Emit(Opcode.Const, _chunk.AddConstant(v), 0, ln);
+        if      (v.IsNull())    Emit(Opcode.Null,  0, 0, ln);
+        else if (v.IsBoolean()) Emit(v.GetBoolean() ? Opcode.True : Opcode.False, 0, 0, ln);
+        else                   Emit(Opcode.Const, _chunk.AddConstant(v), 0, ln);
     }
 
     // -- Variable declaration --------------------------------------------------
@@ -456,12 +463,12 @@ public sealed class Compiler
                 // Emit a type-appropriate zero/default so that compound ops like += work.
                 switch (TypeRegistry.GetValueType(hints[0]))
                 {
-                    case Typing.ValueType.Boolean: _chunk.Emit(Opcode.False,  0, 0, ln); EmitStore(name, ln); break;
-                    case Typing.ValueType.Integer: _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateInteger(0)), 0, ln); EmitStore(name, ln); break;
-                    case Typing.ValueType.Float:   _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateFloat(0.0)), 0, ln); EmitStore(name, ln); break;
-                    case Typing.ValueType.String:  _chunk.Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateString("")), 0, ln); EmitStore(name, ln); break;
-                    case Typing.ValueType.List:    _chunk.Emit(Opcode.BuildList, 0, 0, ln); EmitStore(name, ln); break;
-                    case Typing.ValueType.Hashmap: _chunk.Emit(Opcode.BuildHashmap, 0, 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Boolean: Emit(Opcode.False,  0, 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Integer: Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateInteger(0)), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Float:   Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateFloat(0.0)), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.String:  Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateString("")), 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.List:    Emit(Opcode.BuildList, 0, 0, ln); EmitStore(name, ln); break;
+                    case Typing.ValueType.Hashmap: Emit(Opcode.BuildHashmap, 0, 0, ln); EmitStore(name, ln); break;
                 }
             }
         }
@@ -507,17 +514,17 @@ public sealed class Compiler
                 int ni = _chunk.AddName(node.Name);
                 if (node.Op != TokenName.Ops_Assign)
                 {
-                    _chunk.Emit(Opcode.LoadSelfAttr, ni, 0, ln);
+                    Emit(Opcode.LoadSelfAttr, ni, 0, ln);
                     if (node.Initializer != null) CompileNode(node.Initializer);
                     EmitCompoundOp(node.Op, ln);
                 }
                 else
                 {
                     if (node.Initializer != null) CompileNode(node.Initializer);
-                    else _chunk.Emit(Opcode.Null, 0, 0, ln);
+                    else Emit(Opcode.Null, 0, 0, ln);
                 }
-                if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
-                _chunk.Emit(Opcode.StoreSelfAttr, ni, 0, ln);
+                if (leaveValue) Emit(Opcode.Dup, 0, 0, ln);
+                Emit(Opcode.StoreSelfAttr, ni, 0, ln);
                 return leaveValue;
             }
             // @@name = val  or  @@name op= val  → StoreStaticAttr
@@ -526,17 +533,17 @@ public sealed class Compiler
                 int ni = _chunk.AddName(node.Name);
                 if (node.Op != TokenName.Ops_Assign)
                 {
-                    _chunk.Emit(Opcode.LoadStaticAttr, ni, 0, ln);
+                    Emit(Opcode.LoadStaticAttr, ni, 0, ln);
                     if (node.Initializer != null) CompileNode(node.Initializer);
                     EmitCompoundOp(node.Op, ln);
                 }
                 else
                 {
                     if (node.Initializer != null) CompileNode(node.Initializer);
-                    else _chunk.Emit(Opcode.Null, 0, 0, ln);
+                    else Emit(Opcode.Null, 0, 0, ln);
                 }
-                if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
-                _chunk.Emit(Opcode.StoreStaticAttr, ni, 0, ln);
+                if (leaveValue) Emit(Opcode.Dup, 0, 0, ln);
+                Emit(Opcode.StoreStaticAttr, ni, 0, ln);
                 return leaveValue;
             }
             // Other complex LHS → fallback
@@ -553,9 +560,9 @@ public sealed class Compiler
         else
         {
             if (node.Initializer != null) CompileNode(node.Initializer);
-            else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
+            else                         Emit(Opcode.Null, 0, 0, ln);
         }
-        if (leaveValue) _chunk.Emit(Opcode.Dup, 0, 0, ln);
+        if (leaveValue) Emit(Opcode.Dup, 0, 0, ln);
         EmitStore(node.Name, ln);
         return leaveValue;
     }
@@ -565,8 +572,8 @@ public sealed class Compiler
     private void CompileConstAssign(ConstAssignmentNode node, int ln)
     {
         if (node.Initializer != null) CompileNode(node.Initializer);
-        else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
-        _chunk.Emit(Opcode.StoreGlobal, _chunk.AddName(node.Name), 0, ln);
+        else                         Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.StoreGlobal, _chunk.AddName(node.Name), 0, ln);
     }
 
     // -- Binary ----------------------------------------------------------------
@@ -598,7 +605,7 @@ public sealed class Compiler
             case TokenName.Ops_NullCoalesce:
                 CompileNode(node.Left!);
                 CompileNode(node.Right!);
-                _chunk.Emit(Opcode.NullCoalesce, 0, 0, ln);
+                Emit(Opcode.NullCoalesce, 0, 0, ln);
                 return;
         }
 
@@ -633,13 +640,13 @@ public sealed class Compiler
         {
             // Unknown binary op - reconstruct the node and fallback
             // (stack already has left and right on it - pop them first)
-            _chunk.Emit(Opcode.Pop, 0, 0, ln);
-            _chunk.Emit(Opcode.Pop, 0, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
             Fallback(node);
         }
         else
         {
-            _chunk.Emit(op, 0, 0, ln);
+            Emit(op, 0, 0, ln);
         }
     }
 
@@ -655,8 +662,8 @@ public sealed class Compiler
             TokenName.Ops_BitwiseNot or TokenName.Ops_BitwiseNotAssign => Opcode.BNot,
             _ => (Opcode)255
         };
-        if (op == (Opcode)255) { _chunk.Emit(Opcode.Pop); Fallback(node); }
-        else                    _chunk.Emit(op, 0, 0, ln);
+        if (op == (Opcode)255) { Emit(Opcode.Pop); Fallback(node); }
+        else                    Emit(op, 0, 0, ln);
     }
 
     // -- Ternary ---------------------------------------------------------------
@@ -677,7 +684,7 @@ public sealed class Compiler
     private void CompileInterp(InterpolationNode node, int ln)
     {
         foreach (var p in node.Parts) CompileNode(p);
-        _chunk.Emit(Opcode.Interpolate, node.Parts.Count, 0, ln);
+        Emit(Opcode.Interpolate, node.Parts.Count, 0, ln);
     }
 
     // -- Collections -----------------------------------------------------------
@@ -685,7 +692,7 @@ public sealed class Compiler
     private void CompileList(ListLiteralNode node, int ln)
     {
         foreach (var e in node.Elements) CompileNode(e);
-        _chunk.Emit(Opcode.BuildList, node.Elements.Count, 0, ln);
+        Emit(Opcode.BuildList, node.Elements.Count, 0, ln);
     }
 
     private void CompileHash(HashLiteralNode node, int ln)
@@ -694,16 +701,16 @@ public sealed class Compiler
         {
             CompileNode(k);
             if (v != null) CompileNode(v);
-            else           _chunk.Emit(Opcode.Null, 0, 0, ln);
+            else           Emit(Opcode.Null, 0, 0, ln);
         }
-        _chunk.Emit(Opcode.BuildHashmap, node.Elements.Count, 0, ln);
+        Emit(Opcode.BuildHashmap, node.Elements.Count, 0, ln);
     }
 
     private void CompileRange(RangeLiteralNode node, int ln)
     {
         CompileNode(node.RangeStart!);
         CompileNode(node.RangeEnd!);
-        _chunk.Emit(Opcode.BuildRange, 0, 0, ln);
+        Emit(Opcode.BuildRange, 0, 0, ln);
     }
 
     // -- Indexing --------------------------------------------------------------
@@ -712,7 +719,7 @@ public sealed class Compiler
     {
         if (node.IndexedObject != null) CompileNode(node.IndexedObject);
         CompileNode(node.IndexExpression);
-        _chunk.Emit(Opcode.IndexGet, 0, 0, ln);
+        Emit(Opcode.IndexGet, 0, 0, ln);
     }
 
     // -- Case / when -----------------------------------------------------------
@@ -730,7 +737,7 @@ public sealed class Compiler
             // Store alias if present (Dup so testVal stays on stack)
             if (node.TestValueAlias is IdentifierNode ali)
             {
-                _chunk.Emit(Opcode.Dup, 0, 0, ln);
+                Emit(Opcode.Dup, 0, 0, ln);
                 EmitStore(ali.Name, ln);
             }
 
@@ -748,34 +755,34 @@ public sealed class Compiler
                     {
                         // Range check: testVal >= start AND testVal <= end
                         // Stack before: [testVal]
-                        _chunk.Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
+                        Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
                         CompileNode(rng.RangeStart!);          // [testVal, testVal, start]
-                        _chunk.Emit(Opcode.GtE, 0, 0, ln);    // [testVal, tv>=start]
-                        int failLow = _chunk.Emit(Opcode.JumpF, 0, 0, ln); // skip if out of range
-                        _chunk.Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
+                        Emit(Opcode.GtE, 0, 0, ln);    // [testVal, tv>=start]
+                        int failLow = Emit(Opcode.JumpF, 0, 0, ln); // skip if out of range
+                        Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
                         CompileNode(rng.RangeEnd!);            // [testVal, testVal, end]
-                        _chunk.Emit(Opcode.LtE, 0, 0, ln);    // [testVal, tv<=end]
-                        bodyJumps.Add(_chunk.Emit(Opcode.JumpT, 0, 0, ln)); // match → body
+                        Emit(Opcode.LtE, 0, 0, ln);    // [testVal, tv<=end]
+                        bodyJumps.Add(Emit(Opcode.JumpT, 0, 0, ln)); // match → body
                         PatchJump(failLow);
                     }
                     else
                     {
-                        _chunk.Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
+                        Emit(Opcode.Dup, 0, 0, ln);    // [testVal, testVal]
                         CompileNode(condNode);                 // [testVal, testVal, cond]
-                        _chunk.Emit(Opcode.Eq, 0, 0, ln);     // [testVal, matched?]
-                        bodyJumps.Add(_chunk.Emit(Opcode.JumpT, 0, 0, ln));
+                        Emit(Opcode.Eq, 0, 0, ln);     // [testVal, matched?]
+                        bodyJumps.Add(Emit(Opcode.JumpT, 0, 0, ln));
                     }
                 }
 
                 // No condition matched → skip to next when
-                nextWhenJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+                nextWhenJumps.Add(Emit(Opcode.Jump, 0, 0, ln));
 
                 // Body target: pop testVal and run body as expression
                 int bodyTarget = _chunk.Code.Count;
                 foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
-                _chunk.Emit(Opcode.Pop, 0, 0, ln); // discard testVal
+                Emit(Opcode.Pop, 0, 0, ln); // discard testVal
                 CompileBodyExpr(when.Body);         // leaves value on stack
-                endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+                endJumps.Add(Emit(Opcode.Jump, 0, 0, ln));
 
                 // Patch "no match" jumps to here
                 int nextTarget = _chunk.Code.Count;
@@ -783,7 +790,7 @@ public sealed class Compiler
             }
 
             // Else: pop testVal then run else body as expression
-            _chunk.Emit(Opcode.Pop, 0, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
         }
         else
         {
@@ -797,15 +804,15 @@ public sealed class Compiler
                 {
                     if (condNode == null) continue;
                     CompileNode(condNode);
-                    bodyJumps.Add(_chunk.Emit(Opcode.JumpT, 0, 0, ln));
+                    bodyJumps.Add(Emit(Opcode.JumpT, 0, 0, ln));
                 }
 
-                nextWhenJump.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+                nextWhenJump.Add(Emit(Opcode.Jump, 0, 0, ln));
 
                 int bodyTarget = _chunk.Code.Count;
                 foreach (var j in bodyJumps) PatchJumpTo(j, bodyTarget);
                 CompileBodyExpr(when.Body);         // leaves value on stack
-                endJumps.Add(_chunk.Emit(Opcode.Jump, 0, 0, ln));
+                endJumps.Add(Emit(Opcode.Jump, 0, 0, ln));
 
                 int nextTarget = _chunk.Code.Count;
                 foreach (var j in nextWhenJump) PatchJumpTo(j, nextTarget);
@@ -834,14 +841,14 @@ public sealed class Compiler
             // Single RHS: evaluate it, then unpack (runtime list detection)
             var rhs = node.Right.First(r => r != null)!;
             CompileNode(rhs);
-            _chunk.Emit(Opcode.UnpackList, lhsCount, 0, ln);
+            Emit(Opcode.UnpackList, lhsCount, 0, ln);
             // Stack now has lhsCount values (bottom=index0, top=indexN-1)
             // Store in reverse order (pop from top = index N-1 first)
             for (int i = lhsCount - 1; i >= 0; i--)
             {
                 var lhs = node.Left[i];
                 if (lhs is IdentifierNode id) EmitStore(id.Name, ln);
-                else _chunk.Emit(Opcode.Pop, 0, 0, ln);
+                else Emit(Opcode.Pop, 0, 0, ln);
             }
         }
         else
@@ -852,13 +859,13 @@ public sealed class Compiler
                 CompileNode(rhs!);
             // Push nulls for any extra LHS
             for (int i = rhsCount; i < lhsCount; i++)
-                _chunk.Emit(Opcode.Null, 0, 0, ln);
+                Emit(Opcode.Null, 0, 0, ln);
             // Store in reverse (top of stack = last RHS)
             for (int i = lhsCount - 1; i >= 0; i--)
             {
                 var lhs = node.Left[i];
                 if (lhs is IdentifierNode id) EmitStore(id.Name, ln);
-                else _chunk.Emit(Opcode.Pop, 0, 0, ln);
+                else Emit(Opcode.Pop, 0, 0, ln);
             }
         }
     }
@@ -874,8 +881,8 @@ public sealed class Compiler
             else                           EmitLoad(idx.Name ?? "", ln);
             CompileNode(idx.IndexExpression);
             if (node.Initializer != null) CompileNode(node.Initializer);
-            else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
-            _chunk.Emit(Opcode.IndexSet, 0, 0, ln);
+            else                         Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.IndexSet, 0, 0, ln);
         }
         else
         {
@@ -903,8 +910,8 @@ public sealed class Compiler
             else                           EmitLoad(idx.Name ?? "", ln);
             CompileNode(idx.IndexExpression);
             if (node.Initializer != null) CompileNode(node.Initializer);
-            else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
-            _chunk.Emit(Opcode.IndexOpAssign, (int)innerOp, 0, ln);
+            else                         Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.IndexOpAssign, (int)innerOp, 0, ln);
         }
     }
 
@@ -915,7 +922,7 @@ public sealed class Compiler
         if (node.StartExpression != null) { CompileNode(node.StartExpression); flags |= 1; }
         if (node.StopExpression  != null) { CompileNode(node.StopExpression);  flags |= 2; }
         if (node.StepExpression  != null) { CompileNode(node.StepExpression);  flags |= 4; }
-        _chunk.Emit(Opcode.SliceGet, flags, 0, ln);
+        Emit(Opcode.SliceGet, flags, 0, ln);
     }
 
     // -- Member access ---------------------------------------------------------
@@ -923,7 +930,7 @@ public sealed class Compiler
     private void CompileMemberAccess(MemberAccessNode node, int ln)
     {
         CompileNode(node.Object!);
-        _chunk.Emit(Opcode.GetMember, _chunk.AddName(node.MemberName), 0, ln);
+        Emit(Opcode.GetMember, _chunk.AddName(node.MemberName), 0, ln);
     }
 
     private void CompileMemberAssign(MemberAssignmentNode node, int ln)
@@ -932,38 +939,38 @@ public sealed class Compiler
         if (compound)
         {
             CompileNode(node.Object!);
-            _chunk.Emit(Opcode.GetMember, _chunk.AddName(node.MemberName), 0, ln);
+            Emit(Opcode.GetMember, _chunk.AddName(node.MemberName), 0, ln);
             if (node.Initializer != null) CompileNode(node.Initializer);
             EmitCompoundOp(node.Op, ln);
         }
         else
         {
             if (node.Initializer != null) CompileNode(node.Initializer);
-            else                         _chunk.Emit(Opcode.Null, 0, 0, ln);
+            else                         Emit(Opcode.Null, 0, 0, ln);
         }
         CompileNode(node.Object!);
-        _chunk.Emit(Opcode.SetMember, _chunk.AddName(node.MemberName), 0, ln);
+        Emit(Opcode.SetMember, _chunk.AddName(node.MemberName), 0, ln);
     }
 
     // -- Self / StaticSelf -----------------------------------------------------
 
     private void CompileSelf(SelfNode node, int ln)
     {
-        if (string.IsNullOrEmpty(node.Name)) _chunk.Emit(Opcode.LoadSelf,     0, 0, ln);
-        else                                 _chunk.Emit(Opcode.LoadSelfAttr, _chunk.AddName(node.Name), 0, ln);
+        if (string.IsNullOrEmpty(node.Name)) Emit(Opcode.LoadSelf,     0, 0, ln);
+        else                                 Emit(Opcode.LoadSelfAttr, _chunk.AddName(node.Name), 0, ln);
     }
 
     private void CompileStaticSelf(StaticSelfNode node, int ln)
-        => _chunk.Emit(Opcode.LoadStaticAttr, _chunk.AddName(node.Name), 0, ln);
+        => Emit(Opcode.LoadStaticAttr, _chunk.AddName(node.Name), 0, ln);
 
     // -- Print -----------------------------------------------------------------
 
     private void CompilePrint(PrintNode node, int ln)
     {
         if (node.Expression != null) CompileNode(node.Expression);
-        else                        _chunk.Emit(Opcode.Null, 0, 0, ln);
+        else                        Emit(Opcode.Null, 0, 0, ln);
         int flags = (node.PrintNewline ? 1 : 0) | (node.PrintStdError ? 2 : 0);
-        _chunk.Emit(Opcode.Print, flags, 0, ln);
+        Emit(Opcode.Print, flags, 0, ln);
     }
 
     // -- If --------------------------------------------------------------------
@@ -1010,7 +1017,7 @@ public sealed class Compiler
         _loops.Add(ctx);
         CompileBody(node.Body);
 
-        _chunk.Emit(Opcode.Jump, loopTop, 0, ln);
+        Emit(Opcode.Jump, loopTop, 0, ln);
 
         PatchJump(exitJump);
         int afterLoop = _chunk.Code.Count;
@@ -1035,24 +1042,24 @@ public sealed class Compiler
 
         // limit = evaluate count expression
         CompileNode(node.Count!);
-        _chunk.Emit(Opcode.StoreLocal, limitSlot, 0, ln);
+        Emit(Opcode.StoreLocal, limitSlot, 0, ln);
 
         // counter = 1
         int one = _chunk.AddConstant(Value.CreateInteger(1));
-        _chunk.Emit(Opcode.Const,       one, 0, ln);
-        _chunk.Emit(Opcode.StoreLocal,  counterSlot, 0, ln);
+        Emit(Opcode.Const,       one, 0, ln);
+        Emit(Opcode.StoreLocal,  counterSlot, 0, ln);
 
         // LOOP TOP: if counter > limit → exit
         int loopTop  = _chunk.Code.Count;
-        _chunk.Emit(Opcode.LoadLocal, counterSlot, 0, ln);
-        _chunk.Emit(Opcode.LoadLocal, limitSlot,   0, ln);
-        _chunk.Emit(Opcode.Gt, 0, 0, ln);
+        Emit(Opcode.LoadLocal, counterSlot, 0, ln);
+        Emit(Opcode.LoadLocal, limitSlot,   0, ln);
+        Emit(Opcode.Gt, 0, 0, ln);
         int doneJump = EmitJump(Opcode.JumpT, ln);
 
         // if alias: store counter into the alias variable
         if (aliasName != null)
         {
-            _chunk.Emit(Opcode.LoadLocal, counterSlot, 0, ln);
+            Emit(Opcode.LoadLocal, counterSlot, 0, ln);
             EmitStore(aliasName, ln);
         }
 
@@ -1063,11 +1070,11 @@ public sealed class Compiler
 
         // INCREMENT POINT - next patches jump here
         int incTop = _chunk.Code.Count;
-        _chunk.Emit(Opcode.LoadLocal, counterSlot, 0, ln);
-        _chunk.Emit(Opcode.Const,     one, 0, ln);
-        _chunk.Emit(Opcode.Add, 0, 0, ln);
-        _chunk.Emit(Opcode.StoreLocal, counterSlot, 0, ln);
-        _chunk.Emit(Opcode.Jump, loopTop, 0, ln);
+        Emit(Opcode.LoadLocal, counterSlot, 0, ln);
+        Emit(Opcode.Const,     one, 0, ln);
+        Emit(Opcode.Add, 0, 0, ln);
+        Emit(Opcode.StoreLocal, counterSlot, 0, ln);
+        Emit(Opcode.Jump, loopTop, 0, ln);
 
         int done = _chunk.Code.Count;
         PatchJump(doneJump);
@@ -1087,12 +1094,12 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
         // Evaluate collection, push ForIterState
         CompileNode(node.DataSet!);
-        _chunk.Emit(Opcode.ForIterInit, 0, 0, ln);
+        Emit(Opcode.ForIterInit, 0, 0, ln);
 
         // LOOP_TOP
         int loopTop  = _chunk.Code.Count;
         int numVars  = hasDual ? 2 : 1;
-        int doneJump = _chunk.Emit(Opcode.ForIterNext, 0 /*patched*/, numVars, ln);
+        int doneJump = Emit(Opcode.ForIterNext, 0 /*patched*/, numVars, ln);
 
         // Store iterator values into variables
         if (hasDual)
@@ -1111,7 +1118,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         _loops.Add(ctx);
         CompileBody(node.Body);
 
-        _chunk.Emit(Opcode.Jump, loopTop, 0, ln);
+        Emit(Opcode.Jump, loopTop, 0, ln);
 
         // DONE (ForIterNext pops state and jumps here)
         int done = _chunk.Code.Count;
@@ -1142,7 +1149,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         if (_loops.Count == 0) return;
         var ctx = _loops[^1];
-        if (ctx.ForIterSlot >= 0) _chunk.Emit(Opcode.Pop, 0, 0, ln); // pop ForIterState
+        if (ctx.ForIterSlot >= 0) Emit(Opcode.Pop, 0, 0, ln); // pop ForIterState
         ctx.BreakPatches.Add(EmitJump(Opcode.Jump, ln));
     }
 
@@ -1181,14 +1188,14 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void DoReturn(ReturnNode node, int ln)
     {
         if (!_isGlobal && _locals.Any(l => l.Captured))
-            _chunk.Emit(Opcode.CloseUpvalue, 0, 0, ln);
+            Emit(Opcode.CloseUpvalue, 0, 0, ln);
 
         if (node.ReturnValue != null)
         {
             CompileNode(node.ReturnValue);
-            _chunk.Emit(Opcode.Return, 0, 0, ln);
+            Emit(Opcode.Return, 0, 0, ln);
         }
-        else _chunk.Emit(Opcode.ReturnNull, 0, 0, ln);
+        else Emit(Opcode.ReturnNull, 0, 0, ln);
     }
 
     // -- Yield -----------------------------------------------------------------
@@ -1196,8 +1203,8 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void CompileYield(YieldNode node, int ln)
     {
         if (node.YieldValue != null) CompileNode(node.YieldValue);
-        else                        _chunk.Emit(Opcode.Null, 0, 0, ln);
-        _chunk.Emit(Opcode.Yield, 0, 0, ln);
+        else                        Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.Yield, 0, 0, ln);
     }
 
     // -- Throw -----------------------------------------------------------------
@@ -1209,15 +1216,15 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             CompileNode(node.Condition);
             int skip = EmitJump(Opcode.JumpF, ln);
             if (node.ErrorValue != null) CompileNode(node.ErrorValue);
-            else                        _chunk.Emit(Opcode.Null, 0, 0, ln);
-            _chunk.Emit(Opcode.Throw, 0, 0, ln);
+            else                        Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.Throw, 0, 0, ln);
             PatchJump(skip);
         }
         else
         {
             if (node.ErrorValue != null) CompileNode(node.ErrorValue);
-            else                        _chunk.Emit(Opcode.Null, 0, 0, ln);
-            _chunk.Emit(Opcode.Throw, 0, 0, ln);
+            else                        Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.Throw, 0, 0, ln);
         }
     }
 
@@ -1236,7 +1243,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             if (s != null) CompileStatement(s);
 
         // Try body completed normally: disarm the handler.
-        _chunk.Emit(Opcode.PopTryHandler, 0, 0, ln);
+        Emit(Opcode.PopTryHandler, 0, 0, ln);
 
         // Inline finally for the success path.
         if (hasFinally)
@@ -1257,17 +1264,17 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             if (node.ErrorType != null)
             {
                 // Two-param catch(type, msg): push type string.
-                _chunk.Emit(Opcode.LoadCatchError, 1, 0, ln);
+                Emit(Opcode.LoadCatchError, 1, 0, ln);
                 EmitStore(((IdentifierNode)node.ErrorType).Name, ln);
             }
             if (node.ErrorMessage != null)
             {
                 if (node.ErrorType == null)
                     // Single-param catch(err): push {error, message} hashmap.
-                    _chunk.Emit(Opcode.LoadCatchError, 0, 0, ln);
+                    Emit(Opcode.LoadCatchError, 0, 0, ln);
                 else
                     // Two-param catch(type, msg): push message string.
-                    _chunk.Emit(Opcode.LoadCatchError, 2, 0, ln);
+                    Emit(Opcode.LoadCatchError, 2, 0, ln);
                 EmitStore(((IdentifierNode)node.ErrorMessage).Name, ln);
             }
 
@@ -1292,7 +1299,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         var sub = CompileFunction(node, enclosing: this);
         int si  = _chunk.AddSubChunk(sub);
         int ni  = _chunk.AddName(node.Name);
-        _chunk.Emit(Opcode.DefFunc, si, ni, ln);
+        Emit(Opcode.DefFunc, si, ni, ln);
     }
 
     // -- Lambda ----------------------------------------------------------------
@@ -1301,7 +1308,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         var sub  = CompileLambda(node, enclosing: this);
         int si   = _chunk.AddSubChunk(sub);
-        _chunk.Emit(Opcode.MakeClosure, si, sub.Upvalues.Count, ln);
+        Emit(Opcode.MakeClosure, si, sub.Upvalues.Count, ln);
     }
 
     // -- Lambda call -----------------------------------------------------------
@@ -1311,7 +1318,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
         CompileNode(node.LambdaNode!);
         int argc = CompileArgs(node.Arguments);
-        _chunk.Emit(Opcode.Call, argc, 0, ln);
+        Emit(Opcode.Call, argc, 0, ln);
     }
 
     // -- Function call ---------------------------------------------------------
@@ -1328,8 +1335,9 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // stack slots, then dispatch through DoCall which invokes the interpreter with
         // the already-evaluated argument values.
         EmitLoad(node.FunctionName, ln);
-        int argc = CompileArgs(node.Arguments);
-        _chunk.Emit(Opcode.Call, argc, 0, ln);
+        int argc    = CompileArgs(node.Arguments);
+        int nameIdx = _chunk.AddName(node.FunctionName); // encode name for error reporting
+        Emit(Opcode.Call, argc, nameIdx, ln);
     }
 
     // -- Method call -----------------------------------------------------------
@@ -1340,7 +1348,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         CompileNode(node.Object!);
         int argc    = CompileArgs(node.Arguments);
         int nameIdx = _chunk.AddName(node.MethodName);
-        _chunk.Emit(Opcode.CallMethod, argc, nameIdx, ln);
+        Emit(Opcode.CallMethod, argc, nameIdx, ln);
     }
 
     // -- Helpers ---------------------------------------------------------------
@@ -1359,13 +1367,13 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void CompileBodyExpr(IEnumerable<ASTNode?> stmts)
     {
         var body = stmts.Where(s => s != null).ToList();
-        if (body.Count == 0) { _chunk.Emit(Opcode.Null); return; }
+        if (body.Count == 0) { Emit(Opcode.Null); return; }
 
         for (int i = 0; i < body.Count - 1; i++)
             CompileStatement(body[i]!);
 
         if (!CompileNode(body[^1]!))
-            _chunk.Emit(Opcode.Null);
+            Emit(Opcode.Null);
     }
 
     /// <summary>
@@ -1386,8 +1394,8 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         if (CompileNode(last))
         {
             if (!_isGlobal && _locals.Any(l => l.Captured))
-                _chunk.Emit(Opcode.CloseUpvalue, 0);
-            _chunk.Emit(Opcode.Return);
+                Emit(Opcode.CloseUpvalue, 0);
+            Emit(Opcode.Return);
             return true;
         }
         // Last statement was control-flow (Return, loop, etc.) - it handled its own return.

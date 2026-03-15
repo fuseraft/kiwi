@@ -53,7 +53,9 @@ public class Chunk
     public List<UpvalueDescriptor> Upvalues  { get; } = [];
 
     // -- Debug info ------------------------------------------------------------
+    // One entry per instruction, parallel arrays.
     public List<int>               Lines     { get; } = [];
+    public List<int>               FileIds   { get; } = [];
 
     // -- Fallback AST nodes ----------------------------------------------------
     public List<ASTNode>           NodePool  { get; } = [];
@@ -97,10 +99,11 @@ public class Chunk
     /// <summary>
     /// Append one instruction and return its index.
     /// </summary>
-    public int Emit(Opcode op, int a = 0, int b = 0, int line = 0)
+    public int Emit(Opcode op, int a = 0, int b = 0, int line = 0, int fileId = 0)
     {
         Code.Add(new Instruction(op, a, b));
         Lines.Add(line);
+        FileIds.Add(fileId);
         return Code.Count - 1;
     }
 
@@ -158,4 +161,7 @@ public class Chunk
     /// </summary>
     public int GetLine(int instrIdx) =>
         (uint)instrIdx < (uint)Lines.Count ? Lines[instrIdx] : 0;
+
+    public int GetFileId(int instrIdx) =>
+        (uint)instrIdx < (uint)FileIds.Count ? FileIds[instrIdx] : 0;
 }

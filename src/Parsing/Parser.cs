@@ -216,11 +216,19 @@ public partial class Parser
         throw new SyntaxError(GetErrorToken(), "Expected if-statement or case-statement.");
     }
 
-    private ThrowNode? ParseError()
+    private ASTNode? ParseError()
     {
-        var errorValue = new LiteralNode(Value.CreateString(token.Text));
-        Next();
-        return new ThrowNode(errorValue, null);
+        // Descriptive error messages (e.g. from invalid byte literals) contain spaces
+        // and are intended to be catchable at runtime via try/catch.
+        // Raw unrecognized tokens (e.g. "//") have no spaces and are parse-time errors.
+        if (token.Text.Contains(' '))
+        {
+            var errorValue = new LiteralNode(Value.CreateString(token.Text));
+            Next();
+            return new ThrowNode(errorValue, null);
+        }
+
+        throw new SyntaxError(GetErrorToken(), $"Unexpected token '{token.Text}'.");
     }
 
     private RequireNode? ParseRequire()
@@ -404,7 +412,7 @@ public partial class Parser
         {
             if (GetTokenType() == TokenType.Eof)
             {
-                throw new UnexpectedEndOfFileError(openToken);
+                throw BlockEofError(openToken);
             }
 
             // if we find `when`, grab the condition and check for block separator.
@@ -501,7 +509,7 @@ public partial class Parser
         {
             if (GetTokenType() == TokenType.Eof)
             {
-                throw new UnexpectedEndOfFileError(openToken);
+                throw BlockEofError(openToken);
             }
 
             if (MatchName(TokenName.KW_Static))
@@ -599,7 +607,7 @@ public partial class Parser
         {
             if (GetTokenType() == TokenType.Eof)
             {
-                throw new UnexpectedEndOfFileError(openToken);
+                throw BlockEofError(openToken);
             }
 
             if (GetTokenType() != TokenType.Identifier)
@@ -766,6 +774,12 @@ public partial class Parser
     {
         var fnKeyword = token;
         MatchType(TokenType.Keyword);  // Consume 'fn'
+
+        // The function name must be on the same line as 'fn'.
+        if (token.Span.Line != fnKeyword.Span.Line)
+        {
+            throw new SyntaxError(fnKeyword, "Expected function name on the same line as 'fn'.");
+        }
 
         var isTypeName = GetTokenType() == TokenType.Typename;
         var isOperator = GetTokenType() == TokenType.Operator;
@@ -1249,7 +1263,7 @@ public partial class Parser
         {
             if (GetTokenType() == TokenType.Eof)
             {
-                throw new UnexpectedEndOfFileError(openToken);
+                throw BlockEofError(openToken);
             }
 
             if (MatchName(TokenName.KW_When))
@@ -1289,7 +1303,7 @@ public partial class Parser
                 {
                     if (GetTokenType() == TokenType.Eof)
                     {
-                        throw new UnexpectedEndOfFileError(openToken);
+                        throw BlockEofError(openToken);
                     }
 
                     var stmt = ParseStatement();
@@ -1299,6 +1313,15 @@ public partial class Parser
                     }
                 }
             }
+            else
+            {
+                throw new SyntaxError(GetErrorToken(), "Expected 'when' or 'else' in 'case' statement.");
+            }
+        }
+
+        if (node.WhenNodes.Count == 0 && node.ElseBody.Count == 0)
+        {
+            throw new SyntaxError(GetErrorToken(), "Expected at least one 'when' clause in 'case' statement.");
         }
 
         Next();  // Consume 'end'
@@ -1349,13 +1372,40 @@ public partial class Parser
             }
         }
 
+        // @name.member fn ... or @name.member(args...) fn ...
+        if (afterIdent.Type == TokenType.Dot && PeekAt(nameEnd + 1).Type == TokenType.Identifier)
+        {
+            int memberEnd = nameEnd + 2;
+            var afterMember = PeekAt(memberEnd);
+
+            if (afterMember.Name == TokenName.KW_Method || afterMember.Name == TokenName.KW_This)
+                return true;
+
+            if (afterMember.Type == TokenType.LParen)
+            {
+                int depth = 1;
+                int pos = stream.Position + memberEnd + 1;
+                while (pos < stream.Size && depth > 0)
+                {
+                    var t = stream.At(pos++);
+                    if (t.Type == TokenType.LParen) depth++;
+                    else if (t.Type == TokenType.RParen) depth--;
+                }
+                if (pos < stream.Size)
+                {
+                    var afterArgs = stream.At(pos);
+                    return afterArgs.Name == TokenName.KW_Method || afterArgs.Name == TokenName.KW_This;
+                }
+            }
+        }
+
         return false;
     }
 
     private DecoratedFunctionNode? ParseDecoratedFunction()
     {
         var openToken = token;
-        var decorators = new List<(string Name, List<ASTNode?> ExtraArgs)>();
+        var decorators = new List<(ASTNode? Expr, List<ASTNode?> ExtraArgs)>();
 
         while (GetTokenName() == TokenName.KW_This)
         {
@@ -1364,8 +1414,11 @@ public partial class Parser
             if (GetTokenType() != TokenType.Identifier)
                 throw new SyntaxError(GetErrorToken(), "Expected identifier after '@'.");
 
-            var decoratorName = token.Text;
+            var nameToken = token;
+            var baseName = token.Text;
             Next();  // consume first name part
+
+            ASTNode? decoratorExpr;
 
             // Support package-qualified decorators: @pkg::name
             if (GetTokenType() == TokenType.Qualifier)
@@ -1373,24 +1426,32 @@ public partial class Parser
                 Next();  // consume '::'
                 if (GetTokenType() != TokenType.Identifier)
                     throw new SyntaxError(GetErrorToken(), "Expected identifier after '::'.");
-                decoratorName = decoratorName + "::" + token.Text;
-                Next();  // consume function name
+                decoratorExpr = new IdentifierNode(baseName + "::" + token.Text) { Token = nameToken };
+                Next();  // consume member name
+            }
+            // Support member-access decorators: @x.name
+            else if (GetTokenType() == TokenType.Dot)
+            {
+                Next();  // consume '.'
+                if (GetTokenType() != TokenType.Identifier)
+                    throw new SyntaxError(GetErrorToken(), "Expected identifier after '.' in decorator.");
+                var memberName = token.Text;
+                Next();  // consume member name
+                decoratorExpr = new MemberAccessNode(
+                    new IdentifierNode(baseName) { Token = nameToken }, memberName) { Token = nameToken };
+            }
+            else
+            {
+                decoratorExpr = new IdentifierNode(baseName) { Token = nameToken };
             }
 
             List<ASTNode?> extraArgs = [];
             if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.Line)
             {
-                Next();  // consume '('
-                while (GetTokenType() != TokenType.RParen)
-                {
-                    extraArgs.Add(ParseExpression());
-                    if (GetTokenType() == TokenType.Comma)
-                        Next();
-                }
-                Next();  // consume ')'
+                extraArgs = CollectCallArguments();
             }
 
-            decorators.Add((decoratorName, extraArgs));
+            decorators.Add((decoratorExpr, extraArgs));
         }
 
         if (GetTokenName() != TokenName.KW_Method)
@@ -1422,14 +1483,15 @@ public partial class Parser
 
     private IfNode? ParseIf()
     {
+        var openToken = token;
         if (!MatchName(TokenName.KW_If))
         {
             throw new SyntaxError(GetErrorToken(), "Expected if-statement.");
         }
 
-        if (!HasValue())
+        if (!HasValue() || token.Span.Line != openToken.Span.Line)
         {
-            throw new SyntaxError(GetErrorToken(), "Expected condition after 'if'.");
+            throw new SyntaxError(openToken, "Expected condition on the same line as 'if'.");
         }
 
         var node = new IfNode
@@ -1442,6 +1504,11 @@ public partial class Parser
 
         while (stream.CanRead && blocks > 0)
         {
+            if (GetTokenType() == TokenType.Eof)
+            {
+                throw BlockEofError(openToken);
+            }
+
             var subType = GetTokenName();
             if (subType == TokenName.KW_End && blocks >= 1)
             {
@@ -1656,7 +1723,7 @@ public partial class Parser
         {
             if (GetTokenType() == TokenType.Eof)
             {
-                throw new UnexpectedEndOfFileError(openToken);
+                throw BlockEofError(openToken);
             }
 
             var stmt = ParseStatement();
@@ -2574,7 +2641,7 @@ public partial class Parser
     {
         var left = ParseLogicalAnd();
 
-        while (stream.CanRead && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
         {
             var op = GetTokenName();
             Next();  // Consume '||' or '??'
@@ -2590,7 +2657,7 @@ public partial class Parser
     {
         var left = ParseBitwiseOr();
 
-        while (stream.CanRead && GetTokenName() == TokenName.Ops_And)
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_And)
         {
             Next();  // Consume '&&'
 
@@ -2605,7 +2672,7 @@ public partial class Parser
     {
         var left = ParseBitwiseXor();
 
-        while (stream.CanRead && GetTokenName() == TokenName.Ops_BitwiseOr)
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseOr)
         {
             Next();  // Consume '|'
 
@@ -2620,7 +2687,7 @@ public partial class Parser
     {
         var left = ParseBitwiseAnd();
 
-        while (stream.CanRead && GetTokenName() == TokenName.Ops_BitwiseXor)
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseXor)
         {
             Next();  // Consume '^'
 
@@ -2635,7 +2702,7 @@ public partial class Parser
     {
         var left = ParseEquality();
 
-        while (stream.CanRead && GetTokenName() == TokenName.Ops_BitwiseAnd)
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseAnd)
         {
             Next();  // Consume '&'
 
@@ -2650,7 +2717,7 @@ public partial class Parser
     {
         var left = ParseComparison();
 
-        while (stream.CanRead && IsEqualityOperator())
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsEqualityOperator())
         {
             var op = GetTokenName();
 
@@ -2667,7 +2734,7 @@ public partial class Parser
     {
         var left = ParseBitshift();
 
-        while (stream.CanRead && IsComparisonOperator())
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsComparisonOperator())
         {
             var op = GetTokenName();
 
@@ -2684,7 +2751,7 @@ public partial class Parser
     {
         var left = ParseAdditive();
 
-        while (stream.CanRead && IsBitwiseOperator())
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsBitwiseOperator())
         {
             var op = GetTokenName();
 
@@ -2700,7 +2767,7 @@ public partial class Parser
     private ASTNode? ParseAdditive()
     {
         var left = ParseMultiplicative();
-        while (stream.CanRead && IsAdditiveOperator())
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsAdditiveOperator())
         {
             var op = GetTokenName();
             Next();  // Skip operator
@@ -2714,7 +2781,7 @@ public partial class Parser
     {
         var left = ParseUnary();
 
-        while (stream.CanRead && IsMultiplicativeOperator())
+        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsMultiplicativeOperator())
         {
             var op = GetTokenName();
 
@@ -2818,6 +2885,10 @@ public partial class Parser
             else if (GetTokenType() == TokenType.LBracket && token.Span.Line == Previous().Span.Line)
             {
                 node = ParseIndexing(node);
+            }
+            else if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.Line)
+            {
+                node = ParseLambdaCall(node);
             }
             else
             {
