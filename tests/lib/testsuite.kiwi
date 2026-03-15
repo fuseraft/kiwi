@@ -71,6 +71,7 @@ var (unit_tests: list = [
   "dotenv",
   "xml",
   "protobuf",
+  "csv_pipeline",
 
   # Storage & I/O
   "sqlite",
