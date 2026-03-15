@@ -465,6 +465,19 @@ public partial class Parser(bool rethrowErrors = false)
         return GetErrorToken(setHasError);
     }
 
+    /// <summary>
+    /// Creates an <see cref="UnexpectedEndOfFileError"/> for an unclosed block.
+    /// Points at the last real token consumed (closest to where EOF occurred)
+    /// and includes the block opener's location in the message, giving the user
+    /// two reference points to triangulate the missing or stray block delimiter.
+    /// </summary>
+    private UnexpectedEndOfFileError BlockEofError(Token openToken)
+    {
+        var errToken = GetErrorToken();
+        var msg = $"Unclosed '{openToken.Text}' block. Block opened at line {openToken.Span.Line}.";
+        return new UnexpectedEndOfFileError(errToken, msg);
+    }
+
     private Dictionary<string, string> GetNameMap()
     {
         if (mangledNameStack.Count == 0)

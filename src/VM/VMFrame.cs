@@ -71,6 +71,21 @@ public sealed class VMFrame(string name, Chunk chunk, int stackBase, Upvalue[] u
     }
 
     /// <summary>
+    /// Names of functions defined inside this frame that must be removed from
+    /// the global function table when the frame returns (prevents leaking).
+    /// Null until first inner function is defined (avoids alloc for most frames).
+    /// </summary>
+    private HashSet<string>? _localFunctions;
+
+    public void TrackLocalFunction(string name)
+    {
+        _localFunctions ??= [];
+        _localFunctions.Add(name);
+    }
+
+    public HashSet<string>? LocalFunctions => _localFunctions;
+
+    /// <summary>
     /// Human-readable name of this function/lambda for stack traces.
     /// </summary>
     public string Name { get; } = name;

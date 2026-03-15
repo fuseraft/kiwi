@@ -77,8 +77,48 @@ tester::assert_eq(greeting, "hello world", "string concatenation")
 
 ---
 
+### `test(f, name)` _(decorator)_
+Registers a function as a named unit test and returns it unchanged. Designed to be used as a `@tester::test("name")` decorator above a `fn` definition — the cleanest way to register tests.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `lambda` | `f` | The test function (injected automatically by the decorator). |
+| `string` | `name` | The display name shown in test runner output. |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `lambda` | The original function, unchanged, so it remains directly callable. |
+
+**Example**
+
+```kiwi
+import "tester"
+
+@tester::test("math works")
+fn test_math()
+  tester::assert_eq(2 + 2, 4, "addition")
+  tester::assert_eq(10 - 3, 7, "subtraction")
+end
+
+@tester::test("strings work")
+fn test_strings()
+  tester::assert_eq("hi".size(), 2, "string size")
+  tester::assert("hello".contains("ell"), "substring check")
+end
+
+results = tester::run_tests()
+```
+
+> The decorated function is still directly callable as `test_math()`, `test_strings()`, etc.
+
+---
+
 ### `register_test(name, t)`
-Registers a test function to the global test list.
+Registers a test function to the global test list. Prefer the `@tester::test` decorator for new code.
 
 **Parameters**
 

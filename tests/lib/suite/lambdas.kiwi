@@ -51,4 +51,20 @@ tester::register_test("lambdas", with do
   # Inline lambda assignment
   x = (with (n) do n ** 2 end)(5)
   tester::assert(x == 25, "A8")
+
+  # Immediately-invoked function result
+  fn make_doubler()
+    return with (n) do n * 2 end
+  end
+
+  tester::assert(make_doubler()(6) == 12, "A9: immediately invoked function result")
+
+  # Calling a non-callable raises an error
+  caught = false
+  try
+    result = 42()
+  catch e
+    caught = true
+  end
+  tester::assert(caught, "A10: calling non-callable raises error")
 end)

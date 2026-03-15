@@ -54,4 +54,44 @@ tester::register_test("chained access", with do
 
   # Chained string ops: string.method()[i].method()
   tester::assert("hello world".split(" ")[1].uppercase() == "WORLD", "A14: str.method()[i].method()")
+
+  # Immediate invocation of a function call result: func()()
+  fn make_adder(n)
+    return with (x) do x + n end
+  end
+
+  tester::assert(make_adder(3)(4) == 7,  "B1: func()() immediate invocation")
+  tester::assert(make_adder(10)(5) == 15, "B2: func()() different args")
+
+  # Immediate invocation of a method call result: obj.method()()
+  package factory
+    fn multiplier(n): lambda
+      return with (x) do x * n end
+    end
+  end
+  export "factory"
+
+  fac = import "factory"
+  tester::assert(fac.multiplier(3)(4) == 12, "B3: pkg.method()() immediate invocation")
+  tester::assert(fac.multiplier(2)(7) == 14, "B4: pkg.method()() different args")
+
+  # Chained invocations: func()()()
+  fn make_incrementer(n)
+    return with () do
+      return with (x) do x + n end
+    end
+  end
+
+  tester::assert(make_incrementer(5)()(9) == 14, "B5: func()()() triple chain")
+
+  # Immediate invocation of struct method result
+  struct Ops
+    fn new() end
+    fn adder(n): lambda
+      return with (x) do x + n end
+    end
+  end
+
+  ops = Ops.new()
+  tester::assert(ops.adder(7)(3) == 10, "B6: struct.method()() immediate invocation")
 end)

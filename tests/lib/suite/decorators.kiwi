@@ -112,4 +112,56 @@ tester::register_test("decorators", with do
 
   inc2()
   tester::assert(count == 8, "B5")
+
+  # Parameterized decorators: keyword args
+  fn tag(f, value: string): lambda
+    return with (*args) do
+      return "${value}:${f(*args)}"
+    end
+  end
+
+  @tag(value: "ok")
+  fn labeled()
+    return "result"
+  end
+
+  tester::assert(labeled() == "ok:result", "B6")
+
+  # Keyword arg using '=' syntax
+  @tag(value = "yes")
+  fn labeled2()
+    return "data"
+  end
+
+  tester::assert(labeled2() == "yes:data", "B7")
+
+  # Mixed positional + keyword
+  fn ntimes_kw(f, n, label: string): lambda
+    return with (*args) do
+      for i in [1..n] do f(*args) end
+      return label
+    end
+  end
+
+  @ntimes_kw(2, label: "done")
+  fn inc3()
+    count += 1
+  end
+
+  inc3()
+  tester::assert(count == 10, "B8")
+
+  # @tester::test decorator — registers a function as a named test
+  # and returns it unchanged so it is still directly callable.
+  @tester::test("decorator: registered via @tester::test")
+  fn sample_test()
+    tester::assert(1 + 1 == 2, "C1-inner")
+  end
+
+  # The function must still be callable directly.
+  sample_test()
+
+  # Confirm the test was registered in the global registry.
+  tester::initialize()
+  tester::assert(global.unit_tests.has_key("decorator: registered via @tester::test"), "C1")
 end)

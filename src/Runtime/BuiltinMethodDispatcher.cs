@@ -51,6 +51,10 @@ internal sealed class BuiltinMethodDispatcher
             {
                 callable = _interp.Context.Lambdas[_interp.Context.LambdaTable[callableName]];
             }
+            else if (_interp.Context.HasFunction(callableName))
+            {
+                callable = _interp.Context.Functions[callableName];
+            }
         }
         else if (node.Object?.Type == ASTNodeType.Identifier)
         {

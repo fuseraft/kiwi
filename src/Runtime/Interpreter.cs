@@ -160,7 +160,21 @@ public class Interpreter
 
     public Value FuncToLambda(KFunction func)
     {
-        return Visit(func.Decl.ToLambda(), false);
+        var lambdaValue = Visit(func.Decl.ToLambda(), false);
+
+        // If the function was compiled to bytecode (VM mode), transfer the chunk
+        // so the lambda executes via the VM rather than the (empty) AST body.
+        if (func.VMChunk != null && lambdaValue.IsLambda())
+        {
+            var lref = lambdaValue.GetLambda();
+            if (Context.Lambdas.TryGetValue(lref.Identifier, out var kl))
+            {
+                kl.VMChunk   = func.VMChunk;
+                kl.VMUpvalues = func.VMUpvalues;
+            }
+        }
+
+        return lambdaValue;
     }
 
     public Value InvokeCallable(Callable callable, List<Value> args, Token token, string displayName, InstanceRef? instance = null)
@@ -544,7 +558,14 @@ public class Interpreter
 
     private Value Visit(PackageNode node)
     {
-        var packageName = Id(node.PackageName ?? throw new PackageUndefinedError(node.Token, string.Empty));
+        var localName = Id(node.PackageName ?? throw new PackageUndefinedError(node.Token, string.Empty));
+
+        // Build the fully-qualified package name from the current package context.
+        // PackageStack holds unqualified names (outermost at bottom, innermost at top).
+        // Reversing gives outer-to-inner order so we can join with "::".
+        var packageName = PackageStack.Count > 0
+            ? string.Join("::", PackageStack.Reverse().Append(localName))
+            : localName;
 
         if (Context.Packages.TryGetValue(packageName, out var existing))
         {
@@ -558,7 +579,7 @@ public class Interpreter
             Context.Packages[packageName] = new KPackage(node.Clone());
         }
 
-        PackageStack.Push(packageName);
+        PackageStack.Push(localName);
         bool activationSucceeded = true;
         try
         {
@@ -2218,6 +2239,7 @@ public class Interpreter
         }
 
         var internalName = $"<lambda_{Guid.NewGuid()}>";
+        var lref = new LambdaRef { Identifier = internalName };
         Context.Lambdas[internalName] = new KLambda(node)
         {
             Parameters = parameters,
@@ -2225,7 +2247,8 @@ public class Interpreter
             TypeHints = node.TypeHints,
             ReturnTypeHint = node.ReturnTypeHint,
             CapturedScope = CaptureCurrentScope(),
-            VariadicParamName = node.VariadicParamName
+            VariadicParamName = node.VariadicParamName,
+            Ref = lref
         };
 
         if (map)
@@ -2233,7 +2256,7 @@ public class Interpreter
             Context.AddMappedLambda(node.Token.Text, internalName);
         }
 
-        return Value.CreateLambda(new LambdaRef { Identifier = internalName });
+        return Value.CreateLambda(lref);
     }
 
     private Value Visit(DecoratedFunctionNode node)
@@ -2274,10 +2297,10 @@ public class Interpreter
         // 4. Apply decorators bottom-to-top: @A @B fn f => f = A(B(f)).
         for (int i = node.Decorators.Count - 1; i >= 0; i--)
         {
-            var (decoName, extraArgs) = node.Decorators[i];
+            var (decoExpr, extraArgs) = node.Decorators[i];
             List<ASTNode?> argNodes = [new LiteralNode(current) { Token = node.Token }];
             argNodes.AddRange(extraArgs);
-            current = CallDecoratorByName(node.Token, decoName, argNodes);
+            current = CallDecoratorExpr(node.Token, decoExpr, argNodes);
         }
 
         // 5. Replace the function entry with the decorated result.
@@ -2294,22 +2317,40 @@ public class Interpreter
         return Value.Default;
     }
 
+    private Value CallDecoratorExpr(Token token, ASTNode? expr, List<ASTNode?> argNodes)
+    {
+        // Fast path: bare identifier — look up directly by name.
+        if (expr is IdentifierNode ident)
+            return CallDecoratorByName(token, ident.Name, argNodes);
+
+        // General path: evaluate the expression (e.g. x.decorate) to get a callable value.
+        var callableVal = Interpret(expr);
+        if (!callableVal.IsLambda())
+            throw new FunctionUndefinedError(token, "<decorator expression>");
+
+        return CallDecoratorByName(token, callableVal.GetLambda().Identifier, argNodes);
+    }
+
     private Value CallDecoratorByName(Token token, string name, List<ASTNode?> argNodes)
     {
         if (Context.HasFunction(name))
             return CallFunction(Context.Functions[name], argNodes, token, name);
 
-        if (Context.HasMappedLambda(name))
+        if (Context.HasMappedLambda(name) || Context.HasLambda(name))
         {
-            var lambda = Context.Lambdas[Context.LambdaTable[name]];
-            var args = argNodes.Select(a => Interpret(a)).ToList();
-            return InvokeCallable(lambda, args, token, name);
-        }
+            var lambda = Context.HasMappedLambda(name)
+                ? Context.Lambdas[Context.LambdaTable[name]]
+                : Context.Lambdas[name];
 
-        if (Context.HasLambda(name))
-        {
-            var args = argNodes.Select(a => Interpret(a)).ToList();
-            return InvokeCallable(Context.Lambdas[name], args, token, name);
+            // Use ResolveArguments so named/keyword args are matched by parameter name.
+            var tmpScope = new Scope(_globalScope);
+            var slots = ResolveArguments(lambda.Parameters, argNodes, lambda.DefaultParameters, token, name, lambda.VariadicParamName, tmpScope);
+            var ordered = slots.Select(s => s!).ToList();
+            // Append variadic overflow so BindParameters collects it correctly.
+            if (!string.IsNullOrEmpty(lambda.VariadicParamName) && tmpScope.TryGet(lambda.VariadicParamName, out var varList) && varList.IsList())
+                ordered.AddRange(varList.GetList());
+
+            return InvokeCallable(lambda, ordered, token, name);
         }
 
         throw new FunctionUndefinedError(token, name);
@@ -2439,6 +2480,8 @@ public class Interpreter
     private Value Visit(LambdaCallNode node)
     {
         var nodeValue = Interpret(node.LambdaNode);
+        if (!nodeValue.IsLambda())
+            throw new InvalidOperationError(node.Token, $"Expected a callable but got `{TypeRegistry.GetTypeName(nodeValue)}`.");
         var lambdaName = nodeValue.GetLambda().Identifier;
         var result = Value.Default;
         var doPop = false;

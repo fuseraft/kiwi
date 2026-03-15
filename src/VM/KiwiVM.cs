@@ -542,7 +542,9 @@ public sealed class KiwiVM
                         // func is at _sp - argc - 1
                         int funcSlot = _sp - argc - 1;
                         var funcVal  = _stack[funcSlot];
-                        if (DoCall(funcVal, argc, funcSlot, frame.GetToken()))
+                        // B holds the name index encoded by CompileFuncCall (0 = unknown)
+                        string? callName = B > 0 ? frame.Chunk.Names[B] : null;
+                        if (DoCall(funcVal, argc, funcSlot, frame.GetToken(), callName))
                             goto nextFrame; // new VM frame pushed; switch to it
                         break;             // interpreter handled in-place; continue current frame
                     }
@@ -572,6 +574,9 @@ public sealed class KiwiVM
                     {
                         result = Pop();
                         CloseUpvalues(frame.StackBase);
+                        if (frame.LocalFunctions != null)
+                            foreach (var fn in frame.LocalFunctions)
+                                _context.Functions.Remove(fn);
                         _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
                         _frameCount--;
                         if (_frameCount > 0) Push(result);
@@ -581,6 +586,9 @@ public sealed class KiwiVM
                     {
                         result = Value.Default;
                         CloseUpvalues(frame.StackBase);
+                        if (frame.LocalFunctions != null)
+                            foreach (var fn in frame.LocalFunctions)
+                                _context.Functions.Remove(fn);
                         _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
                         _frameCount--;
                         if (_frameCount > 0) Push(result);
@@ -610,6 +618,11 @@ public sealed class KiwiVM
 
                         _context.Functions[funcName] = kfunc;
                         _nameCache.Remove(funcName); // invalidate stale cached lambda ref
+
+                        // If defined inside another function frame, track for cleanup on return.
+                        if (_frameCount > 1)
+                            _frames[_frameCount - 1].TrackLocalFunction(funcName);
+
                         break;
                     }
 
@@ -1127,7 +1140,7 @@ public sealed class KiwiVM
     /// <c>goto nextFrame</c>); returns <c>false</c> if the call was handled in-place
     /// by the interpreter (result already on stack, caller must NOT goto nextFrame).
     /// </summary>
-    private bool DoCall(Value funcVal, int argc, int funcSlot, Token token)
+    private bool DoCall(Value funcVal, int argc, int funcSlot, Token token, string? callName = null)
     {
         // StackBase of callee = position of first arg
         int calleeBase = funcSlot + 1;
@@ -1193,10 +1206,7 @@ public sealed class KiwiVM
 
         if (funcVal.IsNull())
         {
-            // Could be a function looked up by LoadGlobal as Null (not found)
-            // Try to find it as a named function in context using the stack position
-            // For now, error out
-            throw new FunctionUndefinedError(token, "<unknown>");
+            throw new FunctionUndefinedError(token, callName ?? "<unknown>");
         }
 
         // Interpreter fallback for builtins / tree-walked functions
@@ -1320,6 +1330,14 @@ internal static class VMFrameExt
 {
     internal static Token GetToken(this VMFrame frame)
     {
-        return frame.CallSiteToken ?? Token.Eof;
+        if (frame.CallSiteToken is { } cst)
+            return cst;
+
+        // No call-site token (e.g. top-level frame): build one from the chunk's
+        // debug info so errors point at the right file and line.
+        int instrIdx = Math.Max(0, frame.IP - 1);
+        int line     = frame.Chunk.GetLine(instrIdx);
+        int fileId   = frame.Chunk.GetFileId(instrIdx);
+        return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(fileId, line, 0), string.Empty, Value.Default);
     }
 }
