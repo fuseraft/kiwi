@@ -1,0 +1,145 @@
+/# ==============================================================================
+   Testing csv::pipeline() — fluent CSV parsing with schemas and datasets.
+  ============================================================================== #/
+@tester::test("csv pipeline")
+fn test_csv_pipeline()
+  # -----------------------------------------------------------------------
+  # Write temporary CSV fixtures
+  # -----------------------------------------------------------------------
+  users_csv  = "/tmp/kiwi_test_users.csv"
+  orders_csv = "/tmp/kiwi_test_orders.csv"
+  nohead_csv = "/tmp/kiwi_test_nohead.csv"
+  multi1_csv = "/tmp/kiwi_test_multi1.csv"
+  multi2_csv = "/tmp/kiwi_test_multi2.csv"
+
+  fio::write(users_csv,  "name,id,active,score\nAlice,1,true,9.5\nBob,2,false,7.0\nCarol,3,true,8.25\n")
+  fio::write(orders_csv, "product,qty\nWidget,10\nGadget,5\n")
+  fio::write(nohead_csv, "Dave,4,yes,6.0\nEve,5,no,5.5\n")
+  fio::write(multi1_csv, "x,y\n1,2\n3,4\n")
+  fio::write(multi2_csv, "a,b\n10,20\n30,40\n")
+
+  # -----------------------------------------------------------------------
+  # A1: Single file, headers from CSV, no schema — list of hashmaps
+  # -----------------------------------------------------------------------
+  rows = csv::pipeline().from_file(users_csv).parse()
+  tester::assert(rows.size() == 3,               "A1a: three data rows")
+  tester::assert(rows[0]["name"] == "Alice",     "A1b: first row name")
+  tester::assert(rows[0]["id"]   == "1",         "A1c: id is string without schema")
+
+  # -----------------------------------------------------------------------
+  # A2: Single file with schema — typed values
+  # -----------------------------------------------------------------------
+  typed = csv::pipeline()
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(users_csv)
+    .parse()
+  tester::assert(typed[0]["id"]     == 1,    "A2a: integer coercion")
+  tester::assert(typed[0]["score"]  == 9.5,  "A2b: float coercion")
+  tester::assert(typed[0]["active"] == true, "A2c: boolean true coercion")
+  tester::assert(typed[1]["active"] == false,"A2d: boolean false coercion")
+
+  # -----------------------------------------------------------------------
+  # A3: Custom headers (no header row in file)
+  # -----------------------------------------------------------------------
+  custom = csv::pipeline()
+    .with_headers(["name", "id", "active", "score"])
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(nohead_csv)
+    .parse()
+  tester::assert(custom.size() == 2,            "A3a: two rows")
+  tester::assert(custom[0]["name"] == "Dave",   "A3b: custom header name")
+  tester::assert(custom[0]["id"]   == 4,        "A3c: custom header integer")
+  tester::assert(custom[0]["active"] == true,   "A3d: yes -> true")
+  tester::assert(custom[1]["active"] == false,  "A3e: no -> false")
+
+  # -----------------------------------------------------------------------
+  # A4: Single named dataset — returns hashmap
+  # -----------------------------------------------------------------------
+  ds = csv::pipeline()
+    .from_file(users_csv).as_dataset("users")
+    .parse()
+  tester::assert(typeof(ds) == "hashmap",        "A4a: dataset result is hashmap")
+  users = ds["users"]
+  tester::assert(users.size() == 3,              "A4b: three users in dataset")
+  tester::assert(users[0]["name"] == "Alice",    "A4c: first user name")
+
+  # -----------------------------------------------------------------------
+  # A5: Multiple named datasets
+  # -----------------------------------------------------------------------
+  multi = csv::pipeline()
+    .from_file(users_csv).as_dataset("users")
+    .from_file(orders_csv).as_dataset("orders")
+    .parse()
+  tester::assert(typeof(multi) == "hashmap",     "A5a: multi-dataset result is hashmap")
+  tester::assert(multi["users"].size()  == 3,    "A5b: three users")
+  tester::assert(multi["orders"].size() == 2,    "A5c: two orders")
+  tester::assert(multi["orders"][0]["product"] == "Widget", "A5d: first order product")
+
+  # -----------------------------------------------------------------------
+  # A6: Multiple unnamed files — returns list of lists
+  # -----------------------------------------------------------------------
+  both = csv::pipeline()
+    .from_file(multi1_csv)
+    .from_file(multi2_csv)
+    .parse()
+  tester::assert(typeof(both) == "list",         "A6a: multi-file result is list")
+  tester::assert(both.size() == 2,               "A6b: two sub-lists")
+  tester::assert(both[0][0]["x"] == "1",         "A6c: first file first row x")
+  tester::assert(both[1][0]["a"] == "10",        "A6d: second file first row a")
+
+  # -----------------------------------------------------------------------
+  # A7: Mixed mode raises error
+  # -----------------------------------------------------------------------
+  mixed_ok = false
+  try
+    csv::pipeline()
+      .from_file(users_csv).as_dataset("users")
+      .from_file(orders_csv)
+      .parse()
+  catch err
+    mixed_ok = true
+  end
+  tester::assert(mixed_ok, "A7: mixed dataset/unnamed raises error")
+
+  # -----------------------------------------------------------------------
+  # A8: as_dataset before from_file raises error
+  # -----------------------------------------------------------------------
+  order_ok = false
+  try
+    csv::pipeline().as_dataset("bad").parse()
+  catch err
+    order_ok = true
+  end
+  tester::assert(order_ok, "A8: as_dataset before from_file raises error")
+
+  # -----------------------------------------------------------------------
+  # A9: Missing file raises error
+  # -----------------------------------------------------------------------
+  missing_ok = false
+  try
+    csv::pipeline().from_file("/tmp/kiwi_no_such_file.csv").parse()
+  catch err
+    missing_ok = true
+  end
+  tester::assert(missing_ok, "A9: missing file raises error")
+
+  # -----------------------------------------------------------------------
+  # A10: Custom delimiter
+  # -----------------------------------------------------------------------
+  tsv_path = "/tmp/kiwi_test_tab.csv"
+  fio::write(tsv_path, "name\tvalue\nalpha\t1\nbeta\t2\n")
+  tsv = csv::pipeline().with_delimiter("\t").from_file(tsv_path).parse()
+  tester::assert(tsv.size() == 2,             "A10a: two tsv rows")
+  tester::assert(tsv[0]["name"] == "alpha",   "A10b: tsv first name")
+  tester::assert(tsv[1]["value"] == "2",      "A10c: tsv second value")
+
+  # -----------------------------------------------------------------------
+  # Cleanup
+  # -----------------------------------------------------------------------
+  fio::remove(users_csv)
+  fio::remove(orders_csv)
+  fio::remove(nohead_csv)
+  fio::remove(multi1_csv)
+  fio::remove(multi2_csv)
+  fio::remove(tsv_path)
+end
