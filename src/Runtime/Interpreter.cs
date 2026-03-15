@@ -190,7 +190,12 @@ public class Interpreter
                 return vm.InvokeVMCallable(kl, args, token, instance);
         }
 
-        var scope = new Scope(callable.CapturedScope ?? _globalScope);
+        // Rent a Scope from the pool (or allocate if empty).
+        // Reset() sets IsBlockScope=true so the scope is eligible to be returned after the call.
+        var parentScope = callable.CapturedScope ?? _globalScope;
+        var scope = _scopePool.Count > 0 ? _scopePool.Pop() : new Scope();
+        scope.Reset(parentScope);
+
         var frame = new StackFrame(displayName, scope, token);
 
         BindParameters(callable, args, token, displayName, scope);
@@ -231,6 +236,10 @@ public class Interpreter
         finally
         {
             PopFrame();
+            // Return the call scope to the pool if no nested lambda captured it.
+            // Cap the pool at 64 to avoid unbounded growth in deeply-recursive code.
+            if (scope.CanPool && _scopePool.Count < 64)
+                _scopePool.Push(scope);
         }
     }
 

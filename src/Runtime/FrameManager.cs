@@ -87,10 +87,12 @@ internal sealed class FrameManager
         if (frame.IsFunction)
         {
             var ctx = _getContext();
-            foreach (var fname in frame.LocalFunctions)
-                ctx.Functions.Remove(fname);
-            foreach (var lname in frame.LocalLambdas)
-                ctx.Lambdas.Remove(lname);
+            if (frame.HasLocalFunctions)
+                foreach (var fname in frame.LocalFunctions)
+                    ctx.Functions.Remove(fname);
+            if (frame.HasLocalLambdas)
+                foreach (var lname in frame.LocalLambdas)
+                    ctx.Lambdas.Remove(lname);
         }
 
         var ret = frame.ReturnValue ?? Value.Default;
