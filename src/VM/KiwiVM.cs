@@ -262,10 +262,19 @@ public sealed class KiwiVM
                         // Slow path: full resolution (result cached for stable entries)
                         if (_context.HasFunction(name))
                         {
-                            var fn = _context.Functions[name];
-                            var v  = Value.CreateLambda(new LambdaRef { Identifier = name, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues });
-                            _nameCache[name] = v; // cached; invalidated on DefFunc
-                            Push(v);
+                            // A user-assigned global (e.g. an object) shadows a stdlib function
+                            // of the same name, matching the tree-walker's scope-first lookup.
+                            if (_globals.TryGet(name, out var gv) && !gv.IsNull())
+                            {
+                                Push(gv);
+                            }
+                            else
+                            {
+                                var fn = _context.Functions[name];
+                                var v  = Value.CreateLambda(new LambdaRef { Identifier = name, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues });
+                                _nameCache[name] = v; // cached; invalidated on DefFunc
+                                Push(v);
+                            }
                         }
                         else if (_context.HasLambda(name))
                         {
