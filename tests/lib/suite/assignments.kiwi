@@ -48,4 +48,36 @@ fn test_assignments()
   nums = [100, 200, 300]
   x, y, z =< nums
   tester::assert(x == 100 and y == 200 and z == 300, "A14: unpack from list")
+
+  # when/else on assignment — true branch
+  v = "yes" when true else "no"
+  tester::assert(v == "yes", "A15: when/else true branch")
+
+  # when/else on assignment — false branch
+  v = "yes" when false else "no"
+  tester::assert(v == "no", "A16: when/else false branch")
+
+  # when/else with expression condition
+  score = 95
+  grade = "pass" when score >= 60 else "fail"
+  tester::assert(grade == "pass", "A17: when/else pass")
+  grade = "pass" when score < 60 else "fail"
+  tester::assert(grade == "fail", "A18: when/else fail")
+
+  # when/else — only true branch fires, variable unchanged when false (no else)
+  flag = "original"
+  flag = "changed" when false
+  tester::assert(flag == "original", "A19: when without else leaves var unchanged")
+
+  # when/else with expression as else value (same variable)
+  counter = 10
+  counter = counter + 5 when false else counter + 100
+  tester::assert(counter == 110, "A20: when/else else-expression applied to same variable")
+
+  # when/else — general statement guard
+  out = ""
+  out = "a" when true else out = "b"
+  tester::assert(out == "a", "A21: statement guard when/else true")
+  out = "a" when false else out = "b"
+  tester::assert(out == "b", "A22: statement guard when/else false")
 end

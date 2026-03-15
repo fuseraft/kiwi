@@ -190,7 +190,23 @@ public partial class Parser
             }
 
             var whenCondition = ParseExpression();
-            node = new IfNode { Condition = whenCondition, Body = [node], Token = nodeToken };
+            var ifNode = new IfNode { Condition = whenCondition, Body = [node], Token = nodeToken };
+
+            if (MatchName(TokenName.KW_Else))
+            {
+                if (GetTokenType() == TokenType.Eof)
+                {
+                    throw new SyntaxError(GetErrorToken(), "Expected statement after 'else'.");
+                }
+
+                var elseStmt = ParseStatement(applyWhenGuard: false);
+                if (elseStmt != null)
+                {
+                    ifNode.ElseBody.Add(elseStmt);
+                }
+            }
+
+            node = ifNode;
         }
 
         if (node != null)
@@ -2450,6 +2466,16 @@ public partial class Parser
             }
 
             assignment.Condition = ParseExpression();
+
+            if (MatchName(TokenName.KW_Else))
+            {
+                if (!HasValue())
+                {
+                    throw new SyntaxError(GetErrorToken(), "Expected expression after 'else'.");
+                }
+
+                assignment.ElseInitializer = ParseExpression();
+            }
         }
 
         return assignment;

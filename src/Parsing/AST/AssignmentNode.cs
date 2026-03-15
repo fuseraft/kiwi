@@ -7,6 +7,7 @@ public class AssignmentNode(ASTNode? left, string name, TokenName op, ASTNode? i
     public TokenName Op { get; set; } = op;
     public ASTNode? Initializer { get; set; } = initializer;
     public ASTNode? Condition { get; set; } = null;
+    public ASTNode? ElseInitializer { get; set; } = null;
 
     public override void Print(int depth)
     {
@@ -20,6 +21,7 @@ public class AssignmentNode(ASTNode? left, string name, TokenName op, ASTNode? i
     public override ASTNode Clone() => new AssignmentNode(Left?.Clone(), Name, Op, Initializer?.Clone())
     {
         Condition = Condition?.Clone(),
+        ElseInitializer = ElseInitializer?.Clone(),
         Token = Token
     };
 }
