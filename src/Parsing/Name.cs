@@ -25,6 +25,8 @@ public enum TokenName
   Builtin_Compression_ZipExtract,
   Builtin_Csv_Parse,
   Builtin_Csv_ParseFile,
+  Builtin_Csv_ParseMaps,
+  Builtin_Csv_ParseFileMaps,
   Builtin_Sqlite_Open,
   Builtin_Sqlite_Close,
   Builtin_Sqlite_Exec,

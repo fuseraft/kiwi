@@ -232,6 +232,15 @@ package csv
     @return list : List of hashmaps mapping column names to (optionally coerced) values.
     @throws string : If the file does not exist.
     #/
+    /#
+    @summary Parses a single file entry into a list of hashmaps.
+    @description Delegates entirely to the native `__csv_parsefile_maps__` builtin
+                 for maximum performance. Headers and schema coercion are applied
+                 in C# without any per-row Kiwi dispatch.
+    @param hashmap entry : A file descriptor created by `from_file()`.
+    @return list : List of hashmaps mapping column names to (optionally coerced) values.
+    @throws string : If the file does not exist.
+    #/
     fn _parse_file(entry: hashmap): list
       path      = entry["path"]
       delimiter = entry["delimiter"]
@@ -240,64 +249,7 @@ package csv
       if !fio::isfile(path)
         throw "CsvPipeline: file does not exist: ${path}"
       end
-      rows = __csv_parsefile__(path, delimiter)
-      if rows.size() == 0
-        return []
-      end
-      data_rows = null
-      if headers != null
-        data_rows = rows
-      else
-        headers   = rows[0]
-        data_rows = rows[1:]
-      end
-      result = []
-      for row in data_rows do
-        record = {}
-        col_count = headers.size()
-        for i in [0 to col_count - 1] do
-          val = null
-          if i < row.size()
-            val = row[i]
-          end
-          if schema != null && i < schema.size() && val != null
-            val = @._coerce(val, schema[i])
-          end
-          record[headers[i]] = val
-        end
-        result.push(record)
-      end
-      result
-    end
-
-    /#
-    @summary Coerces a string value to the given schema type.
-    @param string value       : The raw string value from the CSV.
-    @param string schema_type : One of `"string"`, `"integer"`, `"float"`, `"boolean"`, `"date"`, `"null"`.
-    @return any : The coerced value, or the original string for unrecognised types.
-    #/
-    fn _coerce(value: string, schema_type: string)
-      t = schema_type.lowercase()
-      if t == "string"
-        return value
-      end
-      if t == "integer" || t == "int"
-        return value.to_integer()
-      end
-      if t == "float" || t == "double" || t == "number"
-        return value.to_float()
-      end
-      if t == "boolean" || t == "bool"
-        lv = value.lowercase()
-        return lv == "true" || lv == "1" || lv == "yes"
-      end
-      if t == "date"
-        return time::parse(value)
-      end
-      if t == "null" || t == "none"
-        return null
-      end
-      value
+      __csv_parsefile_maps__(path, delimiter, headers, schema)
     end
   end
 

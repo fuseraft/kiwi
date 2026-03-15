@@ -807,13 +807,23 @@ public class Interpreter
 
         // Evaluate the when-guard condition BEFORE the RHS initializer so that
         // `x += expensive() when cond` only calls expensive() when cond is true.
+        // `x = a when cond else b` assigns b when condition is falsy.
         if (node.Condition != null)
         {
             var eval = Interpret(node.Condition);
 
             if (!BooleanOp.IsTruthy(eval))
             {
-                return Value.Default;
+                if (node.ElseInitializer == null)
+                {
+                    return Value.Default;
+                }
+
+                // Condition is false and an else-initializer exists: assign it instead.
+                node = new AssignmentNode(node.Left, node.Name, node.Op, node.ElseInitializer)
+                {
+                    Token = node.Token
+                };
             }
         }
 

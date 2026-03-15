@@ -1,0 +1,214 @@
+/#
+  CSV Pipeline Stress / Benchmark Suite
+
+  Generates CSV fixtures of varying shapes, then runs the pipeline under
+  bench::register so every case gets warmed up and averaged.
+
+  Fixtures (written once before benchmarks, deleted at the end):
+    /tmp/kiwi_bench_10k.csv      — 10 000 rows, 4 cols, with schema
+    /tmp/kiwi_bench_50k.csv      — 50 000 rows, 4 cols, no schema
+    /tmp/kiwi_bench_wide.csv     — 2 000 rows, 20 cols
+    /tmp/kiwi_bench_nohead.csv   — 5 000 rows, no header row
+    /tmp/kiwi_bench_tsv.csv      — 5 000 rows, tab-delimited
+    /tmp/kiwi_bench_ds_a.csv     — 5 000 rows (dataset A)
+    /tmp/kiwi_bench_ds_b.csv     — 5 000 rows (dataset B)
+    /tmp/kiwi_bench_empty.csv    — header only, no data rows
+    /tmp/kiwi_bench_sparse.csv   — 1 000 rows with empty fields
+    /tmp/kiwi_bench_quoted.csv   — 2 000 rows with quoted, comma-embedded fields
+
+  Run from the project root: kiwi tests/bench_csv_pipeline
+#/
+
+# ─── fixture helpers ──────────────────────────────────────────────────────────
+
+fn gen_rows(n: integer): string
+  lines = ["name,id,active,score"]
+  repeat n as i do
+    active = "true" when i % 2 == 0 else "false"
+    score  = (i % 100).to_string() + ".5"
+    lines.push("user_${i},${i},${active},${score}")
+  end
+  lines.join("\n") + "\n"
+end
+
+fn gen_wide_rows(n: integer, cols: integer): string
+  header = [0 to cols - 1].map(with (i) do "col${i}" end).join(",")
+  lines = [header]
+  repeat n as r do
+    vals = [0 to cols - 1].map(with (c) do (r * cols + c).to_string() end)
+    lines.push(vals.join(","))
+  end
+  lines.join("\n") + "\n"
+end
+
+fn gen_nohead_rows(n: integer): string
+  lines = []
+  repeat n as i do
+    active = "yes" when i % 2 == 0 else "no"
+    lines.push("user_${i},${i},${active},${(i % 100).to_string()}.0")
+  end
+  lines.join("\n") + "\n"
+end
+
+fn gen_tsv_rows(n: integer): string
+  lines = ["name\tid\tactive\tscore"]
+  repeat n as i do
+    active = "true" when i % 2 == 0 else "false"
+    lines.push("user_${i}\t${i}\t${active}\t${(i % 100).to_string()}.5")
+  end
+  lines.join("\n") + "\n"
+end
+
+fn gen_sparse_rows(n: integer): string
+  lines = ["name,id,active,score"]
+  repeat n as i do
+    name   = "user_${i}" when i % 5 != 0 else ""
+    active = "true" when i % 3 != 0 else ""
+    lines.push("${name},${i},${active},")
+  end
+  lines.join("\n") + "\n"
+end
+
+fn gen_quoted_rows(n: integer): string
+  lines = ["name,description,id,score"]
+  repeat n as i do
+    desc = "\"item ${i}, the best\""
+    lines.push("user_${i},${desc},${i},${(i % 100).to_string()}.0")
+  end
+  lines.join("\n") + "\n"
+end
+
+# ─── write fixtures ───────────────────────────────────────────────────────────
+
+var (
+  f_10k    : string = "/tmp/kiwi_bench_10k.csv",
+  f_50k    : string = "/tmp/kiwi_bench_50k.csv",
+  f_wide   : string = "/tmp/kiwi_bench_wide.csv",
+  f_nohead : string = "/tmp/kiwi_bench_nohead.csv",
+  f_tsv    : string = "/tmp/kiwi_bench_tsv.csv",
+  f_ds_a   : string = "/tmp/kiwi_bench_ds_a.csv",
+  f_ds_b   : string = "/tmp/kiwi_bench_ds_b.csv",
+  f_empty  : string = "/tmp/kiwi_bench_empty.csv",
+  f_sparse : string = "/tmp/kiwi_bench_sparse.csv",
+  f_quoted : string = "/tmp/kiwi_bench_quoted.csv"
+)
+
+println "Generating fixtures..."
+fio::write(f_10k,    gen_rows(10000))
+fio::write(f_50k,    gen_rows(50000))
+fio::write(f_wide,   gen_wide_rows(2000, 20))
+fio::write(f_nohead, gen_nohead_rows(5000))
+fio::write(f_tsv,    gen_tsv_rows(5000))
+fio::write(f_ds_a,   gen_rows(5000))
+fio::write(f_ds_b,   gen_rows(5000))
+fio::write(f_empty,  "name,id,active,score\n")
+fio::write(f_sparse, gen_sparse_rows(1000))
+fio::write(f_quoted, gen_quoted_rows(2000))
+println "Done. Running benchmarks...\n"
+
+# ─── benchmarks ───────────────────────────────────────────────────────────────
+
+bench::register("csv pipeline: 10k rows, no schema", with do
+  csv::pipeline().from_file(f_10k).parse()
+end)
+
+bench::register("csv pipeline: 10k rows, with schema", with do
+  csv::pipeline()
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(f_10k)
+    .parse()
+end)
+
+bench::register("csv pipeline: 50k rows, no schema", with do
+  csv::pipeline().from_file(f_50k).parse()
+end)
+
+bench::register("csv pipeline: 50k rows, with schema", with do
+  csv::pipeline()
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(f_50k)
+    .parse()
+end)
+
+bench::register("csv pipeline: wide (2k rows x 20 cols)", with do
+  csv::pipeline().from_file(f_wide).parse()
+end)
+
+bench::register("csv pipeline: custom headers, 5k rows", with do
+  csv::pipeline()
+    .with_headers(["name", "id", "active", "score"])
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(f_nohead)
+    .parse()
+end)
+
+bench::register("csv pipeline: tab-delimited, 5k rows", with do
+  csv::pipeline()
+    .with_delimiter("\t")
+    .from_file(f_tsv)
+    .parse()
+end)
+
+bench::register("csv pipeline: two named datasets, 5k rows each", with do
+  csv::pipeline()
+    .from_file(f_ds_a).as_dataset("a")
+    .from_file(f_ds_b).as_dataset("b")
+    .parse()
+end)
+
+bench::register("csv pipeline: two unnamed files (multi-result)", with do
+  csv::pipeline()
+    .from_file(f_ds_a)
+    .from_file(f_ds_b)
+    .parse()
+end)
+
+bench::register("csv pipeline: empty file (header only)", with do
+  csv::pipeline().from_file(f_empty).parse()
+end)
+
+bench::register("csv pipeline: sparse fields, 1k rows", with do
+  csv::pipeline()
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(f_sparse)
+    .parse()
+end)
+
+bench::register("csv pipeline: quoted fields, 2k rows", with do
+  csv::pipeline().from_file(f_quoted).parse()
+end)
+
+bench::register("csv pipeline: schema coerce only (boolean/float)", with do
+  rows = csv::pipeline()
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(f_10k)
+    .parse()
+  rows.filter(with (r) do r["active"] end).size()
+end)
+
+bench::register("csv pipeline: schema + map over result, 10k", with do
+  rows = csv::pipeline()
+    .with_schema(["string", "integer", "boolean", "float"])
+    .from_file(f_10k)
+    .parse()
+  rows.map(with (r) do r["score"] end).sum()
+end)
+
+# ─── run ──────────────────────────────────────────────────────────────────────
+
+bench::run_all(10, 2)
+
+# ─── cleanup ──────────────────────────────────────────────────────────────────
+
+println "\nCleaning up fixtures..."
+fio::remove(f_10k)
+fio::remove(f_50k)
+fio::remove(f_wide)
+fio::remove(f_nohead)
+fio::remove(f_tsv)
+fio::remove(f_ds_a)
+fio::remove(f_ds_b)
+fio::remove(f_empty)
+fio::remove(f_sparse)
+fio::remove(f_quoted)
+println "Done."
