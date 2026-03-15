@@ -1,9 +1,10 @@
 /# ==============================================================================
-   Testing the xml stdlib module: parsing, querying, and serialization.
-  ============================================================================== #/
+  Testing the xml stdlib module: parsing, querying, and serialization.
+ ============================================================================== #/
 require "xml"
 
-tester::register_test("xml", with do
+@tester::test("xml")
+fn test_xml()
   # Basic parse: root tag and attributes
   doc = xml::parse('<root lang="en" version="2"/>')
   tester::assert(doc.tag == "root",               "A1: root tag")
@@ -77,4 +78,4 @@ tester::register_test("xml", with do
     caught = true
   end
   tester::assert(caught, "A31: parse_file throws on missing file")
-end)
+end

@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing assignment operations: chained assignment, compound operators,
-    list index assignment, hashmap key assignment, and swap via unpacking.
-   ============================================================================== #/
-tester::register_test("assignments", with do
+   Testing assignment operations: chained assignment, compound operators,
+   list index assignment, hashmap key assignment, and swap via unpacking.
+  ============================================================================== #/
+@tester::test("assignments")
+fn test_assignments()
   # chained assignment: all variables receive the same value
   a = b = c = 10
   tester::assert(a == 10 and b == 10 and c == 10, "A1: chained assignment")
@@ -47,4 +48,4 @@ tester::register_test("assignments", with do
   nums = [100, 200, 300]
   x, y, z =< nums
   tester::assert(x == 100 and y == 200 and z == 300, "A14: unpack from list")
-end)
+end

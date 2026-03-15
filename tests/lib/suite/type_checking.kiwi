@@ -1,10 +1,11 @@
 /# ==============================================================================
-    Testing all the ways we can do type-checking in kiwi. Primitive types have 
-    the `is_a` and `type` builtins available. 
+   Testing all the ways we can do type-checking in kiwi. Primitive types have
+   the `is_a` and `type` builtins available.
 
-    The `typeof` builtin method works on any type including user-defined types. 
-   ============================================================================== #/
-tester::register_test("type checks", with do
+   The `typeof` builtin method works on any type including user-defined types.
+  ============================================================================== #/
+@tester::test("type checks")
+fn test_type_checks()
   s = "kiwi"
   i = 100
   d = 3.14159
@@ -26,4 +27,4 @@ tester::register_test("type checks", with do
   tester::assert(h.a.is_a(list), "A7")
   tester::assert(typeof(h) == "hashmap", "A8")
   tester::assert(typeof(ss) == "SS", "A9")
-end)
+end

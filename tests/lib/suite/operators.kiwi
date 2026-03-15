@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing operators and the ability to bit-twiddle with kiwi.
-   ============================================================================== #/
-tester::register_test("operators", with do
+   Testing operators and the ability to bit-twiddle with kiwi.
+  ============================================================================== #/
+@tester::test("operators")
+fn test_operators()
   # arithmetic
   tester::assert(10 + 20 == 30)   # addition
   tester::assert(10 - 20 == -10)  # subtraction
@@ -10,7 +11,7 @@ tester::register_test("operators", with do
   tester::assert(10 % 2 == 0)     # modulo division
   tester::assert(10 ** 2 == 100)  # exponentiation
 
-  # logical or 
+  # logical or
   tester::assert(not (false or false))
   tester::assert(false or true)
   tester::assert(true or false)
@@ -53,4 +54,4 @@ tester::register_test("operators", with do
   a = a ^ b
   tester::assert(b == old_a)
   tester::assert(a == old_b)
-end)
+end

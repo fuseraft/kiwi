@@ -1,10 +1,11 @@
 /# ==============================================================================
-    Testing the `date` package — method-style date arithmetic and component
-    accessors on the built-in `date` type.
+   Testing the `date` package — method-style date arithmetic and component
+   accessors on the built-in `date` type.
 
-    Base date: 2024-03-15 10:30:45.500  (Friday, day 75 of year, leap year)
-   ============================================================================== #/
-tester::register_test("dates", with do
+   Base date: 2024-03-15 10:30:45.500  (Friday, day 75 of year, leap year)
+  ============================================================================== #/
+@tester::test("dates")
+fn test_dates()
   base = d(2024, 3, 15, 10, 30, 45, 500)
 
   # -----------------------------------------------------------------------
@@ -101,4 +102,4 @@ tester::register_test("dates", with do
 
   r = base.add_years(1).add_months(-3).add_days(10)  # Mar 2025 - 3m + 10d = Dec 25, 2024
   tester::assert(r.year() == 2024 && r.month() == 12 && r.day() == 25, "chain: add_years(1).add_months(-3).add_days(10)")
-end)
+end

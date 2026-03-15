@@ -1,7 +1,8 @@
 /# ==============================================================================
-   Testing dotenv package: parse, parse_file, load.
-   ============================================================================== #/
-tester::register_test("dotenv", with do
+  Testing dotenv package: parse, parse_file, load.
+  ============================================================================== #/
+@tester::test("dotenv")
+fn test_dotenv()
   # --- dotenv::parse ---
 
   sample = "# comment line\n\nKEY1=hello\nKEY2=world\nKEY3=  spaced  \n"
@@ -81,4 +82,4 @@ tester::register_test("dotenv", with do
     threw = true
   end
   tester::assert(threw, "D20")
-end)
+end

@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing the min and max heaps from the `collections` package in the standard
-    library.
-   ============================================================================== #/
-tester::register_test("heaps", with do
+   Testing the min and max heaps from the `collections` package in the standard
+   library.
+  ============================================================================== #/
+@tester::test("heaps")
+fn test_heaps()
   min_heap = Heap.new("min")
   max_heap = Heap.new("max")
 
@@ -25,4 +26,4 @@ tester::register_test("heaps", with do
   # Extract root from max-heap
   tester::assert(max_heap.extract_root() == 8, "expected root of max heap to be 8")
   tester::assert(max_heap.extract_root() == 5, "expected next root of max heap to be 5")
-end)
+end

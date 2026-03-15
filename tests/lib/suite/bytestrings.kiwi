@@ -1,4 +1,5 @@
-tester::register_test("byte strings", with do
+@tester::test("byte strings")
+fn test_byte_strings()
   # Basic empty bytes
   empty_bytes = b""
   tester::assert(empty_bytes.size() == 0, "expected empty bytes")
@@ -21,4 +22,4 @@ tester::register_test("byte strings", with do
 
   tester::assert(hello == old_way_str, "bytestring did not match expected value")
   tester::assert(hello == old_way_list, "bytestring did not match expected value")
-end)
+end

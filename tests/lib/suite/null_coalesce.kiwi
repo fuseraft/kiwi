@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing the null-coalesce operator `??`: short-circuit, chaining,
-    mixed types, function results, and use in assignment.
-   ============================================================================== #/
-tester::register_test("null-coalesce", with do
+   Testing the null-coalesce operator `??`: short-circuit, chaining,
+   mixed types, function results, and use in assignment.
+  ============================================================================== #/
+@tester::test("null-coalesce")
+fn test_null_coalesce()
   fn returns_null()
     null
   end
@@ -35,4 +36,4 @@ tester::register_test("null-coalesce", with do
 
   # chained all-null falls to last
   tester::assert((null ?? null ?? null ?? "last") == "last", "A11: all-null chain")
-end)
+end

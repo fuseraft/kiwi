@@ -1,10 +1,11 @@
 /# ==============================================================================
-   Testing the protobuf stdlib module: encode, decode, field types, nested
-   messages, repeated fields, file I/O, and the field() helper.
-  ============================================================================== #/
+  Testing the protobuf stdlib module: encode, decode, field types, nested
+  messages, repeated fields, file I/O, and the field() helper.
+ ============================================================================== #/
 require "protobuf"
 
-tester::register_test("protobuf", with do
+@tester::test("protobuf")
+fn test_protobuf()
   # ---- A: scalar field types ----
 
   scalar_schema = {
@@ -240,4 +241,4 @@ tester::register_test("protobuf", with do
   fh2_enc = protobuf::encode(fh2_schema, { msg: { v: 99 } })
   fh2_dec = protobuf::decode(fh2_schema, fh2_enc)
   tester::assert(fh2_dec["msg"]["v"] == 99, "J5: field() helper with nested schema")
-end)
+end

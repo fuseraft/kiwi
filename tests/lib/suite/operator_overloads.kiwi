@@ -1,6 +1,6 @@
 /# ==============================================================================
-    Testing operator overloads.
-   ============================================================================== #/
+   Testing operator overloads.
+  ============================================================================== #/
 
 # -- Number: arithmetic and equality --------------------------------------------
 
@@ -85,7 +85,8 @@ fn number(_value): Number
   Number.new(_value)
 end
 
-tester::register_test("operator overloads: arithmetic", with do
+@tester::test("operator overloads: arithmetic")
+fn test_operator_overloads_arithmetic()
   n = number(10)
 
   # + struct-to-struct and struct-to-raw
@@ -114,9 +115,10 @@ tester::register_test("operator overloads: arithmetic", with do
 
   # chained
   tester::assert(((n + 5) * number(2)).get_value() == 30, "(10 + 5) * 2 == 30")
-end)
+end
 
-tester::register_test("operator overloads: comparison", with do
+@tester::test("operator overloads: comparison")
+fn test_operator_overloads_comparison()
   a = number(5)
   b = number(10)
 
@@ -138,11 +140,12 @@ tester::register_test("operator overloads: comparison", with do
   tester::assert(pi != 3.0,       "pi != 3.0")
   tester::assert(pi > 3,          "pi > 3")
   tester::assert(pi < 4,          "pi < 4")
-end)
+end
 
 # -- Vec2: multi-operator struct -------------------------------------------------
 
-tester::register_test("operator overloads: Vec2", with do
+@tester::test("operator overloads: Vec2")
+fn test_operator_overloads_vec2()
   struct Vec2
     fn new(x, y)
       @x = x
@@ -192,11 +195,12 @@ tester::register_test("operator overloads: Vec2", with do
   # chained
   chain = (a + b) * 2
   tester::assert(chain.x == 8 && chain.y == 12, "Vec2 chained (a+b)*2 == (8,12)")
-end)
+end
 
 # -- Inheritance: overloads flow to derived structs ------------------------------
 
-tester::register_test("operator overloads: inheritance", with do
+@tester::test("operator overloads: inheritance")
+fn test_operator_overloads_inheritance()
   struct BaseVal
     fn new(v)
       @v = v
@@ -226,4 +230,4 @@ tester::register_test("operator overloads: inheritance", with do
   tester::assert(sum.v == 10,         "inherited +: 4 + 6 == 10")
   tester::assert(x == DerivedVal.new(4), "inherited ==: 4 == 4")
   tester::assert(!(x == y),           "inherited ==: 4 != 6")
-end)
+end

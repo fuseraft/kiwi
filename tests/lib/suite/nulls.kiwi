@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing null values.
-   ============================================================================== #/
-tester::register_test("nulls", with do
+   Testing null values.
+  ============================================================================== #/
+@tester::test("nulls")
+fn test_nulls()
   var (e: hashmap = {a: null, b: null})
   tester::assert(e.get("a") == null, "A1")
   tester::assert(e.get("b") == null, "A2")
@@ -24,4 +25,4 @@ tester::register_test("nulls", with do
 
   tester::assert(not null, "A9")
   tester::assert(not not not null, "A10")
-end)
+end

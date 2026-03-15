@@ -1,7 +1,8 @@
 /# ==============================================================================
-   Testing the regex package.
-   ============================================================================== #/
-tester::register_test("regex", with do
+  Testing the regex package.
+  ============================================================================== #/
+@tester::test("regex")
+fn test_regex()
 
   # --- regex::test ---
   tester::assert(regex::test('\d+', "abc123"), "R1")
@@ -75,4 +76,4 @@ tester::register_test("regex", with do
   tester::assert(regex::escape("").empty(), "R38")
   tester::assert(regex::escape("abc") == "abc", "R39")
 
-end)
+end

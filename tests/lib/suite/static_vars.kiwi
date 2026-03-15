@@ -1,7 +1,8 @@
 /# ==============================================================================
-   Testing static variables on structs.
-   ============================================================================== #/
-tester::register_test("static_vars", with do
+  Testing static variables on structs.
+  ============================================================================== #/
+@tester::test("static_vars")
+fn test_static_vars()
   # Basic counter: static var incremented by constructor and static method
   struct Counter
     static @count = 0
@@ -113,4 +114,4 @@ tester::register_test("static_vars", with do
   tester::assert(Typed.get_label() == "kiwi",  "A13: type-hinted string static var")
   tester::assert(Typed.get_items() == [],       "A14: type-hinted list static var")
   tester::assert(Typed.get_ratio() == 0.5,     "A15: type-hinted float static var")
-end)
+end

@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing the `iter` package. A package in the standard library that provides
-    an implementation of the iterator pattern for working with list data.
-   ============================================================================== #/
-tester::register_test("iterators", with do
+   Testing the `iter` package. A package in the standard library that provides
+   an implementation of the iterator pattern for working with list data.
+  ============================================================================== #/
+@tester::test("iterators")
+fn test_iterators()
   # Test data
   data = ["apple", "banana", "cherry", "date", "elderberry"]
   empty = []
@@ -107,4 +108,4 @@ tester::register_test("iterators", with do
   tester::assert_eq(it.current(), "date")
   it.reset()
   tester::assert_eq(it.current(), "apple", "reset brings us back to start")
-end)
+end

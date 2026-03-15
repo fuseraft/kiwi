@@ -1,8 +1,9 @@
 /# ==============================================================================
-    Testing constants: multiple types, immutability enforcement, use in
-    expressions, and package-level constants.
-   ============================================================================== #/
-tester::register_test("constants", with do
+   Testing constants: multiple types, immutability enforcement, use in
+   expressions, and package-level constants.
+  ============================================================================== #/
+@tester::test("constants")
+fn test_constants()
   # constants of various types
   const MAX_RETRIES = 3
   const THRESHOLD = 0.75
@@ -46,4 +47,4 @@ tester::register_test("constants", with do
 
   tester::assert(config::VERSION == "1.0.0", "A12: package string constant")
   tester::assert(config::MAX_CONN == 10,     "A13: package integer constant")
-end)
+end

@@ -1,8 +1,9 @@
 /# ==============================================================================
-   Testing chained member/index access: a[i].field, a[i].field[j],
-   expr.method()[i], and deeper chains.
-  ============================================================================== #/
-tester::register_test("chained access", with do
+  Testing chained member/index access: a[i].field, a[i].field[j],
+  expr.method()[i], and deeper chains.
+ ============================================================================== #/
+@tester::test("chained access")
+fn test_chained_access()
   # Basic: list[i][key]
   items = [{"name": "alpha"}, {"name": "beta"}, {"name": "gamma"}]
   tester::assert(items[0]["name"] == "alpha", "A1: list[i][key] first")
@@ -94,4 +95,4 @@ tester::register_test("chained access", with do
 
   ops = Ops.new()
   tester::assert(ops.adder(7)(3) == 10, "B6: struct.method()() immediate invocation")
-end)
+end

@@ -1,7 +1,8 @@
 /# ==============================================================================
-    Testing the decorator syntax (@decorator before fn) and variadic parameters.
-   ============================================================================== #/
-tester::register_test("decorators", with do
+   Testing the decorator syntax (@decorator before fn) and variadic parameters.
+  ============================================================================== #/
+@tester::test("decorators")
+fn test_decorators()
   # -- Variadic params --
 
   fn sum(*args)
@@ -164,4 +165,4 @@ tester::register_test("decorators", with do
   # Confirm the test was registered in the global registry.
   tester::initialize()
   tester::assert(global.unit_tests.has_key("decorator: registered via @tester::test"), "C1")
-end)
+end

@@ -1,22 +1,23 @@
 /# ==============================================================================
-    Testing core hashmap functionality and common builtins.
-   ============================================================================== #/
-tester::register_test("hashmaps", with do
+   Testing core hashmap functionality and common builtins.
+  ============================================================================== #/
+@tester::test("hashmaps")
+fn test_hashmaps()
   var (hash: hashmap = {
-    key1: true, 
-    key2: 1, 
+    key1: true,
+    key2: 1,
     key3: ["a", "b", "c"]
   })
 
   var (other_hashmap: hashmap)
 
-  for key in hash.keys() do 
+  for key in hash.keys() do
     other_hashmap[key] = hash[key]
   end
-  
+
   other_hashmap = {}
   other_hashmap = hash.merge(other_hashmap)
-  
+
   for k in hash.keys() do
     tester::assert(other_hashmap.has_key(k), "A1")
     tester::assert(other_hashmap.get(k).to_string() == hash.get(k).to_string(), "A2")
@@ -31,7 +32,7 @@ tester::register_test("hashmaps", with do
 
   other_hashmap.hello = "world"
   tester::assert(other_hashmap.get("hello") == "world", "A6")
-  
+
   other_hashmap.set("hello", "kiwi")
   tester::assert(other_hashmap.hello == "kiwi", "A7")
-end)
+end
