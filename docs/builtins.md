@@ -250,12 +250,47 @@ println("a.b.c.d".rsplit(".", 1))  # prints: ["a.b.c", "d"]
 println("a.b.c.d".rsplit("."))     # prints: ["a", "b", "c", "d"]
 ```
 
+### `named_captures(regex)`
+
+Returns a hashmap mapping each named capture group to its matched value for the first match of the pattern. Returns an empty hashmap if there is no match or the pattern contains no named groups.
+
+```kiwi
+s = "John Smith, age 42"
+m = s.named_captures('(?<name>\w+ \w+), age (?<age>\d+)')
+println m["name"]  # prints: John Smith
+println m["age"]   # prints: 42
+```
+
+### `regex_escape()`
+
+Escapes all regex metacharacters in the string so it can be used as a literal pattern.
+
+```kiwi
+raw = "2.0 (beta)"
+escaped = raw.regex_escape()
+println escaped  # prints: 2\.0\ \(beta\)
+
+# Safe to use in a pattern now:
+println "version 2.0 (beta)!".matches(".*${escaped}.*")  # prints: true
+```
+
 ### `scan(regex)`
 
 Finds every occurrence of the regex in the string and returns a list of matches.
 
 ```kiwi
 println("s7s s8s s9s".scan('\d'))  # prints: ["7", "8", "9"]
+```
+
+### `scan_groups(regex)`
+
+Like `scan`, but returns **capture groups** for every match instead of the full match text. Each element in the returned list is itself a list of capture group strings for one match.
+
+```kiwi
+text = "2024-01-15, 2024-06-30"
+groups = text.scan_groups('(\d{4})-(\d{2})-(\d{2})')
+println groups
+# prints: [["2024", "01", "15"], ["2024", "06", "30"]]
 ```
 
 ### `split(delim, limit = -1)`
@@ -474,6 +509,22 @@ Filter a list based on a condition.
 words = ["kiwi", "mango", "strawberry"]
 println words.filter(do (w) => w.size() > 4)
 # prints: ["mango", "strawberry"]
+```
+
+### `group_by_field(field)`
+
+Groups a list of hashmaps by a string field in a single O(n) pass. Returns a hashmap whose keys are the distinct values of `field` and whose values are lists of the matching rows. Insertion order of keys is preserved. Rows that are not hashmaps or that are missing `field` are silently skipped.
+
+```kiwi
+rows = [
+  { "region": "West", "sales": 100 },
+  { "region": "East", "sales": 200 },
+  { "region": "West", "sales": 150 },
+]
+
+grouped = rows.group_by_field("region")
+println grouped["West"].size()  # prints: 2
+println grouped["East"].size()  # prints: 1
 ```
 
 ### `first(default = null)`
@@ -1005,4 +1056,84 @@ Serializes a Kiwi value into its string representation.
 ```kiwi
 data = { name: "kiwi", version: 1 }
 println serialize(data)  # prints: {"name": "kiwi", "version": 1}
+```
+
+## Kiwi Global Builtins
+
+These builtins are called as standalone functions (not with dot-notation) and provide runtime introspection.
+
+### `typeof(value)`
+
+Returns the type of `value` as a string. Unlike `.type()`, `typeof` can be called on any expression and works well in situations where method chaining is awkward.
+
+Valid types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `lambda`, `date`, `bytes`, `none`. For struct instances, returns the struct name.
+
+```kiwi
+println typeof(42)          # prints: integer
+println typeof(3.14)        # prints: float
+println typeof("hello")     # prints: string
+println typeof([1, 2, 3])   # prints: list
+println typeof(null)        # prints: none
+
+struct Point end
+p = Point.new()
+println typeof(p)           # prints: Point
+```
+
+### `__execpath__()`
+
+Returns the absolute path of the Kiwi executable. Returns an empty string if the path cannot be determined.
+
+```kiwi
+println __execpath__()  # e.g. /usr/local/bin/kiwi
+```
+
+### `__entrypath__()`
+
+Returns the path of the entry-point script (the `.kiwi` file that was passed to the interpreter). Useful for locating files relative to the running script.
+
+```kiwi
+println __entrypath__()  # e.g. /home/user/scripts/main.kiwi
+```
+
+### `__tokenize__(code)`
+
+Lexes the string `code` using the Kiwi lexer and returns a hashmap. On success the hashmap contains a `"tokens"` key whose value is a list of token descriptors. On failure it contains an `"error"` key with the error message.
+
+Each token descriptor is a hashmap with the following keys:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `"token"` | integer | 1-based sequential token number |
+| `"text"` | string | Raw token text |
+| `"type"` | string | Token type (e.g. `"Keyword"`, `"Identifier"`, `"Literal"`) |
+| `"span"` | hashmap | `{"line": n, "pos": n}` source location |
+
+```kiwi
+result = __tokenize__("x = 1 + 2")
+for tok in result["tokens"]
+  println "${tok["token"]}: '${tok["text"]}' (${tok["type"]}) @ ${tok["span"]["line"]}:${tok["span"]["pos"]}"
+end
+```
+
+### `__memusage__()`
+
+Returns a hashmap of memory diagnostics for the current runtime process.
+
+| Key | Description |
+|-----|-------------|
+| `"working_set"` | OS working-set memory in bytes (resident pages) |
+| `"gc_heap"` | Current .NET GC heap size in bytes |
+| `"gc_total_allocated"` | Total bytes ever allocated on the GC heap |
+| `"gen0_collections"` | Number of Gen-0 GC collections since startup |
+| `"gen1_collections"` | Number of Gen-1 GC collections since startup |
+| `"gen2_collections"` | Number of Gen-2 GC collections since startup |
+
+```kiwi
+mem = __memusage__()
+mb = do (b) => (b / 1048576.0).to_string("f1") + " MB"
+
+println "working set : ${mb(mem["working_set"])}"
+println "gc heap     : ${mb(mem["gc_heap"])}"
+println "gen0 / gen1 / gen2 collections: ${mem["gen0_collections"]} / ${mem["gen1_collections"]} / ${mem["gen2_collections"]}"
 ```
