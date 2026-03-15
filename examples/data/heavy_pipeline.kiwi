@@ -1,0 +1,538 @@
+#!/usr/bin/env kiwi
+/#
+@summary Heavy multi-source data analysis pipeline with benchmarking.
+@description
+  Synthesises five datasets, loads them through csv::pipeline / json::pipeline,
+  enriches via O(1) hashmap lookups, then runs seven analytical queries.
+  Every stage is instrumented with bench decorators.
+
+  Datasets written to /tmp:
+    kiwi_hap_departments.json  —    20 records
+    kiwi_hap_products.json     —   200 records
+    kiwi_hap_employees.csv     — 2,000 records
+    kiwi_hap_sales.csv         — 50,000 records
+    kiwi_hap_returns.csv       —  5,000 records
+
+  Stages:
+    0. Generate — write synthetic fixture files  (@bench::timed on each fn)
+    1. ETL      — load + enrich via pipeline::build  (before/after timing hooks)
+    2. Analyse  — 7 analytical queries              (bench::run, 1 pass each)
+    3. Summary  — repeated microbenchmarks on a 2K-row sample (bench::run_all)
+
+  Run:  kiwi examples/data/heavy_pipeline.kiwi
+#/
+
+# -----------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------
+
+DEPT_COUNT  = 20
+PROD_COUNT  = 200
+EMP_COUNT   = 2000
+SALES_COUNT = 20000
+RET_COUNT   = 2000
+
+DEPT_FILE  = "/tmp/kiwi_hap_departments.json"
+PROD_FILE  = "/tmp/kiwi_hap_products.json"
+EMP_FILE   = "/tmp/kiwi_hap_employees.csv"
+SALES_FILE = "/tmp/kiwi_hap_sales.csv"
+RET_FILE   = "/tmp/kiwi_hap_returns.csv"
+
+CATEGORIES = ["Electronics", "Software", "Hardware", "Services", "Accessories", "Infrastructure"]
+REGIONS    = ["Americas", "Europe", "Asia", "Pacific", "Africa"]
+DEPT_NAMES = ["Sales", "Engineering", "Marketing", "Finance", "HR", "Operations",
+              "IT", "Legal", "Support", "Research", "Product", "Design",
+              "Security", "Data", "Cloud", "DevOps", "Analytics", "QA", "Infra", "Exec"]
+REASONS    = ["defective", "wrong_item", "damaged", "not_needed", "duplicate"]
+
+# -----------------------------------------------------------------
+# Utilities
+# -----------------------------------------------------------------
+
+fn banner(title)
+  w = 70
+  println "\n" + ("=" * w)
+  println "  " + title
+  println "=" * w
+end
+
+fn section(title)
+  println "\n  -- " + title + " --"
+end
+
+fn round2(n)
+  math::round(n, 2)
+end
+
+fn pick(lst, n)
+  lst[n % lst.size()]
+end
+
+fn synth_date(n)
+  year  = 2024 + (n % 2)
+  month = (n % 12) + 1
+  day   = (n % 28) + 1
+  m_str = month < 10 ? "0${month}" : "${month}"
+  d_str = day   < 10 ? "0${day}"   : "${day}"
+  "${year}-${m_str}-${d_str}"
+end
+
+fn lpad(s, width)
+  str = s.to_string()
+  spaces = width - str.size()
+  spaces = 0 when spaces < 0
+  (" " * spaces) + str
+end
+
+fn stat_row(label, val)
+  println "  " + string::padend(label, 34) + lpad(val.to_string(), 16)
+end
+
+# -----------------------------------------------------------------
+# Stage 0 — Data generation  (@bench::timed wraps each fn: prints elapsed/call)
+# -----------------------------------------------------------------
+
+fn gen_departments()
+  lines = []
+  repeat DEPT_COUNT as i do
+    dn     = DEPT_NAMES[i - 1]
+    region = pick(REGIONS, i * 3)
+    budget = 100000 + (i * 25000)
+    lines.push("{\"dept_id\": ${i}, \"dept_name\": \"${dn}\", \"dept_region\": \"${region}\", \"budget\": ${budget}}")
+  end
+  fio::write(DEPT_FILE, "[\n" + lines.join(",\n") + "\n]")
+end
+
+fn gen_products()
+  lines = []
+  repeat PROD_COUNT as i do
+    cat   = pick(CATEGORIES, i * 7 + 3)
+    price = round2(9.99 + (i % 100) * 4.5)
+    cost  = round2(price * 0.42)
+    lines.push("{\"product_id\": ${i}, \"prod_name\": \"Product-${i}\", \"category\": \"${cat}\", \"unit_price\": ${price}, \"unit_cost\": ${cost}}")
+  end
+  fio::write(PROD_FILE, "[\n" + lines.join(",\n") + "\n]")
+end
+
+fn gen_employees()
+  lines = ["emp_id,dept_id,emp_name,salary,emp_region,hire_year"]
+  repeat EMP_COUNT as i do
+    dept_id   = (i % DEPT_COUNT) + 1
+    region    = pick(REGIONS, i * 7 + 2)
+    salary    = 40000 + (i % 110) * 1000
+    hire_year = 2015 + (i % 10)
+    lines.push("${i},${dept_id},Employee-${i},${salary},${region},${hire_year}")
+  end
+  fio::write(EMP_FILE, lines.join("\n"))
+end
+
+fn gen_sales()
+  lines = ["txn_id,emp_id,product_id,qty,discount_pct,sale_date"]
+  repeat SALES_COUNT as i do
+    emp_id     = (i % EMP_COUNT) + 1
+    product_id = (i % PROD_COUNT) + 1
+    qty        = (i % 10) + 1
+    discount   = (i % 5) * 5
+    sale_date  = synth_date(i)
+    lines.push("${i},${emp_id},${product_id},${qty},${discount},${sale_date}")
+  end
+  fio::write(SALES_FILE, lines.join("\n"))
+end
+
+fn gen_returns()
+  lines = ["return_id,txn_id,qty_returned,reason"]
+  repeat RET_COUNT as i do
+    txn_id = (i * 10) % SALES_COUNT + 1
+    qty    = (i % 3) + 1
+    reason = pick(REASONS, i)
+    lines.push("${i},${txn_id},${qty},${reason}")
+  end
+  fio::write(RET_FILE, lines.join("\n"))
+end
+
+# -----------------------------------------------------------------
+# Stage 1 — ETL pipeline  (pipeline::build with timing hooks)
+# -----------------------------------------------------------------
+
+fn build_etl_pipeline()
+  p = pipeline::build("heavy_etl")
+
+  # Print each step name and its elapsed time via before/after hooks
+  p.before_each(with (name, ctx) do
+    ctx["_step_t0"] = time::ticks()
+    print "  step: " + string::padend(name, 28)
+  end)
+
+  p.after_each(with (name, ctx) do
+    elapsed = time::ticksms(time::ticks() - ctx["_step_t0"])
+    println "  " + bench::fmt(elapsed)
+  end)
+
+  p.on_error(with (name, err, ctx) do
+    println "\n  [ERROR] step '${name}' failed: ${err}"
+  end)
+
+  # -----------------------------------------------------------------
+  # Load JSON sources
+  # -----------------------------------------------------------------
+  p.step("load departments + products", with (ctx) do
+    raw = json::pipeline()
+      .from_file(DEPT_FILE).as_dataset("departments")
+      .from_file(PROD_FILE).as_dataset("products")
+      .parse()
+    ctx["departments"] = raw["departments"]
+    ctx["products"]    = raw["products"]
+  end)
+
+  # -----------------------------------------------------------------
+  # Load CSV sources
+  # -----------------------------------------------------------------
+  p.step("load employees (csv)", with (ctx) do
+    ctx["employees"] = csv::pipeline()
+      .with_schema(["integer", "integer", "string", "integer", "string", "integer"])
+      .from_file(EMP_FILE)
+      .parse()
+  end)
+
+  p.step("load sales (csv)", with (ctx) do
+    ctx["sales"] = csv::pipeline()
+      .with_schema(["integer", "integer", "integer", "integer", "integer", "string"])
+      .from_file(SALES_FILE)
+      .parse()
+  end)
+
+  p.step("load returns (csv)", with (ctx) do
+    ctx["returns"] = csv::pipeline()
+      .with_schema(["integer", "integer", "integer", "string"])
+      .from_file(RET_FILE)
+      .parse()
+  end)
+
+  # -----------------------------------------------------------------
+  # Build O(1) lookup maps
+  # -----------------------------------------------------------------
+  p.step("build lookup maps", with (ctx) do
+    ctx["prod_map"] = table::from(ctx["products"]).to_hashmap("product_id")
+    ctx["emp_map"]  = table::from(ctx["employees"]).to_hashmap("emp_id")
+    ctx["dept_map"] = table::from(ctx["departments"]).to_hashmap("dept_id")
+    ctx["ret_map"]  = {}
+    for r in ctx["returns"] do
+      tid = r["txn_id"]
+      k = "${tid}"
+      bucket = ctx["ret_map"].has_key(k) ? ctx["ret_map"][k] : []
+      bucket.push(r)
+      ctx["ret_map"][k] = bucket
+    end
+  end)
+
+  # -----------------------------------------------------------------
+  #  Enrich sales rows (O(n) via hashmap lookups)
+  # -----------------------------------------------------------------
+  p.step("enrich sales (20K rows)", with (ctx) do
+    prod_map = ctx["prod_map"]
+    emp_map  = ctx["emp_map"]
+    dept_map = ctx["dept_map"]
+    ret_map  = ctx["ret_map"]
+
+    ctx["enriched"] = table::from(ctx["sales"])
+      .map(with (row) do
+        pid = row["product_id"].to_string()
+        eid = row["emp_id"].to_string()
+        p   = prod_map[pid]
+        e   = emp_map[eid]
+        did = e["dept_id"].to_string()
+        d   = dept_map[did]
+
+        revenue = round2(row["qty"] * p["unit_price"] * (1.0 - row["discount_pct"] / 100.0))
+        margin  = round2(revenue - row["qty"] * p["unit_cost"])
+        tid     = row["txn_id"].to_string()
+        has_ret = ret_map.has_key(tid)
+
+        {
+          "txn_id":       row["txn_id"],
+          "sale_date":    row["sale_date"],
+          "sale_month":   row["sale_date"][0:7],
+          "emp_id":       row["emp_id"],
+          "emp_name":     e["emp_name"],
+          "emp_region":   e["emp_region"],
+          "hire_year":    e["hire_year"],
+          "dept_id":      e["dept_id"],
+          "dept_name":    d["dept_name"],
+          "dept_region":  d["dept_region"],
+          "budget":       d["budget"],
+          "product_id":   row["product_id"],
+          "prod_name":    p["prod_name"],
+          "category":     p["category"],
+          "unit_price":   p["unit_price"],
+          "unit_cost":    p["unit_cost"],
+          "qty":          row["qty"],
+          "discount_pct": row["discount_pct"],
+          "revenue":      revenue,
+          "margin":        margin,
+          "has_return":   has_ret
+        }
+      end)
+      .to_list()
+  end)
+
+  p
+end
+
+# -----------------------------------------------------------------
+# Stage 2 — Analytical queries
+# -----------------------------------------------------------------
+
+fn analyse(enriched, returns)
+  # -----------------------------------------------------------------
+  # Q1: Revenue + margin by product category
+  # -----------------------------------------------------------------
+  bench::run("Q1: revenue by category", with do
+    section("Q1 — Revenue & margin by category")
+    table::from(enriched)
+      .group_by("category")
+      .agg({
+        "txns":    do (rows) => rows.size() end,
+        "units":   do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+        "revenue": do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end,
+        "margin":  do (rows) => round2(rows.map(do (r) => r["margin"] end).sum()) end
+      })
+      .order_by("revenue", false)
+      .display()
+  end, 1, 0)
+
+  # -----------------------------------------------------------------
+  # Q2: Revenue by department
+  # -----------------------------------------------------------------
+  bench::run("Q2: revenue by department", with do
+    section("Q2 — Revenue by department (top 10)")
+    table::from(enriched)
+      .group_by("dept_name")
+      .agg({
+        "employees": do (rows) => rows.map(do (r) => r["emp_id"] end).sort().first() end,
+        "txns":      do (rows) => rows.size() end,
+        "revenue":   do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end,
+        "margin":    do (rows) => round2(rows.map(do (r) => r["margin"] end).sum()) end
+      })
+      .order_by("revenue", false)
+      .limit(10)
+      .display()
+  end, 1, 0)
+
+  # -----------------------------------------------------------------
+  # Q3: Top 20 employees by revenue
+  # -----------------------------------------------------------------
+  bench::run("Q3: employee leaderboard (top 20)", with do
+    section("Q3 — Top 20 employees by revenue")
+    table::from(enriched)
+      .group_by("emp_name")
+      .agg({
+        "dept":    do (rows) => rows[0]["dept_name"] end,
+        "region":  do (rows) => rows[0]["emp_region"] end,
+        "txns":    do (rows) => rows.size() end,
+        "units":   do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+        "revenue": do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end
+      })
+      .order_by("revenue", false)
+      .limit(20)
+      .display()
+  end, 1, 0)
+
+  # -----------------------------------------------------------------
+  # Q4: Monthly revenue trend
+  # -----------------------------------------------------------------
+  bench::run("Q4: monthly revenue trend", with do
+    section("Q4 — Monthly revenue trend")
+    table::from(enriched)
+      .group_by("sale_month")
+      .agg({
+        "txns":    do (rows) => rows.size() end,
+        "revenue": do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end,
+        "margin":  do (rows) => round2(rows.map(do (r) => r["margin"] end).sum()) end
+      })
+      .order_by("sale_month", true)
+      .display()
+  end, 1, 0)
+
+  # -----------------------------------------------------------------
+  # Q5: Discount impact analysis
+  # -----------------------------------------------------------------
+  bench::run("Q5: discount impact", with do
+    section("Q5 — Discount impact on revenue & margin")
+    table::from(enriched)
+      .group_by("discount_pct")
+      .agg({
+        "txns":        do (rows) => rows.size() end,
+        "avg_revenue": do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum() / rows.size().to_float()) end,
+        "avg_margin":  do (rows) => round2(rows.map(do (r) => r["margin"] end).sum() / rows.size().to_float()) end,
+        "total_rev":   do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end
+      })
+      .order_by("discount_pct", true)
+      .display()
+  end, 1, 0)
+
+  # -----------------------------------------------------------------
+  # Q6: Regional performance
+  # -----------------------------------------------------------------
+  bench::run("Q6: regional performance", with do
+    section("Q6 — Revenue by employee region")
+    table::from(enriched)
+      .group_by("emp_region")
+      .agg({
+        "txns":    do (rows) => rows.size() end,
+        "revenue": do (rows) => round2(rows.map(do (r) => r["revenue"] end).sum()) end,
+        "margin":  do (rows) => round2(rows.map(do (r) => r["margin"] end).sum()) end,
+        "returns": do (rows) => rows.filter(do (r) => r["has_return"] end).size() end
+      })
+      .order_by("revenue", false)
+      .display()
+  end, 1, 0)
+
+  # -----------------------------------------------------------------
+  # Q7: Return analysis by category
+  # -----------------------------------------------------------------
+  bench::run("Q7: return rate by category", with do
+    section("Q7 — Return rate by category")
+    total_by_cat = {}
+    ret_by_cat   = {}
+
+    for row in enriched do
+      cat = row["category"]
+      total_by_cat[cat] = (total_by_cat.has_key(cat) ? total_by_cat[cat] : 0) + 1
+      if row["has_return"]
+        ret_by_cat[cat] = (ret_by_cat.has_key(cat) ? ret_by_cat[cat] : 0) + 1
+      end
+    end
+
+    summary_rows = []
+    for cat in total_by_cat.keys() do
+      total = total_by_cat[cat]
+      rets  = ret_by_cat.has_key(cat) ? ret_by_cat[cat] : 0
+      rate  = round2(rets * 100.0 / total.to_float())
+      summary_rows.push({"category": cat, "transactions": total, "returns": rets, "return_rate_pct": rate})
+    end
+
+    table::from(summary_rows)
+      .order_by("return_rate_pct", false)
+      .display()
+  end, 1, 0)
+end
+
+# -----------------------------------------------------------------
+# Stage 3 — Microbenchmark suite on a 2K-row sample (repeated iterations)
+# -----------------------------------------------------------------
+
+fn run_microbench(enriched)
+  sample = enriched[0:2000]
+
+  bench::register("filter: has_return == true (2K rows)", with do
+    table::from(sample).where(do (r) => r["has_return"] end).count()
+  end)
+
+  bench::register("filter: discount > 0 (2K rows)", with do
+    table::from(sample).where(do (r) => r["discount_pct"] > 0 end).count()
+  end)
+
+  bench::register("pluck + sum: revenue (2K rows)", with do
+    table::from(sample).pluck("revenue").sum()
+  end)
+
+  bench::register("group_by + count: category (2K rows)", with do
+    table::from(sample)
+      .group_by("category")
+      .agg({"n": do (rows) => rows.size() end})
+      .count()
+  end)
+
+  bench::register("group_by + sum: revenue by dept (2K rows)", with do
+    table::from(sample)
+      .group_by("dept_name")
+      .agg({"revenue": do (rows) => rows.map(do (r) => r["revenue"] end).sum() end})
+      .count()
+  end)
+
+  bench::register("map: recompute revenue field (2K rows)", with do
+    table::from(sample)
+      .map(with (r) do
+        r["revenue"] = round2(r["qty"] * r["unit_price"] * (1.0 - r["discount_pct"] / 100.0))
+        r
+      end)
+      .count()
+  end)
+
+  bench::register("order_by: revenue desc (2K rows)", with do
+    table::from(sample).order_by("revenue", false).count()
+  end)
+
+  bench::run_all(10, 2)
+end
+
+# -----------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------
+
+fn main()
+  banner("Heavy Data Analysis Pipeline")
+  println "  Datasets:  ${DEPT_COUNT} depts | ${PROD_COUNT} products | ${EMP_COUNT} employees | ${SALES_COUNT} sales | ${RET_COUNT} returns"
+
+  # -----------------------------------------------------------------
+  # Stage 0: Generate
+  # -----------------------------------------------------------------
+  # Use bench::run (1 iter, 0 warmup) so we get timing without decorator side-effects.
+  banner("Stage 0 — Data Generation")
+  bench::run("gen departments   (20 rows, JSON)",    with do gen_departments() end, 1, 0)
+  bench::run("gen products      (200 rows, JSON)",   with do gen_products()    end, 1, 0)
+  bench::run("gen employees     (2K rows, CSV)",     with do gen_employees()   end, 1, 0)
+  bench::run("gen sales         (20K rows, CSV)",    with do gen_sales()       end, 1, 0)
+  bench::run("gen returns       (2K rows, CSV)",     with do gen_returns()     end, 1, 0)
+
+  # -----------------------------------------------------------------
+  # Stage 1: ETL pipeline
+  # -----------------------------------------------------------------
+  banner("Stage 1 — ETL Pipeline")
+  etl  = build_etl_pipeline()
+  ctx  = etl.run({})
+
+  enriched = ctx["enriched"]
+  returns  = ctx["returns"]
+
+  println "\n  enriched rows: ${enriched.size()}"
+
+  # -----------------------------------------------------------------
+  # Quick dataset stats
+  # -----------------------------------------------------------------
+  banner("Dataset Stats")
+  total_rev = round2(enriched.map(do (r) => r["revenue"] end).sum())
+  total_mgn = round2(enriched.map(do (r) => r["margin"] end).sum())
+  ret_count = enriched.filter(do (r) => r["has_return"] end).size()
+
+  stat_row("Total transactions:",    enriched.size())
+  stat_row("Total revenue:",         total_rev)
+  stat_row("Total margin:",          total_mgn)
+  stat_row("Transactions w/ return:", ret_count)
+  stat_row("Return rate (%):",       round2(ret_count * 100.0 / enriched.size().to_float()))
+
+  # -----------------------------------------------------------------
+  # Stage 2: Analytical queries
+  # -----------------------------------------------------------------
+  banner("Stage 2 — Analytical Queries")
+  analyse(enriched, returns)
+
+  # -----------------------------------------------------------------
+  # Stage 3: Microbench suite
+  # -----------------------------------------------------------------
+  banner("Stage 3 — Microbenchmark Suite (10 iterations, 2 warmup)")
+  run_microbench(enriched)
+
+  # -----------------------------------------------------------------
+  # Cleanup
+  # -----------------------------------------------------------------
+  banner("Cleanup")
+  fio::remove(DEPT_FILE)
+  fio::remove(PROD_FILE)
+  fio::remove(EMP_FILE)
+  fio::remove(SALES_FILE)
+  fio::remove(RET_FILE)
+  println "  Removed temp files from /tmp."
+end
+
+main()
