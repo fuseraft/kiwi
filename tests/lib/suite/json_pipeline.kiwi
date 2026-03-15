@@ -1,0 +1,127 @@
+/# ==============================================================================
+   Testing json::pipeline() — fluent JSON loading with select and datasets.
+  ============================================================================== #/
+@tester::test("json pipeline")
+fn test_json_pipeline()
+  # -----------------------------------------------------------------------
+  # Write temporary JSON fixtures
+  # -----------------------------------------------------------------------
+  users_json  = "/tmp/kiwi_test_users.json"
+  roles_json  = "/tmp/kiwi_test_roles.json"
+  obj_json    = "/tmp/kiwi_test_obj.json"
+
+  fio::write(users_json, '[{"id":1,"name":"Alice","active":true},{"id":2,"name":"Bob","active":false}]')
+  fio::write(roles_json, '[{"role":"admin","level":1},{"role":"user","level":2}]')
+  fio::write(obj_json,   '{"id":99,"name":"Single"}')
+
+  # -----------------------------------------------------------------------
+  # B1: Single file — list of hashmaps
+  # -----------------------------------------------------------------------
+  rows = json::pipeline().from_file(users_json).parse()
+  tester::assert(rows.size() == 2,              "B1a: two rows")
+  tester::assert(rows[0]["name"] == "Alice",    "B1b: first name")
+  tester::assert(rows[1]["id"]   == 2,          "B1c: second id")
+
+  # -----------------------------------------------------------------------
+  # B2: from_string — list of hashmaps
+  # -----------------------------------------------------------------------
+  s_rows = json::pipeline().from_string('[{"x":1},{"x":2}]').parse()
+  tester::assert(s_rows.size() == 2,   "B2a: two rows from string")
+  tester::assert(s_rows[0]["x"] == 1,  "B2b: first x value")
+
+  # -----------------------------------------------------------------------
+  # B3: Single JSON object (not array) → wrapped in list
+  # -----------------------------------------------------------------------
+  obj = json::pipeline().from_file(obj_json).parse()
+  tester::assert(obj.size() == 1,             "B3a: single object wrapped in list")
+  tester::assert(obj[0]["name"] == "Single",  "B3b: object name field")
+
+  # -----------------------------------------------------------------------
+  # B4: select — only keep specified keys
+  # -----------------------------------------------------------------------
+  selected = json::pipeline()
+    .select(["id", "name"])
+    .from_file(users_json)
+    .parse()
+  tester::assert(selected[0].keys().size() == 2,    "B4a: two keys after select")
+  tester::assert(selected[0]["id"]   == 1,           "B4b: id retained")
+  tester::assert(selected[0]["name"] == "Alice",     "B4c: name retained")
+  tester::assert(!selected[0].keys().contains("active"), "B4d: active dropped")
+
+  # -----------------------------------------------------------------------
+  # B5: Single named dataset — returns hashmap
+  # -----------------------------------------------------------------------
+  ds = json::pipeline()
+    .from_file(users_json).as_dataset("users")
+    .parse()
+  tester::assert(typeof(ds) == "hashmap",       "B5a: dataset result is hashmap")
+  tester::assert(ds["users"].size() == 2,       "B5b: two users")
+  tester::assert(ds["users"][0]["name"] == "Alice", "B5c: first user name")
+
+  # -----------------------------------------------------------------------
+  # B6: Multiple named datasets
+  # -----------------------------------------------------------------------
+  multi = json::pipeline()
+    .from_file(users_json).as_dataset("users")
+    .from_file(roles_json).as_dataset("roles")
+    .parse()
+  tester::assert(typeof(multi) == "hashmap",      "B6a: multi-dataset is hashmap")
+  tester::assert(multi["users"].size() == 2,      "B6b: two users")
+  tester::assert(multi["roles"].size() == 2,      "B6c: two roles")
+  tester::assert(multi["roles"][0]["role"] == "admin", "B6d: first role")
+
+  # -----------------------------------------------------------------------
+  # B7: Multiple unnamed sources — list of lists
+  # -----------------------------------------------------------------------
+  both = json::pipeline()
+    .from_file(users_json)
+    .from_file(roles_json)
+    .parse()
+  tester::assert(typeof(both) == "list",   "B7a: multi-unnamed result is list")
+  tester::assert(both.size() == 2,         "B7b: two sub-lists")
+  tester::assert(both[0][0]["name"] == "Alice",  "B7c: first source first row")
+  tester::assert(both[1][0]["role"] == "admin",  "B7d: second source first row")
+
+  # -----------------------------------------------------------------------
+  # B8: Mixed mode raises error
+  # -----------------------------------------------------------------------
+  mixed_ok = false
+  try
+    json::pipeline()
+      .from_file(users_json).as_dataset("users")
+      .from_file(roles_json)
+      .parse()
+  catch err
+    mixed_ok = true
+  end
+  tester::assert(mixed_ok, "B8: mixed dataset/unnamed raises error")
+
+  # -----------------------------------------------------------------------
+  # B9: as_dataset before any source raises error
+  # -----------------------------------------------------------------------
+  order_ok = false
+  try
+    json::pipeline().as_dataset("bad").parse()
+  catch err
+    order_ok = true
+  end
+  tester::assert(order_ok, "B9: as_dataset before source raises error")
+
+  # -----------------------------------------------------------------------
+  # B10: Missing file raises error
+  # -----------------------------------------------------------------------
+  missing_ok = false
+  try
+    json::pipeline().from_file("/tmp/kiwi_no_such_file.json").parse()
+  catch err
+    missing_ok = true
+  end
+  tester::assert(missing_ok, "B10: missing file raises error")
+
+  # -----------------------------------------------------------------------
+  # Cleanup
+  # -----------------------------------------------------------------------
+  fio::remove(users_json)
+  fio::remove(roles_json)
+  fio::remove(obj_json)
+end

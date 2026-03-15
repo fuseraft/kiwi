@@ -1,0 +1,133 @@
+/# ==============================================================================
+   Testing text::pipeline() — fluent line-oriented text processing.
+  ============================================================================== #/
+@tester::test("text pipeline")
+fn test_text_pipeline()
+  # -----------------------------------------------------------------------
+  # Write a temporary text fixture
+  # -----------------------------------------------------------------------
+  log_path = "/tmp/kiwi_test_app.log"
+  fio::write(log_path, "timestamp,level,message\n2025-01-01,INFO,started\n2025-01-02,ERROR,crash\n2025-01-03,INFO,recovered\n2025-01-04,ERROR,timeout")
+
+  # -----------------------------------------------------------------------
+  # C1: from_string — splits into lines
+  # -----------------------------------------------------------------------
+  lines = text::pipeline()
+    .from_string("alpha\nbeta\ngamma")
+    .run()
+  tester::assert(lines.size() == 3,        "C1a: three lines")
+  tester::assert(lines[0] == "alpha",      "C1b: first line")
+  tester::assert(lines[2] == "gamma",      "C1c: last line")
+
+  # -----------------------------------------------------------------------
+  # C2: from_file — reads lines from file
+  # -----------------------------------------------------------------------
+  file_lines = text::pipeline().from_file(log_path).run()
+  tester::assert(file_lines.size() == 5,             "C2a: five lines (including header)")
+  tester::assert(file_lines[0].contains("level"),    "C2b: header line present")
+
+  # -----------------------------------------------------------------------
+  # C3: skip(n)
+  # -----------------------------------------------------------------------
+  skipped = text::pipeline()
+    .from_file(log_path)
+    .skip(1)
+    .run()
+  tester::assert(skipped.size() == 4,              "C3a: four data lines after skip")
+  tester::assert(skipped[0].contains("INFO"),      "C3b: first line is data")
+
+  # -----------------------------------------------------------------------
+  # C4: filter
+  # -----------------------------------------------------------------------
+  errors = text::pipeline()
+    .from_file(log_path)
+    .skip(1)
+    .filter(do (line) => line.contains("ERROR") end)
+    .run()
+  tester::assert(errors.size() == 2,             "C4a: two ERROR lines")
+  tester::assert(errors[0].contains("crash"),    "C4b: first error message")
+
+  # -----------------------------------------------------------------------
+  # C5: reject
+  # -----------------------------------------------------------------------
+  non_errors = text::pipeline()
+    .from_file(log_path)
+    .skip(1)
+    .reject(do (line) => line.contains("ERROR") end)
+    .run()
+  tester::assert(non_errors.size() == 2,           "C5a: two non-ERROR lines")
+  tester::assert(non_errors[0].contains("INFO"),   "C5b: first is INFO")
+
+  # -----------------------------------------------------------------------
+  # C6: map
+  # -----------------------------------------------------------------------
+  uppercased = text::pipeline()
+    .from_string("hello\nworld")
+    .map(do (line) => line.uppercase() end)
+    .run()
+  tester::assert(uppercased[0] == "HELLO",   "C6a: first line uppercased")
+  tester::assert(uppercased[1] == "WORLD",   "C6b: second line uppercased")
+
+  # -----------------------------------------------------------------------
+  # C7: match (regex)
+  # -----------------------------------------------------------------------
+  matched = text::pipeline()
+    .from_file(log_path)
+    .match('ERROR')
+    .run()
+  tester::assert(matched.size() == 2,            "C7a: two lines match ERROR")
+  tester::assert(matched[1].contains("timeout"), "C7b: second match content")
+
+  # -----------------------------------------------------------------------
+  # C8: split_on
+  # -----------------------------------------------------------------------
+  split = text::pipeline()
+    .from_file(log_path)
+    .skip(1)
+    .split_on(",")
+    .run()
+  tester::assert(split.size() == 4,           "C8a: four rows after split")
+  tester::assert(split[0][1] == "INFO",       "C8b: level field of first row")
+  tester::assert(split[1][1] == "ERROR",      "C8c: level field of second row")
+
+  # -----------------------------------------------------------------------
+  # C9: chained steps
+  # -----------------------------------------------------------------------
+  result = text::pipeline()
+    .from_file(log_path)
+    .skip(1)
+    .filter(do (line) => line.contains("ERROR") end)
+    .split_on(",")
+    .map(do (fields) => fields[2] end)
+    .run()
+  tester::assert(result.size() == 2,         "C9a: two error messages")
+  tester::assert(result[0] == "crash",       "C9b: first error message")
+  tester::assert(result[1] == "timeout",     "C9c: second error message")
+
+  # -----------------------------------------------------------------------
+  # C10: no source raises error
+  # -----------------------------------------------------------------------
+  no_source_ok = false
+  try
+    text::pipeline().run()
+  catch err
+    no_source_ok = true
+  end
+  tester::assert(no_source_ok, "C10: no source raises error")
+
+  # -----------------------------------------------------------------------
+  # C11: missing file raises error
+  # -----------------------------------------------------------------------
+  missing_ok = false
+  try
+    text::pipeline().from_file("/tmp/kiwi_no_such_file.txt").run()
+  catch err
+    missing_ok = true
+  end
+  tester::assert(missing_ok, "C11: missing file raises error")
+
+  # -----------------------------------------------------------------------
+  # Cleanup
+  # -----------------------------------------------------------------------
+  fio::remove(log_path)
+end
