@@ -969,6 +969,19 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    case Opcode.PrintXy:
+                    {
+                        var y    = Pop();
+                        var x    = Pop();
+                        var v    = Pop();
+                        var text = _interp.Serialize(v);
+                        int col  = x.IsInteger() ? (int)x.GetInteger() : x.IsFloat() ? (int)x.GetFloat() : 1;
+                        int row  = y.IsInteger() ? (int)y.GetInteger() : y.IsFloat() ? (int)y.GetFloat() : 1;
+                        Console.SetCursorPosition(col - 1, row - 1);
+                        Console.Write(text);
+                        break;
+                    }
+
                     // -- For iterator --------------------------------------
                     case Opcode.ForIterInit:
                     {
@@ -1198,6 +1211,52 @@ public sealed class KiwiVM
                             if (pushedFrame) _interp.PopVMDispatchFrame();
                         }
                         Push(r);
+                        break;
+                    }
+
+                    // -- Type introspection --------------------------------
+                    case Opcode.TypeOf:
+                    {
+                        var v = Pop();
+                        Push(Value.CreateString(Typing.TypeRegistry.GetTypeName(v)));
+                        break;
+                    }
+
+                    // -- Event bus -----------------------------------------
+                    case Opcode.EventOn:
+                    {
+                        var callback  = Pop();
+                        var eventName = Pop();
+                        _interp.Context.Events.On(eventName.GetString(), callback, priority: A);
+                        break;
+                    }
+                    case Opcode.EventOnce:
+                    {
+                        var callback  = Pop();
+                        var eventName = Pop();
+                        _interp.Context.Events.Once(eventName.GetString(), callback, priority: A);
+                        break;
+                    }
+                    case Opcode.EventOff:
+                    {
+                        Value? callback = A == 1 ? Pop() : null;
+                        var eventName = Pop();
+                        _interp.Context.Events.Off(eventName.GetString(), callback);
+                        break;
+                    }
+                    case Opcode.EventEmit:
+                    {
+                        // A args were pushed after the event-name; collect them bottom-first.
+                        var args = new List<Value>(A);
+                        for (int ei = 0; ei < A; ei++) args.Add(Value.Default);
+                        for (int ei = A - 1; ei >= 0; ei--) args[ei] = Pop();
+                        var eventName = Pop();
+                        bool pushedFrame = _interp.CallStack.Count == 0;
+                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals);
+                        List<Value> results;
+                        try   { results = _interp.Context.Events.Emit(_interp, frame.GetToken(), eventName.GetString(), args); }
+                        finally { if (pushedFrame) _interp.PopVMDispatchFrame(); }
+                        Push(Value.CreateList(results));
                         break;
                     }
 

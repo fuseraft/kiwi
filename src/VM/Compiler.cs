@@ -174,8 +174,10 @@ public sealed class Compiler
             case ASTNodeType.Assignment:
             {
                 var a = (AssignmentNode)node;
-                // Left is null or an IdentifierNode for simple `x = expr` assignments
-                if ((a.Left == null || a.Left is IdentifierNode) && !string.IsNullOrEmpty(a.Name))
+                // Only pre-declare locals for simple assignments (=), not compound assignments
+                // like +=, -= etc., which read an existing variable and should not create a new local.
+                if ((a.Left == null || a.Left is IdentifierNode) && !string.IsNullOrEmpty(a.Name)
+                    && a.Op == TokenName.Ops_Assign)
                     out_.Add(a.Name);
                 if (a.Initializer != null) ScanNode(a.Initializer, out_);
                 if (a.Condition   != null) ScanNode(a.Condition,   out_);
@@ -392,6 +394,7 @@ public sealed class Compiler
             case ASTNodeType.Self:             CompileSelf           ((SelfNode)node,              ln); return true;
             case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
             case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
+            case ASTNodeType.PrintXy:          CompilePrintXy        ((PrintXyNode)node,           ln); return false;
             case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return true;
             case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return true;
             case ASTNodeType.CaseWhen:         return false; // handled inside CompileCase
@@ -406,11 +409,16 @@ public sealed class Compiler
             case ASTNodeType.Throw:            CompileThrow          ((ThrowNode)node,             ln); return false;
             case ASTNodeType.Try:              CompileTry            ((TryNode)node,               ln); return false;
             case ASTNodeType.Function:         CompileFunction       ((FunctionNode)node,          ln); return false;
+            case ASTNodeType.Do:               CompileDo            ((DoNode)node,               ln); return false;
             case ASTNodeType.DecoratedFunction: Fallback             (node);                            return true;
             case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
             case ASTNodeType.LambdaCall:       CompileLambdaCall     ((LambdaCallNode)node,        ln); return true;
             case ASTNodeType.FunctionCall:     CompileFuncCall       ((FunctionCallNode)node,      ln); return true;
             case ASTNodeType.MethodCall:       CompileMethodCall     ((MethodCallNode)node,        ln); return true;
+            case ASTNodeType.On:               CompileEventOn        ((OnNode)node,                ln); return false;
+            case ASTNodeType.Once:             CompileEventOnce      ((OnceNode)node,              ln); return false;
+            case ASTNodeType.Off:              CompileEventOff       ((OffNode)node,               ln); return false;
+            case ASTNodeType.Emit:             CompileEventEmit      ((EmitNode)node,              ln); return true;
             case ASTNodeType.Program:
                 foreach (var s in ((ProgramNode)node).Statements)
                     if (s != null) CompileStatement(s);
@@ -974,6 +982,17 @@ public sealed class Compiler
         Emit(Opcode.Print, flags, 0, ln);
     }
 
+    private void CompilePrintXy(PrintXyNode node, int ln)
+    {
+        if (node.Expression != null) CompileNode(node.Expression);
+        else                         Emit(Opcode.Null, 0, 0, ln);
+        if (node.X != null) CompileNode(node.X);
+        else                Emit(Opcode.Const, _chunk.AddConstant(Value.CreateInteger(1)), 0, ln);
+        if (node.Y != null) CompileNode(node.Y);
+        else                Emit(Opcode.Const, _chunk.AddConstant(Value.CreateInteger(1)), 0, ln);
+        Emit(Opcode.PrintXy, 0, 0, ln);
+    }
+
     // -- If --------------------------------------------------------------------
 
     private void CompileIf(IfNode node, int ln)
@@ -1358,9 +1377,19 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
     private void CompileFuncCall(FunctionCallNode node, int ln)
     {
-        // Any function whose Op is not a plain Identifier token is a language builtin
-        // (e.g. typeof, deserialize, serialize) handled entirely by the interpreter -
-        // not findable via LoadGlobal, so fall back.
+        // Handle natively-supported language builtins.
+        if (node.Op == TokenName.Builtin_Kiwi_TypeOf)
+        {
+            // typeof(x) — compile the single argument, emit TypeOf.
+            if (node.Arguments.Count > 0 && node.Arguments[0] != null)
+                CompileNode(node.Arguments[0]!);
+            else
+                Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.TypeOf, 0, 0, ln);
+            return;
+        }
+        // Any other non-Default op is a language builtin not yet natively compiled;
+        // fall back to the tree-walking interpreter.
         if (node.Op != TokenName.Default) { Fallback(node); return; }
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
@@ -1402,6 +1431,65 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             int nameIdx = _chunk.AddName(node.MethodName);
             Emit(hasSplat ? Opcode.MethodCallSplat : Opcode.CallMethod, argc, nameIdx, ln);
         }
+    }
+
+    // -- Do block --------------------------------------------------------------
+
+    private void CompileDo(DoNode node, int ln)
+    {
+        if (node.Condition != null)
+        {
+            // do ... when <condition> end — skip body if condition is false
+            CompileNode(node.Condition);
+            int skip = EmitJump(Opcode.JumpF, ln);
+            CompileBody(node.Body);
+            PatchJump(skip);
+        }
+        else
+        {
+            CompileBody(node.Body);
+        }
+    }
+
+    // -- Event bus -------------------------------------------------------------
+
+    private void CompileEventOn(OnNode node, int ln)
+    {
+        CompileNode(node.EventName);
+        CompileNode(node.Callback);
+        Emit(Opcode.EventOn, node.Priority, 0, ln);
+    }
+
+    private void CompileEventOnce(OnceNode node, int ln)
+    {
+        CompileNode(node.EventName);
+        CompileNode(node.Callback);
+        Emit(Opcode.EventOnce, node.Priority, 0, ln);
+    }
+
+    private void CompileEventOff(OffNode node, int ln)
+    {
+        CompileNode(node.EventName);
+        int hasCallback = 0;
+        if (node.Callback != null)
+        {
+            CompileNode(node.Callback);
+            hasCallback = 1;
+        }
+        Emit(Opcode.EventOff, hasCallback, 0, ln);
+    }
+
+    private void CompileEventEmit(EmitNode node, int ln)
+    {
+        CompileNode(node.EventName);
+        int argc = 0;
+        foreach (var arg in node.EventArgs)
+        {
+            if (arg == null) continue;
+            CompileNode(arg);
+            argc++;
+        }
+        Emit(Opcode.EventEmit, argc, 0, ln);
     }
 
     // -- Helpers ---------------------------------------------------------------

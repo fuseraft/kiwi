@@ -1429,7 +1429,11 @@ public class Interpreter
         }
         else if (Context.HasLambda(name))
         {
-            return Value.CreateLambda(new LambdaRef { Identifier = name });
+            // Use the stored Ref so the returned value carries the original internal identifier
+            // (e.g. "<lambda_uuid>").  If we return a new LambdaRef with the user-defined name,
+            // and the user-defined name is later cleaned up (local lambda in a returned function),
+            // callers that try to re-register the lambda via the name will hit a KeyNotFoundException.
+            return Value.CreateLambda(Context.Lambdas[name].Ref);
         }
         else if (Context.LambdaTable.TryGetValue(name, out var mappedId) &&
                  Context.Lambdas.ContainsKey(mappedId))
@@ -1608,7 +1612,17 @@ public class Interpreter
         return Value.Default;
     }
 
-    private Value Visit(PrintXyNode node) => throw new NotImplementedException();
+    private Value Visit(PrintXyNode node)
+    {
+        var text = node.Expression != null ? Interpret(node.Expression) : Value.Default;
+        var x    = node.X          != null ? Interpret(node.X)          : Value.CreateInteger(1);
+        var y    = node.Y          != null ? Interpret(node.Y)          : Value.CreateInteger(1);
+        var col  = x.IsInteger() ? (int)x.GetInteger() : x.IsFloat() ? (int)x.GetFloat() : 1;
+        var row  = y.IsInteger() ? (int)y.GetInteger() : y.IsFloat() ? (int)y.GetFloat() : 1;
+        Console.SetCursorPosition(col - 1, row - 1);
+        Console.Write(Serializer.Serialize(text));
+        return Value.Default;
+    }
 
     private Value Visit(TernaryOperationNode node)
     {
