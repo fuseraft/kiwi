@@ -167,6 +167,14 @@ public static class MathBuiltinHandler
                 List<long> ints = [args[0].GetInteger(), args[1].GetInteger()];
                 return Value.CreateInteger(System.Random.Shared.NextInt64(ints.Min(), ints.Max() + 1));
             }
+            else if ((args[0].IsFloat() || args[0].IsInteger()) && (args[1].IsFloat() || args[1].IsInteger())
+                     && (args[0].IsFloat() || args[1].IsFloat()))
+            {
+                double minVal = args[0].IsFloat() ? args[0].GetFloat() : (double)args[0].GetInteger();
+                double maxVal = args[1].IsFloat() ? args[1].GetFloat() : (double)args[1].GetInteger();
+                if (minVal > maxVal) (minVal, maxVal) = (maxVal, minVal);
+                return Value.CreateFloat(minVal + (maxVal - minVal) * System.Random.Shared.NextDouble());
+            }
             else if (args[0].IsString() && args[1].IsInteger())
             {
                 var allowedChars = args[0].GetString();

@@ -18,6 +18,7 @@ The standard library is a collection of packages containing useful functions and
 | [`dotenv`](dotenv.md) | Load `.env` files into the process environment. |
 | [`env`](env.md) | For interacting with environment variables. |
 | [`error`](error.md) | Helpers for constructing, throwing, and inspecting structured errors. |
+| [`faker`](faker.md) | Realistic fake data for testing and development: names, addresses, emails, lorem, and more. |
 | [`fio`](fio.md) | Functions for file system operations. |
 | [`hashable`](hashable.md) | The `Hashable` mixin struct for automatic hashmap serialization of instance variables. |
 | [`http`](http.md) | Functions for HTTP requests (GET, POST, etc), including `HttpResponse`. |

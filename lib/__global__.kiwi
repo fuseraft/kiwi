@@ -8,7 +8,7 @@ const STDLIB_PACKAGES = [
   "bench", "cli", "hashable", "compress", "console", "crypto", "csv",
   "date", "dotenv", "env", "error", "fio", "http", "iter", "json", "list", "path", "math", "socket", "tls",
   "std", "stdin", "string", "sys", "task", "tester", "time",
-  "reflector", "regex", "xml", "protobuf", "pipeline", "yaml", "text", "table"
+  "reflector", "regex", "xml", "protobuf", "pipeline", "yaml", "text", "table", "faker"
 ]
 
 for pkg in STDLIB_PACKAGES do
