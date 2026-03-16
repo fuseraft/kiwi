@@ -1,6 +1,5 @@
 {
     "name": "kiwi",
-    "version": "1.4.0",
     "file_extensions": {
       "primary": ".kiwi",
       "minified": ".min.kiwi",

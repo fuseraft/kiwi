@@ -1,9 +1,10 @@
 namespace kiwi.Parsing.AST;
 
-public class OnNode(ASTNode eventName, ASTNode callback) : ASTNode(ASTNodeType.On)
+public class OnNode(ASTNode eventName, ASTNode callback, int priority = 0) : ASTNode(ASTNodeType.On)
 {
     public ASTNode EventName { get; } = eventName;
     public ASTNode Callback { get; } = callback;
+    public int Priority { get; } = priority;
 
     public override void Print(int depth)
     {
@@ -13,7 +14,7 @@ public class OnNode(ASTNode eventName, ASTNode callback) : ASTNode(ASTNodeType.O
         Callback?.Print(1 + depth);
     }
 
-    public override ASTNode Clone() => new OnNode(EventName.Clone(), Callback.Clone())
+    public override ASTNode Clone() => new OnNode(EventName.Clone(), Callback.Clone(), Priority)
     {
         Token = Token
     };

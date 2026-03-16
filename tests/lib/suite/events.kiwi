@@ -1,7 +1,8 @@
 /# ==============================================================================
    Testing the kiwi event bus.
   ============================================================================== #/
-@tester::test("events")
+
+@tester::test("events: basic on/emit")
 fn test_events()
   invocations = 0
 
@@ -14,4 +15,149 @@ fn test_events()
   end
 
   tester::assert(invocations == 5, "A1")
+end
+
+@tester::test("events: once fires exactly once")
+fn test_once()
+  count = 0
+
+  once "ping" do
+    count += 1
+  end
+
+  emit "ping"
+  emit "ping"
+  emit "ping"
+
+  tester::assert(count == 1, "B1")
+end
+
+@tester::test("events: off removes all handlers")
+fn test_off_all()
+  count = 0
+
+  on "tick" do
+    count += 1
+  end
+
+  emit "tick"
+  off "tick"
+  emit "tick"
+  emit "tick"
+
+  tester::assert(count == 1, "C1")
+end
+
+@tester::test("events: off removes specific handler")
+fn test_off_specific()
+  a = 0
+  b = 0
+
+  ha = do () a += 1 end
+  hb = do () b += 1 end
+
+  on "sig" (ha)
+  on "sig" (hb)
+
+  emit "sig"
+  off "sig" (ha)
+  emit "sig"
+
+  tester::assert(a == 1, "D1")
+  tester::assert(b == 2, "D2")
+end
+
+@tester::test("events: emit returns handler results")
+fn test_emit_results()
+  on "calc" with (x) do
+    return x * 2
+  end
+
+  on "calc" with (x) do
+    return x + 10
+  end
+
+  results = emit "calc" (5)
+
+  tester::assert(results[0] == 10, "E1")
+  tester::assert(results[1] == 15, "E2")
+end
+
+@tester::test("events: wildcard patterns")
+fn test_wildcards()
+  log = []
+
+  on "user.*" with (name) do
+    log.push("user: ${name}")
+  end
+
+  on "*.error" with (msg) do
+    log.push("error: ${msg}")
+  end
+
+  emit "user.login"  ("alice")
+  emit "user.logout" ("bob")
+  emit "db.error"    ("connection lost")
+  emit "unrelated"   ("x")   # no match
+
+  tester::assert(log.size() == 3, "F1")
+  tester::assert(log[0] == "user: alice",           "F2")
+  tester::assert(log[1] == "user: bob",             "F3")
+  tester::assert(log[2] == "error: connection lost", "F4")
+end
+
+@tester::test("events: priority controls dispatch order")
+fn test_priority()
+  order = []
+
+  on "go", 1  do order.push("low")    end
+  on "go", 10 do order.push("high")   end
+  on "go", 5  do order.push("medium") end
+
+  emit "go"
+
+  tester::assert(order[0] == "high",   "G1")
+  tester::assert(order[1] == "medium", "G2")
+  tester::assert(order[2] == "low",    "G3")
+end
+
+@tester::test("events: handler errors are isolated")
+fn test_error_isolation()
+  ran = []
+
+  on "boom" do
+    ran.push("before")
+    throw "intentional error"
+  end
+
+  on "boom" do
+    ran.push("after")
+  end
+
+  caught = false
+  try
+    emit "boom"
+  catch (err)
+    caught = true
+  end
+
+  tester::assert(caught,              "H1")
+  tester::assert(ran.size() == 2,     "H2")
+  tester::assert(ran[0] == "before",  "H3")
+  tester::assert(ran[1] == "after",   "H4")
+end
+
+@tester::test("events: once cleaned up on error")
+fn test_once_cleanup_on_error()
+  count = 0
+
+  once "risky" do
+    count += 1
+    throw "oops"
+  end
+
+  try emit "risky" catch err end   # handler fires and throws
+  try emit "risky" catch err end   # handler must NOT fire again
+
+  tester::assert(count == 1, "I1")
 end

@@ -325,7 +325,7 @@ public class Interpreter
         var eventName = Interpret(node.EventName);
         var callback = Interpret(node.Callback);
 
-        Context.Events.On(eventName.GetString(), callback);
+        Context.Events.On(eventName.GetString(), callback, priority: node.Priority);
 
         return Value.Default;
     }
@@ -335,7 +335,7 @@ public class Interpreter
         var eventName = Interpret(node.EventName);
         var callback = Interpret(node.Callback);
 
-        Context.Events.Once(eventName.GetString(), callback);
+        Context.Events.Once(eventName.GetString(), callback, priority: node.Priority);
 
         return Value.Default;
     }
@@ -345,9 +345,9 @@ public class Interpreter
         var eventName = Interpret(node.EventName);
         var args = node.EventArgs.Select(Interpret).ToList();
 
-        Context.Events.Emit(this, node.Token, eventName.GetString(), args);
+        var results = Context.Events.Emit(this, node.Token, eventName.GetString(), args);
 
-        return Value.Default;
+        return Value.CreateList(results);
     }
 
     private Value Visit(OffNode node)
