@@ -311,6 +311,18 @@ public enum Opcode : byte
     /// Used for method calls that contain one or more splat arguments.
     /// </summary>
     MethodCallSplat,
+    /// <summary>
+    /// Like Call but reorders args to match the callee's declared parameter order.
+    /// A = argc, B = index into chunk.ArgNameSets (parallel string[] of arg names;
+    /// empty string = positional, non-empty = named arg name).
+    /// </summary>
+    CallNamed,
+    /// <summary>
+    /// Like CallMethod but reorders args before dispatch.
+    /// A = argc, B = packed: lower 16 bits = method name index in chunk.Names,
+    /// upper 16 bits = index into chunk.ArgNameSets.
+    /// </summary>
+    CallMethodNamed,
 
     // -- Error Handling --------------------------------------------------------
     /// <summary>

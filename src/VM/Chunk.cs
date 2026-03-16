@@ -60,6 +60,23 @@ public class Chunk
     // -- Fallback AST nodes ----------------------------------------------------
     public List<ASTNode>           NodePool  { get; } = [];
 
+    // -- Named-argument sets ---------------------------------------------------
+    /// <summary>
+    /// One entry per named-arg call site.  Each element is a string[] parallel
+    /// to the pushed arguments: empty string = positional, non-empty = arg name.
+    /// Indexed by B in CallNamed; by (B >> 16) in CallMethodNamed.
+    /// </summary>
+    public List<string[]> ArgNameSets { get; } = [];
+
+    /// <summary>
+    /// Add a named-argument set and return its index.
+    /// </summary>
+    public int AddArgNameSet(string[] names)
+    {
+        ArgNameSets.Add(names);
+        return ArgNameSets.Count - 1;
+    }
+
     // -- Function metadata -----------------------------------------------------
     /// <summary>
     /// Number of explicit parameters (not counting variadic).

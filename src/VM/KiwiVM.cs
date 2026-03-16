@@ -257,7 +257,6 @@ public sealed class KiwiVM
                     case Opcode.LoadGlobal:
                     {
                         var name = frame.Chunk.Names[A];
-
                         // Fast path: cached resolution from a prior lookup
                         if (_nameCache.TryGetValue(name, out var cachedVal))
                         {
@@ -295,7 +294,11 @@ public sealed class KiwiVM
                         else if (_context.HasMappedLambda(name))
                         {
                             var mapped = _context.LambdaTable[name];
-                            Push(Value.CreateLambda(_context.Lambdas[mapped].Ref));
+                            var klambda = _context.Lambdas[mapped];
+                            var lref = klambda.Ref.Identifier.Length > 0
+                                ? klambda.Ref
+                                : new LambdaRef { Identifier = mapped, VMChunk = klambda.VMChunk, VMUpvalues = klambda.VMUpvalues };
+                            Push(Value.CreateLambda(lref));
                         }
                         else if (_context.HasConstant(name))
                         {
@@ -609,6 +612,66 @@ public sealed class KiwiVM
                         // Dispatch
                         var callResult = _interp.DispatchMethod(obj, methodName, args, frame.GetToken());
                         Push(callResult);
+                        break;
+                    }
+
+                    // -- CallNamed -----------------------------------------
+                    case Opcode.CallNamed:
+                    {
+                        // A = argc, B = argNameSetIdx
+                        int argc       = A;
+                        var argNames   = frame.Chunk.ArgNameSets[B];
+                        int funcSlot   = _sp - argc - 1;
+                        var funcVal    = _stack[funcSlot];
+                        if (DoCallNamed(funcVal, argc, funcSlot, argNames, frame.GetToken()))
+                            goto nextFrame;
+                        break;
+                    }
+
+                    // -- CallMethodNamed -----------------------------------
+                    case Opcode.CallMethodNamed:
+                    {
+                        // A = argc, B = packed(methodNameIdx:lower16, argNameSetIdx:upper16)
+                        int argc          = A;
+                        int methodNameIdx = B & 0xFFFF;
+                        int nameSetIdx    = (B >> 16) & 0xFFFF;
+                        var methodName    = frame.Chunk.Names[methodNameIdx];
+                        var argNames      = frame.Chunk.ArgNameSets[nameSetIdx];
+                        int objSlot       = _sp - argc - 1;
+                        var obj           = _stack[objSlot];
+                        int calleeBase    = objSlot + 1;
+
+                        // For struct instances resolve named args against the method signature
+                        if (obj.IsObject())
+                        {
+                            var inst   = obj.GetObject();
+                            var sName  = inst.StructName;
+                            KFunction? method = null;
+                            if (_context.HasStruct(sName))
+                            {
+                                var struc = _context.Structs[sName];
+                                struc.Methods.TryGetValue(methodName, out method);
+                                if (method == null && !string.IsNullOrEmpty(struc.BaseStruct)
+                                    && _context.HasStruct(struc.BaseStruct))
+                                    _context.Structs[struc.BaseStruct].Methods.TryGetValue(methodName, out method);
+                            }
+                            if (method != null)
+                            {
+                                int newArgc = ApplyNamedArgs(calleeBase, argc, argNames,
+                                    method.Parameters, method.DefaultParameters,
+                                    method.VariadicParamName, frame.GetToken(), methodName);
+                                var reorderedArgs = CollectArgs(calleeBase, newArgc);
+                                _sp = objSlot;
+                                Push(_interp.DispatchMethod(obj, methodName, reorderedArgs, frame.GetToken()));
+                                break;
+                            }
+                        }
+
+                        // Non-struct or method not found: collect args in source order
+                        var plainArgs = new List<Value>(argc);
+                        for (int i = _sp - argc; i < _sp; i++) plainArgs.Add(_stack[i]);
+                        _sp = objSlot;
+                        Push(_interp.DispatchMethod(obj, methodName, plainArgs, frame.GetToken()));
                         break;
                     }
 
@@ -1185,6 +1248,220 @@ public sealed class KiwiVM
 
     done:
         return result;
+    }
+
+    // -- Named-argument helpers ------------------------------------------------
+
+    /// <summary>
+    /// Reorder the <paramref name="argc"/> arguments currently on the stack at
+    /// [calleeBase .. calleeBase+argc-1] to match the callee's declared parameter order.
+    ///
+    /// After return the stack holds the reordered positional args followed by any
+    /// variadic overflow (individual values, not pre-packed — SetupCalleeLocals handles
+    /// the packing).  Returns the effective new argc.
+    ///
+    /// If parameter info is unavailable, returns <paramref name="argc"/> unchanged
+    /// (args stay in source order, which is fine for interpreter-handled callees).
+    /// </summary>
+    private int ApplyNamedArgs(
+        int calleeBase,
+        int argc,
+        string[] argNames,
+        List<KeyValuePair<string, Value>> paramList,
+        HashSet<string> defaultParams,
+        string variadicParamName,
+        Token token,
+        string callName)
+    {
+        int paramCount = paramList.Count;
+
+        // Snapshot raw args from the stack
+        var rawArgs  = new Value[argc];
+        var rawNames = new string[argc];
+        for (int i = 0; i < argc; i++)
+        {
+            rawArgs[i]  = _stack[calleeBase + i];
+            rawNames[i] = i < argNames.Length ? argNames[i] : string.Empty;
+        }
+
+        var reordered = new Value[paramCount];
+        var filled    = new bool[paramCount]; // true once a slot has been assigned
+        var consumed  = new bool[argc];       // true once a raw arg has been placed
+
+        // Pass 1: place named args into their target slots
+        for (int ri = 0; ri < argc; ri++)
+        {
+            var name = rawNames[ri];
+            if (string.IsNullOrEmpty(name)) continue;
+            bool found = false;
+            for (int pi = 0; pi < paramCount; pi++)
+            {
+                // Param names may be mangled (_XXXXXXXX_name) by the parser; unmangle for comparison.
+                if (ASTTracer.Unmangle(paramList[pi].Key) == name)
+                {
+                    reordered[pi] = rawArgs[ri];
+                    filled[pi]    = true;
+                    consumed[ri]  = true;
+                    found         = true;
+                    break;
+                }
+            }
+            if (!found)
+                throw new RuntimeError(token,
+                    $"'{callName}': no parameter named '{name}'.", []);
+        }
+
+        // Pass 2: fill remaining param slots with positional args left-to-right
+        int nextPos = 0;
+        for (int pi = 0; pi < paramCount; pi++)
+        {
+            if (filled[pi]) continue;
+            while (nextPos < argc && consumed[nextPos]) nextPos++;
+            if (nextPos < argc && string.IsNullOrEmpty(rawNames[nextPos]))
+            {
+                reordered[pi] = rawArgs[nextPos];
+                filled[pi]    = true;
+                consumed[nextPos] = true;
+                nextPos++;
+            }
+            else if (!defaultParams.Contains(paramList[pi].Key))
+            {
+                // Missing required argument — runtime error
+                throw new ParameterCountMismatchError(token, callName, paramCount, argc);
+            }
+            // else: default param, leave Value.Default; callee's EmitDefaultInits fills it
+        }
+
+        // Pass 3: collect remaining positional args into variadic overflow
+        var varargs = new List<Value>();
+        if (!string.IsNullOrEmpty(variadicParamName))
+        {
+            for (int ri = 0; ri < argc; ri++)
+            {
+                if (!consumed[ri] && string.IsNullOrEmpty(rawNames[ri]))
+                    varargs.Add(rawArgs[ri]);
+            }
+        }
+
+        // Write reordered params back to stack
+        for (int pi = 0; pi < paramCount; pi++)
+            _stack[calleeBase + pi] = reordered[pi];
+
+        // Write variadic overflow individually (SetupCalleeLocals will pack them)
+        for (int vi = 0; vi < varargs.Count; vi++)
+            _stack[calleeBase + paramCount + vi] = varargs[vi];
+
+        int newArgc = paramCount + varargs.Count;
+        _sp = calleeBase + newArgc;
+        return newArgc;
+    }
+
+    /// <summary>
+    /// Get the parameter list and variadic info for a callable value, if available.
+    /// Returns false when the callable type is not inspectable (e.g. C# builtin).
+    /// </summary>
+    private bool TryGetCallableParams(
+        Value funcVal,
+        out Chunk? chunk,
+        out Upvalue[] upvalues,
+        out List<KeyValuePair<string, Value>> parms,
+        out HashSet<string> defaults,
+        out string variadicName)
+    {
+        chunk       = null;
+        upvalues    = [];
+        parms       = [];
+        defaults    = [];
+        variadicName = string.Empty;
+
+        if (!funcVal.IsLambda()) return false;
+        var lr = funcVal.GetLambda();
+
+        // Directly-attached VMChunk (closure with upvalues)
+        if (lr.VMChunk != null)
+        {
+            chunk    = lr.VMChunk;
+            upvalues = lr.VMUpvalues ?? [];
+            // Build param list from chunk metadata (Arity = non-variadic count)
+            for (int i = 0; i < chunk.Arity; i++)
+                parms.Add(new KeyValuePair<string, Value>(chunk.ParamNames[i], Value.Default));
+            defaults     = chunk.DefaultParamNames;
+            variadicName = chunk.VariadicParamName;
+            return true;
+        }
+
+        if (_context.HasFunction(lr.Identifier))
+        {
+            var kf   = _context.Functions[lr.Identifier];
+            chunk    = kf.VMChunk;
+            upvalues = kf.VMUpvalues ?? [];
+            parms    = kf.Parameters;
+            defaults = kf.DefaultParameters;
+            variadicName = kf.VariadicParamName;
+            return true;
+        }
+
+        if (_context.HasLambda(lr.Identifier))
+        {
+            var kl   = _context.Lambdas[lr.Identifier];
+            chunk    = kl.VMChunk;
+            upvalues = kl.VMUpvalues ?? [];
+            parms    = kl.Parameters;
+            defaults = kl.DefaultParameters;
+            variadicName = kl.VariadicParamName;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Like <see cref="DoCall"/> but reorders args according to named-argument
+    /// descriptors before entering the callee.
+    /// </summary>
+    private bool DoCallNamed(
+        Value funcVal, int argc, int funcSlot,
+        string[] argNames, Token token, string? callName = null)
+    {
+        if (funcVal.IsLambda() && funcVal.GetLambda().BoundSelf != null)
+        {
+            // Bound-self dispatch: route as plain method call (named args not meaningful)
+            var lr      = funcVal.GetLambda();
+            var selfVal = Value.CreateObject(lr.BoundSelf!);
+            var args    = CollectArgs(funcSlot + 1, argc);
+            _sp = funcSlot;
+            Push(_interp.DispatchMethod(selfVal, lr.Identifier, args, token));
+            return false;
+        }
+
+        if (TryGetCallableParams(funcVal, out var sub, out var upvalues,
+                out var parms, out var defaults, out var variadicName))
+        {
+            int calleeBase = funcSlot + 1;
+            string name    = callName ?? sub?.Name ?? "<lambda>";
+            int newArgc = ApplyNamedArgs(calleeBase, argc, argNames,
+                parms, defaults, variadicName, token, name);
+
+            if (sub != null)
+            {
+                SetupCalleeLocals(sub, calleeBase, newArgc);
+                PushFrame(sub.Name, sub, calleeBase, upvalues, token);
+                return true;
+            }
+
+            // Interpreter-side callable (no VMChunk): pass reordered args
+            var lr2  = funcVal.GetLambda();
+            var argsL = CollectArgs(calleeBase, newArgc);
+            _sp = funcSlot;
+            var callable2 = _context.HasFunction(lr2.Identifier)
+                ? (Callable)_context.Functions[lr2.Identifier]
+                : _context.Lambdas[lr2.Identifier];
+            Push(_interp.InvokeCallable(callable2, argsL, token, lr2.Identifier));
+            return false;
+        }
+
+        // Can't determine param order — fall back to plain DoCall (source order)
+        return DoCall(funcVal, argc, funcSlot, token, callName);
     }
 
     // -- Call dispatch ---------------------------------------------------------

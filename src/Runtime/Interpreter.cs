@@ -3394,6 +3394,19 @@ public class Interpreter
 
     private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName, string structName = "")
     {
+        // For VM-compiled functions the Decl.Body is an empty stub; delegate to the VM.
+        if (function.VMChunk != null)
+        {
+            var vm = VM.KiwiVM.Current;
+            if (vm != null)
+            {
+                var tmpScope = new Scope(_globalScope);
+                var slots = ResolveArguments(function.Parameters, args, function.DefaultParameters, token, functionName, function.VariadicParamName, tmpScope);
+                var values = slots.Select(s => s ?? Value.Default).ToList();
+                return vm.InvokeVMCallable(function, values, token, null);
+            }
+        }
+
         var defaultParameters = function.DefaultParameters;
         var functionFrame = CreateFrame(functionName, token, function.CapturedScope);
         functionFrame.StructName = structName;
