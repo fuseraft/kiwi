@@ -960,6 +960,7 @@ public class Lexer : IDisposable
         else if (JsonBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (ProtobufBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (XmlBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (IpcBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);
     }

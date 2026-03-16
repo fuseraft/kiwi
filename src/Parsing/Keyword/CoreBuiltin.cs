@@ -215,6 +215,7 @@ public static class CoreBuiltin
         if (ProtobufBuiltin.Map.ContainsKey(arg))    return true;
         if (XmlBuiltin.Map.ContainsKey(arg))         return true;
         if (TimeBuiltin.Map.ContainsKey(arg))        return true;
+        if (IpcBuiltin.Map.ContainsKey(arg))         return true;
 
         // not a builtin method
         return false;

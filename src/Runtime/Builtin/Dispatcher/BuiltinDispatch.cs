@@ -84,6 +84,10 @@ public struct BuiltinDispatch
         {
             return XmlBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (IpcBuiltin.IsBuiltin(builtin))
+        {
+            return IpcBuiltinHandler.Execute(token, builtin, args);
+        }
 
         throw new FunctionUndefinedError(token, token.Text);
     }
