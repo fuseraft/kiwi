@@ -2608,7 +2608,7 @@ public partial class Parser
             case TokenType.Operator when IsAssignmentOperator():
                 node = ParseAssignment(node, identifierName);
                 break;
-            case TokenType.Qualifier when Peek().Type == TokenType.Identifier:
+            case TokenType.Qualifier when Peek().Type is TokenType.Identifier or TokenType.Typename:
                 node = ParseQualifiedIdentifier(identifierName);
                 break;
             case TokenType.Comma when !packed && LookAhead([TokenName.Ops_Unpack]):
