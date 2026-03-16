@@ -348,7 +348,7 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
         {
             if (seen.Add(name))
             {
-                Console.WriteLine($"  {Unmangle(name)} = {Serializer.Serialize(value)}");
+                Console.WriteLine($"  {name} = {Serializer.Serialize(value)}");
             }
         }
     }

@@ -672,12 +672,6 @@ public partial class Parser
         )
         */
 
-        // create a mangler (for preventing name collisions)
-        var mangler = $"_{Guid.NewGuid().ToString().Substring(0, 8)}_";
-
-        // get the mangled name map, we need to update this as names are mangled.
-        var mangledNames = GetNameMap();
-
         // a container for variables
         List<KeyValuePair<string, ASTNode?>> variables = [];
 
@@ -693,18 +687,12 @@ public partial class Parser
             }
 
             var varName = token.Text;
-            if (mangledNames.ContainsKey(varName))
-            {
-                throw new SyntaxError(GetErrorToken(), $"The variable name `{varName}` is already declared.");
-            }
-            var mangledName = mangler + varName;
-            mangledNames[varName] = mangledName;
             ASTNode? defaultValue = null;
             Next();  // next token please
 
             if (MatchType(TokenType.Colon))
             {
-                typeHints[mangledName] = GetTypeNames();
+                typeHints[varName] = GetTypeNames();
             }
 
             if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Assign)
@@ -713,13 +701,14 @@ public partial class Parser
                 defaultValue = ParseExpression();
             }
 
-            variables.Add(new KeyValuePair<string, ASTNode?>(mangledName, defaultValue));
+            variables.Add(new KeyValuePair<string, ASTNode?>(varName, defaultValue));
             return new VariableNode { Variables = variables, TypeHints = typeHints };
         }
 
         Next();  // consume '('
 
         // collect variable declarations
+        HashSet<string> seenVars = [];
         while (GetTokenType() != TokenType.RParen)
         {
             // expect an identifier
@@ -731,17 +720,10 @@ public partial class Parser
             // grab the variable name directly from token text
             var varName = token.Text;
 
-            // check if the name is already mangled
-            if (mangledNames.ContainsKey(varName))
+            if (!seenVars.Add(varName))
             {
                 throw new SyntaxError(GetErrorToken(), $"The variable name `{varName}` is already declared.");
             }
-
-            // mangle the variable name
-            var mangledName = mangler + varName;
-
-            // register to the mangled names map
-            mangledNames[varName] = mangledName;
 
             ASTNode? defaultValue = null;
             Next();  // next token please
@@ -750,7 +732,7 @@ public partial class Parser
             if (MatchType(TokenType.Colon))
             {
                 // register type-hint for the variable
-                typeHints[mangledName] = GetTypeNames();
+                typeHints[varName] = GetTypeNames();
             }
 
             // check for default value
@@ -762,7 +744,7 @@ public partial class Parser
             }
 
             // add to variables container
-            variables.Add(new KeyValuePair<string, ASTNode?>(mangledName, defaultValue));
+            variables.Add(new KeyValuePair<string, ASTNode?>(varName, defaultValue));
 
             // check for the next variable or the end of the variable declaration
             if (GetTokenType() == TokenType.Comma)
@@ -819,8 +801,6 @@ public partial class Parser
         string functionName = token.Text;
         Next();
 
-        var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
-
         // Parse parameters
         List<KeyValuePair<string, ASTNode?>> parameters = [];
         Dictionary<string, List<int>> typeHints = [];
@@ -832,7 +812,7 @@ public partial class Parser
         }
 
         _generatorMarks.Add(false);
-        var mangledNames = PushNameStack();
+        HashSet<string> seenParams = [];
         var variadicParamName = string.Empty;
 
         if (GetTokenType() == TokenType.LParen)
@@ -848,9 +828,7 @@ public partial class Parser
                     if (GetTokenType() != TokenType.Identifier)
                         throw new SyntaxError(GetErrorToken(), "Expected parameter name after '*'.");
                     var varParamName = token.Text;
-                    var mangledVar = mangler + varParamName;
-                    mangledNames[varParamName] = mangledVar;
-                    variadicParamName = mangledVar;
+                    variadicParamName = varParamName;
                     Next();  // consume name
                     if (GetTokenType() != TokenType.RParen)
                         throw new SyntaxError(GetErrorToken(), "Variadic parameter '*' must be the last parameter.");
@@ -864,19 +842,17 @@ public partial class Parser
 
                 var paramName = token.Text;
 
-                if (mangledNames.ContainsKey(paramName))
+                if (!seenParams.Add(paramName))
                 {
                     throw new SyntaxError(GetErrorToken(), $"The parameter name `{paramName}` is already used.");
                 }
 
-                var mangledName = mangler + paramName;
-                mangledNames[paramName] = mangledName;
                 ASTNode? defaultValue = null;
                 Next();
 
                 if (MatchType(TokenType.Colon))
                 {
-                    typeHints[mangledName] = GetTypeNames();
+                    typeHints[paramName] = GetTypeNames();
                 }
 
                 // Check for default value
@@ -887,7 +863,7 @@ public partial class Parser
                     defaultValue = ParseExpression();
                 }
 
-                parameters.Add(new KeyValuePair<string, ASTNode?>(mangledName, defaultValue));
+                parameters.Add(new KeyValuePair<string, ASTNode?>(paramName, defaultValue));
 
                 if (GetTokenType() == TokenType.Comma)
                 {
@@ -909,8 +885,6 @@ public partial class Parser
 
         // Parse the function body
         var body = ParseSimpleBlock(fnKeyword);
-
-        PopNameStack();
 
         var isGenerator = _generatorMarks.Count > 0 && _generatorMarks[_generatorMarks.Count - 1];
         if (_generatorMarks.Count > 0)
@@ -934,16 +908,11 @@ public partial class Parser
         var openToken = token;
         MatchName(TokenName.KW_For);  // Consume 'for'
 
-        var mangledNames = GetNameMap();
-        var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
-        HashSet<string> subMangled = [];
         var valueIteratorName = string.Empty;
 
         if (GetTokenType() == TokenType.Identifier)
         {
-            valueIteratorName = mangler + token.Text;
-            mangledNames[token.Text] = valueIteratorName;
-            subMangled.Add(token.Text);
+            valueIteratorName = token.Text;
         }
 
         var valueIterator = ParseIdentifier(false, false);
@@ -951,11 +920,6 @@ public partial class Parser
 
         if (MatchType(TokenType.Comma))
         {
-            if (GetTokenType() == TokenType.Identifier)
-            {
-                mangledNames[token.Text] = mangler + token.Text;
-                subMangled.Add(token.Text);
-            }
             indexIterator = ParseIdentifier(false, false);
         }
 
@@ -972,11 +936,6 @@ public partial class Parser
         }
 
         var body = ParseSimpleBlock(openToken);
-
-        foreach (var mangledName in subMangled)
-        {
-            mangledNames.Remove(mangledName);
-        }
 
         return new ForLoopNode(valueIterator ?? new IdentifierNode(valueIteratorName))
         {
@@ -1251,8 +1210,6 @@ public partial class Parser
         }
 
         var node = new CaseNode();
-        var mangledNames = GetNameMap();
-        HashSet<string> subMangled = [];
 
         if (HasValue())
         {
@@ -1265,11 +1222,6 @@ public partial class Parser
                 {
                     throw new SyntaxError(GetErrorToken(), "Expected an identifier.");
                 }
-
-                var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
-                var testAlias = mangler + token.Text;
-                mangledNames[token.Text] = testAlias;
-                subMangled.Add(token.Text);
 
                 node.TestValueAlias = ParseIdentifier(false, false);
             }
@@ -1341,11 +1293,6 @@ public partial class Parser
         }
 
         Next();  // Consume 'end'
-
-        foreach (var name in subMangled)
-        {
-            mangledNames.Remove(name);
-        }
 
         return node;
     }
@@ -1765,11 +1712,9 @@ public partial class Parser
             Next(); // consume
         }
 
-        var mangler = $"_{Guid.NewGuid().ToString()[..8]}_";
-        Dictionary<string, string> localNames = [];
         Dictionary<string, List<int>> typeHints = [];
         List<int> returnTypeHint = [TypeRegistry.GetType("any")];
-        var mangledNames = PushNameStack();
+        HashSet<string> seenParams = [];
         var variadicParamName = string.Empty;
 
         // Parse parameters
@@ -1787,9 +1732,7 @@ public partial class Parser
                     if (GetTokenType() != TokenType.Identifier)
                         throw new SyntaxError(GetErrorToken(), "Expected parameter name after '*'.");
                     var varParamName = token.Text;
-                    var mangledVar = mangler + varParamName;
-                    mangledNames[varParamName] = mangledVar;
-                    variadicParamName = mangledVar;
+                    variadicParamName = varParamName;
                     Next();  // consume name
                     if (GetTokenType() != TokenType.RParen)
                         throw new SyntaxError(GetErrorToken(), "Variadic parameter '*' must be the last parameter.");
@@ -1803,20 +1746,18 @@ public partial class Parser
 
                 var paramName = token.Text;
 
-                if (mangledNames.ContainsKey(paramName))
+                if (!seenParams.Add(paramName))
                 {
                     throw new SyntaxError(GetErrorToken(), $"The parameter name '{paramName}' is already used.");
                 }
 
-                var mangledName = mangler + paramName;
-                mangledNames[paramName] = mangledName;
                 ASTNode? defaultValue = null;
                 Next();
 
                 // Check for type hint.
                 if (MatchType(TokenType.Colon))
                 {
-                    typeHints[mangledName] = GetTypeNames();
+                    typeHints[paramName] = GetTypeNames();
                 }
 
                 // Check for default value
@@ -1827,7 +1768,7 @@ public partial class Parser
                     defaultValue = ParseExpression();
                 }
 
-                parameters.Add(new KeyValuePair<string, ASTNode?>(mangledName, defaultValue));
+                parameters.Add(new KeyValuePair<string, ASTNode?>(paramName, defaultValue));
 
                 if (GetTokenType() == TokenType.Comma)
                 {
@@ -1881,8 +1822,6 @@ public partial class Parser
             // Read until `end`.
             body = ParseSimpleBlock(openToken);
         }
-
-        PopNameStack();
 
         return new LambdaNode
         {
@@ -2360,10 +2299,6 @@ public partial class Parser
             }
 
             var identifierName = token.Text;
-            if (HasName(identifierName))
-            {
-                identifierName = GetName(identifierName);
-            }
             Next();
 
             assignment.Left.Add(
@@ -2575,11 +2510,6 @@ public partial class Parser
 
         var type = GetTokenName();
         var identifierName = (isInstance ? "@" : string.Empty) + token.Text;
-
-        if (HasName(identifierName))
-        {
-            identifierName = GetName(identifierName);
-        }
 
         Next();
 
