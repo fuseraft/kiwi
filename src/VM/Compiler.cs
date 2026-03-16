@@ -1337,46 +1337,71 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
     private void CompileLambdaCall(LambdaCallNode node, int ln)
     {
-        if (HasNamedArg(node.Arguments)) { Fallback(node); return; }
+        bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
+        if (hasNamed && hasSplat) { Fallback(node); return; }
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.LambdaNode!);
-        int argc = CompileArgs(node.Arguments);
-        Emit(hasSplat ? Opcode.CallSplat : Opcode.Call, argc, 0, ln);
+        if (hasNamed)
+        {
+            var (argc, nameSetIdx) = CompileNamedArgs(node.Arguments);
+            Emit(Opcode.CallNamed, argc, nameSetIdx, ln);
+        }
+        else
+        {
+            int argc = CompileArgs(node.Arguments);
+            Emit(hasSplat ? Opcode.CallSplat : Opcode.Call, argc, 0, ln);
+        }
     }
 
     // -- Function call ---------------------------------------------------------
 
     private void CompileFuncCall(FunctionCallNode node, int ln)
     {
-        if (HasNamedArg(node.Arguments)) { Fallback(node); return; }
         // Any function whose Op is not a plain Identifier token is a language builtin
         // (e.g. typeof, deserialize, serialize) handled entirely by the interpreter -
         // not findable via LoadGlobal, so fall back.
         if (node.Op != TokenName.Default) { Fallback(node); return; }
-        // Package-prefixed calls (e.g. math::round): evaluate arguments via VM so that
-        // VM-local variables (e.g. mangled var-block names) are read from the correct
-        // stack slots, then dispatch through DoCall which invokes the interpreter with
-        // the already-evaluated argument values.
+        bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
+        if (hasNamed && hasSplat) { Fallback(node); return; }
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         EmitLoad(node.FunctionName, ln);
-        int argc    = CompileArgs(node.Arguments);
-        int nameIdx = _chunk.AddName(node.FunctionName); // encode name for error reporting
-        Emit(hasSplat ? Opcode.CallSplat : Opcode.Call, argc, nameIdx, ln);
+        if (hasNamed)
+        {
+            var (argc, nameSetIdx) = CompileNamedArgs(node.Arguments);
+            Emit(Opcode.CallNamed, argc, nameSetIdx, ln);
+        }
+        else
+        {
+            int argc    = CompileArgs(node.Arguments);
+            int nameIdx = _chunk.AddName(node.FunctionName); // encode name for error reporting
+            Emit(hasSplat ? Opcode.CallSplat : Opcode.Call, argc, nameIdx, ln);
+        }
     }
 
     // -- Method call -----------------------------------------------------------
 
     private void CompileMethodCall(MethodCallNode node, int ln)
     {
-        if (HasNamedArg(node.Arguments)) { Fallback(node); return; }
+        bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
+        if (hasNamed && hasSplat) { Fallback(node); return; }
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.Object!);
-        int argc    = CompileArgs(node.Arguments);
-        int nameIdx = _chunk.AddName(node.MethodName);
-        Emit(hasSplat ? Opcode.MethodCallSplat : Opcode.CallMethod, argc, nameIdx, ln);
+        if (hasNamed)
+        {
+            var (argc, nameSetIdx) = CompileNamedArgs(node.Arguments);
+            int methodNameIdx = _chunk.AddName(node.MethodName);
+            int packed = (methodNameIdx & 0xFFFF) | (nameSetIdx << 16);
+            Emit(Opcode.CallMethodNamed, argc, packed, ln);
+        }
+        else
+        {
+            int argc    = CompileArgs(node.Arguments);
+            int nameIdx = _chunk.AddName(node.MethodName);
+            Emit(hasSplat ? Opcode.MethodCallSplat : Opcode.CallMethod, argc, nameIdx, ln);
+        }
     }
 
     // -- Helpers ---------------------------------------------------------------
@@ -1442,6 +1467,34 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     // Kept for callers that need to fall back on either named args or splat.
     private static bool HasSplatArg(IEnumerable<ASTNode?> args)
         => args.Any(a => a is NamedArgumentNode);
+
+    /// <summary>
+    /// Compile a named-argument list (positional and/or named, no splat).
+    /// Evaluates each arg in source order and builds a parallel name array
+    /// (empty string = positional, non-empty = named arg name).
+    /// Returns (argc, argNameSetIndex) for use with CallNamed / CallMethodNamed.
+    /// </summary>
+    private (int argc, int nameSetIdx) CompileNamedArgs(IEnumerable<ASTNode?> args)
+    {
+        var argList = args.Where(a => a != null).ToList();
+        var names   = new string[argList.Count];
+        int n = 0;
+        foreach (var a in argList)
+        {
+            if (a is NamedArgumentNode named)
+            {
+                names[n] = named.Name;
+                CompileNode(named.Value!);
+            }
+            else
+            {
+                names[n] = string.Empty;
+                CompileNode(a!);
+            }
+            n++;
+        }
+        return (n, _chunk.AddArgNameSet(names));
+    }
 
     private int CompileArgs(IEnumerable<ASTNode?> args)
     {

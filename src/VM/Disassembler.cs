@@ -74,6 +74,28 @@ public static class Disassembler
                     break;
                 }
 
+                case Opcode.CallNamed:
+                {
+                    int nsIdx = instr.B;
+                    var ns = chunk.ArgNameSets.Count > nsIdx
+                        ? string.Join(", ", chunk.ArgNameSets[nsIdx].Select(n => string.IsNullOrEmpty(n) ? "_" : n))
+                        : "?";
+                    sb.Append($" argc={instr.A}  names=[{ns}]");
+                    break;
+                }
+
+                case Opcode.CallMethodNamed:
+                {
+                    int methodNameIdx = instr.B & 0xFFFF;
+                    int nsIdx         = (instr.B >> 16) & 0xFFFF;
+                    var mn = chunk.Names.Count > methodNameIdx ? chunk.Names[methodNameIdx] : "?";
+                    var ns = chunk.ArgNameSets.Count > nsIdx
+                        ? string.Join(", ", chunk.ArgNameSets[nsIdx].Select(n => string.IsNullOrEmpty(n) ? "_" : n))
+                        : "?";
+                    sb.Append($" .{mn}  argc={instr.A}  names=[{ns}]");
+                    break;
+                }
+
                 case Opcode.DefFunc:
                 {
                     var fn = chunk.Names.Count > instr.B ? chunk.Names[instr.B] : "?";
