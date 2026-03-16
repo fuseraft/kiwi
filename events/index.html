@@ -1853,6 +1853,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="on">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wildcard-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wildcard patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1875,6 +1903,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="emit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error isolation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1890,17 +1935,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#event-arguments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Event Arguments
-      
-    </span>
-  </a>
   
 </li>
       
@@ -3148,6 +3182,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="on">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Priority
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wildcard-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wildcard patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3170,6 +3232,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="emit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-isolation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error isolation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3185,17 +3264,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#event-arguments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Event Arguments
-      
-    </span>
-  </a>
   
 </li>
       
@@ -3253,7 +3321,7 @@
 
 
 <h1 id="events">Events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h1>
-<p>Kiwi provides a lightweight, zero-allocation, built-in event bus.</p>
+<p>Kiwi has a built-in event bus with wildcard routing, handler priority, and error isolation.</p>
 <h2 id="event-keywords">Event Keywords<a class="headerlink" href="#event-keywords" title="Permanent link">&para;</a></h2>
 <h3 id="on"><code>on</code><a class="headerlink" href="#on" title="Permanent link">&para;</a></h3>
 <p>Registers a handler that runs <strong>every time</strong> the event is emitted.</p>
@@ -3265,20 +3333,71 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  println &quot;Welcome back, ${user.name}!&quot;
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>end
 </span></code></pre></div>
-<p>Multiple handlers can listen to the same event and will all run in the order they were registered.</p>
-<h3 id="once"><code>once</code><a class="headerlink" href="#once" title="Permanent link">&para;</a></h3>
-<p>Registers a handler that runs <strong>only the first time</strong> the event is emitted.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>once &quot;db.connected&quot; do
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  println &quot;connected to the database&quot;
+<p>Multiple handlers can listen to the same event and fire in priority order (highest first),
+then registration order within the same priority.</p>
+<h4 id="priority">Priority<a class="headerlink" href="#priority" title="Permanent link">&para;</a></h4>
+<p>An optional integer after the event name controls dispatch order. Higher values run first.
+The default priority is <code>0</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>on &quot;request&quot;, 10 do   # runs first
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  println &quot;auth check&quot;
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>end
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>on &quot;request&quot; do       # runs second (priority 0)
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  println &quot;handle request&quot;
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>end
 </span></code></pre></div>
-<p>After the first <code>emit</code>, the handler is automatically removed.</p>
+<h4 id="wildcard-patterns">Wildcard patterns<a class="headerlink" href="#wildcard-patterns" title="Permanent link">&para;</a></h4>
+<p><code>*</code> matches any sequence of non-<code>.</code> characters within a single segment.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>on &quot;user.*&quot; with (name) do
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  println &quot;user event for ${name}&quot;
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>end
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>on &quot;*.error&quot; with (msg) do
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  println &quot;error: ${msg}&quot;
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>end
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>emit &quot;user.login&quot;  (&quot;alice&quot;)   # matches &quot;user.*&quot;
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>emit &quot;db.error&quot;    (&quot;timeout&quot;) # matches &quot;*.error&quot;
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>emit &quot;user.x.y&quot;    (&quot;bob&quot;)     # no match — &quot;*&quot; doesn&#39;t cross &quot;.&quot;
+</span></code></pre></div>
+<h3 id="once"><code>once</code><a class="headerlink" href="#once" title="Permanent link">&para;</a></h3>
+<p>Registers a handler that runs <strong>only the first time</strong> the event is emitted.
+The handler is removed before it executes, so it will not fire again even if it throws.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>once &quot;db.connected&quot; do
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  println &quot;connected to the database&quot;
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>end
+</span></code></pre></div>
+<p>Accepts the same priority and wildcard syntax as <code>on</code>.</p>
 <h3 id="emit"><code>emit</code><a class="headerlink" href="#emit" title="Permanent link">&para;</a></h3>
-<p>Triggers an event.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>emit &quot;app.start&quot;
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a># pass parameters as you would with any function
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>emit &quot;user.login&quot; ({ &quot;name&quot;: &quot;alice&quot;, &quot;role&quot;: &quot;admin&quot; })
+<p>Triggers an event and returns a list of all handler return values.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>emit &quot;app.start&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a># pass arguments
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>emit &quot;user.login&quot; ({ &quot;name&quot;: &quot;alice&quot;, &quot;role&quot;: &quot;admin&quot; })
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a># capture return values
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>on &quot;calc&quot; with (x) do
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  return x * 2
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>end
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>results = emit &quot;calc&quot; (21)   # results == [42]
+</span></code></pre></div>
+<h4 id="error-isolation">Error isolation<a class="headerlink" href="#error-isolation" title="Permanent link">&para;</a></h4>
+<p>If a handler throws, the remaining handlers still run. All errors are collected and
+re-thrown as a single error after the full dispatch round completes.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>on &quot;tick&quot; do
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  throw &quot;oops&quot;
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>end
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>on &quot;tick&quot; do
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  println &quot;I still run&quot;
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>end
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>try
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  emit &quot;tick&quot;
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>catch (err)
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  println err   # reports the collected error
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>end
 </span></code></pre></div>
 <h3 id="off"><code>off</code><a class="headerlink" href="#off" title="Permanent link">&para;</a></h3>
 <p>Removes event handlers.</p>
@@ -3292,45 +3411,37 @@
 <tbody>
 <tr>
 <td><code>off "event.name"</code></td>
-<td>Removes <strong>all</strong> handlers for an event</td>
+<td>Removes <strong>all</strong> handlers for that pattern</td>
 </tr>
 <tr>
 <td><code>off "event.name" (handler)</code></td>
-<td>Removes a specific handler for an event</td>
+<td>Removes a specific handler</td>
 </tr>
 </tbody>
 </table>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>my_handler = do (x) =&gt; println &quot;Got ${x}&quot;
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>on &quot;data&quot; (my_handler)
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>emit &quot;data&quot; (42)          # prints: 42
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>off &quot;data&quot; (my_handler)
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>emit &quot;data&quot; (99)          # silent
-</span></code></pre></div>
-<h2 id="event-arguments">Event Arguments<a class="headerlink" href="#event-arguments" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>on &quot;log&quot; with (level, message) do
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  println &quot;[${level}] ${message}&quot;
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>end
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>emit &quot;log&quot; (&quot;INFO&quot;, &quot;Server started&quot;)
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>emit &quot;log&quot; (&quot;ERROR&quot;, &quot;Disk full!&quot;)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>my_handler = do (x) =&gt; println &quot;Got ${x}&quot;
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>on &quot;data&quot; (my_handler)
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>emit &quot;data&quot; (42)          # prints: Got 42
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>off &quot;data&quot; (my_handler)
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>emit &quot;data&quot; (99)          # silent
 </span></code></pre></div>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>on &quot;string-repeat&quot; with (text: string, count: integer) do
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  println text * count
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>end
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>repeat 5 as i do
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  emit &quot;string-repeat&quot;, &quot;kiwi&quot;, i
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>end
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>on &quot;string-repeat&quot; with (text: string, count: integer) do
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  println text * count
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>end
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>repeat 5 as i do
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  emit &quot;string-repeat&quot; (&quot;kiwi&quot;, i)
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>end
 </span></code></pre></div>
 <h3 id="output">Output<a class="headerlink" href="#output" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kiwi
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>kiwikiwi
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>kiwikiwikiwi
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>kiwikiwikiwikiwi
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>kiwikiwikiwikiwikiwi
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kiwi
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>kiwikiwi
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>kiwikiwikiwi
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>kiwikiwikiwikiwi
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>kiwikiwikiwikiwikiwi
 </span></code></pre></div>
 
 
