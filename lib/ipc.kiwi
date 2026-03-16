@@ -1,0 +1,54 @@
+/#
+@summary A package for interprocess communication via named pipes.
+#/
+package ipc
+  /#
+  @summary Create a named pipe server and wait for a client to connect.
+  @param string _name : The pipe name.
+  @throws SystemError : When the pipe cannot be created.
+  @return integer : A handle ID for the connected pipe.
+  #/
+  fn create(_name: string): integer
+    __ipc_create__(_name)
+  end
+
+  /#
+  @summary Connect to a named pipe server.
+  @param string _name : The pipe name.
+  @throws SystemError : When the connection fails.
+  @return integer : A handle ID for the connected pipe.
+  #/
+  fn connect(_name: string): integer
+    __ipc_connect__(_name)
+  end
+
+  /#
+  @summary Send a string message over an open pipe.
+  @param integer _handle : The pipe handle returned by `create` or `connect`.
+  @param string _message : The message to send.
+  @throws SystemError : When the send fails.
+  #/
+  fn send(_handle: integer, _message: string)
+    __ipc_send__(_handle, _message)
+  end
+
+  /#
+  @summary Receive a string message from an open pipe (blocking).
+  @param integer _handle : The pipe handle returned by `create` or `connect`.
+  @throws SystemError : When the receive fails or the pipe is closed.
+  @return string : The received message.
+  #/
+  fn recv(_handle: integer): string
+    __ipc_recv__(_handle)
+  end
+
+  /#
+  @summary Close an open pipe handle.
+  @param integer _handle : The pipe handle to close.
+  #/
+  fn close(_handle: integer)
+    __ipc_close__(_handle)
+  end
+end
+
+export "ipc"
