@@ -128,6 +128,7 @@ nav:
     - dotenv: lib/dotenv.md
     - env: lib/env.md
     - error: lib/error.md
+    - faker: lib/faker.md
     - fio: lib/fio.md
     - hashable: lib/hashable.md
     - http: lib/http.md

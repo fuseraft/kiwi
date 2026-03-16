@@ -1,0 +1,1120 @@
+/#
+@summary A package for generating realistic fake data for testing, development, and demos.
+@example
+---
+println faker::name()         # "Emily Torres"
+println faker::email()        # "emily.torres42@nexus.io"
+println faker::address()      # "817 Maple Ave, Denver, CO 80201"
+println faker::company()      # "Adaptive Lueilwitz Inc"
+println faker::sentence()     # "Lorem ipsum dolor sit amet consectetur."
+---
+#/
+package faker
+
+  # -----------------------------------------------------------------------------
+  # Name
+  # -----------------------------------------------------------------------------
+  
+  /#
+  @summary Returns a random first name.
+  @return string : A first name.
+  #/
+  fn first_name()
+    faker::_pick(faker::_first_names())
+  end
+
+  /#
+  @summary Returns a random last name.
+  @return string : A last name.
+  #/
+  fn last_name()
+    faker::_pick(faker::_last_names())
+  end
+
+  /#
+  @summary Returns a random full name.
+  @return string : A full name (`"First Last"`).
+  #/
+  fn name()
+    "${faker::first_name()} ${faker::last_name()}"
+  end
+
+  /#
+  @summary Returns a random full name with a middle name.
+  @return string : A full name with middle name (`"First Middle Last"`).
+  #/
+  fn name_with_middle()
+    "${faker::first_name()} ${faker::first_name()} ${faker::last_name()}"
+  end
+
+  /#
+  @summary Returns a random name prefix.
+  @return string : A prefix such as `"Mr."`, `"Dr."`, etc.
+  #/
+  fn prefix()
+    faker::_pick(faker::_prefixes())
+  end
+
+  /#
+  @summary Returns a random name suffix.
+  @return string : A suffix such as `"Jr."`, `"PhD"`, etc.
+  #/
+  fn suffix()
+    faker::_pick(faker::_suffixes())
+  end
+
+  /#
+  @summary Returns a random full name with prefix.
+  @return string : A prefixed full name (`"Dr. First Last"`).
+  #/
+  fn full_name()
+    "${faker::prefix()} ${faker::name()}"
+  end
+
+  /#
+  @summary Returns a random gender label.
+  @return string : One of `"Male"`, `"Female"`, `"Non-binary"`, `"Prefer not to say"`.
+  #/
+  fn gender()
+    faker::_pick(["Male", "Female", "Non-binary", "Prefer not to say"])
+  end
+
+  # -----------------------------------------------------------------------------
+  # Internet
+  # -----------------------------------------------------------------------------
+  
+  /#
+  @summary Returns a random domain name.
+  @return string : A domain name such as `"larkin.io"`.
+  #/
+  fn domain()
+    word = faker::last_name().lowercase()
+    tld = faker::_pick(faker::_tlds())
+    "${word}.${tld}"
+  end
+
+  /#
+  @summary Returns a random email address.
+  @return string : An email address such as `"emily.torres42@larkin.io"`.
+  #/
+  fn email()
+    first = faker::first_name().lowercase()
+    last = faker::last_name().lowercase()
+    sep = faker::_pick([".", "_", ""])
+    n = math::random(1, 99)
+    local = "${first}${sep}${last}${n}"
+    "${local}@${faker::domain()}"
+  end
+
+  /#
+  @summary Returns a random username.
+  @return string : A username such as `"emily_torres234"`.
+  #/
+  fn username()
+    first = faker::first_name().lowercase()
+    last = faker::last_name().lowercase()
+    sep = faker::_pick([".", "_", ""])
+    n = math::random(1, 999)
+    "${first}${sep}${last}${n}"
+  end
+
+  /#
+  @summary Returns a random password.
+  @param integer length : The password length (default `16`).
+  @return string : A random password string.
+  #/
+  fn password(length = 16)
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*".chars()
+    s = ""
+    repeat length do
+      s += faker::_pick(chars)
+    end
+    s
+  end
+
+  /#
+  @summary Returns a random URL.
+  @return string : A URL such as `"https://www.larkin.io"`.
+  #/
+  fn url()
+    "https://www.${faker::domain()}"
+  end
+
+  /#
+  @summary Returns a random IPv4 address.
+  @return string : An IPv4 address such as `"192.168.1.42"`.
+  #/
+  fn ip()
+    a = math::random(1, 254)
+    b = math::random(0, 255)
+    c = math::random(0, 255)
+    d = math::random(1, 254)
+    "${a}.${b}.${c}.${d}"
+  end
+
+  /#
+  @summary Returns a random IPv6 address.
+  @return string : An IPv6 address such as `"2001:0db8:85a3:0000:0000:8a2e:0370:7334"`.
+  #/
+  fn ipv6()
+    groups = []
+    repeat 8 do
+      groups.push(faker::_rhex(4))
+    end
+    groups.join(":")
+  end
+
+  /#
+  @summary Returns a random MAC address.
+  @return string : A MAC address such as `"a1:b2:c3:d4:e5:f6"`.
+  #/
+  fn mac_address()
+    groups = []
+    repeat 6 do
+      groups.push(faker::_rhex(2))
+    end
+    groups.join(":")
+  end
+
+  /#
+  @summary Returns a random URL slug.
+  @return string : A URL slug such as `"lorem-ipsum-dolor"`.
+  #/
+  fn slug()
+    w1 = faker::word()
+    w2 = faker::word()
+    w3 = faker::word()
+    "${w1}-${w2}-${w3}"
+  end
+
+  /#
+  @summary Returns a random HTTP method.
+  @return string : An HTTP method such as `"GET"` or `"POST"`.
+  #/
+  fn http_method()
+    faker::_pick(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"])
+  end
+
+  /#
+  @summary Returns a random HTTP status code.
+  @return integer : An HTTP status code such as `200` or `404`.
+  #/
+  fn http_status()
+    faker::_pick([200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 429, 500, 502, 503])
+  end
+
+  /#
+  @summary Returns a random MIME type.
+  @return string : A MIME type such as `"application/json"`.
+  #/
+  fn mime_type()
+    faker::_pick(["text/plain", "text/html", "text/css", "text/javascript",
+                  "application/json", "application/xml", "application/pdf",
+                  "application/zip", "application/octet-stream",
+                  "image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp",
+                  "audio/mpeg", "audio/wav", "video/mp4", "video/webm",
+                  "multipart/form-data", "application/x-www-form-urlencoded"])
+  end
+
+  /#
+  @summary Returns a random user agent string.
+  @return string : A browser user agent string.
+  #/
+  fn user_agent()
+    faker::_pick([
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1",
+      "Mozilla/5.0 (Android 13; Mobile; rv:109.0) Gecko/109.0 Firefox/119.0",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 Safari/605.1.15"
+    ])
+  end
+
+  # -----------------------------------------------------------------------------
+  # Phone
+  # -----------------------------------------------------------------------------
+  
+  /#
+  @summary Returns a random US phone number in `(NXX) NXX-XXXX` format.
+  @return string : A formatted phone number such as `"(415) 555-0123"`.
+  #/
+  fn phone()
+    area = math::random(200, 999)
+    pfx = math::random(200, 999)
+    line = math::random(1000, 9999)
+    "(${area}) ${pfx}-${line}"
+  end
+
+  /#
+  @summary Returns a random US phone number in E.164 format.
+  @return string : A phone number such as `"+14155550123"`.
+  #/
+  fn phone_e164()
+    area = math::random(200, 999)
+    pfx = math::random(200, 999)
+    line = math::random(1000, 9999)
+    "+1${area}${pfx}${line}"
+  end
+
+  # -----------------------------------------------------------------------------
+  # Address
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random street number.
+  @return integer : A street number between 1 and 9999.
+  #/
+  fn street_number()
+    math::random(1, 9999)
+  end
+
+  /#
+  @summary Returns a random street name.
+  @return string : A street name such as `"Larkin Avenue"`.
+  #/
+  fn street_name()
+    word = faker::_pick(faker::_street_words())
+    sfx = faker::_pick(faker::_street_suffixes())
+    "${word} ${sfx}"
+  end
+
+  /#
+  @summary Returns a random street address.
+  @return string : A street address such as `"817 Larkin Avenue"`.
+  #/
+  fn street_address()
+    "${faker::street_number()} ${faker::street_name()}"
+  end
+
+  /#
+  @summary Returns a random secondary address (apartment, suite, etc.).
+  @return string : A secondary address such as `"Apt 42"`.
+  #/
+  fn secondary_address()
+    t = faker::_pick(["Apt", "Suite", "Unit", "Floor", "#"])
+    n = math::random(1, 999)
+    "${t} ${n}"
+  end
+
+  /#
+  @summary Returns a random city name.
+  @return string : A city name such as `"North Kimberlyville"`.
+  #/
+  fn city()
+    style = math::random(0, 3)
+    pfx = faker::_pick(faker::_city_prefixes())
+    sfx = faker::_pick(faker::_city_suffixes())
+    fn_name = faker::first_name()
+    ln_name = faker::last_name()
+    if style == 0
+      "${pfx} ${fn_name}${sfx}"
+    elsif style == 1
+      "${pfx} ${fn_name}"
+    elsif style == 2
+      "${fn_name}${sfx}"
+    else
+      "${ln_name}${sfx}"
+    end
+  end
+
+  /#
+  @summary Returns a random US state name.
+  @return string : A state name such as `"Colorado"`.
+  #/
+  fn state()
+    faker::_pick(faker::_states())[0]
+  end
+
+  /#
+  @summary Returns a random US state abbreviation.
+  @return string : A state abbreviation such as `"CO"`.
+  #/
+  fn state_abbr()
+    faker::_pick(faker::_states())[1]
+  end
+
+  /#
+  @summary Returns a random US ZIP code.
+  @return string : A 5-digit ZIP code such as `"80201"`.
+  #/
+  fn zip()
+    faker::_rdigits(5)
+  end
+
+  /#
+  @summary Returns a random country name.
+  @return string : A country name such as `"Germany"`.
+  #/
+  fn country()
+    faker::_pick(faker::_countries())
+  end
+
+  /#
+  @summary Returns a random US street address with city, state, and ZIP.
+  @return string : An address such as `"817 Larkin Avenue, North Kimberlyville, CO 80201"`.
+  #/
+  fn address()
+    "${faker::street_address()}, ${faker::city()}, ${faker::state_abbr()} ${faker::zip()}"
+  end
+
+  /#
+  @summary Returns a random full address including country.
+  @return string : A full address including country.
+  #/
+  fn full_address()
+    "${faker::address()}, ${faker::country()}"
+  end
+
+  /#
+  @summary Returns a random latitude value.
+  @return float : A latitude between -90.0 and 90.0.
+  #/
+  fn latitude()
+    math::random(-9000, 9000) / 100.0
+  end
+
+  /#
+  @summary Returns a random longitude value.
+  @return float : A longitude between -180.0 and 180.0.
+  #/
+  fn longitude()
+    math::random(-18000, 18000) / 100.0
+  end
+
+  # -----------------------------------------------------------------------------
+  # Company
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random company name.
+  @return string : A company name such as `"Adaptive Lueilwitz Inc"`.
+  #/
+  fn company()
+    adj = faker::_pick(faker::_company_adj())
+    word = faker::last_name()
+    suf = faker::_pick(faker::_company_suffixes())
+    "${adj} ${word} ${suf}"
+  end
+
+  /#
+  @summary Returns a random company name suffix.
+  @return string : A suffix such as `"Inc"` or `"LLC"`.
+  #/
+  fn company_suffix()
+    faker::_pick(faker::_company_suffixes())
+  end
+
+  /#
+  @summary Returns a random department name.
+  @return string : A department such as `"Engineering"`.
+  #/
+  fn department()
+    faker::_pick(faker::_departments())
+  end
+
+  /#
+  @summary Returns a random job title.
+  @return string : A job title such as `"Senior Engineer"`.
+  #/
+  fn job()
+    seniority = faker::_pick(faker::_job_seniority())
+    position = faker::_pick(faker::_job_positions())
+    "${seniority} ${position}"
+  end
+
+  /#
+  @summary Returns a random profession.
+  @return string : A profession such as `"architect"`.
+  #/
+  fn profession()
+    faker::_pick(faker::_professions())
+  end
+
+  # -----------------------------------------------------------------------------
+  # Lorem
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random lorem ipsum word.
+  @return string : A word such as `"consequatur"`.
+  #/
+  fn word()
+    faker::_pick(faker::_lorem_words())
+  end
+
+  /#
+  @summary Returns a list of random lorem ipsum words.
+  @param integer n : The number of words (default `3`).
+  @return list : A list of word strings.
+  #/
+  fn words(n = 3)
+    result = []
+    repeat n do
+      result.push(faker::word())
+    end
+    result
+  end
+
+  /#
+  @summary Returns a random lorem ipsum sentence.
+  @param integer word_count : The number of words (default `7`).
+  @return string : A sentence ending with `"."`.
+  #/
+  fn sentence(word_count = 7)
+    ws = faker::words(word_count)
+    ws[0] = ws[0].capitalize()
+    joined = ws.join(" ")
+    "${joined}."
+  end
+
+  /#
+  @summary Returns a list of random lorem ipsum sentences.
+  @param integer count : The number of sentences (default `3`).
+  @return list : A list of sentence strings.
+  #/
+  fn sentences(count = 3)
+    result = []
+    repeat count do
+      result.push(faker::sentence())
+    end
+    result
+  end
+
+  /#
+  @summary Returns a random lorem ipsum paragraph.
+  @param integer sentence_count : The number of sentences (default `4`).
+  @return string : A paragraph of lorem ipsum text.
+  #/
+  fn paragraph(sentence_count = 4)
+    faker::sentences(sentence_count).join(" ")
+  end
+
+  /#
+  @summary Returns a list of random lorem ipsum paragraphs.
+  @param integer count : The number of paragraphs (default `3`).
+  @return list : A list of paragraph strings.
+  #/
+  fn paragraphs(count = 3)
+    result = []
+    repeat count do
+      result.push(faker::paragraph())
+    end
+    result
+  end
+
+  # -----------------------------------------------------------------------------
+  # Number
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random single digit.
+  @return integer : An integer from 0 to 9.
+  #/
+  fn digit()
+    math::random(0, 9)
+  end
+
+  /#
+  @summary Returns a random integer with a given number of digits.
+  @param integer digits : The number of digits (default `10`).
+  @return integer : A random integer.
+  #/
+  fn number(digits = 10)
+    s = math::random(1, 9).to_string()
+    repeat digits - 1 do
+      s += math::random(0, 9).to_string()
+    end
+    s.to_integer()
+  end
+
+  /#
+  @summary Returns a random integer between min and max (inclusive).
+  @param integer min : The lower bound.
+  @param integer max : The upper bound.
+  @return integer : A random integer in `[min, max]`.
+  #/
+  fn between(min, max)
+    math::random(min, max)
+  end
+
+  /#
+  @summary Returns a random float between min and max.
+  @param float min : The lower bound (default `0.0`).
+  @param float max : The upper bound (default `1.0`).
+  @return float : A random float in `[min, max]`.
+  #/
+  fn float_between(min = 0.0, max = 1.0)
+    math::random(min.to_float(), max.to_float())
+  end
+
+  /#
+  @summary Returns a random positive integer.
+  @param integer max : The upper bound (default `1000`).
+  @return integer : A positive integer in `[1, max]`.
+  #/
+  fn positive(max = 1000)
+    math::random(1, max)
+  end
+
+  /#
+  @summary Returns a random negative integer.
+  @param integer min : The lower bound (default `-1000`).
+  @return integer : A negative integer in `[min, -1]`.
+  #/
+  fn negative(min = -1000)
+    math::random(min, -1)
+  end
+
+  /#
+  @summary Returns a random percentage value.
+  @return integer : An integer from 0 to 100.
+  #/
+  fn percentage()
+    math::random(0, 100)
+  end
+
+  # -----------------------------------------------------------------------------
+  # Boolean
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random boolean value.
+  @return boolean : `true` or `false`.
+  #/
+  fn rand_bool()
+    math::random(0, 1) == 1
+  end
+
+  # -----------------------------------------------------------------------------
+  # Color
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random color name.
+  @return string : A color name such as `"crimson"`.
+  #/
+  fn color()
+    faker::_pick(faker::_colors())
+  end
+
+  /#
+  @summary Returns a random hex color code.
+  @return string : A hex color such as `"#a1b2c3"`.
+  #/
+  fn hex_color()
+    "#${faker::_rhex(6)}"
+  end
+
+  /#
+  @summary Returns a random RGB color string.
+  @return string : An RGB color such as `"rgb(100, 200, 50)"`.
+  #/
+  fn rgb_color()
+    r = math::random(0, 255)
+    g = math::random(0, 255)
+    b = math::random(0, 255)
+    "rgb(${r}, ${g}, ${b})"
+  end
+
+  # -----------------------------------------------------------------------------
+  # File
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random file extension.
+  @return string : A file extension such as `"pdf"`.
+  #/
+  fn file_extension()
+    faker::_pick(["txt", "pdf", "doc", "docx", "xls", "xlsx", "csv", "json",
+                  "xml", "html", "css", "js", "ts", "py", "rb", "go", "rs",
+                  "jpg", "png", "gif", "svg", "webp", "mp4", "mp3", "wav",
+                  "zip", "tar", "gz", "md", "kiwi", "log", "sh", "yaml", "toml"])
+  end
+
+  /#
+  @summary Returns a random filename.
+  @return string : A filename such as `"alias_4821.pdf"`.
+  #/
+  fn filename()
+    w = faker::_pick(faker::_lorem_words())
+    digits = faker::_rdigits(4)
+    ext = faker::file_extension()
+    "${w}_${digits}.${ext}"
+  end
+
+  # -----------------------------------------------------------------------------
+  # Finance
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random currency code.
+  @return string : A currency code such as `"USD"`.
+  #/
+  fn currency()
+    faker::_pick(faker::_currencies())[0]
+  end
+
+  /#
+  @summary Returns a random currency symbol.
+  @return string : A currency symbol such as `"$"`.
+  #/
+  fn currency_symbol()
+    faker::_pick(faker::_currencies())[1]
+  end
+
+  /#
+  @summary Returns a random price value rounded to 2 decimal places.
+  @param float min : The minimum price (default `1.0`).
+  @param float max : The maximum price (default `999.99`).
+  @return float : A price such as `42.95`.
+  #/
+  fn price(min = 1.0, max = 999.99)
+    v = math::random(min.to_float(), max.to_float())
+    math::round(v, 2)
+  end
+
+  /#
+  @summary Returns a random credit card number (16 digits, formatted in groups of 4).
+  @return string : A formatted card number such as `"4532 1234 5678 9012"`.
+  #/
+  fn credit_card()
+    a = faker::_rdigits(4)
+    b = faker::_rdigits(4)
+    c = faker::_rdigits(4)
+    d = faker::_rdigits(4)
+    "${a} ${b} ${c} ${d}"
+  end
+
+  # -----------------------------------------------------------------------------
+  # Misc
+  # -----------------------------------------------------------------------------
+
+  /#
+  @summary Returns a random UUID (version 4).
+  @return string : A UUID such as `"550e8400-e29b-41d4-a716-446655440000"`.
+  #/
+  fn uuid()
+    a = faker::_rhex(8)
+    b = faker::_rhex(4)
+    c = "4${faker::_rhex(3)}"
+    d_char = faker::_pick(["8", "9", "a", "b"])
+    e_part = faker::_rhex(3)
+    f = faker::_rhex(12)
+    "${a}-${b}-${c}-${d_char}${e_part}-${f}"
+  end
+
+  /#
+  @summary Returns a random programming language name.
+  @return string : A language name such as `"Rust"`.
+  #/
+  fn language()
+    faker::_pick(faker::_languages())
+  end
+
+  /#
+  @summary Returns a random lorem ipsum hashtag.
+  @return string : A hashtag such as `"#alias"`.
+  #/
+  fn hashtag()
+    w = faker::_pick(faker::_lorem_words())
+    "#${w}"
+  end
+
+  /#
+  @summary Generates a hashmap of fake person data.
+  @return hashmap : A hashmap with `name`, `email`, `phone`, `address`, `company`, `job`, and `profession` keys.
+  #/
+  fn person()
+    {
+      "name":       faker::name(),
+      "email":      faker::email(),
+      "phone":      faker::phone(),
+      "address":    faker::address(),
+      "company":    faker::company(),
+      "job":        faker::job(),
+      "profession": faker::profession()
+    }
+  end
+
+  /#
+  @summary Generates a list of fake person hashmaps.
+  @param integer count : The number of people to generate (default `10`).
+  @return list : A list of person hashmaps.
+  #/
+  fn people(count = 10)
+    result = []
+    repeat count do
+      result.push(faker::person())
+    end
+    result
+  end
+
+
+  # -----------------------------------------------------------------------------
+  # Internal Helpers
+  # -----------------------------------------------------------------------------
+  
+  fn _pick(lst)
+    lst[math::random(0, lst.size() - 1)]
+  end
+
+  fn _rdigits(n)
+    s = ""
+    chars = "0123456789".chars()
+    repeat n do
+      s += faker::_pick(chars)
+    end
+    s
+  end
+
+  fn _rhex(n)
+    s = ""
+    chars = "0123456789abcdef".chars()
+    repeat n do
+      s += faker::_pick(chars)
+    end
+    s
+  end
+
+  # -----------------------------------------------------------------------------
+  # Data
+  # -----------------------------------------------------------------------------
+  
+  fn _first_names()
+    ["Aaron", "Abdul", "Abe", "Abel", "Abraham", "Abram", "Adalberto", "Adam", "Adan", "Adolfo", "Adolph",
+     "Adrian", "Agustin", "Ahmad", "Ahmed", "Al", "Alan", "Albert", "Alberto", "Alden", "Aldo", "Alec",
+     "Alejandro", "Alex", "Alexander", "Alexis", "Alfonso", "Alfonzo", "Alfred", "Alfredo", "Ali", "Allan",
+     "Allen", "Alonso", "Alonzo", "Alphonse", "Alphonso", "Alton", "Alva", "Alvaro", "Alvin", "Amado",
+     "Ambrose", "Amos", "Anderson", "Andre", "Andrea", "Andreas", "Andres", "Andrew", "Andy", "Angel",
+     "Angelo", "Anibal", "Anthony", "Antione", "Antoine", "Anton", "Antone", "Antonia", "Antonio", "Antony",
+     "Antwan", "Archie", "Arden", "Ariel", "Arlen", "Arlie", "Armand", "Armando", "Arnold", "Arnoldo",
+     "Arnulfo", "Aron", "Arron", "Art", "Arthur", "Arturo", "Asa", "Ashley", "Aubrey", "August", "Augustine",
+     "Augustus", "Aurelio", "Austin", "Avery", "Barney", "Barrett", "Barry", "Bart", "Barton", "Basil", "Beau",
+     "Ben", "Benedict", "Benito", "Benjamin", "Bennett", "Bennie", "Benny", "Benton", "Bernard", "Bernardo",
+     "Bernie", "Berry", "Bert", "Bertram", "Bill", "Billie", "Billy", "Blaine", "Blair", "Blake", "Bo", "Bob",
+     "Bobbie", "Bobby", "Booker", "Boris", "Boyce", "Boyd", "Brad", "Bradford", "Bradley", "Bradly", "Brady",
+     "Brain", "Branden", "Brandon", "Brant", "Brendan", "Brendon", "Brent", "Brenton", "Bret", "Brett",
+     "Brian", "Brice", "Britt", "Brock", "Broderick", "Brooks", "Bruce", "Bruno", "Bryan", "Bryant", "Bryce",
+     "Bryon", "Buck", "Bud", "Buddy", "Buford", "Burl", "Burt", "Burton", "Buster", "Byron", "Caleb", "Calvin",
+     "Cameron", "Carey", "Carl", "Carlo", "Carlos", "Carlton", "Carmelo", "Carmen", "Carmine", "Carol",
+     "Carrol", "Carroll", "Carson", "Carter", "Cary", "Casey", "Cecil", "Cedric", "Cedrick", "Cesar", "Chad",
+     "Chadwick", "Chance", "Chang", "Charles", "Charley", "Charlie", "Chas", "Chase", "Chauncey", "Chester",
+     "Chet", "Chi", "Chong", "Chris", "Christian", "Christoper", "Christopher", "Chuck", "Chung", "Clair",
+     "Clarence", "Clark", "Claud", "Claude", "Claudio", "Clay", "Clayton", "Clement", "Clemente", "Cleo",
+     "Cletus", "Cleveland", "Cliff", "Clifford", "Clifton", "Clint", "Clinton", "Clyde", "Cody", "Colby",
+     "Cole", "Coleman", "Colin", "Collin", "Colton", "Columbus", "Connie", "Conrad", "Cordell", "Corey",
+     "Cornelius", "Cornell", "Cortez", "Cory", "Courtney", "Coy", "Craig", "Cristobal", "Cristopher", "Cruz",
+     "Curt", "Curtis", "Cyril", "Cyrus", "Dale", "Dallas", "Dalton", "Damian", "Damien", "Damion", "Damon",
+     "Dan", "Dana", "Dane", "Danial", "Daniel", "Danilo", "Dannie", "Danny", "Dante", "Darell", "Daren",
+     "Darin", "Dario", "Darius", "Darnell", "Daron", "Darrel", "Darrell", "Darren", "Darrick", "Darrin",
+     "Darron", "Darryl", "Darwin", "Daryl", "Dave", "David", "Davis", "Dean", "Deandre", "Deangelo", "Dee",
+     "Del", "Delbert", "Delmar", "Delmer", "Demarcus", "Demetrius", "Denis", "Dennis", "Denny", "Denver",
+     "Deon", "Derek", "Derick", "Derrick", "Deshawn", "Desmond"]
+  end
+
+  fn _last_names()
+    ["Abbott", "Abernathy", "Abshire", "Adams", "Altenwerth", "Anderson", "Ankunding", "Armstrong", "Auer",
+     "Aufderhar", "Bahringer", "Bailey", "Balistreri", "Barrows", "Bartell", "Bartoletti", "Barton",
+     "Bashirian", "Batz", "Bauch", "Baumbach", "Bayer", "Beahan", "Beatty", "Bechtelar", "Becker", "Bednar",
+     "Beer", "Beier", "Berge", "Bergnaum", "Bergstrom", "Bernhard", "Bernier", "Bins", "Blanda", "Blick",
+     "Block", "Bode", "Boehm", "Bogan", "Bogisich", "Borer", "Bosco", "Botsford", "Boyer", "Boyle", "Bradtke",
+     "Brakus", "Braun", "Breitenberg", "Brekke", "Brown", "Bruen", "Buckridge", "Carroll", "Carter",
+     "Cartwright", "Casper", "Cassin", "Champlin", "Christiansen", "Cole", "Collier", "Collins", "Conn",
+     "Connelly", "Conroy", "Considine", "Corkery", "Cormier", "Corwin", "Cremin", "Crist", "Crona", "Cronin",
+     "Crooks", "Cruickshank", "Cummerata", "Cummings", "Dach", "Daniel", "Dare", "Daugherty", "Davis",
+     "Deckow", "Denesik", "Dibbert", "Dickens", "Dicki", "Dickinson", "Dietrich", "Donnelly", "Dooley",
+     "Douglas", "Doyle", "DuBuque", "Durgan", "Ebert", "Effertz", "Emard", "Emmerich", "Erdman", "Ernser",
+     "Fadel", "Fahey", "Farrell", "Fay", "Feeney", "Feest", "Feil", "Ferry", "Fisher", "Flatley", "Frami",
+     "Franecki", "Friesen", "Fritsch", "Funk", "Gerhold", "Gerlach", "Gibson", "Gislason", "Gleason",
+     "Gleichner", "Glover", "Goldner", "Goodwin", "Gorczany", "Gottlieb", "Goyette", "Grady", "Graham",
+     "Grant", "Green", "Greenfelder", "Greenholt", "Grimes", "Gulgowski", "Gusikowski", "Gutkowski", "Gutmann",
+     "Haag", "Hackett", "Hagenes", "Hahn", "Haley", "Halvorson", "Hamill", "Hammes", "Hand", "Hane", "Hansen",
+     "Harber", "Harris", "Hartmann", "Harvey", "Hauck", "Hayes", "Heaney", "Heathcote", "Hegmann",
+     "Heidenreich", "Heller", "Herman", "Hermann", "Hermiston", "Herzog", "Hessel", "Hettinger", "Hickle",
+     "Hilll", "Hills", "Hilpert", "Hintz", "Hirthe", "Hodkiewicz", "Hoeger", "Homenick", "Hoppe", "Howe",
+     "Howell", "Hudson", "Huel", "Huels", "Hyatt", "Jacobi", "Jacobs", "Jacobson", "Jakubowski", "Jaskolski",
+     "Jast", "Jenkins", "Jerde", "Johns", "Johnson", "Johnston", "Jones", "Kassulke", "Kautzer", "Keebler",
+     "Keeling", "Kemmer", "Kerluke", "Kertzmann", "Kessler", "Kiehn", "Kihn", "Kilback", "King", "Kirlin",
+     "Klein", "Kling", "Klocko", "Koch", "Koelpin", "Koepp", "Kohler", "Konopelski", "Koss", "Kovacek",
+     "Kozey", "Krajcik", "Kreiger", "Kris", "Kshlerin", "Kub", "Kuhic", "Kuhlman", "Kuhn", "Kulas", "Kunde",
+     "Kunze", "Kuphal", "Kutch", "Kuvalis", "Labadie", "Lakin", "Lang", "Langosh", "Langworth", "Larkin",
+     "Larson", "Leannon", "Lebsack", "Ledner", "Leffler", "Legros", "Lehner", "Lemke", "Lesch", "Leuschke",
+     "Lind", "Lindgren", "Littel", "Little", "Lockman", "Lowe", "Lubowitz", "Lueilwitz", "Luettgen", "Lynch",
+     "Macejkovic", "MacGyver", "Maggio", "Mann", "Mante", "Marks", "Marquardt", "Marvin", "Mayer", "Mayert",
+     "McClure", "McCullough", "McDermott", "McGlynn", "McKenzie", "McLaughlin", "Medhurst", "Mertz", "Metz",
+     "Miller", "Mills", "Mitchell", "Moen", "Mohr", "Monahan", "Moore", "Morar", "Morissette", "Mosciski",
+     "Mraz", "Mueller", "Muller", "Murazik", "Murphy", "Murray", "Nader", "Nicolas", "Nienow", "Nikolaus",
+     "Nitzsche", "Nolan", "Oberbrunner", "Okuneva", "Olson", "Ondricka", "Orn", "Ortiz", "Osinski", "Pacocha",
+     "Padberg", "Pagac", "Parisian", "Parker", "Paucek", "Pfannerstill", "Pfeffer", "Pollich", "Pouros",
+     "Powlowski", "Predovic", "Price", "Prohaska", "Prosacco", "Purdy", "Quigley", "Quitzon", "Rath", "Ratke",
+     "Rau", "Raynor", "Reichel", "Reichert", "Reilly", "Reinger", "Rempel", "Renner", "Reynolds", "Rice",
+     "Rippin", "Ritchie", "Robel", "Roberts", "Rodriguez", "Rogahn", "Rohan", "Rolfson", "Romaguera", "Roob",
+     "Rosenbaum", "Rowe", "Ruecker", "Runolfsdottir", "Runolfsson", "Runte", "Russel", "Rutherford", "Ryan",
+     "Sanford", "Satterfield", "Sauer", "Sawayn", "Schaden", "Schaefer", "Schamberger", "Schiller", "Schimmel",
+     "Schinner", "Schmeler", "Schmidt", "Schmitt", "Schneider", "Schoen", "Schowalter", "Schroeder",
+     "Schulist", "Schultz", "Schumm", "Schuppe", "Schuster", "Senger", "Shanahan", "Shields", "Simonis",
+     "Sipes", "Skiles", "Smith", "Smitham", "Spencer", "Spinka", "Sporer", "Stamm", "Stanton", "Stark",
+     "Stehr", "Steuber", "Stiedemann", "Stokes", "Stoltenberg", "Stracke", "Streich", "Stroman", "Strosin",
+     "Swaniawski", "Swift", "Terry", "Thiel", "Thompson", "Tillman", "Torp", "Torphy", "Towne", "Toy",
+     "Trantow", "Tremblay", "Treutel", "Tromp", "Turcotte", "Turner", "Ullrich", "Upton", "Vandervort", "Veum",
+     "Volkman", "Von", "VonRueden", "Waelchi", "Walker", "Walsh", "Walter", "Ward", "Waters", "Watsica",
+     "Weber", "Wehner", "Weimann", "Weissnat", "Welch", "West", "White", "Wiegand", "Wilderman", "Wilkinson",
+     "Will", "Williamson", "Willms", "Windler", "Wintheiser", "Wisoky", "Wisozk", "Witting", "Wiza", "Wolf",
+     "Wolff", "Wuckert", "Wunsch", "Wyman", "Yost", "Yundt", "Zboncak", "Zemlak", "Ziemann", "Zieme", "Zulauf"]
+  end
+
+  fn _prefixes()
+    ["Mr.", "Mrs.", "Ms.", "Miss", "Dr.", "Rev.", "Fr.", "Gov.", "Rep.", "Prof.", "Sen.", "The Hon.", "Pres.",
+     "Msgr.", "Amb."]
+  end
+
+  fn _suffixes()
+    ["Jr.", "Sr.", "I", "II", "III", "IV", "V", "MD", "DDS", "PhD", "DVM", "Esq.", "CPA", "DC", "VM", "JD",
+     "LLD", "Ret.", "DO"]
+  end
+
+  fn _city_prefixes()
+    ["North", "East", "West", "South", "New", "Lake", "Port"]
+  end
+
+  fn _city_suffixes()
+    ["town", "ton", "land", "ville", "berg", "burgh", "borough", "bury", "view", "port", "mouth", "stad",
+     "furt", "chester", "fort", "haven", "side", "shire"]
+  end
+
+  fn _countries()
+    ["Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla",
+     "Antarctica (the territory South of 60 deg S)", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba",
+     "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus",
+     "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana",
+     "Bouvet Island (Bouvetoya)", "Brazil", "British Indian Ocean Territory (Chagos Archipelago)",
+     "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
+     "Cabo Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Christmas Island",
+     "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Cook Islands", "Costa Rica", "Croatia",
+     "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador",
+     "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Faroe Islands",
+     "Falkland Islands (Malvinas)", "Fiji", "Finland", "France", "French Guiana", "French Polynesia",
+     "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece",
+     "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau",
+     "Guyana", "Haiti", "Heard Island and McDonald Islands", "Holy See (Vatican City State)", "Honduras",
+     "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Isle of Man", "Israel", "Italy",
+     "Jamaica", "Japan", "Jersey", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Republic of Korea", "Kuwait",
+     "Kyrgyz Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libyan Arab Jamahiriya", "Liechtenstein",
+     "Lithuania", "Luxembourg", "Macao", "North Macedonia", "Madagascar", "Malawi", "Malaysia", "Maldives",
+     "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico",
+     "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Montserrat", "Morocco", "Mozambique",
+     "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands Antilles", "Netherlands", "New Caledonia",
+     "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "Northern Mariana Islands",
+     "Norway", "Oman", "Pakistan", "Palau", "Palestinian Territory", "Panama", "Papua New Guinea", "Paraguay",
+     "Peru", "Philippines", "Pitcairn Islands", "Poland", "Portugal", "Puerto Rico", "Qatar", "Reunion",
+     "Romania", "Russian Federation", "Rwanda", "Saint Barthelemy", "Saint Helena", "Saint Kitts and Nevis",
+     "Saint Lucia", "Saint Martin", "Saint Pierre and Miquelon", "Saint Vincent and the Grenadines", "Samoa",
+     "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone",
+     "Singapore", "Slovakia (Slovak Republic)", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
+     "South Georgia and the South Sandwich Islands", "Spain", "Sri Lanka", "Sudan", "Suriname",
+     "Svalbard & Jan Mayen Islands", "Eswatini", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan",
+     "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago",
+     "Tunisia", "Türkiye", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine",
+     "United Arab Emirates", "United Kingdom", "United States of America",
+     "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam",
+     "Virgin Islands, British", "Virgin Islands, U.S.", "Wallis and Futuna", "Western Sahara", "Yemen",
+     "Zambia", "Zimbabwe"]
+  end
+
+  fn _states()
+    [
+     ["Alabama", "AL"],
+     ["Alaska", "AK"],
+     ["Arizona", "AZ"],
+     ["Arkansas", "AR"],
+     ["California", "CA"],
+     ["Colorado", "CO"],
+     ["Connecticut", "CT"],
+     ["Delaware", "DE"],
+     ["Florida", "FL"],
+     ["Georgia", "GA"],
+     ["Hawaii", "HI"],
+     ["Idaho", "ID"],
+     ["Illinois", "IL"],
+     ["Indiana", "IN"],
+     ["Iowa", "IA"],
+     ["Kansas", "KS"],
+     ["Kentucky", "KY"],
+     ["Louisiana", "LA"],
+     ["Maine", "ME"],
+     ["Maryland", "MD"],
+     ["Massachusetts", "MA"],
+     ["Michigan", "MI"],
+     ["Minnesota", "MN"],
+     ["Mississippi", "MS"],
+     ["Missouri", "MO"],
+     ["Montana", "MT"],
+     ["Nebraska", "NE"],
+     ["Nevada", "NV"],
+     ["New Hampshire", "NH"],
+     ["New Jersey", "NJ"],
+     ["New Mexico", "NM"],
+     ["New York", "NY"],
+     ["North Carolina", "NC"],
+     ["North Dakota", "ND"],
+     ["Ohio", "OH"],
+     ["Oklahoma", "OK"],
+     ["Oregon", "OR"],
+     ["Pennsylvania", "PA"],
+     ["Rhode Island", "RI"],
+     ["South Carolina", "SC"],
+     ["South Dakota", "SD"],
+     ["Tennessee", "TN"],
+     ["Texas", "TX"],
+     ["Utah", "UT"],
+     ["Vermont", "VT"],
+     ["Virginia", "VA"],
+     ["Washington", "WA"],
+     ["West Virginia", "WV"],
+     ["Wisconsin", "WI"],
+     ["Wyoming", "WY"]
+    ]
+  end
+
+  fn _street_suffixes()
+    ["Alley", "Avenue", "Branch", "Bridge", "Brook", "Brooks", "Burg", "Burgs", "Bypass", "Camp", "Canyon",
+     "Cape", "Causeway", "Center", "Centers", "Circle", "Circles", "Cliff", "Cliffs", "Club", "Common",
+     "Corner", "Corners", "Course", "Court", "Courts", "Cove", "Coves", "Creek", "Crescent", "Crest",
+     "Crossing", "Crossroad", "Curve", "Dale", "Dam", "Divide", "Drive", "Drives", "Estate", "Estates",
+     "Expressway", "Extension", "Extensions", "Fall", "Falls", "Ferry", "Field", "Fields", "Flat", "Flats",
+     "Ford", "Fords", "Forest", "Forge", "Forges", "Fork", "Forks", "Fort", "Freeway", "Garden", "Gardens",
+     "Gateway", "Glen", "Glens", "Green", "Greens", "Grove", "Groves", "Harbor", "Harbors", "Haven", "Heights",
+     "Highway", "Hill", "Hills", "Hollow", "Inlet", "Island", "Islands", "Isle", "Junction", "Junctions",
+     "Key", "Keys", "Knoll", "Knolls", "Lake", "Lakes", "Land", "Landing", "Lane", "Light", "Lights", "Loaf",
+     "Lock", "Locks", "Lodge", "Loop", "Mall", "Manor", "Manors", "Meadow", "Meadows", "Mews", "Mill", "Mills",
+     "Mission", "Motorway", "Mount", "Mountain", "Mountains", "Neck", "Orchard", "Oval", "Overpass", "Park",
+     "Parks", "Parkway", "Parkways", "Pass", "Passage", "Path", "Pike", "Pine", "Pines", "Place", "Plain",
+     "Plains", "Plaza", "Point", "Points", "Port", "Ports", "Prairie", "Radial", "Ramp", "Ranch", "Rapid",
+     "Rapids", "Rest", "Ridge", "Ridges", "River", "Road", "Roads", "Route", "Row", "Rue", "Run", "Shoal",
+     "Shoals", "Shore", "Shores", "Skyway", "Spring", "Springs", "Spur", "Spurs", "Square", "Squares",
+     "Station", "Stravenue", "Stream", "Street", "Streets", "Summit", "Terrace", "Throughway", "Trace",
+     "Track", "Trafficway", "Trail", "Tunnel", "Turnpike", "Underpass", "Union", "Unions", "Valley", "Valleys",
+     "Via", "Viaduct", "View", "Views", "Village", "Villages", "Ville", "Vista", "Walk", "Walks", "Wall",
+     "Way", "Ways", "Well", "Wells"]
+  end
+
+  fn _street_words()
+    ["Abbott", "Abernathy", "Abshire", "Adams", "Altenwerth", "Anderson", "Ankunding", "Armstrong", "Auer",
+     "Aufderhar", "Bahringer", "Bailey", "Balistreri", "Barrows", "Bartell", "Bartoletti", "Barton",
+     "Bashirian", "Batz", "Bauch", "Baumbach", "Bayer", "Beahan", "Beatty", "Bechtelar", "Becker", "Bednar",
+     "Beer", "Beier", "Berge", "Bergnaum", "Bergstrom", "Bernhard", "Bernier", "Bins", "Blanda", "Blick",
+     "Block", "Bode", "Boehm", "Bogan", "Bogisich", "Borer", "Bosco", "Botsford", "Boyer", "Boyle", "Bradtke",
+     "Brakus", "Braun", "Breitenberg", "Brekke", "Brown", "Bruen", "Buckridge", "Carroll", "Carter",
+     "Cartwright", "Casper", "Cassin", "Champlin", "Christiansen", "Cole", "Collier", "Collins", "Conn",
+     "Connelly", "Conroy", "Considine", "Corkery", "Cormier", "Corwin", "Cremin", "Crist", "Crona", "Cronin",
+     "Crooks", "Cruickshank", "Cummerata", "Cummings"]
+  end
+
+  fn _company_adj()
+    ["Adaptive", "Advanced", "Ameliorated", "Assimilated", "Automated", "Balanced", "Centralized", "Cloned",
+     "Compatible", "Configurable", "Customizable", "Decentralized", "Devolved", "Digitized", "Distributed",
+     "Diverse", "Enhanced", "Ergonomic", "Exclusive", "Expanded", "Extended", "Focused", "Fundamental",
+     "Horizontal", "Implemented", "Innovative", "Integrated", "Intuitive", "Inverse", "Managed", "Mandatory",
+     "Monitored", "Networked", "Operative", "Optimized", "Optional", "Organic", "Organized", "Persevering",
+     "Persistent"]
+  end
+
+  fn _company_suffixes()
+    ["Inc", "and Sons", "LLC", "Group", "Corp", "Ltd", "Co", "Partners", "Associates", "Solutions",
+     "Technologies", "Systems", "Industries", "Enterprises", "Ventures"]
+  end
+
+  fn _departments()
+    ["Asset Management", "Board of Directors", "Business Development", "Corporate Communications",
+     "Creative Services", "Customer Service", "Information Technology", "Engineering", "Finance / Accounting",
+     "General Management", "Human Resources", "Investor Relations", "Legal", "Marketing", "Operations",
+     "Product Management", "Production", "Project Management", "Purchasing / Sourcing", "Quality Assurance",
+     "Risk Management", "Sales", "Strategic Initiatives"]
+  end
+
+  fn _professions()
+    ["teacher", "actor", "musician", "philosopher", "writer", "doctor", "accountant", "agriculturist",
+     "architect", "economist", "engineer", "interpreter", "attorney at law", "advocate", "librarian",
+     "statistician", "human resources", "firefighter", "judge", "police officer", "astronomer", "biologist",
+     "chemist", "physicist", "programmer", "web developer", "designer", "actress", "air traffic controller",
+     "artist", "attorney", "banker", "bartender", "barber", "bookkeeper", "builder", "businessman", "butcher",
+     "carpenter", "cashier", "chef", "coach", "dentist", "dental hygienist", "developer", "dietician",
+     "editor", "electrician", "factory worker", "farmer", "fisherman", "gardener", "hairdresser", "journalist",
+     "lawyer", "lecturer", "lifeguard", "mechanic", "model", "newsreader", "nurse", "optician", "painter",
+     "pharmacist", "photographer", "pilot", "plumber", "politician", "postman", "receptionist", "scientist",
+     "secretary", "shop assistant", "soldier", "tailor", "taxi driver", "translator", "traffic warden",
+     "travel agent", "veterinary doctor", "waiter", "window cleaner"]
+  end
+
+  fn _job_seniority()
+    ["Lead", "Senior", "Product", "National", "Regional", "District", "Central", "Global", "Customer",
+     "Investor", "Dynamic", "International", "Legacy", "Forward", "Internal", "Chief", "Direct", "Corporate",
+     "Future", "Human", "Principal"]
+  end
+
+  fn _job_positions()
+    ["Supervisor", "Associate", "Executive", "Liaison", "Officer", "Manager", "Engineer", "Specialist",
+     "Director", "Coordinator", "Administrator", "Architect", "Analyst", "Designer", "Planner", "Orchestrator",
+     "Technician", "Developer", "Producer", "Consultant", "Assistant", "Facilitator", "Agent",
+     "Representative", "Strategist"]
+  end
+
+  fn _tlds()
+    ["com", "biz", "info", "name", "net", "org", "io", "co"]
+  end
+
+  fn _lorem_words()
+    ["alias", "consequatur", "aut", "perferendis", "sit", "voluptatem", "accusantium", "doloremque", "aperiam",
+     "eaque", "ipsa", "quae", "ab", "illo", "inventore", "veritatis", "et", "quasi", "architecto", "beatae",
+     "vitae", "dicta", "sunt", "explicabo", "aspernatur", "odit", "fugit", "sed", "quia", "consequuntur",
+     "magni", "dolores", "eos", "qui", "ratione", "sequi", "nesciunt", "neque", "dolorem", "ipsum", "dolor",
+     "amet", "consectetur", "adipisci", "velit", "non", "numquam", "eius", "modi", "tempora", "incidunt", "ut",
+     "labore", "dolore", "magnam", "aliquam", "quaerat", "enim", "ad", "minima", "veniam", "quis", "nostrum",
+     "exercitationem", "ullam", "corporis", "nemo", "ipsam", "voluptas", "suscipit", "laboriosam", "nisi",
+     "aliquid", "ex", "ea", "commodi", "autem", "vel", "eum", "iure", "reprehenderit", "in", "voluptate",
+     "esse", "quam", "nihil", "molestiae", "iusto", "odio", "dignissimos", "ducimus", "blanditiis",
+     "praesentium", "laudantium", "totam", "rem", "voluptatum", "deleniti", "atque", "corrupti", "quos",
+     "quas", "molestias", "excepturi", "sint", "occaecati", "cupiditate", "provident", "perspiciatis", "unde",
+     "omnis", "iste", "natus", "error", "similique", "culpa", "officia", "deserunt", "mollitia", "animi", "id",
+     "est", "laborum", "dolorum", "fuga", "harum", "quidem", "rerum", "facilis", "expedita", "distinctio",
+     "nam", "libero", "tempore", "cum", "soluta", "nobis", "eligendi", "optio", "cumque", "impedit", "quo",
+     "porro", "quisquam", "minus", "quod", "maxime", "placeat", "facere", "possimus", "assumenda",
+     "repellendus", "temporibus", "quibusdam", "illum", "fugiat", "nulla", "pariatur", "at", "vero",
+     "accusamus", "officiis", "debitis", "necessitatibus", "saepe", "eveniet", "voluptates", "repudiandae",
+     "recusandae", "itaque", "earum", "hic", "tenetur", "a", "sapiente", "delectus", "reiciendis",
+     "voluptatibus", "maiores", "doloribus", "asperiores", "repellat"]
+  end
+
+  fn _colors()
+    ["amaranth", "amber", "amethyst", "apricot", "aquamarine", "azure", "beige", "black", "blue", "blush",
+     "bronze", "brown", "burgundy", "byzantium", "carmine", "cerise", "cerulean", "champagne", "chocolate",
+     "coffee", "copper", "coral", "crimson", "cyan", "emerald", "erin", "fuchsia", "gold", "gray", "green",
+     "grey", "harlequin", "indigo", "ivory", "jade", "lavender", "lemon", "lilac", "lime", "magenta", "maroon",
+     "mauve", "ochre", "olive", "orange", "orchid", "peach", "pear", "periwinkle", "pink", "plum", "puce",
+     "purple", "raspberry", "red", "rose", "ruby", "salmon", "sangria", "sapphire", "scarlet", "silver", "sky",
+     "tan", "taupe", "teal", "turquoise", "ultramarine", "violet", "viridian", "white", "yellow"]
+  end
+
+  fn _languages()
+    ["A+", "A++", "ABAP", "ABC", "ABSET", "ABSYS", "ACC", "Accent", "ACL2", "ACT-III", "Action!",
+     "ActionScript", "Ada", "Adenine", "Agda", "Agora", "AIMMS", "Aldor", "Alef", "ALF", "Alice", "Alma-0",
+     "AmbientTalk", "AMOS", "AMPL", "AngelScript", "APL", "AppleScript", "APT", "Arc", "ARexx", "Argus",
+     "AspectJ", "ATS", "AutoHotkey", "Autocoder", "AutoIt", "Averest", "AWK", "Axum", "B", "Babbage",
+     "Ballerina", "Bash", "BASIC", "bc", "BCPL", "BeanShell", "Bertrand", "BETA", "Bistro", "BLISS", "Blockly",
+     "BlooP", "Boo", "Boomerang", "BPEL", "BrightScript", "C", "C--", "C/AL", "Caml", "Calcpad", "Cayenne",
+     "CDuce", "Cecil", "Cesil", "Céu", "Ceylon", "CFEngine", "Cg", "Ch", "Chapel", "Charity", "Charm", "CHILL",
+     "CHIP-8", "chomski", "ChucK", "Cilk"]
+  end
+
+  fn _currencies()
+    [["USD", "$"], ["EUR", "€"], ["GBP", "£"], ["JPY", "¥"], ["CAD", "CA$"],
+     ["AUD", "A$"], ["CHF", "Fr"], ["CNY", "¥"], ["INR", "₹"], ["BRL", "R$"],
+     ["MXN", "$"], ["KRW", "₩"], ["SGD", "S$"], ["HKD", "HK$"], ["NOK", "kr"],
+     ["SEK", "kr"], ["DKK", "kr"], ["NZD", "NZ$"], ["ZAR", "R"], ["RUB", "₽"]]
+  end
+
+end
+export "faker"
+
