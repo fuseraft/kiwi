@@ -62,10 +62,12 @@ public static class Disassembler
                     break;
 
                 case Opcode.Call:
+                case Opcode.CallSplat:
                     sb.Append($" argc={instr.A}");
                     break;
 
                 case Opcode.CallMethod:
+                case Opcode.MethodCallSplat:
                 {
                     var mn = chunk.Names.Count > instr.B ? chunk.Names[instr.B] : "?";
                     sb.Append($" .{mn}  argc={instr.A}");

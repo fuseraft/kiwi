@@ -173,7 +173,7 @@ The log path can also be set permanently via `"crashdump_path"` in `kiwi-setting
 
 ### `--vm`
 
-Runs a script using the bytecode VM (experimental). This flag must appear before the script path. A script is required — running `kiwi --vm` without one is an error.
+Runs a script using the bytecode VM. This flag must appear before the script path. A script is required — running `kiwi --vm` without one is an error.
 
 ```
 kiwi --vm script.kiwi

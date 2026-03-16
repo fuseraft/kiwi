@@ -288,6 +288,30 @@ public enum Opcode : byte
     /// </summary>
     Yield,
 
+    // -- Splat (spread arguments) ---------------------------------------------
+    /// <summary>
+    /// Push 0 onto the splat-adjustment side-stack.
+    /// Emitted before the function/object of any call that contains splat arguments,
+    /// so nested splat calls each get their own adjustment slot.
+    /// </summary>
+    SplatReset,
+    /// <summary>
+    /// Pop value. If it is a list, push each element and add (count-1) to the
+    /// top of the splat-adjustment side-stack. Otherwise push the value unchanged
+    /// (single-element, zero adjustment).
+    /// </summary>
+    SplatPush,
+    /// <summary>
+    /// Like Call but argc = A + splatAdjStack.Pop().
+    /// Used for function/lambda calls that contain one or more splat arguments.
+    /// </summary>
+    CallSplat,
+    /// <summary>
+    /// Like CallMethod but argc = A + splatAdjStack.Pop().
+    /// Used for method calls that contain one or more splat arguments.
+    /// </summary>
+    MethodCallSplat,
+
     // -- Error Handling --------------------------------------------------------
     /// <summary>
     /// Pop value and throw it as a Kiwi runtime error.
@@ -318,6 +342,13 @@ public enum Opcode : byte
     /// natively to bytecode.
     /// </summary>
     InterpFallback,
+
+    // -- Exit -----------------------------------------------------------------
+    /// <summary>
+    /// Pop exit-code value; call Environment.Exit(code).
+    /// Condition (if any) is handled at compile time via a JumpF guard.
+    /// </summary>
+    Exit,
 
     // -- Misc -----------------------------------------------------------------
     Nop,

@@ -332,7 +332,7 @@ public class Config
             ("-p, --stdlib-path", "specify alternate stdlib path"),
             ("-d, --debug <input_path>", "run script in the kdb debugger"),
             ("-cd, --crash-dump", $"write errors to kiwi_crash.log"),
-            ("--vm", "run using the bytecode VM (experimental)"),
+            ("--vm", "run using the bytecode VM"),
             ("-<key>=<value>", "pass an argument as a key-value pair")
         ];
 
