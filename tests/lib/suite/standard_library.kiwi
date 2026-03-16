@@ -28,10 +28,10 @@ fn test_standard_library()
   tester::assert(string::titleize("the quick brown fox") == "The Quick Brown Fox", "A11: titleize each word")
 
   # --- string::isnumeric / isalpha / isalphanumeric ---
-  tester::assert(string::isnumeric("12345"),   "A12: isnumeric digits")
-  tester::assert(not string::isnumeric("12x"), "A13: isnumeric rejects mixed")
-  tester::assert(string::isalpha("abc"),       "A14: isalpha letters")
-  tester::assert(not string::isalpha("ab1"),   "A15: isalpha rejects digits")
+  tester::assert(string::is_numeric("12345"),   "A12: is_numeric digits")
+  tester::assert(not string::is_numeric("12x"), "A13: is_numeric rejects mixed")
+  tester::assert(string::is_alpha("abc"),       "A14: is_alpha letters")
+  tester::assert(not string::is_alpha("ab1"),   "A15: is_alpha rejects digits")
 
   # --- string::echo / interweave / mirror ---
   tester::assert(string::echo("ab", 3) == "aaabbb",        "A16: echo repeats each char")

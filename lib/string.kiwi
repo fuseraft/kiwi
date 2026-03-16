@@ -314,10 +314,6 @@ package string
     first + rest
   end
 
-  fn capitalise(_input: string): string
-    _input.capitalize()
-  end
-
   /#
   @summary Returns a copy of the string with the first character of every word uppercased and the rest lowercased.
   @param   String  _input   : The input string.
@@ -329,10 +325,6 @@ package string
     # Split on whitespace, capitalize each non-empty word, join back
     words = _input.rsplit('\s+').filter(with (w) do not w.empty() end)
     words.map(with (word) do word.capitalize() end).join(" ")
-  end
-
-  fn title(s: string): string
-    s.titleize()
   end
 
   fn smart_titleize(
@@ -362,7 +354,7 @@ package string
   @param   String  _input : The input string.
   @return  Boolean        : True if the string is numeric, otherwise false.
   #/
-  fn isnumeric(_input): boolean
+  fn is_numeric(_input): boolean
     _isnumeric = true
     
     for char in ("${_input}").chars() do
@@ -380,7 +372,7 @@ package string
   @param   String  _input : The input string.
   @return  Boolean        : True if the string is alphabetic, otherwise false.
   #/
-  fn isalpha(_input)
+  fn is_alpha(_input)
     for char in ("${_input}").chars() do
       if !((char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
         return false
@@ -395,7 +387,7 @@ package string
   @param   String  _input : The input string.
   @return  Boolean        : True if the string is alphanumeric, otherwise false.
   #/
-  fn isalphanumeric(_input)
+  fn is_alphanumeric(_input)
     for char in ("${_input}").chars() do
       if !(char >= "0" && char <= "9" || (char >= "a" && char <= "z") || (char >= "A" && char <= "Z"))
         return false
@@ -410,7 +402,7 @@ package string
   @param   String  _input   : The input string.
   @return  Boolean          : True if the string is all uppercase, false otherwise.
   #/
-  fn isupper(_input)
+  fn is_upper(_input)
     for char in ("${_input}").chars() do
       # If any character has a lowercase form, it is not uppercase
       if char != char.uppercase()
@@ -425,7 +417,7 @@ package string
   @param   String  _input   : The input string.
   @return  Boolean          : True if the string is all lowercase, false otherwise.
   #/
-  fn islower(_input)
+  fn is_lower(_input)
     for char in ("${_input}").chars() do
       # If any character has an uppercase form, it is not lowercase
       if char != char.lowercase()
@@ -440,7 +432,7 @@ package string
   @param   String  _input   : The input string.
   @return  String           : The string converted to uppercase.
   #/
-  fn toupper(_input)
+  fn to_upper(_input)
     ("${_input}").uppercase()
   end
 
@@ -449,7 +441,7 @@ package string
   @param   String  _input   : The input string.
   @return  String           : The string converted to lowercase.
   #/
-  fn tolower(_input)
+  fn to_lower(_input)
     ("${_input}").lowercase()
   end
 
