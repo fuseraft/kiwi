@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -13,8 +14,11 @@ public class KiwiSettings
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("version")]
-    public string Version { get; set; } = string.Empty;
+    [JsonIgnore]
+    public string Version => typeof(KiwiSettings).Assembly
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+        ?.InformationalVersion.Split('+')[0]
+        ?? "unknown";
 
     [JsonPropertyName("file_extensions")]
     public required FileExtensions Extensions { get; set; }
@@ -49,7 +53,6 @@ public class KiwiSettings
         return new KiwiSettings
         {
             Name = "kiwi",
-            Version = "1.4.0",
             SafeMode = false,
             Extensions = new FileExtensions
             {

@@ -262,17 +262,42 @@ public partial class Parser
         return new RequireNode(packageName, PackagesDefined.Contains(packageName));
     }
 
+    /// <summary>
+    /// Parses an event name without chaining postfix operators, so that a following '('
+    /// is not greedily consumed as a call on the event-name expression.
+    /// Accepts string literals, interpolated strings, and bare identifiers (variables).
+    /// </summary>
+    private ASTNode ParseEventName(string context)
+    {
+        switch (GetTokenType())
+        {
+            case TokenType.String:
+            {
+                var lit = ParseLiteral();
+                return lit ?? throw new SyntaxError(GetErrorToken(), $"Expected an event name in '{context}'.");
+            }
+            case TokenType.Interpolation:
+            {
+                var interp = ParseInterpolation();
+                return interp ?? throw new SyntaxError(GetErrorToken(), $"Expected an event name in '{context}'.");
+            }
+            case TokenType.Identifier:
+            {
+                var idToken = token.Clone();
+                var name = GetTokenText();
+                Next();
+                return new IdentifierNode(name) { Token = idToken };
+            }
+            default:
+                throw new SyntaxError(GetErrorToken(), $"Expected a string-literal for event name in '{context}'.");
+        }
+    }
+
     private OffNode ParseOff()
     {
         MatchName(TokenName.KW_Off);
 
-        // off "event-name"
-        if (GetTokenType() != TokenType.String)
-        {
-            throw new SyntaxError(GetErrorToken(), "Expected string-literal for event name.");
-        }
-
-        var eventName = ParseExpression() ?? throw new SyntaxError(GetErrorToken(), "Expected event name for 'off'.");
+        var eventName = ParseEventName("off");
         ASTNode? callback = null;
 
         if (MatchType(TokenType.LParen))
@@ -298,13 +323,7 @@ public partial class Parser
     {
         MatchName(TokenName.KW_Emit);
 
-        // emit "event-name" [ (arguments...) ]
-        if (GetTokenType() != TokenType.String)
-        {
-            throw new SyntaxError(GetErrorToken(), "Expected string-literal for event name.");
-        }
-
-        var eventName = ParseExpression() ?? throw new SyntaxError(GetErrorToken(), "Expected event name for 'emit'.");
+        var eventName = ParseEventName("emit");
 
         List<ASTNode?> arguments = [];
         if (GetTokenType() == TokenType.LParen)
@@ -338,8 +357,21 @@ public partial class Parser
         }
 
         Token t = token.Clone();
-        ASTNode eventName = ParseExpression() ?? throw new SyntaxError(GetErrorToken(), "Expected an event name.");
+        ASTNode eventName = ParseEventName("on/once");
         ASTNode? callback = null;
+
+        // Optional priority: on "event", 10 do ... end
+        int priority = 0;
+        if (GetTokenType() == TokenType.Comma)
+        {
+            Next(); // consume ','
+            if (GetTokenType() != TokenType.Literal || !token.Value.IsInteger())
+            {
+                throw new SyntaxError(GetErrorToken(), "Expected an integer priority after ','.");
+            }
+            priority = (int)token.Value.GetInteger();
+            Next(); // consume integer
+        }
 
         if (GetTokenName() == TokenName.KW_Lambda)
         {
@@ -388,11 +420,11 @@ public partial class Parser
         
         if (eventType == TokenName.KW_On)
         {
-            return new OnNode(eventName, callback);
+            return new OnNode(eventName, callback, priority);
         }
         else if (eventType == TokenName.KW_Once)
         {
-            return new OnceNode(eventName, callback);
+            return new OnceNode(eventName, callback, priority);
         }
 
         throw new SyntaxError(GetErrorToken(), "Expected an event handler.");
