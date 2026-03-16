@@ -40,4 +40,77 @@ package sys
   fn execout(_program: string, _args: list = []): hashmap
     __sys_execout__(_program, _args)
   end
+
+  /#
+  @summary Get the PID of the current Kiwi process.
+  @return integer : The current process ID.
+  #/
+  fn pid(): integer
+    __sys_pid__()
+  end
+
+  /#
+  @summary Search for process IDs by name, or list all PIDs.
+  @param string _name : Process name to search for. Pass an empty string to return all PIDs.
+  @return list : A list of integer PIDs matching the search.
+  #/
+  fn pids(_name: string = ""): list
+    __sys_pids__(_name)
+  end
+
+  /#
+  @summary List running processes with detailed info.
+  @param string _name : Process name to filter by. Pass an empty string to return all processes.
+  @return list :
+  Returns a list of hashmaps, each with the following keys:
+    - `pid`: The process ID as an integer.
+    - `name`: The process name as a string.
+    - `path`: The full path to the executable as a string (empty if inaccessible).
+    - `memory`: Working set memory usage in bytes as an integer (0 if inaccessible).
+    - `threads`: Number of threads as an integer (0 if inaccessible).
+    - `started`: ISO 8601 start time as a string (empty if inaccessible).
+  #/
+  fn processes(_name: string = ""): list
+    __sys_processes__(_name)
+  end
+
+  /#
+  @summary Start an external process without waiting, returning its PID.
+  @param string _program : The program.
+  @param list _args : The program arguments. Defaults to an empty list.
+  @throws SystemError : When unable to start the process.
+  @throws TypeError : Expects _args to contain a list of strings.
+  @return integer : The PID of the spawned process.
+  #/
+  fn spawn(_program: string, _args: list = []): integer
+    __sys_spawn__(_program, _args)
+  end
+
+  /#
+  @summary Kill a process by PID.
+  @param integer _pid : The PID of the process to kill.
+  @return boolean : Returns `true` if the process was killed, `false` otherwise.
+  #/
+  fn kill(_pid: integer): boolean
+    __sys_kill__(_pid)
+  end
+
+  /#
+  @summary Check whether a process is still running.
+  @param integer _pid : The PID to check.
+  @return boolean : Returns `true` if the process is running, `false` otherwise.
+  #/
+  fn running(_pid: integer): boolean
+    __sys_running__(_pid)
+  end
+
+  /#
+  @summary Wait for a process to exit and return its exit code.
+  @param integer _pid : The PID of the process to wait for.
+  @throws SystemError : When unable to wait for the process.
+  @return integer : The exit code of the process.
+  #/
+  fn wait(_pid: integer): integer
+    __sys_wait__(_pid)
+  end
 end
