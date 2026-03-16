@@ -2896,6 +2896,100 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#process-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Process Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Process Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pid()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pids_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pids(_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processes_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        processes(_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawn_program-_args" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        spawn(_program, _args)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kill_pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kill(_pid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running_pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        running(_pid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wait_pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wait(_pid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#important-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3139,6 +3233,100 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#process-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Process Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Process Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pid()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pids_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pids(_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processes_name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        processes(_name)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spawn_program-_args" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        spawn(_program, _args)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kill_pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kill(_pid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running_pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        running(_pid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wait_pid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wait(_pid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#important-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3367,14 +3555,365 @@ It offers three main functions with different levels of control and output captu
 </span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>branch = sys::execout(&quot;git&quot;, [&quot;rev-parse&quot;, &quot;--abbrev-ref&quot;, &quot;HEAD&quot;]).stdout.trim()
 </span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>println &quot;We are in ${branch}&quot;
 </span></code></pre></div></p>
+<hr />
+<h2 id="process-management">Process Management<a class="headerlink" href="#process-management" title="Permanent link">&para;</a></h2>
+<h3 id="pid"><code>pid()</code><a class="headerlink" href="#pid" title="Permanent link">&para;</a></h3>
+<p>Returns the PID of the current Kiwi process.</p>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integer</code></td>
+<td>Current process ID</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>println &quot;My PID: ${sys::pid()}&quot;
+</span></code></pre></div></p>
+<hr />
+<h3 id="pids_name"><code>pids(_name)</code><a class="headerlink" href="#pids_name" title="Permanent link">&para;</a></h3>
+<p>Returns a list of PIDs for processes matching <code>_name</code>. Pass an empty string (or omit the argument) to get all running PIDs.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>string</code></td>
+<td><code>_name</code></td>
+<td>Process name to search for. <code>""</code> returns all PIDs.</td>
+<td><code>""</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list</code></td>
+<td>List of integer PIDs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># All PIDs on the system
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>all = sys::pids()
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>println &quot;Running processes: ${all.size()}&quot;
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a># Find processes by name
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>pids = sys::pids(&quot;python3&quot;)
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>println &quot;Python3 PIDs: ${pids}&quot;
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a># Kill all matching processes
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>for pid in pids
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  sys::kill(pid)
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>end
+</span></code></pre></div></p>
+<hr />
+<h3 id="processes_name"><code>processes(_name)</code><a class="headerlink" href="#processes_name" title="Permanent link">&para;</a></h3>
+<p>Returns a list of hashmaps describing running processes. Pass an empty string (or omit the argument) to get all processes.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>string</code></td>
+<td><code>_name</code></td>
+<td>Process name to filter by. <code>""</code> returns all processes.</td>
+<td><code>""</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list</code></td>
+<td>List of hashmaps, one per process</td>
+</tr>
+</tbody>
+</table>
+<p>Each hashmap contains:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pid</code></td>
+<td><code>integer</code></td>
+<td>Process ID</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>Process name</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td><code>string</code></td>
+<td>Full path to the executable (<code>""</code> if inaccessible)</td>
+</tr>
+<tr>
+<td><code>memory</code></td>
+<td><code>integer</code></td>
+<td>Working set memory in bytes (<code>0</code> if inaccessible)</td>
+</tr>
+<tr>
+<td><code>threads</code></td>
+<td><code>integer</code></td>
+<td>Number of threads (<code>0</code> if inaccessible)</td>
+</tr>
+<tr>
+<td><code>started</code></td>
+<td><code>string</code></td>
+<td>ISO 8601 start time (<code>""</code> if inaccessible)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># Inspect a specific process
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>for p in sys::processes(&quot;python3&quot;) do
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  pid     = p[&quot;pid&quot;]
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  name    = p[&quot;name&quot;]
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  mem_mb  = p[&quot;memory&quot;] / 1024 / 1024
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  threads = p[&quot;threads&quot;]
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  path    = p[&quot;path&quot;]
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  println &quot;${name} (${pid})  mem=${mem_mb}MB  threads=${threads}  path=${path}&quot;
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>end
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a># Find the most memory-hungry process
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>all = sys::processes()
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>top = all.sort(with (a, b) do a[&quot;memory&quot;] &lt; b[&quot;memory&quot;] end).last()
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>println &quot;Biggest: ${top[&quot;name&quot;]} (${top[&quot;pid&quot;]}) — ${top[&quot;memory&quot;] / 1024 / 1024}MB&quot;
+</span></code></pre></div></p>
+<hr />
+<h3 id="spawn_program-_args"><code>spawn(_program, _args)</code><a class="headerlink" href="#spawn_program-_args" title="Permanent link">&para;</a></h3>
+<p>Starts an external process <strong>without waiting</strong> and returns its PID. Unlike <code>open</code>, <code>spawn</code> registers the process so it can be managed with <code>wait</code>, <code>kill</code>, and <code>running</code>.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>string</code></td>
+<td><code>_program</code></td>
+<td>Executable name or full path</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td><code>_args</code></td>
+<td>List of command-line arguments (strings)</td>
+<td><code>[]</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integer</code></td>
+<td>PID of the spawned process</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Throws</strong>
+- <code>TypeError</code> — if <code>_args</code> is not a list of strings
+- <code>SystemError</code> — if the process cannot be started</p>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pid = sys::spawn(&quot;python3&quot;, [&quot;server.py&quot;])
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>println &quot;Server started with PID: ${pid}&quot;
+</span></code></pre></div></p>
+<hr />
+<h3 id="kill_pid"><code>kill(_pid)</code><a class="headerlink" href="#kill_pid" title="Permanent link">&para;</a></h3>
+<p>Kills a process by PID and waits for it to exit. Works for both processes started with <code>spawn</code> and arbitrary system processes.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integer</code></td>
+<td><code>_pid</code></td>
+<td>PID of process to kill</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boolean</code></td>
+<td><code>true</code> if killed successfully, <code>false</code> otherwise</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pid = sys::spawn(&quot;sleep&quot;, [&quot;60&quot;])
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>sys::kill(pid)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>println &quot;Process stopped.&quot;
+</span></code></pre></div></p>
+<hr />
+<h3 id="running_pid"><code>running(_pid)</code><a class="headerlink" href="#running_pid" title="Permanent link">&para;</a></h3>
+<p>Checks whether a process is currently running.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integer</code></td>
+<td><code>_pid</code></td>
+<td>PID to check</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boolean</code></td>
+<td><code>true</code> if the process is running, <code>false</code> otherwise</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>pid = sys::spawn(&quot;sleep&quot;, [&quot;5&quot;])
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>while sys::running(pid)
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  println &quot;Still running...&quot;
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  task::sleep(500)
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>end
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>println &quot;Done.&quot;
+</span></code></pre></div></p>
+<hr />
+<h3 id="wait_pid"><code>wait(_pid)</code><a class="headerlink" href="#wait_pid" title="Permanent link">&para;</a></h3>
+<p>Blocks until a process exits and returns its exit code. Works best with processes started via <code>spawn</code>.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integer</code></td>
+<td><code>_pid</code></td>
+<td>PID to wait for</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integer</code></td>
+<td>Exit code of the process</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Throws</strong>
+- <code>SystemError</code> — if the process cannot be found or waited on</p>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>pid = sys::spawn(&quot;make&quot;, [&quot;build&quot;])
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>code = sys::wait(pid)
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>if code == 0
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>  println &quot;Build succeeded.&quot;
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>else
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>  println &quot;Build failed with exit code ${code}.&quot;
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>end
+</span></code></pre></div></p>
+<hr />
 <h2 id="important-notes">Important Notes<a class="headerlink" href="#important-notes" title="Permanent link">&para;</a></h2>
 <ul>
 <li>All three functions expect arguments as a <strong>list of strings</strong>. No automatic shell parsing or quoting is performed.</li>
 <li>No shell is involved by default (<code>cmd.exe</code>, <code>bash</code>, <code>/bin/sh</code> etc. are <strong>not</strong> used unless you explicitly pass them as <code>_program</code>).</li>
 <li>To run shell commands with pipes/redirection, you must invoke the shell yourself:</li>
 </ul>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># Run a shell command with pipes
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sys::execout(&quot;bash&quot;, [&quot;-c&quot;, &quot;git log --oneline | head -n 5&quot;])
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># Run a shell command with pipes
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>sys::execout(&quot;bash&quot;, [&quot;-c&quot;, &quot;git log --oneline | head -n 5&quot;])
 </span></code></pre></div>
 <ul>
 <li>On Windows, you may need to use <code>"cmd.exe"</code> or full paths to executables.</li>
