@@ -258,6 +258,10 @@ public enum Opcode : byte
     /// Pop value and print it.
     /// </summary>
     Print,
+    /// <summary>
+    /// Pop y, pop x, pop text → print text at terminal position (x, y) using ANSI cursor-move.
+    /// </summary>
+    PrintXy,
 
     // -- Loop Iteration --------------------------------------------------------
     /// <summary>
@@ -346,6 +350,32 @@ public enum Opcode : byte
     /// Reads from the VM's _caughtError field set when a handler fires.
     /// </summary>
     LoadCatchError,
+
+    // -- Type Introspection ----------------------------------------------------
+    /// <summary>
+    /// Pop value → push typeof string (e.g. "integer", "string", "list", …).
+    /// </summary>
+    TypeOf,
+
+    // -- Event Bus -------------------------------------------------------------
+    /// <summary>
+    /// A = priority.  Pop callback, pop event-name → register 'on' handler.
+    /// </summary>
+    EventOn,
+    /// <summary>
+    /// A = priority.  Pop callback, pop event-name → register 'once' handler.
+    /// </summary>
+    EventOnce,
+    /// <summary>
+    /// A: 0 = no callback (remove all), 1 = pop callback too.
+    /// Pop [callback,] event-name → unregister handler(s).
+    /// </summary>
+    EventOff,
+    /// <summary>
+    /// A = arg count.  Pop A args (bottom-first), pop event-name → emit event,
+    /// push result list.
+    /// </summary>
+    EventEmit,
 
     // -- Interpreter Fallback --------------------------------------------------
     /// <summary>

@@ -143,6 +143,19 @@ public static class Disassembler
                     break;
                 }
 
+                case Opcode.EventOn:
+                case Opcode.EventOnce:
+                    sb.Append($" priority={instr.A}");
+                    break;
+
+                case Opcode.EventOff:
+                    sb.Append(instr.A == 1 ? " with-callback" : " all");
+                    break;
+
+                case Opcode.EventEmit:
+                    sb.Append($" argc={instr.A}");
+                    break;
+
                 case Opcode.InterpFallback:
                 {
                     var nodeType = chunk.NodePool.Count > instr.A
