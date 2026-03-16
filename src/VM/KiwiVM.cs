@@ -1296,8 +1296,7 @@ public sealed class KiwiVM
             bool found = false;
             for (int pi = 0; pi < paramCount; pi++)
             {
-                // Param names may be mangled (_XXXXXXXX_name) by the parser; unmangle for comparison.
-                if (ASTTracer.Unmangle(paramList[pi].Key) == name)
+                if (paramList[pi].Key == name)
                 {
                     reordered[pi] = rawArgs[ri];
                     filled[pi]    = true;

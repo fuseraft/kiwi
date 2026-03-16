@@ -1509,12 +1509,6 @@ public class Interpreter
                     $"got `{TypeRegistry.GetTypeName(argValue)}`.");
             }
 
-            // Lambda mapping
-            if (argValue.IsLambda())
-            {
-                Context.AddMappedLambda(param.Key, argValue.GetLambda().Identifier);
-            }
-
             scope.Declare(param.Key, argValue);
         }
 
@@ -2431,12 +2425,6 @@ public class Interpreter
             {
                 value = Interpret(pair.Value).Clone();
 
-                // if the value is a lambda, register to the lambda map
-                if (value.IsLambda())
-                {
-                    var lambdaName = value.GetLambda().Identifier;
-                    Context.AddMappedLambda(name, lambdaName);
-                }
             }
 
             // check for a type-hint
@@ -2446,7 +2434,7 @@ public class Interpreter
                 // if a default value was supplied, expect it to match the type
                 if (hasDefaultValue && !AssertTypeMatch(node.Token, value, expectedTypes))
                 {
-                    throw new TypeError(node.Token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for variable  `{ASTTracer.Unmangle(name)}` but received `{TypeRegistry.GetTypeName(value)}`.");
+                    throw new TypeError(node.Token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for variable `{name}` but received `{TypeRegistry.GetTypeName(value)}`.");
                 }
                 else if (!hasDefaultValue)
                 {
@@ -3127,6 +3115,12 @@ public class Interpreter
             return CallableType.Lambda;
         }
 
+        // Check scope chain for a lambda value bound to this name (e.g., lambda parameters).
+        if (CallStack.Count > 0 && CallStack.Peek().Scope.TryGet(name, out Value scopeVal) && scopeVal.IsLambda())
+        {
+            return CallableType.Lambda;
+        }
+
         var frame = CallStack.Peek();
 
         if (!frame.InObjectContext())
@@ -3462,12 +3456,18 @@ public class Interpreter
 
         if (!Context.HasLambda(targetLambda))
         {
-            if (!Context.HasMappedLambda(targetLambda))
+            if (Context.HasMappedLambda(targetLambda))
+            {
+                targetLambda = Context.LambdaTable[targetLambda];
+            }
+            else if (CallStack.Count > 0 && CallStack.Peek().Scope.TryGet(targetLambda, out Value scopeLambda) && scopeLambda.IsLambda())
+            {
+                targetLambda = scopeLambda.GetLambda().Identifier;
+            }
+            else
             {
                 throw new CallableError(token, $"Could not find target lambda `{targetLambda}`");
             }
-
-            targetLambda = Context.LambdaTable[targetLambda];
         }
 
         var func = Context.Lambdas[targetLambda];
@@ -3609,21 +3609,14 @@ public class Interpreter
                 throw new TypeError(node.Token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for parameter {1 + i} of `{node.FunctionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
             }
 
-            if (argValue.IsLambda())
-            {
-                Context.AddMappedLambda(param.Key, argValue.GetLambda().Identifier);
-            }
-            else
-            {
-                scope.Declare(param.Key, argValue);
-            }
+            scope.Declare(param.Key, argValue);
         }
     }
 
     private static int FindParameterIndexByName(List<KeyValuePair<string, Value>> parms, string name)
     {
         for (int i = 0; i < parms.Count; i++)
-            if (parms[i].Key.Substring(10) == name) return i;
+            if (parms[i].Key == name) return i;
         return -1;
     }
 
@@ -3708,15 +3701,7 @@ public class Interpreter
             throw new TypeError(token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for parameter {1 + i} of `{functionName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
-        if (argValue.IsLambda())
-        {
-            var lambdaId = argValue.GetLambda().Identifier;
-            Context.AddMappedLambda(param.Key, lambdaId);
-        }
-        else
-        {
-            scope.Declare(param.Key, argValue);
-        }
+        scope.Declare(param.Key, argValue);
     }
 
     private void PrepareLambdaCall(KLambda func, List<ASTNode?> args, HashSet<string> defaultParameters, Token token, string targetLambda, Dictionary<string, List<int>> typeHints, string lambdaName, Scope scope)
@@ -3770,15 +3755,7 @@ public class Interpreter
             throw new TypeError(token, $"Expected type `{string.Join("|", expectedTypes.Select(TypeRegistry.GetTypeName))}` for parameter {1 + i} of `{lambdaName}` but received `{TypeRegistry.GetTypeName(argValue)}`.");
         }
 
-        if (argValue.IsLambda())
-        {
-            var lambdaId = argValue.GetLambda().Identifier;
-            Context.AddMappedLambda(param.Key, lambdaId);
-        }
-        else
-        {
-            scope.Declare(param.Key, argValue);
-        }
+        scope.Declare(param.Key, argValue);
     }
 
     private Value ExecuteFunctionBody(KFunction function)

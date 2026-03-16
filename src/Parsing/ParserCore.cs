@@ -15,7 +15,6 @@ public partial class Parser(bool rethrowErrors = false)
     private Token token = Token.Eof;
     private TokenStream stream = new([]);
     private Stack<string> structStack = new();
-    private Stack<Dictionary<string, string>> mangledNameStack = new();
     private readonly List<bool> _generatorMarks = [];
     private static HashSet<string> StructsDefined = [];
     private static HashSet<string> PackagesDefined = [];
@@ -478,56 +477,4 @@ public partial class Parser(bool rethrowErrors = false)
         return new UnexpectedEndOfFileError(errToken, msg);
     }
 
-    private Dictionary<string, string> GetNameMap()
-    {
-        if (mangledNameStack.Count == 0)
-        {
-            return PushNameStack();
-        }
-
-        return mangledNameStack.Peek();
-    }
-
-    private bool HasName(string name)
-    {
-        foreach (var names in mangledNameStack)
-        {
-            if (names.ContainsKey(name))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private string GetName(string name)
-    {
-        foreach (var names in mangledNameStack)
-        {
-            if (names.TryGetValue(name, out string? value))
-            {
-                return value ?? string.Empty;
-            }
-        }
-
-        return string.Empty;
-    }
-
-    Dictionary<string, string> PushNameStack()
-    {
-        Dictionary<string, string> emptyMap = new();
-        mangledNameStack.Push(emptyMap);
-        return mangledNameStack.Peek();
-    }
-
-    private void PopNameStack()
-    {
-        if (!mangledNameStack.Any())
-        {
-            return;
-        }
-
-        mangledNameStack.Pop();
-    }
 }
