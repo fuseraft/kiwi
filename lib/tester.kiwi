@@ -3,15 +3,7 @@
 @see time : Used internally to measure test duration.
 #/
 package tester
-  /#
-  @summary Initializes the global unit test registry if not already set up.
-  #/
-  fn initialize()
-    if !global.has_key("unit_tests")
-      global.unit_tests = {}
-      global.unit_test_results = []
-    end
-  end
+  _tests = {}
 
   /#
   @summary Asserts that two values are equal, throwing on mismatch.
@@ -44,8 +36,16 @@ package tester
   @param lambda t : A no-argument lambda containing the test body.
   #/
   fn register_test(name: string, t: lambda)
-    tester::initialize()
-    global.unit_tests.set(name, t)
+    _tests.set(name, t)
+  end
+
+  /#
+  @summary Returns true if a test with the given name has been registered.
+  @param string name : The test name to look up.
+  @return boolean : `true` if the test is registered.
+  #/
+  fn registered(name: string): boolean
+    _tests.has_key(name)
   end
 
   /#
@@ -72,7 +72,6 @@ package tester
   #/
   fn run_test(name: string, test: lambda, results: list = [])
     print ("Running test: ${name} ").padend(55, " ")
-    tester::initialize()
 
     test_start = time::ticks()
     passed = false
@@ -100,14 +99,13 @@ package tester
   @return list : A list of result hashmaps, each with `name`, `result`, and `duration` keys.
   #/
   fn run_tests()
-    tester::initialize()
     results = []
 
     # Snapshot keys before iterating so that tests which register additional
     # tests via @tester::test do not cause a "collection modified" error.
-    names = global.unit_tests.keys()
+    names = _tests.keys()
     for name in names do
-      tester::run_test(name, global.unit_tests[name], results)
+      tester::run_test(name, _tests[name], results)
     end
 
     return results

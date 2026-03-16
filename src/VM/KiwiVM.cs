@@ -59,6 +59,12 @@ public sealed class KiwiVM
     // -- Caught error (for LoadCatchError inside catch bodies) ------------------
     private KiwiError? _caughtError;
 
+    // -- Splat-argument adjustment side-stack ----------------------------------
+    // Each SplatReset pushes 0; each SplatPush adds (list.Count-1) to the top;
+    // CallSplat/MethodCallSplat pop and add to the static argc operand.
+    // Using a stack (not a single int) so nested splat calls are independent.
+    private readonly Stack<int> _splatAdjStack = new();
+
     // -- Name resolution cache (LoadGlobal fast-path) --------------------------
     // Caches resolved Values for stable global names (functions, constants,
     // packages, structs).  Invalidated on DefFunc and StoreGlobal so that
@@ -543,10 +549,35 @@ public sealed class KiwiVM
                         if (BooleanOp.IsTruthy(Pop())) frame.IP = A;
                         break;
 
+                    // -- Splat ------------------------------------------------
+                    case Opcode.SplatReset:
+                        _splatAdjStack.Push(0);
+                        break;
+
+                    case Opcode.SplatPush:
+                    {
+                        var v = Pop();
+                        if (v.IsList())
+                        {
+                            var list = v.GetList();
+                            foreach (var item in list) Push(item);
+                            if (_splatAdjStack.Count > 0)
+                                _splatAdjStack.Push(_splatAdjStack.Pop() + list.Count - 1);
+                        }
+                        else
+                        {
+                            Push(v); // single value — no adjustment (count stays as 1)
+                        }
+                        break;
+                    }
+
                     // -- Call ---------------------------------------------
                     case Opcode.Call:
+                    case Opcode.CallSplat:
                     {
-                        int argc = A;
+                        int argc = op == Opcode.CallSplat
+                            ? A + (_splatAdjStack.Count > 0 ? _splatAdjStack.Pop() : 0)
+                            : A;
                         // Stack: [..., func, arg0, ..., argN-1]
                         // func is at _sp - argc - 1
                         int funcSlot = _sp - argc - 1;
@@ -560,8 +591,11 @@ public sealed class KiwiVM
 
                     // -- CallMethod ----------------------------------------
                     case Opcode.CallMethod:
+                    case Opcode.MethodCallSplat:
                     {
-                        int argc       = A;
+                        int argc       = op == Opcode.MethodCallSplat
+                            ? A + (_splatAdjStack.Count > 0 ? _splatAdjStack.Pop() : 0)
+                            : A;
                         var methodName = frame.Chunk.Names[B];
                         // Stack: [..., obj, arg0, ..., argN-1]
                         int objSlot = _sp - argc - 1;
@@ -623,6 +657,8 @@ public sealed class KiwiVM
                             kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
                         foreach (var pn in sub.DefaultParamNames)
                             kfunc.DefaultParameters.Add(pn);
+                        if (!string.IsNullOrEmpty(sub.VariadicParamName))
+                            kfunc.VariadicParamName = sub.VariadicParamName;
                         kfunc.CapturedScope = _globals;
 
                         _context.Functions[funcName] = kfunc;
@@ -647,8 +683,8 @@ public sealed class KiwiVM
                             VMUpvalues = upvalues,
                             CapturedScope = _globals
                         };
-                        foreach (var pn in sub.ParamNames)
-                            klambda.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        for (int i = 0; i < sub.Arity; i++)
+                            klambda.Parameters.Add(new KeyValuePair<string, Value>(sub.ParamNames[i], Value.Default));
                         foreach (var pn in sub.DefaultParamNames)
                             klambda.DefaultParameters.Add(pn);
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
@@ -1102,6 +1138,15 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    // -- Exit ----------------------------------------------
+                    case Opcode.Exit:
+                    {
+                        var exitVal = Pop();
+                        int code = exitVal.IsInteger() ? Convert.ToInt32(exitVal.GetInteger()) : 1;
+                        Environment.Exit(code);
+                        break;
+                    }
+
                     // -- Misc ----------------------------------------------
                     case Opcode.Nop: break;
                     case Opcode.Halt:
@@ -1280,11 +1325,28 @@ public sealed class KiwiVM
 
     private void SetupCalleeLocals(Chunk sub, int calleeBase, int argc)
     {
-        // Zero-initialize slots beyond argc (pre-scanned locals)
         int end = calleeBase + sub.LocalCount;
         if (end > MaxStack) throw new RuntimeError(Token.Eof, "Stack overflow.", []);
-        for (int i = calleeBase + argc; i < end; i++)
-            _stack[i] = Value.Default;
+
+        if (!string.IsNullOrEmpty(sub.VariadicParamName))
+        {
+            // Pack extra args (at and beyond the variadic slot) into a list.
+            int varSlot = calleeBase + sub.Arity;
+            var varList = new List<Value>(Math.Max(0, argc - sub.Arity));
+            for (int i = varSlot; i < calleeBase + argc; i++)
+                varList.Add(_stack[i]);
+            _stack[varSlot] = Value.CreateList(varList);
+            // Zero-fill any remaining local slots after the variadic slot.
+            for (int i = varSlot + 1; i < end; i++)
+                _stack[i] = Value.Default;
+        }
+        else
+        {
+            // Zero-initialize slots beyond argc (pre-scanned locals)
+            for (int i = calleeBase + argc; i < end; i++)
+                _stack[i] = Value.Default;
+        }
+
         _sp = end;
     }
 
@@ -1317,8 +1379,9 @@ public sealed class KiwiVM
     private static FunctionNode BuildFunctionNode(Chunk sub, string name)
     {
         var fn = new FunctionNode { Name = name };
-        foreach (var pn in sub.ParamNames)
-            fn.Parameters.Add(new KeyValuePair<string, ASTNode?>(pn, null));
+        // Only include non-variadic params; variadic is conveyed via VariadicParamName.
+        for (int i = 0; i < sub.Arity; i++)
+            fn.Parameters.Add(new KeyValuePair<string, ASTNode?>(sub.ParamNames[i], null));
         fn.VariadicParamName = sub.VariadicParamName;
         return fn;
     }
@@ -1326,8 +1389,9 @@ public sealed class KiwiVM
     private static LambdaNode BuildLambdaNode(Chunk sub)
     {
         var ln = new LambdaNode();
-        foreach (var pn in sub.ParamNames)
-            ln.Parameters.Add(new KeyValuePair<string, ASTNode?>(pn, null));
+        // Only include non-variadic params; variadic is conveyed via VariadicParamName.
+        for (int i = 0; i < sub.Arity; i++)
+            ln.Parameters.Add(new KeyValuePair<string, ASTNode?>(sub.ParamNames[i], null));
         ln.VariadicParamName = sub.VariadicParamName;
         return ln;
     }

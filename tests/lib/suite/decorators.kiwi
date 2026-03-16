@@ -162,7 +162,6 @@ fn test_decorators()
   # The function must still be callable directly.
   sample_test()
 
-  # Confirm the test was registered in the global registry.
-  tester::initialize()
-  tester::assert(global.unit_tests.has_key("decorator: registered via @tester::test"), "C1")
+  # Confirm the test was registered in the package registry.
+  tester::assert(tester::registered("decorator: registered via @tester::test"), "C1")
 end

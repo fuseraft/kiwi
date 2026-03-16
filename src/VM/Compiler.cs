@@ -402,6 +402,7 @@ public sealed class Compiler
             case ASTNodeType.Next:             CompileNext           ((NextNode)node,              ln); return false;
             case ASTNodeType.Return:           CompileReturn         ((ReturnNode)node,            ln); return false;
             case ASTNodeType.Yield:            CompileYield          ((YieldNode)node,             ln); return false;
+            case ASTNodeType.Exit:             CompileExit           ((ExitNode)node,              ln); return false;
             case ASTNodeType.Throw:            CompileThrow          ((ThrowNode)node,             ln); return false;
             case ASTNodeType.Try:              CompileTry            ((TryNode)node,               ln); return false;
             case ASTNodeType.Function:         CompileFunction       ((FunctionNode)node,          ln); return false;
@@ -1207,6 +1208,27 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         Emit(Opcode.Yield, 0, 0, ln);
     }
 
+    // -- Exit ------------------------------------------------------------------
+
+    private void CompileExit(ExitNode node, int ln)
+    {
+        if (node.Condition != null)
+        {
+            CompileNode(node.Condition);
+            int skip = EmitJump(Opcode.JumpF, ln);
+            if (node.ExitValue != null) CompileNode(node.ExitValue);
+            else                       Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.Exit, 0, 0, ln);
+            PatchJump(skip);
+        }
+        else
+        {
+            if (node.ExitValue != null) CompileNode(node.ExitValue);
+            else                       Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.Exit, 0, 0, ln);
+        }
+    }
+
     // -- Throw -----------------------------------------------------------------
 
     private void CompileThrow(ThrowNode node, int ln)
@@ -1315,17 +1337,19 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
     private void CompileLambdaCall(LambdaCallNode node, int ln)
     {
-        if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
+        if (HasNamedArg(node.Arguments)) { Fallback(node); return; }
+        bool hasSplat = HasSplatNode(node.Arguments);
+        if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.LambdaNode!);
         int argc = CompileArgs(node.Arguments);
-        Emit(Opcode.Call, argc, 0, ln);
+        Emit(hasSplat ? Opcode.CallSplat : Opcode.Call, argc, 0, ln);
     }
 
     // -- Function call ---------------------------------------------------------
 
     private void CompileFuncCall(FunctionCallNode node, int ln)
     {
-        if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
+        if (HasNamedArg(node.Arguments)) { Fallback(node); return; }
         // Any function whose Op is not a plain Identifier token is a language builtin
         // (e.g. typeof, deserialize, serialize) handled entirely by the interpreter -
         // not findable via LoadGlobal, so fall back.
@@ -1334,21 +1358,25 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // VM-local variables (e.g. mangled var-block names) are read from the correct
         // stack slots, then dispatch through DoCall which invokes the interpreter with
         // the already-evaluated argument values.
+        bool hasSplat = HasSplatNode(node.Arguments);
+        if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         EmitLoad(node.FunctionName, ln);
         int argc    = CompileArgs(node.Arguments);
         int nameIdx = _chunk.AddName(node.FunctionName); // encode name for error reporting
-        Emit(Opcode.Call, argc, nameIdx, ln);
+        Emit(hasSplat ? Opcode.CallSplat : Opcode.Call, argc, nameIdx, ln);
     }
 
     // -- Method call -----------------------------------------------------------
 
     private void CompileMethodCall(MethodCallNode node, int ln)
     {
-        if (HasSplatArg(node.Arguments)) { Fallback(node); return; }
+        if (HasNamedArg(node.Arguments)) { Fallback(node); return; }
+        bool hasSplat = HasSplatNode(node.Arguments);
+        if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.Object!);
         int argc    = CompileArgs(node.Arguments);
         int nameIdx = _chunk.AddName(node.MethodName);
-        Emit(Opcode.CallMethod, argc, nameIdx, ln);
+        Emit(hasSplat ? Opcode.MethodCallSplat : Opcode.CallMethod, argc, nameIdx, ln);
     }
 
     // -- Helpers ---------------------------------------------------------------
@@ -1403,8 +1431,17 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         return false;
     }
 
+    // Returns true if any argument is a named argument (still requires fallback).
+    private static bool HasNamedArg(IEnumerable<ASTNode?> args)
+        => args.Any(a => a is NamedArgumentNode);
+
+    // Returns true if any argument is a splat (natively handled via SplatPush).
+    private static bool HasSplatNode(IEnumerable<ASTNode?> args)
+        => args.Any(a => a is SplatNode);
+
+    // Kept for callers that need to fall back on either named args or splat.
     private static bool HasSplatArg(IEnumerable<ASTNode?> args)
-        => args.Any(a => a is SplatNode or NamedArgumentNode);
+        => args.Any(a => a is NamedArgumentNode);
 
     private int CompileArgs(IEnumerable<ASTNode?> args)
     {
@@ -1412,7 +1449,17 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         foreach (var a in args)
         {
             if (a == null) continue;
-            CompileNode(a);
+            if (a is SplatNode splat)
+            {
+                // Compile the splat expression; the VM's SplatPush handler will
+                // expand it and adjust the argc via _splatAdjStack.
+                CompileNode(splat.Expression!);
+                Emit(Opcode.SplatPush);
+            }
+            else
+            {
+                CompileNode(a);
+            }
             n++;
         }
         return n;

@@ -3356,9 +3356,13 @@ public class Interpreter
         var vm = VM.KiwiVM.Current;
         if (vm != null && func.VMChunk != null)
         {
-            // Named args must be resolved to positional order matching the parameter list.
-            var slots = ResolveArguments(func.Parameters, node.Arguments, defaultParameters, node.Token, functionName, func.VariadicParamName);
+            // Resolve named/positional/splat args; for variadic functions, also collect
+            // overflow varargs and append them so the VM receives the full flat arg list.
+            Scope? varScope = string.IsNullOrEmpty(func.VariadicParamName) ? null : new Scope(null);
+            var slots = ResolveArguments(func.Parameters, node.Arguments, defaultParameters, node.Token, functionName, func.VariadicParamName, varScope);
             var evaluatedArgs = slots.Select(v => v ?? Value.Default).ToList();
+            if (varScope != null && varScope.TryGet(func.VariadicParamName, out var vl) && vl.IsList())
+                evaluatedArgs.AddRange(vl.GetList());
             PushFrame(functionFrame); // placeholder so caller's PopFrame is balanced
             return vm.InvokeVMCallable(func, evaluatedArgs, node.Token);
         }
