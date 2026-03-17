@@ -170,11 +170,13 @@ public static class Disassembler
 
                 case Opcode.DefMethod:
                 {
-                    bool abs = (instr.B & unchecked((int)0x80000000)) != 0;
-                    int  ni  = instr.B & 0x7FFFFFFF;
-                    var  mn  = chunk.Names.Count > ni ? chunk.Names[ni] : "?";
+                    bool abs    = (instr.B & unchecked((int)0x80000000)) != 0;
+                    bool stat   = (instr.B & 0x40000000) != 0;
+                    int  ni     = instr.B & 0x3FFFFFFF;
+                    var  mn     = chunk.Names.Count > ni ? chunk.Names[ni] : "?";
                     sb.Append($" sub[{instr.A}]  name=\"{mn}\"");
-                    if (abs) sb.Append("  abstract");
+                    if (abs)  sb.Append("  abstract");
+                    if (stat) sb.Append("  static");
                     break;
                 }
 
@@ -189,6 +191,21 @@ public static class Disassembler
                 {
                     var pn = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
                     sb.Append($" \"{pn}\"");
+                    break;
+                }
+
+                case Opcode.EnumBegin:
+                case Opcode.EnumEnd:
+                {
+                    var en = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{en}\"");
+                    break;
+                }
+
+                case Opcode.DefEnumMember:
+                {
+                    var mn = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"@@{mn}\"");
                     break;
                 }
 
