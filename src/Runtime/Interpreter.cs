@@ -4409,8 +4409,12 @@ public class Interpreter
     /// Push a synthetic call-stack frame so builtins can safely call CallStack.Peek().
     /// Used by the VM's InterpFallback handler before delegating to the tree-walker.
     /// </summary>
-    public void PushVMDispatchFrame(Scope globals)
-        => CallStack.Push(new StackFrame("<vm-dispatch>", globals));
+    public void PushVMDispatchFrame(Scope globals, InstanceRef? self = null)
+    {
+        var frame = new StackFrame("<vm-dispatch>", globals);
+        if (self != null) frame.SetObjectContext(self);
+        CallStack.Push(frame);
+    }
 
     /// <summary>Pop the synthetic frame pushed by <see cref="PushVMDispatchFrame"/>.</summary>
     public void PopVMDispatchFrame()
@@ -4435,13 +4439,14 @@ public class Interpreter
     /// After execution, any variables that were modified in the interpreter scope are
     /// written back into <paramref name="locals"/> so the VM can update its stack.
     /// </summary>
-    public Value InterpretNodeWithLocals(ASTNode node, Dictionary<string, Value> locals)
+    public Value InterpretNodeWithLocals(ASTNode node, Dictionary<string, Value> locals, InstanceRef? self = null)
     {
         var scope = new Scope(_globalScope);
         foreach (var kv in locals)
             scope.Declare(kv.Key, kv.Value);
 
         var frame = new StackFrame("<vm-fallback>", scope);
+        if (self != null) frame.SetObjectContext(self);
         CallStack.Push(frame);
         try
         {

@@ -414,6 +414,20 @@ public enum Opcode : byte
     /// </summary>
     PackageAbort,
 
+    // -- Enum Definition -------------------------------------------------------
+    /// <summary>
+    /// A = name index.  Create KStruct{IsEnum=true} and push onto the pending-struct stack.
+    /// </summary>
+    EnumBegin,
+    /// <summary>
+    /// A = name index.  Pop value → store in pending enum's StaticVariables["@@" + names[A]].
+    /// </summary>
+    DefEnumMember,
+    /// <summary>
+    /// Pop pending KStruct and register it as an enum in Context.Structs.
+    /// </summary>
+    EnumEnd,
+
     // -- Interpreter Fallback --------------------------------------------------
     /// <summary>
     /// A = node-pool index.  Execute chunk.NodePool[A] via the tree-walking

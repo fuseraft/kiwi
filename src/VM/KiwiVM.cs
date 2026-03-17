@@ -136,11 +136,12 @@ public sealed class KiwiVM
         var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
         var upvalues = callable is KFunction kf2 ? (kf2.VMUpvalues ?? []) : (((KLambda)callable).VMUpvalues ?? []);
 
-        int calleeBase = _sp;
+        int calleeBase      = _sp;
         // When called re-entrantly from C# (e.g. LambdaMap), the Return handler writes
         // the result to _stack[calleeBase - 1] via Push(result). Save and restore that
         // slot so the caller's temp stack is not clobbered.
-        var savedBelow = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+        var savedBelow      = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+        int savedFrameCount = _frameCount;
 
         // Push args onto the stack
         foreach (var a in args) Push(a);
@@ -149,7 +150,19 @@ public sealed class KiwiVM
 
         int stopAt = _frameCount; // run only until this frame completes
         PushFrame(sub.Name, sub, calleeBase, upvalues, token, instance);
-        var r = RunLoop(stopAt);
+        Value r;
+        try
+        {
+            r = RunLoop(stopAt);
+        }
+        catch
+        {
+            // Restore VM state so subsequent InvokeVMCallable calls are not affected.
+            _sp         = calleeBase;
+            _frameCount = savedFrameCount;
+            if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
+            throw;
+        }
 
         // Restore the slot clobbered by the Return handler's Push(result).
         if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
@@ -1178,7 +1191,10 @@ public sealed class KiwiVM
                         {
                             Push(Value.CreateString(e.Message ?? string.Empty));
                         }
-                        _caughtError = null; // consumed
+                        // Clear after last binding: A==0 (single-param) or A==2 (second of two-param).
+                        // A==1 (first of two-param) must NOT clear so the second LoadCatchError
+                        // can still read the same error.
+                        if (A != 1) _caughtError = null;
                         break;
                     }
 
@@ -1189,8 +1205,10 @@ public sealed class KiwiVM
                         Value r;
                         // Ensure the interpreter call-stack is non-empty so that builtins
                         // (e.g. ListBuiltinHandler) can safely call CallStack.Peek().
+                        // Also propagate the current VM frame's Self so that @attr access
+                        // (SelfNode) inside fallback expressions resolves correctly.
                         bool pushedFrame = _interp.CallStack.Count == 0;
-                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals);
+                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals, frame.Self);
                         try
                         {
                             // If there are named locals in the current frame, expose them to the
@@ -1201,7 +1219,7 @@ public sealed class KiwiVM
                                 var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
                                 foreach (var (name, slot) in frame.Chunk.LocalNames)
                                     locals[name] = _stack[frame.StackBase + slot];
-                                r = _interp.InterpretNodeWithLocals(node, locals);
+                                r = _interp.InterpretNodeWithLocals(node, locals, frame.Self);
                                 // Sync any updated locals back to the VM stack.
                                 foreach (var (name, slot) in frame.Chunk.LocalNames)
                                 {
@@ -1290,7 +1308,8 @@ public sealed class KiwiVM
                     {
                         var sub        = frame.Chunk.SubChunks[A];
                         bool isAbstract = (B & unchecked((int)0x80000000)) != 0;
-                        int  nameIdx   = B & 0x7FFFFFFF;
+                        bool isStatic   = (B & 0x40000000) != 0;
+                        int  nameIdx   = B & 0x3FFFFFFF;
                         var  methodName = frame.Chunk.Names[nameIdx];
 
                         var upvalues = BuildUpvalues(sub, frame);
@@ -1300,6 +1319,7 @@ public sealed class KiwiVM
                             VMChunk     = sub,
                             VMUpvalues  = upvalues,
                             IsAbstract  = isAbstract,
+                            IsStatic    = isStatic,
                             CapturedScope = _globals
                         };
                         foreach (var (pn, _) in kfunc.Decl.Parameters)
@@ -1371,6 +1391,26 @@ public sealed class KiwiVM
                         // Package activation failed: pop the stack but don't mark as imported.
                         // The stored PackageNode AST allows ImportPackage to retry later.
                         _interp.PackageStack.Pop();
+                        break;
+                    }
+
+                    // -- Enum definition -----------------------------------
+                    case Opcode.EnumBegin:
+                    {
+                        var enumName = frame.Chunk.Names[A];
+                        _pendingStructs.Push(new KStruct { Name = enumName, IsEnum = true });
+                        break;
+                    }
+                    case Opcode.DefEnumMember:
+                    {
+                        _pendingStructs.Peek().StaticVariables["@@" + frame.Chunk.Names[A]] = Pop();
+                        break;
+                    }
+                    case Opcode.EnumEnd:
+                    {
+                        var kenum = _pendingStructs.Pop();
+                        _context.Structs[kenum.Name] = kenum;
+                        _nameCache.Remove(kenum.Name);
                         break;
                     }
 
