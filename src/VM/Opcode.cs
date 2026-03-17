@@ -377,6 +377,43 @@ public enum Opcode : byte
     /// </summary>
     EventEmit,
 
+    // -- Struct Definition -----------------------------------------------------
+    /// <summary>
+    /// A = name index.
+    /// B = packed: bit 0 = isAbstract, bits 1+ = baseNameIdx+1 (0 = no base).
+    /// Create KStruct and push onto the pending-struct stack.
+    /// </summary>
+    StructBegin,
+    /// <summary>
+    /// A = sub-chunk index, B = nameIdx | (isAbstract ? 0x80000000 : 0).
+    /// Like DefFunc but registers the method into the current pending struct.
+    /// </summary>
+    DefMethod,
+    /// <summary>
+    /// A = name index. Pop value → store in pending struct's StaticVariables[names[A]].
+    /// </summary>
+    InitStructStatic,
+    /// <summary>
+    /// Validate abstract compliance, register pending struct in Context.Structs.
+    /// </summary>
+    StructEnd,
+
+    // -- Package Definition ----------------------------------------------------
+    /// <summary>
+    /// A = name index, B = node-pool index (stores PackageNode AST for retry).
+    /// Build qualified name, push onto PackageStack, register KPackage.
+    /// </summary>
+    PackageBegin,
+    /// <summary>
+    /// Pop PackageStack; register type builtins; mark package imported.
+    /// </summary>
+    PackageEnd,
+    /// <summary>
+    /// Catch path for a failed package activation: pop PackageStack without marking as imported.
+    /// Allows ImportPackage to retry after dependencies are resolved.
+    /// </summary>
+    PackageAbort,
+
     // -- Interpreter Fallback --------------------------------------------------
     /// <summary>
     /// A = node-pool index.  Execute chunk.NodePool[A] via the tree-walking

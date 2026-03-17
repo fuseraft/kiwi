@@ -2565,7 +2565,7 @@ public partial class Parser
                 node = ParseFunctionCall(identifierName, type);
                 break;
             case TokenType.LBracket when token.Span.Line == Previous().Span.Line:
-                node = ParseIndexing(identifierName);
+                node = ParseIndexing(node);
                 break;
             case TokenType.Operator when IsAssignmentOperator():
                 node = ParseAssignment(node, identifierName);

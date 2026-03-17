@@ -65,6 +65,9 @@ public sealed class KiwiVM
     // Using a stack (not a single int) so nested splat calls are independent.
     private readonly Stack<int> _splatAdjStack = new();
 
+    // -- Struct / Package definition state -------------------------------------
+    private readonly Stack<KStruct> _pendingStructs = new();
+
     // -- Name resolution cache (LoadGlobal fast-path) --------------------------
     // Caches resolved Values for stable global names (functions, constants,
     // packages, structs).  Invalidated on DefFunc and StoreGlobal so that
@@ -330,7 +333,7 @@ public sealed class KiwiVM
                             if (frame.Self != null)
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
-                                Push(gv); // gv is null/default here
+                                Push(Value.Default);
                             // Don't cache mutable globals
                         }
                         break;
@@ -705,7 +708,12 @@ public sealed class KiwiVM
                     case Opcode.DefFunc:
                     {
                         var sub      = frame.Chunk.SubChunks[A];
-                        var funcName = frame.Chunk.Names[B];
+                        var rawName  = frame.Chunk.Names[B];
+
+                        // Qualify the name with the current package prefix (if any).
+                        var funcName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
+                            : rawName;
 
                         // Build upvalue array for the closure (even for named functions)
                         var upvalues = BuildUpvalues(sub, frame);
@@ -1260,6 +1268,112 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    // -- Struct definition ---------------------------------
+                    case Opcode.StructBegin:
+                    {
+                        var structName = frame.Chunk.Names[A];
+                        bool isAbstract = (B & 1) != 0;
+                        int  baseRaw    = B >> 1;
+                        var  struc      = new KStruct { Name = structName, IsAbstract = isAbstract };
+                        if (baseRaw > 0)
+                        {
+                            var baseName = frame.Chunk.Names[baseRaw - 1];
+                            if (!_context.HasStruct(baseName))
+                                throw new StructUndefinedError(frame.GetToken(), baseName);
+                            struc.BaseStruct = baseName;
+                        }
+                        _pendingStructs.Push(struc);
+                        _interp.StructStack.Push(structName);
+                        break;
+                    }
+                    case Opcode.DefMethod:
+                    {
+                        var sub        = frame.Chunk.SubChunks[A];
+                        bool isAbstract = (B & unchecked((int)0x80000000)) != 0;
+                        int  nameIdx   = B & 0x7FFFFFFF;
+                        var  methodName = frame.Chunk.Names[nameIdx];
+
+                        var upvalues = BuildUpvalues(sub, frame);
+                        var kfunc = new KFunction(BuildFunctionNode(sub, methodName))
+                        {
+                            Name        = methodName,
+                            VMChunk     = sub,
+                            VMUpvalues  = upvalues,
+                            IsAbstract  = isAbstract,
+                            CapturedScope = _globals
+                        };
+                        foreach (var (pn, _) in kfunc.Decl.Parameters)
+                            kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            kfunc.DefaultParameters.Add(pn);
+                        if (!string.IsNullOrEmpty(sub.VariadicParamName))
+                            kfunc.VariadicParamName = sub.VariadicParamName;
+
+                        var struc = _pendingStructs.Peek();
+                        struc.Methods[methodName] = kfunc;
+                        if (isAbstract)
+                            struc.AbstractMethods.Add(methodName);
+                        break;
+                    }
+                    case Opcode.InitStructStatic:
+                    {
+                        _pendingStructs.Peek().StaticVariables[frame.Chunk.Names[A]] = Pop();
+                        break;
+                    }
+                    case Opcode.StructEnd:
+                    {
+                        var struc = _pendingStructs.Pop();
+                        _interp.StructStack.Pop();
+                        if (!struc.IsAbstract && !string.IsNullOrEmpty(struc.BaseStruct))
+                        {
+                            var baseStruc = _context.Structs[struc.BaseStruct];
+                            foreach (var am in baseStruc.AbstractMethods)
+                                if (!struc.Methods.ContainsKey(am))
+                                    throw new AbstractMethodError(frame.GetToken(), struc.Name, am);
+                        }
+                        _context.Structs[struc.Name] = struc;
+                        _nameCache.Remove(struc.Name);
+                        break;
+                    }
+
+                    // -- Package definition --------------------------------
+                    case Opcode.PackageBegin:
+                    {
+                        var localName     = frame.Chunk.Names[A];
+                        var qualifiedName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + localName
+                            : localName;
+                        if (!_context.Packages.ContainsKey(qualifiedName))
+                        {
+                            // Store the original PackageNode AST so ImportPackage can retry
+                            // via the tree-walking interpreter if activation failed.
+                            var pkgAst = B < frame.Chunk.NodePool.Count
+                                ? (PackageNode)frame.Chunk.NodePool[B]
+                                : new PackageNode(null);
+                            _context.Packages[qualifiedName] = new KPackage(pkgAst);
+                        }
+                        _interp.PackageStack.Push(localName);
+                        break;
+                    }
+                    case Opcode.PackageEnd:
+                    {
+                        var localName     = _interp.PackageStack.Pop();
+                        var qualifiedName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + localName
+                            : localName;
+                        _interp.RegisterTypeBuiltins(qualifiedName);
+                        _context.ImportedPackages.Add(qualifiedName);
+                        _nameCache.Remove(qualifiedName);
+                        break;
+                    }
+                    case Opcode.PackageAbort:
+                    {
+                        // Package activation failed: pop the stack but don't mark as imported.
+                        // The stored PackageNode AST allows ImportPackage to retry later.
+                        _interp.PackageStack.Pop();
+                        break;
+                    }
+
                     // -- Exit ----------------------------------------------
                     case Opcode.Exit:
                     {
@@ -1594,9 +1708,7 @@ public sealed class KiwiVM
         }
 
         if (funcVal.IsNull())
-        {
             throw new FunctionUndefinedError(token, callName ?? "<unknown>");
-        }
 
         // Interpreter fallback for builtins / tree-walked functions
         {
