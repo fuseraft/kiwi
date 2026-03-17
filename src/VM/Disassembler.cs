@@ -156,6 +156,42 @@ public static class Disassembler
                     sb.Append($" argc={instr.A}");
                     break;
 
+                case Opcode.StructBegin:
+                {
+                    var sn   = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    bool abs = (instr.B & 1) != 0;
+                    int  br  = instr.B >> 1;
+                    var  bn  = br > 0 && chunk.Names.Count > br - 1 ? chunk.Names[br - 1] : null;
+                    sb.Append($" \"{sn}\"");
+                    if (bn != null) sb.Append($"  base=\"{bn}\"");
+                    if (abs)        sb.Append("  abstract");
+                    break;
+                }
+
+                case Opcode.DefMethod:
+                {
+                    bool abs = (instr.B & unchecked((int)0x80000000)) != 0;
+                    int  ni  = instr.B & 0x7FFFFFFF;
+                    var  mn  = chunk.Names.Count > ni ? chunk.Names[ni] : "?";
+                    sb.Append($" sub[{instr.A}]  name=\"{mn}\"");
+                    if (abs) sb.Append("  abstract");
+                    break;
+                }
+
+                case Opcode.InitStructStatic:
+                {
+                    var vn = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{vn}\"");
+                    break;
+                }
+
+                case Opcode.PackageBegin:
+                {
+                    var pn = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{pn}\"");
+                    break;
+                }
+
                 case Opcode.InterpFallback:
                 {
                     var nodeType = chunk.NodePool.Count > instr.A

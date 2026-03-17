@@ -63,6 +63,8 @@ public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
             // For now we run the stdlib through the interpreter, then compile and run user code.
             var programNode = (ProgramNode)ast;
             var chunk = Compiler.CompileProgram(programNode);
+            if (System.Environment.GetEnvironmentVariable("KIWI_DISASM") == "1")
+                Disassembler.Dump(chunk);
             var vm = new KiwiVM(Interpreter);
             KiwiVM.Current = vm;
             vm.Execute(chunk);

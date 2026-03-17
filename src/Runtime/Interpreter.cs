@@ -51,8 +51,8 @@ public class Interpreter
     public string ProjectRoot { get; set; } = Directory.GetCurrentDirectory();
     public CancellationToken GeneratorCancellationToken { get; private set; } = CancellationToken.None;
     public Stack<StackFrame> CallStack { get; set; } = [];
-    private Stack<string> PackageStack { get; set; } = [];
-    private Stack<string> StructStack { get; set; } = [];
+    internal Stack<string> PackageStack { get; set; } = [];
+    internal Stack<string> StructStack  { get; set; } = [];
     private Stack<string> FuncStack { get; set; } = [];
     public long CurrentTaskId { get; set; } = 0; // 0 = main thread
     public void SetContext(KContext context) => Context = context;
@@ -1040,9 +1040,11 @@ public class Interpreter
                 throw new IndexError(indexExpr.Token, "Invalid indexing expression.");
             }
 
-            if (indexExpr.IndexedObject.Type == ASTNodeType.Identifier)
+            if (indexExpr.IndexedObject.Type is ASTNodeType.Identifier or ASTNodeType.Self)
             {
-                var identifierName = Id(indexExpr.IndexedObject);
+                string identifierName = indexExpr.IndexedObject.Type == ASTNodeType.Self
+                    ? ((SelfNode)indexExpr.IndexedObject).Name
+                    : Id(indexExpr.IndexedObject);
                 var indexedObj = Value.CreateInteger(0L);
                 var objContext = frame.GetObjectContext();
 
@@ -1090,7 +1092,10 @@ public class Interpreter
                         }
                     }
 
-                    scope.Assign(identifierName, Value.CreateList(listObj));
+                    if (identifierName[0] == '@' && objContext != null)
+                        objContext.InstanceVariables[identifierName] = indexedObj;
+                    else
+                        scope.Assign(identifierName, Value.CreateList(listObj));
                 }
                 else if (indexedObj.IsHashmap())
                 {
@@ -1137,7 +1142,10 @@ public class Interpreter
                         bytesObj[indexValue] = (byte)assignValue.GetInteger();
                     }
 
-                    scope.Assign(identifierName, Value.CreateBytes([.. bytesObj]));
+                    if (identifierName[0] == '@' && objContext != null)
+                        objContext.InstanceVariables[identifierName] = Value.CreateBytes([.. bytesObj]);
+                    else
+                        scope.Assign(identifierName, Value.CreateBytes([.. bytesObj]));
                 }
             }
             else if (indexExpr.IndexedObject.Type == ASTNodeType.Index)
@@ -3255,7 +3263,7 @@ public class Interpreter
             throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
         }
 
-        var result = CallFunction(function, node.Arguments, node.Token, methodName);
+        var result = CallFunction(function, node.Arguments, node.Token, methodName, instance: obj);
 
         if (contextSwitch)
         {
@@ -3400,7 +3408,7 @@ public class Interpreter
         return result;
     }
 
-    private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName, string structName = "")
+    private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName, string structName = "", InstanceRef? instance = null)
     {
         // For VM-compiled functions the Decl.Body is an empty stub; delegate to the VM.
         if (function.VMChunk != null)
@@ -3411,7 +3419,7 @@ public class Interpreter
                 var tmpScope = new Scope(_globalScope);
                 var slots = ResolveArguments(function.Parameters, args, function.DefaultParameters, token, functionName, function.VariadicParamName, tmpScope);
                 var values = slots.Select(s => s ?? Value.Default).ToList();
-                return vm.InvokeVMCallable(function, values, token, null);
+                return vm.InvokeVMCallable(function, values, token, instance);
             }
         }
 
@@ -3586,7 +3594,7 @@ public class Interpreter
                 throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
             }
 
-            var result = CallFunction(function, node.Arguments, node.Token, methodName);
+            var result = CallFunction(function, node.Arguments, node.Token, methodName, instance: obj);
 
             if (contextSwitch)
             {
@@ -3904,7 +3912,7 @@ public class Interpreter
             throw new InvalidContextError(node.Token, "Invalid function context.");
         }
 
-        var result = CallFunction(function, ctorArgs, node.Token, methodName, struc.Identifier);
+        var result = CallFunction(function, ctorArgs, node.Token, methodName, struc.Identifier, isCtor ? obj : null);
 
         if (isCtor)
         {
@@ -3922,7 +3930,7 @@ public class Interpreter
         return result;
     }
 
-    private void RegisterTypeBuiltins(string packageName)
+    internal void RegisterTypeBuiltins(string packageName)
     {
         if (TypeRegistry.TryGetPrimitiveType(packageName, out int type))
         {
