@@ -427,6 +427,8 @@ public sealed class Compiler
             case ASTNodeType.Struct:           CompileStruct         ((StructNode)node,            ln); return false;
             case ASTNodeType.Package:          CompilePackage        ((PackageNode)node,           ln); return false;
             case ASTNodeType.Export:           CompileExport         ((ExportNode)node,            ln); return false;
+            case ASTNodeType.Eval:             CompileEval           ((EvalNode)node,              ln); return true;
+            case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return false;
             case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
             case ASTNodeType.DecoratedFunction: Fallback             (node);                            return true;
             case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
@@ -1610,6 +1612,18 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         int nodeIdx = _chunk.AddNodeFallback(node);
         Emit(Opcode.Export, nodeIdx, 0, ln);
+    }
+
+    private void CompileEval(EvalNode node, int ln)
+    {
+        int nodeIdx = _chunk.AddNodeFallback(node);
+        Emit(Opcode.Eval, nodeIdx, 0, ln);
+    }
+
+    private void CompileInclude(IncludeNode node, int ln)
+    {
+        int nodeIdx = _chunk.AddNodeFallback(node);
+        Emit(Opcode.Include, nodeIdx, 0, ln);
     }
 
     // -- Enum definition -------------------------------------------------------

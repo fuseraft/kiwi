@@ -1280,6 +1280,27 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    // -- Eval / Include ------------------------------------
+                    case Opcode.Eval:
+                    {
+                        var node = frame.Chunk.NodePool[A];
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        Push(_interp.InterpretNodeWithLocals(node, locals, frame.Self));
+                        break;
+                    }
+
+                    case Opcode.Include:
+                    {
+                        var node = frame.Chunk.NodePool[A];
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        break;
+                    }
+
                     // -- Type introspection --------------------------------
                     case Opcode.TypeOf:
                     {

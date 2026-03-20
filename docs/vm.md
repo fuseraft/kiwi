@@ -372,9 +372,11 @@ When `DoCall` pushes a new frame it returns `true` and the outer loop starts dis
 
 | Opcode | A | B | Effect |
 |--------|---|---|--------|
-| `InterpFallback` | node-pool index | — | Execute `NodePool[A]` via tree-walker; sync locals; push result |
+| `InterpFallback` | node-pool index | — | Execute `NodePool[A]` via tree-walker; sync locals; push result (last-resort escape hatch) |
 | `CallBuiltin` | node-pool index | argc | Pop B args; call `ExecuteBuiltin(token, op, args)`; push result |
-| `Export` | node-pool index | — | Interpret `ExportNode` via `InterpretNodeWithLocals` |
+| `Export` | node-pool index | — | Interpret `ExportNode` via `InterpretNodeWithLocals`; no push |
+| `Eval` | node-pool index | — | Interpret `EvalNode` via `InterpretNodeWithLocals`; push result |
+| `Include` | node-pool index | — | Interpret `IncludeNode` via `InterpretNodeWithLocals`; no push |
 
 ### System
 
@@ -482,12 +484,14 @@ At runtime:
 | Construct | Mechanism |
 |-----------|-----------|
 | Non-CoreBuiltin function call, no named/splat args | `CallBuiltin` |
-| `export "pkg"` | `Export` opcode (`InterpretNodeWithLocals`) |
+| `export "pkg"` | `Export` opcode |
+| `eval expr` | `Eval` opcode |
+| `include path` | `Include` opcode |
 | `a[start:stop] = rhs` (slice assignment) | `SliceSet` opcode |
-| `eval` | `InterpFallback` |
-| `include` | `InterpFallback` |
-| `@decorator fn` | `InterpFallback` |
-| Named + splat arg combo | `InterpFallback` |
+| `@decorator fn` | `InterpFallback` (rare) |
+| Named + splat arg combo | `InterpFallback` (rare) |
+
+`InterpFallback` emits zero times across the full test suite — it exists as a last-resort escape hatch for genuinely exotic constructs.
 
 ---
 

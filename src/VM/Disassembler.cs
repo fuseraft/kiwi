@@ -226,6 +226,8 @@ public static class Disassembler
                 }
 
                 case Opcode.Export:
+                case Opcode.Eval:
+                case Opcode.Include:
                 {
                     sb.Append($" node[{instr.A}]");
                     break;
