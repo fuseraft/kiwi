@@ -2005,6 +2005,8 @@ public partial class Parser
                 i += 2;  // skip '$' and '{'
 
                 // Collect expression until matching '}'
+                // Nested string literals are scanned verbatim so that a '"' or '\'' inside
+                // the expression (e.g. ${foo("bar")}) doesn't confuse the brace counter.
                 int braces = 1;
                 while (i < text.Length && braces > 0)
                 {
@@ -2021,6 +2023,34 @@ public partial class Parser
                         {
                             sb.Append(ci);
                         }
+                    }
+                    else if (ci == '"' || ci == '\'')
+                    {
+                        // Scan nested string literal verbatim until the matching closing quote
+                        char quote = ci;
+                        sb.Append(ci);
+                        i++;
+                        bool nestedEsc = false;
+                        while (i < text.Length)
+                        {
+                            char nc = text[i];
+                            sb.Append(nc);
+                            i++;
+                            if (nestedEsc)
+                            {
+                                nestedEsc = false;
+                            }
+                            else if (nc == '\\' && quote == '"')
+                            {
+                                nestedEsc = true;
+                            }
+                            else if (nc == quote)
+                            {
+                                break;
+                            }
+                        }
+                        // i already points past the closing quote; skip the trailing i++
+                        continue;
                     }
                     else
                     {
