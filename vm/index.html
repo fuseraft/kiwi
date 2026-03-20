@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/keywords/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/vm/">
       
       
-        <link rel="prev" href="../operators/">
-      
-      
-        <link rel="next" href="../comments/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>Keywords - Kiwi</title>
+        <title>Kiwi Bytecode VM - Kiwi</title>
       
     
     
@@ -78,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#reserved-keywords-in-kiwi" class="md-skip">
+        <a href="#kiwi-bytecode-vm" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Keywords
+              Kiwi Bytecode VM
             
           </span>
         </div>
@@ -260,12 +256,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../variables/" class="md-tabs__link">
           
   
@@ -680,31 +674,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -722,7 +713,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -877,37 +868,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Keywords
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../keywords/" class="md-nav__link">
         
   
   
@@ -923,828 +887,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#variables" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Variables
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Variables">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#var" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        var
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#const" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        const
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#control-structures" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Control Structures
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Control Structures">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#break" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        break
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#do" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        do
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#else" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        else
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#elsif" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        elsif
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#end" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        end
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        exit
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#for" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        for
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#case" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        case
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#if" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        if
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#in" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        in
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#next" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        next
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repeat" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        repeat
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#to" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        to
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#while" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        while
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#when" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        when
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error Handling
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Error Handling">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#catch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        catch
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#finally" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        finally
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#throw" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        throw
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#try" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        try
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#functions-and-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Functions and Methods
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Functions and Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#def" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        def
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fn" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        fn
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#private" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        private
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#return" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        return
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#static" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        static
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#with" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        with
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yield" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        yield
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#structs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Structs
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Structs">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#abstract" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        abstract
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        interface
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enum" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        enum
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#struct" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        struct
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#new" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        new
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#override" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        override
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#self" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        @ (self)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#packages" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Packages
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Packages">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#as" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        as
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#export" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        export
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#import" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        import
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#include" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        include
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#package" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        package
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#require" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        require
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#events" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Events
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Events">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#emit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        emit
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#off" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        off
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#on" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        on
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#once" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        once
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#console-io" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Console I/O
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Console I/O">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#input" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        input
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#eprint" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        eprint
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#eprintln" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        eprintln
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#print" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        print
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#println" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        println
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#printxy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        printxy
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#miscellaneous" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Miscellaneous
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Miscellaneous">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#delete" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        delete
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#eval" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        eval
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#global" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        global
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#go" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        go
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#null" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        null
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#no-op" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ... (no-op)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#true" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        true
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#false" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        false
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -3830,22 +2972,44 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#variables" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Variables
+        Overview
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Variables">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chunk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chunk
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compiler" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiler
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compiler">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#var" class="md-nav__link">
+  <a href="#entry-points" class="md-nav__link">
     <span class="md-ellipsis">
       
-        var
+        Entry Points
       
     </span>
   </a>
@@ -3853,10 +3017,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#const" class="md-nav__link">
+  <a href="#variable-resolution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        const
+        Variable Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#statement-dispatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Statement Dispatch
       
     </span>
   </a>
@@ -3869,22 +3044,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#control-structures" class="md-nav__link">
+  <a href="#execution-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Control Structures
+        Execution Engine
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Control Structures">
+    <nav class="md-nav" aria-label="Execution Engine">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#break" class="md-nav__link">
+  <a href="#stack-layout" class="md-nav__link">
     <span class="md-ellipsis">
       
-        break
+        Stack Layout
       
     </span>
   </a>
@@ -3892,10 +3067,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#do" class="md-nav__link">
+  <a href="#frame-stack" class="md-nav__link">
     <span class="md-ellipsis">
       
-        do
+        Frame Stack
       
     </span>
   </a>
@@ -3903,142 +3078,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#else" class="md-nav__link">
+  <a href="#runloop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        else
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#elsif" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        elsif
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#end" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        end
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        exit
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#for" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        for
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#case" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        case
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#if" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        if
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#in" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        in
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#next" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        next
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#repeat" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        repeat
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#to" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        to
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#while" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        while
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#when" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        when
+        RunLoop
       
     </span>
   </a>
@@ -4051,6 +3094,260 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#opcode-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opcode Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Opcode Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constants
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upvalues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upvalues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#arithmetic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Arithmetic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bitwise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bitwise
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparison-and-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison and Logic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        String
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#control-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Control Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function Calls
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-and-closure-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Function and Closure Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#collections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collections
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#indexing-and-slicing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indexing and Slicing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#member-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Member Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#self-and-static" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self and Static
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-instantiation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Object Instantiation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#printing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Printing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iteration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Iteration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loop-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loop Control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generators
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#splat-spread-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Splat (Spread Operator)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#error-handling" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4059,14 +3356,13 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Error Handling">
-      <ul class="md-nav__list">
+</li>
         
           <li class="md-nav__item">
-  <a href="#catch" class="md-nav__link">
+  <a href="#type-introspection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        catch
+        Type Introspection
       
     </span>
   </a>
@@ -4074,10 +3370,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#finally" class="md-nav__link">
+  <a href="#events" class="md-nav__link">
     <span class="md-ellipsis">
       
-        finally
+        Events
       
     </span>
   </a>
@@ -4085,10 +3381,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#throw" class="md-nav__link">
+  <a href="#struct-definition" class="md-nav__link">
     <span class="md-ellipsis">
       
-        throw
+        Struct Definition
       
     </span>
   </a>
@@ -4096,10 +3392,43 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#try" class="md-nav__link">
+  <a href="#package-definition" class="md-nav__link">
     <span class="md-ellipsis">
       
-        try
+        Package Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enum-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enum Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interpreter-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interpreter Boundary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System
       
     </span>
   </a>
@@ -4112,22 +3441,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#functions-and-methods" class="md-nav__link">
+  <a href="#closures-and-upvalues" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Functions and Methods
+        Closures and Upvalues
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Functions and Methods">
+    <nav class="md-nav" aria-label="Closures and Upvalues">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#def" class="md-nav__link">
+  <a href="#upvalue-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        def
+        Upvalue Lifecycle
       
     </span>
   </a>
@@ -4135,10 +3464,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fn" class="md-nav__link">
+  <a href="#open-upvalue-list" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fn
+        Open Upvalue List
       
     </span>
   </a>
@@ -4146,54 +3475,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#private" class="md-nav__link">
+  <a href="#upvalue-descriptors" class="md-nav__link">
     <span class="md-ellipsis">
       
-        private
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#return" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        return
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#static" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        static
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#with" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        with
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#yield" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        yield
+        Upvalue Descriptors
       
     </span>
   </a>
@@ -4206,88 +3491,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#structs" class="md-nav__link">
+  <a href="#function-calls-docall" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Structs
+        Function Calls: DoCall
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Structs">
+    <nav class="md-nav" aria-label="Function Calls: DoCall">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#abstract" class="md-nav__link">
+  <a href="#stack-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        abstract
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        interface
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enum" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        enum
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#struct" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        struct
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#new" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        new
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#override" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        override
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#self" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        @ (self)
+        Stack Setup
       
     </span>
   </a>
@@ -4300,22 +3519,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#packages" class="md-nav__link">
+  <a href="#interpreter-boundary_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Packages
+        Interpreter Boundary
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Packages">
+    <nav class="md-nav" aria-label="Interpreter Boundary">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#as" class="md-nav__link">
+  <a href="#interpfallback" class="md-nav__link">
     <span class="md-ellipsis">
       
-        as
+        InterpFallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#callbuiltin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CallBuiltin
       
     </span>
   </a>
@@ -4326,7 +3556,7 @@
   <a href="#export" class="md-nav__link">
     <span class="md-ellipsis">
       
-        export
+        Export
       
     </span>
   </a>
@@ -4334,43 +3564,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#import" class="md-nav__link">
+  <a href="#what-uses-each-mechanism" class="md-nav__link">
     <span class="md-ellipsis">
       
-        import
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#include" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        include
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#package" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        package
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#require" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        require
+        What Uses Each Mechanism
       
     </span>
   </a>
@@ -4383,251 +3580,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#events" class="md-nav__link">
+  <a href="#error-handling_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Events
+        Error Handling
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Events">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#emit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        emit
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#off" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        off
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#on" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        on
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#once" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        once
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#console-io" class="md-nav__link">
+  <a href="#disassembly" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Console I/O
+        Disassembly
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Console I/O">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#input" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        input
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#eprint" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        eprint
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#eprintln" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        eprintln
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#print" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        print
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#println" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        println
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#printxy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        printxy
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#miscellaneous" class="md-nav__link">
+  <a href="#limits" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Miscellaneous
+        Limits
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Miscellaneous">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#delete" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        delete
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#eval" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        eval
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#global" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        global
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#go" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        go
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#null" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        null
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#no-op" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ... (no-op)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#true" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        true
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#false" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        false
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -4648,7 +3629,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/keywords.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/vm.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -4656,281 +3637,1121 @@
   
 
 
-<h1 id="reserved-keywords-in-kiwi">Reserved Keywords in Kiwi<a class="headerlink" href="#reserved-keywords-in-kiwi" title="Permanent link">&para;</a></h1>
-<p>This document provides an overview of reserved keywords in Kiwi, along with explanations and usage examples.</p>
-<h2 id="variables">Variables<a class="headerlink" href="#variables" title="Permanent link">&para;</a></h2>
-<h3 id="var"><code>var</code><a class="headerlink" href="#var" title="Permanent link">&para;</a></h3>
-<p>The <code>var</code> keyword is used to declare a variable.</p>
-<p>See <a href="../variables/">Variables</a> and <a href="../variables/#var-keyword"><code>var</code></a>.</p>
-<h3 id="const"><code>const</code><a class="headerlink" href="#const" title="Permanent link">&para;</a></h3>
-<p>The <code>const</code> keyword declares an immutable constant. Constant names must be all uppercase with underscores.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>const MAX_RETRIES = 3
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>const API_URL = &quot;https://example.com&quot;
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>println(MAX_RETRIES)  # 3
+<h1 id="kiwi-bytecode-vm">Kiwi Bytecode VM<a class="headerlink" href="#kiwi-bytecode-vm" title="Permanent link">&para;</a></h1>
+<p>The Kiwi VM is a stack-based bytecode virtual machine. It is the default execution engine — <code>kiwi script.kiwi</code> compiles and runs via the VM. The tree-walking interpreter is available via <code>--tree-walker</code> for compatibility.</p>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Execution follows this pipeline:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Source file
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    ▼
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Lexer  ──→  TokenStream
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    │
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ▼
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Parser ──→  AST (ProgramNode)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    ▼
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>Compiler ──→  Chunk (bytecode)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    │
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ▼
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>KiwiVM.Execute(chunk)
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    │
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    ▼
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>RunLoop() — opcode dispatch
 </span></code></pre></div>
-<h2 id="control-structures">Control Structures<a class="headerlink" href="#control-structures" title="Permanent link">&para;</a></h2>
-<h3 id="break"><code>break</code><a class="headerlink" href="#break" title="Permanent link">&para;</a></h3>
-<p>The <code>break</code> keyword is used to exit a loop.</p>
-<p>See <a href="../loops/">Loops</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="do"><code>do</code><a class="headerlink" href="#do" title="Permanent link">&para;</a></h3>
-<p>The <code>do</code> keyword is used to define loop and lambda blocks.</p>
-<p>See <a href="../lambdas/">Lambdas</a> and <a href="../loops/">Loops</a>.</p>
-<h3 id="else"><code>else</code><a class="headerlink" href="#else" title="Permanent link">&para;</a></h3>
-<p>The <code>else</code> keyword is used to define the <code>else</code> branch in a conditional statement.</p>
-<p>See <a href="../conditionals/">Conditionals</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="elsif"><code>elsif</code><a class="headerlink" href="#elsif" title="Permanent link">&para;</a></h3>
-<p>The <code>elsif</code> keyword is used to define an <code>elsif</code> branch in a conditional statement.</p>
-<p>See <a href="../conditionals/">Conditionals</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="end"><code>end</code><a class="headerlink" href="#end" title="Permanent link">&para;</a></h3>
-<p>The <code>end</code> keyword is used to terminate a code-block.</p>
-<h3 id="exit"><code>exit</code><a class="headerlink" href="#exit" title="Permanent link">&para;</a></h3>
-<p>The <code>exit</code> keyword is used to terminate the program. It accepts an integer parameter to represent the exit code.</p>
-<p>See <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="for"><code>for</code><a class="headerlink" href="#for" title="Permanent link">&para;</a></h3>
-<p>The <code>for</code> keyword is used to define a for-loop.</p>
-<p>See <a href="../loops/">Loops</a>.</p>
-<h3 id="case"><code>case</code><a class="headerlink" href="#case" title="Permanent link">&para;</a></h3>
-<p>The <code>case</code> keyword is used to define a <code>case</code> statement.</p>
-<p>See <a href="../conditionals/">Conditionals</a> and <a href="../control_structures/#2-case--when--else">Control Structures</a>.</p>
-<h3 id="if"><code>if</code><a class="headerlink" href="#if" title="Permanent link">&para;</a></h3>
-<p>The <code>if</code> keyword is used to define the <code>if</code> branch in a conditional statement.</p>
-<p>See <a href="../conditionals/">Conditionals</a> and <a href="../control_structures/#1-if--elsif--else">Control Structures</a>.</p>
-<h3 id="in"><code>in</code><a class="headerlink" href="#in" title="Permanent link">&para;</a></h3>
-<p>The <code>in</code> keyword is used to specify the collection to iterate in a for-loop.</p>
-<p>See <a href="../loops/">Loops</a>.</p>
-<h3 id="next"><code>next</code><a class="headerlink" href="#next" title="Permanent link">&para;</a></h3>
-<p>The <code>next</code> keyword is used to skip to the next iteration of a loop.</p>
-<p>See <a href="../loops/">Loops</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="repeat"><code>repeat</code><a class="headerlink" href="#repeat" title="Permanent link">&para;</a></h3>
-<p>The <code>repeat</code> keyword is used to define a repeat-loop.</p>
-<p>See <a href="../loops/">Loops</a>.</p>
-<h3 id="to"><code>to</code><a class="headerlink" href="#to" title="Permanent link">&para;</a></h3>
-<p>The <code>to</code> keyword is used in range expressions to define an inclusive range of integers.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>println [1 to 5]    # [1, 2, 3, 4, 5]
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>println [10 to 7]   # [10, 9, 8, 7]
+<p>The standard library is parsed and compiled together with the user script into a single <code>Chunk</code>. There is no separate stdlib load step at runtime.</p>
+<hr />
+<h2 id="chunk">Chunk<a class="headerlink" href="#chunk" title="Permanent link">&para;</a></h2>
+<p>A <code>Chunk</code> is the compiled representation of one unit of code — the top-level program, a function, or a lambda. Each function and lambda gets its own nested <code>Chunk</code> stored in <code>SubChunks</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Chunk
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>├── Code:          List&lt;Instruction&gt;        — bytecode stream
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├── Constants:     List&lt;Value&gt;              — literal values (integers, floats, strings)
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├── Names:         List&lt;string&gt;             — interned name pool (variables, methods)
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>├── SubChunks:     List&lt;Chunk&gt;              — nested functions / lambdas
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>├── Upvalues:      List&lt;UpvalueDescriptor&gt;  — closure capture descriptors
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>├── NodePool:      List&lt;ASTNode&gt;            — AST nodes for InterpFallback / CallBuiltin
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>├── ArgNameSets:   List&lt;string[]&gt;           — named-argument metadata
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>├── LocalNames:    List&lt;(string, int)&gt;      — pre-scanned local → slot mappings
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>├── Arity:         int                      — explicit parameter count
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>├── LocalCount:    int                      — total local variable slots
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>├── ParamNames:    List&lt;string&gt;
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>├── VariadicParamName: string               — name of *args parameter, if any
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>├── DefaultParamNames: HashSet&lt;string&gt;      — params with default expressions
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>└── IsGenerator:   bool                     — true if body contains Yield
 </span></code></pre></div>
-<p>See <a href="../ranges/">Ranges</a>.</p>
-<h3 id="while"><code>while</code><a class="headerlink" href="#while" title="Permanent link">&para;</a></h3>
-<p>The <code>while</code> keyword is used to define a while-loop.</p>
-<p>See <a href="../loops/#2-while--condition-based-loop">Loops</a>, <a href="../conditionals/">Conditionals</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="when"><code>when</code><a class="headerlink" href="#when" title="Permanent link">&para;</a></h3>
-<p>The <code>when</code> keyword is used to define a condition for <code>break</code>, <code>exit</code>, <code>next</code>, <code>return</code>, and <code>throw</code>.</p>
-<p>See <a href="../conditionals/">Conditionals</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
-<h3 id="catch"><code>catch</code><a class="headerlink" href="#catch" title="Permanent link">&para;</a></h3>
-<p>The <code>catch</code> keyword is used to define a catch-block in a <code>try-catch</code>.</p>
-<p>See <a href="../error_handling/">Error Handling</a>.</p>
-<h3 id="finally"><code>finally</code><a class="headerlink" href="#finally" title="Permanent link">&para;</a></h3>
-<p>The <code>finally</code> keyword is used to define a finally-block in a <code>try-catch</code>.</p>
-<p>See <a href="../error_handling/">Error Handling</a>.</p>
-<h3 id="throw"><code>throw</code><a class="headerlink" href="#throw" title="Permanent link">&para;</a></h3>
-<p>The <code>throw</code> keyword is used for throwing errors.</p>
-<p>See <a href="../error_handling/">Error Handling</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="try"><code>try</code><a class="headerlink" href="#try" title="Permanent link">&para;</a></h3>
-<p>The <code>try</code> keyword is used to define a try-block in a <code>try-catch</code>.</p>
-<p>See <a href="../error_handling/">Error Handling</a>.</p>
-<h2 id="functions-and-methods">Functions and Methods<a class="headerlink" href="#functions-and-methods" title="Permanent link">&para;</a></h2>
-<h3 id="def"><code>def</code><a class="headerlink" href="#def" title="Permanent link">&para;</a></h3>
-<p>The <code>def</code> keyword is an alias for <a href="#fn"><code>fn</code></a>.</p>
-<h3 id="fn"><code>fn</code><a class="headerlink" href="#fn" title="Permanent link">&para;</a></h3>
-<p>The <code>fn</code> keyword is used to define a function or method.</p>
-<p>See <a href="../functions/">Functions and Methods</a>.</p>
-<h3 id="private"><code>private</code><a class="headerlink" href="#private" title="Permanent link">&para;</a></h3>
-<p>The <code>private</code> keyword is used to declare a method with private access (can only be accessed within the struct).</p>
-<p>See <a href="../structs/">Structs</a>.</p>
-<h3 id="return"><code>return</code><a class="headerlink" href="#return" title="Permanent link">&para;</a></h3>
-<p>The <code>return</code> keyword is used to return a value from a method, or to exit a method early.</p>
-<p>See <a href="../functions/">Functions and Methods</a> and <a href="../control_structures/">Control Structures</a>.</p>
-<h3 id="static"><code>static</code><a class="headerlink" href="#static" title="Permanent link">&para;</a></h3>
-<p>The <code>static</code> keyword is used inside a struct to declare a static method or a static variable.</p>
-<p><strong>Static methods</strong> can be invoked directly on the struct without an instance.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>struct MathUtils
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  static fn square(n: integer): integer
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    n * n
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  end
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>end
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>println(MathUtils.square(4))  # 16
+<p>Each instruction is a 12-byte struct:</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">record</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nf">Instruction</span><span class="p">(</span><span class="n">Opcode</span><span class="w"> </span><span class="n">Op</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
 </span></code></pre></div>
-<p><strong>Static variables</strong> are shared across all instances of a struct. Declare with <code>static @name = value</code> (an optional type hint is supported). Read or write them inside any method using <code>@@name</code>, or externally using <code>StructName.name</code>.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>struct Counter
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  static @count: integer = 0
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  fn new()
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    @@count += 1
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  end
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  static fn get(): integer
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    @@count
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>  end
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>end
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>Counter.new()
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>Counter.new()
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>println(Counter.get())   # 2
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>println(Counter.count)   # 2
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>Counter.count = 0
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>println(Counter.count)   # 0
+<p><code>A</code> and <code>B</code> are general-purpose operands whose meaning depends on the opcode (constant index, slot number, jump target, argument count, name index, etc.).</p>
+<hr />
+<h2 id="compiler">Compiler<a class="headerlink" href="#compiler" title="Permanent link">&para;</a></h2>
+<h3 id="entry-points">Entry Points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Compiler.CompileProgram(ProgramNode)</code></td>
+<td>Compiles the full program; emits <code>Halt</code> at end</td>
+</tr>
+<tr>
+<td><code>Compiler.CompileFunction(FunctionNode, enclosing)</code></td>
+<td>Compiles a named function</td>
+</tr>
+<tr>
+<td><code>Compiler.CompileLambda(LambdaNode, enclosing)</code></td>
+<td>Compiles an anonymous lambda</td>
+</tr>
+</tbody>
+</table>
+<h3 id="variable-resolution">Variable Resolution<a class="headerlink" href="#variable-resolution" title="Permanent link">&para;</a></h3>
+<p>Inside a function, name resolution happens at compile time in this order:</p>
+<ol>
+<li><strong>Local slot</strong> — any variable assigned anywhere in the function body (pre-scanned)</li>
+<li><strong>Upvalue</strong> — a local from an enclosing function, captured into a closure cell</li>
+<li><strong>Global</strong> — everything else; resolved at runtime via <code>LoadGlobal</code></li>
+</ol>
+<p>At top level, every name resolves as global.</p>
+<h3 id="statement-dispatch">Statement Dispatch<a class="headerlink" href="#statement-dispatch" title="Permanent link">&para;</a></h3>
+<p><code>CompileStatement</code> dispatches each AST node type to a dedicated compile method. Nodes that produce a value on the stack return <code>true</code>; statement-only nodes return <code>false</code>. If a value-producing node appears in statement position, a <code>Pop</code> is emitted to discard the result.</p>
+<p>Constructs not yet compiled natively fall through to <code>Fallback(node)</code>, which stores the AST node in <code>NodePool</code> and emits <code>InterpFallback</code>. This is intentional — the tree-walker handles those cases correctly and the result is pushed onto the VM stack.</p>
+<hr />
+<h2 id="execution-engine">Execution Engine<a class="headerlink" href="#execution-engine" title="Permanent link">&para;</a></h2>
+<h3 id="stack-layout">Stack Layout<a class="headerlink" href="#stack-layout" title="Permanent link">&para;</a></h3>
+<p>The VM uses a single flat <code>Value[]</code> array (8192 slots) shared across all frames. Each frame owns a contiguous region starting at its <code>StackBase</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>StackBase + 0        param0
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>StackBase + 1        param1
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>StackBase + 2        local2    ← pre-scanned at compile time
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>StackBase + 3        local3
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>...
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>StackBase + LocalCount - 1     last local
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>_sp                            next free slot (grows upward)
 </span></code></pre></div>
-<p>See <a href="../structs/#static-method-definition">Structs</a> and <a href="../structs/#static-variables">Static Variables</a>.</p>
-<h3 id="with"><code>with</code><a class="headerlink" href="#with" title="Permanent link">&para;</a></h3>
-<p>The <code>with</code> keyword is used to define a lambda.</p>
-<p>See <a href="../lambdas/">Lambdas</a>.</p>
-<h3 id="yield"><code>yield</code><a class="headerlink" href="#yield" title="Permanent link">&para;</a></h3>
-<p>The <code>yield</code> keyword is used inside a generator function to produce a value and suspend execution until the next value is requested.</p>
-<p>See <a href="../generators/">Generators</a>.</p>
-<h2 id="structs">Structs<a class="headerlink" href="#structs" title="Permanent link">&para;</a></h2>
-<h3 id="abstract"><code>abstract</code><a class="headerlink" href="#abstract" title="Permanent link">&para;</a></h3>
-<p>The <code>abstract</code> keyword has two uses:</p>
-<p><strong>Abstract structs</strong> — mark a struct as abstract so it cannot be instantiated directly. Other structs can inherit from it.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>abstract struct Shape
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  abstract fn area(): float
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  abstract fn perimeter(): float
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>end
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>struct Circle : Shape
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  fn new(r: float)
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    @r = r
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  end
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  fn area(): float
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    math::PI * @r * @r
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  end
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>  fn perimeter(): float
-</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    2.0 * math::PI * @r
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>  end
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>end
-</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
-</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>c = Circle.new(5.0)
-</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>println(c.area())  # 78.53981633974483
+<p>Temporaries produced during expression evaluation live above <code>_sp</code> and are consumed by the opcodes that read them.</p>
+<h3 id="frame-stack">Frame Stack<a class="headerlink" href="#frame-stack" title="Permanent link">&para;</a></h3>
+<p>The VM maintains a <code>VMFrame[]</code> array (512 frames). Each frame tracks:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>VMFrame
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── Chunk          — code being executed
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── IP             — instruction pointer (index into Chunk.Code)
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├── StackBase      — absolute stack index where this frame&#39;s locals begin
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├── Upvalues[]     — captured upvalue cells
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>├── Self           — current @ (instance context)
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>├── StructName     — current @@ (static context)
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>└── TryHandler stack — per-frame list of active try/catch/finally regions
 </span></code></pre></div>
-<p><strong>Abstract methods</strong> — declare a method signature in an abstract struct that derived structs must implement. Concrete structs that inherit from an abstract base are checked for completeness at definition time.</p>
-<p>See <a href="../structs/">Structs</a>.</p>
-<h3 id="interface"><code>interface</code><a class="headerlink" href="#interface" title="Permanent link">&para;</a></h3>
-<p>Reserved for future use.</p>
-<h3 id="enum"><code>enum</code><a class="headerlink" href="#enum" title="Permanent link">&para;</a></h3>
-<p>The <code>enum</code> keyword is used to define a named set of constant values.</p>
-<p>See <a href="../enums/">Enums</a>.</p>
-<h3 id="struct"><code>struct</code><a class="headerlink" href="#struct" title="Permanent link">&para;</a></h3>
-<p>The <code>struct</code> keyword is used to define a struct.</p>
-<p>See <a href="../structs/">Structs</a>.</p>
-<h3 id="new"><code>new</code><a class="headerlink" href="#new" title="Permanent link">&para;</a></h3>
-<p>The <code>new</code> keyword is used to instantiate a struct.</p>
-<p>See <a href="../structs/">Structs</a>.</p>
-<h3 id="override"><code>override</code><a class="headerlink" href="#override" title="Permanent link">&para;</a></h3>
-<p>The <code>override</code> keyword marks a method in a derived struct as intentionally overriding a method from its base struct. The keyword is accepted by the parser and recorded on the method, but override enforcement is not yet implemented at runtime.</p>
-<h3 id="self"><code>@</code> (self)<a class="headerlink" href="#self" title="Permanent link">&para;</a></h3>
-<p>The <code>@</code> symbol is used inside a struct method to access or assign instance variables.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>struct Point
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  fn new(x, y)
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    @x = x
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    @y = y
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  end
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  fn to_string(): string
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    &quot;(${@x}, ${@y})&quot;
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  end
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>end
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>p = Point.new(3, 4)
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>println(p.to_string())  # (3, 4)
+<h3 id="runloop">RunLoop<a class="headerlink" href="#runloop" title="Permanent link">&para;</a></h3>
+<p><code>RunLoop()</code> is the main dispatch loop:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>while frameCount &gt; stopAt:
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    frame = top frame
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    while IP &lt; code length:
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>        instr = code[IP++]
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        switch instr.Op:
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>            ... opcode handlers ...
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    pop frame
 </span></code></pre></div>
-<p>See <a href="../structs/">Structs</a>.</p>
-<h2 id="packages">Packages<a class="headerlink" href="#packages" title="Permanent link">&para;</a></h2>
-<h3 id="as"><code>as</code><a class="headerlink" href="#as" title="Permanent link">&para;</a></h3>
-<p>The <code>as</code> keyword is used to specify an alias for a <a href="#package"><code>package</code></a> or to specify an iterator variable in a <a href="#repeat"><code>repeat</code>-loop</a>.</p>
-<p>See <a href="../packages/">Packages</a> and <a href="../loops/">Loops</a>.</p>
-<h3 id="export"><code>export</code><a class="headerlink" href="#export" title="Permanent link">&para;</a></h3>
-<p>The <code>export</code> keyword is used to export a package to a calling script.</p>
-<p>See <a href="../packages/">Packages</a>.</p>
-<h3 id="import"><code>import</code><a class="headerlink" href="#import" title="Permanent link">&para;</a></h3>
-<p>The <code>import</code> keyword is used to import a script or a package.</p>
-<p>See <a href="../packages/">Packages</a>.</p>
-<h3 id="include"><code>include</code><a class="headerlink" href="#include" title="Permanent link">&para;</a></h3>
-<p>The <code>include</code> keyword executes another Kiwi file inline in the current scope, making its definitions immediately available.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>include &quot;lib/helpers&quot;
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a># functions and variables from helpers.kiwi are now in scope
+<p>When <code>DoCall</code> pushes a new frame it returns <code>true</code> and the outer loop starts dispatching the new frame's code. When <code>Return</code> or <code>ReturnNull</code> execute, the frame is popped and execution resumes in the caller.</p>
+<hr />
+<h2 id="opcode-reference">Opcode Reference<a class="headerlink" href="#opcode-reference" title="Permanent link">&para;</a></h2>
+<h3 id="constants">Constants<a class="headerlink" href="#constants" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Const</code></td>
+<td>constant index</td>
+<td>—</td>
+<td>Push <code>constants[A]</code></td>
+</tr>
+<tr>
+<td><code>Null</code></td>
+<td>—</td>
+<td>—</td>
+<td>Push null</td>
+</tr>
+<tr>
+<td><code>True</code></td>
+<td>—</td>
+<td>—</td>
+<td>Push true</td>
+</tr>
+<tr>
+<td><code>False</code></td>
+<td>—</td>
+<td>—</td>
+<td>Push false</td>
+</tr>
+</tbody>
+</table>
+<h3 id="local-variables">Local Variables<a class="headerlink" href="#local-variables" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LoadLocal</code></td>
+<td>slot</td>
+<td>—</td>
+<td>Push <code>stack[base + A]</code></td>
+</tr>
+<tr>
+<td><code>StoreLocal</code></td>
+<td>slot</td>
+<td>—</td>
+<td><code>stack[base + A] = pop()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="global-variables">Global Variables<a class="headerlink" href="#global-variables" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LoadGlobal</code></td>
+<td>name index</td>
+<td>—</td>
+<td>Push <code>globals[names[A]]</code>; cached for stable entries</td>
+</tr>
+<tr>
+<td><code>StoreGlobal</code></td>
+<td>name index</td>
+<td>—</td>
+<td><code>globals[names[A]] = pop()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="upvalues">Upvalues<a class="headerlink" href="#upvalues" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LoadUpvalue</code></td>
+<td>upvalue index</td>
+<td>—</td>
+<td>Push <code>upvalues[A].Get()</code></td>
+</tr>
+<tr>
+<td><code>StoreUpvalue</code></td>
+<td>upvalue index</td>
+<td>—</td>
+<td><code>upvalues[A].Set(pop())</code></td>
+</tr>
+<tr>
+<td><code>CloseUpvalue</code></td>
+<td>slot</td>
+<td>—</td>
+<td>Close all open upvalues with absolute slot ≥ <code>base + A</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="stack">Stack<a class="headerlink" href="#stack" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Pop</code></td>
+<td>Discard top</td>
+</tr>
+<tr>
+<td><code>Dup</code></td>
+<td>Duplicate top</td>
+</tr>
+</tbody>
+</table>
+<h3 id="arithmetic">Arithmetic<a class="headerlink" href="#arithmetic" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Add</code>, <code>Sub</code>, <code>Mul</code>, <code>Div</code>, <code>Mod</code>, <code>Pow</code></td>
+<td>Pop right, pop left, push result</td>
+</tr>
+<tr>
+<td><code>Neg</code></td>
+<td>Pop, push negated</td>
+</tr>
+</tbody>
+</table>
+<h3 id="bitwise">Bitwise<a class="headerlink" href="#bitwise" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BAnd</code>, <code>BOr</code>, <code>BXor</code></td>
+<td>Pop right, pop left, push result</td>
+</tr>
+<tr>
+<td><code>BNot</code></td>
+<td>Pop, push bitwise-not</td>
+</tr>
+<tr>
+<td><code>BLSh</code>, <code>BRSh</code>, <code>BURSh</code></td>
+<td>Left/right/unsigned-right shift</td>
+</tr>
+</tbody>
+</table>
+<h3 id="comparison-and-logic">Comparison and Logic<a class="headerlink" href="#comparison-and-logic" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Eq</code>, <code>NEq</code>, <code>Lt</code>, <code>LtE</code>, <code>Gt</code>, <code>GtE</code></td>
+<td>Pop right, pop left, push bool</td>
+</tr>
+<tr>
+<td><code>In</code></td>
+<td>Pop right (collection), pop left, push <code>left in right</code></td>
+</tr>
+<tr>
+<td><code>Not</code></td>
+<td>Pop, push logical-not</td>
+</tr>
+<tr>
+<td><code>NullCoalesce</code></td>
+<td>Pop right, pop left, push <code>left ?? right</code></td>
+</tr>
+<tr>
+<td><code>JumpAnd</code></td>
+<td>If top is falsy jump to A (leave on stack); else pop and continue</td>
+</tr>
+<tr>
+<td><code>JumpOr</code></td>
+<td>If top is truthy jump to A (leave on stack); else pop and continue</td>
+</tr>
+</tbody>
+</table>
+<h3 id="string">String<a class="headerlink" href="#string" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Concat</code></td>
+<td>—</td>
+<td>Pop right, pop left, push <code>left .. right</code></td>
+</tr>
+<tr>
+<td><code>Interpolate</code></td>
+<td>part count</td>
+<td>Pop A parts (bottom-first), concatenate, push</td>
+</tr>
+</tbody>
+</table>
+<h3 id="control-flow">Control Flow<a class="headerlink" href="#control-flow" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Jump</code></td>
+<td>target IP</td>
+<td>Unconditional jump</td>
+</tr>
+<tr>
+<td><code>JumpF</code></td>
+<td>target IP</td>
+<td>Pop; if falsy jump</td>
+</tr>
+<tr>
+<td><code>JumpT</code></td>
+<td>target IP</td>
+<td>Pop; if truthy jump</td>
+</tr>
+</tbody>
+</table>
+<h3 id="function-calls">Function Calls<a class="headerlink" href="#function-calls" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Call</code></td>
+<td>argc</td>
+<td>name index</td>
+<td>Stack: <code>[..., func, arg0…argN-1]</code>; invoke func with N args</td>
+</tr>
+<tr>
+<td><code>CallSplat</code></td>
+<td>base argc</td>
+<td>—</td>
+<td>Like <code>Call</code> with splat adjustment from side-stack</td>
+</tr>
+<tr>
+<td><code>CallMethod</code></td>
+<td>argc</td>
+<td>method name index</td>
+<td>Pop receiver + args; dispatch <code>receiver.method(args)</code></td>
+</tr>
+<tr>
+<td><code>MethodCallSplat</code></td>
+<td>base argc</td>
+<td>method name index</td>
+<td>Like <code>CallMethod</code> with splat</td>
+</tr>
+<tr>
+<td><code>CallNamed</code></td>
+<td>argc</td>
+<td>arg-name-set index</td>
+<td>Reorder args by name, then call</td>
+</tr>
+<tr>
+<td><code>CallMethodNamed</code></td>
+<td>argc</td>
+<td>packed (method name | name-set)</td>
+<td>Named method call</td>
+</tr>
+<tr>
+<td><code>Return</code></td>
+<td>—</td>
+<td>—</td>
+<td>Pop return value; tear down frame; resume caller</td>
+</tr>
+<tr>
+<td><code>ReturnNull</code></td>
+<td>—</td>
+<td>—</td>
+<td>Return null; tear down frame; resume caller</td>
+</tr>
+</tbody>
+</table>
+<h3 id="function-and-closure-definition">Function and Closure Definition<a class="headerlink" href="#function-and-closure-definition" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DefFunc</code></td>
+<td>sub-chunk index</td>
+<td>name index</td>
+<td>Create <code>KFunction</code> with VMChunk; register in context; no push</td>
+</tr>
+<tr>
+<td><code>MakeClosure</code></td>
+<td>sub-chunk index</td>
+<td>upvalue count</td>
+<td>Capture upvalues; create closure; push lambda value</td>
+</tr>
+</tbody>
+</table>
+<h3 id="collections">Collections<a class="headerlink" href="#collections" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BuildList</code></td>
+<td>count</td>
+<td>Pop A values (bottom-first); push list</td>
+</tr>
+<tr>
+<td><code>BuildHashmap</code></td>
+<td>pair count</td>
+<td>Pop 2*A values (key, value pairs); push hashmap</td>
+</tr>
+<tr>
+<td><code>BuildRange</code></td>
+<td>—</td>
+<td>Pop stop, pop start; push inclusive range list</td>
+</tr>
+</tbody>
+</table>
+<h3 id="indexing-and-slicing">Indexing and Slicing<a class="headerlink" href="#indexing-and-slicing" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IndexGet</code></td>
+<td>—</td>
+<td>Pop key, pop obj; push <code>obj[key]</code></td>
+</tr>
+<tr>
+<td><code>IndexSet</code></td>
+<td>—</td>
+<td>Pop value, pop key, pop obj; <code>obj[key] = value</code>; push value</td>
+</tr>
+<tr>
+<td><code>IndexOpAssign</code></td>
+<td>inner opcode</td>
+<td>Compound index assignment (<code>lst[i] += v</code>)</td>
+</tr>
+<tr>
+<td><code>UnpackList</code></td>
+<td>count</td>
+<td>Pop list; unpack A elements (or push value + nulls if not a list)</td>
+</tr>
+<tr>
+<td><code>SliceGet</code></td>
+<td>flags</td>
+<td>Pop obj, optional start/stop/step; push slice</td>
+</tr>
+<tr>
+<td><code>SliceSet</code></td>
+<td>flags</td>
+<td>Pop rhs, optional step/stop/start, pop obj; assign rhs into slice range in-place; push rhs</td>
+</tr>
+</tbody>
+</table>
+<h3 id="member-access">Member Access<a class="headerlink" href="#member-access" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GetMember</code></td>
+<td>name index</td>
+<td>Pop obj; push <code>obj.name</code></td>
+</tr>
+<tr>
+<td><code>SetMember</code></td>
+<td>name index</td>
+<td>Pop value, pop obj; <code>obj.name = value</code>; push value</td>
+</tr>
+</tbody>
+</table>
+<h3 id="self-and-static">Self and Static<a class="headerlink" href="#self-and-static" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LoadSelf</code></td>
+<td>—</td>
+<td>Push current <code>@</code> (instance context)</td>
+</tr>
+<tr>
+<td><code>LoadSelfAttr</code></td>
+<td>name index</td>
+<td>Push <code>@.name</code></td>
+</tr>
+<tr>
+<td><code>StoreSelfAttr</code></td>
+<td>name index</td>
+<td>Pop value; <code>@.name = value</code>; push value</td>
+</tr>
+<tr>
+<td><code>LoadStaticAttr</code></td>
+<td>name index</td>
+<td>Push <code>@@.name</code> (struct static variable)</td>
+</tr>
+<tr>
+<td><code>StoreStaticAttr</code></td>
+<td>name index</td>
+<td>Pop value; <code>@@.name = value</code>; push value</td>
+</tr>
+</tbody>
+</table>
+<h3 id="object-instantiation">Object Instantiation<a class="headerlink" href="#object-instantiation" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NewObject</code></td>
+<td>argc</td>
+<td>struct name index</td>
+<td>Create instance; call constructor with A args; push</td>
+</tr>
+</tbody>
+</table>
+<h3 id="printing">Printing<a class="headerlink" href="#printing" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Print</code></td>
+<td>flags</td>
+<td>Pop value; print (bit0 = newline, bit1 = stderr)</td>
+</tr>
+<tr>
+<td><code>PrintXy</code></td>
+<td>—</td>
+<td>Pop y, pop x, pop text; print at terminal position (x, y)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="iteration">Iteration<a class="headerlink" href="#iteration" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ForIterInit</code></td>
+<td>—</td>
+<td>—</td>
+<td>Pop collection; push <code>ForIterState</code> pointer</td>
+</tr>
+<tr>
+<td><code>ForIterNext</code></td>
+<td>done-target IP</td>
+<td>var count</td>
+<td>Advance iterator; if exhausted pop state and jump to A; else push 1 or 2 values</td>
+</tr>
+</tbody>
+</table>
+<h3 id="loop-control">Loop Control<a class="headerlink" href="#loop-control" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BreakJump</code></td>
+<td>extra items to pop</td>
+<td>Exit loop</td>
+</tr>
+<tr>
+<td><code>NextJump</code></td>
+<td>—</td>
+<td>Continue to next iteration</td>
+</tr>
+</tbody>
+</table>
+<h3 id="generators">Generators<a class="headerlink" href="#generators" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Yield</code></td>
+<td>Pop value; suspend and yield to consumer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="splat-spread-operator">Splat (Spread Operator)<a class="headerlink" href="#splat-spread-operator" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SplatReset</code></td>
+<td>Push 0 onto splat-adjustment side-stack</td>
+</tr>
+<tr>
+<td><code>SplatPush</code></td>
+<td>Pop value; if list, expand onto stack and adjust side-stack count; else push unchanged</td>
+</tr>
+</tbody>
+</table>
+<h3 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Throw</code></td>
+<td>—</td>
+<td>—</td>
+<td>Pop value; raise as <code>KiwiError</code></td>
+</tr>
+<tr>
+<td><code>PushTryHandler</code></td>
+<td>catch IP</td>
+<td>finally IP</td>
+<td>Register try/catch/finally handler on current frame</td>
+</tr>
+<tr>
+<td><code>PopTryHandler</code></td>
+<td>—</td>
+<td>—</td>
+<td>Remove top try handler (normal completion)</td>
+</tr>
+<tr>
+<td><code>LoadCatchError</code></td>
+<td>0/1/2</td>
+<td>—</td>
+<td>0 = push error hashmap; 1 = push error type; 2 = push message</td>
+</tr>
+</tbody>
+</table>
+<h3 id="type-introspection">Type Introspection<a class="headerlink" href="#type-introspection" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TypeOf</code></td>
+<td>Pop value; push type name string (e.g. <code>"integer"</code>, <code>"list"</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="events">Events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EventOn</code></td>
+<td>priority</td>
+<td>Pop callback, pop event name; register handler</td>
+</tr>
+<tr>
+<td><code>EventOnce</code></td>
+<td>priority</td>
+<td>Pop callback, pop event name; register one-time handler</td>
+</tr>
+<tr>
+<td><code>EventOff</code></td>
+<td>0 or 1</td>
+<td>Pop event name (and optionally callback); deregister</td>
+</tr>
+<tr>
+<td><code>EventEmit</code></td>
+<td>argc</td>
+<td>Pop A args, pop event name; emit; push result list</td>
+</tr>
+</tbody>
+</table>
+<h3 id="struct-definition">Struct Definition<a class="headerlink" href="#struct-definition" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>StructBegin</code></td>
+<td>name index</td>
+<td>packed (abstract flag | base name index)</td>
+<td>Create <code>KStruct</code>; push onto pending-struct stack</td>
+</tr>
+<tr>
+<td><code>DefMethod</code></td>
+<td>sub-chunk index</td>
+<td>packed (name index | flags)</td>
+<td>Register method into pending struct</td>
+</tr>
+<tr>
+<td><code>InitStructStatic</code></td>
+<td>name index</td>
+<td>—</td>
+<td>Pop value; store in pending struct's static variables</td>
+</tr>
+<tr>
+<td><code>StructEnd</code></td>
+<td>—</td>
+<td>—</td>
+<td>Validate abstract compliance; register struct</td>
+</tr>
+</tbody>
+</table>
+<h3 id="package-definition">Package Definition<a class="headerlink" href="#package-definition" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PackageBegin</code></td>
+<td>name index</td>
+<td>node-pool index</td>
+<td>Build qualified name; push onto package stack; register <code>KPackage</code></td>
+</tr>
+<tr>
+<td><code>PackageEnd</code></td>
+<td>—</td>
+<td>—</td>
+<td>Pop package stack; register type builtins; mark imported</td>
+</tr>
+<tr>
+<td><code>PackageAbort</code></td>
+<td>—</td>
+<td>—</td>
+<td>Catch path; pop package stack without marking imported</td>
+</tr>
+</tbody>
+</table>
+<h3 id="enum-definition">Enum Definition<a class="headerlink" href="#enum-definition" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EnumBegin</code></td>
+<td>name index</td>
+<td>Create enum struct</td>
+</tr>
+<tr>
+<td><code>DefEnumMember</code></td>
+<td>name index</td>
+<td>Pop value; store as <code>@@name</code> in pending enum</td>
+</tr>
+<tr>
+<td><code>EnumEnd</code></td>
+<td>—</td>
+<td>Register enum</td>
+</tr>
+</tbody>
+</table>
+<h3 id="interpreter-boundary">Interpreter Boundary<a class="headerlink" href="#interpreter-boundary" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>A</th>
+<th>B</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>InterpFallback</code></td>
+<td>node-pool index</td>
+<td>—</td>
+<td>Execute <code>NodePool[A]</code> via tree-walker; sync locals; push result (last-resort escape hatch)</td>
+</tr>
+<tr>
+<td><code>CallBuiltin</code></td>
+<td>node-pool index</td>
+<td>argc</td>
+<td>Pop B args; call <code>ExecuteBuiltin(token, op, args)</code>; push result</td>
+</tr>
+<tr>
+<td><code>Export</code></td>
+<td>node-pool index</td>
+<td>—</td>
+<td>Interpret <code>ExportNode</code> via <code>InterpretNodeWithLocals</code>; no push</td>
+</tr>
+<tr>
+<td><code>Eval</code></td>
+<td>node-pool index</td>
+<td>—</td>
+<td>Interpret <code>EvalNode</code> via <code>InterpretNodeWithLocals</code>; push result</td>
+</tr>
+<tr>
+<td><code>Include</code></td>
+<td>node-pool index</td>
+<td>—</td>
+<td>Interpret <code>IncludeNode</code> via <code>InterpretNodeWithLocals</code>; no push</td>
+</tr>
+</tbody>
+</table>
+<h3 id="system">System<a class="headerlink" href="#system" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Exit</code></td>
+<td>Pop exit code; call <code>Environment.Exit</code></td>
+</tr>
+<tr>
+<td><code>Nop</code></td>
+<td>No operation</td>
+</tr>
+<tr>
+<td><code>Halt</code></td>
+<td>End of program</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="closures-and-upvalues">Closures and Upvalues<a class="headerlink" href="#closures-and-upvalues" title="Permanent link">&para;</a></h2>
+<p>Every function or lambda that captures a variable from an enclosing scope becomes a closure. The captured variables are called <strong>upvalues</strong>.</p>
+<h3 id="upvalue-lifecycle">Upvalue Lifecycle<a class="headerlink" href="#upvalue-lifecycle" title="Permanent link">&para;</a></h3>
+<p>An upvalue starts <strong>open</strong>: it holds a direct pointer into the VM stack at the variable's absolute slot. All readers and writers share the same slot, so mutations are immediately visible.</p>
+<p>When the enclosing frame returns, any open upvalues for its locals are <strong>closed</strong>: the current value is copied from the stack into the upvalue's own heap cell. Subsequent reads and writes go to the heap cell instead. This allows closures to outlive the frame that created them.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Open:    upvalue._stack[slot]  ← reads/writes go here (shared with frame)
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>Closed:  upvalue._closed       ← reads/writes go here (heap copy)
 </span></code></pre></div>
-<h3 id="package"><code>package</code><a class="headerlink" href="#package" title="Permanent link">&para;</a></h3>
-<p>The <code>package</code> keyword is used to define a package.</p>
-<p>See <a href="../packages/">Packages</a>.</p>
-<h3 id="require"><code>require</code><a class="headerlink" href="#require" title="Permanent link">&para;</a></h3>
-<p>The <code>require</code> keyword loads a package by name if it has not already been imported. Unlike <code>include</code>, it looks up the package by name rather than file path.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>require &quot;xml&quot;
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>doc = xml::parse(&quot;&lt;root&gt;&lt;item&gt;hello&lt;/item&gt;&lt;/root&gt;&quot;)
+<h3 id="open-upvalue-list">Open Upvalue List<a class="headerlink" href="#open-upvalue-list" title="Permanent link">&para;</a></h3>
+<p>The VM maintains <code>_openUpvalues</code>: a singly-linked list of all currently-open upvalues ordered by descending absolute slot index. When a new upvalue is needed, the list is walked to find or insert it. This ensures that two closures capturing the same variable get the same upvalue cell.</p>
+<h3 id="upvalue-descriptors">Upvalue Descriptors<a class="headerlink" href="#upvalue-descriptors" title="Permanent link">&para;</a></h3>
+<p>The compiler emits a <code>UpvalueDescriptor</code> for each captured variable:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>UpvalueDescriptor
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── IsLocal: bool    — true = capture a local from the immediately enclosing frame
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>└── Index:   int     — slot index (if IsLocal) or parent upvalue index (if not)
 </span></code></pre></div>
-<h2 id="events">Events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h2>
-<h3 id="emit"><code>emit</code><a class="headerlink" href="#emit" title="Permanent link">&para;</a></h3>
-<p>The <code>emit</code> keyword fires a named event, optionally passing arguments to registered handlers.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>emit &quot;user.login&quot;, { name: &quot;Scotty&quot; }
+<p>When <code>DefFunc</code> or <code>MakeClosure</code> executes, <code>BuildUpvalues</code> walks the descriptors and either calls <code>CaptureUpvalue(absoluteSlot)</code> (for locals) or reuses an upvalue from the current frame's own upvalue array (for variables captured from further up the chain).</p>
+<hr />
+<h2 id="function-calls-docall">Function Calls: DoCall<a class="headerlink" href="#function-calls-docall" title="Permanent link">&para;</a></h2>
+<p>All calls — user functions, stdlib functions, lambdas, methods — flow through <code>DoCall(funcVal, argc, funcSlot, token)</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>DoCall
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├── funcVal is a VM-compiled lambda or function?
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>│     ├── IsGenerator → create GeneratorRef, push, return false
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>│     └── Normal → SetupCalleeLocals(); PushFrame(); return true  ← new VM frame
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>│
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├── funcVal is a tree-walked KFunction (no VMChunk)?
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>│     └── _interp.InvokeCallable(); push result; return false
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>│
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>└── funcVal is a bound method or other callable?
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>      └── _interp.DispatchMethod(); push result; return false
 </span></code></pre></div>
-<h3 id="off"><code>off</code><a class="headerlink" href="#off" title="Permanent link">&para;</a></h3>
-<p>The <code>off</code> keyword removes all handlers registered for a named event.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>off &quot;user.login&quot;
+<p><code>return true</code> means a new frame was pushed and the outer loop should start dispatching it. <code>return false</code> means the call was handled in-place and the result is already on the stack.</p>
+<h3 id="stack-setup">Stack Setup<a class="headerlink" href="#stack-setup" title="Permanent link">&para;</a></h3>
+<p>Before pushing a new frame, <code>SetupCalleeLocals</code> prepares the stack:
+- Arguments are already at <code>calleeBase + 0 .. calleeBase + argc - 1</code> (put there by the <code>Call</code> opcode's arg-compilation)
+- Extra locals beyond <code>argc</code> are zero-initialized up to <code>calleeBase + LocalCount</code>
+- If the function has a variadic parameter, trailing args are packed into a list at the variadic slot
+- <code>_sp</code> is set to <code>calleeBase + LocalCount</code></p>
+<hr />
+<h2 id="interpreter-boundary_1">Interpreter Boundary<a class="headerlink" href="#interpreter-boundary_1" title="Permanent link">&para;</a></h2>
+<p>The VM and the tree-walking interpreter share runtime state (<code>Interpreter</code>, <code>Scope</code>, <code>KContext</code>). This allows constructs that aren't compiled natively to fall back to the interpreter without a full context switch.</p>
+<h3 id="interpfallback">InterpFallback<a class="headerlink" href="#interpfallback" title="Permanent link">&para;</a></h3>
+<p>Used for AST node types not yet handled by the compiler (complex compound assignments, <code>eval</code>, decorated functions, <code>include</code>). The node was stored in <code>NodePool</code> at compile time.</p>
+<p>At runtime:
+1. Extract <code>NodePool[A]</code>
+2. Build a <code>locals</code> dict from pre-scanned local slots
+3. Call <code>_interp.InterpretNodeWithLocals(node, locals, frame.Self)</code> — this pushes a <code>&lt;vm-fallback&gt;</code> frame onto the interpreter's call stack so that builtins calling <code>CallStack.Peek()</code> don't crash
+4. Sync any mutated locals back to the VM stack
+5. Push the result</p>
+<h3 id="callbuiltin">CallBuiltin<a class="headerlink" href="#callbuiltin" title="Permanent link">&para;</a></h3>
+<p>Used for C# native calls that aren't <code>CoreBuiltin</code> method calls — math functions, socket ops, task/channel builtins, serializers, etc. Arguments are compiled normally (pushed as bytecode), so only the dispatch crosses the boundary.</p>
+<p>At runtime:
+1. Extract <code>FunctionCallNode</code> from <code>NodePool[A]</code> (for its <code>Token</code> and <code>Op</code>)
+2. Pop <code>B</code> args from stack; reverse to restore left-to-right order
+3. Call <code>_interp.ExecuteBuiltin(node.Token, node.Op, args)</code> — dispatches to <code>KiwiBuiltinHandler</code>, <code>SocketBuiltinHandler</code>, <code>BuiltinDispatch</code>, etc.
+4. Push the result</p>
+<h3 id="export">Export<a class="headerlink" href="#export" title="Permanent link">&para;</a></h3>
+<p><code>export "package_name"</code> re-interprets the <code>ExportNode</code> via <code>InterpretNodeWithLocals</code>. This is necessary because <code>ImportPackage</code> re-evaluates the package body (struct definitions, function definitions), which calls into <code>CreateFunction</code> → <code>CaptureCurrentScope().Peek()</code> — requiring a live interpreter frame.</p>
+<h3 id="what-uses-each-mechanism">What Uses Each Mechanism<a class="headerlink" href="#what-uses-each-mechanism" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Construct</th>
+<th>Mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Non-CoreBuiltin function call, no named/splat args</td>
+<td><code>CallBuiltin</code></td>
+</tr>
+<tr>
+<td><code>export "pkg"</code></td>
+<td><code>Export</code> opcode</td>
+</tr>
+<tr>
+<td><code>eval expr</code></td>
+<td><code>Eval</code> opcode</td>
+</tr>
+<tr>
+<td><code>include path</code></td>
+<td><code>Include</code> opcode</td>
+</tr>
+<tr>
+<td><code>a[start:stop] = rhs</code> (slice assignment)</td>
+<td><code>SliceSet</code> opcode</td>
+</tr>
+<tr>
+<td><code>@decorator fn</code></td>
+<td><code>InterpFallback</code> (rare)</td>
+</tr>
+<tr>
+<td>Named + splat arg combo</td>
+<td><code>InterpFallback</code> (rare)</td>
+</tr>
+</tbody>
+</table>
+<p><code>InterpFallback</code> emits zero times across the full test suite — it exists as a last-resort escape hatch for genuinely exotic constructs.</p>
+<hr />
+<h2 id="error-handling_1">Error Handling<a class="headerlink" href="#error-handling_1" title="Permanent link">&para;</a></h2>
+<p><code>try / catch / finally</code> is implemented via a per-frame try-handler stack. Each <code>PushTryHandler</code> opcode records a catch IP, a finally IP, and the stack pointer at the time. When a <code>KiwiError</code> propagates:</p>
+<ol>
+<li>The VM unwinds frames until it finds one with a try handler</li>
+<li>The stack pointer is restored to the saved value</li>
+<li>The caught error is stored in <code>_caughtError</code></li>
+<li>Execution jumps to the catch IP</li>
+</ol>
+<p><code>LoadCatchError</code> retrieves the error's type string (A=1), message (A=2), or full hashmap (A=0) from <code>_caughtError</code>.</p>
+<p><code>PopTryHandler</code> removes the handler on normal completion. The finally block is emitted inline by the compiler so it runs in both the normal and error paths.</p>
+<hr />
+<h2 id="disassembly">Disassembly<a class="headerlink" href="#disassembly" title="Permanent link">&para;</a></h2>
+<p>Set <code>KIWI_DISASM=1</code> to dump the compiled chunk to stdout before execution:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">KIWI_DISASM</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>kiwi<span class="w"> </span>script.kiwi
 </span></code></pre></div>
-<h3 id="on"><code>on</code><a class="headerlink" href="#on" title="Permanent link">&para;</a></h3>
-<p>The <code>on</code> keyword registers a handler that runs every time the named event is emitted.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>on &quot;user.login&quot; with (user) do
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  println(&quot;Welcome, ${user.name}!&quot;)
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>end
+<p>Sample output:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>=== &lt;main&gt; (arity=0, locals=1, upvalues=0) ===
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>     0  [   1]  DefFunc              sub[0]  name=&quot;greet&quot;
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>     1  [   3]  LoadGlobal           &quot;greet&quot;
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>     2  [   3]  Const                   0   (&quot;world&quot;)
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>     3  [   3]  Call             argc=1
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>     4  [   3]  Pop
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>     5  [   3]  Halt
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>  === greet (arity=1, locals=1, upvalues=0) ===
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>  params: name
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>       0  [   1]  LoadLocal        slot=0
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>       1  [   1]  Interpolate      parts=2
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>       2  [   1]  Print            newline=True  stderr=False
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>       3  [   1]  ReturnNull
 </span></code></pre></div>
-<h3 id="once"><code>once</code><a class="headerlink" href="#once" title="Permanent link">&para;</a></h3>
-<p>The <code>once</code> keyword registers a handler that runs only the first time the named event is emitted.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>once &quot;app.start&quot; do
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  println(&quot;Application started.&quot;)
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>end
-</span></code></pre></div>
-<p>See <a href="../events/">Events</a>.</p>
-<h2 id="console-io">Console I/O<a class="headerlink" href="#console-io" title="Permanent link">&para;</a></h2>
-<h3 id="input"><code>input</code><a class="headerlink" href="#input" title="Permanent link">&para;</a></h3>
-<p>The <code>input</code> keyword is used to request user input from a console.</p>
-<p>See <a href="../console_io/">Console I/O</a>.</p>
-<h3 id="eprint"><code>eprint</code><a class="headerlink" href="#eprint" title="Permanent link">&para;</a></h3>
-<p>The <code>eprint</code> keyword is used to print to the standard error stream.</p>
-<p>See <a href="../console_io/">Console I/O</a>.</p>
-<h3 id="eprintln"><code>eprintln</code><a class="headerlink" href="#eprintln" title="Permanent link">&para;</a></h3>
-<p>The <code>eprintln</code> keyword is used to print to the standard error stream. The output is terminated with a newline.</p>
-<h3 id="print"><code>print</code><a class="headerlink" href="#print" title="Permanent link">&para;</a></h3>
-<p>The <code>print</code> keyword is used to print output to the standard output stream.</p>
-<p>See <a href="../console_io/">Console I/O</a>.</p>
-<h3 id="println"><code>println</code><a class="headerlink" href="#println" title="Permanent link">&para;</a></h3>
-<p>The <code>println</code> keyword is used to print output to the standard output stream. The output is terminated with a newline.</p>
-<p>See <a href="../console_io/">Console I/O</a>.</p>
-<h3 id="printxy"><code>printxy</code><a class="headerlink" href="#printxy" title="Permanent link">&para;</a></h3>
-<p>The <code>printxy</code> keyword prints output at a specific terminal cursor position.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>printxy(10, 5, &quot;Hello!&quot;)  # prints &quot;Hello!&quot; at column 10, row 5
-</span></code></pre></div>
-<h2 id="miscellaneous">Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permanent link">&para;</a></h2>
-<h3 id="delete"><code>delete</code><a class="headerlink" href="#delete" title="Permanent link">&para;</a></h3>
-<p>The <code>delete</code> keyword is used to remove elements from collections.</p>
-<p>It can also be used to delete objects.</p>
-<p>See <a href="../hashmaps/">Hashmaps</a> and <a href="../lists/">Lists</a>.</p>
-<h3 id="eval"><code>eval</code><a class="headerlink" href="#eval" title="Permanent link">&para;</a></h3>
-<p>The <code>eval</code> keyword parses and executes a string as Kiwi code.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>eval &#39;println(&quot;hello, world!&quot;)&#39;  # prints: hello, world!
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>code = &quot;1 + 2&quot;
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>println(eval code)  # 3
-</span></code></pre></div>
-<h3 id="global"><code>global</code><a class="headerlink" href="#global" title="Permanent link">&para;</a></h3>
-<p>The <code>global</code> variable is a hashmap used to share data between scripts.</p>
-<h3 id="go"><code>go</code><a class="headerlink" href="#go" title="Permanent link">&para;</a></h3>
-<p>The <code>go</code> keyword is used in the Kiwi REPL to execute statements.</p>
-<h3 id="null"><code>null</code><a class="headerlink" href="#null" title="Permanent link">&para;</a></h3>
-<p>The <code>null</code> keyword is a None value.</p>
-<p>See <a href="../types/">Types</a>.</p>
-<h3 id="no-op"><code>...</code> (no-op)<a class="headerlink" href="#no-op" title="Permanent link">&para;</a></h3>
-<p>The <code>...</code> keyword is used as a placeholder/no-op.</p>
-<h3 id="true"><code>true</code><a class="headerlink" href="#true" title="Permanent link">&para;</a></h3>
-<p>The <code>true</code> keyword is inverse of <code>false</code> and is a Boolean value.</p>
-<p>See <a href="../types/">Types</a>.</p>
-<h3 id="false"><code>false</code><a class="headerlink" href="#false" title="Permanent link">&para;</a></h3>
-<p>The <code>false</code> keyword is inverse of <code>true</code> and is a Boolean value.</p>
-<p>See <a href="../types/">Types</a>.</p>
+<p>Sub-chunks are indented under their parent and listed after the parent's instruction stream.</p>
+<hr />
+<h2 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Value stack depth</td>
+<td>8192 slots</td>
+</tr>
+<tr>
+<td>Call stack depth</td>
+<td>512 frames</td>
+</tr>
+</tbody>
+</table>
 
 
 
