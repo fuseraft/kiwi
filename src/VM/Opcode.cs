@@ -459,6 +459,18 @@ public enum Opcode : byte
     /// </summary>
     Export,
 
+    // -- Eval / Include -------------------------------------------------------
+    /// <summary>
+    /// A = node-pool index (EvalNode).
+    /// Interprets the EvalNode via InterpretNodeWithLocals; pushes the result.
+    /// </summary>
+    Eval,
+    /// <summary>
+    /// A = node-pool index (IncludeNode).
+    /// Interprets the IncludeNode via InterpretNodeWithLocals; no push (statement).
+    /// </summary>
+    Include,
+
     // -- Exit -----------------------------------------------------------------
     /// <summary>
     /// Pop exit-code value; call Environment.Exit(code).
