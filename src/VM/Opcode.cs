@@ -207,6 +207,12 @@ public enum Opcode : byte
     /// Pops (in order): obj, start?, stop?, step? → push slice.
     /// </summary>
     SliceGet,
+    /// <summary>
+    /// A = flags: bit0=hasStart, bit1=hasStop, bit2=hasStep.
+    /// Pops (in order from stack top): rhs, step?, stop?, start?, obj.
+    /// Applies rhs to the slice range of obj in-place; pushes rhs.
+    /// </summary>
+    SliceSet,
 
     // -- Member Access ---------------------------------------------------------
     /// <summary>
@@ -258,6 +264,10 @@ public enum Opcode : byte
     /// Pop value and print it.
     /// </summary>
     Print,
+    /// <summary>
+    /// Pop y, pop x, pop text → print text at terminal position (x, y) using ANSI cursor-move.
+    /// </summary>
+    PrintXy,
 
     // -- Loop Iteration --------------------------------------------------------
     /// <summary>
@@ -347,6 +357,83 @@ public enum Opcode : byte
     /// </summary>
     LoadCatchError,
 
+    // -- Type Introspection ----------------------------------------------------
+    /// <summary>
+    /// Pop value → push typeof string (e.g. "integer", "string", "list", …).
+    /// </summary>
+    TypeOf,
+
+    // -- Event Bus -------------------------------------------------------------
+    /// <summary>
+    /// A = priority.  Pop callback, pop event-name → register 'on' handler.
+    /// </summary>
+    EventOn,
+    /// <summary>
+    /// A = priority.  Pop callback, pop event-name → register 'once' handler.
+    /// </summary>
+    EventOnce,
+    /// <summary>
+    /// A: 0 = no callback (remove all), 1 = pop callback too.
+    /// Pop [callback,] event-name → unregister handler(s).
+    /// </summary>
+    EventOff,
+    /// <summary>
+    /// A = arg count.  Pop A args (bottom-first), pop event-name → emit event,
+    /// push result list.
+    /// </summary>
+    EventEmit,
+
+    // -- Struct Definition -----------------------------------------------------
+    /// <summary>
+    /// A = name index.
+    /// B = packed: bit 0 = isAbstract, bits 1+ = baseNameIdx+1 (0 = no base).
+    /// Create KStruct and push onto the pending-struct stack.
+    /// </summary>
+    StructBegin,
+    /// <summary>
+    /// A = sub-chunk index, B = nameIdx | (isAbstract ? 0x80000000 : 0).
+    /// Like DefFunc but registers the method into the current pending struct.
+    /// </summary>
+    DefMethod,
+    /// <summary>
+    /// A = name index. Pop value → store in pending struct's StaticVariables[names[A]].
+    /// </summary>
+    InitStructStatic,
+    /// <summary>
+    /// Validate abstract compliance, register pending struct in Context.Structs.
+    /// </summary>
+    StructEnd,
+
+    // -- Package Definition ----------------------------------------------------
+    /// <summary>
+    /// A = name index, B = node-pool index (stores PackageNode AST for retry).
+    /// Build qualified name, push onto PackageStack, register KPackage.
+    /// </summary>
+    PackageBegin,
+    /// <summary>
+    /// Pop PackageStack; register type builtins; mark package imported.
+    /// </summary>
+    PackageEnd,
+    /// <summary>
+    /// Catch path for a failed package activation: pop PackageStack without marking as imported.
+    /// Allows ImportPackage to retry after dependencies are resolved.
+    /// </summary>
+    PackageAbort,
+
+    // -- Enum Definition -------------------------------------------------------
+    /// <summary>
+    /// A = name index.  Create KStruct{IsEnum=true} and push onto the pending-struct stack.
+    /// </summary>
+    EnumBegin,
+    /// <summary>
+    /// A = name index.  Pop value → store in pending enum's StaticVariables["@@" + names[A]].
+    /// </summary>
+    DefEnumMember,
+    /// <summary>
+    /// Pop pending KStruct and register it as an enum in Context.Structs.
+    /// </summary>
+    EnumEnd,
+
     // -- Interpreter Fallback --------------------------------------------------
     /// <summary>
     /// A = node-pool index.  Execute chunk.NodePool[A] via the tree-walking
@@ -354,6 +441,35 @@ public enum Opcode : byte
     /// natively to bytecode.
     /// </summary>
     InterpFallback,
+
+    // -- Builtin call ----------------------------------------------------------
+    /// <summary>
+    /// A = node-pool index (FunctionCallNode, used for Token and Op).
+    /// B = argc.  Pop B args (in order), call _interp.ExecuteBuiltin, push result.
+    /// Used for C# native builtin calls (KiwiBuiltin, SocketBuiltin, Math, etc.)
+    /// that are not CoreBuiltin method calls.
+    /// </summary>
+    CallBuiltin,
+
+    // -- Export ---------------------------------------------------------------
+    /// <summary>
+    /// A = node-pool index (ExportNode).
+    /// Interprets the ExportNode via InterpretNodeWithLocals (which correctly sets up
+    /// the interpreter call stack so that package body struct/function definitions work).
+    /// </summary>
+    Export,
+
+    // -- Eval / Include -------------------------------------------------------
+    /// <summary>
+    /// A = node-pool index (EvalNode).
+    /// Interprets the EvalNode via InterpretNodeWithLocals; pushes the result.
+    /// </summary>
+    Eval,
+    /// <summary>
+    /// A = node-pool index (IncludeNode).
+    /// Interprets the IncludeNode via InterpretNodeWithLocals; no push (statement).
+    /// </summary>
+    Include,
 
     // -- Exit -----------------------------------------------------------------
     /// <summary>

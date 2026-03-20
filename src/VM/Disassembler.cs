@@ -143,6 +143,72 @@ public static class Disassembler
                     break;
                 }
 
+                case Opcode.EventOn:
+                case Opcode.EventOnce:
+                    sb.Append($" priority={instr.A}");
+                    break;
+
+                case Opcode.EventOff:
+                    sb.Append(instr.A == 1 ? " with-callback" : " all");
+                    break;
+
+                case Opcode.EventEmit:
+                    sb.Append($" argc={instr.A}");
+                    break;
+
+                case Opcode.StructBegin:
+                {
+                    var sn   = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    bool abs = (instr.B & 1) != 0;
+                    int  br  = instr.B >> 1;
+                    var  bn  = br > 0 && chunk.Names.Count > br - 1 ? chunk.Names[br - 1] : null;
+                    sb.Append($" \"{sn}\"");
+                    if (bn != null) sb.Append($"  base=\"{bn}\"");
+                    if (abs)        sb.Append("  abstract");
+                    break;
+                }
+
+                case Opcode.DefMethod:
+                {
+                    bool abs    = (instr.B & unchecked((int)0x80000000)) != 0;
+                    bool stat   = (instr.B & 0x40000000) != 0;
+                    int  ni     = instr.B & 0x3FFFFFFF;
+                    var  mn     = chunk.Names.Count > ni ? chunk.Names[ni] : "?";
+                    sb.Append($" sub[{instr.A}]  name=\"{mn}\"");
+                    if (abs)  sb.Append("  abstract");
+                    if (stat) sb.Append("  static");
+                    break;
+                }
+
+                case Opcode.InitStructStatic:
+                {
+                    var vn = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{vn}\"");
+                    break;
+                }
+
+                case Opcode.PackageBegin:
+                {
+                    var pn = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{pn}\"");
+                    break;
+                }
+
+                case Opcode.EnumBegin:
+                case Opcode.EnumEnd:
+                {
+                    var en = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"{en}\"");
+                    break;
+                }
+
+                case Opcode.DefEnumMember:
+                {
+                    var mn = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
+                    sb.Append($" \"@@{mn}\"");
+                    break;
+                }
+
                 case Opcode.InterpFallback:
                 {
                     var nodeType = chunk.NodePool.Count > instr.A
@@ -151,11 +217,28 @@ public static class Disassembler
                     break;
                 }
 
+                case Opcode.CallBuiltin:
+                {
+                    var nodeType = chunk.NodePool.Count > instr.A
+                        ? chunk.NodePool[instr.A].Type.ToString() : "?";
+                    sb.Append($" node[{instr.A}] ({nodeType})  argc={instr.B}");
+                    break;
+                }
+
+                case Opcode.Export:
+                case Opcode.Eval:
+                case Opcode.Include:
+                {
+                    sb.Append($" node[{instr.A}]");
+                    break;
+                }
+
                 case Opcode.CloseUpvalue:
                     sb.Append($" from_slot={instr.A}");
                     break;
 
                 case Opcode.SliceGet:
+                case Opcode.SliceSet:
                     sb.Append($" flags=0x{instr.A:X}");
                     break;
 

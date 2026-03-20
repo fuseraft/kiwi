@@ -22,6 +22,7 @@ internal sealed class ForIterState
     public string? StringData; // lazy string iteration: avoids upfront char-Value allocation
     public int     Index;
     public List<Value>? HashmapKeys; // pre-enumerated keys for hashmap iteration
+    public GeneratorRef? Generator;  // VM-native generator iteration
 }
 
 /// <summary>
@@ -64,6 +65,9 @@ public sealed class KiwiVM
     // CallSplat/MethodCallSplat pop and add to the static argc operand.
     // Using a stack (not a single int) so nested splat calls are independent.
     private readonly Stack<int> _splatAdjStack = new();
+
+    // -- Struct / Package definition state -------------------------------------
+    private readonly Stack<KStruct> _pendingStructs = new();
 
     // -- Name resolution cache (LoadGlobal fast-path) --------------------------
     // Caches resolved Values for stable global names (functions, constants,
@@ -133,11 +137,12 @@ public sealed class KiwiVM
         var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
         var upvalues = callable is KFunction kf2 ? (kf2.VMUpvalues ?? []) : (((KLambda)callable).VMUpvalues ?? []);
 
-        int calleeBase = _sp;
+        int calleeBase      = _sp;
         // When called re-entrantly from C# (e.g. LambdaMap), the Return handler writes
         // the result to _stack[calleeBase - 1] via Push(result). Save and restore that
         // slot so the caller's temp stack is not clobbered.
-        var savedBelow = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+        var savedBelow      = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+        int savedFrameCount = _frameCount;
 
         // Push args onto the stack
         foreach (var a in args) Push(a);
@@ -146,7 +151,19 @@ public sealed class KiwiVM
 
         int stopAt = _frameCount; // run only until this frame completes
         PushFrame(sub.Name, sub, calleeBase, upvalues, token, instance);
-        var r = RunLoop(stopAt);
+        Value r;
+        try
+        {
+            r = RunLoop(stopAt);
+        }
+        catch
+        {
+            // Restore VM state so subsequent InvokeVMCallable calls are not affected.
+            _sp         = calleeBase;
+            _frameCount = savedFrameCount;
+            if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
+            throw;
+        }
 
         // Restore the slot clobbered by the Return handler's Push(result).
         if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
@@ -330,7 +347,7 @@ public sealed class KiwiVM
                             if (frame.Self != null)
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
-                                Push(gv); // gv is null/default here
+                                Push(Value.Default);
                             // Don't cache mutable globals
                         }
                         break;
@@ -705,16 +722,22 @@ public sealed class KiwiVM
                     case Opcode.DefFunc:
                     {
                         var sub      = frame.Chunk.SubChunks[A];
-                        var funcName = frame.Chunk.Names[B];
+                        var rawName  = frame.Chunk.Names[B];
+
+                        // Qualify the name with the current package prefix (if any).
+                        var funcName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
+                            : rawName;
 
                         // Build upvalue array for the closure (even for named functions)
                         var upvalues = BuildUpvalues(sub, frame);
 
                         var kfunc = new KFunction(BuildFunctionNode(sub, funcName))
                         {
-                            Name      = funcName,
-                            VMChunk   = sub,
-                            VMUpvalues = upvalues
+                            Name        = funcName,
+                            VMChunk     = sub,
+                            VMUpvalues  = upvalues,
+                            IsGenerator = sub.IsGenerator,
                         };
                         foreach (var (pn, _) in kfunc.Decl.Parameters)
                             kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
@@ -868,6 +891,18 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    case Opcode.SliceSet:
+                    {
+                        var rhs    = Pop();
+                        Value? stepV  = (A & 4) != 0 ? Pop() : (Value?)null;
+                        Value? stopV  = (A & 2) != 0 ? Pop() : (Value?)null;
+                        Value? startV = (A & 1) != 0 ? Pop() : (Value?)null;
+                        var obj = Pop();
+                        _interp.SetSlice(obj, startV, stopV, stepV, rhs, frame.GetToken());
+                        Push(rhs);
+                        break;
+                    }
+
                     // -- Member access -------------------------------------
                     case Opcode.GetMember:
                     {
@@ -969,6 +1004,19 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    case Opcode.PrintXy:
+                    {
+                        var y    = Pop();
+                        var x    = Pop();
+                        var v    = Pop();
+                        var text = _interp.Serialize(v);
+                        int col  = x.IsInteger() ? (int)x.GetInteger() : x.IsFloat() ? (int)x.GetFloat() : 1;
+                        int row  = y.IsInteger() ? (int)y.GetInteger() : y.IsFloat() ? (int)y.GetFloat() : 1;
+                        Console.SetCursorPosition(col - 1, row - 1);
+                        Console.Write(text);
+                        break;
+                    }
+
                     // -- For iterator --------------------------------------
                     case Opcode.ForIterInit:
                     {
@@ -995,6 +1043,10 @@ public sealed class KiwiVM
                             // Lazy: store the raw string; chars are produced one at a time in ForIterNext
                             state.StringData = coll.GetString();
                             state.Index      = 0;
+                        }
+                        else if (coll.IsGenerator())
+                        {
+                            state.Generator = coll.GetGenerator();
                         }
                         else
                         {
@@ -1070,6 +1122,24 @@ public sealed class KiwiVM
                             {
                                 var b = state.Bytes[state.Index++];
                                 Push(Value.CreateInteger(b));
+                            }
+                        }
+                        else if (state.Generator != null)
+                        {
+                            var (hasValue, genVal) = state.Generator.Next();
+                            done = !hasValue;
+                            if (!done)
+                            {
+                                if (numVars == 2)
+                                {
+                                    Push(Value.CreateInteger(state.Index++)); // key = position
+                                    Push(genVal);
+                                }
+                                else Push(genVal);
+                            }
+                            else
+                            {
+                                state.Generator.Dispose();
                             }
                         }
                         else
@@ -1157,7 +1227,10 @@ public sealed class KiwiVM
                         {
                             Push(Value.CreateString(e.Message ?? string.Empty));
                         }
-                        _caughtError = null; // consumed
+                        // Clear after last binding: A==0 (single-param) or A==2 (second of two-param).
+                        // A==1 (first of two-param) must NOT clear so the second LoadCatchError
+                        // can still read the same error.
+                        if (A != 1) _caughtError = null;
                         break;
                     }
 
@@ -1165,39 +1238,240 @@ public sealed class KiwiVM
                     case Opcode.InterpFallback:
                     {
                         var node = frame.Chunk.NodePool[A];
-                        Value r;
-                        // Ensure the interpreter call-stack is non-empty so that builtins
-                        // (e.g. ListBuiltinHandler) can safely call CallStack.Peek().
-                        bool pushedFrame = _interp.CallStack.Count == 0;
-                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals);
-                        try
+                        // Always push a fresh <vm-fallback> frame via InterpretNodeWithLocals so
+                        // that:
+                        //   1. CallStack is never empty when builtins call CallStack.Peek().
+                        //   2. frame.Self is correctly propagated at ANY nesting depth — the old
+                        //      conditional (only push when Count==0) left the wrong self on the
+                        //      existing top frame for nested fallback calls.
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        var r = _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        // Sync any updated locals back to the VM stack.
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
                         {
-                            // If there are named locals in the current frame, expose them to the
-                            // interpreter so that sub-expressions (e.g. named-arg values) can
-                            // resolve VM-local variables by name.
-                            if (frame.Chunk.LocalNames.Count > 0)
-                            {
-                                var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
-                                foreach (var (name, slot) in frame.Chunk.LocalNames)
-                                    locals[name] = _stack[frame.StackBase + slot];
-                                r = _interp.InterpretNodeWithLocals(node, locals);
-                                // Sync any updated locals back to the VM stack.
-                                foreach (var (name, slot) in frame.Chunk.LocalNames)
-                                {
-                                    if (locals.TryGetValue(name, out var updated))
-                                        _stack[frame.StackBase + slot] = updated;
-                                }
-                            }
-                            else
-                            {
-                                r = _interp.InterpretNode(node);
-                            }
-                        }
-                        finally
-                        {
-                            if (pushedFrame) _interp.PopVMDispatchFrame();
+                            if (locals.TryGetValue(lname, out var updated))
+                                _stack[frame.StackBase + slot] = updated;
                         }
                         Push(r);
+                        break;
+                    }
+
+                    // -- Builtin call --------------------------------------
+                    case Opcode.CallBuiltin:
+                    {
+                        var node = (Parsing.AST.FunctionCallNode)frame.Chunk.NodePool[A];
+                        var args = new List<Value>(B);
+                        for (int i = 0; i < B; i++) args.Add(Pop());
+                        args.Reverse();
+                        Push(_interp.ExecuteBuiltin(node.Token, node.Op, args));
+                        break;
+                    }
+
+                    // -- Export --------------------------------------------
+                    case Opcode.Export:
+                    {
+                        var node = frame.Chunk.NodePool[A];
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        break;
+                    }
+
+                    // -- Eval / Include ------------------------------------
+                    case Opcode.Eval:
+                    {
+                        var node = frame.Chunk.NodePool[A];
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        Push(_interp.InterpretNodeWithLocals(node, locals, frame.Self));
+                        break;
+                    }
+
+                    case Opcode.Include:
+                    {
+                        var node = frame.Chunk.NodePool[A];
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        break;
+                    }
+
+                    // -- Type introspection --------------------------------
+                    case Opcode.TypeOf:
+                    {
+                        var v = Pop();
+                        Push(Value.CreateString(Typing.TypeRegistry.GetTypeName(v)));
+                        break;
+                    }
+
+                    // -- Event bus -----------------------------------------
+                    case Opcode.EventOn:
+                    {
+                        var callback  = Pop();
+                        var eventName = Pop();
+                        _interp.Context.Events.On(eventName.GetString(), callback, priority: A);
+                        break;
+                    }
+                    case Opcode.EventOnce:
+                    {
+                        var callback  = Pop();
+                        var eventName = Pop();
+                        _interp.Context.Events.Once(eventName.GetString(), callback, priority: A);
+                        break;
+                    }
+                    case Opcode.EventOff:
+                    {
+                        Value? callback = A == 1 ? Pop() : null;
+                        var eventName = Pop();
+                        _interp.Context.Events.Off(eventName.GetString(), callback);
+                        break;
+                    }
+                    case Opcode.EventEmit:
+                    {
+                        // A args were pushed after the event-name; collect them bottom-first.
+                        var args = new List<Value>(A);
+                        for (int ei = 0; ei < A; ei++) args.Add(Value.Default);
+                        for (int ei = A - 1; ei >= 0; ei--) args[ei] = Pop();
+                        var eventName = Pop();
+                        bool pushedFrame = _interp.CallStack.Count == 0;
+                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals);
+                        List<Value> results;
+                        try   { results = _interp.Context.Events.Emit(_interp, frame.GetToken(), eventName.GetString(), args); }
+                        finally { if (pushedFrame) _interp.PopVMDispatchFrame(); }
+                        Push(Value.CreateList(results));
+                        break;
+                    }
+
+                    // -- Struct definition ---------------------------------
+                    case Opcode.StructBegin:
+                    {
+                        var structName = frame.Chunk.Names[A];
+                        bool isAbstract = (B & 1) != 0;
+                        int  baseRaw    = B >> 1;
+                        var  struc      = new KStruct { Name = structName, IsAbstract = isAbstract };
+                        if (baseRaw > 0)
+                        {
+                            var baseName = frame.Chunk.Names[baseRaw - 1];
+                            if (!_context.HasStruct(baseName))
+                                throw new StructUndefinedError(frame.GetToken(), baseName);
+                            struc.BaseStruct = baseName;
+                        }
+                        _pendingStructs.Push(struc);
+                        _interp.StructStack.Push(structName);
+                        break;
+                    }
+                    case Opcode.DefMethod:
+                    {
+                        var sub        = frame.Chunk.SubChunks[A];
+                        bool isAbstract = (B & unchecked((int)0x80000000)) != 0;
+                        bool isStatic   = (B & 0x40000000) != 0;
+                        int  nameIdx   = B & 0x3FFFFFFF;
+                        var  methodName = frame.Chunk.Names[nameIdx];
+
+                        var upvalues = BuildUpvalues(sub, frame);
+                        var kfunc = new KFunction(BuildFunctionNode(sub, methodName))
+                        {
+                            Name        = methodName,
+                            VMChunk     = sub,
+                            VMUpvalues  = upvalues,
+                            IsAbstract  = isAbstract,
+                            IsStatic    = isStatic,
+                            CapturedScope = _globals
+                        };
+                        foreach (var (pn, _) in kfunc.Decl.Parameters)
+                            kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            kfunc.DefaultParameters.Add(pn);
+                        if (!string.IsNullOrEmpty(sub.VariadicParamName))
+                            kfunc.VariadicParamName = sub.VariadicParamName;
+
+                        var struc = _pendingStructs.Peek();
+                        struc.Methods[methodName] = kfunc;
+                        if (isAbstract)
+                            struc.AbstractMethods.Add(methodName);
+                        break;
+                    }
+                    case Opcode.InitStructStatic:
+                    {
+                        _pendingStructs.Peek().StaticVariables[frame.Chunk.Names[A]] = Pop();
+                        break;
+                    }
+                    case Opcode.StructEnd:
+                    {
+                        var struc = _pendingStructs.Pop();
+                        _interp.StructStack.Pop();
+                        if (!struc.IsAbstract && !string.IsNullOrEmpty(struc.BaseStruct))
+                        {
+                            var baseStruc = _context.Structs[struc.BaseStruct];
+                            foreach (var am in baseStruc.AbstractMethods)
+                                if (!struc.Methods.ContainsKey(am))
+                                    throw new AbstractMethodError(frame.GetToken(), struc.Name, am);
+                        }
+                        _context.Structs[struc.Name] = struc;
+                        _nameCache.Remove(struc.Name);
+                        break;
+                    }
+
+                    // -- Package definition --------------------------------
+                    case Opcode.PackageBegin:
+                    {
+                        var localName     = frame.Chunk.Names[A];
+                        var qualifiedName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + localName
+                            : localName;
+                        if (!_context.Packages.ContainsKey(qualifiedName))
+                        {
+                            // Store the original PackageNode AST so ImportPackage can retry
+                            // via the tree-walking interpreter if activation failed.
+                            var pkgAst = B < frame.Chunk.NodePool.Count
+                                ? (PackageNode)frame.Chunk.NodePool[B]
+                                : new PackageNode(null);
+                            _context.Packages[qualifiedName] = new KPackage(pkgAst);
+                        }
+                        _interp.PackageStack.Push(localName);
+                        break;
+                    }
+                    case Opcode.PackageEnd:
+                    {
+                        var localName     = _interp.PackageStack.Pop();
+                        var qualifiedName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + localName
+                            : localName;
+                        _interp.RegisterTypeBuiltins(qualifiedName);
+                        _context.ImportedPackages.Add(qualifiedName);
+                        _nameCache.Remove(qualifiedName);
+                        break;
+                    }
+                    case Opcode.PackageAbort:
+                    {
+                        // Package activation failed: pop the stack but don't mark as imported.
+                        // The stored PackageNode AST allows ImportPackage to retry later.
+                        _interp.PackageStack.Pop();
+                        break;
+                    }
+
+                    // -- Enum definition -----------------------------------
+                    case Opcode.EnumBegin:
+                    {
+                        var enumName = frame.Chunk.Names[A];
+                        _pendingStructs.Push(new KStruct { Name = enumName, IsEnum = true });
+                        break;
+                    }
+                    case Opcode.DefEnumMember:
+                    {
+                        _pendingStructs.Peek().StaticVariables["@@" + frame.Chunk.Names[A]] = Pop();
+                        break;
+                    }
+                    case Opcode.EnumEnd:
+                    {
+                        var kenum = _pendingStructs.Pop();
+                        _context.Structs[kenum.Name] = kenum;
+                        _nameCache.Remove(kenum.Name);
                         break;
                     }
 
@@ -1495,6 +1769,19 @@ public sealed class KiwiVM
             {
                 var sub      = lr.VMChunk;
                 var upvalues = lr.VMUpvalues ?? [];
+                // Generator functions must not execute directly — create a GeneratorRef instead.
+                if (sub.IsGenerator)
+                {
+                    var args = CollectArgs(calleeBase, argc);
+                    _sp = funcSlot;
+                    // Resolve the KFunction by name so CreateGeneratorFromValues can run the body.
+                    KFunction? kfGen = !string.IsNullOrEmpty(lr.Identifier) && _context.HasFunction(lr.Identifier)
+                        ? _context.Functions[lr.Identifier] : null;
+                    Push(kfGen != null
+                        ? _interp.CreateGeneratorFromValues(kfGen, args, token)
+                        : Value.Default);
+                    return false;
+                }
                 SetupCalleeLocals(sub, calleeBase, argc);
                 PushFrame(sub.Name, sub, calleeBase, upvalues, token);
                 return true;
@@ -1506,13 +1793,20 @@ public sealed class KiwiVM
                 var kf = _context.Functions[lr.Identifier];
                 if (kf.VMChunk != null)
                 {
+                    if (kf.IsGenerator)
+                    {
+                        var args = CollectArgs(calleeBase, argc);
+                        _sp = funcSlot;
+                        Push(_interp.CreateGeneratorFromValues(kf, args, token));
+                        return false;
+                    }
                     SetupCalleeLocals(kf.VMChunk, calleeBase, argc);
                     PushFrame(kf.VMChunk.Name, kf.VMChunk, calleeBase, kf.VMUpvalues ?? [], token);
                     return true;
                 }
-                var args = CollectArgs(calleeBase, argc);
+                var args2 = CollectArgs(calleeBase, argc);
                 _sp = funcSlot;
-                Push(_interp.InvokeCallable(kf, args, token, lr.Identifier));
+                Push(_interp.InvokeCallable(kf, args2, token, lr.Identifier));
                 return false;
             }
 
@@ -1535,9 +1829,7 @@ public sealed class KiwiVM
         }
 
         if (funcVal.IsNull())
-        {
             throw new FunctionUndefinedError(token, callName ?? "<unknown>");
-        }
 
         // Interpreter fallback for builtins / tree-walked functions
         {

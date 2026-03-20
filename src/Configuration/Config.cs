@@ -10,7 +10,7 @@ public class Config
     public bool CheckSyntax { get; set; } = false;
     public bool UseREPL { get; set; } = false;
     public bool UseDebugger { get; set; } = false;
-    public bool UseVM { get; set; } = false;
+    public bool UseTreeWalker { get; set; } = false;
     public string? ExecuteCode { get; set; } = null;
     public List<string> Args { get; set; } = [];
     public List<string> Scripts { get; set; } = [];
@@ -211,10 +211,10 @@ public class Config
                     }
                     break;
 
-                case "--vm":
+                case "--tree-walker":
                     if (!config.HasScripts)
                     {
-                        config.UseVM = true;
+                        config.UseTreeWalker = true;
                     }
                     else
                     {
@@ -332,7 +332,7 @@ public class Config
             ("-p, --stdlib-path", "specify alternate stdlib path"),
             ("-d, --debug <input_path>", "run script in the kdb debugger"),
             ("-cd, --crash-dump", $"write errors to kiwi_crash.log"),
-            ("--vm", "run using the bytecode VM"),
+            ("--tree-walker", "run using the tree-walking interpreter"),
             ("-<key>=<value>", "pass an argument as a key-value pair")
         ];
 
