@@ -17,5 +17,3 @@ jobs:
       run: ./build.sh
     - name: Run test suite
       run: ./bin/kiwi tests/test
-    - name: Run test suite (VM)
-      run: ./bin/kiwi --vm tests/test

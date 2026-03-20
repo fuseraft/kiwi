@@ -10,6 +10,7 @@ Kiwi is a modern, lightweight scripting language built for expressiveness and ut
     - [REPL](repl.md)
     - [Running Scripts & Execution Modes](runners.md)
     - [kdb — Kiwi Debugger](kdb.md)
+    - [Bytecode VM Internals](vm.md)
 
 ## **Language Reference**
 

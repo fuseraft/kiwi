@@ -1,0 +1,94 @@
+/# ==============================================================================
+   Testing TCP and TLS loopback sockets.
+
+   Each test spins a server inside a spawned task, connects a client from the
+   main thread, sends a short message, and verifies the echo.
+
+   TCP  — port 17891
+   TLS  — port 17892  (self-signed cert, SAN = kiwi.local / 127.0.0.1)
+  ============================================================================== #/
+require "task"
+
+@tester::test("sockets: TCP loopback echo")
+fn test_tcp_socket()
+  TCP_PORT = 17891
+
+  # Create the server socket in the main thread so it is already listening
+  # before the spawned task calls accept — the OS queues the connection.
+  srv = socket::tcpserver("127.0.0.1", TCP_PORT)
+  ready_ch = task::channel()
+
+  task::spawn(with (s, ch) do
+    # Signal that we are about to accept — the server is already bound and
+    # listening, so the client can connect as soon as this fires.
+    ch.send(true)
+
+    accept_tid = socket::accept(s)
+    client = await(accept_tid)
+
+    recv_tid = socket::recv(client)
+    data = await(recv_tid)
+
+    send_tid = socket::send(client, data)
+    await(send_tid)
+
+    socket::close(client)
+    socket::close(s)
+  end, [srv, ready_ch])
+
+  ready_ch.recv()   # wait until server task is accepting
+
+  conn = socket::tcpconnect("127.0.0.1", TCP_PORT)
+
+  send_tid = socket::send(conn, b"hello tcp")
+  await(send_tid)
+
+  recv_tid = socket::recv(conn)
+  echo_bytes = await(recv_tid)
+  socket::close(conn)
+
+  tester::assert(echo_bytes.to_string() == "hello tcp", "A1: TCP echo")
+end
+
+@tester::test("sockets: TLS loopback echo")
+fn test_tls_socket()
+  TLS_PORT = 17892
+
+  srv = tls::tcpserver("127.0.0.1", TLS_PORT)
+  ready_ch = task::channel()
+
+  task::spawn(with (s, ch) do
+    ch.send(true)
+
+    # tls::accept returns a task ID; await resolves it to the client socket ID
+    # after the TLS handshake completes on the server side.
+    accept_tid = tls::accept(s)
+    client = await(accept_tid)
+
+    recv_tid = tls::recv(client)
+    data = await(recv_tid)
+
+    send_tid = tls::send(client, data)
+    await(send_tid)
+
+    tls::close(client)
+    tls::close(s)
+  end, [srv, ready_ch])
+
+  ready_ch.recv()
+
+  # tls::tcpconnect returns a task ID (TLS handshake is async).
+  # Await it to get the socket ID once the handshake finishes.
+  # SNI host must match the server cert SAN ("kiwi.local").
+  connect_tid = tls::tcpconnect("127.0.0.1", TLS_PORT, "kiwi.local")
+  conn = await(connect_tid)
+
+  send_tid = tls::send(conn, b"hello tls")
+  await(send_tid)
+
+  recv_tid = tls::recv(conn)
+  echo_bytes = await(recv_tid)
+  tls::close(conn)
+
+  tester::assert(echo_bytes.to_string() == "hello tls", "B1: TLS echo")
+end

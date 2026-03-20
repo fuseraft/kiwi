@@ -51,8 +51,8 @@ public class Interpreter
     public string ProjectRoot { get; set; } = Directory.GetCurrentDirectory();
     public CancellationToken GeneratorCancellationToken { get; private set; } = CancellationToken.None;
     public Stack<StackFrame> CallStack { get; set; } = [];
-    private Stack<string> PackageStack { get; set; } = [];
-    private Stack<string> StructStack { get; set; } = [];
+    internal Stack<string> PackageStack { get; set; } = [];
+    internal Stack<string> StructStack  { get; set; } = [];
     private Stack<string> FuncStack { get; set; } = [];
     public long CurrentTaskId { get; set; } = 0; // 0 = main thread
     public void SetContext(KContext context) => Context = context;
@@ -1040,9 +1040,11 @@ public class Interpreter
                 throw new IndexError(indexExpr.Token, "Invalid indexing expression.");
             }
 
-            if (indexExpr.IndexedObject.Type == ASTNodeType.Identifier)
+            if (indexExpr.IndexedObject.Type is ASTNodeType.Identifier or ASTNodeType.Self)
             {
-                var identifierName = Id(indexExpr.IndexedObject);
+                string identifierName = indexExpr.IndexedObject.Type == ASTNodeType.Self
+                    ? ((SelfNode)indexExpr.IndexedObject).Name
+                    : Id(indexExpr.IndexedObject);
                 var indexedObj = Value.CreateInteger(0L);
                 var objContext = frame.GetObjectContext();
 
@@ -1090,7 +1092,10 @@ public class Interpreter
                         }
                     }
 
-                    scope.Assign(identifierName, Value.CreateList(listObj));
+                    if (identifierName[0] == '@' && objContext != null)
+                        objContext.InstanceVariables[identifierName] = indexedObj;
+                    else
+                        scope.Assign(identifierName, Value.CreateList(listObj));
                 }
                 else if (indexedObj.IsHashmap())
                 {
@@ -1137,7 +1142,10 @@ public class Interpreter
                         bytesObj[indexValue] = (byte)assignValue.GetInteger();
                     }
 
-                    scope.Assign(identifierName, Value.CreateBytes([.. bytesObj]));
+                    if (identifierName[0] == '@' && objContext != null)
+                        objContext.InstanceVariables[identifierName] = Value.CreateBytes([.. bytesObj]);
+                    else
+                        scope.Assign(identifierName, Value.CreateBytes([.. bytesObj]));
                 }
             }
             else if (indexExpr.IndexedObject.Type == ASTNodeType.Index)
@@ -1429,7 +1437,11 @@ public class Interpreter
         }
         else if (Context.HasLambda(name))
         {
-            return Value.CreateLambda(new LambdaRef { Identifier = name });
+            // Use the stored Ref so the returned value carries the original internal identifier
+            // (e.g. "<lambda_uuid>").  If we return a new LambdaRef with the user-defined name,
+            // and the user-defined name is later cleaned up (local lambda in a returned function),
+            // callers that try to re-register the lambda via the name will hit a KeyNotFoundException.
+            return Value.CreateLambda(Context.Lambdas[name].Ref);
         }
         else if (Context.LambdaTable.TryGetValue(name, out var mappedId) &&
                  Context.Lambdas.ContainsKey(mappedId))
@@ -1608,7 +1620,17 @@ public class Interpreter
         return Value.Default;
     }
 
-    private Value Visit(PrintXyNode node) => throw new NotImplementedException();
+    private Value Visit(PrintXyNode node)
+    {
+        var text = node.Expression != null ? Interpret(node.Expression) : Value.Default;
+        var x    = node.X          != null ? Interpret(node.X)          : Value.CreateInteger(1);
+        var y    = node.Y          != null ? Interpret(node.Y)          : Value.CreateInteger(1);
+        var col  = x.IsInteger() ? (int)x.GetInteger() : x.IsFloat() ? (int)x.GetFloat() : 1;
+        var row  = y.IsInteger() ? (int)y.GetInteger() : y.IsFloat() ? (int)y.GetFloat() : 1;
+        Console.SetCursorPosition(col - 1, row - 1);
+        Console.Write(Serializer.Serialize(text));
+        return Value.Default;
+    }
 
     private Value Visit(TernaryOperationNode node)
     {
@@ -2645,7 +2667,15 @@ public class Interpreter
     {
         // Evaluate arguments in the caller's context before starting the generator thread
         var args = argNodes.Select(arg => arg != null ? Interpret(arg) : Value.Default).ToList();
+        return CreateGeneratorFromValues(func, args, token);
+    }
 
+    /// <summary>
+    /// Create a generator from pre-evaluated arguments. Used by the VM when a generator
+    /// function is called via bytecode (arguments are already on the value stack).
+    /// </summary>
+    public Value CreateGeneratorFromValues(KFunction func, List<Value> args, Token token)
+    {
         var generatorRef = new GeneratorRef();
         var capturedGlobal = _globalScope;
         var capturedContext = Context;
@@ -2672,6 +2702,17 @@ public class Interpreter
     {
         _activeGenerator = generatorRef;
 
+        // For VM-compiled generators, run the bytecode body in a fresh per-thread VM.
+        // Yield opcodes in the bytecode call _interp.YieldFromVM which uses _activeGenerator
+        // (set above on this thread's interpreter instance).
+        if (func.VMChunk != null)
+        {
+            var vm = new VM.KiwiVM(this, func.CapturedScope ?? _globalScope);
+            vm.InvokeVMCallable(func, args, token, null);
+            return;
+        }
+
+        // Tree-walk path for interpreter-defined generators.
         // Push a root frame so the call stack is not empty
         PushFrame("<generator>", token, new Scope(_globalScope));
 
@@ -3241,7 +3282,7 @@ public class Interpreter
             throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
         }
 
-        var result = CallFunction(function, node.Arguments, node.Token, methodName);
+        var result = CallFunction(function, node.Arguments, node.Token, methodName, instance: obj);
 
         if (contextSwitch)
         {
@@ -3304,34 +3345,41 @@ public class Interpreter
     private Value CallBuiltin(FunctionCallNode node)
     {
         var args = GetMethodCallArguments(node.Arguments);
-        var op = node.Op;
+        return ExecuteBuiltin(node.Token, node.Op, args);
+    }
 
+    /// <summary>
+    /// Execute a C# native builtin call with pre-evaluated arguments.
+    /// Called from the VM's CallBuiltin opcode handler.
+    /// </summary>
+    public Value ExecuteBuiltin(Token token, TokenName op, List<Value> args)
+    {
         if (KiwiBuiltin.IsBuiltin(op))
         {
-            return KiwiBuiltinHandler.Execute(node.Token, op, args, ExecutionPath, EntryPath);
+            return KiwiBuiltinHandler.Execute(token, op, args, ExecutionPath, EntryPath);
         }
         else if (ReflectorBuiltin.IsBuiltin(op))
         {
-            return ReflectorBuiltinHandler.Execute(this, node.Token, op, args, Context, CallStack, FuncStack);
+            return ReflectorBuiltinHandler.Execute(this, token, op, args, Context, CallStack, FuncStack);
         }
         else if (TaskBuiltin.IsBuiltin(op))
         {
-            return TaskBuiltinHandler.Execute(node.Token, op, args, Context);
+            return TaskBuiltinHandler.Execute(token, op, args, Context);
         }
         else if (ChannelBuiltin.IsBuiltin(op))
         {
-            return ChannelBuiltinHandler.Execute(node.Token, op, args);
+            return ChannelBuiltinHandler.Execute(token, op, args);
         }
         else if (SocketBuiltin.IsBuiltin(op))
         {
-            return SocketBuiltinHandler.Execute(node.Token, op, args);
+            return SocketBuiltinHandler.Execute(token, op, args);
         }
         else if (TlsSocketBuiltin.IsBuiltin(op))
         {
-            return TlsSocketBuiltinHandler.Execute(node.Token, op, args);
+            return TlsSocketBuiltinHandler.Execute(token, op, args);
         }
 
-        return BuiltinDispatch.Execute(node.Token, op, args, CliArgs);
+        return BuiltinDispatch.Execute(token, op, args, CliArgs);
     }
 
     private Value CallFunction(FunctionCallNode node)
@@ -3386,19 +3434,20 @@ public class Interpreter
         return result;
     }
 
-    private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName, string structName = "")
+    private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName, string structName = "", InstanceRef? instance = null)
     {
         // For VM-compiled functions the Decl.Body is an empty stub; delegate to the VM.
+        // When KiwiVM.Current is null (e.g. a task thread running an AST lambda that calls
+        // into a VM-compiled stdlib function such as Channel.send), create a thread-local VM
+        // on demand.  The constructor sets KiwiVM.Current, so subsequent calls on the same
+        // thread reuse the same VM without allocating again.
         if (function.VMChunk != null)
         {
-            var vm = VM.KiwiVM.Current;
-            if (vm != null)
-            {
-                var tmpScope = new Scope(_globalScope);
-                var slots = ResolveArguments(function.Parameters, args, function.DefaultParameters, token, functionName, function.VariadicParamName, tmpScope);
-                var values = slots.Select(s => s ?? Value.Default).ToList();
-                return vm.InvokeVMCallable(function, values, token, null);
-            }
+            var vm = VM.KiwiVM.Current ?? new VM.KiwiVM(this, function.CapturedScope ?? _globalScope);
+            var tmpScope = new Scope(_globalScope);
+            var slots = ResolveArguments(function.Parameters, args, function.DefaultParameters, token, functionName, function.VariadicParamName, tmpScope);
+            var values = slots.Select(s => s ?? Value.Default).ToList();
+            return vm.InvokeVMCallable(function, values, token, instance);
         }
 
         var defaultParameters = function.DefaultParameters;
@@ -3572,7 +3621,7 @@ public class Interpreter
                 throw new InvalidContextError(node.Token, "Cannot invoke private method outside of struct.");
             }
 
-            var result = CallFunction(function, node.Arguments, node.Token, methodName);
+            var result = CallFunction(function, node.Arguments, node.Token, methodName, instance: obj);
 
             if (contextSwitch)
             {
@@ -3890,7 +3939,7 @@ public class Interpreter
             throw new InvalidContextError(node.Token, "Invalid function context.");
         }
 
-        var result = CallFunction(function, ctorArgs, node.Token, methodName, struc.Identifier);
+        var result = CallFunction(function, ctorArgs, node.Token, methodName, struc.Identifier, isCtor ? obj : null);
 
         if (isCtor)
         {
@@ -3908,7 +3957,7 @@ public class Interpreter
         return result;
     }
 
-    private void RegisterTypeBuiltins(string packageName)
+    internal void RegisterTypeBuiltins(string packageName)
     {
         if (TypeRegistry.TryGetPrimitiveType(packageName, out int type))
         {
@@ -3921,7 +3970,7 @@ public class Interpreter
         }
     }
 
-    private void ImportPackage(Token token, Value packageName)
+    public void ImportPackage(Token token, Value packageName)
     {
         if (!packageName.IsString())
         {
@@ -4387,8 +4436,12 @@ public class Interpreter
     /// Push a synthetic call-stack frame so builtins can safely call CallStack.Peek().
     /// Used by the VM's InterpFallback handler before delegating to the tree-walker.
     /// </summary>
-    public void PushVMDispatchFrame(Scope globals)
-        => CallStack.Push(new StackFrame("<vm-dispatch>", globals));
+    public void PushVMDispatchFrame(Scope globals, InstanceRef? self = null)
+    {
+        var frame = new StackFrame("<vm-dispatch>", globals);
+        if (self != null) frame.SetObjectContext(self);
+        CallStack.Push(frame);
+    }
 
     /// <summary>Pop the synthetic frame pushed by <see cref="PushVMDispatchFrame"/>.</summary>
     public void PopVMDispatchFrame()
@@ -4413,13 +4466,14 @@ public class Interpreter
     /// After execution, any variables that were modified in the interpreter scope are
     /// written back into <paramref name="locals"/> so the VM can update its stack.
     /// </summary>
-    public Value InterpretNodeWithLocals(ASTNode node, Dictionary<string, Value> locals)
+    public Value InterpretNodeWithLocals(ASTNode node, Dictionary<string, Value> locals, InstanceRef? self = null)
     {
         var scope = new Scope(_globalScope);
         foreach (var kv in locals)
             scope.Declare(kv.Key, kv.Value);
 
         var frame = new StackFrame("<vm-fallback>", scope);
+        if (self != null) frame.SetObjectContext(self);
         CallStack.Push(frame);
         try
         {
@@ -4669,6 +4723,27 @@ public class Interpreter
         if (obj.IsList())   return Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList());
         if (obj.IsBytes())  return Builtin.Util.SliceUtil.BytesSlice(token, slice, obj.GetBytes());
         throw new InvalidOperationError(token, "Cannot slice this type.");
+    }
+
+    /// <summary>
+    /// Assign rhs into a slice range of obj in-place.
+    /// Called from the VM's SliceSet opcode handler.
+    /// </summary>
+    public void SetSlice(Value obj, Value? startV, Value? stopV, Value? stepV, Value rhs, Token token)
+    {
+        var startVal = startV ?? Value.CreateInteger(0L);
+        var stopVal  = stopV  ?? (obj.IsList()  ? Value.CreateInteger(obj.GetList().Count) :
+                                  obj.IsBytes() ? Value.CreateInteger(obj.GetBytes().Length) :
+                                                  Value.CreateInteger(0L));
+        var stepVal  = stepV  ?? Value.CreateInteger(1L);
+        var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
+
+        if (obj.IsList() && rhs.IsList())
+        {
+            var targetList = obj.GetList();
+            var rhsValues  = rhs.GetList();
+            Builtin.Util.SliceUtil.UpdateListSlice(token, false, ref targetList, slice, rhsValues);
+        }
     }
 
     /// <summary>
