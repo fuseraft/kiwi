@@ -133,4 +133,34 @@ fn test_structs()
   ctr2.increment()
   tester::assert(ctr.value() == 3,  "A16: first counter unaffected by second")
   tester::assert(ctr2.value() == 1, "A17: second counter independent")
+
+  # nested InterpFallback self-context: struct methods that chain builtins on @attr
+  # This exercises the VM path where InterpFallback must carry the correct Self
+  # at any nesting depth (not only when the interpreter call-stack is empty).
+  struct Box
+    fn new(v)
+      @v = v
+    end
+
+    fn digit_count()
+      "${@v}".chars().size()
+    end
+
+    fn describe()
+      n = @.digit_count()
+      doubled = @v * 2
+      "box(${doubled}) has ${n} digits"
+    end
+
+    fn get()
+      @v
+    end
+  end
+
+  b1 = Box.new(42)
+  b2 = Box.new(1000)
+  tester::assert(b1.digit_count() == 2,                     "A18: digit_count on @attr via chained builtins")
+  tester::assert(b1.describe() == "box(84) has 2 digits",   "A19: nested fallback self-context in describe()")
+  tester::assert(b2.digit_count() == 4,                     "A20: second instance independent digit_count")
+  tester::assert(b1.get() == 42,                            "A21: b1 @v unchanged after b2 ops")
 end

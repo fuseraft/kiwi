@@ -77,10 +77,16 @@ var (unit_tests: list = [
   "text_pipeline",
   "table_pipeline",
 
+  # Concurrency
+  "tasks",
+
   # Storage & I/O
   "sqlite",
   "compression",
-  "http"
+  "http",
+
+  # Network
+  "sockets"
 ])
 
 for unit_test in unit_tests do

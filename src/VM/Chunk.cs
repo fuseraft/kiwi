@@ -79,6 +79,12 @@ public class Chunk
 
     // -- Function metadata -----------------------------------------------------
     /// <summary>
+    /// True when this chunk contains at least one Yield opcode (i.e. it is a generator function).
+    /// Set by the compiler when CompileYield is called.
+    /// </summary>
+    public bool IsGenerator { get; set; }
+
+    /// <summary>
     /// Number of explicit parameters (not counting variadic).
     /// </summary>
     public int Arity { get; set; }

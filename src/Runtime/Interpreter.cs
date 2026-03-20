@@ -2667,7 +2667,15 @@ public class Interpreter
     {
         // Evaluate arguments in the caller's context before starting the generator thread
         var args = argNodes.Select(arg => arg != null ? Interpret(arg) : Value.Default).ToList();
+        return CreateGeneratorFromValues(func, args, token);
+    }
 
+    /// <summary>
+    /// Create a generator from pre-evaluated arguments. Used by the VM when a generator
+    /// function is called via bytecode (arguments are already on the value stack).
+    /// </summary>
+    public Value CreateGeneratorFromValues(KFunction func, List<Value> args, Token token)
+    {
         var generatorRef = new GeneratorRef();
         var capturedGlobal = _globalScope;
         var capturedContext = Context;
@@ -2694,6 +2702,17 @@ public class Interpreter
     {
         _activeGenerator = generatorRef;
 
+        // For VM-compiled generators, run the bytecode body in a fresh per-thread VM.
+        // Yield opcodes in the bytecode call _interp.YieldFromVM which uses _activeGenerator
+        // (set above on this thread's interpreter instance).
+        if (func.VMChunk != null)
+        {
+            var vm = new VM.KiwiVM(this, func.CapturedScope ?? _globalScope);
+            vm.InvokeVMCallable(func, args, token, null);
+            return;
+        }
+
+        // Tree-walk path for interpreter-defined generators.
         // Push a root frame so the call stack is not empty
         PushFrame("<generator>", token, new Scope(_globalScope));
 
@@ -3411,16 +3430,17 @@ public class Interpreter
     private Value CallFunction(KFunction function, List<ASTNode?> args, Token token, string functionName, string structName = "", InstanceRef? instance = null)
     {
         // For VM-compiled functions the Decl.Body is an empty stub; delegate to the VM.
+        // When KiwiVM.Current is null (e.g. a task thread running an AST lambda that calls
+        // into a VM-compiled stdlib function such as Channel.send), create a thread-local VM
+        // on demand.  The constructor sets KiwiVM.Current, so subsequent calls on the same
+        // thread reuse the same VM without allocating again.
         if (function.VMChunk != null)
         {
-            var vm = VM.KiwiVM.Current;
-            if (vm != null)
-            {
-                var tmpScope = new Scope(_globalScope);
-                var slots = ResolveArguments(function.Parameters, args, function.DefaultParameters, token, functionName, function.VariadicParamName, tmpScope);
-                var values = slots.Select(s => s ?? Value.Default).ToList();
-                return vm.InvokeVMCallable(function, values, token, instance);
-            }
+            var vm = VM.KiwiVM.Current ?? new VM.KiwiVM(this, function.CapturedScope ?? _globalScope);
+            var tmpScope = new Scope(_globalScope);
+            var slots = ResolveArguments(function.Parameters, args, function.DefaultParameters, token, functionName, function.VariadicParamName, tmpScope);
+            var values = slots.Select(s => s ?? Value.Default).ToList();
+            return vm.InvokeVMCallable(function, values, token, instance);
         }
 
         var defaultParameters = function.DefaultParameters;
