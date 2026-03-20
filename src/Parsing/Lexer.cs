@@ -665,6 +665,21 @@ public class Lexer : IDisposable
                 GetChar();  // Move past the closing quote
                 break;      // End of string
             }
+            else if (c == '$')
+            {
+                GetChar();  // consume '$'
+                var next = PeekChar();
+                if (next == '{')
+                {
+                    GetChar();  // consume '{'
+                    text += "${";
+                    ScanInterpolationBlock(ref text);
+                }
+                else
+                {
+                    text += '$';
+                }
+            }
             else
             {
                 text += c;
@@ -678,6 +693,86 @@ public class Lexer : IDisposable
         }
 
         return CreateStringLiteralToken(span, text, Value.CreateString(text));
+    }
+
+    /// <summary>
+    /// Scans the content of a ${...} interpolation block (after the opening "${" has been consumed),
+    /// appending everything — including the closing "}" — to <paramref name="text"/>.
+    /// Nested double-quoted and single-quoted string literals are scanned verbatim so that
+    /// a quote inside an interpolation expression doesn't prematurely terminate the outer string.
+    /// </summary>
+    private void ScanInterpolationBlock(ref string text)
+    {
+        int depth = 1;
+        char? c;
+
+        while ((c = PeekChar()) != null && depth > 0)
+        {
+            if (c == '{')
+            {
+                depth++;
+                text += c;
+                GetChar();
+            }
+            else if (c == '}')
+            {
+                depth--;
+                text += c;
+                GetChar();
+            }
+            else if (c == '"')
+            {
+                // Nested double-quoted string — scan verbatim until matching unescaped "
+                text += '"';
+                GetChar();
+                bool nestedEsc = false;
+                char? nc;
+                while ((nc = PeekChar()) != null)
+                {
+                    if (nestedEsc)
+                    {
+                        nestedEsc = false;
+                        text += nc;
+                        GetChar();
+                    }
+                    else if (nc == '\\')
+                    {
+                        nestedEsc = true;
+                        text += nc;
+                        GetChar();
+                    }
+                    else if (nc == '"')
+                    {
+                        text += '"';
+                        GetChar();
+                        break;
+                    }
+                    else
+                    {
+                        text += nc;
+                        GetChar();
+                    }
+                }
+            }
+            else if (c == '\'')
+            {
+                // Nested single-quoted (raw) string — scan verbatim until matching '
+                text += '\'';
+                GetChar();
+                char? rc;
+                while ((rc = PeekChar()) != null)
+                {
+                    text += rc;
+                    GetChar();
+                    if (rc == '\'') break;
+                }
+            }
+            else
+            {
+                text += c;
+                GetChar();
+            }
+        }
     }
 
     private Token TokenizeRawString(TokenSpan span)
