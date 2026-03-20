@@ -436,6 +436,23 @@ public enum Opcode : byte
     /// </summary>
     InterpFallback,
 
+    // -- Builtin call ----------------------------------------------------------
+    /// <summary>
+    /// A = node-pool index (FunctionCallNode, used for Token and Op).
+    /// B = argc.  Pop B args (in order), call _interp.ExecuteBuiltin, push result.
+    /// Used for C# native builtin calls (KiwiBuiltin, SocketBuiltin, Math, etc.)
+    /// that are not CoreBuiltin method calls.
+    /// </summary>
+    CallBuiltin,
+
+    // -- Export ---------------------------------------------------------------
+    /// <summary>
+    /// A = node-pool index (ExportNode).
+    /// Interprets the ExportNode via InterpretNodeWithLocals (which correctly sets up
+    /// the interpreter call stack so that package body struct/function definitions work).
+    /// </summary>
+    Export,
+
     // -- Exit -----------------------------------------------------------------
     /// <summary>
     /// Pop exit-code value; call Environment.Exit(code).

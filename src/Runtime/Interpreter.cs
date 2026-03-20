@@ -3345,34 +3345,41 @@ public class Interpreter
     private Value CallBuiltin(FunctionCallNode node)
     {
         var args = GetMethodCallArguments(node.Arguments);
-        var op = node.Op;
+        return ExecuteBuiltin(node.Token, node.Op, args);
+    }
 
+    /// <summary>
+    /// Execute a C# native builtin call with pre-evaluated arguments.
+    /// Called from the VM's CallBuiltin opcode handler.
+    /// </summary>
+    public Value ExecuteBuiltin(Token token, TokenName op, List<Value> args)
+    {
         if (KiwiBuiltin.IsBuiltin(op))
         {
-            return KiwiBuiltinHandler.Execute(node.Token, op, args, ExecutionPath, EntryPath);
+            return KiwiBuiltinHandler.Execute(token, op, args, ExecutionPath, EntryPath);
         }
         else if (ReflectorBuiltin.IsBuiltin(op))
         {
-            return ReflectorBuiltinHandler.Execute(this, node.Token, op, args, Context, CallStack, FuncStack);
+            return ReflectorBuiltinHandler.Execute(this, token, op, args, Context, CallStack, FuncStack);
         }
         else if (TaskBuiltin.IsBuiltin(op))
         {
-            return TaskBuiltinHandler.Execute(node.Token, op, args, Context);
+            return TaskBuiltinHandler.Execute(token, op, args, Context);
         }
         else if (ChannelBuiltin.IsBuiltin(op))
         {
-            return ChannelBuiltinHandler.Execute(node.Token, op, args);
+            return ChannelBuiltinHandler.Execute(token, op, args);
         }
         else if (SocketBuiltin.IsBuiltin(op))
         {
-            return SocketBuiltinHandler.Execute(node.Token, op, args);
+            return SocketBuiltinHandler.Execute(token, op, args);
         }
         else if (TlsSocketBuiltin.IsBuiltin(op))
         {
-            return TlsSocketBuiltinHandler.Execute(node.Token, op, args);
+            return TlsSocketBuiltinHandler.Execute(token, op, args);
         }
 
-        return BuiltinDispatch.Execute(node.Token, op, args, CliArgs);
+        return BuiltinDispatch.Execute(token, op, args, CliArgs);
     }
 
     private Value CallFunction(FunctionCallNode node)
@@ -3963,7 +3970,7 @@ public class Interpreter
         }
     }
 
-    private void ImportPackage(Token token, Value packageName)
+    public void ImportPackage(Token token, Value packageName)
     {
         if (!packageName.IsString())
         {
