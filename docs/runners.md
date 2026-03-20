@@ -8,7 +8,8 @@ Kiwi supports **multiple execution modes** via the `IRunner` interface. Each mod
 
 | Runner | Purpose | Input | Example |
 |--------|--------|-------|--------|
-| `ScriptRunner` | Run `.kiwi` files | File path | `kiwi script.kiwi` |
+| `VMScriptRunner` | Run `.kiwi` files (default) | File path | `kiwi script.kiwi` |
+| `ScriptRunner` | Run via tree-walking interpreter | File path | `kiwi --tree-walker script.kiwi` |
 | `CodeRunner` | Execute a code string inline | `-e` flag | `kiwi -e 'println "hi"'` |
 | `StdInRunner` | Run from piped stdin | `stdin` | `cat script.kiwi \| kiwi` |
 | `REPLRunner` | Interactive shell | Keyboard | `kiwi` or `kiwi -i` |
@@ -22,11 +23,11 @@ Kiwi supports **multiple execution modes** via the `IRunner` interface. Each mod
 All runners follow the same core pipeline:
 
 1. **Load Standard Library** (once, unless debugging)
-2. **Lex -> Parse -> Interpret**
+2. **Lex -> Parse -> Compile -> Execute** (VM) or **Lex -> Parse -> Interpret** (tree-walker)
 3. **Handle errors gracefully**
 4. **Pass CLI args** to `Interpreter.CliArgs`
 
-## `ScriptRunner` – Run a File
+## `VMScriptRunner` – Run a File (Default)
 
 **Use Case**: Production scripts, CLI tools, automation.
 
@@ -34,9 +35,21 @@ All runners follow the same core pipeline:
 kiwi examples/hello.kiwi
 ```
 
+- Compiles the script (plus the [`standard library`](./lib/README.md)) to bytecode
+- Executes in the bytecode VM
+- Executes top-level code and `main()` if defined
+
+## `ScriptRunner` – Tree-Walking Interpreter
+
+**Use Case**: Compatibility, debugging, or when the VM is not desired.
+
+```bash
+kiwi --tree-walker examples/hello.kiwi
+```
+
 - Loads the [`standard library`](./lib/README.md) first
 - Then loads `hello.kiwi`
-- Executes top-level code and `main()` if defined
+- Executes top-level code and `main()` if defined via the tree-walking interpreter
 
 ## `CodeRunner` – Execute Inline Code
 
@@ -232,7 +245,7 @@ Token #               Type  Name                 Text
 
 ## Standard Library
 
-- **Loaded automatically** in `ScriptRunner`, `CodeRunner`, `StdInRunner`, `REPLRunner`, and `SyntaxChecker`
+- **Loaded automatically** in `VMScriptRunner`, `ScriptRunner`, `CodeRunner`, `StdInRunner`, `REPLRunner`, and `SyntaxChecker`
 - **Skipped** in `--ast` and `--tokens`
 - Configured in [`kiwi-settings.json`](../src/kiwi-settings.json)
 - **Last file wins** (for overrides)
@@ -261,8 +274,11 @@ kiwi -name=scotty
 # REPL (explicit)
 kiwi -i
 
-# Run a script
+# Run a script (VM, default)
 kiwi test.kiwi
+
+# Run via tree-walking interpreter
+kiwi --tree-walker test.kiwi
 
 # Execute inline code
 kiwi -e 'println("hello")'
