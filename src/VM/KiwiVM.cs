@@ -891,6 +891,18 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    case Opcode.SliceSet:
+                    {
+                        var rhs    = Pop();
+                        Value? stepV  = (A & 4) != 0 ? Pop() : (Value?)null;
+                        Value? stopV  = (A & 2) != 0 ? Pop() : (Value?)null;
+                        Value? startV = (A & 1) != 0 ? Pop() : (Value?)null;
+                        var obj = Pop();
+                        _interp.SetSlice(obj, startV, stopV, stepV, rhs, frame.GetToken());
+                        Push(rhs);
+                        break;
+                    }
+
                     // -- Member access -------------------------------------
                     case Opcode.GetMember:
                     {

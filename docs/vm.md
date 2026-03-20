@@ -260,6 +260,7 @@ When `DoCall` pushes a new frame it returns `true` and the outer loop starts dis
 | `IndexOpAssign` | inner opcode | Compound index assignment (`lst[i] += v`) |
 | `UnpackList` | count | Pop list; unpack A elements (or push value + nulls if not a list) |
 | `SliceGet` | flags | Pop obj, optional start/stop/step; push slice |
+| `SliceSet` | flags | Pop rhs, optional step/stop/start, pop obj; assign rhs into slice range in-place; push rhs |
 
 ### Member Access
 
@@ -476,13 +477,13 @@ At runtime:
 
 `export "package_name"` re-interprets the `ExportNode` via `InterpretNodeWithLocals`. This is necessary because `ImportPackage` re-evaluates the package body (struct definitions, function definitions), which calls into `CreateFunction` → `CaptureCurrentScope().Peek()` — requiring a live interpreter frame.
 
-### What Uses InterpFallback vs. CallBuiltin
+### What Uses Each Mechanism
 
 | Construct | Mechanism |
 |-----------|-----------|
 | Non-CoreBuiltin function call, no named/splat args | `CallBuiltin` |
-| `export "pkg"` | `Export` opcode (InterpretNodeWithLocals) |
-| Complex `IndexAssignment` (compound ops) | `InterpFallback` |
+| `export "pkg"` | `Export` opcode (`InterpretNodeWithLocals`) |
+| `a[start:stop] = rhs` (slice assignment) | `SliceSet` opcode |
 | `eval` | `InterpFallback` |
 | `include` | `InterpFallback` |
 | `@decorator fn` | `InterpFallback` |

@@ -207,6 +207,12 @@ public enum Opcode : byte
     /// Pops (in order): obj, start?, stop?, step? → push slice.
     /// </summary>
     SliceGet,
+    /// <summary>
+    /// A = flags: bit0=hasStart, bit1=hasStop, bit2=hasStep.
+    /// Pops (in order from stack top): rhs, step?, stop?, start?, obj.
+    /// Applies rhs to the slice range of obj in-place; pushes rhs.
+    /// </summary>
+    SliceSet,
 
     // -- Member Access ---------------------------------------------------------
     /// <summary>
