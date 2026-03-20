@@ -426,6 +426,7 @@ public sealed class Compiler
             case ASTNodeType.Do:               CompileDo            ((DoNode)node,               ln); return false;
             case ASTNodeType.Struct:           CompileStruct         ((StructNode)node,            ln); return false;
             case ASTNodeType.Package:          CompilePackage        ((PackageNode)node,           ln); return false;
+            case ASTNodeType.Export:           CompileExport         ((ExportNode)node,            ln); return false;
             case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
             case ASTNodeType.DecoratedFunction: Fallback             (node);                            return true;
             case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
@@ -1415,7 +1416,17 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // Emit LoadGlobal + Call so the BoundSelf mechanism routes them correctly.
         // Other non-Default ops (Kiwi builtins like __exec_path, tokenize, etc.) are
         // not yet natively compiled and still need the interpreter fallback.
-        if (node.Op != TokenName.Default && !CoreBuiltin.IsBuiltin(node.Op)) { Fallback(node); return; }
+        if (node.Op != TokenName.Default && !CoreBuiltin.IsBuiltin(node.Op))
+        {
+            // Named or splat args still require interpreter fallback (rare edge case).
+            bool hasNamedB = HasNamedArg(node.Arguments);
+            bool hasSplatB = HasSplatNode(node.Arguments);
+            if (hasNamedB || hasSplatB) { Fallback(node); return; }
+            int argcB    = CompileArgs(node.Arguments);
+            int nodeIdxB = _chunk.AddNodeFallback(node);
+            Emit(Opcode.CallBuiltin, nodeIdxB, argcB, ln);
+            return;
+        }
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
         if (hasNamed && hasSplat) { Fallback(node); return; }
@@ -1571,6 +1582,14 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         PatchJump(handlerInstr);
         Emit(Opcode.PackageAbort, 0, 0, ln);
         PatchJump(skipAbort);
+    }
+
+    // -- Export ----------------------------------------------------------------
+
+    private void CompileExport(ExportNode node, int ln)
+    {
+        int nodeIdx = _chunk.AddNodeFallback(node);
+        Emit(Opcode.Export, nodeIdx, 0, ln);
     }
 
     // -- Enum definition -------------------------------------------------------

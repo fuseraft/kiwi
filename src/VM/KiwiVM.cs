@@ -1246,6 +1246,28 @@ public sealed class KiwiVM
                         break;
                     }
 
+                    // -- Builtin call --------------------------------------
+                    case Opcode.CallBuiltin:
+                    {
+                        var node = (Parsing.AST.FunctionCallNode)frame.Chunk.NodePool[A];
+                        var args = new List<Value>(B);
+                        for (int i = 0; i < B; i++) args.Add(Pop());
+                        args.Reverse();
+                        Push(_interp.ExecuteBuiltin(node.Token, node.Op, args));
+                        break;
+                    }
+
+                    // -- Export --------------------------------------------
+                    case Opcode.Export:
+                    {
+                        var node = frame.Chunk.NodePool[A];
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        break;
+                    }
+
                     // -- Type introspection --------------------------------
                     case Opcode.TypeOf:
                     {

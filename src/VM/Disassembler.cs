@@ -217,6 +217,20 @@ public static class Disassembler
                     break;
                 }
 
+                case Opcode.CallBuiltin:
+                {
+                    var nodeType = chunk.NodePool.Count > instr.A
+                        ? chunk.NodePool[instr.A].Type.ToString() : "?";
+                    sb.Append($" node[{instr.A}] ({nodeType})  argc={instr.B}");
+                    break;
+                }
+
+                case Opcode.Export:
+                {
+                    sb.Append($" node[{instr.A}]");
+                    break;
+                }
+
                 case Opcode.CloseUpvalue:
                     sb.Append($" from_slot={instr.A}");
                     break;
