@@ -4726,6 +4726,27 @@ public class Interpreter
     }
 
     /// <summary>
+    /// Assign rhs into a slice range of obj in-place.
+    /// Called from the VM's SliceSet opcode handler.
+    /// </summary>
+    public void SetSlice(Value obj, Value? startV, Value? stopV, Value? stepV, Value rhs, Token token)
+    {
+        var startVal = startV ?? Value.CreateInteger(0L);
+        var stopVal  = stopV  ?? (obj.IsList()  ? Value.CreateInteger(obj.GetList().Count) :
+                                  obj.IsBytes() ? Value.CreateInteger(obj.GetBytes().Length) :
+                                                  Value.CreateInteger(0L));
+        var stepVal  = stepV  ?? Value.CreateInteger(1L);
+        var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
+
+        if (obj.IsList() && rhs.IsList())
+        {
+            var targetList = obj.GetList();
+            var rhsValues  = rhs.GetList();
+            Builtin.Util.SliceUtil.UpdateListSlice(token, false, ref targetList, slice, rhsValues);
+        }
+    }
+
+    /// <summary>
     /// Get obj.memberName (package/struct instance variable).
     /// Used by the VM's GetMember opcode.
     /// </summary>

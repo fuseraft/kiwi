@@ -899,7 +899,27 @@ public sealed class Compiler
 
     private void CompileIndexAssign(IndexAssignmentNode node, int ln)
     {
-        if (node.Object == null || node.Object.Type != ASTNodeType.Index)
+        if (node.Object == null) { Fallback(node); return; }
+
+        if (node.Object.Type == ASTNodeType.Slice)
+        {
+            // Slice assignment: a[start:stop:step] = rhs
+            // Compound slice assign (+=, etc.) not supported — fall back.
+            if (node.Op != TokenName.Ops_Assign) { Fallback(node); return; }
+            var sliceExpr = (SliceNode)node.Object;
+            if (sliceExpr.SlicedObject != null) CompileNode(sliceExpr.SlicedObject);
+            else                                EmitLoad("", ln);
+            int flags = 0;
+            if (sliceExpr.StartExpression != null) { CompileNode(sliceExpr.StartExpression); flags |= 1; }
+            if (sliceExpr.StopExpression  != null) { CompileNode(sliceExpr.StopExpression);  flags |= 2; }
+            if (sliceExpr.StepExpression  != null) { CompileNode(sliceExpr.StepExpression);  flags |= 4; }
+            if (node.Initializer != null) CompileNode(node.Initializer);
+            else                         Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.SliceSet, flags, 0, ln);
+            return;
+        }
+
+        if (node.Object.Type != ASTNodeType.Index)
         {
             Fallback(node); return;
         }

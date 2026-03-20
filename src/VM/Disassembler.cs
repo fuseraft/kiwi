@@ -236,6 +236,7 @@ public static class Disassembler
                     break;
 
                 case Opcode.SliceGet:
+                case Opcode.SliceSet:
                     sb.Append($" flags=0x{instr.A:X}");
                     break;
 
