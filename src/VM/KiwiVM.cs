@@ -22,6 +22,7 @@ internal sealed class ForIterState
     public string? StringData; // lazy string iteration: avoids upfront char-Value allocation
     public int     Index;
     public List<Value>? HashmapKeys; // pre-enumerated keys for hashmap iteration
+    public GeneratorRef? Generator;  // VM-native generator iteration
 }
 
 /// <summary>
@@ -733,9 +734,10 @@ public sealed class KiwiVM
 
                         var kfunc = new KFunction(BuildFunctionNode(sub, funcName))
                         {
-                            Name      = funcName,
-                            VMChunk   = sub,
-                            VMUpvalues = upvalues
+                            Name        = funcName,
+                            VMChunk     = sub,
+                            VMUpvalues  = upvalues,
+                            IsGenerator = sub.IsGenerator,
                         };
                         foreach (var (pn, _) in kfunc.Decl.Parameters)
                             kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
@@ -1030,6 +1032,10 @@ public sealed class KiwiVM
                             state.StringData = coll.GetString();
                             state.Index      = 0;
                         }
+                        else if (coll.IsGenerator())
+                        {
+                            state.Generator = coll.GetGenerator();
+                        }
                         else
                         {
                             // Unsupported collection type - push null state so we stop immediately
@@ -1104,6 +1110,24 @@ public sealed class KiwiVM
                             {
                                 var b = state.Bytes[state.Index++];
                                 Push(Value.CreateInteger(b));
+                            }
+                        }
+                        else if (state.Generator != null)
+                        {
+                            var (hasValue, genVal) = state.Generator.Next();
+                            done = !hasValue;
+                            if (!done)
+                            {
+                                if (numVars == 2)
+                                {
+                                    Push(Value.CreateInteger(state.Index++)); // key = position
+                                    Push(genVal);
+                                }
+                                else Push(genVal);
+                            }
+                            else
+                            {
+                                state.Generator.Dispose();
                             }
                         }
                         else
@@ -1202,39 +1226,21 @@ public sealed class KiwiVM
                     case Opcode.InterpFallback:
                     {
                         var node = frame.Chunk.NodePool[A];
-                        Value r;
-                        // Ensure the interpreter call-stack is non-empty so that builtins
-                        // (e.g. ListBuiltinHandler) can safely call CallStack.Peek().
-                        // Also propagate the current VM frame's Self so that @attr access
-                        // (SelfNode) inside fallback expressions resolves correctly.
-                        bool pushedFrame = _interp.CallStack.Count == 0;
-                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals, frame.Self);
-                        try
+                        // Always push a fresh <vm-fallback> frame via InterpretNodeWithLocals so
+                        // that:
+                        //   1. CallStack is never empty when builtins call CallStack.Peek().
+                        //   2. frame.Self is correctly propagated at ANY nesting depth — the old
+                        //      conditional (only push when Count==0) left the wrong self on the
+                        //      existing top frame for nested fallback calls.
+                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
+                            locals[lname] = _stack[frame.StackBase + slot];
+                        var r = _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        // Sync any updated locals back to the VM stack.
+                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
                         {
-                            // If there are named locals in the current frame, expose them to the
-                            // interpreter so that sub-expressions (e.g. named-arg values) can
-                            // resolve VM-local variables by name.
-                            if (frame.Chunk.LocalNames.Count > 0)
-                            {
-                                var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
-                                foreach (var (name, slot) in frame.Chunk.LocalNames)
-                                    locals[name] = _stack[frame.StackBase + slot];
-                                r = _interp.InterpretNodeWithLocals(node, locals, frame.Self);
-                                // Sync any updated locals back to the VM stack.
-                                foreach (var (name, slot) in frame.Chunk.LocalNames)
-                                {
-                                    if (locals.TryGetValue(name, out var updated))
-                                        _stack[frame.StackBase + slot] = updated;
-                                }
-                            }
-                            else
-                            {
-                                r = _interp.InterpretNode(node);
-                            }
-                        }
-                        finally
-                        {
-                            if (pushedFrame) _interp.PopVMDispatchFrame();
+                            if (locals.TryGetValue(lname, out var updated))
+                                _stack[frame.StackBase + slot] = updated;
                         }
                         Push(r);
                         break;
@@ -1708,6 +1714,19 @@ public sealed class KiwiVM
             {
                 var sub      = lr.VMChunk;
                 var upvalues = lr.VMUpvalues ?? [];
+                // Generator functions must not execute directly — create a GeneratorRef instead.
+                if (sub.IsGenerator)
+                {
+                    var args = CollectArgs(calleeBase, argc);
+                    _sp = funcSlot;
+                    // Resolve the KFunction by name so CreateGeneratorFromValues can run the body.
+                    KFunction? kfGen = !string.IsNullOrEmpty(lr.Identifier) && _context.HasFunction(lr.Identifier)
+                        ? _context.Functions[lr.Identifier] : null;
+                    Push(kfGen != null
+                        ? _interp.CreateGeneratorFromValues(kfGen, args, token)
+                        : Value.Default);
+                    return false;
+                }
                 SetupCalleeLocals(sub, calleeBase, argc);
                 PushFrame(sub.Name, sub, calleeBase, upvalues, token);
                 return true;
@@ -1719,13 +1738,20 @@ public sealed class KiwiVM
                 var kf = _context.Functions[lr.Identifier];
                 if (kf.VMChunk != null)
                 {
+                    if (kf.IsGenerator)
+                    {
+                        var args = CollectArgs(calleeBase, argc);
+                        _sp = funcSlot;
+                        Push(_interp.CreateGeneratorFromValues(kf, args, token));
+                        return false;
+                    }
                     SetupCalleeLocals(kf.VMChunk, calleeBase, argc);
                     PushFrame(kf.VMChunk.Name, kf.VMChunk, calleeBase, kf.VMUpvalues ?? [], token);
                     return true;
                 }
-                var args = CollectArgs(calleeBase, argc);
+                var args2 = CollectArgs(calleeBase, argc);
                 _sp = funcSlot;
-                Push(_interp.InvokeCallable(kf, args, token, lr.Identifier));
+                Push(_interp.InvokeCallable(kf, args2, token, lr.Identifier));
                 return false;
             }
 

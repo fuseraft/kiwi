@@ -1246,6 +1246,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         if (node.YieldValue != null) CompileNode(node.YieldValue);
         else                        Emit(Opcode.Null, 0, 0, ln);
         Emit(Opcode.Yield, 0, 0, ln);
+        _chunk.IsGenerator = true; // mark this chunk as a generator function
     }
 
     // -- Exit ------------------------------------------------------------------
