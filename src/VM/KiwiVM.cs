@@ -323,6 +323,10 @@ public sealed class KiwiVM
                             _nameCache[name] = v; // constants never change
                             Push(v);
                         }
+                        else if (_context.HasPackageVariable(name))
+                        {
+                            Push(_context.PackageVariables[name]); // mutable — don't cache
+                        }
                         else if (_context.HasStruct(name))
                         {
                             var v = Value.CreateStruct(new StructRef { Identifier = name });
@@ -364,6 +368,12 @@ public sealed class KiwiVM
                         }
                         _globals.Assign(name, v);
                         _nameCache.Remove(name); // invalidate any cached resolution
+                        // Mirror package-level variable into PackageVariables for pkg::name access.
+                        if (_interp.PackageStack.Count > 0)
+                        {
+                            var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + name;
+                            _context.PackageVariables[qualName] = v;
+                        }
                         break;
                     }
 
