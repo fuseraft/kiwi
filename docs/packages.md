@@ -204,6 +204,71 @@ app::utils::greet("World")  # also works
 
 ---
 
+## Package-Level Variables
+
+Variables declared at the top level of a `package` body (outside any function) are **package-scoped**. After the package is exported, they are accessible via the fully-qualified `package::VAR` syntax.
+
+```kiwi
+package config
+  HOST    = "localhost"
+  PORT    = 8080
+  VERSION = "2.1.0"
+
+  fn url()
+    "http://${config::HOST}:${config::PORT}"
+  end
+end
+
+export "config"
+
+println config::HOST     # localhost
+println config::PORT     # 8080
+println config::url()    # http://localhost:8080
+```
+
+Package variables are also reachable through an imported package reference:
+
+```kiwi
+cfg = import "config"
+println cfg.HOST     # localhost
+println cfg.VERSION  # 2.1.0
+```
+
+### Scope rules
+
+Variables defined inside a package **function** remain local to that call and are never registered as package-level variables:
+
+```kiwi
+package counter
+  total = 0   # package-level — accessible as counter::total
+
+  fn increment()
+    step = 1        # local to this call — not accessible as counter::step
+    total += step
+  end
+end
+
+export "counter"
+```
+
+### `const` vs regular package variables
+
+Use `const` when the value must not be reassigned. Attempting to redefine a `const` raises an error; regular package variables can be updated freely.
+
+```kiwi
+package limits
+  const MAX = 100   # immutable — redeclaring raises IllegalNameError
+  default = 10      # mutable package variable
+end
+
+export "limits"
+
+println limits::MAX      # 100
+println limits::default  # 10
+```
+
+---
+
 ## Extending Built-in Types
 
 When a package's name matches a built-in type name **and** a function's first parameter is typed as that type, Kiwi automatically makes the function callable as a method on any value of that type.
