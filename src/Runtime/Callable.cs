@@ -51,6 +51,13 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     public bool IsGenerator { get; set; }
     public bool IsAbstract { get; set; }
     public bool IsOverride { get; set; }
+    /// <summary>
+    /// True when the function was defined inside a <c>package … end</c> block.
+    /// Package functions use an isolated scope (no parent chain into the caller's
+    /// scope) so their internal local variables cannot clobber caller variables
+    /// that happen to share the same name.
+    /// </summary>
+    public bool IsPackageFunction { get; set; }
 
     // -- VM bytecode fields ----------------------------------------------------
     /// <summary>
@@ -74,6 +81,7 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
             IsGenerator       = IsGenerator,
             IsAbstract        = IsAbstract,
             IsOverride        = IsOverride,
+            IsPackageFunction = IsPackageFunction,
             Parameters        = Parameters,
             DefaultParameters = DefaultParameters,
             TypeHints         = TypeHints,
