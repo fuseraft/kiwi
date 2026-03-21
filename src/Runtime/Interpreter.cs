@@ -192,7 +192,15 @@ public class Interpreter
 
         // Rent a Scope from the pool (or allocate if empty).
         // Reset() sets IsBlockScope=true so the scope is eligible to be returned after the call.
-        var parentScope = callable.CapturedScope ?? _globalScope;
+        //
+        // Package functions run in an isolated scope with no parent chain into the
+        // caller's scope.  This prevents their internal local variables (e.g. a loop
+        // counter named `count`) from silently clobbering same-named variables in
+        // the caller.  Non-package callables (closures, lambdas, …) keep the normal
+        // captured-scope parent so they can close over outer bindings.
+        var parentScope = (callable is KFunction { IsPackageFunction: true })
+            ? null
+            : (callable.CapturedScope ?? _globalScope);
         var scope = _scopePool.Count > 0 ? _scopePool.Pop() : new Scope();
         scope.Reset(parentScope);
 
@@ -2969,6 +2977,8 @@ public class Interpreter
             parameters.Add(new(paramName, paramValue));
         }
 
+        var isPackageFn = PackageStack.Count > 0;
+
         return new KFunction(node)
         {
             Name = node.Name,
@@ -2980,7 +2990,10 @@ public class Interpreter
             IsGenerator = node.IsGenerator,
             TypeHints = node.TypeHints,
             ReturnTypeHint = node.ReturnTypeHint,
+            // Package functions capture the global scope rather than the caller's
+            // local scope so their internal variables can't clobber caller variables.
             CapturedScope = CaptureCurrentScope(),
+            IsPackageFunction = isPackageFn,
             VariadicParamName = node.VariadicParamName
         };
     }
@@ -3451,7 +3464,10 @@ public class Interpreter
         }
 
         var defaultParameters = function.DefaultParameters;
-        var functionFrame = CreateFrame(functionName, token, function.CapturedScope);
+        // Package functions get an isolated scope (null parent) so their internal
+        // local variables cannot walk up into the caller's scope via Assign().
+        var capturedForFrame = function.IsPackageFunction ? null : function.CapturedScope;
+        var functionFrame = CreateFrame(functionName, token, capturedForFrame);
         functionFrame.StructName = structName;
         functionFrame.IsFunction = true;
         var scope = functionFrame.Scope;
