@@ -13,6 +13,7 @@ public class KContext
     public Dictionary<string, KStruct> Structs { get; set; } = [];
     public Dictionary<string, string> LambdaTable { get; set; } = [];
     public Dictionary<string, Value> Constants { get; set; } = [];
+    public Dictionary<string, Value> PackageVariables { get; set; } = [];
     public EventBus Events { get; } = new();
 
     public KContext Clone()
@@ -49,6 +50,11 @@ public class KContext
             cloned.Constants.Add(kvp.Key, kvp.Value);
         }
 
+        foreach (var kvp in PackageVariables)
+        {
+            cloned.PackageVariables.Add(kvp.Key, kvp.Value);
+        }
+
         cloned.LambdaTable = LambdaTable;
         cloned.ImportedPackages = [.. ImportedPackages];
 
@@ -56,6 +62,7 @@ public class KContext
     }
 
     public bool HasConstant(string name) => Constants.ContainsKey(name);
+    public bool HasPackageVariable(string name) => PackageVariables.ContainsKey(name);
     public bool HasPackage(string name) => Packages.ContainsKey(name);
     public bool HasFunction(string name) => Functions.ContainsKey(name);
     public bool HasMethod(string name) => Methods.ContainsKey(name);

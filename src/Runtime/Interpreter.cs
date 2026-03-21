@@ -972,7 +972,19 @@ public class Interpreter
             throw new VariableUndefinedError(node.Token, name);
         }
 
-        return scope.GetBinding(name);
+        var result = scope.GetBinding(name);
+
+        // If we're at package top-level (not inside a function body), mirror the variable
+        // into Context.PackageVariables so it's reachable as package::varname.
+        if (PackageStack.Count > 0 && !frame.IsFunction && !frame.InObjectContext())
+        {
+            Stack<string> tmpStack = new([.. PackageStack]);
+            var prefix = string.Empty;
+            while (tmpStack.Count > 0) { prefix += tmpStack.Peek() + "::"; tmpStack.Pop(); }
+            Context.PackageVariables[prefix + name] = result;
+        }
+
+        return result;
     }
 
     private Value Visit(ConstAssignmentNode node)
@@ -1326,6 +1338,11 @@ public class Interpreter
                 return constVal;
             }
 
+            if (Context.PackageVariables.TryGetValue(qualifiedName, out Value? pkgVar))
+            {
+                return pkgVar;
+            }
+
             if (Context.HasFunction(qualifiedName))
             {
                 return Value.CreateLambda(new LambdaRef { Identifier = qualifiedName });
@@ -1459,6 +1476,10 @@ public class Interpreter
         else if (Context.Constants.TryGetValue(name, out var constant))
         {
             return constant;
+        }
+        else if (Context.PackageVariables.TryGetValue(name, out var pkgVar))
+        {
+            return pkgVar;
         }
         else if (_globalScope.TryGet(node.Name, out val))
         {
@@ -4783,6 +4804,8 @@ public class Interpreter
             var qualifiedName = pkgName + "::" + memberName;
             if (Context.Constants.TryGetValue(qualifiedName, out Value? constVal))
                 return constVal;
+            if (Context.PackageVariables.TryGetValue(qualifiedName, out Value? pkgVar))
+                return pkgVar;
             if (Context.HasFunction(qualifiedName))
                 return Value.CreateLambda(new LambdaRef { Identifier = qualifiedName });
             return Value.Default;
