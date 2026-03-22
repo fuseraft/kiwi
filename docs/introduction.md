@@ -49,10 +49,10 @@ var label: string
 
 ### Multiple Assignment
 
-You can unpack multiple values at once using `=<`:
+You can unpack multiple values at once:
 
 ```kiwi
-a, b, c =< 10, 20, 30
+a, b, c = 10, 20, 30
 println "${a}, ${b}, ${c}"   # 10, 20, 30
 ```
 

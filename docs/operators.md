@@ -202,25 +202,25 @@ h = { score: 100 }
 h["score"] -= 10    # h["score"] is now 90
 ```
 
-### Unpack assignment (`=<`)
+### Unpack assignment
 
 Assigns multiple variables at once from a comma-separated list or a list value.
 
 ```kiwi
-a, b, c =< 1, 2, 3
+a, b, c = 1, 2, 3
 println a   # 1
 println b   # 2
 println c   # 3
 
 # Unpack a list
 coords = [10, 20]
-x, y =< coords
+x, y = coords
 println x   # 10
 println y   # 20
 
 # Swap without a temp variable
-p, q =< 7, 13
-p, q =< q, p
+p, q = 7, 13
+p, q = q, p
 println p   # 13
 println q   # 7
 
@@ -229,7 +229,7 @@ fn bounds(): list
   [0, 100]
 end
 
-lo, hi =< bounds()
+lo, hi = bounds()
 ```
 
 ---

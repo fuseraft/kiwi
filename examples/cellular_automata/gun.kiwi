@@ -41,7 +41,7 @@ fn add_gun(grid: list, top_left_x: integer, top_left_y: integer)
   ])
 
   for coord in gun_coords do
-    dx, dy =< coord
+    dx, dy = coord
     
     var (x: integer = top_left_x + dx)
     var (y: integer = top_left_y + dy)
