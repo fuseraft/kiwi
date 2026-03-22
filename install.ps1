@@ -5,7 +5,7 @@
 
 .DESCRIPTION
   Installs the Kiwi programming language on Windows.
-  Builds from source (requires .NET 8 SDK) or downloads a pre-built binary.
+  Builds from source (requires .NET 9 SDK) or downloads a pre-built binary.
 
 .PARAMETER User
   Install for the current user only (default: $env:LOCALAPPDATA\kiwi)
@@ -247,13 +247,13 @@ if ($Url) {
   # Check .NET SDK
   $DotnetExe = Get-Command dotnet -ErrorAction SilentlyContinue
   if (-not $DotnetExe) {
-    Write-Fatal ".NET 8 SDK not found.`nInstall from: https://dotnet.microsoft.com/download/dotnet/8.0"
+    Write-Fatal ".NET 9 SDK not found.`nInstall from: https://dotnet.microsoft.com/download/dotnet/9.0"
   }
 
   $DotnetVer = (dotnet --version 2>$null) -replace '\s',''
   $DotnetMajor = [int]($DotnetVer -split '\.')[0]
-  if ($DotnetMajor -lt 8) {
-    Write-Fatal "Kiwi requires .NET 8 or higher. Found: $DotnetVer"
+  if ($DotnetMajor -lt 9) {
+    Write-Fatal "Kiwi requires .NET 9 or higher. Found: $DotnetVer"
   }
   Write-Info ".NET SDK $DotnetVer"
 
