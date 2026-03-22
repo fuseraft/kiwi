@@ -71,6 +71,7 @@ var (unit_tests: list = [
   "regex",
   "dotenv",
   "xml",
+  "xml_pipeline",
   "protobuf",
   "csv_pipeline",
   "json_pipeline",

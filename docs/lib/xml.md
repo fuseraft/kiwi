@@ -342,6 +342,184 @@ println root.to_string()
 
 ---
 
+---
+
+## `xml::pipeline()`
+
+Creates an `XmlPipeline` builder for fluent, declarative XML record extraction. Chain configuration methods to describe your sources, then call `.parse()` to execute.
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `XmlPipeline` | A new pipeline builder instance. |
+
+See [XmlPipeline](#xmlpipeline) below for the full builder API and examples.
+
+---
+
+## `XmlPipeline`
+
+A fluent builder returned by `xml::pipeline()`. Configure one or more XML sources, then call `.parse()` to get a list of record hashmaps.
+
+**How records are built**: each selected `XmlNode`'s attributes and direct child elements with text content are merged into a flat hashmap. For example:
+
+```xml
+<item id="1" active="true">
+  <name>Widget</name>
+  <price>9.99</price>
+</item>
+```
+
+becomes:
+
+```kiwi
+{"id": "1", "active": "true", "name": "Widget", "price": "9.99"}
+```
+
+Schema coercion is then applied by field name.
+
+All builder methods return `self` so calls can be chained.
+
+### `.select(tag)`
+
+Sets the element tag name to extract as records from the **next** registered source. Uses `find_all_deep(tag)` — all matching elements at any depth become records. If not called, the root element itself becomes the sole record.
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `tag` | XML element tag name to extract. |
+
+### `.with_schema(schema)`
+
+Sets a type-coercion schema for the **next** registered source. Keys are field names (attribute names or child element tag names); values are type strings.
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `hashmap` | `schema` | Map of field name → type string. |
+
+**Supported types**: `"string"`, `"integer"`, `"float"`, `"boolean"`, `"null"`. Unrecognised types leave the value as-is. Fields absent from the row are silently skipped.
+
+### `.from_file(path)`
+
+Registers an XML file as a source using any pending `.select()` and `.with_schema()` settings, then resets those settings for the next source.
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `path` | Path to the XML file. |
+
+**Throws** — if the file does not exist at parse time.
+
+### `.from_string(input)`
+
+Registers an XML string as a source using any pending settings.
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `input` | A valid XML string. |
+
+### `.as_dataset(name)`
+
+Names the most recently registered source. The name becomes the key in the hashmap returned by `.parse()`. Must be called after `.from_file()` or `.from_string()`.
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `name` | Dataset key name. |
+
+**Throws** — if called before any source is registered.
+
+### `.parse()`
+
+Executes the pipeline and returns the extracted records.
+
+| Condition | Return type |
+| :--- | :--- |
+| Single unnamed source | `list` of hashmaps |
+| Multiple unnamed sources | `list` of lists of hashmaps |
+| All sources named as datasets | `hashmap` keyed by dataset name |
+| Mixed named/unnamed | throws a pipeline error |
+
+---
+
+## `XmlPipeline` Examples
+
+### Extract elements with schema
+
+```kiwi
+import "xml"
+
+rows = xml::pipeline()
+  .select("item")
+  .with_schema({"id": "integer", "price": "float", "active": "boolean"})
+  .from_file("catalog.xml")
+  .parse()
+
+for r in rows do
+  println "${r["id"]}: ${r["name"]} — $${r["price"]} (active: ${r["active"]})"
+end
+```
+
+### Multiple named datasets
+
+```kiwi
+import "xml"
+
+data = xml::pipeline()
+  .select("user").from_file("users.xml").as_dataset("users")
+  .select("role").from_file("roles.xml").as_dataset("roles")
+  .parse()
+
+users = data["users"]
+roles = data["roles"]
+```
+
+### Multiple unnamed sources
+
+```kiwi
+import "xml"
+
+both = xml::pipeline()
+  .select("rec").from_file("jan.xml")
+  .select("rec").from_file("feb.xml")
+  .parse()
+
+# both[0] = records from jan.xml
+# both[1] = records from feb.xml
+```
+
+### From string
+
+```kiwi
+import "xml"
+
+rows = xml::pipeline()
+  .select("point")
+  .with_schema({"x": "float", "y": "float"})
+  .from_string('<points><point x="1.5" y="2.0"/><point x="3.0" y="4.5"/></points>')
+  .parse()
+
+println rows[0]["x"]  # 1.5
+println rows[1]["y"]  # 4.5
+```
+
+### Root element as single record
+
+When `.select()` is omitted, the root element itself becomes the sole record:
+
+```kiwi
+import "xml"
+
+rows = xml::pipeline()
+  .with_schema({"version": "integer"})
+  .from_string('<config version="3" env="prod"/>')
+  .parse()
+
+cfg = rows[0]
+println cfg["version"]  # 3
+println cfg["env"]      # prod
+```
+
+---
+
 ## Complete Example
 
 ```kiwi
