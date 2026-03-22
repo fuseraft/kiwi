@@ -143,10 +143,10 @@ x = "Kiwi"    # `x` is now a string
 ```
 
 ### Multiple Assignments
-Kiwi supports multiple variable assignments using the unpacking syntax `=<`. This allows assigning multiple values to multiple variables in a single line:
+Kiwi supports unpacking multiple values into multiple variables in a single line:
 
 ```kiwi
-a, b, c =< true, {"a": false}, [1, 2, 3]
+a, b, c = true, {"a": false}, [1, 2, 3]
 ```
 
 Here:
@@ -154,17 +154,19 @@ Here:
 - `b` is assigned a hashmap with a single key-value pair.
 - `c` is assigned a list containing three integers.
 
-This can also be used with functions that return multiple values:
+You can also unpack the elements of a list returned by a function:
 
 ```kiwi
 fn get_zero_and_one()
   return [0, 1]
 end
 
-zero, one =< get_zero_and_one()
+zero, one = get_zero_and_one()
 ```
 
 Now, `zero` is `0` and `one` is `1`.
+
+> **Note:** The `=<` unpack operator is deprecated. Use `=` instead.
 
 ## Variable Scope
 Kiwi uses lexical scoping. Variables created inside a function are local to that call. Variables created inside a control-flow block (`if`, `while`, `for`, `repeat`, `do`) are local to that block. See [Scoping](scoping.md) for the full rules.
