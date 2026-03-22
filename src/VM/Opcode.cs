@@ -49,6 +49,10 @@ public enum Opcode : byte
     /// globals[names[A]] = pop()
     /// </summary>
     StoreGlobal,
+    /// <summary>
+    /// globals[names[A]] = pop(); also registers names[A] in context.Constants (immutable).
+    /// </summary>
+    StoreConst,
 
     // -- Upvalues (closures) ---------------------------------------------------
     /// <summary>
@@ -462,11 +466,21 @@ public enum Opcode : byte
     /// </summary>
     CallBuiltin,
 
-    // -- Export ---------------------------------------------------------------
+    // -- Export / Import / Require --------------------------------------------
     /// <summary>
     /// Pop top-of-stack (package name string); call _interp.ImportPackage with it.
     /// </summary>
     Export,
+    /// <summary>
+    /// Pop top-of-stack (package name string); call _interp.ImportPackage with it;
+    /// push Value.CreatePackage(name) as the result of the import expression.
+    /// </summary>
+    ImportPkg,
+    /// <summary>
+    /// Pop top-of-stack (package name string); throw PackageUndefinedError if the
+    /// package is not registered in the context. Used by the `require` keyword.
+    /// </summary>
+    Require,
 
     // -- Eval / Include -------------------------------------------------------
     /// <summary>
