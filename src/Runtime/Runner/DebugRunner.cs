@@ -105,11 +105,25 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
         RunDebugREPL();
     }
 
+    // -- Color helpers ---------------------------------------------------------
+
+    private static void C(ConsoleColor color, string text, bool newline = false)
+    {
+        Console.ForegroundColor = color;
+        if (newline) Console.WriteLine(text); else Console.Write(text);
+        Console.ResetColor();
+    }
+
+    private static void Err(string msg) => C(ConsoleColor.Red, msg, newline: true);
+    private static void Ok(string msg)  => C(ConsoleColor.Green, msg, newline: true);
+
+    // -------------------------------------------------------------------------
+
     private void RunDebugREPL()
     {
         while (true)
         {
-            Console.Write("(kdb) ");
+            C(ConsoleColor.Yellow, "(kdb) ");
             var input = Console.ReadLine()?.Trim() ?? string.Empty;
 
             if (string.IsNullOrEmpty(input))
@@ -187,7 +201,7 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
                     break;
 
                 default:
-                    Console.WriteLine($"Unknown command: '{cmd}'. Type 'h' for help.");
+                    Err($"Unknown command: '{cmd}'. Type 'h' for help.");
                     break;
             }
         }
@@ -222,24 +236,24 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
 
         _state.AddBreakpoint(file, line);
         var location = string.IsNullOrEmpty(file) ? $"{line}" : $"{file}:{line}";
-        Console.WriteLine($"Breakpoint {_state.Breakpoints.Count} at {location}");
+        Ok($"Breakpoint {_state.Breakpoints.Count} at {location}");
     }
 
     private void HandleDeleteBreakpoint(string arg)
     {
         if (!int.TryParse(arg, out var index))
         {
-            Console.WriteLine("Usage: d <n>  (where n is the breakpoint number from 'info b')");
+            Err("Usage: d <n>  (where n is the breakpoint number from 'info b')");
             return;
         }
 
         if (_state.RemoveBreakpoint(index))
         {
-            Console.WriteLine($"Deleted breakpoint {index}");
+            Ok($"Deleted breakpoint {index}");
         }
         else
         {
-            Console.WriteLine($"No breakpoint #{index}");
+            Err($"No breakpoint #{index}");
         }
     }
 
@@ -247,7 +261,7 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
     {
         if (_state.Breakpoints.Count == 0)
         {
-            Console.WriteLine("No breakpoints.");
+            C(ConsoleColor.DarkGray, "No breakpoints.", newline: true);
             return;
         }
 
@@ -255,7 +269,8 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
         {
             var (f, l) = _state.Breakpoints[i];
             var location = string.IsNullOrEmpty(f) ? $"{l}" : $"{f}:{l}";
-            Console.WriteLine($"  {i + 1}: {location}");
+            C(ConsoleColor.DarkGray, $"  {i + 1}: ");
+            C(ConsoleColor.Green, location, newline: true);
         }
     }
 
@@ -297,7 +312,7 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
             {
                 var evalVm = new KiwiVM(Interpreter);
                 var result = evalVm.Execute(chunk);
-                Console.WriteLine(Serializer.Serialize(result));
+                C(ConsoleColor.Cyan, Serializer.Serialize(result), newline: true);
             }
             finally
             {
@@ -312,11 +327,11 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
         }
         catch (KiwiError e)
         {
-            Console.WriteLine($"Error: {e.Message}");
+            Err($"Error: {e.Message}");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Error: {e.Message}");
+            Err($"Error: {e.Message}");
         }
     }
 
@@ -324,16 +339,27 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
     {
         if (_currentVM == null || _currentVM.FrameCount == 0)
         {
-            Console.WriteLine("No active stack frame.");
+            C(ConsoleColor.DarkGray, "No active stack frame.", newline: true);
             return;
         }
 
-        var seen = new HashSet<string>();
-        foreach (var (name, value) in _currentVM.GetCurrentLocals())
+        var seen    = new HashSet<string>();
+        var locals  = _currentVM.GetCurrentLocals().ToList();
+        var entries = locals.Count > 0 ? locals : _currentVM.GetCurrentGlobals().ToList();
+
+        if (entries.Count == 0)
+        {
+            C(ConsoleColor.DarkGray, "  (no locals)", newline: true);
+            return;
+        }
+
+        foreach (var (name, value) in entries)
         {
             if (seen.Add(name))
             {
-                Console.WriteLine($"  {name} = {Serializer.Serialize(value)}");
+                C(ConsoleColor.Green, $"  {name}");
+                C(ConsoleColor.DarkGray, " = ");
+                C(ConsoleColor.Cyan, Serializer.Serialize(value), newline: true);
             }
         }
     }
@@ -342,13 +368,14 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
     {
         if (_currentVM == null || _currentVM.FrameCount == 0)
         {
-            Console.WriteLine("Empty call stack.");
+            C(ConsoleColor.DarkGray, "Empty call stack.", newline: true);
             return;
         }
 
         for (int i = _currentVM.FrameCount - 1; i >= 0; i--)
         {
-            Console.WriteLine(_currentVM.GetFrame(i).FormatTrace());
+            C(ConsoleColor.DarkGray, $"  #{i} ");
+            C(ConsoleColor.Yellow, _currentVM.GetFrame(i).FormatTrace(), newline: true);
         }
     }
 
@@ -372,7 +399,8 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
     private void ShowContext(string file, int line)
     {
         Console.WriteLine();
-        Console.WriteLine($"=> {file}:{line}");
+        C(ConsoleColor.Cyan, "=> ");
+        C(ConsoleColor.White, $"{file}:{line}", newline: true);
         ShowSourceAround(file, line, 2);
     }
 
@@ -380,7 +408,7 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
     {
         if (string.IsNullOrEmpty(file) || !File.Exists(file))
         {
-            Console.WriteLine($"  (source not available: {file})");
+            C(ConsoleColor.DarkGray, $"  (source not available: {file})", newline: true);
             return;
         }
 
@@ -392,32 +420,40 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
 
             for (var i = start; i <= end; i++)
             {
-                var marker = i + 1 == line ? "=>" : "  ";
-                Console.WriteLine($"{marker} {i + 1,4}: {lines[i]}");
+                bool isCurrent = i + 1 == line;
+                C(isCurrent ? ConsoleColor.Yellow : ConsoleColor.DarkGray, isCurrent ? "=> " : "   ");
+                C(ConsoleColor.DarkGray, $"{i + 1,4}: ");
+                C(isCurrent ? ConsoleColor.White : ConsoleColor.Gray, lines[i], newline: true);
             }
         }
         catch
         {
-            Console.WriteLine($"  (could not read source: {file})");
+            C(ConsoleColor.DarkGray, $"  (could not read source: {file})", newline: true);
         }
     }
 
     private static void ShowHelp()
     {
-        Console.WriteLine("kdb commands:");
-        Console.WriteLine("  r, run          run to next breakpoint (or end)");
-        Console.WriteLine("  s, step         step into next statement");
-        Console.WriteLine("  n, next         step over (skip function calls)");
-        Console.WriteLine("  f, finish       step out of current function");
-        Console.WriteLine("  b <line>        set breakpoint at line in current file");
-        Console.WriteLine("  b <file>:<line> set breakpoint at file:line");
-        Console.WriteLine("  d <n>           delete breakpoint #n");
-        Console.WriteLine("  info b          list all breakpoints");
-        Console.WriteLine("  p <expr>        evaluate and print expression");
-        Console.WriteLine("  l, locals       show local variables");
-        Console.WriteLine("  bt, backtrace   show call stack");
-        Console.WriteLine("  list [line]     show source around current/given line");
-        Console.WriteLine("  h, help         show this help");
-        Console.WriteLine("  q, quit         exit debugger");
+        C(ConsoleColor.White, "kdb commands:", newline: true);
+        HelpLine("r, run",          "run to next breakpoint (or end)");
+        HelpLine("s, step",         "step into next statement");
+        HelpLine("n, next",         "step over (skip function calls)");
+        HelpLine("f, finish",       "step out of current function");
+        HelpLine("b <line>",        "set breakpoint at line in current file");
+        HelpLine("b <file>:<line>", "set breakpoint at file:line");
+        HelpLine("d <n>",           "delete breakpoint #n");
+        HelpLine("info b",          "list all breakpoints");
+        HelpLine("p <expr>",        "evaluate and print expression");
+        HelpLine("l, locals",       "show local variables");
+        HelpLine("bt, backtrace",   "show call stack");
+        HelpLine("list [line]",     "show source around current/given line");
+        HelpLine("h, help",         "show this help");
+        HelpLine("q, quit",         "exit debugger");
+    }
+
+    private static void HelpLine(string cmd, string desc)
+    {
+        C(ConsoleColor.Yellow, $"  {cmd,-16}");
+        C(ConsoleColor.Gray, desc, newline: true);
     }
 }

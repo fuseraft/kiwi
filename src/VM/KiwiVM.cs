@@ -69,11 +69,19 @@ public sealed class KiwiVM
     // -- Struct / Package definition state -------------------------------------
     private readonly Stack<KStruct> _pendingStructs = new();
 
-    // -- Name resolution cache (LoadGlobal fast-path) --------------------------
-    // Caches resolved Values for stable global names (functions, constants,
-    // packages, structs).  Invalidated on DefFunc and StoreGlobal so that
-    // redefined functions and reassigned globals are never served stale.
-    private readonly Dictionary<string, Value> _nameCache = new(StringComparer.Ordinal);
+    // -- Name resolution caches (LoadGlobal fast-paths) ------------------------
+    // _nameCache: cached Values for STABLE bindings (functions, constants, structs,
+    //   packages, mapped-lambdas).  Invalidated on DefFunc / StoreGlobal / StoreConst.
+    // _pathCache: resolution KIND for MUTABLE bindings (lambdas, package variables,
+    //   user globals).  Avoids the sequential Has* dict lookups on repeated access.
+    //   Invalidated alongside _nameCache via InvalidateName().
+    private readonly Dictionary<string, Value>      _nameCache = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, GlobalKind> _pathCache = new(StringComparer.Ordinal);
+    private enum GlobalKind : byte { Lambda = 1, PackageVar, UserGlobal }
+
+    // -- Package prefix cache (avoids PackageStack.Reverse() + Join on every StoreGlobal/DefFunc) --
+    private string _pkgPrefix = string.Empty;
+    private readonly Stack<string> _pkgPrefixStack = new();
 
     // -- Closure ID counter (replaces Guid.NewGuid) ----------------------------
     private int _closureIdCounter;
@@ -117,6 +125,15 @@ public sealed class KiwiVM
         Current  = this;
     }
 
+    // -- Cache helpers ---------------------------------------------------------
+
+    /// <summary>Removes a name from both resolution caches atomically.</summary>
+    private void InvalidateName(string name)
+    {
+        _nameCache.Remove(name);
+        _pathCache.Remove(name);
+    }
+
     // -- Public entry points ---------------------------------------------------
 
     /// <summary>
@@ -138,7 +155,7 @@ public sealed class KiwiVM
     /// an interpreter-side call (e.g. an interpreted lambda calling a VM-compiled function).
     /// Sets up a new VM frame, runs to completion, and returns the result.
     /// </summary>
-    public Value InvokeVMCallable(Callable callable, List<Value> args, Token token, InstanceRef? instance = null)
+    public Value InvokeVMCallable(Callable callable, IReadOnlyList<Value> args, Token token, InstanceRef? instance = null)
     {
         var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
         var upvalues = callable is KFunction kf2 ? (kf2.VMUpvalues ?? []) : (((KLambda)callable).VMUpvalues ?? []);
@@ -194,6 +211,24 @@ public sealed class KiwiVM
         var frame = _frames[_frameCount - 1];
         foreach (var (name, slot) in frame.Chunk.LocalNames)
             yield return (name, _stack[frame.StackBase + slot]);
+    }
+
+    /// <summary>
+    /// Returns global-scope variables visible from the current frame, filtered to names
+    /// actually referenced by the chunk. Used by the debugger for global-scope frames
+    /// where <see cref="GetCurrentLocals"/> yields nothing.
+    /// </summary>
+    public IEnumerable<(string Name, Value Val)> GetCurrentGlobals()
+    {
+        if (_frameCount == 0) yield break;
+        var frame = _frames[_frameCount - 1];
+        var seen  = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var name in frame.Chunk.Names)
+        {
+            if (!seen.Add(name)) continue;
+            if (_globals.TryGet(name, out var val) && !val.IsNull())
+                yield return (name, val);
+        }
     }
 
     // -- Frame management ------------------------------------------------------
@@ -314,14 +349,44 @@ public sealed class KiwiVM
                     case Opcode.LoadGlobal:
                     {
                         var name = frame.Chunk.Names[A];
-                        // Fast path: cached resolution from a prior lookup
+
+                        // Fast path 1: cached Value for stable bindings (functions, constants, structs, packages, mapped-lambdas)
                         if (_nameCache.TryGetValue(name, out var cachedVal))
                         {
                             Push(cachedVal);
                             break;
                         }
 
-                        // Slow path: full resolution (result cached for stable entries)
+                        // Fast path 2: cached KIND for mutable bindings — skips sequential Has* lookups
+                        if (_pathCache.TryGetValue(name, out var pkind))
+                        {
+                            bool pathHandled = true;
+                            switch (pkind)
+                            {
+                                case GlobalKind.Lambda:
+                                    _globals.TryGet(name, out var sl);
+                                    Push(sl.IsNull() ? Value.CreateLambda(_context.Lambdas[name].Ref) : sl);
+                                    break;
+                                case GlobalKind.PackageVar:
+                                    Push(_context.PackageVariables[name]);
+                                    break;
+                                case GlobalKind.UserGlobal:
+                                    if (_globals.TryGet(name, out var gvp) && !gvp.IsNull())
+                                        Push(gvp);
+                                    else
+                                    {
+                                        _pathCache.Remove(name); // stale — fall through to slow path
+                                        pathHandled = false;
+                                    }
+                                    break;
+                                default:
+                                    pathHandled = false;
+                                    break;
+                            }
+                            if (pathHandled) break;
+                        }
+
+                        // Slow path: full resolution — populates _nameCache or _pathCache for next time
                         if (_context.HasFunction(name))
                         {
                             // A user-assigned global (e.g. an object) shadows a stdlib function
@@ -334,28 +399,30 @@ public sealed class KiwiVM
                             {
                                 var fn = _context.Functions[name];
                                 var v  = Value.CreateLambda(new LambdaRef { Identifier = name, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues });
-                                _nameCache[name] = v; // cached; invalidated on DefFunc
+                                _nameCache[name] = v; // stable: invalidated on DefFunc
                                 Push(v);
                             }
                         }
                         else if (_context.HasLambda(name))
                         {
-                            // Prefer the stored globals value (has the correct VMChunk reference).
+                            _pathCache[name] = GlobalKind.Lambda; // mutable: cache kind only
                             _globals.TryGet(name, out var storedLambda);
-                            var v = storedLambda.IsNull()
+                            Push(storedLambda.IsNull()
                                 ? Value.CreateLambda(_context.Lambdas[name].Ref)
-                                : storedLambda;
-                            // Don't cache lambdas: they may be reassigned via StoreGlobal.
-                            Push(v);
+                                : storedLambda);
                         }
                         else if (_context.HasMappedLambda(name))
                         {
+                            // Mapped lambdas are stable once registered (StoreDecoratedFunc invalidates).
+                            // Cache the Value so subsequent accesses skip this path entirely.
                             var mapped = _context.LambdaTable[name];
                             var klambda = _context.Lambdas[mapped];
                             var lref = klambda.Ref.Identifier.Length > 0
                                 ? klambda.Ref
                                 : new LambdaRef { Identifier = mapped, VMChunk = klambda.VMChunk, VMUpvalues = klambda.VMUpvalues };
-                            Push(Value.CreateLambda(lref));
+                            var v = Value.CreateLambda(lref);
+                            _nameCache[name] = v; // stable: invalidated on StoreDecoratedFunc
+                            Push(v);
                         }
                         else if (_context.HasConstant(name))
                         {
@@ -365,7 +432,8 @@ public sealed class KiwiVM
                         }
                         else if (_context.HasPackageVariable(name))
                         {
-                            Push(_context.PackageVariables[name]); // mutable — don't cache
+                            _pathCache[name] = GlobalKind.PackageVar; // mutable: cache kind only
+                            Push(_context.PackageVariables[name]);
                         }
                         else if (_context.HasStruct(name))
                         {
@@ -375,8 +443,8 @@ public sealed class KiwiVM
                         }
                         else if (_globals.TryGet(name, out var gv) && !gv.IsNull())
                         {
-                            Push(gv); // user-assigned global shadows package names
-                            // Don't cache: mutable
+                            _pathCache[name] = GlobalKind.UserGlobal; // mutable: cache kind only
+                            Push(gv);
                         }
                         else if (_context.HasPackage(name))
                         {
@@ -392,7 +460,6 @@ public sealed class KiwiVM
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
                                 Push(Value.Default);
-                            // Don't cache mutable globals
                         }
                         break;
                     }
@@ -409,12 +476,11 @@ public sealed class KiwiVM
                                 _context.Lambdas[name] = _context.Lambdas[lr.Identifier];
                         }
                         _globals.Assign(name, v);
-                        _nameCache.Remove(name); // invalidate any cached resolution
+                        InvalidateName(name); // invalidate both resolution caches
                         // Mirror package-level variable into PackageVariables for pkg::name access.
-                        if (_interp.PackageStack.Count > 0)
+                        if (_pkgPrefix.Length > 0)
                         {
-                            var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + name;
-                            _context.PackageVariables[qualName] = v;
+                            _context.PackageVariables[_pkgPrefix + name] = v;
                         }
                         break;
                     }
@@ -425,10 +491,10 @@ public sealed class KiwiVM
                         var v    = Pop();
                         _context.Constants[name] = v;
                         _globals.Assign(name, v);
-                        _nameCache.Remove(name);
-                        if (_interp.PackageStack.Count > 0)
+                        InvalidateName(name);
+                        if (_pkgPrefix.Length > 0)
                         {
-                            var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + name;
+                            var qualName = _pkgPrefix + name;
                             _context.Constants[qualName] = v;
                             _context.PackageVariables[qualName] = v;
                         }
@@ -698,8 +764,8 @@ public sealed class KiwiVM
                         var obj     = _stack[objSlot];
 
                         // Collect args
-                        var args = new List<Value>(argc);
-                        for (int i = _sp - argc; i < _sp; i++) args.Add(_stack[i]);
+                        var args = new Value[argc];
+                        for (int i = 0; i < argc; i++) args[i] = _stack[_sp - argc + i];
                         _sp = objSlot; // collapse obj+args
 
                         // Dispatch
@@ -761,8 +827,8 @@ public sealed class KiwiVM
                         }
 
                         // Non-struct or method not found: collect args in source order
-                        var plainArgs = new List<Value>(argc);
-                        for (int i = _sp - argc; i < _sp; i++) plainArgs.Add(_stack[i]);
+                        var plainArgs = new Value[argc];
+                        for (int i = 0; i < argc; i++) plainArgs[i] = _stack[_sp - argc + i];
                         _sp = objSlot;
                         Push(_interp.DispatchMethod(obj, methodName, plainArgs, frame.GetToken()));
                         break;
@@ -801,9 +867,7 @@ public sealed class KiwiVM
                         var rawName  = frame.Chunk.Names[B];
 
                         // Qualify the name with the current package prefix (if any).
-                        var funcName = _interp.PackageStack.Count > 0
-                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
-                            : rawName;
+                        var funcName = _pkgPrefix.Length > 0 ? _pkgPrefix + rawName : rawName;
 
                         // Build upvalue array for the closure (even for named functions)
                         var upvalues = BuildUpvalues(sub, frame);
@@ -824,7 +888,7 @@ public sealed class KiwiVM
                         kfunc.CapturedScope = _globals;
 
                         _context.Functions[funcName] = kfunc;
-                        _nameCache.Remove(funcName); // invalidate stale cached lambda ref
+                        InvalidateName(funcName); // invalidate both resolution caches
 
                         // If defined inside another function frame, track for cleanup on return.
                         if (_frameCount > 1)
@@ -839,9 +903,7 @@ public sealed class KiwiVM
                         // === Same as DefFunc: register the KFunction ===
                         var sub      = frame.Chunk.SubChunks[A];
                         var rawName  = frame.Chunk.Names[B];
-                        var funcName = _interp.PackageStack.Count > 0
-                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
-                            : rawName;
+                        var funcName = _pkgPrefix.Length > 0 ? _pkgPrefix + rawName : rawName;
                         var upvalues = BuildUpvalues(sub, frame);
 
                         var kfunc = new KFunction(BuildFunctionNode(sub, funcName))
@@ -860,7 +922,7 @@ public sealed class KiwiVM
                         kfunc.CapturedScope = _globals;
 
                         _context.Functions[funcName] = kfunc;
-                        _nameCache.Remove(funcName);
+                        InvalidateName(funcName);
 
                         if (_frameCount > 1)
                             _frames[_frameCount - 1].TrackLocalFunction(funcName);
@@ -895,13 +957,11 @@ public sealed class KiwiVM
                     case Opcode.StoreDecoratedFunc:
                     {
                         var rawName  = frame.Chunk.Names[A];
-                        var funcName = _interp.PackageStack.Count > 0
-                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
-                            : rawName;
+                        var funcName = _pkgPrefix.Length > 0 ? _pkgPrefix + rawName : rawName;
 
                         var value = Pop();
                         _context.Functions.Remove(funcName);
-                        _nameCache.Remove(funcName);
+                        InvalidateName(funcName);
 
                         if (value.IsLambda())
                         {
@@ -924,11 +984,10 @@ public sealed class KiwiVM
                         else
                         {
                             _globals.Assign(funcName, value);
-                            _nameCache.Remove(funcName);
-                            if (_interp.PackageStack.Count > 0)
+                            InvalidateName(funcName);
+                            if (_pkgPrefix.Length > 0)
                             {
-                                var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName;
-                                _context.PackageVariables[qualName] = value;
+                                _context.PackageVariables[_pkgPrefix + rawName] = value;
                             }
                         }
                         break;
@@ -1580,7 +1639,7 @@ public sealed class KiwiVM
                                     throw new AbstractMethodError(frame.GetToken(), struc.Name, am);
                         }
                         _context.Structs[struc.Name] = struc;
-                        _nameCache.Remove(struc.Name);
+                        InvalidateName(struc.Name);
                         break;
                     }
 
@@ -1588,8 +1647,8 @@ public sealed class KiwiVM
                     case Opcode.PackageBegin:
                     {
                         var localName     = frame.Chunk.Names[A];
-                        var qualifiedName = _interp.PackageStack.Count > 0
-                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + localName
+                        var qualifiedName = _pkgPrefix.Length > 0
+                            ? _pkgPrefix + localName
                             : localName;
                         if (!_context.Packages.ContainsKey(qualifiedName))
                         {
@@ -1601,17 +1660,18 @@ public sealed class KiwiVM
                             _context.Packages[qualifiedName] = new KPackage(pkgAst);
                         }
                         _interp.PackageStack.Push(localName);
+                        _pkgPrefixStack.Push(_pkgPrefix);
+                        _pkgPrefix = qualifiedName + "::";
                         break;
                     }
                     case Opcode.PackageEnd:
                     {
-                        var localName     = _interp.PackageStack.Pop();
-                        var qualifiedName = _interp.PackageStack.Count > 0
-                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + localName
-                            : localName;
+                        _interp.PackageStack.Pop();
+                        var qualifiedName = _pkgPrefix.Length >= 2 ? _pkgPrefix[..^2] : _pkgPrefix;
+                        _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         _interp.RegisterTypeBuiltins(qualifiedName);
                         _context.ImportedPackages.Add(qualifiedName);
-                        _nameCache.Remove(qualifiedName);
+                        InvalidateName(qualifiedName);
                         break;
                     }
                     case Opcode.PackageAbort:
@@ -1619,6 +1679,7 @@ public sealed class KiwiVM
                         // Package activation failed: pop the stack but don't mark as imported.
                         // The stored PackageNode AST allows ImportPackage to retry later.
                         _interp.PackageStack.Pop();
+                        _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         break;
                     }
 
@@ -1638,7 +1699,7 @@ public sealed class KiwiVM
                     {
                         var kenum = _pendingStructs.Pop();
                         _context.Structs[kenum.Name] = kenum;
-                        _nameCache.Remove(kenum.Name);
+                        InvalidateName(kenum.Name);
                         break;
                     }
 
@@ -2110,11 +2171,11 @@ public sealed class KiwiVM
         _sp = end;
     }
 
-    private List<Value> CollectArgs(int calleeBase, int argc)
+    private Value[] CollectArgs(int calleeBase, int argc)
     {
-        var args = new List<Value>(argc);
-        for (int i = calleeBase; i < calleeBase + argc; i++)
-            args.Add(_stack[i]);
+        var args = new Value[argc];
+        for (int i = 0; i < argc; i++)
+            args[i] = _stack[calleeBase + i];
         return args;
     }
 

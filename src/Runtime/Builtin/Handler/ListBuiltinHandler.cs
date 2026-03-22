@@ -7,7 +7,7 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public class ListBuiltinHandler
 {    
-    public static Value HandleListBuiltin(Interpreter interp, Token token, ref Value obj, TokenName op, List<Value> args)
+    public static Value HandleListBuiltin(Interpreter interp, Token token, ref Value obj, TokenName op, IReadOnlyList<Value> args)
     {
         if (!obj.IsList())
         {
