@@ -153,6 +153,31 @@ package csv
     fn from_file(path: string): CsvPipeline
       entry = {
         path:      path,
+        content:   null,
+        headers:   @_headers,
+        schema:    @_schema,
+        dataset:   @_dataset,
+        delimiter: @_delimiter
+      }
+      @files.push(entry)
+      @_headers   = null
+      @_schema    = null
+      @_dataset   = null
+      @_delimiter = ","
+      @
+    end
+
+    /#
+    @summary Registers an in-memory CSV string as a source using the current pending settings.
+    @description Same as `from_file()` but parses a string directly — no file is needed.
+                 Useful for testing, fixtures, or data received from an API.
+    @param string data : The CSV-formatted string to parse.
+    @return CsvPipeline : self, for chaining.
+    #/
+    fn from_string(data: string): CsvPipeline
+      entry = {
+        path:      null,
+        content:   data,
         headers:   @_headers,
         schema:    @_schema,
         dataset:   @_dataset,
@@ -242,10 +267,13 @@ package csv
     @throws string : If the file does not exist.
     #/
     fn _parse_file(entry: hashmap): list
-      path      = entry["path"]
       delimiter = entry["delimiter"]
       headers   = entry["headers"]
       schema    = entry["schema"]
+      if entry["path"] == null
+        return __csv_parse_maps__(entry["content"], delimiter, headers, schema)
+      end
+      path = entry["path"]
       if !fio::isfile(path)
         throw "CsvPipeline: file does not exist: ${path}"
       end
