@@ -496,4 +496,22 @@ package string
   fn to_path(path: string): Path
     Path.new(path)
   end
+
+  /#
+  @summary Strips leading/trailing whitespace and collapses internal whitespace runs to a single space.
+  @description
+    Useful for normalizing strings from external sources (CSV fields, scraped text, etc.)
+    that may contain irregular spacing. Equivalent to `trim` + collapsing consecutive
+    spaces into one.
+  @param string _input : The string to normalize.
+  @return string : The normalized string.
+  @example
+  ---
+  string::squish("  hello   world  ")    # "hello world"
+  string::squish("  7800    BEEMAN   AV") # "7800 BEEMAN AV"
+  ---
+  #/
+  fn squish(_input: string): string
+    _input.trim().split(" ").filter(do (p) => !p.empty() end).join(" ")
+  end
 end
