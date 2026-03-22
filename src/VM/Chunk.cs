@@ -57,6 +57,12 @@ public class Chunk
     public List<int>               Lines     { get; } = [];
     public List<int>               FileIds   { get; } = [];
 
+    /// <summary>
+    /// Maps each named local variable to its stack slot index (relative to frame base).
+    /// Populated by the compiler for debugger introspection; empty for global-scope chunks.
+    /// </summary>
+    public List<(string Name, int Slot)> LocalNames { get; } = [];
+
     // -- Fallback AST nodes ----------------------------------------------------
     public List<ASTNode>           NodePool  { get; } = [];
 
@@ -104,12 +110,6 @@ public class Chunk
     /// Name of the variadic parameter, empty if none.
     /// </summary>
     public string VariadicParamName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Maps every pre-scanned local variable to its stack slot index (relative to frame base).
-    /// Populated by the compiler so the VM can build an interpreter scope for InterpFallback.
-    /// </summary>
-    public List<(string Name, int Slot)> LocalNames { get; } = [];
 
     /// <summary>
     /// Parameter names that have default expressions (subset of ParamNames).
@@ -161,8 +161,8 @@ public class Chunk
     }
 
     /// <summary>
-    /// Store an AST node in the fallback pool and return its index.
-    /// Used by the InterpFallback opcode.
+    /// Store an AST node in the node pool and return its index.
+    /// Used by CallBuiltin (to pass Token/Op) and PackageBegin (to store the AST for retry).
     /// </summary>
     public int AddNodeFallback(ASTNode node)
     {

@@ -30,7 +30,7 @@ public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
         return SuccessReturnCode;
     }
 
-    private int RunVMLexer(Lexer lexer)
+    protected int RunVMLexer(Lexer lexer)
     {
         try
         {
@@ -67,6 +67,7 @@ public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
                 Disassembler.Dump(chunk);
             var vm = new KiwiVM(Interpreter);
             KiwiVM.Current = vm;
+            ConfigureVM(vm);
             vm.Execute(chunk);
 
             AwaitTasksAndShutdown();
@@ -83,4 +84,9 @@ public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
         return SuccessReturnCode;
     }
 
+    /// <summary>
+    /// Called after the VM is created but before execution begins.
+    /// Override to install debug hooks or other per-VM configuration.
+    /// </summary>
+    protected virtual void ConfigureVM(KiwiVM vm) { }
 }
