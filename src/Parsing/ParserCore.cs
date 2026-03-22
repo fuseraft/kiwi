@@ -350,6 +350,32 @@ public partial class Parser(bool rethrowErrors = false)
         return false;
     }
 
+    /// <summary>
+    /// Returns true when the token stream from the current position matches the
+    /// pack-assignment pattern: [, identifier]+ followed immediately by '=' or '=&lt;'.
+    /// Used to distinguish  a, b = [1,2]  from  for k, v in ...  and typed params.
+    /// </summary>
+    private bool IsPackAssignAhead()
+    {
+        int pos = stream.Position; // currently pointing at the first ','
+        while (pos + 1 < stream.Size)
+        {
+            // Must be a comma
+            if (stream.At(pos).Type != TokenType.Comma) return false;
+            pos++;
+            // Must be followed by an identifier
+            if (stream.At(pos).Type != TokenType.Identifier) return false;
+            pos++;
+            // Now expect either another ',' (more LHS vars), '=', or '=<'
+            var next = stream.At(pos);
+            if (next.Name == TokenName.Ops_Assign || next.Name == TokenName.Ops_Unpack)
+                return true;
+            // Anything other than another comma → not a pack assignment
+            if (next.Type != TokenType.Comma) return false;
+        }
+        return false;
+    }
+
     private void Rewind()
     {
         stream.Rewind();
