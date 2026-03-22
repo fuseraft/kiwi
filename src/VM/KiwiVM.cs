@@ -94,9 +94,10 @@ public sealed class KiwiVM
     private int _dbgLastLine   = -1;
 
     // -- Shared runtime state (shared with the tree-walking interpreter) -------
-    private readonly Interpreter _interp;
-    private readonly Scope       _globals;   // = interp._globalScope
-    private readonly KContext    _context;   // = interp.Context
+    private readonly Interpreter          _interp;
+    private readonly Scope                _globals;   // = interp._globalScope
+    private readonly KContext             _context;   // = interp.Context
+    private readonly System.Text.StringBuilder _interpSB = new();  // reused for Interpolate opcode
 
     // -- Thread-local slot -----------------------------------------------------
     [ThreadStatic]
@@ -1217,13 +1218,15 @@ public sealed class KiwiVM
                     // -- Interpolation -------------------------------------
                     case Opcode.Interpolate:
                     {
-                        var parts = new string[A];
-                        for (int i = A - 1; i >= 0; i--)
-                        {
-                            var v = Pop();
-                            parts[i] = _interp.Serialize(v);
-                        }
-                        Push(Value.CreateString(string.Concat(parts)));
+                        // Pop parts in reverse, serialize each into a shared StringBuilder.
+                        // Avoids allocating a string[] + the extra string from string.Concat.
+                        var sb = _interpSB;
+                        sb.Clear();
+                        int interpBase = _sp - A;
+                        for (int i = interpBase; i < _sp; i++)
+                            sb.Append(_interp.Serialize(_stack[i]));
+                        _sp = interpBase;
+                        Push(Value.CreateString(sb.ToString()));
                         break;
                     }
 
@@ -1342,7 +1345,7 @@ public sealed class KiwiVM
                             if (!done)
                             {
                                 char c = state.StringData[state.Index++];
-                                var  sv = Value.CreateString(c.ToString());
+                                var  sv = Value.CreateString(c);
                                 if (numVars == 2)
                                 {
                                     Push(Value.CreateInteger(state.Index - 1)); // key = index
