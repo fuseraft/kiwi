@@ -135,6 +135,7 @@ nav:
     - hashable: lib/hashable.md
     - http: lib/http.md
     - httpserver: lib/httpserver.md
+    - ipc: lib/ipc.md
     - iter: lib/iter.md
     - json: lib/json.md
     - list: lib/list.md
@@ -159,6 +160,7 @@ nav:
     - task: lib/task.md
     - template: lib/template.md
     - tester: lib/tester.md
+    - text: lib/text.md
     - time: lib/time.md
     - udp: lib/udp.md
     - xml: lib/xml.md

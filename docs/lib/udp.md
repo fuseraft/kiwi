@@ -194,6 +194,6 @@ while true do
   entry = drain.recv()
   line = "[${entry["from_host"]}] ${entry["data"]}"
   println line
-  fio::append_text(log_file, line + "\n")
+  fio::append(log_file, line + "\n")
 end
 ```
