@@ -8,7 +8,7 @@ namespace kiwi.Runtime.Builtin.Dispatcher;
 
 public struct BuiltinDispatch
 {
-    public static Value Execute(Token token, TokenName builtin, Value v, List<Value> args)
+    public static Value Execute(Token token, TokenName builtin, Value v, IReadOnlyList<Value> args)
     {
         if (CoreBuiltin.IsBuiltin(builtin))
         {

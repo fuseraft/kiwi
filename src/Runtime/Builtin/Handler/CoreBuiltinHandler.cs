@@ -9,7 +9,7 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public static class CoreBuiltinHandler
 {
-    public static Value Execute(Token token, TokenName builtin, Value value, List<Value> args)
+    public static Value Execute(Token token, TokenName builtin, Value value, IReadOnlyList<Value> args)
     {
         return builtin switch
         {
@@ -99,7 +99,7 @@ public static class CoreBuiltinHandler
         };
     }
 
-    private static Value Match(Token token, Value value, List<Value> args)
+    private static Value Match(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Match, 1, args.Count);
 
@@ -112,7 +112,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(RegexUtil.Match(stringValue, pattern));
     }
 
-    private static Value Matches(Token token, Value value, List<Value> args)
+    private static Value Matches(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Matches, 1, args.Count);
 
@@ -125,7 +125,7 @@ public static class CoreBuiltinHandler
         return Value.CreateBoolean(RegexUtil.Matches(stringValue, pattern));
     }
 
-    private static Value MatchesAll(Token token, Value value, List<Value> args)
+    private static Value MatchesAll(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.MatchesAll, 1, args.Count);
 
@@ -138,7 +138,7 @@ public static class CoreBuiltinHandler
         return Value.CreateBoolean(RegexUtil.MatchesAll(stringValue, pattern));
     }
 
-    private static Value Find(Token token, Value value, List<Value> args)
+    private static Value Find(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Find, 1, args.Count);
 
@@ -151,7 +151,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(RegexUtil.Find(stringValue, pattern));
     }
 
-    private static Value Scan(Token token, Value value, List<Value> args)
+    private static Value Scan(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Scan, 1, args.Count);
 
@@ -164,7 +164,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(RegexUtil.Scan(stringValue, pattern));
     }
 
-    private static Value NamedCaptures(Token token, Value value, List<Value> args)
+    private static Value NamedCaptures(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.NamedCaptures, 1, args.Count);
 
@@ -174,7 +174,7 @@ public static class CoreBuiltinHandler
         return Value.CreateHashmap(RegexUtil.NamedCaptures(value.GetString(), args[0].GetString()));
     }
 
-    private static Value ScanGroups(Token token, Value value, List<Value> args)
+    private static Value ScanGroups(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.ScanGroups, 1, args.Count);
 
@@ -184,7 +184,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(RegexUtil.ScanGroups(value.GetString(), args[0].GetString()));
     }
 
-    private static Value RegexEscape(Token token, Value value, List<Value> args)
+    private static Value RegexEscape(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.RegexEscape, 0, args.Count);
 
@@ -193,7 +193,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(RegexUtil.Escape(value.GetString()));
     }
 
-    private static Value RSplit(Token token, Value value, List<Value> args)
+    private static Value RSplit(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count != 1 && args.Count != 2)
         {
@@ -233,7 +233,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(newList);
     }
 
-    private static Value RReplace(Token token, Value value, List<Value> args)
+    private static Value RReplace(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.RReplace, 2, args.Count);
 
@@ -244,7 +244,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(RegexUtil.RReplace(value.GetString(), args[0].GetString(), args[1].GetString()));
     }
 
-    private static Value Between(Token token, Value value, List<Value> args)
+    private static Value Between(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Between, 2, args.Count);
 
@@ -282,7 +282,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, $"Invalid type for `{CoreBuiltin.Between}`: {TypeRegistry.GetTypeName(value)}");
     }
 
-    private static Value Hour(Token token, Value value, List<Value> args)
+    private static Value Hour(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Hour, 0, args.Count);
 
@@ -291,7 +291,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(value.GetDate().Hour);
     }
 
-    private static Value Minute(Token token, Value value, List<Value> args)
+    private static Value Minute(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Minute, 0, args.Count);
 
@@ -300,7 +300,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(value.GetDate().Minute);
     }
 
-    private static Value Second(Token token, Value value, List<Value> args)
+    private static Value Second(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Second, 0, args.Count);
 
@@ -309,7 +309,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(value.GetDate().Second);
     }
 
-    private static Value Millisecond(Token token, Value value, List<Value> args)
+    private static Value Millisecond(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Millisecond, 0, args.Count);
 
@@ -318,7 +318,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(value.GetDate().Millisecond);
     }
 
-    private static Value Day(Token token, Value value, List<Value> args)
+    private static Value Day(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Day, 0, args.Count);
 
@@ -327,7 +327,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(value.GetDate().Day);
     }
 
-    private static Value Month(Token token, Value value, List<Value> args)
+    private static Value Month(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Month, 0, args.Count);
 
@@ -336,7 +336,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(value.GetDate().Month);
     }
 
-    private static Value Year(Token token, Value value, List<Value> args)
+    private static Value Year(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Year, 0, args.Count);
 
@@ -345,7 +345,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(value.GetDate().Year);
     }
 
-    private static Value Pretty(Token token, Value value, List<Value> args)
+    private static Value Pretty(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Pretty, 0, args.Count);
 
@@ -353,7 +353,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(pretty);
     }
 
-    private static Value IsA(Token token, Value value, List<Value> args)
+    private static Value IsA(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.IsA, 1, args.Count);
         ParameterTypeMismatchError.ExpectString(token, CoreBuiltin.IsA, 0, args[0]);
@@ -377,7 +377,7 @@ public static class CoreBuiltinHandler
         };
     }
 
-    private static Value Ord(Token token, Value value, List<Value> args)
+    private static Value Ord(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Ord, 0, args.Count);
         TypeError.ExpectString(token, value);
@@ -389,7 +389,7 @@ public static class CoreBuiltinHandler
         return Value.CreateInteger(char.ConvertToUtf32(s, 0));
     }
 
-    private static Value HexBytes(Token token, Value value, List<Value> args)
+    private static Value HexBytes(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.HexBytes, 0, args.Count);
         TypeError.ExpectString(token, value);
@@ -428,7 +428,7 @@ public static class CoreBuiltinHandler
         }
     }
 
-    private static Value ToBytes(Token token, Value value, List<Value> args)
+    private static Value ToBytes(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.ToBytes, 0, args.Count);
 
@@ -479,7 +479,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string or list of strings to convert to bytes.");
     }
 
-    private static Value ToHex(Token token, Value value, List<Value> args)
+    private static Value ToHex(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count > 1)
         {
@@ -581,7 +581,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a list or bytes.");
     }
 
-    private static Value ToFloat(Token token, Value value, List<Value> args)
+    private static Value ToFloat(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.ToF, 0, args.Count);
 
@@ -610,7 +610,7 @@ public static class CoreBuiltinHandler
         throw new ConversionError(token, "Cannot convert non-numeric value to a float.");
     }
 
-    private static Value ToInteger(Token token, Value value, List<Value> args)
+    private static Value ToInteger(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count > 1)
         {
@@ -738,7 +738,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, $"Invalid character '{c}' in numeric string.");
     }
 
-    private static Value ToDate(Token token, Value value, List<Value> args)
+    private static Value ToDate(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count != 0 && args.Count != 1)
         {
@@ -782,7 +782,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Invalid date expression.");
     }
 
-    private static Value ToString(Token token, Value value, List<Value> args)
+    private static Value ToString(Token token, Value value, IReadOnlyList<Value> args)
     {
         // 0 or 1 argument is allowed
         if (args.Count != 0 && args.Count != 1)
@@ -921,7 +921,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(formatted);
     }
 
-    private static Value Swap(Token token, Value value, List<Value> args)
+    private static Value Swap(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Swap, 2, args.Count);
 
@@ -978,7 +978,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Rotate(Token token, Value value, List<Value> args)
+    private static Value Rotate(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Rotate, 1, args.Count);
 
@@ -1016,7 +1016,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Slice(Token token, Value value, List<Value> args)
+    private static Value Slice(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Slice, 2, args.Count);
 
@@ -1064,7 +1064,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(slice);
     }
 
-    private static Value Merge(Token token, Value value, List<Value> args)
+    private static Value Merge(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Merge, 1, args.Count);
 
@@ -1082,7 +1082,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Zip(Token token, Value value, List<Value> args)
+    private static Value Zip(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Zip, 1, args.Count);
 
@@ -1103,7 +1103,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(zipped);
     }
 
-    private static Value Flatten(Token token, Value value, List<Value> args)
+    private static Value Flatten(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Flatten, 0, args.Count);
 
@@ -1136,7 +1136,7 @@ public static class CoreBuiltinHandler
         return result;
     }
 
-    private static Value Insert(Token token, Value value, List<Value> args)
+    private static Value Insert(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Insert, 2, args.Count);
 
@@ -1162,7 +1162,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Keys(Token token, Value value, List<Value> args)
+    private static Value Keys(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Keys, 0, args.Count);
 
@@ -1175,7 +1175,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(keys);
     }
 
-    private static Value Values(Token token, Value value, List<Value> args)
+    private static Value Values(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Values, 0, args.Count);
 
@@ -1188,7 +1188,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(values);
     }
 
-    private static Value Enqueue(Token token, Value value, List<Value> args)
+    private static Value Enqueue(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Enqueue, 1, args.Count);
 
@@ -1198,7 +1198,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Dequeue(Token token, Value value, List<Value> args)
+    private static Value Dequeue(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Dequeue, 0, args.Count);
 
@@ -1216,7 +1216,7 @@ public static class CoreBuiltinHandler
         return front;
     }
 
-    private static Value Shift(Token token, Value value, List<Value> args)
+    private static Value Shift(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Shift, 0, args.Count);
 
@@ -1234,7 +1234,7 @@ public static class CoreBuiltinHandler
         return front;
     }
 
-    private static Value Unshift(Token token, Value value, List<Value> args)
+    private static Value Unshift(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Unshift, 1, args.Count);
 
@@ -1244,7 +1244,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Concat(Token token, Value value, List<Value> args)
+    private static Value Concat(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count == 0)
         {
@@ -1302,7 +1302,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string or list.");
     }
 
-    private static Value Unique(Token token, Value value, List<Value> args)
+    private static Value Unique(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Unique, 0, args.Count);
 
@@ -1323,7 +1323,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList(uniqueList);
     }
 
-    private static Value Count(Token token, Value value, List<Value> args)
+    private static Value Count(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Count, 1, args.Count);
 
@@ -1387,7 +1387,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string or list.");
     }
 
-    private static Value Substring(Token token, Value value, List<Value> args)
+    private static Value Substring(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count != 1 && args.Count != 2)
         {
@@ -1410,7 +1410,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(s.Substring(index, Math.Min(size, s.Length - index)));
     }
 
-    private static Value Reverse(Token token, Value value, List<Value> args)
+    private static Value Reverse(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Reverse, 0, args.Count);
 
@@ -1433,7 +1433,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string, list, or bytes.");
     }
 
-    private static Value IndexOf(Token token, Value value, List<Value> args)
+    private static Value IndexOf(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.IndexOf, 1, args.Count);
 
@@ -1451,7 +1451,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string or list.");
     }
 
-    private static Value LastIndexOf(Token token, Value value, List<Value> args)
+    private static Value LastIndexOf(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.LastIndexOf, 1, args.Count);
 
@@ -1469,14 +1469,14 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string or list.");
     }
 
-    private static Value Clone(Token token, Value value, List<Value> args)
+    private static Value Clone(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Clone, 0, args.Count);
 
         return value.Clone();
     }
 
-    private static Value Lines(Token token, Value value, List<Value> args)
+    private static Value Lines(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Lines, 0, args.Count);
 
@@ -1485,7 +1485,7 @@ public static class CoreBuiltinHandler
         return Value.CreateList([.. value.GetString().Split([Environment.NewLine, "\n"], StringSplitOptions.None).Select(x => Value.CreateString(x))]);
     }
 
-    private static Value Split(Token token, Value value, List<Value> args)
+    private static Value Split(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Split, 1, args.Count);
 
@@ -1504,7 +1504,8 @@ public static class CoreBuiltinHandler
 
         if (string.IsNullOrEmpty(delim))
         {
-            var chars = s.ToCharArray().Select(x => Value.CreateString(x.ToString())).ToList();
+            var chars = new List<Value>(s.Length);
+            foreach (var c in s) chars.Add(Value.CreateString(c));
             return Value.CreateList(chars);
         }
         else
@@ -1514,14 +1515,14 @@ public static class CoreBuiltinHandler
         }
     }
 
-    private static Value Truthy(Token token, Value value, List<Value> args)
+    private static Value Truthy(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Truthy, 0, args.Count);
 
         return Value.CreateBoolean(BooleanOp.IsTruthy(value));
     }
 
-    private static Value Get(Token token, Value value, List<Value> args)
+    private static Value Get(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count == 0 || args.Count > 2)
         {
@@ -1587,7 +1588,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a list or hashmap.");
     }
 
-    private static Value Set(Token token, Value value, List<Value> args)
+    private static Value Set(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Set, 2, args.Count);
 
@@ -1632,7 +1633,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a list or hashmap.");
     }
 
-    private static Value Remove(Token token, Value value, List<Value> args)
+    private static Value Remove(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Remove, 1, args.Count);
 
@@ -1650,7 +1651,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a list or hashmap.");
     }
 
-    private static Value RemoveAt(Token token, Value value, List<Value> args)
+    private static Value RemoveAt(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.RemoveAt, 1, args.Count);
         ParameterTypeMismatchError.ExpectInteger(token, CoreBuiltin.RemoveAt, 0, args[0]);
@@ -1710,7 +1711,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string, list, or bytes.");
     }
 
-    private static Value Replace(Token token, Value value, List<Value> args)
+    private static Value Replace(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Replace, 2, args.Count);
 
@@ -1748,7 +1749,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string or a list.");
     }
 
-    private static Value Clear(Token token, Value value, List<Value> args)
+    private static Value Clear(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Clear, 0, args.Count);
 
@@ -1776,7 +1777,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string, list, hashmap, or bytes.");
     }
 
-    private static Value First(Token token, Value value, List<Value> args)
+    private static Value First(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.First, 0, args.Count);
 
@@ -1802,7 +1803,7 @@ public static class CoreBuiltinHandler
         return Value.CreateNull();
     }
 
-    private static Value Last(Token token, Value value, List<Value> args)
+    private static Value Last(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Last, 0, args.Count);
 
@@ -1828,7 +1829,7 @@ public static class CoreBuiltinHandler
         return Value.CreateNull();
     }
 
-    private static Value Push(Token token, Value value, List<Value> args)
+    private static Value Push(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Push, 1, args.Count);
 
@@ -1850,7 +1851,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Pop(Token token, Value value, List<Value> args)
+    private static Value Pop(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Pop, 0, args.Count);
         
@@ -1883,7 +1884,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a list or bytes.");
     }
 
-    private static Value ToList(Token token, Value value, List<Value> args)
+    private static Value ToList(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.ToList, 0, args.Count);
 
@@ -1917,7 +1918,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string, list, or bytes.");
     }
 
-    private static Value Chars(Token token, Value value, List<Value> args)
+    private static Value Chars(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Chars, 0, args.Count);
         TypeError.ExpectString(token, value);
@@ -1929,11 +1930,12 @@ public static class CoreBuiltinHandler
             return Value.CreateList([]);
         }
 
-        var chars = s.ToCharArray().Select(x => Value.CreateString(x.ToString())).ToList();
+        var chars = new List<Value>(s.Length);
+        foreach (var c in s) chars.Add(Value.CreateString(c));
         return Value.CreateList(chars);
     }
 
-    private static Value Chomp(Token token, Value value, List<Value> args)
+    private static Value Chomp(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Chomp, 0, args.Count);
 
@@ -1957,7 +1959,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value HasKey(Token token, Value value, List<Value> args)
+    private static Value HasKey(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.HasKey, 1, args.Count);
 
@@ -1966,7 +1968,7 @@ public static class CoreBuiltinHandler
         return Value.CreateBoolean(value.GetHashmap().ContainsKey(args[0]));
     }
 
-    private static Value Join(Token token, Value value, List<Value> args)
+    private static Value Join(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count != 0 && args.Count != 1)
         {
@@ -2003,7 +2005,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(sv.ToString());
     }
 
-    private static Value Size(Token token, Value value, List<Value> args)
+    private static Value Size(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Size, 0, args.Count);
 
@@ -2027,7 +2029,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string, list, hashmap, or bytes.");
     }
 
-    private static Value Empty(Token token, Value value, List<Value> args)
+    private static Value Empty(Token token, Value value, IReadOnlyList<Value> args)
     {
         if (args.Count != 0 && args.Count != 1)
         {
@@ -2085,7 +2087,7 @@ public static class CoreBuiltinHandler
         return value;
     }
 
-    private static Value Lowercase(Token token, Value value, List<Value> args)
+    private static Value Lowercase(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Lowercase, 0, args.Count);
 
@@ -2094,7 +2096,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(value.GetString().ToLower());
     }
 
-    private static Value Uppercase(Token token, Value value, List<Value> args)
+    private static Value Uppercase(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Uppercase, 0, args.Count);
 
@@ -2103,7 +2105,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(value.GetString().ToUpper());
     }
 
-    private static Value LeftTrim(Token token, Value value, List<Value> args)
+    private static Value LeftTrim(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.LeftTrim, 0, args.Count);
 
@@ -2112,7 +2114,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(value.GetString().TrimStart());
     }
 
-    private static Value RightTrim(Token token, Value value, List<Value> args)
+    private static Value RightTrim(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.RightTrim, 0, args.Count);
 
@@ -2121,7 +2123,7 @@ public static class CoreBuiltinHandler
         return Value.CreateString(value.GetString().TrimEnd());
     }
 
-    private static Value Trim(Token token, Value value, List<Value> args)
+    private static Value Trim(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Trim, 0, args.Count);
 
@@ -2130,14 +2132,14 @@ public static class CoreBuiltinHandler
         return Value.CreateString(value.GetString().Trim());
     }
 
-    private static Value Type(Token token, Value value, List<Value> args)
+    private static Value Type(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Type, 0, args.Count);
 
         return Value.CreateString(TypeRegistry.GetTypeName(value));
     }
 
-    private static Value BeginsWith(Token token, Value value, List<Value> args)
+    private static Value BeginsWith(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.BeginsWith, 1, args.Count);
 
@@ -2147,7 +2149,7 @@ public static class CoreBuiltinHandler
         return Value.CreateBoolean(value.GetString().StartsWith(args[0].GetString()));
     }
 
-    private static Value Contains(Token token, Value value, List<Value> args)
+    private static Value Contains(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Contains, 1, args.Count);
 
@@ -2181,7 +2183,7 @@ public static class CoreBuiltinHandler
         throw new InvalidOperationError(token, "Expected a string or list.");
     }
 
-    private static Value EndsWith(Token token, Value value, List<Value> args)
+    private static Value EndsWith(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.EndsWith, 1, args.Count);
 

@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.InteropServices;
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
@@ -821,8 +822,11 @@ public sealed class KiwiVM
                                     method.Parameters, method.DefaultParameters,
                                     method.VariadicParamName, frame.GetToken(), methodName);
                                 var reorderedArgs = CollectArgs(calleeBase, newArgc);
+                                Value reorderedResult;
+                                try { reorderedResult = _interp.DispatchMethod(obj, methodName, reorderedArgs, frame.GetToken()); }
+                                finally { ReturnArgs(reorderedArgs); }
                                 _sp = objSlot;
-                                Push(_interp.DispatchMethod(obj, methodName, reorderedArgs, frame.GetToken()));
+                                Push(reorderedResult);
                                 break;
                             }
                         }
@@ -1958,8 +1962,11 @@ public sealed class KiwiVM
             var lr      = funcVal.GetLambda();
             var selfVal = Value.CreateObject(lr.BoundSelf!);
             var args    = CollectArgs(funcSlot + 1, argc);
+            Value boundResult;
+            try { boundResult = _interp.DispatchMethod(selfVal, lr.Identifier, args, token); }
+            finally { ReturnArgs(args); }
             _sp = funcSlot;
-            Push(_interp.DispatchMethod(selfVal, lr.Identifier, args, token));
+            Push(boundResult);
             return false;
         }
 
@@ -1981,11 +1988,17 @@ public sealed class KiwiVM
             // Interpreter-side callable (no VMChunk): pass reordered args
             var lr2  = funcVal.GetLambda();
             var argsL = CollectArgs(calleeBase, newArgc);
+            Value namedCallableResult;
+            try
+            {
+                var callable2 = _context.HasFunction(lr2.Identifier)
+                    ? (Callable)_context.Functions[lr2.Identifier]
+                    : _context.Lambdas[lr2.Identifier];
+                namedCallableResult = _interp.InvokeCallable(callable2, argsL, token, lr2.Identifier);
+            }
+            finally { ReturnArgs(argsL); }
             _sp = funcSlot;
-            var callable2 = _context.HasFunction(lr2.Identifier)
-                ? (Callable)_context.Functions[lr2.Identifier]
-                : _context.Lambdas[lr2.Identifier];
-            Push(_interp.InvokeCallable(callable2, argsL, token, lr2.Identifier));
+            Push(namedCallableResult);
             return false;
         }
 
@@ -2014,8 +2027,11 @@ public sealed class KiwiVM
             {
                 var selfVal = Value.CreateObject(lr.BoundSelf);
                 var args    = CollectArgs(calleeBase, argc);
+                Value boundSelfResult;
+                try { boundSelfResult = _interp.DispatchMethod(selfVal, lr.Identifier, args, token); }
+                finally { ReturnArgs(args); }
                 _sp = funcSlot;
-                Push(_interp.DispatchMethod(selfVal, lr.Identifier, args, token));
+                Push(boundSelfResult);
                 return false;
             }
 
@@ -2029,13 +2045,19 @@ public sealed class KiwiVM
                 if (sub.IsGenerator)
                 {
                     var args = CollectArgs(calleeBase, argc);
+                    Value genResult;
+                    try
+                    {
+                        // Resolve the KFunction by name so CreateGeneratorFromValues can run the body.
+                        KFunction? kfGen = !string.IsNullOrEmpty(lr.Identifier) && _context.HasFunction(lr.Identifier)
+                            ? _context.Functions[lr.Identifier] : null;
+                        genResult = kfGen != null
+                            ? _interp.CreateGeneratorFromValues(kfGen, args, token)
+                            : Value.Default;
+                    }
+                    finally { ReturnArgs(args); }
                     _sp = funcSlot;
-                    // Resolve the KFunction by name so CreateGeneratorFromValues can run the body.
-                    KFunction? kfGen = !string.IsNullOrEmpty(lr.Identifier) && _context.HasFunction(lr.Identifier)
-                        ? _context.Functions[lr.Identifier] : null;
-                    Push(kfGen != null
-                        ? _interp.CreateGeneratorFromValues(kfGen, args, token)
-                        : Value.Default);
+                    Push(genResult);
                     return false;
                 }
                 SetupCalleeLocals(sub, calleeBase, argc);
@@ -2052,8 +2074,11 @@ public sealed class KiwiVM
                     if (kf.IsGenerator)
                     {
                         var args = CollectArgs(calleeBase, argc);
+                        Value kfGenResult;
+                        try { kfGenResult = _interp.CreateGeneratorFromValues(kf, args, token); }
+                        finally { ReturnArgs(args); }
                         _sp = funcSlot;
-                        Push(_interp.CreateGeneratorFromValues(kf, args, token));
+                        Push(kfGenResult);
                         return false;
                     }
                     SetupCalleeLocals(kf.VMChunk, calleeBase, argc);
@@ -2061,8 +2086,11 @@ public sealed class KiwiVM
                     return true;
                 }
                 var args2 = CollectArgs(calleeBase, argc);
+                Value kfResult;
+                try { kfResult = _interp.InvokeCallable(kf, args2, token, lr.Identifier); }
+                finally { ReturnArgs(args2); }
                 _sp = funcSlot;
-                Push(_interp.InvokeCallable(kf, args2, token, lr.Identifier));
+                Push(kfResult);
                 return false;
             }
 
@@ -2078,8 +2106,11 @@ public sealed class KiwiVM
                 }
                 // Fallback to interpreter
                 var args = CollectArgs(calleeBase, argc);
+                Value klResult;
+                try { klResult = _interp.InvokeCallable(kl, args, token, kl.VMChunk?.Name ?? "<lambda>"); }
+                finally { ReturnArgs(args); }
                 _sp = funcSlot;
-                Push(_interp.InvokeCallable(kl, args, token, kl.VMChunk?.Name ?? "<lambda>"));
+                Push(klResult);
                 return false;
             }
         }
@@ -2090,25 +2121,28 @@ public sealed class KiwiVM
         // Interpreter fallback for builtins / tree-walked functions
         {
             var args = CollectArgs(calleeBase, argc);
-            _sp = funcSlot;
             Value callResult;
-
-            if (funcVal.IsLambda())
+            try
             {
-                var lr = funcVal.GetLambda();
-                if (_context.HasLambda(lr.Identifier))
-                    callResult = _interp.InvokeCallable(_context.Lambdas[lr.Identifier], args, token, lr.Identifier);
+                if (funcVal.IsLambda())
+                {
+                    var lr = funcVal.GetLambda();
+                    if (_context.HasLambda(lr.Identifier))
+                        callResult = _interp.InvokeCallable(_context.Lambdas[lr.Identifier], args, token, lr.Identifier);
+                    else
+                        callResult = Value.Default;
+                }
+                else if (funcVal.IsStruct())
+                {
+                    callResult = _interp.CreateObject(funcVal.GetStruct().Identifier, args, token);
+                }
                 else
-                    callResult = Value.Default;
+                {
+                    throw new Tracing.Error.InvalidOperationError(token, $"Value of type '{Typing.TypeRegistry.GetTypeName(funcVal)}' is not callable.");
+                }
             }
-            else if (funcVal.IsStruct())
-            {
-                callResult = _interp.CreateObject(funcVal.GetStruct().Identifier, args, token);
-            }
-            else
-            {
-                throw new Tracing.Error.InvalidOperationError(token, $"Value of type '{Typing.TypeRegistry.GetTypeName(funcVal)}' is not callable.");
-            }
+            finally { ReturnArgs(args); }
+            _sp = funcSlot;
             Push(callResult);
             return false;
         }
@@ -2176,10 +2210,15 @@ public sealed class KiwiVM
 
     private Value[] CollectArgs(int calleeBase, int argc)
     {
-        var args = new Value[argc];
+        var args = ArrayPool<Value>.Shared.Rent(argc);
         for (int i = 0; i < argc; i++)
             args[i] = _stack[calleeBase + i];
         return args;
+    }
+
+    private static void ReturnArgs(Value[] args)
+    {
+        ArrayPool<Value>.Shared.Return(args, clearArray: true);
     }
 
     // -- Upvalue construction (for DefFunc / MakeClosure) ----------------------

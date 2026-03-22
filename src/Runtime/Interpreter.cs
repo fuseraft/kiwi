@@ -437,6 +437,10 @@ public class Interpreter
     /// </summary>
     public Value CreateGeneratorFromValues(KFunction func, IReadOnlyList<Value> args, Token token)
     {
+        // Copy args into an owned array — the caller may be using a pooled buffer
+        // that gets returned before the generator's async body runs.
+        var ownedArgs = args.ToArray();
+
         var generatorRef = new GeneratorRef();
         var capturedGlobal = _globalScope;
         var capturedContext = Context;
@@ -453,7 +457,7 @@ public class Interpreter
                 EntryPath = capturedEntryPath,
                 GeneratorCancellationToken = generatorRef.CancellationToken
             };
-            genInterp.RunGeneratorBody(capturedFunc, args, capturedToken, generatorRef);
+            genInterp.RunGeneratorBody(capturedFunc, ownedArgs, capturedToken, generatorRef);
         });
 
         return Value.CreateGenerator(generatorRef);
@@ -731,13 +735,14 @@ public class Interpreter
     /// </summary>
     public Value DispatchMethod(Value obj, string methodName, IReadOnlyList<Value> args, Token token)
     {
-        // Build a synthetic MethodCallNode so existing dispatch logic can be reused.
-        // The arguments are already evaluated, so we wrap each in a LiteralNode.
-        var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
-        var node = new MethodCallNode(null, methodName, TokenName.Ops_Assign, argNodes) { Token = token };
-
         // Pre-supply the already-evaluated object
-        if (obj.IsPackage())  return CallPackageMethod(node, obj.GetPackage());
+        if (obj.IsPackage())
+        {
+            // CallPackageMethod needs a MethodCallNode — build it only when required.
+            var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
+            var node = new MethodCallNode(null, methodName, TokenName.Ops_Assign, argNodes) { Token = token };
+            return CallPackageMethod(node, obj.GetPackage());
+        }
         if (obj.IsObject())   return CallObjectMethodDirect(token, methodName, obj.GetObject(), args);
         if (obj.IsStruct())   return CallStructMethodDirect(token, methodName, obj.GetStruct(), args);
 
@@ -754,7 +759,7 @@ public class Interpreter
         if (CallableBuiltin.Map.TryGetValue(methodName, out _))
             return HandleCallableBuiltinDirect(token, obj, methodName, args);
         if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))
-            return BuiltinDispatch.Execute(token, coreOp, obj, args as List<Value> ?? new List<Value>(args));
+            return BuiltinDispatch.Execute(token, coreOp, obj, args);
 
         var typeId = TypeRegistry.GetType(token, obj);
         if (TypeBuiltins.TryGetBuiltin(typeId, methodName, out KFunction? typeBuiltin) && typeBuiltin != null)
@@ -792,7 +797,7 @@ public class Interpreter
                 // Object-specific builtins (is_a, clone, has_key, etc.) need struct context.
                 if (_objectSpecificBuiltins.Contains(coreOp))
                     return ObjectBuiltinHandler.Handle(this, token, coreOp, obj, struc.BaseStruct, args);
-                return BuiltinDispatch.Execute(token, coreOp, Value.CreateObject(obj), args as List<Value> ?? new List<Value>(args));
+                return BuiltinDispatch.Execute(token, coreOp, Value.CreateObject(obj), args);
             }
             throw new UnimplementedMethodError(token, obj.StructName, methodName);
         }
