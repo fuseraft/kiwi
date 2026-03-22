@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 namespace kiwi.Parsing.Keyword;
 
 public static class ListBuiltin
@@ -16,7 +17,7 @@ public static class ListBuiltin
     public const string Take         = "take";
     public const string GroupByField = "group_by_field";
 
-    private static readonly IReadOnlyDictionary<string, TokenName> _map
+    private static readonly FrozenDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
         {
             { All,          TokenName.Builtin_List_All },
@@ -32,11 +33,11 @@ public static class ListBuiltin
             { Skip,         TokenName.Builtin_List_Skip },
             { Take,         TokenName.Builtin_List_Take },
             { GroupByField, TokenName.Builtin_List_GroupByField },
-        };
+        }.ToFrozenDictionary();
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();
 
-    public static IReadOnlyDictionary<string, TokenName> Map => _map;
+    public static FrozenDictionary<string, TokenName> Map => _map;
 
     public static bool IsBuiltin(TokenName name) => _names.Contains(name);
 }
