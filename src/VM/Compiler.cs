@@ -445,7 +445,7 @@ public sealed class Compiler
                     if (s != null) CompileStatement(s);
                 return false;
             default:
-                Fallback(node); return true;
+                throw new SyntaxError(node.Token, $"Unsupported AST node type in VM compiler: {node.Type}");
         }
     }
 
@@ -576,8 +576,8 @@ public sealed class Compiler
                 Emit(Opcode.StoreStaticAttr, ni, 0, ln);
                 return leaveValue;
             }
-            // Other complex LHS → fallback
-            Fallback(node); return false;
+            // Other complex LHS — not reachable through normal parsing.
+            throw new SyntaxError(node.Token, $"Unsupported assignment left-hand side: {node.Left?.Type}");
         }
 
         bool compound = node.Op != TokenName.Ops_Assign;
@@ -667,17 +667,8 @@ public sealed class Compiler
         };
 
         if (op == (Opcode)255)
-        {
-            // Unknown binary op - reconstruct the node and fallback
-            // (stack already has left and right on it - pop them first)
-            Emit(Opcode.Pop, 0, 0, ln);
-            Emit(Opcode.Pop, 0, 0, ln);
-            Fallback(node);
-        }
-        else
-        {
-            Emit(op, 0, 0, ln);
-        }
+            throw new SyntaxError(node.Token, $"Unsupported binary operator: {node.Op}");
+        Emit(op, 0, 0, ln);
     }
 
     // -- Unary -----------------------------------------------------------------
@@ -692,8 +683,8 @@ public sealed class Compiler
             TokenName.Ops_BitwiseNot or TokenName.Ops_BitwiseNotAssign => Opcode.BNot,
             _ => (Opcode)255
         };
-        if (op == (Opcode)255) { Emit(Opcode.Pop); Fallback(node); }
-        else                    Emit(op, 0, 0, ln);
+        if (op == (Opcode)255) throw new SyntaxError(node.Token, $"Unsupported unary operator: {node.Op}");
+        Emit(op, 0, 0, ln);
     }
 
     // -- Ternary ---------------------------------------------------------------
@@ -858,10 +849,10 @@ public sealed class Compiler
 
     private void CompilePackAssign(PackAssignmentNode node, int ln)
     {
-        // All LHS elements must be simple identifiers
+        // All LHS elements must be simple identifiers.
         foreach (var lhs in node.Left)
             if (lhs != null && lhs is not IdentifierNode)
-            { Fallback(node); return; }
+                throw new SyntaxError(node.Token, "Left side of pack assignment must be an identifier.");
 
         int lhsCount = node.Left.Count;
         int rhsCount = node.Right.Count(r => r != null);
@@ -902,7 +893,7 @@ public sealed class Compiler
 
     private void CompileIndexAssign(IndexAssignmentNode node, int ln)
     {
-        if (node.Object == null) { Fallback(node); return; }
+        if (node.Object == null) throw new SyntaxError(node.Token, "Index assignment has no target object.");
 
         if (node.Object.Type == ASTNodeType.Slice)
         {
@@ -923,9 +914,7 @@ public sealed class Compiler
         }
 
         if (node.Object.Type != ASTNodeType.Index)
-        {
-            Fallback(node); return;
-        }
+            throw new SyntaxError(node.Token, $"Unsupported index-assignment target node type: {node.Object.Type}");
         var idx = (IndexingNode)node.Object!;
 
         if (node.Op == TokenName.Ops_Assign)
@@ -958,7 +947,7 @@ public sealed class Compiler
                 _ => (Opcode)255
             };
 
-            if (innerOp == (Opcode)255) { Fallback(node); return; }
+            if (innerOp == (Opcode)255) throw new SyntaxError(node.Token, $"Unsupported compound index-assignment operator: {node.Op}");
 
             if (idx.IndexedObject != null) CompileNode(idx.IndexedObject);
             else                           EmitLoad(idx.Name ?? "", ln);
@@ -1678,20 +1667,22 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
     private void CompileExport(ExportNode node, int ln)
     {
-        int nodeIdx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.Export, nodeIdx, 0, ln);
+        if (node.PackageName != null) CompileNode(node.PackageName);
+        else                          Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.Export, 0, 0, ln);
     }
 
     private void CompileEval(EvalNode node, int ln)
     {
-        int nodeIdx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.Eval, nodeIdx, 0, ln);
+        if (node.ParseValue != null) CompileNode(node.ParseValue);
+        else                         Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.Eval, 0, 0, ln);
     }
 
     private void CompileInclude(IncludeNode node, int ln)
     {
-        int nodeIdx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.Include, nodeIdx, 0, ln);
+        CompileNode(node.Path);
+        Emit(Opcode.Include, 0, 0, ln);
     }
 
     // -- Enum definition -------------------------------------------------------

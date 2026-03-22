@@ -472,21 +472,17 @@ public enum Opcode : byte
 
     // -- Export ---------------------------------------------------------------
     /// <summary>
-    /// A = node-pool index (ExportNode).
-    /// Interprets the ExportNode via InterpretNodeWithLocals (which correctly sets up
-    /// the interpreter call stack so that package body struct/function definitions work).
+    /// Pop top-of-stack (package name string); call _interp.ImportPackage with it.
     /// </summary>
     Export,
 
     // -- Eval / Include -------------------------------------------------------
     /// <summary>
-    /// A = node-pool index (EvalNode).
-    /// Interprets the EvalNode via InterpretNodeWithLocals; pushes the result.
+    /// Pop top-of-stack (Kiwi source string); lex/parse/interpret it; push the result.
     /// </summary>
     Eval,
     /// <summary>
-    /// A = node-pool index (IncludeNode).
-    /// Interprets the IncludeNode via InterpretNodeWithLocals; no push (statement).
+    /// Pop top-of-stack (file path string); load and interpret the file (no push).
     /// </summary>
     Include,
 
