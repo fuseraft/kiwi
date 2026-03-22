@@ -7,7 +7,7 @@ namespace kiwi.Runtime.Runner;
 /// <summary>
 /// Runs a script from standard input (stdin), e.g., `cat script.kiwi | kiwi`.
 /// </summary>
-public class StdInRunner(Interpreter interpreter) : ScriptRunner(interpreter)
+public class StdInRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
 {
     /// <summary>
     /// Maximum size of input data streamed from stdin (default: 40 MB).
@@ -35,7 +35,7 @@ public class StdInRunner(Interpreter interpreter) : ScriptRunner(interpreter)
 
             memoryStream.Position = 0;
             using var lexer = new Lexer(memoryStream, fileId: -1, closeOnDispose: false); // -1 = stdin
-            return RunLexer(lexer);
+            return RunVMLexer(lexer);
         }
         catch (KiwiError e)
         {

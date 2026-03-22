@@ -33,69 +33,7 @@ public class ScriptRunner(Interpreter interpreter) : IRunner
     /// <param name="script">The script.</param>
     /// <param name="args">The arguments.</param>
     /// <returns>Returns <c>0</c> for now.</returns>
-    public virtual int Run(string script, List<string> args)
-    {
-        int res = SuccessReturnCode;
-
-        ExecutionPath = script;
-
-        try
-        {
-            using Lexer lexer = new(script);
-            res = RunLexer(lexer);
-        }
-        catch (KiwiError e)
-        {
-            ErrorHandler.PrintError(e);
-        }
-        catch (Exception e)
-        {
-            ErrorHandler.DumpCrashLog(e);
-        }
-
-        return res;
-    }
-
-    protected int RunLexer(Lexer lexer)
-    {
-        try
-        {
-            Parser parser = new();
-
-            List<TokenStream> streams = [];
-            LoadStandardLibrary(ref streams);
-
-            streams.Add(lexer.GetTokenStream());
-            var ast = parser.ParseTokenStreamCollection(streams);
-
-            if (parser.HasError)
-            {
-                return 1;
-            }
-
-            streams.Clear();
-
-            Interpreter.ExecutionPath = ExecutionPath;
-            Interpreter.ProjectRoot   = Directory.GetCurrentDirectory();
-            Interpreter.EntryPath = string.IsNullOrEmpty(ExecutionPath)
-                ? Directory.GetCurrentDirectory()
-                : Path.GetFullPath(ExecutionPath);
-            SocketManager.Instance.Start();
-            TlsSocketManager.Instance.Start();
-            Interpreter.Interpret(ast);
-            AwaitTasksAndShutdown();
-        }
-        catch (KiwiError e)
-        {   
-            ErrorHandler.PrintError(e);
-        }
-        catch (Exception e)
-        {
-            ErrorHandler.DumpCrashLog(e);
-        }
-
-        return SuccessReturnCode;
-    }
+    public virtual int Run(string script, List<string> args) => SuccessReturnCode;
 
     protected void LoadStandardLibrary(ref List<TokenStream> streams)
     {

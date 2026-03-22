@@ -2367,9 +2367,13 @@ public partial class Parser
                 new IdentifierNode(identifierName));
         }
 
-        if (!MatchName(TokenName.Ops_Unpack))
+        if (MatchName(TokenName.Ops_Unpack))
         {
-            throw new SyntaxError(GetErrorToken(), "Expected an unpack operator, '=<', in pack assignment.");
+            Console.Error.WriteLine($"Deprecation warning: '=<' is deprecated. Use '=' for unpacking instead.");
+        }
+        else if (!MatchName(TokenName.Ops_Assign))
+        {
+            throw new SyntaxError(GetErrorToken(), "Expected '=' in pack assignment.");
         }
 
         var lhsLength = assignment.Left.Count;
@@ -2603,7 +2607,7 @@ public partial class Parser
             case TokenType.Qualifier when Peek().Type is TokenType.Identifier or TokenType.Typename:
                 node = ParseQualifiedIdentifier(identifierName);
                 break;
-            case TokenType.Comma when !packed && LookAhead([TokenName.Ops_Unpack]):
+            case TokenType.Comma when !packed && IsPackAssignAhead():
                 node = ParsePackAssignment(node);
                 break;
             default:

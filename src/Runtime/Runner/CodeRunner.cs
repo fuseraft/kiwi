@@ -7,14 +7,14 @@ namespace kiwi.Runtime.Runner;
 /// <summary>
 /// Runs a string of code passed via <c>-e</c>/<c>--execute</c>.
 /// </summary>
-public class CodeRunner(string code, Interpreter interpreter) : ScriptRunner(interpreter)
+public class CodeRunner(string code, Interpreter interpreter) : VMScriptRunner(interpreter)
 {
     public override int Run(string script, List<string> args)
     {
         try
         {
             using var lexer = new Lexer(-1, code);
-            return RunLexer(lexer);
+            return RunVMLexer(lexer);
         }
         catch (KiwiError e)
         {

@@ -15,7 +15,7 @@ internal sealed class LineEditor
     /// Reads a line of input, displaying <paramref name="prompt"/> first.
     /// Returns <c>null</c> on EOF (Ctrl+D on an empty line, or end of piped input).
     /// </summary>
-    public string? ReadLine(string prompt)
+    public string? ReadLine(string prompt, ConsoleColor promptColor = ConsoleColor.Green)
     {
         // Non-interactive (piped) input: skip the editor and use the basic readline.
         if (Console.IsInputRedirected)
@@ -24,7 +24,9 @@ internal sealed class LineEditor
             return Console.ReadLine();
         }
 
+        Console.ForegroundColor = promptColor;
         Console.Write(prompt);
+        Console.ResetColor();
         int promptLen = prompt.Length;
 
         var buf = new List<char>();
