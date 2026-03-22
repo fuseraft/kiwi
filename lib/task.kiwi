@@ -140,4 +140,68 @@ package task
       __task_sleep__(100)
     end # avoid busy waiting
   end
+
+  /#
+  A mutual exclusion lock backed by a semaphore.
+  #/
+  struct Mutex
+    fn new()
+      @id = __mutex_create__()
+    end
+
+    /#
+    @summary Acquires the mutex, blocking until available.
+    @return Mutex : self
+    #/
+    fn acquire()
+      __mutex_acquire__(@id)
+      @
+    end
+
+    /#
+    @summary Tries to acquire the mutex without blocking (or with a timeout).
+    @param integer timeout_ms : Milliseconds to wait (default 0 = no wait).
+    @return boolean : true if acquired.
+    #/
+    fn try_acquire(timeout_ms = 0)
+      __mutex_tryacquire__(@id, timeout_ms)
+    end
+
+    /#
+    @summary Releases the mutex.
+    @return Mutex : self
+    #/
+    fn release()
+      __mutex_release__(@id)
+      @
+    end
+
+    /#
+    @summary Acquires the mutex, runs the callback, then releases it.
+    @param lambda callback : Zero-argument lambda to execute in the critical section.
+    #/
+    fn synchronize(callback)
+      @.acquire()
+      try
+        callback()
+      finally
+        @.release()
+      end
+    end
+
+    /#
+    @summary Destroys the mutex and frees resources.
+    #/
+    fn destroy()
+      __mutex_destroy__(@id)
+    end
+  end
+
+  /#
+  @summary Creates a new Mutex.
+  @return Mutex
+  #/
+  fn mutex()
+    Mutex.new()
+  end
 end

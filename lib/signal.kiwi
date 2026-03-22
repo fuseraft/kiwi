@@ -1,0 +1,69 @@
+/#
+@summary A package for OS signal handling (SIGINT, SIGTERM, SIGHUP).
+#/
+package signal
+  SIGINT  = "SIGINT"
+  SIGTERM = "SIGTERM"
+  SIGHUP  = "SIGHUP"
+
+  _handlers = {}
+
+  /#
+  @summary Registers a signal handler. The callback runs asynchronously in a background task.
+  @param string sig : Signal name (e.g., signal::SIGINT, "SIGTERM").
+  @param lambda handler : Zero-argument lambda invoked when the signal fires.
+  @example
+  ---
+  import signal
+  signal::trap(signal::SIGINT, fn()
+    println "Shutting down..."
+    exit(0)
+  end)
+  println "Running. Press Ctrl+C to stop."
+  while true do
+    task::sleep(100)
+  end
+  ---
+  #/
+  fn trap(sig, handler)
+    sig_upper = sig.uppercase()
+    __signal_trap__(sig_upper)
+    _handlers[sig_upper] = handler
+
+    task::spawn(with (_sig) do
+      while signal::trapped(_sig) do
+        if __signal_check__(_sig)
+          signal::_handlers[_sig]()
+        end
+        task::sleep(50)
+      end
+    end, [sig_upper])
+  end
+
+  /#
+  @summary Removes a signal handler.
+  @param string sig : Signal name.
+  #/
+  fn reset(sig)
+    sig_upper = sig.uppercase()
+    __signal_reset__(sig_upper)
+    _handlers.remove(sig_upper) when _handlers.has_key(sig_upper)
+  end
+
+  /#
+  @summary Returns true if a signal handler is registered for the given signal.
+  @param string sig : Signal name.
+  @return boolean
+  #/
+  fn trapped(sig)
+    _handlers.has_key(sig.uppercase())
+  end
+
+  /#
+  @summary Programmatically fires a signal (useful for testing handlers).
+  @param string sig : Signal name.
+  #/
+  fn raise_signal(sig)
+    __signal_raise__(sig.uppercase())
+  end
+end

@@ -31,6 +31,78 @@ package crypto
   fn sha256_hash(input = "")
     return SHA256.new(input).hexdigest()
   end
+
+  /#
+  @summary Computes the SHA-1 hex digest of a string.
+  @param string input : The input string to hash (default `""`).
+  @return string : A 40-character lowercase hexadecimal SHA-1 digest.
+  #/
+  fn sha1_hash(input = "")
+    return __crypto_sha1__(input)
+  end
+
+  /#
+  @summary Computes the SHA-384 hex digest of a string.
+  @param string input : The input string to hash (default `""`).
+  @return string : A 96-character lowercase hexadecimal SHA-384 digest.
+  #/
+  fn sha384_hash(input = "")
+    return __crypto_sha384__(input)
+  end
+
+  /#
+  @summary Computes the SHA-512 hex digest of a string.
+  @param string input : The input string to hash (default `""`).
+  @return string : A 128-character lowercase hexadecimal SHA-512 digest.
+  #/
+  fn sha512_hash(input = "")
+    return __crypto_sha512__(input)
+  end
+
+  /#
+  @summary Computes an HMAC hex digest.
+  @param string algorithm : One of "MD5", "SHA256", "SHA512".
+  @param string key : The HMAC key.
+  @param string input : The input string.
+  @return string : Lowercase hexadecimal HMAC digest.
+  #/
+  fn hmac(algorithm, key, input)
+    alg = algorithm.uppercase()
+    return __crypto_hmac_md5__(key, input)    when alg == "MD5"
+    return __crypto_hmac_sha256__(key, input)  when alg == "SHA256"
+    return __crypto_hmac_sha512__(key, input)  when alg == "SHA512"
+    throw "crypto::hmac: unsupported algorithm '" + algorithm + "'. Use MD5, SHA256, or SHA512."
+  end
+
+  /#
+  @summary Computes HMAC-SHA256.
+  @param string key : The HMAC key.
+  @param string input : The input string.
+  @return string : Lowercase hexadecimal digest.
+  #/
+  fn hmac_sha256(key, input)
+    return __crypto_hmac_sha256__(key, input)
+  end
+
+  /#
+  @summary Computes HMAC-SHA512.
+  @param string key : The HMAC key.
+  @param string input : The input string.
+  @return string : Lowercase hexadecimal digest.
+  #/
+  fn hmac_sha512(key, input)
+    return __crypto_hmac_sha512__(key, input)
+  end
+
+  /#
+  @summary Computes HMAC-MD5.
+  @param string key : The HMAC key.
+  @param string input : The input string.
+  @return string : Lowercase hexadecimal digest.
+  #/
+  fn hmac_md5(key, input)
+    return __crypto_hmac_md5__(key, input)
+  end
 end
 
 /#

@@ -1056,6 +1056,12 @@ public class Lexer : IDisposable
         else if (ProtobufBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (XmlBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (IpcBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (CryptoBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (HttpServerBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (MutexBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (SignalBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (SmtpBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (UdpBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);
     }

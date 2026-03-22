@@ -1694,6 +1694,14 @@ public sealed class KiwiVM
                         }
                         _context.Structs[struc.Name] = struc;
                         InvalidateName(struc.Name);
+                        // Also register under the fully-qualified name (e.g. "httpserver::Response")
+                        // so that pkg::Struct.new() calls work from any context.
+                        if (!string.IsNullOrEmpty(_pkgPrefix))
+                        {
+                            var qualifiedStructName = _pkgPrefix + struc.Name;
+                            _context.Structs[qualifiedStructName] = struc;
+                            InvalidateName(qualifiedStructName);
+                        }
                         break;
                     }
 

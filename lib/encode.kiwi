@@ -1,0 +1,58 @@
+/#
+@summary A package providing encoding and decoding utilities (Base64, Hex, URL).
+#/
+package encode
+  /#
+  @summary Encodes a string or bytes to Base64.
+  @param string|bytes|list data : The data to encode.
+  @return string : Base64-encoded string.
+  #/
+  fn base64_encode(data)
+    __base64encode__(data)
+  end
+
+  /#
+  @summary Decodes a Base64 string to bytes.
+  @param string data : Base64-encoded string.
+  @return bytes : Decoded bytes.
+  #/
+  fn base64_decode(data)
+    __base64decode__(data)
+  end
+
+  /#
+  @summary Encodes a string or bytes to lowercase hex.
+  @param string|bytes|list data : The data to encode.
+  @return string : Hex-encoded string.
+  #/
+  fn hex_encode(data)
+    __hexencode__(data)
+  end
+
+  /#
+  @summary Decodes a hex string to bytes.
+  @param string hex_str : Hex-encoded string (spaces and dashes ignored).
+  @return bytes : Decoded bytes.
+  #/
+  fn hex_decode(hex_str)
+    __hexdecode__(hex_str)
+  end
+
+  /#
+  @summary URL-encodes a string.
+  @param string str : String to encode.
+  @return string : URL-encoded string.
+  #/
+  fn url_encode(str)
+    __urlencode__(str)
+  end
+
+  /#
+  @summary URL-decodes a string.
+  @param string str : URL-encoded string.
+  @return string : Decoded string.
+  #/
+  fn url_decode(str)
+    __urldecode__(str)
+  end
+end

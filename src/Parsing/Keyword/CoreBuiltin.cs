@@ -217,6 +217,12 @@ public static class CoreBuiltin
         if (XmlBuiltin.Map.ContainsKey(arg))         return true;
         if (TimeBuiltin.Map.ContainsKey(arg))        return true;
         if (IpcBuiltin.Map.ContainsKey(arg))         return true;
+        if (CryptoBuiltin.Map.ContainsKey(arg))      return true;
+        if (HttpServerBuiltin.Map.ContainsKey(arg))  return true;
+        if (MutexBuiltin.Map.ContainsKey(arg))       return true;
+        if (SignalBuiltin.Map.ContainsKey(arg))      return true;
+        if (SmtpBuiltin.Map.ContainsKey(arg))        return true;
+        if (UdpBuiltin.Map.ContainsKey(arg))         return true;
 
         // not a builtin method
         return false;
