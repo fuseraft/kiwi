@@ -145,6 +145,7 @@ nav:
     - sqlite: lib/sqlite.md
     - std: lib/std.md
     - stdin: lib/stdin.md
+    - stopwatch: lib/stopwatch.md
     - string: lib/string.md
     - sys: lib/sys.md
     - task: lib/task.md
