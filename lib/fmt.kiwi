@@ -1,0 +1,202 @@
+/#
+@summary A package providing sprintf-style string formatting.
+#/
+package fmt
+  /#
+  @summary Formats a string using printf-style format specifiers.
+  @param string format_str : Format string with % specifiers.
+  @param list args : List of values to format.
+  @return string : The formatted string.
+  @example
+  ---
+  import fmt
+  println fmt::sprintf("Hello, %s! You are %d years old.", ["Alice", 30])
+  println fmt::sprintf("Pi is approximately %.4f", [3.14159265])
+  println fmt::sprintf("Hex: %x  Oct: %o  Bin: %b", [255, 255, 255])
+  println fmt::sprintf("%-10s|%10s", ["left", "right"])
+  ---
+  #/
+  fn sprintf(format_str, args = [])
+    result  = ""
+    i       = 0
+    arg_idx = 0
+    n       = format_str.size()
+
+    while i < n do
+      c = format_str[i]
+
+      if c != "%" || i == n - 1
+        result += c
+        i += 1
+        next
+      end
+
+      i += 1
+      # Collect flags, width, precision
+      flags = ""
+      while i < n && "0123456789.-+ #".contains(format_str[i]) do
+        flags += format_str[i]
+        i += 1
+      end
+
+      return result when i >= n
+
+      spec = format_str[i]
+
+      # Literal %
+      if spec == "%"
+        result += "%"
+        i += 1
+        next
+      end
+
+      # Not enough args — emit verbatim
+      if arg_idx >= args.size()
+        result += "%" + flags + spec
+        i += 1
+        next
+      end
+
+      arg = args[arg_idx]
+      arg_idx += 1
+
+      # Parse flags
+      left_align = flags.contains("-")
+      zero_pad   = flags.contains("0") && !left_align
+      plus_sign  = flags.contains("+")
+
+      flags_clean = flags.replace("-", "").replace("+", "").replace(" ", "").replace("#", "")
+
+      width     = 0
+      precision = -1
+
+      dot_idx = flags_clean.index(".")
+      if dot_idx >= 0
+        width_str = flags_clean[0:dot_idx]
+        prec_str  = flags_clean[dot_idx + 1:]
+        width     = width_str.empty() ? 0 : width_str.to_integer()
+        precision = prec_str.empty()  ? 0 : prec_str.to_integer()
+      elsif !flags_clean.empty()
+        clean = flags_clean.replace("0", "") when zero_pad
+        width = flags_clean.empty() ? 0 : flags_clean.replace("0", "").to_integer()
+        # Re-parse: just take digits
+        digits = ""
+        fi = 0
+        while fi < flags_clean.size() do
+          ch = flags_clean[fi]
+          digits += ch when "0123456789".contains(ch)
+          fi += 1
+        end
+        width = digits.empty() ? 0 : digits.to_integer()
+      end
+
+      formatted = ""
+
+      if spec == "s"
+        formatted = arg.to_string()
+        prec = precision
+        formatted = formatted[0:prec] when prec >= 0 && prec < formatted.size()
+      elsif spec == "d" || spec == "i"
+        v = arg.to_integer()
+        formatted = v.to_string()
+        formatted = "+" + formatted when plus_sign && v >= 0
+      elsif spec == "f"
+        v    = arg.to_float()
+        prec = precision >= 0 ? precision : 6
+        formatted = fmt::_format_float(v, prec)
+        formatted = "+" + formatted when plus_sign && v >= 0
+      elsif spec == "e"
+        # Scientific notation (simplified)
+        v = arg.to_float()
+        formatted = fmt::_format_scientific(v, precision >= 0 ? precision : 6)
+      elsif spec == "x"
+        formatted = arg.to_integer().to_hex()
+      elsif spec == "X"
+        formatted = arg.to_integer().to_hex().uppercase()
+      elsif spec == "o"
+        formatted = fmt::_to_base(arg.to_integer(), 8)
+      elsif spec == "b"
+        formatted = fmt::_to_base(arg.to_integer(), 2)
+      elsif spec == "c"
+        n_val = arg.is_a(integer) ? arg : arg.to_integer()
+        formatted = n_val.chr()
+      else
+        formatted = "%" + flags + spec
+        arg_idx -= 1
+      end
+
+      # Width padding
+      if width > 0 && formatted.size() < width
+        pad_size = width - formatted.size()
+        pad_char = zero_pad && (spec == "d" || spec == "i" || spec == "f") ? "0" : " "
+        pad      = pad_char * pad_size
+        formatted = left_align ? formatted + (" " * pad_size) : pad + formatted
+      end
+
+      result += formatted
+      i += 1
+    end
+
+    result
+  end
+
+  fn _format_float(val, precision)
+    factor  = math::pow(10.0, precision.to_float())
+    rounded = math::round(val * factor)
+    neg     = rounded < 0
+    rounded = neg ? -rounded : rounded
+    int_r   = rounded.to_integer()
+    f_int   = int_r / math::pow(10.0, precision.to_float()).to_integer()
+    f_frac  = int_r % math::pow(10.0, precision.to_float()).to_integer()
+    sign    = neg ? "-" : ""
+    prec    = precision
+    if prec == 0
+      return "${sign}${f_int}"
+    end
+    frac_str = "${f_frac}".padstart(prec, "0")
+    "${sign}${f_int}.${frac_str}"
+  end
+
+  fn _format_scientific(val, precision)
+    return "0." + ("0" * precision) + "e+00" when val == 0
+    neg  = val < 0
+    val  = neg ? -val : val
+    exp  = math::floor(math::log10(val)).to_integer()
+    mant = val / math::pow(10.0, exp.to_float())
+    sign = neg ? "-" : ""
+    e_sign = exp >= 0 ? "+" : "-"
+    e_abs  = exp.abs()
+    "${sign}${fmt::_format_float(mant, precision)}e${e_sign}${e_abs.to_string().padstart(2, "0")}"
+  end
+
+  fn _to_base(n, base)
+    return "0" when n == 0
+    neg    = n < 0
+    n      = neg ? -n : n
+    digits = "0123456789abcdef"
+    result = ""
+    while n > 0 do
+      result = digits[n % base] + result
+      n = n / base
+    end
+    neg ? "-" + result : result
+  end
+
+  /#
+  @summary Formats and prints to stdout (no newline).
+  @param string format_str : Format string.
+  @param list args : Arguments list.
+  #/
+  fn printf(format_str, args = [])
+    print fmt::sprintf(format_str, args)
+  end
+
+  /#
+  @summary Formats and prints to stdout with a newline.
+  @param string format_str : Format string.
+  @param list args : Arguments list.
+  #/
+  fn printlnf(format_str, args = [])
+    println fmt::sprintf(format_str, args)
+  end
+end

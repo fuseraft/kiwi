@@ -1,0 +1,89 @@
+/#
+@summary A package for sending email via SMTP.
+#/
+package smtp
+  /#
+  A fluent email message builder.
+  #/
+  struct Message
+    fn new(from_addr, subject, body)
+      @from    = from_addr
+      @to_list = []
+      @cc_list = []
+      @subject = subject
+      @body    = body
+    end
+
+    /#
+    @summary Adds a recipient.
+    @param string addr : Email address.
+    @return Message : self
+    #/
+    fn add_to(addr)
+      @to_list.push(addr)
+      @
+    end
+
+    /#
+    @summary Adds a CC recipient.
+    @param string addr : Email address.
+    @return Message : self
+    #/
+    fn add_cc(addr)
+      @cc_list.push(addr)
+      @
+    end
+
+    /#
+    @summary Sends the message via SMTP.
+    @param string host : SMTP server hostname.
+    @param integer port : SMTP server port (default 587).
+    @param string username : SMTP username (default "").
+    @param string password : SMTP password (default "").
+    @param boolean use_tls : Whether to use TLS/STARTTLS (default true).
+    @return boolean : true on success.
+    #/
+    fn send(host, port = 587, username = "", password = "", use_tls = true)
+      all_recipients = @to_list.clone()
+      for addr in @cc_list do
+        all_recipients.push(addr)
+      end
+      __smtp_send__(host, port, @from, all_recipients, @subject, @body, username, password, use_tls)
+    end
+  end
+
+  /#
+  @summary Sends an email in one call.
+  @param string host : SMTP server hostname.
+  @param integer port : SMTP server port.
+  @param string from_addr : Sender email address.
+  @param string|list recipients : Recipient address or list of addresses.
+  @param string subject : Email subject.
+  @param string body : Email body.
+  @param string username : SMTP username (default "").
+  @param string password : SMTP password (default "").
+  @param boolean use_tls : Whether to use TLS (default true).
+  @return boolean : true on success.
+  @example
+  ---
+  import smtp
+  smtp::send("smtp.example.com", 587, "me@example.com", "you@example.com",
+    "Hello", "This is the body.", "me@example.com", "s3cr3t")
+  ---
+  #/
+  fn send(host, port, from_addr, recipients, subject, body, username = "", password = "", use_tls = true)
+    to_list = recipients.is_a(list) ? recipients : [recipients]
+    __smtp_send__(host, port, from_addr, to_list, subject, body, username, password, use_tls)
+  end
+
+  /#
+  @summary Creates a fluent Message builder.
+  @param string from_addr : Sender email address.
+  @param string subject : Email subject.
+  @param string body : Email body.
+  @return Message
+  #/
+  fn message(from_addr, subject, body)
+    Message.new(from_addr, subject, body)
+  end
+end

@@ -88,6 +88,30 @@ public struct BuiltinDispatch
         {
             return IpcBuiltinHandler.Execute(token, builtin, args);
         }
+        else if (CryptoBuiltin.IsBuiltin(builtin))
+        {
+            return CryptoBuiltinHandler.Execute(token, builtin, args);
+        }
+        else if (HttpServerBuiltin.IsBuiltin(builtin))
+        {
+            return HttpServerBuiltinHandler.Execute(token, builtin, args);
+        }
+        else if (MutexBuiltin.IsBuiltin(builtin))
+        {
+            return MutexBuiltinHandler.Execute(token, builtin, args);
+        }
+        else if (SignalBuiltin.IsBuiltin(builtin))
+        {
+            return SignalBuiltinHandler.Execute(token, builtin, args);
+        }
+        else if (SmtpBuiltin.IsBuiltin(builtin))
+        {
+            return SmtpBuiltinHandler.Execute(token, builtin, args);
+        }
+        else if (UdpBuiltin.IsBuiltin(builtin))
+        {
+            return UdpBuiltinHandler.Execute(token, builtin, args);
+        }
 
         throw new FunctionUndefinedError(token, token.Text);
     }

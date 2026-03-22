@@ -4,6 +4,8 @@ public static class EncoderBuiltin
 {
     public const string Base64Encode = "__base64encode__";
     public const string Base64Decode = "__base64decode__";
+    public const string HexEncode    = "__hexencode__";
+    public const string HexDecode    = "__hexdecode__";
     public const string UrlEncode    = "__urlencode__";
     public const string UrlDecode    = "__urldecode__";
 
@@ -12,6 +14,8 @@ public static class EncoderBuiltin
         {
             { Base64Encode, TokenName.Builtin_Encoder_Base64Encode },
             { Base64Decode, TokenName.Builtin_Encoder_Base64Decode },
+            { HexEncode,    TokenName.Builtin_Encoder_HexEncode },
+            { HexDecode,    TokenName.Builtin_Encoder_HexDecode },
             { UrlEncode,    TokenName.Builtin_Encoder_UrlEncode },
             { UrlDecode,    TokenName.Builtin_Encoder_UrlDecode }
         };

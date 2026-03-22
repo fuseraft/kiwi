@@ -1,0 +1,89 @@
+/#
+@summary A package providing structured logging with levels and optional file output.
+#/
+package log
+  # Mutable state held in a hashmap (hashmap subscript assignment is in-place mutation)
+  _state  = { "level": "INFO", "file": null, "timestamps": true }
+  _levels = { "DEBUG": 0, "INFO": 1, "WARN": 2, "ERROR": 3, "FATAL": 4 }
+
+  /#
+  @summary Sets the minimum log level. Messages below this level are suppressed.
+  @param string level : One of "DEBUG", "INFO", "WARN", "ERROR", "FATAL".
+  #/
+  fn set_level(lv)
+    _state["level"] = lv.uppercase()
+  end
+
+  /#
+  @summary Sets a file path to append log output to.
+  @param string path : File path, or null to disable file output.
+  #/
+  fn set_file(path)
+    _state["file"] = path
+  end
+
+  /#
+  @summary Enables or disables timestamps in log output.
+  @param boolean enabled : Whether to include timestamps.
+  #/
+  fn timestamps(enabled)
+    _state["timestamps"] = enabled
+  end
+
+  fn _should_log(lv)
+    _levels.has_key(lv) && _levels[lv] >= _levels[_state["level"]]
+  end
+
+  fn _write(lv, msg)
+    return when !log::_should_log(lv)
+
+    parts = ["[" + lv + "]"]
+    parts.push("[" + time::now().to_string() + "]") when _state["timestamps"]
+    parts.push(msg.to_string())
+    line = parts.join(" ")
+
+    eprintln line
+    fio::append_text(_state["file"], line + "\n") when _state["file"] != null
+  end
+
+  /#
+  @summary Logs a DEBUG message.
+  @param any msg : The message to log.
+  #/
+  fn debug(msg)
+    log::_write("DEBUG", msg)
+  end
+
+  /#
+  @summary Logs an INFO message.
+  @param any msg : The message to log.
+  #/
+  fn info(msg)
+    log::_write("INFO", msg)
+  end
+
+  /#
+  @summary Logs a WARN message.
+  @param any msg : The message to log.
+  #/
+  fn warn(msg)
+    log::_write("WARN", msg)
+  end
+
+  /#
+  @summary Logs an ERROR message.
+  @param any msg : The message to log.
+  #/
+  fn error(msg)
+    log::_write("ERROR", msg)
+  end
+
+  /#
+  @summary Logs a FATAL message and exits with code 1.
+  @param any msg : The message to log.
+  #/
+  fn fatal(msg)
+    log::_write("FATAL", msg)
+    exit(1)
+  end
+end

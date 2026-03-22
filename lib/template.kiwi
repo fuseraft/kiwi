@@ -1,0 +1,56 @@
+/#
+@summary A lightweight string template engine supporting {{var}} substitutions.
+#/
+package template
+  /#
+  @summary Renders a template string, replacing {{key}} with values from a hashmap.
+  @param string tmpl : Template string containing {{key}} placeholders.
+  @param hashmap vars : Map of variable names to replacement values.
+  @return string : The rendered string.
+  @example
+  ---
+  import template
+  result = template::render("Hello, {{name}}! You are {{age}} years old.", {
+    "name": "Alice",
+    "age": 30
+  })
+  println result  # Hello, Alice! You are 30 years old.
+  ---
+  #/
+  fn render(tmpl, vars)
+    result = tmpl
+    for key in vars.keys() do
+      result = result.replace("{{" + key + "}}", vars[key].to_string())
+    end
+    result
+  end
+
+  /#
+  @summary Renders a template file.
+  @param string path : Path to the template file.
+  @param hashmap vars : Map of variable names to replacement values.
+  @return string : The rendered string.
+  #/
+  fn render_file(path, vars)
+    template::render(fio::read_text(path), vars)
+  end
+
+  /#
+  @summary Renders a template string with a list of hashmaps (repeated section).
+  @param string tmpl : Template string with {{key}} placeholders.
+  @param list rows : A list of hashmaps, one per output row.
+  @return list : A list of rendered strings, one per row.
+  @example
+  ---
+  import template
+  rows = template::render_each("{{id}}: {{name}}", [
+    { "id": 1, "name": "Alice" },
+    { "id": 2, "name": "Bob" }
+  ])
+  println rows.join("\n")
+  ---
+  #/
+  fn render_each(tmpl, rows)
+    rows.map(with (row) do template::render(tmpl, row) end)
+  end
+end
