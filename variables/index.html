@@ -3537,21 +3537,24 @@
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>x = &quot;Kiwi&quot;    # `x` is now a string
 </span></code></pre></div>
 <h3 id="multiple-assignments">Multiple Assignments<a class="headerlink" href="#multiple-assignments" title="Permanent link">&para;</a></h3>
-<p>Kiwi supports multiple variable assignments using the unpacking syntax <code>=&lt;</code>. This allows assigning multiple values to multiple variables in a single line:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>a, b, c =&lt; true, {&quot;a&quot;: false}, [1, 2, 3]
+<p>Kiwi supports unpacking multiple values into multiple variables in a single line:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>a, b, c = true, {&quot;a&quot;: false}, [1, 2, 3]
 </span></code></pre></div>
 <p>Here:
 - <code>a</code> is assigned the boolean value <code>true</code>.
 - <code>b</code> is assigned a hashmap with a single key-value pair.
 - <code>c</code> is assigned a list containing three integers.</p>
-<p>This can also be used with functions that return multiple values:</p>
+<p>You can also unpack the elements of a list returned by a function:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>fn get_zero_and_one()
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  return [0, 1]
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>end
 </span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>zero, one =&lt; get_zero_and_one()
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>zero, one = get_zero_and_one()
 </span></code></pre></div>
 <p>Now, <code>zero</code> is <code>0</code> and <code>one</code> is <code>1</code>.</p>
+<blockquote>
+<p><strong>Note:</strong> The <code>=&lt;</code> unpack operator is deprecated. Use <code>=</code> instead.</p>
+</blockquote>
 <h2 id="variable-scope">Variable Scope<a class="headerlink" href="#variable-scope" title="Permanent link">&para;</a></h2>
 <p>Kiwi uses lexical scoping. Variables created inside a function are local to that call. Variables created inside a control-flow block (<code>if</code>, <code>while</code>, <code>for</code>, <code>repeat</code>, <code>do</code>) are local to that block. See <a href="../scoping/">Scoping</a> for the full rules.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>fn example_scope()
