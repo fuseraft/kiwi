@@ -157,8 +157,14 @@ public class ListBuiltinHandler
 
     private static Value LambdaEach(Interpreter interp, Callable lambda, List<Value> list, Token token)
     {
+        bool twoArgs = lambda.Parameters.Count > 1;
+        var buf = new Value[twoArgs ? 2 : 1];
         for (int i = 0; i < list.Count; i++)
-            interp.InvokeCallable(lambda, lambda.Parameters.Count > 1 ? [list[i], Value.CreateInteger(i)] : [list[i]], token, "<each>");
+        {
+            buf[0] = list[i];
+            if (twoArgs) buf[1] = Value.CreateInteger(i);
+            interp.InvokeCallable(lambda, buf, token, "<each>");
+        }
         return Value.Default;
     }
 
@@ -173,18 +179,25 @@ public class ListBuiltinHandler
     private static Value LambdaMap(Interpreter interp, Callable lambda, List<Value> list, Token token)
     {
         var mapped = new List<Value>(list.Count);
+        var buf    = new Value[1];
         foreach (var item in list)
-            mapped.Add(interp.InvokeCallable(lambda, [item], token, "<map>"));
+        {
+            buf[0] = item;
+            mapped.Add(interp.InvokeCallable(lambda, buf, token, "<map>"));
+        }
         return Value.CreateList(mapped);
     }
 
     private static Value LambdaReduce(Interpreter interp, Callable lambda, Value accumulator, List<Value> list, Token token)
     {
         var acc = accumulator;
+        var buf = new Value[2];
         foreach (var item in list)
         {
             var prev = acc;
-            var result = interp.InvokeCallable(lambda, [acc, item], token, "<reduce>");
+            buf[0] = acc;
+            buf[1] = item;
+            var result = interp.InvokeCallable(lambda, buf, token, "<reduce>");
             // If the lambda returns null it likely mutated the accumulator in-place
             // (e.g. `acc["key"] = val`); keep the original reference in that case.
             acc = result.IsNull() ? prev : result;
@@ -194,18 +207,26 @@ public class ListBuiltinHandler
 
     private static Value LambdaAll(Interpreter interp, Callable lambda, List<Value> list, Token token)
     {
+        var buf = new Value[1];
         foreach (var item in list)
-            if (!BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [item], token, "<all>")))
+        {
+            buf[0] = item;
+            if (!BooleanOp.IsTruthy(interp.InvokeCallable(lambda, buf, token, "<all>")))
                 return Value.False;
+        }
         return Value.True;
     }
 
     private static Value LambdaFilter(Interpreter interp, Callable lambda, List<Value> list, Token token)
     {
         var filtered = new List<Value>();
+        var buf      = new Value[1];
         foreach (var item in list)
-            if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [item], token, "<filter>")))
+        {
+            buf[0] = item;
+            if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, buf, token, "<filter>")))
                 filtered.Add(item);
+        }
         return Value.CreateList(filtered);
     }
 
@@ -245,27 +266,15 @@ public class ListBuiltinHandler
     private static Value ListSkip(ref Value obj, int count)
     {
         var lst = obj.GetList();
-
-        try
-        {
-            return Value.CreateList([.. lst.Skip(count)]);
-        }
-        catch {}
-
-        return Value.CreateList();
+        count = Math.Clamp(count, 0, lst.Count);
+        return Value.CreateList(lst.GetRange(count, lst.Count - count));
     }
 
     private static Value ListTake(ref Value obj, int count)
     {
         var lst = obj.GetList();
-
-        try
-        {
-            return Value.CreateList([.. lst.Take(count)]);
-        }
-        catch {}
-
-        return Value.CreateList();
+        count = Math.Clamp(count, 0, lst.Count);
+        return Value.CreateList(lst.GetRange(0, count));
     }
 
     private static Value ListSum(List<Value> list)
