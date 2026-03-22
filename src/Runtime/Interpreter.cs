@@ -14,7 +14,6 @@ namespace kiwi.Runtime;
 
 public class Interpreter
 {
-    private const int SafemodeMaxIterations = 1000000;
     private Scope _globalScope = new();
     private readonly Stack<Scope> _scopePool = new(32);
     private FrameManager _frames = null!;
