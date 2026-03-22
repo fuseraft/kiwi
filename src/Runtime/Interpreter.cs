@@ -54,8 +54,6 @@ public class Interpreter
     public long CurrentTaskId { get; set; } = 0; // 0 = main thread
     public void SetContext(KContext context) => Context = context;
 
-    private List<string> CaptureStackTrace() => _frames.CaptureStackTrace();
-
     /// <summary>
     /// Fallback single-node executor: compiles the node as a mini-program and
     /// runs it through the VM.  Called from AST-walk helpers that have not yet
@@ -241,27 +239,6 @@ public class Interpreter
                 PopFrame();
             }
         }
-    }
-
-    private string GetCurrentStructName(Token token)
-    {
-        var frame = CallStack.Peek();
-
-        if (!string.IsNullOrEmpty(frame.StructName))
-        {
-            return frame.StructName;
-        }
-
-        if (frame.InObjectContext())
-        {
-            var sn = frame.GetObjectContext()?.StructName ?? string.Empty;
-            if (!string.IsNullOrEmpty(sn))
-            {
-                return sn;
-            }
-        }
-
-        throw new InvalidContextError(token, "Cannot access static variable outside of a struct method.");
     }
 
     /// <summary>
@@ -454,77 +431,6 @@ public class Interpreter
         return result;
     }
 
-    private string PrintObject(Token token, Value value)
-    {
-        if (!value.IsObject())
-        {
-            return Serializer.Serialize(value);
-        }
-
-        var instance = value.GetObject();
-        var method = GetObjectMethod(instance, CoreBuiltin.ToS);
-        if (method == null)
-        {
-            return Serializer.Serialize(value);
-        }
-
-        var frame = CallStack.Peek();
-        var oldContext = frame.GetObjectContext();
-        var hadContext = frame.InObjectContext();
-
-        frame.SetObjectContext(instance);
-
-        try
-        {
-            var result = InvokeCallable(method, new List<Value>(), token, $"{instance.StructName}#{CoreBuiltin.ToS}", instance);
-            return Serializer.Serialize(result);
-        }
-        finally
-        {
-            if (hadContext)
-            {
-                frame.SetObjectContext(oldContext);
-            }
-            else
-            {
-                frame.ClearFlag(FrameFlags.InObject);
-            }
-        }
-    }
-
-    private bool HasOperatorOverload(InstanceRef inst, TokenName op, out KFunction? func)
-    {
-        var struc = Context.Structs[inst.StructName];
-        var opString = Serializer.GetOperatorString(op);
-        func = null;
-
-        if (string.IsNullOrEmpty(opString))
-        {
-            return false;
-        }
-
-        if (struc.Methods.TryGetValue(opString, out KFunction? structFunc))
-        {
-            func = structFunc;
-            return true;
-        }
-
-        // check base struct
-        if (!string.IsNullOrEmpty(struc.BaseStruct))
-        {
-            var baseStruct = Context.Structs[struc.BaseStruct];
-            var baseStructMethods = baseStruct.Methods;
-
-            if (baseStructMethods.TryGetValue(opString, out KFunction? baseStructFunc))
-            {
-                func = baseStructFunc;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /// <summary>
     /// Create a generator from pre-evaluated arguments. Used by the VM when a generator
     /// function is called via bytecode (arguments are already on the value stack).
@@ -609,88 +515,6 @@ public class Interpreter
         var savedVM = VM.KiwiVM.Current;
         try   { return new VM.KiwiVM(this).Execute(chunk); }
         finally { VM.KiwiVM.Current = savedVM; }
-    }
-
-    private KFunction? GetObjectMethod(InstanceRef obj, string name)
-    {
-        var struc = Context.Structs[obj.StructName];
-        var strucMethods = struc.Methods;
-
-        if (strucMethods.TryGetValue(name, out KFunction? func))
-        {
-            return func;
-        }
-
-        // check the base
-        if (!string.IsNullOrEmpty(struc.BaseStruct))
-        {
-            var baseStruct = Context.Structs[struc.BaseStruct];
-            var baseStructMethods = baseStruct.Methods;
-
-            if (baseStructMethods.TryGetValue(name, out KFunction? baseStructFunc))
-            {
-                return baseStructFunc;
-            }
-        }
-
-        return null;
-    }
-
-    private CallableType GetCallable(Token token, string name)
-    {
-        if (Context.HasFunction(name))
-        {
-            return CallableType.Function;
-        }
-        else if (Context.HasLambda(name))
-        {
-            return CallableType.Lambda;
-        }
-        else if (CoreBuiltin.IsBuiltinMethod(name))
-        {
-            return CallableType.Builtin;
-        }
-
-        if (Context.HasMappedLambda(name))
-        {
-            return CallableType.Lambda;
-        }
-
-        // Check scope chain for a lambda value bound to this name (e.g., lambda parameters).
-        if (CallStack.Count > 0 && CallStack.Peek().Scope.TryGet(name, out Value scopeVal) && scopeVal.IsLambda())
-        {
-            return CallableType.Lambda;
-        }
-
-        var frame = CallStack.Peek();
-
-        if (!frame.InObjectContext())
-        {
-            throw new FunctionUndefinedError(token, name);
-        }
-
-        var obj = frame.GetObjectContext() ?? throw new NullObjectError(token);
-        var struc = Context.Structs[obj.StructName];
-        var strucMethods = struc.Methods;
-
-        if (strucMethods.ContainsKey(name))
-        {
-            return CallableType.Method;
-        }
-
-        // check the base
-        if (!string.IsNullOrEmpty(struc.BaseStruct))
-        {
-            var baseStruct = Context.Structs[struc.BaseStruct];
-            var baseStructMethods = baseStruct.Methods;
-
-            if (baseStructMethods.ContainsKey(name))
-            {
-                return CallableType.Method;
-            }
-        }
-
-        throw new UnimplementedMethodError(token, struc.Name, name);
     }
 
     /// <summary>
@@ -880,14 +704,7 @@ public class Interpreter
     private StackFrame PushFrame(string name, Token token, Scope scope, bool inLambda = false) => _frames.Push(name, token, scope, inLambda);
     private Value PopFrame() => _frames.Pop();
     private bool PushFrame(StackFrame frame) => _frames.PushRaw(frame);
-    private Scope EnterBlockScope(StackFrame frame) => _frames.EnterBlock(frame);
-    private void ExitBlockScope(StackFrame frame, Scope parent) => _frames.ExitBlock(frame, parent);
-    private Scope CaptureCurrentScope() => _frames.CaptureCurrentScope();
-    private bool InTry() => _frames.InTry();
-    private StackFrame CreateFrame(string name, Token token, Scope? parentScope = null) => _frames.CreateFrame(name, token, parentScope);
-
-    private static string Id(ASTNode node) => ((IdentifierNode)node).Name;
-
+    
     // ═══════════════════════════════════════════════════════════════════════════
     // VM Bridge - public surface used by KiwiVM to delegate work back to the
     // tree-walking interpreter for operations not yet compiled natively.
@@ -912,18 +729,6 @@ public class Interpreter
     /// <summary>Pop the synthetic frame pushed by <see cref="PushVMDispatchFrame"/>.</summary>
     public void PopVMDispatchFrame()
         => CallStack.Pop();
-
-    /// <summary>
-    /// Execute a single AST node and return its value (used by InterpFallback).
-    /// </summary>
-
-    /// <summary>
-    /// Execute a single AST node with VM-local variables injected into a temporary
-    /// interpreter scope so that expressions inside the node (e.g. argument sub-expressions
-    /// in named-arg calls) can resolve VM locals by name.
-    /// After execution, any variables that were modified in the interpreter scope are
-    /// written back into <paramref name="locals"/> so the VM can update its stack.
-    /// </summary>
 
     /// <summary>
     /// Dispatch a method call given a pre-evaluated receiver object and argument list.
@@ -1313,12 +1118,4 @@ public class Interpreter
             throw new RuntimeError(Token.Eof, "'yield' used outside of a generator.", []);
         _activeGenerator.Yield(v);
     }
-
-    /// <summary>
-    /// Returns the value itself for primitive/immutable types (int, float, bool, string, null)
-    /// where sharing the Value wrapper is safe. Clones only mutable collections.
-    /// </summary>
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-    private static Value CloneIfCollection(Value v) =>
-        (v.IsList() || v.IsHashmap()) ? v.Clone() : v;
 }
