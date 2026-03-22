@@ -1,0 +1,127 @@
+/#
+@summary A package for simple elapsed-time measurement.
+@see time : Used internally for tick-based timing.
+#/
+
+/#
+@summary A stopwatch struct for measuring elapsed time.
+@example
+---
+sw = stopwatch::start()
+# ... code to time ...
+println sw.elapsed_ms()   # e.g. 42.3
+
+sw.stop()
+println sw.elapsed_ms()   # frozen at stop time
+
+sw.reset()
+sw.start()
+lap1 = sw.lap()
+# ... more code ...
+lap2 = sw.lap()
+println sw.laps()         # [lap1_ms, lap2_ms]
+---
+#/
+struct Stopwatch
+  @start_ticks = 0.0
+  @stop_ticks  = 0.0
+  @running     = false
+  @lap_ticks   = []
+
+  /#
+  @summary Starts (or restarts) the stopwatch, clearing any previous laps.
+  #/
+  fn start()
+    @start_ticks = time::ticks()
+    @stop_ticks  = 0.0
+    @running     = true
+    @lap_ticks   = []
+  end
+
+  /#
+  @summary Stops the stopwatch, freezing the elapsed time.
+  #/
+  fn stop()
+    @stop_ticks = time::ticks() when @running
+    @running = false
+  end
+
+  /#
+  @summary Resets the stopwatch to its initial state.
+  #/
+  fn reset()
+    @start_ticks = 0.0
+    @stop_ticks  = 0.0
+    @running     = false
+    @lap_ticks   = []
+  end
+
+  /#
+  @summary Returns elapsed time in milliseconds.
+           If running, returns time since start. If stopped, returns frozen elapsed time.
+  @return float : Elapsed milliseconds.
+  #/
+  fn elapsed_ms(): float
+    return 0.0 when @start_ticks == 0.0
+    t = @running ? time::ticks() : @stop_ticks
+    time::ticksms(t - @start_ticks)
+  end
+
+  /#
+  @summary Records a lap and returns the duration of that lap in milliseconds.
+           Each lap is measured from the previous lap (or from start for the first lap).
+  @return float : Lap duration in milliseconds.
+  #/
+  fn lap(): float
+    return 0.0 when !@running
+    now  = time::ticks()
+    base = @lap_ticks.empty() ? @start_ticks : @lap_ticks[@lap_ticks.size() - 1]
+    ms   = time::ticksms(now - base)
+    @lap_ticks.push(now)
+    ms
+  end
+
+  /#
+  @summary Returns a list of all recorded lap durations in milliseconds.
+  @return list : List of float lap durations.
+  #/
+  fn laps(): list
+    result = []
+    base   = @start_ticks
+    for t in @lap_ticks do
+      result.push(time::ticksms(t - base))
+      base = t
+    end
+    result
+  end
+
+  /#
+  @summary Returns a string representation of the current elapsed time.
+  @return string : e.g. "42.3ms"
+  #/
+  fn to_string(): string
+    "${math::round(@.elapsed_ms(), 3)}ms"
+  end
+end
+
+package stopwatch
+  /#
+  @summary Creates a new, unstarted Stopwatch.
+  @return Stopwatch : A new Stopwatch instance.
+  #/
+  fn new(): Stopwatch
+    Stopwatch()
+  end
+
+  /#
+  @summary Creates a new Stopwatch and immediately starts it.
+  @return Stopwatch : A running Stopwatch instance.
+  #/
+  fn start(): Stopwatch
+    sw = Stopwatch()
+    sw.start()
+    sw
+  end
+end
+
+export "stopwatch"
