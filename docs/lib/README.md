@@ -25,6 +25,7 @@ The standard library is a collection of packages containing useful functions and
 | [`hashable`](hashable.md) | The `Hashable` mixin struct for automatic hashmap serialization of instance variables. |
 | [`http`](http.md) | Functions for HTTP requests (GET, POST, etc), including `HttpResponse`. |
 | [`httpserver`](httpserver.md) | Production-grade HTTP server with routing, middleware, static files, CORS, cookies, and Tomcat-style configuration. |
+| [`ipc`](ipc.md) | Interprocess communication via named pipes with length-prefixed message framing. |
 | [`iter`](iter.md) | An explicit iterator pattern for safely traversing lists. |
 | [`log`](log.md) | Structured logging with severity levels and optional file output. |
 | [`json`](json.md) | Functions for parsing and serializing JSON data. |
@@ -53,3 +54,4 @@ The standard library is a collection of packages containing useful functions and
 | [`time`](time.md) | Time and date utilities. |
 | [`udp`](udp.md) | UDP socket communication for sending and receiving datagrams. |
 | [`xml`](xml.md) | XML parser and serializer using a tree of `XmlNode` structs. |
+| [`yaml`](yaml.md) | YAML parser and serializer. |
