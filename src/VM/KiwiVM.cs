@@ -176,6 +176,9 @@ public sealed class KiwiVM
 
         int stopAt = _frameCount; // run only until this frame completes
         PushFrame(sub.Name, sub, calleeBase, upvalues, token, instance);
+        // Propagate the defining-struct name so super.method() can resolve the base correctly.
+        if (callable is KFunction kfOwner && !string.IsNullOrEmpty(kfOwner.OwnerStruct))
+            _frames[_frameCount - 1].OwnerStruct = kfOwner.OwnerStruct;
         Value r;
         try
         {
@@ -773,6 +776,49 @@ public sealed class KiwiVM
                         // Dispatch
                         var callResult = _interp.DispatchMethod(obj, methodName, args, frame.GetToken());
                         Push(callResult);
+                        break;
+                    }
+
+                    // -- CallSuperMethod -----------------------------------
+                    case Opcode.CallSuperMethod:
+                    {
+                        int argc       = A;
+                        var methodName = frame.Chunk.Names[B];
+
+                        // Collect args from the stack
+                        int argsBase = _sp - argc;
+                        var args = new Value[argc];
+                        for (int i = 0; i < argc; i++) args[i] = _stack[argsBase + i];
+                        _sp = argsBase;
+
+                        // Resolve the base struct from the current method's owner struct
+                        var ownerStruct = frame.OwnerStruct;
+                        if (string.IsNullOrEmpty(ownerStruct))
+                            throw new RuntimeError(frame.GetToken(), "super called outside of a struct method.", []);
+
+                        if (!_context.HasStruct(ownerStruct))
+                            throw new RuntimeError(frame.GetToken(), $"Struct '{ownerStruct}' not found for super call.", []);
+
+                        var owner = _context.Structs[ownerStruct];
+                        if (string.IsNullOrEmpty(owner.BaseStruct))
+                            throw new RuntimeError(frame.GetToken(), $"Struct '{ownerStruct}' has no base struct; cannot call super.", []);
+
+                        // Walk the base struct chain to find the method
+                        KFunction? superFn = null;
+                        var search = _context.HasStruct(owner.BaseStruct) ? _context.Structs[owner.BaseStruct] : null;
+                        while (search != null)
+                        {
+                            if (search.Methods.TryGetValue(methodName, out superFn)) break;
+                            superFn = null;
+                            search = !string.IsNullOrEmpty(search.BaseStruct) && _context.HasStruct(search.BaseStruct)
+                                ? _context.Structs[search.BaseStruct] : null;
+                        }
+
+                        if (superFn == null)
+                            throw new RuntimeError(frame.GetToken(), $"Method '{methodName}' not found in base of '{ownerStruct}'.", []);
+
+                        var superResult = _interp.InvokeCallable(superFn, args, frame.GetToken(), methodName, frame.Self);
+                        Push(superResult);
                         break;
                     }
 
@@ -1624,6 +1670,7 @@ public sealed class KiwiVM
                             kfunc.VariadicParamName = sub.VariadicParamName;
 
                         var struc = _pendingStructs.Peek();
+                        kfunc.OwnerStruct = struc.Name;
                         struc.Methods[methodName] = kfunc;
                         if (isAbstract)
                             struc.AbstractMethods.Add(methodName);

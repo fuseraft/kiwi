@@ -59,6 +59,13 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     /// </summary>
     public bool IsPackageFunction { get; set; }
 
+    /// <summary>
+    /// The name of the struct that declared this method (empty for free functions).
+    /// Used to resolve <c>super.method()</c> calls: starts searching from the base
+    /// of <c>OwnerStruct</c> rather than from the concrete instance type.
+    /// </summary>
+    public string OwnerStruct { get; set; } = string.Empty;
+
     // -- VM bytecode fields ----------------------------------------------------
     /// <summary>
     /// Compiled bytecode chunk, or null if interpreted via tree-walker.
@@ -82,6 +89,7 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
             IsAbstract        = IsAbstract,
             IsOverride        = IsOverride,
             IsPackageFunction = IsPackageFunction,
+            OwnerStruct       = OwnerStruct,
             Parameters        = Parameters,
             DefaultParameters = DefaultParameters,
             TypeHints         = TypeHints,

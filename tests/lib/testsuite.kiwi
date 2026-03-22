@@ -51,6 +51,7 @@ var (unit_tests: list = [
   "static_vars",
   "abstract_structs",
   "polymorphism",
+  "super_calls",
   "enums",
 
   # Standard library & builtins

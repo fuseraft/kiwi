@@ -430,6 +430,7 @@ public sealed class Compiler
             case ASTNodeType.MemberAssignment: CompileMemberAssign   ((MemberAssignmentNode)node,  ln); return true;
             case ASTNodeType.Self:             CompileSelf           ((SelfNode)node,              ln); return true;
             case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
+            case ASTNodeType.SuperCall:        CompileSuperCall      ((SuperCallNode)node,         ln); return true;
             case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
             case ASTNodeType.PrintXy:          CompilePrintXy        ((PrintXyNode)node,           ln); return false;
             case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return true;
@@ -1036,6 +1037,16 @@ public sealed class Compiler
 
     private void CompileStaticSelf(StaticSelfNode node, int ln)
         => Emit(Opcode.LoadStaticAttr, _chunk.AddName(node.Name), 0, ln);
+
+    private void CompileSuperCall(SuperCallNode node, int ln)
+    {
+        // Stack before CallSuperMethod: [arg0, …, argN-1]
+        // The VM handler pulls `self` from frame.Self and resolves the base struct
+        // via frame.OwnerStruct — no explicit object on the stack.
+        int argc    = CompileArgs(node.Arguments);
+        int nameIdx = _chunk.AddName(node.MethodName);
+        Emit(Opcode.CallSuperMethod, argc, nameIdx, ln);
+    }
 
     // -- Print -----------------------------------------------------------------
 

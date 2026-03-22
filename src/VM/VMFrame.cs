@@ -38,8 +38,17 @@ public sealed class VMFrame(string name, Chunk chunk, int stackBase, Upvalue[] u
 
     /// <summary>
     /// Struct name when executing a struct method (used for <c>@@</c> access).
+    /// Equals the concrete instance's struct name (e.g. "C" for a C instance).
     /// </summary>
     public string      StructName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The struct that declared the currently-executing method.
+    /// Used to resolve <c>super.method()</c>: the search starts from
+    /// <c>OwnerStruct.BaseStruct</c> rather than the concrete instance type.
+    /// Empty for non-method frames and lambdas.
+    /// </summary>
+    public string      OwnerStruct { get; set; } = string.Empty;
 
     /// <summary>
     /// Token at the call site - used for error tracing.
