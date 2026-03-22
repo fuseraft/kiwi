@@ -6,53 +6,17 @@ using kiwi.Settings;
 using kiwi.Tracing;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
-using static kiwi.Parsing.AST.ASTTracer;
+using kiwi.VM;
 
 namespace kiwi.Runtime.Runner;
 
-public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
+public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
 {
-    private static readonly HashSet<ASTNodeType> StatementNodes =
-    [
-        ASTNodeType.Assignment,
-        ASTNodeType.ConstAssignment,
-        ASTNodeType.IndexAssignment,
-        ASTNodeType.MemberAssignment,
-        ASTNodeType.PackAssignment,
-        ASTNodeType.If,
-        ASTNodeType.Case,
-        ASTNodeType.WhileLoop,
-        ASTNodeType.ForLoop,
-        ASTNodeType.RepeatLoop,
-        ASTNodeType.Do,
-        ASTNodeType.FunctionCall,
-        ASTNodeType.MethodCall,
-        ASTNodeType.LambdaCall,
-        ASTNodeType.Function,
-        ASTNodeType.Struct,
-        ASTNodeType.Return,
-        ASTNodeType.Break,
-        ASTNodeType.Next,
-        ASTNodeType.Exit,
-        ASTNodeType.Print,
-        ASTNodeType.PrintXy,
-        ASTNodeType.Throw,
-        ASTNodeType.Try,
-        ASTNodeType.Include,
-        ASTNodeType.Import,
-        ASTNodeType.Require,
-        ASTNodeType.Emit,
-        ASTNodeType.On,
-        ASTNodeType.Once,
-        ASTNodeType.Off,
-        ASTNodeType.Export,
-        ASTNodeType.Package,
-        ASTNodeType.Eval,
-    ];
-
     private readonly DebugState _state = new();
     private readonly HashSet<string> _stdlibDirs = [];
-    private ASTNode? _currentNode;
+    private KiwiVM? _currentVM;
+    private string _currentFile = string.Empty;
+    private int _currentLine = -1;
 
     public override int Run(string script, List<string> args)
     {
@@ -64,9 +28,14 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
         Console.WriteLine();
 
         _state.Mode = DebugMode.StepIn;
-        Interpreter.DebugHook = OnDebugHook;
 
         return base.Run(script, args);
+    }
+
+    protected override void ConfigureVM(KiwiVM vm)
+    {
+        _currentVM = vm;
+        vm.DebugHook = OnVMDebugHook;
     }
 
     private void ComputeStdlibDirs()
@@ -97,15 +66,8 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
         return false;
     }
 
-    private void OnDebugHook(ASTNode node)
+    private void OnVMDebugHook(int fileId, int line)
     {
-        if (!StatementNodes.Contains(node.Type))
-        {
-            return;
-        }
-
-        var fileId = node.Token.Span.File;
-        var line = node.Token.Span.Line;
         var file = FileRegistry.Instance.GetFilePath(fileId);
 
         if (string.IsNullOrEmpty(file) || IsStdlibFile(file))
@@ -118,7 +80,7 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
             return;
         }
 
-        var depth = Interpreter.CallStack.Count;
+        var depth = _currentVM!.FrameCount;
 
         var shouldPause = _state.Mode switch
         {
@@ -136,7 +98,8 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
 
         _state.LastFile = file;
         _state.LastLine = line;
-        _currentNode = node;
+        _currentFile = file;
+        _currentLine = line;
 
         ShowContext(file, line);
         RunDebugREPL();
@@ -168,19 +131,19 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
                 case "s":
                 case "step":
                     _state.Mode = DebugMode.StepIn;
-                    _state.StepDepth = Interpreter.CallStack.Count;
+                    _state.StepDepth = _currentVM?.FrameCount ?? 0;
                     return;
 
                 case "n":
                 case "next":
                     _state.Mode = DebugMode.StepOver;
-                    _state.StepDepth = Interpreter.CallStack.Count;
+                    _state.StepDepth = _currentVM?.FrameCount ?? 0;
                     return;
 
                 case "f":
                 case "finish":
                     _state.Mode = DebugMode.StepOut;
-                    _state.StepDepth = Interpreter.CallStack.Count;
+                    _state.StepDepth = _currentVM?.FrameCount ?? 0;
                     return;
 
                 case "b":
@@ -309,18 +272,42 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
             using Lexer lexer = new(0, expr);
             Parser parser = new(rethrowErrors: true);
             var ast = parser.ParseTokenStreamCollection([lexer.GetTokenStream()]);
+            var chunk = Compiler.CompileExpression((ProgramNode)ast);
 
-            var savedHook = Interpreter.DebugHook;
-            Interpreter.DebugHook = null;
+            // Temporarily inject current locals into the global scope so the
+            // eval expression can reference variables by name.
+            var globals = Interpreter.GetGlobalScope();
+            var displaced = new List<(string Name, Value Old)>();
+
+            if (_currentVM != null)
+            {
+                foreach (var (name, val) in _currentVM.GetCurrentLocals())
+                {
+                    globals.TryGet(name, out var old);
+                    displaced.Add((name, old));
+                    globals.Declare(name, val);
+                }
+            }
+
+            var savedHook   = _currentVM?.DebugHook;
+            var savedCurrent = KiwiVM.Current;
+            if (_currentVM != null) _currentVM.DebugHook = null;
 
             try
             {
-                var result = Interpreter.Interpret(ast);
+                var evalVm = new KiwiVM(Interpreter);
+                var result = evalVm.Execute(chunk);
                 Console.WriteLine(Serializer.Serialize(result));
             }
             finally
             {
-                Interpreter.DebugHook = savedHook;
+                KiwiVM.Current = savedCurrent;
+                foreach (var (name, old) in displaced)
+                {
+                    if (old.IsNull()) globals.Remove(name);
+                    else globals.Declare(name, old);
+                }
+                if (_currentVM != null) _currentVM.DebugHook = savedHook;
             }
         }
         catch (KiwiError e)
@@ -335,16 +322,14 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
 
     private void ShowLocals()
     {
-        if (Interpreter.CallStack.Count == 0)
+        if (_currentVM == null || _currentVM.FrameCount == 0)
         {
             Console.WriteLine("No active stack frame.");
             return;
         }
 
-        var scope = Interpreter.CallStack.Peek().Scope;
         var seen = new HashSet<string>();
-
-        foreach (var (name, value) in scope.GetAllBindings())
+        foreach (var (name, value) in _currentVM.GetCurrentLocals())
         {
             if (seen.Add(name))
             {
@@ -355,36 +340,33 @@ public class DebugRunner(Interpreter interpreter) : ScriptRunner(interpreter)
 
     private void ShowBacktrace()
     {
-        if (Interpreter.CallStack.Count == 0)
+        if (_currentVM == null || _currentVM.FrameCount == 0)
         {
             Console.WriteLine("Empty call stack.");
             return;
         }
 
-        foreach (var frame in Interpreter.CallStack.Reverse())
+        for (int i = _currentVM.FrameCount - 1; i >= 0; i--)
         {
-            Console.WriteLine(frame.FormatTraceLine());
+            Console.WriteLine(_currentVM.GetFrame(i).FormatTrace());
         }
     }
 
     private void ShowSource(string arg)
     {
-        if (_currentNode == null)
+        if (string.IsNullOrEmpty(_currentFile))
         {
             Console.WriteLine("No current location.");
             return;
         }
 
-        var fileId = _currentNode.Token.Span.File;
-        var file = FileRegistry.Instance.GetFilePath(fileId);
-        var line = _currentNode.Token.Span.Line;
-
+        var line = _currentLine;
         if (int.TryParse(arg, out var targetLine))
         {
             line = targetLine;
         }
 
-        ShowSourceAround(file, line, 5);
+        ShowSourceAround(_currentFile, line, 5);
     }
 
     private void ShowContext(string file, int line)
