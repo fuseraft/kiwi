@@ -94,17 +94,6 @@ public class Program
                 CliArgs = ParseKeyValueArgs(config.Args),
             });
         }
-        else if (config.UseTreeWalker && config.HasScripts)
-        {
-            return new ScriptRunner(new()
-            {
-                CliArgs = ParseKeyValueArgs(config.Args),
-            });
-        }
-        else if (config.UseTreeWalker)
-        {
-            throw new CliError("--tree-walker requires a script.");
-        }
         else if (config.HasScripts)
         {
             return new VMScriptRunner(new()

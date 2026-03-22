@@ -209,14 +209,6 @@ public static class Disassembler
                     break;
                 }
 
-                case Opcode.InterpFallback:
-                {
-                    var nodeType = chunk.NodePool.Count > instr.A
-                        ? chunk.NodePool[instr.A].Type.ToString() : "?";
-                    sb.Append($" node[{instr.A}] ({nodeType})");
-                    break;
-                }
-
                 case Opcode.CallBuiltin:
                 {
                     var nodeType = chunk.NodePool.Count > instr.A
