@@ -2,14 +2,18 @@ namespace kiwi.Parsing.Keyword;
 
 public static class XmlBuiltin
 {
-    public const string Parse     = "__xml_parse__";
-    public const string ParseFile = "__xml_parsefile__";
+    public const string Parse         = "__xml_parse__";
+    public const string ParseFile     = "__xml_parsefile__";
+    public const string ParseMaps     = "__xml_parse_maps__";
+    public const string ParseFileMaps = "__xml_parsefile_maps__";
 
     private static readonly IReadOnlyDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
         {
-            { Parse,     TokenName.Builtin_Xml_Parse     },
-            { ParseFile, TokenName.Builtin_Xml_ParseFile },
+            { Parse,         TokenName.Builtin_Xml_Parse         },
+            { ParseFile,     TokenName.Builtin_Xml_ParseFile      },
+            { ParseMaps,     TokenName.Builtin_Xml_ParseMaps      },
+            { ParseFileMaps, TokenName.Builtin_Xml_ParseFileMaps  },
         };
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();
