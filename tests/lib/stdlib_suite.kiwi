@@ -1,0 +1,37 @@
+package stdlib_suite
+  fn __version__()
+    "1.0.0"
+  end
+end
+
+var (stdlib_tests: list = [
+  # Encoding utilities
+  "encode",
+
+  # String formatting
+  "fmt",
+
+  # Statistics
+  "stat",
+
+  # Templating
+  "template",
+
+  # Logging
+  "log",
+
+  # OS signals
+  "signal",
+
+  # UDP networking
+  "udp",
+
+  # HTTP server
+  "httpserver"
+])
+
+for stdlib_test in stdlib_tests do
+  include "stdlib/${stdlib_test}"
+end
+
+export "stdlib_suite"

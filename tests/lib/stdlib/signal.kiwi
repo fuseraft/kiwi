@@ -1,0 +1,40 @@
+@tester::test("signal: constants are defined")
+fn test_signal_constants()
+  tester::assert_eq(signal::SIGINT,  "SIGINT")
+  tester::assert_eq(signal::SIGTERM, "SIGTERM")
+  tester::assert_eq(signal::SIGHUP,  "SIGHUP")
+end
+
+@tester::test("signal: trapped returns false before trap")
+fn test_signal_trapped_before()
+  tester::assert(!signal::trapped("SIGINT"),  "SIGINT should not be trapped initially")
+  tester::assert(!signal::trapped("SIGTERM"), "SIGTERM should not be trapped initially")
+  tester::assert(!signal::trapped("SIGHUP"),  "SIGHUP should not be trapped initially")
+end
+
+@tester::test("signal: trap registers handler, trapped returns true")
+fn test_signal_trap_registers()
+  signal::trap(signal::SIGTERM, with () do end)
+  tester::assert(signal::trapped(signal::SIGTERM), "SIGTERM should be trapped after trap()")
+  signal::reset(signal::SIGTERM)
+end
+
+@tester::test("signal: reset removes handler")
+fn test_signal_reset()
+  signal::trap(signal::SIGHUP, with () do end)
+  tester::assert(signal::trapped(signal::SIGHUP))
+  signal::reset(signal::SIGHUP)
+  tester::assert(!signal::trapped(signal::SIGHUP), "SIGHUP should not be trapped after reset()")
+end
+
+@tester::test("signal: raise_signal invokes handler")
+fn test_signal_raise_invokes_handler()
+  fired = false
+  signal::trap(signal::SIGINT, with () do
+    fired = true
+  end)
+  signal::raise_signal(signal::SIGINT)
+  task::sleep(150)
+  tester::assert(fired, "Handler should have been invoked by raise_signal")
+  signal::reset(signal::SIGINT)
+end

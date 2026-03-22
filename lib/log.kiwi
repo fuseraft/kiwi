@@ -43,7 +43,7 @@ package log
     line = parts.join(" ")
 
     eprintln line
-    fio::append_text(_state["file"], line + "\n") when _state["file"] != null
+    fio::append(_state["file"], line + "\n") when _state["file"] != null
   end
 
   /#

@@ -1,0 +1,180 @@
+@tester::test("httpserver: GET route and 200 response")
+fn test_httpserver_get_route()
+  server = httpserver::create(19210)
+  server.get("/hello", with (req, res) do
+    res.text("world")
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19210/hello")
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  tester::assert_eq(r.body, "world")
+end
+
+@tester::test("httpserver: 404 for unregistered route")
+fn test_httpserver_404()
+  server = httpserver::create(19211)
+  server.get("/exists", with (req, res) do res.text("ok") end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19211/missing")
+  server.stop()
+
+  tester::assert_eq(r.status, 404)
+end
+
+@tester::test("httpserver: route parameters")
+fn test_httpserver_route_params()
+  server = httpserver::create(19212)
+  server.get("/users/:id", with (req, res) do
+    res.json({ "id": req.param("id") })
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19212/users/42")
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  j = deserialize(r.body)
+  tester::assert_eq(j["id"], "42")
+end
+
+@tester::test("httpserver: POST with body")
+fn test_httpserver_post_body()
+  server = httpserver::create(19213)
+  server.post("/echo", with (req, res) do
+    res.text("got:" + req.body())
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::await_post("http://localhost:19213/echo", "hello")
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  tester::assert_eq(r.body, "got:hello")
+end
+
+@tester::test("httpserver: JSON response")
+fn test_httpserver_json_response()
+  server = httpserver::create(19214)
+  server.get("/data", with (req, res) do
+    res.json({ "ok": true, "count": 3 })
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19214/data")
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  j = deserialize(r.body)
+  tester::assert_eq(j["ok"], true)
+  tester::assert_eq(j["count"], 3)
+end
+
+@tester::test("httpserver: error handler on exception")
+fn test_httpserver_error_handler()
+  server = httpserver::create(19215)
+  server.get("/boom", with (req, res) do
+    error::raise("oops")
+  end)
+  server.on_error(with (err, req, res) do
+    res.json({ "error": err.to_string() }, 500)
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19215/boom")
+  server.stop()
+
+  tester::assert_eq(r.status, 500)
+end
+
+@tester::test("httpserver: middleware pipeline runs in order")
+fn test_httpserver_middleware_order()
+  server = httpserver::create(19216)
+  server.use(with (req, res, nxt) do
+    res.header("X-Step", "1")
+    nxt()
+  end)
+  server.use(with (req, res, nxt) do
+    res.header("X-Step2", "2")
+    nxt()
+  end)
+  server.get("/mw", with (req, res) do
+    res.text("done")
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19216/mw")
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  tester::assert_eq(r.body, "done")
+end
+
+@tester::test("httpserver: multiple routes on same server")
+fn test_httpserver_multiple_routes()
+  server = httpserver::create(19217)
+  server.get("/a", with (req, res) do res.text("A") end)
+  server.get("/b", with (req, res) do res.text("B") end)
+  server.get("/c/:x", with (req, res) do res.text(req.param("x")) end)
+  server.start()
+  task::sleep(150)
+
+  ra = http::get("http://localhost:19217/a")
+  rb = http::get("http://localhost:19217/b")
+  rc = http::get("http://localhost:19217/c/hello")
+  r404 = http::get("http://localhost:19217/nope")
+  server.stop()
+
+  tester::assert_eq(ra.body, "A")
+  tester::assert_eq(rb.body, "B")
+  tester::assert_eq(rc.body, "hello")
+  tester::assert_eq(r404.status, 404)
+end
+
+@tester::test("httpserver: query parameters")
+fn test_httpserver_query_params()
+  server = httpserver::create(19218)
+  server.get("/search", with (req, res) do
+    q = req.query_param("q", "")
+    res.json({ "q": q })
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19218/search?q=kiwi")
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  j = deserialize(r.body)
+  tester::assert_eq(j["q"], "kiwi")
+end
+
+@tester::test("httpserver: Router group")
+fn test_httpserver_router_group()
+  server = httpserver::create(19219)
+  api = server.group("/api")
+  api.get("/ping", with (req, res) do res.text("pong") end)
+  api.get("/items/:id", with (req, res) do res.text(req.param("id")) end)
+  server.start()
+  task::sleep(150)
+
+  r1 = http::get("http://localhost:19219/api/ping")
+  r2 = http::get("http://localhost:19219/api/items/99")
+  r3 = http::get("http://localhost:19219/api/missing")
+  server.stop()
+
+  tester::assert_eq(r1.status, 200)
+  tester::assert_eq(r1.body, "pong")
+  tester::assert_eq(r2.body, "99")
+  tester::assert_eq(r3.status, 404)
+end

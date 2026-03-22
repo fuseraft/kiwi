@@ -80,7 +80,7 @@ package stat
       counts[key] = counts.has_key(key) ? counts[key] + 1 : 1
     end
     max_count = counts.values().max()
-    data.select(with (x) do counts[x.to_string()] == max_count end).unique()
+    data.filter(with (x) do counts[x.to_string()] == max_count end).unique()
   end
 
   /#

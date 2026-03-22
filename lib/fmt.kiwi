@@ -119,7 +119,7 @@ package fmt
         formatted = fmt::_to_base(arg.to_integer(), 2)
       elsif spec == "c"
         n_val = arg.is_a(integer) ? arg : arg.to_integer()
-        formatted = n_val.chr()
+        formatted = [n_val].to_bytes().to_string()
       else
         formatted = "%" + flags + spec
         arg_idx -= 1
