@@ -391,6 +391,14 @@ public sealed class KiwiVM
                     // -- Stack ops -----------------------------------------
                     case Opcode.Pop: _sp--; break;
                     case Opcode.Dup: Push(_stack[_sp - 1]); break;
+                    case Opcode.Swap:
+                    {
+                        var top    = Pop();
+                        var second = Pop();
+                        Push(top);
+                        Push(second);
+                        break;
+                    }
 
                     // -- Arithmetic ----------------------------------------
                     case Opcode.Add:
@@ -764,6 +772,107 @@ public sealed class KiwiVM
                         if (_frameCount > 1)
                             _frames[_frameCount - 1].TrackLocalFunction(funcName);
 
+                        break;
+                    }
+
+                    // -- DefFuncAndPush ------------------------------------
+                    case Opcode.DefFuncAndPush:
+                    {
+                        // === Same as DefFunc: register the KFunction ===
+                        var sub      = frame.Chunk.SubChunks[A];
+                        var rawName  = frame.Chunk.Names[B];
+                        var funcName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
+                            : rawName;
+                        var upvalues = BuildUpvalues(sub, frame);
+
+                        var kfunc = new KFunction(BuildFunctionNode(sub, funcName))
+                        {
+                            Name        = funcName,
+                            VMChunk     = sub,
+                            VMUpvalues  = upvalues,
+                            IsGenerator = sub.IsGenerator,
+                        };
+                        foreach (var (pn, _) in kfunc.Decl.Parameters)
+                            kfunc.Parameters.Add(new KeyValuePair<string, Value>(pn, Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            kfunc.DefaultParameters.Add(pn);
+                        if (!string.IsNullOrEmpty(sub.VariadicParamName))
+                            kfunc.VariadicParamName = sub.VariadicParamName;
+                        kfunc.CapturedScope = _globals;
+
+                        _context.Functions[funcName] = kfunc;
+                        _nameCache.Remove(funcName);
+
+                        if (_frameCount > 1)
+                            _frames[_frameCount - 1].TrackLocalFunction(funcName);
+
+                        // === Additional: wrap as internal KLambda and push ===
+                        // Mirror what the treewalker does in Visit(DecoratedFunctionNode):
+                        // create a KLambda backed by the same VM chunk so decorators can
+                        // receive and call the function as a value, even after StoreDecoratedFunc
+                        // removes the KFunction entry from Context.Functions.
+                        var klambda = new KLambda(BuildLambdaNode(sub))
+                        {
+                            VMChunk       = sub,
+                            VMUpvalues    = upvalues,
+                            CapturedScope = _globals,
+                        };
+                        for (int i = 0; i < sub.Arity; i++)
+                            klambda.Parameters.Add(new KeyValuePair<string, Value>(sub.ParamNames[i], Value.Default));
+                        foreach (var pn in sub.DefaultParamNames)
+                            klambda.DefaultParameters.Add(pn);
+                        if (!string.IsNullOrEmpty(sub.VariadicParamName))
+                            klambda.VariadicParamName = sub.VariadicParamName;
+
+                        var internalId = $"__deco_{_closureIdCounter++}__";
+                        var lref       = new LambdaRef { Identifier = internalId, VMChunk = sub, VMUpvalues = upvalues };
+                        klambda.Ref    = lref;
+                        _context.Lambdas[internalId] = klambda;
+                        Push(Value.CreateLambda(lref));
+                        break;
+                    }
+
+                    // -- StoreDecoratedFunc --------------------------------
+                    case Opcode.StoreDecoratedFunc:
+                    {
+                        var rawName  = frame.Chunk.Names[A];
+                        var funcName = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
+                            : rawName;
+
+                        var value = Pop();
+                        _context.Functions.Remove(funcName);
+                        _nameCache.Remove(funcName);
+
+                        if (value.IsLambda())
+                        {
+                            var lr       = value.GetLambda();
+                            var lambdaId = string.IsNullOrEmpty(lr.Identifier) ? funcName : lr.Identifier;
+                            // Map funcName → the lambda identifier (like Context.AddMappedLambda).
+                            _context.LambdaTable[funcName] = lambdaId;
+                            // If the lambda has a VMChunk but no entry in Lambdas yet, register it.
+                            if (!_context.Lambdas.ContainsKey(lambdaId) && lr.VMChunk != null)
+                            {
+                                var kl = new KLambda(BuildLambdaNode(lr.VMChunk))
+                                {
+                                    VMChunk    = lr.VMChunk,
+                                    VMUpvalues = lr.VMUpvalues,
+                                    Ref        = lr,
+                                };
+                                _context.Lambdas[lambdaId] = kl;
+                            }
+                        }
+                        else
+                        {
+                            _globals.Assign(funcName, value);
+                            _nameCache.Remove(funcName);
+                            if (_interp.PackageStack.Count > 0)
+                            {
+                                var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName;
+                                _context.PackageVariables[qualName] = value;
+                            }
+                        }
                         break;
                     }
 

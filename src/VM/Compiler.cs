@@ -1,6 +1,7 @@
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
 using kiwi.Parsing.Keyword;
+using kiwi.Tracing.Error;
 using kiwi.Typing;
 
 namespace kiwi.VM;
@@ -430,7 +431,7 @@ public sealed class Compiler
             case ASTNodeType.Eval:             CompileEval           ((EvalNode)node,              ln); return true;
             case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return false;
             case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
-            case ASTNodeType.DecoratedFunction: Fallback             (node);                            return true;
+            case ASTNodeType.DecoratedFunction: CompileDecoratedFunction((DecoratedFunctionNode)node, ln); return false;
             case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
             case ASTNodeType.LambdaCall:       CompileLambdaCall     ((LambdaCallNode)node,        ln); return true;
             case ASTNodeType.FunctionCall:     CompileFuncCall       ((FunctionCallNode)node,      ln); return true;
@@ -906,8 +907,8 @@ public sealed class Compiler
         if (node.Object.Type == ASTNodeType.Slice)
         {
             // Slice assignment: a[start:stop:step] = rhs
-            // Compound slice assign (+=, etc.) not supported — fall back.
-            if (node.Op != TokenName.Ops_Assign) { Fallback(node); return; }
+            // Compound slice assign (+=, etc.) not supported — raise error.
+            if (node.Op != TokenName.Ops_Assign) throw new SyntaxError(node.Token, "Compound assignment operators are not supported on slice ranges.");
             var sliceExpr = (SliceNode)node.Object;
             if (sliceExpr.SlicedObject != null) CompileNode(sliceExpr.SlicedObject);
             else                                EmitLoad("", ln);
@@ -1388,6 +1389,73 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         Emit(Opcode.DefFunc, si, ni, ln);
     }
 
+    // -- Decorated function ----------------------------------------------------
+
+    private void CompileDecoratedFunction(DecoratedFunctionNode node, int ln)
+    {
+        // 1. Compile the inner function and emit DefFuncAndPush:
+        //    registers the KFunction AND pushes an internal lambda-ref for it.
+        var sub = CompileFunction(node.Function, enclosing: this);
+        int si  = _chunk.AddSubChunk(sub);
+        int ni  = _chunk.AddName(node.Function.Name);
+        Emit(Opcode.DefFuncAndPush, si, ni, ln);
+        // Stack: [internal_fn_lambda]
+
+        // 2. Apply decorators from bottom to top (innermost first).
+        for (int i = node.Decorators.Count - 1; i >= 0; i--)
+        {
+            var (decoExpr, extraArgs) = node.Decorators[i];
+
+            // Push the decorator callable.
+            // Stack: [current_fn, decorator]
+            if (decoExpr is IdentifierNode id)
+                EmitLoad(id.Name, ln);
+            else
+                CompileNode(decoExpr!);
+
+            // Swap: put decorator below current_fn so it lands at funcSlot.
+            // Stack: [decorator, current_fn]
+            Emit(Opcode.Swap, 0, 0, ln);
+
+            // Push extra args (if any) and call.
+            // Final stack before Call: [decorator, current_fn, extraArg0, ...]
+            bool hasNamed = HasNamedArg(extraArgs);
+            if (hasNamed)
+            {
+                // Build the arg-name array: "" for current_fn (positional), then extra arg names.
+                var filteredExtras = extraArgs.Where(a => a != null).ToList();
+                var names = new string[1 + filteredExtras.Count];
+                names[0] = ""; // current_fn is always the first positional arg
+                int n = 1;
+                foreach (var a in filteredExtras)
+                {
+                    if (a is NamedArgumentNode named)
+                    {
+                        names[n] = named.Name;
+                        CompileNode(named.Value!);
+                    }
+                    else
+                    {
+                        names[n] = "";
+                        CompileNode(a!);
+                    }
+                    n++;
+                }
+                int nameSetIdx = _chunk.AddArgNameSet(names);
+                Emit(Opcode.CallNamed, n, nameSetIdx, ln);
+            }
+            else
+            {
+                int extraArgc = CompileArgs(extraArgs);
+                Emit(Opcode.Call, 1 + extraArgc, 0, ln);
+            }
+            // Stack: [new_current_fn]
+        }
+
+        // 3. Store the final decorated value back, replacing the original function entry.
+        Emit(Opcode.StoreDecoratedFunc, ni, 0, ln);
+    }
+
     // -- Lambda ----------------------------------------------------------------
 
     private void CompileLambdaDef(LambdaNode node, int ln)
@@ -1403,7 +1471,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
-        if (hasNamed && hasSplat) { Fallback(node); return; }
+        if (hasNamed && hasSplat) throw new SyntaxError(node.Token, "Splat (*) and named arguments cannot be combined in the same call.");
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.LambdaNode!);
         if (hasNamed)
@@ -1440,18 +1508,18 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // not yet natively compiled and still need the interpreter fallback.
         if (node.Op != TokenName.Default && !CoreBuiltin.IsBuiltin(node.Op))
         {
-            // Named or splat args still require interpreter fallback (rare edge case).
             bool hasNamedB = HasNamedArg(node.Arguments);
             bool hasSplatB = HasSplatNode(node.Arguments);
-            if (hasNamedB || hasSplatB) { Fallback(node); return; }
-            int argcB    = CompileArgs(node.Arguments);
+            if (hasSplatB) throw new SyntaxError(node.Token, "Splat (*) arguments are not supported in builtin calls.");
+            // Named args: compile their values positionally (ExecuteBuiltin receives a plain List<Value>).
+            int argcB    = hasNamedB ? CompileNamedArgValues(node.Arguments) : CompileArgs(node.Arguments);
             int nodeIdxB = _chunk.AddNodeFallback(node);
             Emit(Opcode.CallBuiltin, nodeIdxB, argcB, ln);
             return;
         }
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
-        if (hasNamed && hasSplat) { Fallback(node); return; }
+        if (hasNamed && hasSplat) throw new SyntaxError(node.Token, "Splat (*) and named arguments cannot be combined in the same call.");
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         EmitLoad(node.FunctionName, ln);
         if (hasNamed)
@@ -1473,7 +1541,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
-        if (hasNamed && hasSplat) { Fallback(node); return; }
+        if (hasNamed && hasSplat) throw new SyntaxError(node.Token, "Splat (*) and named arguments cannot be combined in the same call.");
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.Object!);
         if (hasNamed)
@@ -1771,6 +1839,27 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             {
                 CompileNode(a);
             }
+            n++;
+        }
+        return n;
+    }
+
+    /// <summary>
+    /// Like <see cref="CompileArgs"/> but extracts the value expression from
+    /// <see cref="NamedArgumentNode"/> entries (ignoring their names).
+    /// Used for builtin calls where the callee receives a plain List&lt;Value&gt;
+    /// and does not perform named-argument reordering.
+    /// </summary>
+    private int CompileNamedArgValues(IEnumerable<ASTNode?> args)
+    {
+        int n = 0;
+        foreach (var a in args)
+        {
+            if (a == null) continue;
+            if (a is NamedArgumentNode named)
+                CompileNode(named.Value!);
+            else
+                CompileNode(a);
             n++;
         }
         return n;

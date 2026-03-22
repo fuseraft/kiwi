@@ -67,6 +67,10 @@ public enum Opcode : byte
     // -- Stack Manipulation ----------------------------------------------------
     Pop,
     Dup,
+    /// <summary>
+    /// Swap the top two stack values.
+    /// </summary>
+    Swap,
 
     // -- Arithmetic ------------------------------------------------------------
     Add, Sub, Mul, Div, Mod, Pow,
@@ -154,6 +158,21 @@ public enum Opcode : byte
     /// Register a compiled KFunction in the context.  Does not push a value.
     /// </summary>
     DefFunc,
+    /// <summary>
+    /// A = sub-chunk index, B = name index (names[B] = raw function name).
+    /// Like DefFunc but also wraps the function as an internal KLambda and pushes a
+    /// lambda-ref onto the stack.  Used by decorator compilation so the function can
+    /// be passed as a value to the decorator callable without a separate LoadGlobal.
+    /// </summary>
+    DefFuncAndPush,
+    /// <summary>
+    /// A = name index (raw function name).
+    /// Pop the top-of-stack (the final decorated value); compute the package-qualified
+    /// function name; remove the original KFunction entry from Context.Functions;
+    /// then register the decorated result (lambda mapping or global assignment).
+    /// Used as the last step of decorator application.
+    /// </summary>
+    StoreDecoratedFunc,
     /// <summary>
     /// A = sub-chunk index, B = number of upvalue descriptors that follow as
     /// inline (isLocal, index) pairs encoded in subsequent Nop-like slots.
