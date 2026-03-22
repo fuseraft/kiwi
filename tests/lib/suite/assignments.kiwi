@@ -40,13 +40,13 @@ fn test_assignments()
   tester::assert(h["z"] == 99, "A12: hashmap assign new key")
 
   # swap via unpacking
-  p, q =< 7, 13
-  p, q =< q, p
-  tester::assert(p == 13 and q == 7, "A13: swap via =<")
+  p, q = 7, 13
+  p, q = q, p
+  tester::assert(p == 13 and q == 7, "A13: swap via unpack")
 
   # multi-variable unpacking from a list
   nums = [100, 200, 300]
-  x, y, z =< nums
+  x, y, z = nums
   tester::assert(x == 100 and y == 200 and z == 300, "A14: unpack from list")
 
   # when/else on assignment — true branch
