@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 namespace kiwi.Parsing.Keyword;
 
 public static class CallableBuiltin
@@ -7,14 +8,14 @@ public static class CallableBuiltin
     public const string Returns     = "returns";
     public const string ToLambda    = "to_lambda";
 
-    private static readonly IReadOnlyDictionary<string, TokenName> _map
+    private static readonly FrozenDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
         {
             { Call,         TokenName.Builtin_Callable_Call       },
             { Parameters,   TokenName.Builtin_Callable_Parameters },
             { Returns,      TokenName.Builtin_Callable_Returns    },
             { ToLambda,     TokenName.Builtin_Callable_ToLambda   },
-        };
+        }.ToFrozenDictionary();
 
     public static string MapName(TokenName name)
     {
@@ -31,7 +32,7 @@ public static class CallableBuiltin
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();
 
-    public static IReadOnlyDictionary<string, TokenName> Map => _map;
+    public static FrozenDictionary<string, TokenName> Map => _map;
 
     public static bool IsBuiltin(TokenName name) => _names.Contains(name);
 }
