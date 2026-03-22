@@ -667,39 +667,50 @@ public class Interpreter
         return Value.Default;
     }
 
-    private Value Visit(IncludeNode node)
+    /// <summary>
+    /// Public entry point used by the VM's Include opcode.
+    /// Loads and interprets a Kiwi file by path (include-once semantics).
+    /// Ensures the interpreter call stack has a frame for the duration of the call,
+    /// since code inside the included file may define functions that call CaptureCurrentScope().
+    /// </summary>
+    public Value IncludeFile(Token token, string filePath)
     {
-        var pathValue = Interpret(node.Path);
-        if (!pathValue.IsString())
-        {
-            throw new InvalidOperationError(node.Token, "Include path must be a string.");
-        }
-
-        var filePath = pathValue.GetString();
-        var fullPath = ResolveIncludePath(node.Token, filePath);
+        var fullPath = ResolveIncludePath(token, filePath);
 
         if (Context.Includes.Contains(fullPath))
-        {
             return Value.Default;
-        }
 
         Context.Includes.Add(fullPath);
 
-        if (!FileUtil.FileExists(node.Token, fullPath))
-        {
-            throw new InvalidOperationError(node.Token, $"File not found: {filePath}");
-        }
+        if (!FileUtil.FileExists(token, fullPath))
+            throw new InvalidOperationError(token, $"File not found: {filePath}");
 
         var oldExecutionPath = ExecutionPath;
         ExecutionPath = fullPath;
 
-        using var lexer = new Lexer(fullPath);
-        var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
-        Interpret(ast);
-
-        ExecutionPath = oldExecutionPath;
+        bool frameOwned = CallStack.Count == 0;
+        if (frameOwned) PushFrame("<vm-context>", token, _globalScope);
+        try
+        {
+            using var lexer = new Lexer(fullPath);
+            var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
+            Interpret(ast);
+        }
+        finally
+        {
+            if (frameOwned) CallStack.Pop();
+            ExecutionPath = oldExecutionPath;
+        }
 
         return Value.Default;
+    }
+
+    private Value Visit(IncludeNode node)
+    {
+        var pathValue = Interpret(node.Path);
+        if (!pathValue.IsString())
+            throw new InvalidOperationError(node.Token, "Include path must be a string.");
+        return IncludeFile(node.Token, pathValue.GetString());
     }
 
     /// <summary>
@@ -2947,6 +2958,22 @@ public class Interpreter
         throw new InvalidOperationError(node.Token, $"Non-sliceable type: `{TypeRegistry.GetTypeName(obj)}`");
     }
 
+    /// <summary>
+    /// Public entry point used by the VM's Eval opcode.
+    /// Lexes, parses, and interprets a Kiwi source string; returns the result.
+    /// Ensures a call-stack frame is present (required if code defines functions).
+    /// </summary>
+    public Value EvalCode(Token token, string code)
+    {
+        using Lexer lexer = new(token.Span.File, code);
+        var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
+
+        bool frameOwned = CallStack.Count == 0;
+        if (frameOwned) PushFrame("<vm-context>", token, _globalScope);
+        try   { return Interpret(ast); }
+        finally { if (frameOwned) CallStack.Pop(); }
+    }
+
     private Value Visit(EvalNode node)
     {
         var content = Interpret(node.ParseValue);
@@ -2956,15 +2983,7 @@ public class Interpreter
             throw new KiwiError(node.Token, "Invalid parse expression.");
         }
 
-        using Lexer lexer = new(node.Token.Span.File, content.GetString());
-
-        Parser p = new(true);
-        var tokenStream = lexer.GetTokenStream();
-        var ast = p.ParseTokenStream(tokenStream, true);
-
-        var result = Interpret(ast);
-
-        return result;
+        return EvalCode(node.Token, content.GetString());
     }
 
     private KFunction CreateFunction(FunctionNode node, string name)
@@ -4010,9 +4029,7 @@ public class Interpreter
     public void ImportPackage(Token token, Value packageName)
     {
         if (!packageName.IsString())
-        {
             throw new InvalidOperationError(token, "Expected the name of a package to import.");
-        }
 
         var packageNameValue = packageName.GetString();
 
@@ -4035,15 +4052,23 @@ public class Interpreter
         PackageStack.Push(packageNameValue);
         var decl = Context.Packages[packageNameValue].Decl;
 
-        foreach (var stmt in decl.Body)
+        // Function definitions inside the package body call CaptureCurrentScope(),
+        // which requires a frame on the interpreter call stack.  When invoked from the
+        // VM the interpreter's CallStack is otherwise empty, so we push a temporary frame.
+        bool frameOwned = CallStack.Count == 0;
+        if (frameOwned) PushFrame("<vm-context>", token, _globalScope);
+        try
         {
-            Interpret(stmt);
+            foreach (var stmt in decl.Body)
+                Interpret(stmt);
+        }
+        finally
+        {
+            if (frameOwned) CallStack.Pop();
         }
 
         if (PackageStack.Count > 0)
-        {
             PackageStack.Pop();
-        }
 
         RegisterTypeBuiltins(packageNameValue);
         Context.ImportedPackages.Add(packageNameValue);

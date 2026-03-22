@@ -1391,32 +1391,27 @@ public sealed class KiwiVM
                     // -- Export --------------------------------------------
                     case Opcode.Export:
                     {
-                        var node = frame.Chunk.NodePool[A];
-                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
-                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
-                            locals[lname] = _stack[frame.StackBase + slot];
-                        _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        var pkgName = Pop();
+                        _interp.ImportPackage(frame.GetToken(), pkgName);
                         break;
                     }
 
                     // -- Eval / Include ------------------------------------
                     case Opcode.Eval:
                     {
-                        var node = frame.Chunk.NodePool[A];
-                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
-                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
-                            locals[lname] = _stack[frame.StackBase + slot];
-                        Push(_interp.InterpretNodeWithLocals(node, locals, frame.Self));
+                        var code = Pop();
+                        if (!code.IsString())
+                            throw new KiwiError(frame.GetToken(), "eval() requires a string expression.");
+                        Push(_interp.EvalCode(frame.GetToken(), code.GetString()));
                         break;
                     }
 
                     case Opcode.Include:
                     {
-                        var node = frame.Chunk.NodePool[A];
-                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
-                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
-                            locals[lname] = _stack[frame.StackBase + slot];
-                        _interp.InterpretNodeWithLocals(node, locals, frame.Self);
+                        var path = Pop();
+                        if (!path.IsString())
+                            throw new InvalidOperationError(frame.GetToken(), "Include path must be a string.");
+                        _interp.IncludeFile(frame.GetToken(), path.GetString());
                         break;
                     }
 
