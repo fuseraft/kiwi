@@ -484,7 +484,7 @@ package table
       # Expand widths to fit data values (capped by max_width)
       for row in @rows do
         for col in cols do
-          w = "${row[col]}".size()
+          w = row[col] != null ? "${row[col]}".size() : 0
           w = max_width when max_width > 0 && w > max_width
           widths[col] = w when w > widths[col]
         end
@@ -508,7 +508,7 @@ package table
       for row in @rows do
         line = "|"
         for col in cols do
-          s = "${row[col]}"
+          s = row[col] != null ? "${row[col]}" : ""
           s = s[0:max_width - 1] + "…" when max_width > 0 && s.size() > max_width
           line += " " + string::padend(s, widths[col]) + " |"
         end
