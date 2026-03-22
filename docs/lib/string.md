@@ -411,6 +411,33 @@ println string::slug("The Quick Brown Fox")     # prints: the-quick-brown-fox
 println string::slug("  leading & trailing  ")  # prints: leading-trailing
 ```
 
+### `squish(_input)`
+
+Strips leading and trailing whitespace, then collapses every internal run of whitespace into a single space. Useful for normalising strings from external sources such as CSV fields or scraped text.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `_input` | The input string. |
+
+**Returns**
+
+| Type | Description |
+| :--- | :---|
+| `string` | The normalised string. |
+
+**Example**
+```kiwi
+import "string"
+
+println string::squish("  hello   world  ")         # prints: hello world
+println string::squish("  7800    BEEMAN   AV  ")   # prints: 7800 BEEMAN AV
+println string::squish("already clean")             # prints: already clean
+```
+
+---
+
 ### `tolower(_input)`
 
 Converts all characters in the string to lowercase.

@@ -181,13 +181,26 @@ Pass schema types as strings to `.with_schema()`:
 
 | String | Coercion |
 | :--- | :--- |
-| `"string"` | left as-is |
-| `"integer"` / `"int"` | `.to_integer()` |
-| `"float"` / `"double"` / `"number"` | `.to_float()` |
+| `"string"` | left as-is — empty fields stay `""`, never `null` |
+| `"string?"` / `"nullable_string"` | left as-is for non-empty; empty fields become `null` |
+| `"integer"` / `"int"` | parsed as integer; empty fields become `null` |
+| `"float"` / `"double"` / `"number"` | parsed as float; empty fields become `null` |
 | `"boolean"` / `"bool"` | `true` for `"true"`, `"1"`, `"yes"`; `false` otherwise |
-| `"date"` | parsed via `time::parse()` |
+| `"date"` | parsed via `DateTime.TryParse`; empty fields become `null` |
 | `"null"` / `"none"` | always `null` |
 | anything else | left as-is |
+
+**`"string"` vs `"string?"`** — All non-string typed columns return `null` for empty CSV fields. String columns are the exception: `"string"` preserves empty fields as `""`, which means `r["col"] != null` is always true. Use `"string?"` when you need to distinguish a present value from a missing one and want `??` or `!= null` checks to work:
+
+```kiwi
+# "string" — empty field stays "", ?? never fires
+schema = ["string", "integer", "string"]
+# r["notes"] ?? "none"   → always returns r["notes"], even when it's ""
+
+# "string?" — empty field becomes null, ?? fires correctly
+schema = ["string?", "integer", "string?"]
+# r["notes"] ?? "none"   → returns "none" when the field was empty
+```
 
 ### `.with_headers(headers)`
 
@@ -220,6 +233,14 @@ Registers a CSV file using the current pending settings, then resets them for th
 | Type | Name | Description |
 | :--- | :--- | :--- |
 | `string` | `path` | Path to the CSV file. |
+
+### `.from_string(data)`
+
+Registers an in-memory CSV string as a source using the current pending settings. Same behaviour as `.from_file()` but no file is needed — useful for tests, fixtures, or data received from an API.
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `string` | `data` | The CSV-formatted string to parse. |
 
 ### `.as_dataset(name)`
 
@@ -262,6 +283,47 @@ for r in rows do
   active = r["active"]  # boolean
   score  = r["score"]   # float
   println "${name} (${id}): active=${active}, score=${score}"
+end
+```
+
+### Nullable string columns with `"string?"`
+
+Use `"string?"` for columns that may be empty in the CSV and where you want `null` rather than `""`:
+
+```kiwi
+import "csv"
+
+# Weapon Desc is blank when no weapon was used.
+# "string?" makes it null so != null and ?? work correctly.
+schema = ["integer", "string", "string?", "float"]
+
+rows = csv::pipeline()
+  .with_schema(schema)
+  .from_file("incidents.csv")
+  .parse()
+
+for r in rows do
+  weapon = r["weapon_desc"] ?? "none"
+  println "${r["id"]}: ${weapon}"
+end
+```
+
+### In-memory CSV with `from_string`
+
+Parse a CSV string directly — no temp file needed:
+
+```kiwi
+import "csv"
+
+data = "name,score\nAlice,95\nBob,82\nCarol,91"
+
+rows = csv::pipeline()
+  .with_schema(["string", "integer"])
+  .from_string(data)
+  .parse()
+
+for r in rows do
+  println "${r["name"]}: ${r["score"]}"
 end
 ```
 
