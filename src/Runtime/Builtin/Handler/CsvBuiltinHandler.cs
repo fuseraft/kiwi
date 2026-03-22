@@ -133,6 +133,10 @@ public static class CsvBuiltinHandler
 
         var raw = val.IsString() ? val.GetString() : val.GetString();
 
+        // "string?" (alias: "nullable_string"): keep non-empty strings as-is, null empty ones
+        if (t is "string?" or "nullable_string")
+            return raw.Length == 0 ? Value.Default : val;
+
         if (raw.Length == 0 && t != "null" && t != "none")
             return Value.Default;
 
