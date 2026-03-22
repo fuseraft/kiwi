@@ -126,30 +126,40 @@ nav:
     - curl: lib/curl.md
     - date: lib/date.md
     - dotenv: lib/dotenv.md
+    - encode: lib/encode.md
     - env: lib/env.md
     - error: lib/error.md
     - faker: lib/faker.md
     - fio: lib/fio.md
+    - fmt: lib/fmt.md
     - hashable: lib/hashable.md
     - http: lib/http.md
+    - httpserver: lib/httpserver.md
     - iter: lib/iter.md
     - json: lib/json.md
     - list: lib/list.md
+    - log: lib/log.md
     - math: lib/math.md
     - path: lib/path.md
     - pipeline: lib/pipeline.md
     - protobuf: lib/protobuf.md
     - reflector: lib/reflector.md
     - regex: lib/regex.md
+    - signal: lib/signal.md
+    - smtp: lib/smtp.md
     - socket: lib/socket.md
     - sqlite: lib/sqlite.md
+    - stat: lib/stat.md
     - std: lib/std.md
     - stdin: lib/stdin.md
     - stopwatch: lib/stopwatch.md
     - string: lib/string.md
     - sys: lib/sys.md
+    - table: lib/table.md
     - task: lib/task.md
+    - template: lib/template.md
     - tester: lib/tester.md
     - time: lib/time.md
+    - udp: lib/udp.md
     - xml: lib/xml.md
     - yaml: lib/yaml.md
