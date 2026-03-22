@@ -13,6 +13,10 @@
         <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/text/">
       
       
+        <link rel="prev" href="../tester/">
+      
+      
+        <link rel="next" href="../time/">
       
       
         
@@ -376,10 +380,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../" class="md-tabs__link">
           
   
@@ -1852,28 +1858,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
-        
-          
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
             
   
   
@@ -1891,7 +1900,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -2449,6 +2458,34 @@
     
   
     httpserver
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ipc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ipc
   
 
     
@@ -3129,6 +3166,359 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    text
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    text
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#package-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Package Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Package Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#textpipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        text::pipeline()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#textpipeline_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TextPipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TextPipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#source-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Source methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from_filepath" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .from_file(path)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from_stringinput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .from_string(input)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#skipn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .skip(n)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filteraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .filter(action)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rejectaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .reject(action)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mapaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .map(action)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#matchpattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .match(pattern)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#split_ondelimiter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .split_on(delimiter)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terminal-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminal method
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Terminal method">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .run()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter-and-extract-from-a-log-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filter and extract from a log file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#regex-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regex match
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#split-into-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Split into fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chain-filter-split-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chain: filter → split → map
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From string
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reject-blank-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reject blank lines
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
