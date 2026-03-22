@@ -7,7 +7,7 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public class ObjectBuiltinHandler
 {
-    public static Value Handle(Interpreter interp, Token token, TokenName builtin, InstanceRef obj, string baseStruct, List<Value> args)
+    public static Value Handle(Interpreter interp, Token token, TokenName builtin, InstanceRef obj, string baseStruct, IReadOnlyList<Value> args)
     {
         var instVars = obj.InstanceVariables;
 

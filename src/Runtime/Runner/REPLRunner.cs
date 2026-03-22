@@ -109,13 +109,16 @@ public class REPLRunner(Interpreter interpreter) : IRunner
                 inContinuation = false;
 
                 // Execute and auto-print non-null results
-                var chunk = Compiler.CompileProgram((ProgramNode)ast);
+                var chunk = Compiler.CompileExpression((ProgramNode)ast);
                 var vm = new KiwiVM(Interpreter);
                 KiwiVM.Current = vm;
                 var result = vm.Execute(chunk);
                 if (!result.IsNull())
                 {
-                    Console.WriteLine($"=> {Serializer.Serialize(result, wrapStrings: true)}");
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write("=> ");
+                    Console.ResetColor();
+                    Console.WriteLine(Serializer.Serialize(result, wrapStrings: true));
                 }
             }
             catch (UnexpectedEndOfFileError)

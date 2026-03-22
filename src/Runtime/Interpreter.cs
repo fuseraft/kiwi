@@ -90,7 +90,7 @@ public class Interpreter
         return Value.CreateLambda(new LambdaRef { Identifier = lambdaId, VMChunk = func.VMChunk, VMUpvalues = func.VMUpvalues });
     }
 
-    public Value InvokeCallable(Callable callable, List<Value> args, Token token, string displayName, InstanceRef? instance = null)
+    public Value InvokeCallable(Callable callable, IReadOnlyList<Value> args, Token token, string displayName, InstanceRef? instance = null)
     {
         // If this callable was compiled as a VM function/lambda, delegate to the VM so the
         // bytecode body executes instead of the synthetic (empty) AST Decl.Body.
@@ -376,7 +376,7 @@ public class Interpreter
         return isTypeMatch;
     }
 
-    private void BindParameters(Callable callable, List<Value> args, Token token, string name, Scope scope)
+    private void BindParameters(Callable callable, IReadOnlyList<Value> args, Token token, string name, Scope scope)
     {
         for (int i = 0; i < callable.Parameters.Count; i++)
         {
@@ -435,7 +435,7 @@ public class Interpreter
     /// Create a generator from pre-evaluated arguments. Used by the VM when a generator
     /// function is called via bytecode (arguments are already on the value stack).
     /// </summary>
-    public Value CreateGeneratorFromValues(KFunction func, List<Value> args, Token token)
+    public Value CreateGeneratorFromValues(KFunction func, IReadOnlyList<Value> args, Token token)
     {
         var generatorRef = new GeneratorRef();
         var capturedGlobal = _globalScope;
@@ -459,7 +459,7 @@ public class Interpreter
         return Value.CreateGenerator(generatorRef);
     }
 
-    internal void RunGeneratorBody(KFunction func, List<Value> args, Token token, GeneratorRef generatorRef)
+    internal void RunGeneratorBody(KFunction func, IReadOnlyList<Value> args, Token token, GeneratorRef generatorRef)
     {
         _activeGenerator = generatorRef;
 
@@ -729,7 +729,7 @@ public class Interpreter
     /// Dispatch a method call given a pre-evaluated receiver object and argument list.
     /// Used by the VM's CallMethod opcode.
     /// </summary>
-    public Value DispatchMethod(Value obj, string methodName, List<Value> args, Token token)
+    public Value DispatchMethod(Value obj, string methodName, IReadOnlyList<Value> args, Token token)
     {
         // Build a synthetic MethodCallNode so existing dispatch logic can be reused.
         // The arguments are already evaluated, so we wrap each in a LiteralNode.
@@ -754,7 +754,7 @@ public class Interpreter
         if (CallableBuiltin.Map.TryGetValue(methodName, out _))
             return HandleCallableBuiltinDirect(token, obj, methodName, args);
         if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))
-            return BuiltinDispatch.Execute(token, coreOp, obj, args);
+            return BuiltinDispatch.Execute(token, coreOp, obj, args as List<Value> ?? new List<Value>(args));
 
         var typeId = TypeRegistry.GetType(token, obj);
         if (TypeBuiltins.TryGetBuiltin(typeId, methodName, out KFunction? typeBuiltin) && typeBuiltin != null)
@@ -778,7 +778,7 @@ public class Interpreter
         TokenName.Builtin_Core_Values,
     ];
 
-    private Value CallObjectMethodDirect(Token token, string methodName, InstanceRef obj, List<Value> args)
+    private Value CallObjectMethodDirect(Token token, string methodName, InstanceRef obj, IReadOnlyList<Value> args)
     {
         if (!Context.HasStruct(obj.StructName))
             throw new StructUndefinedError(token, obj.StructName);
@@ -792,7 +792,7 @@ public class Interpreter
                 // Object-specific builtins (is_a, clone, has_key, etc.) need struct context.
                 if (_objectSpecificBuiltins.Contains(coreOp))
                     return ObjectBuiltinHandler.Handle(this, token, coreOp, obj, struc.BaseStruct, args);
-                return BuiltinDispatch.Execute(token, coreOp, Value.CreateObject(obj), args);
+                return BuiltinDispatch.Execute(token, coreOp, Value.CreateObject(obj), args as List<Value> ?? new List<Value>(args));
             }
             throw new UnimplementedMethodError(token, obj.StructName, methodName);
         }
@@ -816,7 +816,7 @@ public class Interpreter
         return false;
     }
 
-    private Value ResolveAndCallMethod(Token token, KStruct struc, InstanceRef obj, string methodName, List<Value> args)
+    private Value ResolveAndCallMethod(Token token, KStruct struc, InstanceRef obj, string methodName, IReadOnlyList<Value> args)
     {
         if (!struc.Methods.TryGetValue(methodName, out KFunction? fn))
         {
@@ -834,7 +834,7 @@ public class Interpreter
         return InvokeCallable(fn, args, token, methodName, obj);
     }
 
-    private Value CallStructMethodDirect(Token token, string methodName, StructRef sref, List<Value> args)
+    private Value CallStructMethodDirect(Token token, string methodName, StructRef sref, IReadOnlyList<Value> args)
     {
         var structName = sref.Identifier;
         if (!Context.HasStruct(structName))
@@ -880,7 +880,7 @@ public class Interpreter
         return InvokeCallable(fn, args, token, methodName, structSelf);
     }
 
-    private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, List<Value> args)
+    private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, IReadOnlyList<Value> args)
     {
         if (!CallableBuiltin.Map.TryGetValue(methodName, out var op))
             throw new FunctionUndefinedError(token, methodName);
@@ -903,7 +903,7 @@ public class Interpreter
         if (callable is not KFunction && callable is not KLambda)
             throw new InvalidOperationError(token, $"Expected a function or lambda for function `{CallableBuiltin.MapName(op)}` on `{callableName}`.");
 
-        return CallableBuiltinHandler.Execute(this, token, op, callable, callableName, args);
+        return CallableBuiltinHandler.Execute(this, token, op, callable, callableName, args as List<Value> ?? new List<Value>(args));
     }
 
     /// <summary>
@@ -1087,7 +1087,7 @@ public class Interpreter
     /// Create a new struct instance with the given args.
     /// Used by the VM's NewObject opcode.
     /// </summary>
-    public Value CreateObject(string structName, List<Value> args, Token token)
+    public Value CreateObject(string structName, IReadOnlyList<Value> args, Token token)
     {
         if (!Context.HasStruct(structName))
             throw new StructUndefinedError(token, structName);
