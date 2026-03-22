@@ -148,6 +148,12 @@ public enum Opcode : byte
     /// </summary>
     CallMethod,
     /// <summary>
+    /// A = arg count, B = name index (names[B] = method name).
+    /// Stack before: [..., arg0, …, argN-1]  (no obj — uses frame.Self and frame.OwnerStruct).
+    /// Dispatches a <c>super.method()</c> call starting from the base of the defining struct.
+    /// </summary>
+    CallSuperMethod,
+    /// <summary>
     /// Return top-of-stack to caller.
     /// </summary>
     Return,

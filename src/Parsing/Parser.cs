@@ -114,6 +114,9 @@ public partial class Parser
             case TokenName.KW_Var:
                 return ParseVar();
 
+            case TokenName.KW_Super:
+                return ParseSuperCall();
+
             default:
                 throw new SyntaxError(GetErrorToken(), $"Unexpected keyword '{token.Text}'.");
         }
@@ -136,6 +139,12 @@ public partial class Parser
 
             case TokenType.Error:
                 node = ParseError();
+                break;
+
+            // when super.method() is used as a statement, route through ParseExpression so
+            // operators and chained calls after the super call are parsed correctly.
+            case TokenType.Keyword when GetTokenName() == TokenName.KW_Super:
+                node = ParseExpression();
                 break;
 
             // when @var or @@var used as a statement, route through ParseExpression so binary
@@ -2294,6 +2303,28 @@ public partial class Parser
         }
 
         return node;
+    }
+
+    private ASTNode? ParseSuperCall()
+    {
+        var superToken = token.Clone();
+        Next(); // consume 'super'
+
+        if (GetTokenType() != TokenType.Dot)
+            throw new SyntaxError(GetErrorToken(), "Expected '.' after 'super'.");
+        Next(); // consume '.'
+
+        if (GetTokenType() != TokenType.Identifier)
+            throw new SyntaxError(GetErrorToken(), "Expected method name after 'super.'.");
+
+        var methodName = token.Text;
+        Next(); // consume method name
+
+        if (GetTokenType() != TokenType.LParen)
+            throw new SyntaxError(GetErrorToken(), "Expected '(' after super method name.");
+
+        var arguments = CollectCallArguments();
+        return new SuperCallNode(methodName, arguments) { Token = superToken };
     }
 
     private ASTNode? ParseMemberAccess(ASTNode? left)

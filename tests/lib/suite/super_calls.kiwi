@@ -1,0 +1,150 @@
+/# ==============================================================================
+   Testing super calls: super.new(), super.method(), multi-level chains,
+   super result in expressions.
+  ============================================================================== #/
+@tester::test("super_calls")
+fn test_super_calls()
+  # ---- basic super.new() -------------------------------------------------------
+  struct Shape
+    fn new(color)
+      @color = color
+    end
+
+    fn area()
+      0
+    end
+
+    fn describe()
+      "${@color} shape with area ${@.area()}"
+    end
+  end
+
+  struct Rectangle < Shape
+    fn new(color, w, h)
+      super.new(color)
+      @w = w
+      @h = h
+    end
+
+    fn area()
+      @w * @h
+    end
+  end
+
+  struct Square < Rectangle
+    fn new(color, side)
+      super.new(color, side, side)
+    end
+
+    fn area()
+      super.area()
+    end
+  end
+
+  # A1: super.new() propagates parent ctor
+  r = Rectangle.new("red", 4, 5)
+  tester::assert(r.color == "red",  "A1: super.new sets @color")
+  tester::assert(r.w == 4,          "A1b: super.new sets @w")
+  tester::assert(r.h == 5,          "A1c: super.new sets @h")
+
+  # A2: parent method invoked after super.new()
+  tester::assert(r.area() == 20, "A2: Rectangle.area()")
+
+  # A3: describe() uses overridden area() polymorphically
+  tester::assert(r.describe() == "red shape with area 20", "A3: describe via overridden area")
+
+  # A4: multi-level super.new() chain
+  sq = Square.new("blue", 6)
+  tester::assert(sq.color == "blue", "A4: multi-level super chain @color")
+  tester::assert(sq.w == 6,          "A4b: multi-level super chain @w")
+  tester::assert(sq.h == 6,          "A4c: multi-level super chain @h")
+
+  # A5: Square.area() delegates to super.area() (Rectangle.area)
+  tester::assert(sq.area() == 36, "A5: Square.area via super")
+
+  # A6: describe() on Square uses polymorphic area
+  tester::assert(sq.describe() == "blue shape with area 36", "A6: describe on Square")
+
+  # ---- super result used in an expression --------------------------------------
+  struct Greeter
+    fn greet()
+      "Hello"
+    end
+  end
+
+  struct FancyGreeter < Greeter
+    fn greet()
+      super.greet() + ", World!"
+    end
+  end
+
+  fg = FancyGreeter.new()
+  tester::assert(fg.greet() == "Hello, World!", "A7: super result in expression")
+
+  # ---- three-level value accumulation chain ------------------------------------
+  struct A
+    fn new(x)
+      @x = x
+    end
+    fn value()
+      @x
+    end
+  end
+
+  struct B < A
+    fn new(x, y)
+      super.new(x)
+      @y = y
+    end
+    fn value()
+      super.value() + @y
+    end
+  end
+
+  struct C < B
+    fn new(x, y, z)
+      super.new(x, y)
+      @z = z
+    end
+    fn value()
+      super.value() + @z
+    end
+  end
+
+  obj = C.new(1, 2, 3)
+  tester::assert(obj.value() == 6, "A8: three-level super value chain")
+
+  # ---- super in a non-ctor method ----------------------------------------------
+  struct Logger
+    fn log(msg)
+      "[LOG] ${msg}"
+    end
+  end
+
+  struct TimedLogger < Logger
+    fn log(msg)
+      super.log(msg) + " (timed)"
+    end
+  end
+
+  tl = TimedLogger.new()
+  tester::assert(tl.log("test") == "[LOG] test (timed)", "A9: super in non-ctor method")
+
+  # ---- super.new() with no arguments -------------------------------------------
+  struct Base
+    fn new()
+      @ready = true
+    end
+  end
+
+  struct Child < Base
+    fn new()
+      super.new()
+      @extra = 42
+    end
+  end
+
+  ch = Child.new()
+  tester::assert(ch.ready == true, "A10: super.new() no-arg sets parent vars")
+  tester::assert(ch.extra == 42,   "A10b: child vars set after super.new()")
+end

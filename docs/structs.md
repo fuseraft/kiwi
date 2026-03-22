@@ -44,6 +44,48 @@ struct MySubStruct < MyStruct
 end
 ```
 
+## Calling Base Struct Methods (`super`)
+
+Use `super.method_name(args)` inside a method body to invoke the base struct's version of a method on the current instance. This works for constructors and any other method.
+
+```kiwi
+struct Animal
+  fn new(name)
+    @name = name
+  end
+
+  fn speak()
+    "..."
+  end
+end
+
+struct Dog < Animal
+  fn new(name)
+    super.new(name)   # calls Animal.new — sets @name
+  end
+
+  fn speak()
+    "Woof"
+  end
+end
+
+struct PoliceDog < Dog
+  fn new(name, badge)
+    super.new(name)   # calls Dog.new → Animal.new chain
+    @badge = badge
+  end
+
+  fn speak()
+    super.speak() + "! (badge #${@badge})"  # calls Dog.speak
+  end
+end
+
+k9 = PoliceDog.new("Rex", 7)
+println k9.speak()   # Woof! (badge #7)
+```
+
+`super` always resolves relative to the struct that **defined** the currently-executing method — not the concrete runtime type. This means multi-level chains work correctly: when `PoliceDog.speak()` calls `super.speak()`, it resolves to `Dog.speak()`, and if `Dog.speak()` in turn called `super.speak()`, that would resolve to `Animal.speak()`.
+
 ## Method Definition
 
 Methods are defined using the `fn` keyword, followed by the method name and any parameters. Use `@` to access the current instance.
