@@ -70,6 +70,30 @@ public sealed class Compiler
         return c._chunk;
     }
 
+    /// <summary>
+    /// Compile a program as a returnable expression: all-but-last statements are compiled
+    /// normally (results discarded); the last statement is compiled as an expression whose
+    /// value is returned to the caller. Used by the debugger's 'p' command.
+    /// </summary>
+    public static Chunk CompileExpression(ProgramNode program)
+    {
+        var c = new Compiler("<eval>", null, isGlobal: true);
+        var stmts = program.Statements;
+        for (int i = 0; i < stmts.Count - 1; i++)
+            if (stmts[i] != null) c.CompileStatement(stmts[i]!);
+        if (stmts.Count > 0 && stmts[^1] != null)
+        {
+            if (!c.CompileNode(stmts[^1]!))
+                c.Emit(Opcode.Null);
+        }
+        else
+        {
+            c.Emit(Opcode.Null);
+        }
+        c.Emit(Opcode.Return);
+        return c._chunk;
+    }
+
     public static Chunk CompileFunction(FunctionNode fn, Compiler? enclosing)
     {
         var c = new Compiler(fn.Name, enclosing, isGlobal: false);
@@ -152,6 +176,8 @@ public sealed class Compiler
         }
 
         _chunk.LocalCount = _slotCount;
+        foreach (var lv in _locals)
+            _chunk.LocalNames.Add((lv.Name, lv.Slot));
     }
 
     // -- Name pre-scan ---------------------------------------------------------

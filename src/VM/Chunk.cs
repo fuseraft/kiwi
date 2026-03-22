@@ -57,6 +57,12 @@ public class Chunk
     public List<int>               Lines     { get; } = [];
     public List<int>               FileIds   { get; } = [];
 
+    /// <summary>
+    /// Maps each named local variable to its stack slot index (relative to frame base).
+    /// Populated by the compiler for debugger introspection; empty for global-scope chunks.
+    /// </summary>
+    public List<(string Name, int Slot)> LocalNames { get; } = [];
+
     // -- Fallback AST nodes ----------------------------------------------------
     public List<ASTNode>           NodePool  { get; } = [];
 

@@ -78,6 +78,12 @@ public sealed class KiwiVM
     // -- Closure ID counter (replaces Guid.NewGuid) ----------------------------
     private int _closureIdCounter;
 
+    // -- VM debug hook ---------------------------------------------------------
+    // Fires when the execution crosses into a new source line.
+    // Callback receives (fileId, line). Null when not debugging.
+    public Action<int, int>? DebugHook { get; set; }
+    private int _dbgLastFileId = -1;
+    private int _dbgLastLine   = -1;
 
     // -- Shared runtime state (shared with the tree-walking interpreter) -------
     private readonly Interpreter _interp;
@@ -170,6 +176,26 @@ public sealed class KiwiVM
         return r;
     }
 
+    // -- Debugger inspection ---------------------------------------------------
+
+    /// <summary>Number of active VM frames (1 = only main, grows with each call).</summary>
+    public int FrameCount => _frameCount;
+
+    /// <summary>Returns the VM frame at the given index for backtrace display.</summary>
+    public VMFrame GetFrame(int i) => _frames[i];
+
+    /// <summary>
+    /// Enumerates the named local variables visible in the current (innermost) frame,
+    /// yielding each variable's name and current value.
+    /// </summary>
+    public IEnumerable<(string Name, Value Val)> GetCurrentLocals()
+    {
+        if (_frameCount == 0) yield break;
+        var frame = _frames[_frameCount - 1];
+        foreach (var (name, slot) in frame.Chunk.LocalNames)
+            yield return (name, _stack[frame.StackBase + slot]);
+    }
+
     // -- Frame management ------------------------------------------------------
 
     private void PushFrame(string name, Chunk chunk, int stackBase, Upvalue[] upvalues,
@@ -253,6 +279,20 @@ public sealed class KiwiVM
                 var op    = instr.Op;
                 var A     = instr.A;
                 var B     = instr.B;
+
+                // Fire the debug hook whenever execution moves to a new source line.
+                if (DebugHook != null)
+                {
+                    int dbgIp     = frame.IP - 1;
+                    int dbgLine   = frame.Chunk.GetLine(dbgIp);
+                    int dbgFileId = frame.Chunk.GetFileId(dbgIp);
+                    if (dbgLine > 0 && (dbgLine != _dbgLastLine || dbgFileId != _dbgLastFileId))
+                    {
+                        _dbgLastLine   = dbgLine;
+                        _dbgLastFileId = dbgFileId;
+                        DebugHook(dbgFileId, dbgLine);
+                    }
+                }
 
                 switch (op)
                 {
