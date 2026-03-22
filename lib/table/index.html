@@ -3317,10 +3317,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#display" class="md-nav__link">
+  <a href="#displaymax_width" class="md-nav__link">
     <span class="md-ellipsis">
       
-        .display()
+        .display(max_width?)
       
     </span>
   </a>
@@ -3695,6 +3695,7 @@
 <hr />
 <h3 id="join-methods">Join methods<a class="headerlink" href="#join-methods" title="Permanent link">&para;</a></h3>
 <p>All join methods return <code>self</code>. When a left and right row are merged, right-side fields overwrite left-side fields on name collision. Use <code>.rename()</code> or <code>.select()</code> before joining to avoid unwanted overwrites.</p>
+<p>All four join methods use a hash index on the right-side table, giving <strong>O(n+m)</strong> performance regardless of table size.</p>
 <h4 id="inner_joinother-left_key-right_key"><code>.inner_join(other, left_key, right_key)</code><a class="headerlink" href="#inner_joinother-left_key-right_key" title="Permanent link">&para;</a></h4>
 <p>Keeps only rows that have at least one matching row in <code>other</code>.</p>
 <table>
@@ -3912,9 +3913,27 @@
 <h4 id="count"><code>.count()</code><a class="headerlink" href="#count" title="Permanent link">&para;</a></h4>
 <p>Returns the number of rows.</p>
 <p><strong>Returns</strong> <code>integer</code></p>
-<h4 id="display"><code>.display()</code><a class="headerlink" href="#display" title="Permanent link">&para;</a></h4>
+<h4 id="displaymax_width"><code>.display(max_width?)</code><a class="headerlink" href="#displaymax_width" title="Permanent link">&para;</a></h4>
 <p>Prints the table as a formatted ASCII grid and returns <code>self</code> for continued chaining.</p>
-<p>Columns are derived from the first row's keys. Each column is wide enough to fit its header and all its values.</p>
+<p>Columns are derived from the first row's keys. Each column is wide enough to fit its header and all its values. When <code>max_width</code> is set, any value longer than that many characters is truncated and suffixed with <code>…</code>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;"><code>max_width</code></td>
+<td style="text-align: left;">Maximum column width in characters. <code>0</code> means unlimited.</td>
+<td style="text-align: left;"><code>0</code></td>
+</tr>
+</tbody>
+</table>
 <p><strong>Returns</strong> <code>Table</code> (self)</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>table::from(rows)
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  .order_by(&quot;score&quot;, false)
@@ -3925,6 +3944,13 @@
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># |  1 | Alice |     9 |
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a># …
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a># (4 row(s))
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a># Cap every column at 25 characters
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>table::from(rows).display(25)
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a># +----+---------------------------+-------+
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a># | id | name                      | score |
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a># +----+---------------------------+-------+
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a># |  1 | A very long name that g…  |     9 |
 </span></code></pre></div>
 <hr />
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>

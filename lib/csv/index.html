@@ -2313,6 +2313,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#from_stringdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .from_string(data)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#as_datasetname" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2356,6 +2367,28 @@
     <span class="md-ellipsis">
       
         Single file with schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nullable-string-columns-with-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nullable string columns with "string?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-memory-csv-with-from_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-memory CSV with from_string
       
     </span>
   </a>
@@ -3416,6 +3449,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#from_stringdata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .from_string(data)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#as_datasetname" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3459,6 +3503,28 @@
     <span class="md-ellipsis">
       
         Single file with schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nullable-string-columns-with-string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nullable string columns with "string?"
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-memory-csv-with-from_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-memory CSV with from_string
       
     </span>
   </a>
@@ -3806,15 +3872,19 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>"string"</code></td>
-<td style="text-align: left;">left as-is</td>
+<td style="text-align: left;">left as-is — empty fields stay <code>""</code>, never <code>null</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>"string?"</code> / <code>"nullable_string"</code></td>
+<td style="text-align: left;">left as-is for non-empty; empty fields become <code>null</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>"integer"</code> / <code>"int"</code></td>
-<td style="text-align: left;"><code>.to_integer()</code></td>
+<td style="text-align: left;">parsed as integer; empty fields become <code>null</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>"float"</code> / <code>"double"</code> / <code>"number"</code></td>
-<td style="text-align: left;"><code>.to_float()</code></td>
+<td style="text-align: left;">parsed as float; empty fields become <code>null</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>"boolean"</code> / <code>"bool"</code></td>
@@ -3822,7 +3892,7 @@
 </tr>
 <tr>
 <td style="text-align: left;"><code>"date"</code></td>
-<td style="text-align: left;">parsed via <code>time::parse()</code></td>
+<td style="text-align: left;">parsed via <code>DateTime.TryParse</code>; empty fields become <code>null</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>"null"</code> / <code>"none"</code></td>
@@ -3834,6 +3904,15 @@
 </tr>
 </tbody>
 </table>
+<p><strong><code>"string"</code> vs <code>"string?"</code></strong> — All non-string typed columns return <code>null</code> for empty CSV fields. String columns are the exception: <code>"string"</code> preserves empty fields as <code>""</code>, which means <code>r["col"] != null</code> is always true. Use <code>"string?"</code> when you need to distinguish a present value from a missing one and want <code>??</code> or <code>!= null</code> checks to work:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># &quot;string&quot; — empty field stays &quot;&quot;, ?? never fires
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>schema = [&quot;string&quot;, &quot;integer&quot;, &quot;string&quot;]
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a># r[&quot;notes&quot;] ?? &quot;none&quot;   → always returns r[&quot;notes&quot;], even when it&#39;s &quot;&quot;
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a># &quot;string?&quot; — empty field becomes null, ?? fires correctly
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>schema = [&quot;string?&quot;, &quot;integer&quot;, &quot;string?&quot;]
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a># r[&quot;notes&quot;] ?? &quot;none&quot;   → returns &quot;none&quot; when the field was empty
+</span></code></pre></div>
 <h3 id="with_headersheaders"><code>.with_headers(headers)</code><a class="headerlink" href="#with_headersheaders" title="Permanent link">&para;</a></h3>
 <p>Supplies custom column headers. When set, <strong>every row in the file is treated as a data row</strong> (no header row is skipped).</p>
 <table>
@@ -3906,6 +3985,24 @@
 </tr>
 </tbody>
 </table>
+<h3 id="from_stringdata"><code>.from_string(data)</code><a class="headerlink" href="#from_stringdata" title="Permanent link">&para;</a></h3>
+<p>Registers an in-memory CSV string as a source using the current pending settings. Same behaviour as <code>.from_file()</code> but no file is needed — useful for tests, fixtures, or data received from an API.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;">The CSV-formatted string to parse.</td>
+</tr>
+</tbody>
+</table>
 <h3 id="as_datasetname"><code>.as_dataset(name)</code><a class="headerlink" href="#as_datasetname" title="Permanent link">&para;</a></h3>
 <p>Names the most recently registered file. The name becomes the key in the hashmap returned by <code>.parse()</code>. Must be called after <code>.from_file()</code>.</p>
 <table>
@@ -3956,79 +4053,112 @@
 <hr />
 <h2 id="pipeline-examples">Pipeline Examples<a class="headerlink" href="#pipeline-examples" title="Permanent link">&para;</a></h2>
 <h3 id="single-file-with-schema">Single file with schema<a class="headerlink" href="#single-file-with-schema" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;csv&quot;
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>rows = csv::pipeline()
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  .with_schema([&quot;string&quot;, &quot;integer&quot;, &quot;boolean&quot;, &quot;float&quot;])
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  .from_file(&quot;users.csv&quot;)
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  .parse()
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>for r in rows do
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  name   = r[&quot;name&quot;]
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  id     = r[&quot;id&quot;]      # integer
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  active = r[&quot;active&quot;]  # boolean
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  score  = r[&quot;score&quot;]   # float
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  println &quot;${name} (${id}): active=${active}, score=${score}&quot;
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>end
-</span></code></pre></div>
-<h3 id="custom-headers-no-header-row-in-file">Custom headers (no header row in file)<a class="headerlink" href="#custom-headers-no-header-row-in-file" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;csv&quot;
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>rows = csv::pipeline()
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  .with_headers([&quot;name&quot;, &quot;id&quot;, &quot;active&quot;, &quot;score&quot;])
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  .with_schema([&quot;string&quot;, &quot;integer&quot;, &quot;boolean&quot;, &quot;float&quot;])
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  .from_file(&quot;users_noheader.csv&quot;)
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  .parse()
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  .with_schema([&quot;string&quot;, &quot;integer&quot;, &quot;boolean&quot;, &quot;float&quot;])
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  .from_file(&quot;users.csv&quot;)
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  .parse()
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>for r in rows do
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  name   = r[&quot;name&quot;]
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  id     = r[&quot;id&quot;]      # integer
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  active = r[&quot;active&quot;]  # boolean
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  score  = r[&quot;score&quot;]   # float
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  println &quot;${name} (${id}): active=${active}, score=${score}&quot;
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>end
 </span></code></pre></div>
-<h3 id="tab-delimited-file">Tab-delimited file<a class="headerlink" href="#tab-delimited-file" title="Permanent link">&para;</a></h3>
+<h3 id="nullable-string-columns-with-string">Nullable string columns with <code>"string?"</code><a class="headerlink" href="#nullable-string-columns-with-string" title="Permanent link">&para;</a></h3>
+<p>Use <code>"string?"</code> for columns that may be empty in the CSV and where you want <code>null</code> rather than <code>""</code>:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;csv&quot;
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>rows = csv::pipeline()
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  .with_delimiter(&quot;\t&quot;)
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  .from_file(&quot;report.tsv&quot;)
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  .parse()
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a># Weapon Desc is blank when no weapon was used.
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a># &quot;string?&quot; makes it null so != null and ?? work correctly.
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>schema = [&quot;integer&quot;, &quot;string&quot;, &quot;string?&quot;, &quot;float&quot;]
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>rows = csv::pipeline()
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  .with_schema(schema)
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  .from_file(&quot;incidents.csv&quot;)
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  .parse()
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>for r in rows do
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>  weapon = r[&quot;weapon_desc&quot;] ?? &quot;none&quot;
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>  println &quot;${r[&quot;id&quot;]}: ${weapon}&quot;
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>end
+</span></code></pre></div>
+<h3 id="in-memory-csv-with-from_string">In-memory CSV with <code>from_string</code><a class="headerlink" href="#in-memory-csv-with-from_string" title="Permanent link">&para;</a></h3>
+<p>Parse a CSV string directly — no temp file needed:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;csv&quot;
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>data = &quot;name,score\nAlice,95\nBob,82\nCarol,91&quot;
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>rows = csv::pipeline()
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  .with_schema([&quot;string&quot;, &quot;integer&quot;])
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>  .from_string(data)
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>  .parse()
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>for r in rows do
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>  println &quot;${r[&quot;name&quot;]}: ${r[&quot;score&quot;]}&quot;
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>end
+</span></code></pre></div>
+<h3 id="custom-headers-no-header-row-in-file">Custom headers (no header row in file)<a class="headerlink" href="#custom-headers-no-header-row-in-file" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;csv&quot;
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>rows = csv::pipeline()
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  .with_headers([&quot;name&quot;, &quot;id&quot;, &quot;active&quot;, &quot;score&quot;])
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  .with_schema([&quot;string&quot;, &quot;integer&quot;, &quot;boolean&quot;, &quot;float&quot;])
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  .from_file(&quot;users_noheader.csv&quot;)
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>  .parse()
+</span></code></pre></div>
+<h3 id="tab-delimited-file">Tab-delimited file<a class="headerlink" href="#tab-delimited-file" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>import &quot;csv&quot;
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>rows = csv::pipeline()
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>  .with_delimiter(&quot;\t&quot;)
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>  .from_file(&quot;report.tsv&quot;)
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  .parse()
 </span></code></pre></div>
 <h3 id="multiple-unnamed-files">Multiple unnamed files<a class="headerlink" href="#multiple-unnamed-files" title="Permanent link">&para;</a></h3>
 <p>When no datasets are named, multiple files return a list of results — one per file.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;csv&quot;
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>all = csv::pipeline()
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  .from_file(&quot;q1.csv&quot;)
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  .from_file(&quot;q2.csv&quot;)
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  .from_file(&quot;q3.csv&quot;)
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>  .parse()
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>q1 = all[0]
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>q2 = all[1]
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>q3 = all[2]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>import &quot;csv&quot;
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>all = csv::pipeline()
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  .from_file(&quot;q1.csv&quot;)
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>  .from_file(&quot;q2.csv&quot;)
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>  .from_file(&quot;q3.csv&quot;)
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>  .parse()
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>q1 = all[0]
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>q2 = all[1]
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>q3 = all[2]
 </span></code></pre></div>
 <h3 id="named-datasets">Named datasets<a class="headerlink" href="#named-datasets" title="Permanent link">&para;</a></h3>
 <p>Name every source with <code>.as_dataset()</code> and <code>.parse()</code> returns a single hashmap keyed by those names.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;csv&quot;
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>data = csv::pipeline()
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  .with_schema([&quot;string&quot;, &quot;integer&quot;, &quot;float&quot;])
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  .from_file(&quot;orders.csv&quot;).as_dataset(&quot;orders&quot;)
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  .with_schema([&quot;string&quot;, &quot;float&quot;])
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>  .from_file(&quot;products.csv&quot;).as_dataset(&quot;products&quot;)
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>  .parse()
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>orders   = data[&quot;orders&quot;]
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>products = data[&quot;products&quot;]
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
-</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>for o in orders do
-</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>  println &quot;Order: ${o[&quot;product&quot;]}, qty=${o[&quot;qty&quot;]}&quot;
-</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>end
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>import &quot;csv&quot;
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>data = csv::pipeline()
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>  .with_schema([&quot;string&quot;, &quot;integer&quot;, &quot;float&quot;])
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>  .from_file(&quot;orders.csv&quot;).as_dataset(&quot;orders&quot;)
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>  .with_schema([&quot;string&quot;, &quot;float&quot;])
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>  .from_file(&quot;products.csv&quot;).as_dataset(&quot;products&quot;)
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>  .parse()
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>orders   = data[&quot;orders&quot;]
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>products = data[&quot;products&quot;]
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>for o in orders do
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>  println &quot;Order: ${o[&quot;product&quot;]}, qty=${o[&quot;qty&quot;]}&quot;
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>end
 </span></code></pre></div>
 <h3 id="error-mixing-named-and-unnamed-sources">Error: mixing named and unnamed sources<a class="headerlink" href="#error-mixing-named-and-unnamed-sources" title="Permanent link">&para;</a></h3>
 <p>If at least one source is named, all must be named — otherwise <code>.parse()</code> throws.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>import &quot;csv&quot;
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a># This will throw a pipeline error
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>csv::pipeline()
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>  .from_file(&quot;a.csv&quot;).as_dataset(&quot;a&quot;)
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>  .from_file(&quot;b.csv&quot;)   # missing as_dataset()
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>  .parse()
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>import &quot;csv&quot;
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a># This will throw a pipeline error
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>csv::pipeline()
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>  .from_file(&quot;a.csv&quot;).as_dataset(&quot;a&quot;)
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>  .from_file(&quot;b.csv&quot;)   # missing as_dataset()
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>  .parse()
 </span></code></pre></div>
 
 

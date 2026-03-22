@@ -3006,6 +3006,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#squish_input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        squish(_input)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tolower_input" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3501,6 +3512,17 @@
     <span class="md-ellipsis">
       
         slug(_input)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#squish_input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        squish(_input)
       
     </span>
   </a>
@@ -4341,6 +4363,48 @@
 </span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>println string::slug(&quot;The Quick Brown Fox&quot;)     # prints: the-quick-brown-fox
 </span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>println string::slug(&quot;  leading &amp; trailing  &quot;)  # prints: leading-trailing
 </span></code></pre></div></p>
+<h3 id="squish_input"><code>squish(_input)</code><a class="headerlink" href="#squish_input" title="Permanent link">&para;</a></h3>
+<p>Strips leading and trailing whitespace, then collapses every internal run of whitespace into a single space. Useful for normalising strings from external sources such as CSV fields or scraped text.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><code>_input</code></td>
+<td style="text-align: left;">The input string.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">The normalised string.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>import &quot;string&quot;
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>println string::squish(&quot;  hello   world  &quot;)         # prints: hello world
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>println string::squish(&quot;  7800    BEEMAN   AV  &quot;)   # prints: 7800 BEEMAN AV
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>println string::squish(&quot;already clean&quot;)             # prints: already clean
+</span></code></pre></div></p>
+<hr />
 <h3 id="tolower_input"><code>tolower(_input)</code><a class="headerlink" href="#tolower_input" title="Permanent link">&para;</a></h3>
 <p>Converts all characters in the string to lowercase.</p>
 <p><strong>Parameters</strong></p>
@@ -4376,9 +4440,9 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>import &quot;string&quot;
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>println string::tolower(&quot;HELLO World&quot;)   # prints: hello world
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>import &quot;string&quot;
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>println string::tolower(&quot;HELLO World&quot;)   # prints: hello world
 </span></code></pre></div></p>
 <h3 id="toupper_input"><code>toupper(_input)</code><a class="headerlink" href="#toupper_input" title="Permanent link">&para;</a></h3>
 <p>Converts all characters in the string to uppercase.</p>
@@ -4415,9 +4479,9 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>import &quot;string&quot;
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>println string::toupper(&quot;hello World&quot;)   # prints: HELLO WORLD
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>import &quot;string&quot;
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>println string::toupper(&quot;hello World&quot;)   # prints: HELLO WORLD
 </span></code></pre></div></p>
 <h3 id="urldecode_input"><code>urldecode(_input)</code><a class="headerlink" href="#urldecode_input" title="Permanent link">&para;</a></h3>
 <p>Decodes a percent-encoded URL string to plaintext.</p>
@@ -4454,10 +4518,10 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>import &quot;string&quot;
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>println string::urldecode(&quot;hello%20world&quot;)   # prints: hello world
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>println string::urldecode(&quot;foo%3Dbar&quot;)       # prints: foo=bar
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>import &quot;string&quot;
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>println string::urldecode(&quot;hello%20world&quot;)   # prints: hello world
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>println string::urldecode(&quot;foo%3Dbar&quot;)       # prints: foo=bar
 </span></code></pre></div></p>
 <h3 id="urlencode_input"><code>urlencode(_input)</code><a class="headerlink" href="#urlencode_input" title="Permanent link">&para;</a></h3>
 <p>Percent-encodes a string for safe use in a URL.</p>
@@ -4494,10 +4558,10 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>import &quot;string&quot;
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>println string::urlencode(&quot;hello world&quot;)   # prints: hello+world
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>println string::urlencode(&quot;foo=bar&amp;x=1&quot;)   # prints: foo%3Dbar%26x%3D1
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>import &quot;string&quot;
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>println string::urlencode(&quot;hello world&quot;)   # prints: hello+world
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>println string::urlencode(&quot;foo=bar&amp;x=1&quot;)   # prints: foo%3Dbar%26x%3D1
 </span></code></pre></div></p>
 <h3 id="capitalize_input"><code>capitalize(_input)</code><a class="headerlink" href="#capitalize_input" title="Permanent link">&para;</a></h3>
 <p>Returns the string with the first character uppercased and the rest lowercased. Also available as <code>capitalise(_input)</code>.</p>
@@ -4534,11 +4598,11 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>import &quot;string&quot;
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>println string::capitalize(&quot;hello world&quot;)   # prints: Hello world
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>println string::capitalize(&quot;HELLO&quot;)         # prints: Hello
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>println string::capitalise(&quot;kiwi&quot;)          # prints: Kiwi
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>import &quot;string&quot;
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>println string::capitalize(&quot;hello world&quot;)   # prints: Hello world
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>println string::capitalize(&quot;HELLO&quot;)         # prints: Hello
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>println string::capitalise(&quot;kiwi&quot;)          # prints: Kiwi
 </span></code></pre></div></p>
 <h3 id="titleize_input"><code>titleize(_input)</code><a class="headerlink" href="#titleize_input" title="Permanent link">&para;</a></h3>
 <p>Returns the string with the first character of every word uppercased and the rest lowercased. Also available as <code>title(_input)</code>.</p>
@@ -4575,10 +4639,10 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>import &quot;string&quot;
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>println string::titleize(&quot;the quick brown fox&quot;)   # prints: The Quick Brown Fox
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>println string::title(&quot;hello world&quot;)              # prints: Hello World
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>import &quot;string&quot;
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>println string::titleize(&quot;the quick brown fox&quot;)   # prints: The Quick Brown Fox
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>println string::title(&quot;hello world&quot;)              # prints: Hello World
 </span></code></pre></div></p>
 <h3 id="smart_titleizes-keep_lowercase"><code>smart_titleize(s, keep_lowercase?)</code><a class="headerlink" href="#smart_titleizes-keep_lowercase" title="Permanent link">&para;</a></h3>
 <p>Title-cases a string while keeping common short words (articles, prepositions, conjunctions) lowercase — unless they are the first word.</p>
@@ -4620,8 +4684,8 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>println string::smart_titleize(&quot;the lord of the rings&quot;)
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a># prints: The Lord of the Rings
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>println string::smart_titleize(&quot;the lord of the rings&quot;)
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a># prints: The Lord of the Rings
 </span></code></pre></div></p>
 <h3 id="dedenttext"><code>dedent(text)</code><a class="headerlink" href="#dedenttext" title="Permanent link">&para;</a></h3>
 <p>Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings.</p>
@@ -4658,14 +4722,14 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>s = &quot;
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>  hello
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>  world
-</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>&quot;
-</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>println string::dedent(s)
-</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a># prints:
-</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a># hello
-</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a># world
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>s = &quot;
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>  hello
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>  world
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>&quot;
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>println string::dedent(s)
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a># prints:
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a># hello
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a># world
 </span></code></pre></div></p>
 <h3 id="to_pathpath"><code>to_path(path)</code><a class="headerlink" href="#to_pathpath" title="Permanent link">&para;</a></h3>
 <p>Converts a string to a <code>Path</code> instance from the <code>path</code> package.</p>
@@ -4702,8 +4766,8 @@
 </tbody>
 </table>
 <p><strong>Example</strong>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>p = string::to_path(&quot;/home/user/docs&quot;)
-</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>println p.is_dir()  # prints: true (if directory exists)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>p = string::to_path(&quot;/home/user/docs&quot;)
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>println p.is_dir()  # prints: true (if directory exists)
 </span></code></pre></div></p>
 
 
