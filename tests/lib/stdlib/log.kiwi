@@ -1,0 +1,62 @@
+@tester::test("log: calling log functions does not raise")
+fn test_log_no_raise()
+  # Redirect to file to avoid polluting test output
+  log::set_file("/tmp/kiwi_log_test.log")
+  log::set_level("DEBUG")
+
+  log::debug("debug message")
+  log::info("info message")
+  log::warn("warn message")
+  log::error("error message")
+
+  log::set_file(null)
+  tester::assert(true)
+end
+
+@tester::test("log: set_level suppresses lower levels")
+fn test_log_set_level_suppression()
+  fio::write("/tmp/kiwi_log_level_test.log", "")  # clear any prior content
+  log::set_file("/tmp/kiwi_log_level_test.log")
+  log::timestamps(false)
+  log::set_level("ERROR")
+
+  log::debug("should be suppressed")
+  log::info("should be suppressed")
+  log::warn("should be suppressed")
+  log::error("this one appears")
+
+  content = fio::read("/tmp/kiwi_log_level_test.log")
+  tester::assert(!content.contains("[DEBUG]"), "DEBUG should be suppressed at ERROR level")
+  tester::assert(!content.contains("[INFO]"),  "INFO should be suppressed at ERROR level")
+  tester::assert(!content.contains("[WARN]"),  "WARN should be suppressed at ERROR level")
+  tester::assert(content.contains("[ERROR]"),  "ERROR should appear at ERROR level")
+
+  log::set_file(null)
+  log::set_level("INFO")
+  log::timestamps(true)
+end
+
+@tester::test("log: timestamps toggle")
+fn test_log_timestamps_toggle()
+  fio::write("/tmp/kiwi_log_ts_test.log", "")  # clear any prior content
+  log::set_file("/tmp/kiwi_log_ts_test.log")
+  log::set_level("INFO")
+
+  log::timestamps(false)
+  log::info("no timestamp")
+
+  log::timestamps(true)
+  log::info("with timestamp")
+
+  content = fio::read("/tmp/kiwi_log_ts_test.log")
+  lines = content.split("\n").filter(with (l) do !l.empty() end)
+
+  tester::assert_eq(lines.size(), 2)
+  # Without timestamps: "[INFO] message"  — exactly 1 opening bracket
+  # With timestamps:    "[INFO] [date] message" — 2+ opening brackets
+  tester::assert(lines[0].chars().filter(with (c) do c == "[" end).size() == 1, "first line should have no timestamp")
+  tester::assert(lines[1].chars().filter(with (c) do c == "[" end).size() >= 2, "second line should have timestamp")
+
+  log::set_file(null)
+  log::timestamps(true)
+end

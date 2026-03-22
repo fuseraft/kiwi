@@ -1,0 +1,74 @@
+@tester::test("encode: base64 encode string")
+fn test_encode_base64_encode_string()
+  tester::assert_eq(encode::base64_encode("Hello, Kiwi!"), "SGVsbG8sIEtpd2kh")
+  tester::assert_eq(encode::base64_encode(""), "")
+  tester::assert_eq(encode::base64_encode("A"), "QQ==")
+  tester::assert_eq(encode::base64_encode("Man"), "TWFu")
+end
+
+@tester::test("encode: base64 decode")
+fn test_encode_base64_decode()
+  tester::assert_eq(encode::base64_decode("SGVsbG8sIEtpd2kh").to_string(), "Hello, Kiwi!")
+  tester::assert_eq(encode::base64_decode("QQ==").to_string(), "A")
+  tester::assert_eq(encode::base64_decode("TWFu").to_string(), "Man")
+end
+
+@tester::test("encode: base64 round-trip")
+fn test_encode_base64_roundtrip()
+  inputs = ["hello world", "abc123!@#", "Kiwi\nNewline", ""]
+  for s in inputs do
+    tester::assert_eq(encode::base64_decode(encode::base64_encode(s)).to_string(), s)
+  end
+end
+
+@tester::test("encode: hex encode")
+fn test_encode_hex_encode()
+  tester::assert_eq(encode::hex_encode("abc"), "616263")
+  tester::assert_eq(encode::hex_encode("A"), "41")
+  tester::assert_eq(encode::hex_encode("Az"), "417a")
+end
+
+@tester::test("encode: hex decode")
+fn test_encode_hex_decode()
+  tester::assert_eq(encode::hex_decode("616263").to_string(), "abc")
+  tester::assert_eq(encode::hex_decode("41").to_string(), "A")
+end
+
+@tester::test("encode: hex decode ignores separators")
+fn test_encode_hex_decode_separators()
+  tester::assert_eq(encode::hex_decode("61 62 63").to_string(), "abc")
+  tester::assert_eq(encode::hex_decode("61-62-63").to_string(), "abc")
+end
+
+@tester::test("encode: hex round-trip")
+fn test_encode_hex_roundtrip()
+  inputs = ["hello", "Kiwi!", "123"]
+  for s in inputs do
+    tester::assert_eq(encode::hex_decode(encode::hex_encode(s)).to_string(), s)
+  end
+end
+
+@tester::test("encode: url encode")
+fn test_encode_url_encode()
+  tester::assert_eq(encode::url_encode("hello world"), "hello+world")
+  # URL encoding produces lowercase hex
+  encoded = encode::url_encode("a&b=c")
+  tester::assert(encoded == "a%26b%3dc" || encoded == "a%26b%3Dc")
+  tester::assert_eq(encode::url_encode("no-change"), "no-change")
+end
+
+@tester::test("encode: url decode")
+fn test_encode_url_decode()
+  tester::assert_eq(encode::url_decode("hello+world"), "hello world")
+  tester::assert_eq(encode::url_decode("a%26b%3Dc"), "a&b=c")
+  tester::assert_eq(encode::url_decode("no-change"), "no-change")
+  tester::assert_eq(encode::url_decode("hello%20world"), "hello world")
+end
+
+@tester::test("encode: url round-trip")
+fn test_encode_url_roundtrip()
+  inputs = ["hello world", "key=value&other=thing", "café au lait"]
+  for s in inputs do
+    tester::assert_eq(encode::url_decode(encode::url_encode(s)), s)
+  end
+end

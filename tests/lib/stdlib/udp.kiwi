@@ -1,0 +1,63 @@
+@tester::test("udp: loopback echo")
+fn test_udp_loopback_echo()
+  port = 19200
+  received = null
+
+  # Receiver task
+  tid = task::spawn(with (_port) do
+    server = udp::socket().bind(_port).timeout(3000)
+    pkt = server.recv()
+    server.send(pkt["from_host"], pkt["from_port"], "echo:" + pkt["data"])
+    server.close()
+  end, [port])
+
+  task::sleep(100)
+
+  # Client
+  client = udp::socket().bind(19201).timeout(3000)
+  client.send("127.0.0.1", port, "hello-udp")
+  reply = client.recv()
+  client.close()
+
+  task::await(tid)
+
+  tester::assert_eq(reply["data"], "echo:hello-udp")
+  tester::assert_eq(reply["from_host"], "127.0.0.1")
+  tester::assert_eq(reply["from_port"], port)
+end
+
+@tester::test("udp: send convenience function")
+fn test_udp_send_convenience()
+  port = 19202
+  tid = task::spawn(with (_port) do
+    server = udp::socket().bind(_port).timeout(3000)
+    server.recv()
+    server.close()
+  end, [port])
+
+  task::sleep(100)
+  udp::send("127.0.0.1", port, "fire-and-forget")
+  task::await(tid)
+  tester::assert(true)
+end
+
+@tester::test("udp: recv_bytes returns bytes")
+fn test_udp_recv_bytes()
+  port = 19203
+  tid = task::spawn(with (_port) do
+    server = udp::socket().bind(_port).timeout(3000)
+    pkt = server.recv_bytes()
+    server.send(pkt["from_host"], pkt["from_port"], pkt["data"].to_string() + "-bytes")
+    server.close()
+  end, [port])
+
+  task::sleep(100)
+
+  client = udp::socket().bind(19204).timeout(3000)
+  client.send("127.0.0.1", port, "raw")
+  reply = client.recv()
+  client.close()
+
+  task::await(tid)
+  tester::assert_eq(reply["data"], "raw-bytes")
+end

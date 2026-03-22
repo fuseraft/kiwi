@@ -1,0 +1,38 @@
+/#
+Kiwi Standard Library Test Suite
+Tests for stdlib packages: encode, fmt, stat, template, log, signal, udp, httpserver
+#/
+
+fn main()
+  include "lib/stdlib_suite"
+
+  println "Running Kiwi Stdlib Test Suite v${stdlib_suite::__version__()}...\n"
+
+  var (
+    results:   list    = tester::run_tests(),
+    succeeded: integer = 0,
+    failed:    integer = 0,
+    duration:  float   = 0.0
+  )
+
+  for r in results do
+    duration += r.duration
+
+    if r.result
+      succeeded += 1
+    else
+      failed += 1
+    end
+  end
+
+  println "\nRan ${results.size()} test(s) in ${math::round(duration, 2)}ms\n"
+
+  if failed == 0
+    println "All tests passed!"
+  else
+    println "${succeeded} tests passed, ${failed} tests failed."
+    exit 1
+  end
+end
+
+main()
