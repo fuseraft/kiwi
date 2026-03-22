@@ -38,6 +38,7 @@ public static class Disassembler
 
                 case Opcode.LoadGlobal:
                 case Opcode.StoreGlobal:
+                case Opcode.StoreConst:
                 {
                     var nm = chunk.Names.Count > instr.A ? chunk.Names[instr.A] : "?";
                     sb.Append($" \"{nm}\"");
@@ -218,6 +219,8 @@ public static class Disassembler
                 }
 
                 case Opcode.Export:
+                case Opcode.ImportPkg:
+                case Opcode.Require:
                 case Opcode.Eval:
                 case Opcode.Include:
                 {

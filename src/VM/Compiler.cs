@@ -424,7 +424,7 @@ public sealed class Compiler
             case ASTNodeType.HashLiteral:      CompileHash           ((HashLiteralNode)node,       ln); return true;
             case ASTNodeType.RangeLiteral:     CompileRange          ((RangeLiteralNode)node,      ln); return true;
             case ASTNodeType.Index:            CompileIndex          ((IndexingNode)node,          ln); return true;
-            case ASTNodeType.IndexAssignment:  CompileIndexAssign    ((IndexAssignmentNode)node,   ln); return true;
+            case ASTNodeType.IndexAssignment:  CompileIndexAssign    ((IndexAssignmentNode)node,   ln); return false;
             case ASTNodeType.Slice:            CompileSlice          ((SliceNode)node,             ln); return true;
             case ASTNodeType.MemberAccess:     CompileMemberAccess   ((MemberAccessNode)node,      ln); return true;
             case ASTNodeType.MemberAssignment: CompileMemberAssign   ((MemberAssignmentNode)node,  ln); return true;
@@ -450,6 +450,8 @@ public sealed class Compiler
             case ASTNodeType.Struct:           CompileStruct         ((StructNode)node,            ln); return false;
             case ASTNodeType.Package:          CompilePackage        ((PackageNode)node,           ln); return false;
             case ASTNodeType.Export:           CompileExport         ((ExportNode)node,            ln); return false;
+            case ASTNodeType.Import:           CompileImport         ((ImportNode)node,            ln); return true;
+            case ASTNodeType.Require:          CompileRequire        ((RequireNode)node,           ln); return false;
             case ASTNodeType.Eval:             CompileEval           ((EvalNode)node,              ln); return true;
             case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return false;
             case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
@@ -532,7 +534,19 @@ public sealed class Compiler
             CompileNode(node.Condition);
             int skip = EmitJump(Opcode.JumpF, ln);
             DoAssignment(node, ln, leaveValue: false);
-            PatchJump(skip);
+            if (node.ElseInitializer != null)
+            {
+                int end = EmitJump(Opcode.Jump, ln);
+                PatchJump(skip);
+                // Else branch: assign ElseInitializer to the same target
+                var elseNode = new AssignmentNode(node.Left, node.Name, node.Op, node.ElseInitializer) { Token = node.Token };
+                DoAssignment(elseNode, ln, leaveValue: false);
+                PatchJump(end);
+            }
+            else
+            {
+                PatchJump(skip);
+            }
             return false;
         }
 
@@ -617,7 +631,7 @@ public sealed class Compiler
     {
         if (node.Initializer != null) CompileNode(node.Initializer);
         else                         Emit(Opcode.Null, 0, 0, ln);
-        Emit(Opcode.StoreGlobal, _chunk.AddName(node.Name), 0, ln);
+        Emit(Opcode.StoreConst, _chunk.AddName(node.Name), 0, ln);
     }
 
     // -- Binary ----------------------------------------------------------------
@@ -924,6 +938,7 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         Emit(Opcode.Null, 0, 0, ln);
             Emit(Opcode.SliceSet, flags, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
             return;
         }
 
@@ -940,6 +955,7 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         Emit(Opcode.Null, 0, 0, ln);
             Emit(Opcode.IndexSet, 0, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
         }
         else
         {
@@ -969,6 +985,7 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         Emit(Opcode.Null, 0, 0, ln);
             Emit(Opcode.IndexOpAssign, (int)innerOp, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
         }
     }
 
@@ -1684,6 +1701,22 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         if (node.PackageName != null) CompileNode(node.PackageName);
         else                          Emit(Opcode.Null, 0, 0, ln);
         Emit(Opcode.Export, 0, 0, ln);
+    }
+
+    private void CompileImport(ImportNode node, int ln)
+    {
+        // Compile the package name expression; the ImportPkg opcode pops it,
+        // calls ImportPackage, and pushes Value.CreatePackage(name) as the result.
+        if (node.PackageName != null) CompileNode(node.PackageName);
+        else                          Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.ImportPkg, 0, 0, ln);
+    }
+
+    private void CompileRequire(RequireNode node, int ln)
+    {
+        // Push the static package name and emit a runtime check.
+        Emit(Opcode.Const, _chunk.AddConstant(Value.CreateString(node.PackageName)), 0, ln);
+        Emit(Opcode.Require, 0, 0, ln);
     }
 
     private void CompileEval(EvalNode node, int ln)

@@ -399,6 +399,8 @@ public sealed class KiwiVM
                     case Opcode.StoreGlobal:
                     {
                         var name = frame.Chunk.Names[A];
+                        if (_context.HasConstant(name))
+                            throw new Tracing.Error.InvalidOperationError(frame.GetToken(), $"Cannot reassign constant '{name}'.");
                         var v    = Pop();
                         if (v.IsLambda())
                         {
@@ -412,6 +414,22 @@ public sealed class KiwiVM
                         if (_interp.PackageStack.Count > 0)
                         {
                             var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + name;
+                            _context.PackageVariables[qualName] = v;
+                        }
+                        break;
+                    }
+
+                    case Opcode.StoreConst:
+                    {
+                        var name = frame.Chunk.Names[A];
+                        var v    = Pop();
+                        _context.Constants[name] = v;
+                        _globals.Assign(name, v);
+                        _nameCache.Remove(name);
+                        if (_interp.PackageStack.Count > 0)
+                        {
+                            var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + name;
+                            _context.Constants[qualName] = v;
                             _context.PackageVariables[qualName] = v;
                         }
                         break;
@@ -532,37 +550,37 @@ public sealed class KiwiVM
                     case Opcode.Eq:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(Value.CreateBoolean(ComparisonOp.Equal(ref l, ref r)));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Equal) ?? Value.CreateBoolean(ComparisonOp.Equal(ref l, ref r)));
                         break;
                     }
                     case Opcode.NEq:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(ComparisonOp.NotEqual(ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_NotEqual) ?? ComparisonOp.NotEqual(ref l, ref r));
                         break;
                     }
                     case Opcode.Lt:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(ComparisonOp.LessThan(ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_LessThan) ?? ComparisonOp.LessThan(ref l, ref r));
                         break;
                     }
                     case Opcode.LtE:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(ComparisonOp.LessThanOrEqual(ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_LessThanOrEqual) ?? ComparisonOp.LessThanOrEqual(ref l, ref r));
                         break;
                     }
                     case Opcode.Gt:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(ComparisonOp.GreaterThan(ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_GreaterThan) ?? ComparisonOp.GreaterThan(ref l, ref r));
                         break;
                     }
                     case Opcode.GtE:
                     {
                         var r = Pop(); var l = Pop();
-                        Push(ComparisonOp.GreaterThanOrEqual(ref l, ref r));
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_GreaterThanOrEqual) ?? ComparisonOp.GreaterThanOrEqual(ref l, ref r));
                         break;
                     }
                     case Opcode.In:
@@ -1404,11 +1422,30 @@ public sealed class KiwiVM
                         break;
                     }
 
-                    // -- Export --------------------------------------------
+                    // -- Export / Import / Require -------------------------
                     case Opcode.Export:
                     {
                         var pkgName = Pop();
                         _interp.ImportPackage(frame.GetToken(), pkgName);
+                        break;
+                    }
+
+                    case Opcode.ImportPkg:
+                    {
+                        var pkgName = Pop();
+                        _interp.ImportPackage(frame.GetToken(), pkgName);
+                        Push(Value.CreatePackage(pkgName.GetString()));
+                        break;
+                    }
+
+                    case Opcode.Require:
+                    {
+                        var pkgName = Pop();
+                        if (!pkgName.IsString())
+                            throw new Tracing.Error.InvalidOperationError(frame.GetToken(), "require expects a string package name.");
+                        var name = pkgName.GetString();
+                        if (!_context.HasPackage(name) && !_context.ImportedPackages.Contains(name))
+                            throw new Tracing.Error.PackageUndefinedError(frame.GetToken(), name);
                         break;
                     }
 
@@ -1629,16 +1666,41 @@ public sealed class KiwiVM
                 break; // re-enter outer while with new frame
             }
             } // end try
-            catch (KiwiError e) when (frame.HasTryHandlers)
+            catch (KiwiError e)
             {
-                if (frame.PopTryHandler(out int catchIP, out _, out int savedSP))
+                // Walk up the frame stack to find a frame with an active try-handler.
+                // This allows exceptions thrown in callee frames to bubble up to a
+                // try-catch in a calling frame.
+                bool handled = false;
+                while (_frameCount > stopAt)
                 {
-                    _sp = savedSP;
-                    _caughtError = e;
-                    frame.IP = catchIP;
-                    continue; // re-enter outer loop → inner loop resumes at catchIP
+                    var f = _frames[_frameCount - 1];
+                    if (f.HasTryHandlers)
+                    {
+                        if (f.PopTryHandler(out int catchIP, out _, out int savedSP))
+                        {
+                            // Pop any callee frames above f (they were called inside the try block).
+                            while (_frameCount > stopAt && _frames[_frameCount - 1] != f)
+                            {
+                                var dead = _frames[_frameCount - 1];
+                                CloseUpvalues(dead.StackBase);
+                                _frameCount--;
+                            }
+                            _sp = savedSP;
+                            _caughtError = e;
+                            f.IP = catchIP;
+                            frame = f; // update local frame ref so outer loop re-enters correctly
+                            handled = true;
+                        }
+                        break;
+                    }
+                    // This frame has no handler — pop it and keep searching.
+                    CloseUpvalues(f.StackBase);
+                    _frameCount--;
                 }
-                throw;
+                if (!handled) throw;
+                // Re-enter outer loop with the handler frame active.
+                continue;
             }
             // If we reach end of frame's code without Return/Halt → implicit null return
             if (_frameCount > 0 && _frames[_frameCount - 1] == frame)
@@ -1981,7 +2043,7 @@ public sealed class KiwiVM
             }
             else
             {
-                callResult = Value.Default;
+                throw new Tracing.Error.InvalidOperationError(token, $"Value of type '{Typing.TypeRegistry.GetTypeName(funcVal)}' is not callable.");
             }
             Push(callResult);
             return false;

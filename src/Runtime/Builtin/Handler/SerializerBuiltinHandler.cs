@@ -2,6 +2,8 @@ using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
+using kiwi.Parsing.AST;
+using kiwi.VM;
 
 namespace kiwi.Runtime.Builtin.Handler;
 
@@ -23,13 +25,12 @@ public class SerializerBuiltinHandler
         ParameterTypeMismatchError.ExpectString(token, SerializerBuiltin.Deserialize, 0, args[0]);
 
         var input = args[0].GetString();
-        Parser parser = new (true);
-        using Lexer lexer = new (token.Span.File, input);
-        var stream = lexer.GetTokenStream();
-        var ast = parser.ParseTokenStream(stream, true);
-
-        Interpreter interpreter = new ();
-        return interpreter.Interpret(ast);
+        using Lexer lexer = new(token.Span.File, input);
+        var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
+        var chunk = Compiler.CompileExpression((ProgramNode)ast);
+        var savedVM = KiwiVM.Current;
+        try   { return new KiwiVM(new Interpreter()).Execute(chunk); }
+        finally { KiwiVM.Current = savedVM; }
     }
 
     private static Value Serialize(Token token, List<Value> args)
