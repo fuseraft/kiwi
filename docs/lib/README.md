@@ -35,6 +35,7 @@ The standard library is a collection of packages containing useful functions and
 | [`sqlite`](sqlite.md) | SQLite database access via the `SqliteDb` struct. |
 | [`std`](std.md) | General-purpose utility functions for introspection and common operations. |
 | [`stdin`](stdin.md) | Functions for reading from standard input. |
+| [`stopwatch`](stopwatch.md) | A simple elapsed-time stopwatch with lap support. |
 | [`string`](string.md) | String manipulation and transformation utilities. |
 | [`sys`](sys.md) | For executing shell commands. |
 | [`table`](table.md) | In-memory tabular data pipeline: filter, join, group, aggregate, and display lists of hashmaps. |
