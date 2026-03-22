@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/xml/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/stopwatch/">
       
       
-        <link rel="prev" href="../time/">
+        <link rel="prev" href="../stdin/">
       
       
-        <link rel="next" href="../yaml/">
+        <link rel="next" href="../string/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>xml - Kiwi</title>
+        <title>stopwatch - Kiwi</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#xml" class="md-skip">
+        <a href="#stopwatch" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              xml
+              stopwatch
             
           </span>
         </div>
@@ -2755,10 +2755,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../stopwatch/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    stopwatch
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -2774,6 +2801,231 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#package-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Package Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Package Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stopwatchnew" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stopwatch::new()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stopwatchstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stopwatch::start()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stopwatch-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stopwatch Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stopwatch Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .start()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .reset()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elapsed_ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .elapsed_ms()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .lap()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#laps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .laps()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .to_string()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-elapsed-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic elapsed time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-stop-reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start / stop / reset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lap-timing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lap timing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-to_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using to_string()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2923,37 +3175,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    xml
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../xml/" class="md-nav__link">
         
   
   
@@ -2969,231 +3194,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Package Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Package Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#xmlparseinput" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        xml::parse(input)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#xmlparse_filepath" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        xml::parse_file(path)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#xmlnode-struct" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        XmlNode Struct
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="XmlNode Struct">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#fields" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fields
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#special-node-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Special Node Types
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#xmlnode-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        XmlNode Methods
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="XmlNode Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#get_attrname-default" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        get_attr(name, default?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#findtag_name" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        find(tag_name)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#find_alltag_name" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        find_all(tag_name)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#find_all_deeptag_name" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        find_all_deep(tag_name)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#elements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        elements()
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#text" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        text()
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#text_content" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        text_content()
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#serializeindent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        serialize(indent?)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#to_string" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        to_string()
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#complete-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Complete Example
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -3261,6 +3261,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#package-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3273,10 +3284,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#xmlparseinput" class="md-nav__link">
+  <a href="#stopwatchnew" class="md-nav__link">
     <span class="md-ellipsis">
       
-        xml::parse(input)
+        stopwatch::new()
       
     </span>
   </a>
@@ -3284,10 +3295,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#xmlparse_filepath" class="md-nav__link">
+  <a href="#stopwatchstart" class="md-nav__link">
     <span class="md-ellipsis">
       
-        xml::parse_file(path)
+        stopwatch::start()
       
     </span>
   </a>
@@ -3300,22 +3311,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#xmlnode-struct" class="md-nav__link">
+  <a href="#stopwatch-methods" class="md-nav__link">
     <span class="md-ellipsis">
       
-        XmlNode Struct
+        Stopwatch Methods
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="XmlNode Struct">
+    <nav class="md-nav" aria-label="Stopwatch Methods">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fields" class="md-nav__link">
+  <a href="#start" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fields
+        .start()
       
     </span>
   </a>
@@ -3323,38 +3334,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#special-node-types" class="md-nav__link">
+  <a href="#stop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Special Node Types
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#xmlnode-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        XmlNode Methods
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="XmlNode Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#get_attrname-default" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        get_attr(name, default?)
+        .stop()
       
     </span>
   </a>
@@ -3362,10 +3345,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#findtag_name" class="md-nav__link">
+  <a href="#reset" class="md-nav__link">
     <span class="md-ellipsis">
       
-        find(tag_name)
+        .reset()
       
     </span>
   </a>
@@ -3373,10 +3356,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#find_alltag_name" class="md-nav__link">
+  <a href="#elapsed_ms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        find_all(tag_name)
+        .elapsed_ms()
       
     </span>
   </a>
@@ -3384,10 +3367,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#find_all_deeptag_name" class="md-nav__link">
+  <a href="#lap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        find_all_deep(tag_name)
+        .lap()
       
     </span>
   </a>
@@ -3395,43 +3378,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#elements" class="md-nav__link">
+  <a href="#laps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        elements()
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#text" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        text()
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#text_content" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        text_content()
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#serializeindent" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        serialize(indent?)
+        .laps()
       
     </span>
   </a>
@@ -3442,7 +3392,7 @@
   <a href="#to_string" class="md-nav__link">
     <span class="md-ellipsis">
       
-        to_string()
+        .to_string()
       
     </span>
   </a>
@@ -3455,13 +3405,63 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#complete-example" class="md-nav__link">
+  <a href="#examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Complete Example
+        Examples
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-elapsed-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic elapsed time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-stop-reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start / stop / reset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lap-timing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lap timing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-to_string" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using to_string()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3482,7 +3482,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/xml.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/stopwatch.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -3490,31 +3490,25 @@
   
 
 
-<h1 id="xml"><code>xml</code><a class="headerlink" href="#xml" title="Permanent link">&para;</a></h1>
-<p>The <code>xml</code> package provides an XML parser and serializer for Kiwi programs. It parses XML strings or files into a tree of <code>XmlNode</code> structs that can be queried, navigated, and serialized back to XML.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;xml&quot;
+<h1 id="stopwatch"><code>stopwatch</code><a class="headerlink" href="#stopwatch" title="Permanent link">&para;</a></h1>
+<p>The <code>stopwatch</code> package provides a simple, ergonomic <code>Stopwatch</code> struct for measuring elapsed time. It wraps <code>time::ticks()</code> and <code>time::ticksms()</code> so you never have to capture a start tick manually.</p>
+<hr />
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;stopwatch&quot;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>sw = stopwatch::start()
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a># ... code to measure ...
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>println sw.elapsed_ms()   # e.g. 42.317ms (live, while running)
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>sw.stop()
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>println sw.elapsed_ms()   # frozen at stop time
 </span></code></pre></div>
 <hr />
 <h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
-<h3 id="xmlparseinput"><code>xml::parse(input)</code><a class="headerlink" href="#xmlparseinput" title="Permanent link">&para;</a></h3>
-<p>Parses an XML-formatted string and returns the document root element as an <code>XmlNode</code>.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>input</code></td>
-<td style="text-align: left;">A valid XML string.</td>
-</tr>
-</tbody>
-</table>
+<h3 id="stopwatchnew"><code>stopwatch::new()</code><a class="headerlink" href="#stopwatchnew" title="Permanent link">&para;</a></h3>
+<p>Creates a new, unstarted <code>Stopwatch</code>.</p>
 <p><strong>Returns</strong></p>
 <table>
 <thead>
@@ -3525,496 +3519,177 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>XmlNode</code></td>
-<td style="text-align: left;">The root element of the parsed document.</td>
+<td style="text-align: left;"><code>Stopwatch</code></td>
+<td style="text-align: left;">An idle stopwatch. Call <code>.start()</code> when ready.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;xml&quot;
+<hr />
+<h3 id="stopwatchstart"><code>stopwatch::start()</code><a class="headerlink" href="#stopwatchstart" title="Permanent link">&para;</a></h3>
+<p>Creates a new <code>Stopwatch</code> and immediately starts it.</p>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Stopwatch</code></td>
+<td style="text-align: left;">A running stopwatch.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="stopwatch-methods"><code>Stopwatch</code> Methods<a class="headerlink" href="#stopwatch-methods" title="Permanent link">&para;</a></h2>
+<h3 id="start"><code>.start()</code><a class="headerlink" href="#start" title="Permanent link">&para;</a></h3>
+<p>Starts (or restarts) the stopwatch. Clears any recorded laps.</p>
+<p><strong>Returns</strong> <em>None</em></p>
+<hr />
+<h3 id="stop"><code>.stop()</code><a class="headerlink" href="#stop" title="Permanent link">&para;</a></h3>
+<p>Stops the stopwatch, freezing the elapsed time. Has no effect if already stopped.</p>
+<p><strong>Returns</strong> <em>None</em></p>
+<hr />
+<h3 id="reset"><code>.reset()</code><a class="headerlink" href="#reset" title="Permanent link">&para;</a></h3>
+<p>Resets the stopwatch to its initial idle state (clears elapsed time and laps).</p>
+<p><strong>Returns</strong> <em>None</em></p>
+<hr />
+<h3 id="elapsed_ms"><code>.elapsed_ms()</code><a class="headerlink" href="#elapsed_ms" title="Permanent link">&para;</a></h3>
+<p>Returns the elapsed time in milliseconds.</p>
+<ul>
+<li>While <strong>running</strong>: returns live time since <code>.start()</code>.</li>
+<li>While <strong>stopped</strong>: returns the frozen elapsed time at the moment <code>.stop()</code> was called.</li>
+<li>Before <code>.start()</code> is called: returns <code>0.0</code>.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;">Elapsed milliseconds.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="lap"><code>.lap()</code><a class="headerlink" href="#lap" title="Permanent link">&para;</a></h3>
+<p>Records a lap and returns the duration of that lap in milliseconds. Each lap is measured from the end of the previous lap (or from <code>.start()</code> for the first lap). Has no effect and returns <code>0.0</code> if the stopwatch is not running.</p>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>float</code></td>
+<td style="text-align: left;">Duration of the lap in milliseconds.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="laps"><code>.laps()</code><a class="headerlink" href="#laps" title="Permanent link">&para;</a></h3>
+<p>Returns a list of all recorded lap durations in milliseconds.</p>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;">List of <code>float</code> lap durations, in order.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="to_string"><code>.to_string()</code><a class="headerlink" href="#to_string" title="Permanent link">&para;</a></h3>
+<p>Returns the current elapsed time as a formatted string (e.g. <code>"42.317ms"</code>), rounded to 3 decimal places.</p>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">Formatted elapsed time.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<h3 id="basic-elapsed-time">Basic elapsed time<a class="headerlink" href="#basic-elapsed-time" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;stopwatch&quot;
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>src = &quot;&lt;book&gt;&lt;title&gt;Kiwi&lt;/title&gt;&lt;author&gt;Scotty&lt;/author&gt;&lt;/book&gt;&quot;
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>root = xml::parse(src)
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>println root.tag  # prints: book
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>sw = stopwatch::start()
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>total = 0
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>for i in [1 to 100000] do
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  total += i
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>end
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>println &quot;Sum: ${total}&quot;
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>println &quot;Elapsed: ${sw.elapsed_ms()}ms&quot;
 </span></code></pre></div>
 <hr />
-<h3 id="xmlparse_filepath"><code>xml::parse_file(path)</code><a class="headerlink" href="#xmlparse_filepath" title="Permanent link">&para;</a></h3>
-<p>Reads an XML file from disk and parses it, returning the root <code>XmlNode</code>.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>path</code></td>
-<td style="text-align: left;">Path to the XML file.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>XmlNode</code></td>
-<td style="text-align: left;">The root element of the parsed document.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong></p>
-<p>A string error if the file does not exist.</p>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;xml&quot;
+<h3 id="start-stop-reset">Start / stop / reset<a class="headerlink" href="#start-stop-reset" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;stopwatch&quot;
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>root = xml::parse_file(&quot;/data/config.xml&quot;)
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>println root.tag
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>sw = stopwatch::new()
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>sw.start()
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a># ... phase one ...
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>sw.stop()
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>println &quot;Phase one: ${sw.elapsed_ms()}ms&quot;
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>sw.reset()
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>sw.start()
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a># ... phase two ...
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>sw.stop()
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>println &quot;Phase two: ${sw.elapsed_ms()}ms&quot;
 </span></code></pre></div>
 <hr />
-<h2 id="xmlnode-struct"><code>XmlNode</code> Struct<a class="headerlink" href="#xmlnode-struct" title="Permanent link">&para;</a></h2>
-<p>Every parsed XML element, text node, comment, CDATA section, and processing instruction is represented as an <code>XmlNode</code>.</p>
-<h3 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>tag</code></td>
-<td style="text-align: left;">The element tag name, or one of the special values <code>"#text"</code>, <code>"#comment"</code>, <code>"#cdata"</code>, <code>"#pi"</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>hashmap</code></td>
-<td style="text-align: left;"><code>attrs</code></td>
-<td style="text-align: left;">Attribute map (name -&gt; value). Empty for non-element nodes.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;"><code>children</code></td>
-<td style="text-align: left;">Child <code>XmlNode</code> instances. Empty for leaf nodes.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>content</code></td>
-<td style="text-align: left;">Text payload for <code>#text</code>, <code>#comment</code>, <code>#cdata</code>, and <code>#pi</code> nodes. Empty for element nodes.</td>
-</tr>
-</tbody>
-</table>
-<h3 id="special-node-types">Special Node Types<a class="headerlink" href="#special-node-types" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Tag</th>
-<th style="text-align: left;">Represents</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>"#text"</code></td>
-<td style="text-align: left;">A text node — <code>content</code> holds the text.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>"#comment"</code></td>
-<td style="text-align: left;">An XML comment (<code>&lt;!-- ... --&gt;</code>).</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>"#cdata"</code></td>
-<td style="text-align: left;">A CDATA section (<code>&lt;![CDATA[...]]&gt;</code>).</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>"#pi"</code></td>
-<td style="text-align: left;">A processing instruction (<code>&lt;?name ...?&gt;</code>). The <code>attrs</code> hashmap holds <code>"name"</code>.</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="xmlnode-methods"><code>XmlNode</code> Methods<a class="headerlink" href="#xmlnode-methods" title="Permanent link">&para;</a></h2>
-<h3 id="get_attrname-default"><code>get_attr(name, default?)</code><a class="headerlink" href="#get_attrname-default" title="Permanent link">&para;</a></h3>
-<p>Returns the value of an attribute by name. Returns the default if the attribute is not present.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-<th style="text-align: left;">Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>name</code></td>
-<td style="text-align: left;">The attribute name.</td>
-<td style="text-align: left;">—</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>default</code></td>
-<td style="text-align: left;">Fallback value when the attribute is absent.</td>
-<td style="text-align: left;"><code>""</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The attribute value, or the default.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;xml&quot;
+<h3 id="lap-timing">Lap timing<a class="headerlink" href="#lap-timing" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;stopwatch&quot;
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>src = &quot;&lt;img src=\&quot;photo.png\&quot; alt=\&quot;A photo\&quot;/&gt;&quot;
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>root = xml::parse(src)
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>println root.get_attr(&quot;src&quot;)          # prints: photo.png
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>println root.get_attr(&quot;alt&quot;)          # prints: A photo
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>println root.get_attr(&quot;width&quot;, &quot;0&quot;)   # prints: 0
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>sw = stopwatch::start()
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>repeat 3 do
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  # ... work ...
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  println &quot;Lap: ${sw.lap()}ms&quot;
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>end
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>sw.stop()
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>println &quot;Total: ${sw.elapsed_ms()}ms&quot;
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>println &quot;All laps: ${sw.laps()}&quot;
 </span></code></pre></div>
 <hr />
-<h3 id="findtag_name"><code>find(tag_name)</code><a class="headerlink" href="#findtag_name" title="Permanent link">&para;</a></h3>
-<p>Returns the first direct child element whose tag matches <code>tag_name</code>, or <code>null</code> if none is found.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>tag_name</code></td>
-<td style="text-align: left;">The tag name to search for.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>XmlNode</code>|<code>null</code></td>
-<td style="text-align: left;">The first matching child, or <code>null</code>.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;xml&quot;
+<h3 id="using-to_string">Using <code>to_string()</code><a class="headerlink" href="#using-to_string" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;stopwatch&quot;
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>src = &quot;&lt;root&gt;&lt;name&gt;Kiwi&lt;/name&gt;&lt;version&gt;1.0&lt;/version&gt;&lt;/root&gt;&quot;
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>root = xml::parse(src)
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>node = root.find(&quot;name&quot;)
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>println node.text()  # prints: Kiwi
-</span></code></pre></div>
-<hr />
-<h3 id="find_alltag_name"><code>find_all(tag_name)</code><a class="headerlink" href="#find_alltag_name" title="Permanent link">&para;</a></h3>
-<p>Returns a list of all direct child elements whose tag matches <code>tag_name</code>.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>tag_name</code></td>
-<td style="text-align: left;">The tag name to search for.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">All direct children with the given tag. May be empty.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>import &quot;xml&quot;
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>src = &quot;&lt;items&gt;&lt;item&gt;a&lt;/item&gt;&lt;item&gt;b&lt;/item&gt;&lt;note&gt;misc&lt;/note&gt;&lt;/items&gt;&quot;
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>root = xml::parse(src)
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>items = root.find_all(&quot;item&quot;)
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>println items.size()   # prints: 2
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>for item in items do
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  println item.text()
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>end
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a># prints: a, b
-</span></code></pre></div>
-<hr />
-<h3 id="find_all_deeptag_name"><code>find_all_deep(tag_name)</code><a class="headerlink" href="#find_all_deeptag_name" title="Permanent link">&para;</a></h3>
-<p>Recursively searches all descendants (depth-first) and returns every node whose tag matches <code>tag_name</code>.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>tag_name</code></td>
-<td style="text-align: left;">The tag name to search for.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">All matching nodes at any depth, in depth-first order.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>import &quot;xml&quot;
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>src = &quot;&lt;a&gt;&lt;b&gt;&lt;c&gt;deep&lt;/c&gt;&lt;/b&gt;&lt;c&gt;shallow&lt;/c&gt;&lt;/a&gt;&quot;
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>root = xml::parse(src)
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>all_c = root.find_all_deep(&quot;c&quot;)
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>println all_c.size()        # prints: 2
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>println all_c[0].text()     # prints: deep
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>println all_c[1].text()     # prints: shallow
-</span></code></pre></div>
-<hr />
-<h3 id="elements"><code>elements()</code><a class="headerlink" href="#elements" title="Permanent link">&para;</a></h3>
-<p>Returns a list of direct child nodes that are elements — that is, all children except <code>#text</code>, <code>#comment</code>, <code>#cdata</code>, and <code>#pi</code> nodes.</p>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">Element children only.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>import &quot;xml&quot;
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>src = &quot;&lt;root&gt;Some text&lt;child/&gt;&lt;/root&gt;&quot;
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>root = xml::parse(src)
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>println root.children.size()   # prints: 2  (text node + child element)
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>println root.elements().size() # prints: 1  (child element only)
-</span></code></pre></div>
-<hr />
-<h3 id="text"><code>text()</code><a class="headerlink" href="#text" title="Permanent link">&para;</a></h3>
-<p>Returns the concatenated text content of all direct <code>#text</code> children. Does not recurse into nested elements.</p>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The joined text of direct text children.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>import &quot;xml&quot;
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>src = &quot;&lt;p&gt;Hello, &lt;b&gt;world&lt;/b&gt;!&lt;/p&gt;&quot;
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>root = xml::parse(src)
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>println root.text()          # prints: Hello, !   (only direct text nodes)
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>println root.find(&quot;b&quot;).text() # prints: world
-</span></code></pre></div>
-<hr />
-<h3 id="text_content"><code>text_content()</code><a class="headerlink" href="#text_content" title="Permanent link">&para;</a></h3>
-<p>Returns the concatenated text of all descendant <code>#text</code> nodes, recursively. Use this when you want the full visible text under a node regardless of nesting.</p>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">All descendant text joined together.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>import &quot;xml&quot;
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>src = &quot;&lt;p&gt;Hello, &lt;b&gt;world&lt;/b&gt;!&lt;/p&gt;&quot;
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>root = xml::parse(src)
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>println root.text_content()  # prints: Hello, world!
-</span></code></pre></div>
-<hr />
-<h3 id="serializeindent"><code>serialize(indent?)</code><a class="headerlink" href="#serializeindent" title="Permanent link">&para;</a></h3>
-<p>Serializes the node and its descendants back to an XML string. Pass an indentation level to produce pretty-printed output.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-<th style="text-align: left;">Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>integer</code></td>
-<td style="text-align: left;"><code>indent</code></td>
-<td style="text-align: left;">The current indentation level (2 spaces per level).</td>
-<td style="text-align: left;"><code>0</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The XML string representation of this node.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>import &quot;xml&quot;
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>src = &quot;&lt;root&gt;&lt;child&gt;value&lt;/child&gt;&lt;/root&gt;&quot;
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>root = xml::parse(src)
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>println root.serialize()
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a># prints:
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a># &lt;root&gt;
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>#   &lt;child&gt;value&lt;/child&gt;
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a># &lt;/root&gt;
-</span></code></pre></div>
-<hr />
-<h3 id="to_string"><code>to_string()</code><a class="headerlink" href="#to_string" title="Permanent link">&para;</a></h3>
-<p>Alias for <code>serialize(0)</code>. Returns the node serialized as a compact XML string.</p>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">The XML string representation of this node.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>import &quot;xml&quot;
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>src = &quot;&lt;note&gt;&lt;text&gt;Hi&lt;/text&gt;&lt;/note&gt;&quot;
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>root = xml::parse(src)
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>println root.to_string()
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a># prints: &lt;note&gt;\n  &lt;text&gt;Hi&lt;/text&gt;\n&lt;/note&gt;
-</span></code></pre></div>
-<hr />
-<h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>import &quot;xml&quot;
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>src = &quot;
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>&lt;library&gt;
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>  &lt;book id=\&quot;1\&quot; genre=\&quot;fiction\&quot;&gt;
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    &lt;title&gt;The Great Kiwi&lt;/title&gt;
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    &lt;author&gt;Scotty&lt;/author&gt;
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>  &lt;/book&gt;
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>  &lt;book id=\&quot;2\&quot; genre=\&quot;technical\&quot;&gt;
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>    &lt;title&gt;Kiwi in Practice&lt;/title&gt;
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>    &lt;author&gt;Fuseraft&lt;/author&gt;
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>  &lt;/book&gt;
-</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>&lt;/library&gt;
-</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>&quot;
-</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
-</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>root = xml::parse(src)
-</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>println root.tag  # prints: library
-</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>
-</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a># Iterate over all book elements
-</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>for book in root.find_all(&quot;book&quot;) do
-</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>  id    = book.get_attr(&quot;id&quot;)
-</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>  genre = book.get_attr(&quot;genre&quot;)
-</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>  title = book.find(&quot;title&quot;).text()
-</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a>  auth  = book.find(&quot;author&quot;).text()
-</span><span id="__span-12-25"><a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a>  println id + &quot;: &quot; + title + &quot; by &quot; + auth + &quot; (&quot; + genre + &quot;)&quot;
-</span><span id="__span-12-26"><a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a>end
-</span><span id="__span-12-27"><a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a># prints:
-</span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a># 1: The Great Kiwi by Scotty (fiction)
-</span><span id="__span-12-29"><a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a># 2: Kiwi in Practice by Fuseraft (technical)
-</span><span id="__span-12-30"><a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a>
-</span><span id="__span-12-31"><a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a># Serialize back to XML
-</span><span id="__span-12-32"><a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a>println root.serialize()
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>sw = stopwatch::start()
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a># ... work ...
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>println &quot;Done in ${sw.to_string()}&quot;
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a># =&gt; Done in 7.412ms
 </span></code></pre></div>
 
 
