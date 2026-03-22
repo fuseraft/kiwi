@@ -704,11 +704,6 @@ public class Interpreter
     private StackFrame PushFrame(string name, Token token, Scope scope, bool inLambda = false) => _frames.Push(name, token, scope, inLambda);
     private Value PopFrame() => _frames.Pop();
     private bool PushFrame(StackFrame frame) => _frames.PushRaw(frame);
-    
-    // ═══════════════════════════════════════════════════════════════════════════
-    // VM Bridge - public surface used by KiwiVM to delegate work back to the
-    // tree-walking interpreter for operations not yet compiled natively.
-    // ═══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
     /// Returns the interpreter's global scope (shared with the VM).
