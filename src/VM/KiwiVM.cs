@@ -1353,30 +1353,6 @@ public sealed class KiwiVM
                         break;
                     }
 
-                    // -- Interpreter fallback ------------------------------
-                    case Opcode.InterpFallback:
-                    {
-                        var node = frame.Chunk.NodePool[A];
-                        // Always push a fresh <vm-fallback> frame via InterpretNodeWithLocals so
-                        // that:
-                        //   1. CallStack is never empty when builtins call CallStack.Peek().
-                        //   2. frame.Self is correctly propagated at ANY nesting depth — the old
-                        //      conditional (only push when Count==0) left the wrong self on the
-                        //      existing top frame for nested fallback calls.
-                        var locals = new Dictionary<string, Value>(frame.Chunk.LocalNames.Count);
-                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
-                            locals[lname] = _stack[frame.StackBase + slot];
-                        var r = _interp.InterpretNodeWithLocals(node, locals, frame.Self);
-                        // Sync any updated locals back to the VM stack.
-                        foreach (var (lname, slot) in frame.Chunk.LocalNames)
-                        {
-                            if (locals.TryGetValue(lname, out var updated))
-                                _stack[frame.StackBase + slot] = updated;
-                        }
-                        Push(r);
-                        break;
-                    }
-
                     // -- Builtin call --------------------------------------
                     case Opcode.CallBuiltin:
                     {

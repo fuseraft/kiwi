@@ -30,7 +30,7 @@ public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
         return SuccessReturnCode;
     }
 
-    private int RunVMLexer(Lexer lexer)
+    protected int RunVMLexer(Lexer lexer)
     {
         try
         {

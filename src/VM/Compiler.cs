@@ -152,10 +152,6 @@ public sealed class Compiler
         }
 
         _chunk.LocalCount = _slotCount;
-
-        // Publish name→slot mapping so the VM can expose locals to interpreter fallbacks.
-        foreach (var lv in _locals)
-            _chunk.LocalNames.Add((lv.Name, lv.Slot));
     }
 
     // -- Name pre-scan ---------------------------------------------------------
@@ -456,14 +452,6 @@ public sealed class Compiler
     {
         if (CompileNode(node))
             Emit(Opcode.Pop);
-    }
-
-    // -- Fallback to interpreter -----------------------------------------------
-
-    private void Fallback(ASTNode node)
-    {
-        int idx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.InterpFallback, idx, 0, node.Token.Span.Line);
     }
 
     // -- Literal ---------------------------------------------------------------

@@ -453,14 +453,6 @@ public enum Opcode : byte
     /// </summary>
     EnumEnd,
 
-    // -- Interpreter Fallback --------------------------------------------------
-    /// <summary>
-    /// A = node-pool index.  Execute chunk.NodePool[A] via the tree-walking
-    /// interpreter and push the result.  Used for constructs not yet compiled
-    /// natively to bytecode.
-    /// </summary>
-    InterpFallback,
-
     // -- Builtin call ----------------------------------------------------------
     /// <summary>
     /// A = node-pool index (FunctionCallNode, used for Token and Op).
