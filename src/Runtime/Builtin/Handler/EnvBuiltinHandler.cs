@@ -1,5 +1,6 @@
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
+using kiwi.Settings;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
 
@@ -111,6 +112,7 @@ public static class EnvBuiltinHandler
 
     private static Value SetEnvironmentVariable(Token token, List<Value> args)
     {
+        if (Kiwi.Settings.SafeMode) throw new SafeModeError(token, "env::set");
         ParameterCountMismatchError.Check(token, EnvBuiltin.SetEnvironmentVariable, 2, args.Count);
 
         ParameterTypeMismatchError.ExpectString(token, EnvBuiltin.SetEnvironmentVariable, 0, args[0]);

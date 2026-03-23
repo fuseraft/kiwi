@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
+using kiwi.Settings;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
 
@@ -16,6 +17,7 @@ public static class UdpBuiltinHandler
 
     public static Value Execute(Token token, TokenName builtin, List<Value> args)
     {
+        if (Kiwi.Settings.SafeMode) throw new SafeModeError(token, "udp");
         return builtin switch
         {
             TokenName.Builtin_Udp_Create     => Create(token, args),
