@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
+using kiwi.Settings;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
 
@@ -20,6 +21,7 @@ public static class HttpServerBuiltinHandler
 
     public static Value Execute(Token token, TokenName builtin, List<Value> args)
     {
+        if (Kiwi.Settings.SafeMode) throw new SafeModeError(token, "httpserver");
         return builtin switch
         {
             TokenName.Builtin_HttpServer_Create  => Create(token, args),
