@@ -62,6 +62,15 @@ Open VS Code, launch Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the follow
 ext install fuseraft.kiwi-lang
 ```
 
+## Package Manager
+
+[Zest](https://github.com/fuseraft/zest) is the official package manager for Kiwi.
+Install community packages directly from GitHub with semver constraints and a lock file.
+
+```bash
+zest install owner/repo
+```
+
 ## Documentation
 
 The [docs](docs/README.md) provide comprehensive information on language features, usage, and the [standard library](docs/lib/README.md).
