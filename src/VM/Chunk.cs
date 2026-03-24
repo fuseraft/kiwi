@@ -91,6 +91,13 @@ public class Chunk
     public bool IsGenerator { get; set; }
 
     /// <summary>
+    /// The package prefix (e.g. "foo::") of the package this function was defined in.
+    /// Empty for top-level functions.  Set by the VM at DefFunc time.
+    /// Used by LoadGlobal to resolve unqualified names inside package functions.
+    /// </summary>
+    public string PackagePrefix { get; set; } = string.Empty;
+
+    /// <summary>
     /// Number of explicit parameters (not counting variadic).
     /// </summary>
     public int Arity { get; set; }

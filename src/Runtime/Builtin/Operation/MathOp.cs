@@ -123,7 +123,7 @@ public struct MathOp
         else if (left.IsList())
         {
             type = Typing.ValueType.List;
-            var listCopy = left.GetList();
+            var listCopy = new List<Value>(left.GetList());
 
             if (right.IsList())
             {
