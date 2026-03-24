@@ -30,6 +30,8 @@ public struct OpDispatch
             TokenName.Ops_MultiplyAssign => MathOp.Mul(token, ref left, ref right, true),
             TokenName.Ops_Divide => MathOp.Div(token, ref left, ref right),
             TokenName.Ops_DivideAssign => MathOp.Div(token, ref left, ref right, true),
+            TokenName.Ops_IntDivide => MathOp.IntDiv(token, ref left, ref right),
+            TokenName.Ops_IntDivideAssign => MathOp.IntDiv(token, ref left, ref right, true),
             TokenName.Ops_Modulus => MathOp.Mod(token, ref left, ref right),
             TokenName.Ops_ModuloAssign => MathOp.Mod(token, ref left, ref right, true),
             TokenName.Ops_Exponent => MathOp.Exp(token, ref left, ref right),

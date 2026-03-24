@@ -445,7 +445,7 @@ public partial class Parser(bool rethrowErrors = false)
 
     private bool IsMultiplicativeOperator() => token.Name switch
     {
-        TokenName.Ops_Multiply or TokenName.Ops_Divide or TokenName.Ops_Modulus or TokenName.Ops_Exponent => true,
+        TokenName.Ops_Multiply or TokenName.Ops_Divide or TokenName.Ops_IntDivide or TokenName.Ops_Modulus or TokenName.Ops_Exponent => true,
         _ => false,
     };
 
@@ -463,13 +463,13 @@ public partial class Parser(bool rethrowErrors = false)
 
     private bool IsAssignmentOperator() => token.Name switch
     {
-        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
+        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_IntDivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
         _ => false,
     };
 
     private static bool IsAssignmentOperator(TokenName name) => name switch
     {
-        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
+        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_IntDivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
         _ => false,
     };
 

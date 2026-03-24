@@ -554,6 +554,12 @@ public sealed class KiwiVM
                         Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_Divide) ?? MathOp.Div(frame.GetToken(), ref l, ref r));
                         break;
                     }
+                    case Opcode.IntDiv:
+                    {
+                        var r = Pop(); var l = Pop();
+                        Push(TryStructOpOverload(frame.GetToken(), l, r, TokenName.Ops_IntDivide) ?? MathOp.IntDiv(frame.GetToken(), ref l, ref r));
+                        break;
+                    }
                     case Opcode.Mod:
                     {
                         var r = Pop(); var l = Pop();

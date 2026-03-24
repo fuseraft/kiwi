@@ -397,6 +397,8 @@ public partial class Serializer
             TokenName.Ops_BitwiseXorAssign => "^=",
             TokenName.Ops_Divide => "/",
             TokenName.Ops_DivideAssign => "/=",
+            TokenName.Ops_IntDivide => "//",
+            TokenName.Ops_IntDivideAssign => "//=",
             TokenName.Ops_Equal => "==",
             TokenName.Ops_Exponent => "**",
             TokenName.Ops_ExponentAssign => "**=",
