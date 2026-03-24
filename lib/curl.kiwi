@@ -43,7 +43,7 @@ package curl
   @return string|integer : The response body or exit code.
   #/
   fn get(url: string, headers: hashmap = {}, capture_output: boolean = true)
-    return curl::request(url, "GET", headers, "", capture_output)
+    return request(url, "GET", headers, "", capture_output)
   end
 
   /#
@@ -55,7 +55,7 @@ package curl
   @return string|integer : The response body or exit code.
   #/
   fn post(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
-    return curl::request(url, "POST", headers, data, capture_output)
+    return request(url, "POST", headers, data, capture_output)
   end
 
   /#
@@ -67,7 +67,7 @@ package curl
   @return string|integer : The response body or exit code.
   #/
   fn put(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
-    return curl::request(url, "PUT", headers, data, capture_output)
+    return request(url, "PUT", headers, data, capture_output)
   end
 
   /#
@@ -78,7 +78,7 @@ package curl
   @return string|integer : The response body or exit code.
   #/
   fn delete(url: string, headers: hashmap = {}, capture_output: boolean = true)
-    return curl::request(url, "DELETE", headers, "", capture_output)
+    return request(url, "DELETE", headers, "", capture_output)
   end
 end
 

@@ -133,7 +133,7 @@ package http
           next
         end
         hex = s.substring(i + 1, 2)
-        byte = http::parse_hex(hex)
+        byte = parse_hex(hex)
         result.push([byte].to_bytes().to_string())
         i += 3
       else
@@ -174,16 +174,16 @@ package http
     result = []
 
     while true do
-      size_line = http::read_crlf_line(iter).trim()
+      size_line = read_crlf_line(iter).trim()
       if size_line.empty()
         next
       end
 
-      chunk_size = http::parse_hex(size_line)
+      chunk_size = parse_hex(size_line)
       if chunk_size == 0
         # Skip trailers until empty line
         while true do
-          trailer_line = http::read_crlf_line(iter)
+          trailer_line = read_crlf_line(iter)
           if trailer_line.trim().empty()
             break
           end
@@ -261,7 +261,7 @@ package http
         else
           key = qp
         end
-        query.set(http::url_decode(key), http::url_decode(val, true))
+        query.set(url_decode(key), url_decode(val, true))
       end
     end
 
@@ -294,7 +294,7 @@ package http
     # Handle transfer-encoding: chunked
     if headers.has_key("transfer-encoding") && headers.get("transfer-encoding").lowercase().contains("chunked")
       try
-        body_raw = http::dechunk(body_raw)
+        body_raw = dechunk(body_raw)
       catch (e, m)
         eprintln "Malformed chunked. Error: ${m}"
         return null  # Malformed chunked
@@ -326,7 +326,7 @@ package http
         else
           key = fp
         end
-        form.set(http::url_decode(key), http::url_decode(val, true))
+        form.set(url_decode(key), url_decode(val, true))
       end
       body = form  # Override body with parsed form
     end
@@ -418,7 +418,7 @@ package http
   #/
   fn html_response(status: integer = 200, body: string, headers: hashmap = {}): bytes
     headers.set("content-type", "text/html; charset=utf-8")
-    http::response_bytes(status, body, headers)
+    response_bytes(status, body, headers)
   end
 
   /#
@@ -431,7 +431,7 @@ package http
   fn json_response(status: integer = 200, data: any, headers: hashmap = {}): bytes
     var (json_body: string = serialize(data))
     headers.set("content-type", "application/json; charset=utf-8")
-    http::response_bytes(status, json_body, headers)
+    response_bytes(status, json_body, headers)
   end
 #endregion
 
@@ -514,7 +514,7 @@ package http
   @return HttpResponse : The wrapped HTTP response.
   #/
   fn await_get(url: string, headers: hashmap = {}): HttpResponse
-    task_id = http::__get__(url, headers)
+    task_id = __get__(url, headers)
     raw = await(task_id)
     HttpResponse.new(raw)
   end
@@ -526,7 +526,7 @@ package http
   @return HttpResponse : The wrapped HTTP response.
   #/
   fn get(url: string, headers: hashmap = {}): HttpResponse
-    http::await_get(url, headers)
+    await_get(url, headers)
   end
 
   /#
@@ -537,7 +537,7 @@ package http
   @return HttpResponse : The wrapped HTTP response.
   #/
   fn await_post(url: string, body: any = null, headers: hashmap = {}): HttpResponse
-    task_id = http::post(url, body, headers)
+    task_id = post(url, body, headers)
     raw = await(task_id)
     HttpResponse.new(raw)
   end
@@ -549,7 +549,7 @@ package http
   @return hashmap : The parsed JSON response body.
   #/
   fn await_json_get(url: string, headers: hashmap = {}): hashmap
-    resp = http::await_get(url, headers)
+    resp = await_get(url, headers)
     resp.json()
   end
 
@@ -561,7 +561,7 @@ package http
   @return hashmap : The parsed JSON response body.
   #/
   fn await_json_post(url: string, data: hashmap, headers: hashmap = {}): hashmap
-    resp = http::await_post(url, data, headers)
+    resp = await_post(url, data, headers)
     resp.json()
   end
 

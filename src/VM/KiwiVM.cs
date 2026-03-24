@@ -1088,6 +1088,11 @@ public sealed class KiwiVM
                         var sub      = frame.Chunk.SubChunks[A];
                         var upvalues = BuildUpvalues(sub, frame);
 
+                        // Propagate package prefix from the enclosing frame so that
+                        // unqualified sibling-function calls inside the lambda body resolve.
+                        if (frame.Chunk.PackagePrefix.Length > 0 && sub.PackagePrefix.Length == 0)
+                            sub.PackagePrefix = frame.Chunk.PackagePrefix;
+
                         var klambda = new KLambda(BuildLambdaNode(sub))
                         {
                             VMChunk    = sub,

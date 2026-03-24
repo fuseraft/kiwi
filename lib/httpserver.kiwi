@@ -182,7 +182,7 @@ package httpserver
     return when idx >= mws.size() || ctx["done"]
     ctx["idx"] = idx + 1
     mw = mws[idx]
-    mw(req, res, with () do httpserver::_run_mw(mws, req, res, ctx) end)
+    mw(req, res, with () do _run_mw(mws, req, res, ctx) end)
   end
 
   /#
@@ -190,8 +190,8 @@ package httpserver
            Called from a spawned task (one task per request).
   #/
   fn _dispatch(server, raw)
-    req  = httpserver::Request.new(raw, {})
-    res  = httpserver::Response.new(server.id(), raw["id"])
+    req  = Request.new(raw, {})
+    res  = Response.new(server.id(), raw["id"])
     t0   = time::ticks()
 
     try
@@ -204,7 +204,7 @@ package httpserver
       for entry in server.routes() do
         em = entry["method"]
         next when em != method && em != "*"
-        matched = httpserver::_match_route(entry["pattern"], path_str)
+        matched = _match_route(entry["pattern"], path_str)
         if matched != null
           route  = entry
           params = matched
@@ -212,7 +212,7 @@ package httpserver
         end
       end
 
-      req = httpserver::Request.new(raw, params)
+      req = Request.new(raw, params)
 
       # Build middleware list: copy server middlewares (avoid mutating @middlewares)
       mws = server.middlewares()[0:]
@@ -226,7 +226,7 @@ package httpserver
       end
 
       ctx = { "idx": 0, "done": false }
-      httpserver::_run_mw(mws, req, res, ctx)
+      _run_mw(mws, req, res, ctx)
       res.not_found() when !res.sent()
 
     catch e
@@ -241,7 +241,7 @@ package httpserver
     end
 
     elapsed = (time::ticks() - t0) * 1000
-    httpserver::_log(server.cfg(), req, res, elapsed)
+    _log(server.cfg(), req, res, elapsed)
   end
 
   /#
@@ -496,7 +496,7 @@ package httpserver
     @return hashmap
     #/
     fn form()
-      @_form = httpserver::_parse_form(@raw["body"]) when @_form == null
+      @_form = _parse_form(@raw["body"]) when @_form == null
       @_form
     end
 
@@ -514,7 +514,7 @@ package httpserver
     @return hashmap
     #/
     fn cookies()
-      @_cookies = httpserver::_parse_cookies(@.header("cookie")) when @_cookies == null
+      @_cookies = _parse_cookies(@.header("cookie")) when @_cookies == null
       @_cookies
     end
   end
@@ -588,7 +588,7 @@ package httpserver
         return
       end
       ext  = fio::ext(fs_path)
-      mime = httpserver::_mime(ext)
+      mime = _mime(ext)
       @.header("Content-Type", mime)
       body_bytes = fio::readbytes(fs_path)
       @sent    = true
@@ -747,7 +747,7 @@ package httpserver
     @return Router : New router with combined prefix.
     #/
     fn group(sub_prefix)
-      httpserver::Router.new(@server, @prefix + sub_prefix)
+      Router.new(@server, @prefix + sub_prefix)
     end
   end
 
@@ -905,7 +905,7 @@ package httpserver
     @return Router
     #/
     fn group(prefix)
-      httpserver::Router.new(@, prefix)
+      Router.new(@, prefix)
     end
 
     # -- Start / Stop ---------------------------------------------------------
@@ -946,7 +946,7 @@ package httpserver
           raw = __httpserver_accept__(_srv.id(), _srv.cfg()["timeout_ms"])
           next when raw == null
           task::spawn(with (_s, _r) do
-            httpserver::_dispatch(_s, _r)
+            _dispatch(_s, _r)
           end, [_srv, raw])
         end
       end
@@ -995,10 +995,10 @@ package httpserver
   @return Server
   #/
   fn create(port = 8080, host = "localhost")
-    cfg = httpserver::Config.new()
+    cfg = Config.new()
     cfg.port(port)
     cfg.host(host)
-    httpserver::Server.new(cfg)
+    Server.new(cfg)
   end
 
   /#
@@ -1007,7 +1007,7 @@ package httpserver
   @return Server
   #/
   fn create_with_config(cfg)
-    httpserver::Server.new(cfg)
+    Server.new(cfg)
   end
 
   /#
@@ -1015,7 +1015,7 @@ package httpserver
   @return Config
   #/
   fn config()
-    httpserver::Config.new()
+    Config.new()
   end
 
 end

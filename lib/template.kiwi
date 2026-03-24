@@ -32,7 +32,7 @@ package template
   @return string : The rendered string.
   #/
   fn render_file(path, vars)
-    template::render(fio::read_text(path), vars)
+    render(fio::read_text(path), vars)
   end
 
   /#
@@ -51,6 +51,6 @@ package template
   ---
   #/
   fn render_each(tmpl, rows)
-    rows.map(with (row) do template::render(tmpl, row) end)
+    rows.map(with (row) do render(tmpl, row) end)
   end
 end

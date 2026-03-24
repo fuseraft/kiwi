@@ -35,7 +35,7 @@ package stat
   @return integer|float : The range.
   #/
   fn range(data)
-    stat::max(data) - stat::min(data)
+    max(data) - min(data)
   end
 
   /#
@@ -44,7 +44,7 @@ package stat
   @return float : The mean.
   #/
   fn mean(data)
-    stat::sum(data).to_float() / data.size()
+    sum(data).to_float() / data.size()
   end
 
   /#
@@ -62,7 +62,7 @@ package stat
   @return integer|float : The median.
   #/
   fn median(data)
-    s = stat::sorted(data)
+    s = sorted(data)
     n = s.size()
     m = n / 2
     n % 2 == 0 ? (s[m - 1].to_float() + s[m].to_float()) / 2.0 : s[m]
@@ -91,7 +91,7 @@ package stat
   #/
   fn variance(data, population = false)
     n  = data.size()
-    m  = stat::mean(data)
+    m  = mean(data)
     sq = data.reduce(0.0, with (acc, x) do acc + (x.to_float() - m) ** 2 end)
     population ? sq / n : sq / (n - 1)
   end
@@ -103,7 +103,7 @@ package stat
   @return float : The standard deviation.
   #/
   fn stdev(data, population = false)
-    math::sqrt(stat::variance(data, population))
+    math::sqrt(variance(data, population))
   end
 
   /#
@@ -113,7 +113,7 @@ package stat
   @return float : The p-th percentile.
   #/
   fn percentile(data, p)
-    s   = stat::sorted(data)
+    s   = sorted(data)
     n   = s.size()
     idx = p.to_float() / 100.0 * (n - 1)
     lo  = math::floor(idx).to_integer()
@@ -129,8 +129,8 @@ package stat
   #/
   fn covariance(x_data, y_data)
     n  = x_data.size()
-    mx = stat::mean(x_data)
-    my = stat::mean(y_data)
+    mx = mean(x_data)
+    my = mean(y_data)
     i  = 0
     s  = 0.0
     while i < n do
@@ -147,7 +147,7 @@ package stat
   @return float : Correlation in [-1, 1].
   #/
   fn correlation(x_data, y_data)
-    stat::covariance(x_data, y_data) / (stat::stdev(x_data) * stat::stdev(y_data))
+    covariance(x_data, y_data) / (stdev(x_data) * stdev(y_data))
   end
 
   /#
@@ -156,8 +156,8 @@ package stat
   @return list : List of z-scores.
   #/
   fn zscore(data)
-    m = stat::mean(data)
-    s = stat::stdev(data)
+    m = mean(data)
+    s = stdev(data)
     data.map(with (x) do (x.to_float() - m) / s end)
   end
 
@@ -181,8 +181,8 @@ package stat
   @return list : Normalized values.
   #/
   fn normalize(data)
-    lo = stat::min(data).to_float()
-    hi = stat::max(data).to_float()
+    lo = min(data).to_float()
+    hi = max(data).to_float()
     r  = hi - lo
     r == 0.0 ? data.map(with (_) do 0.0 end) : data.map(with (x) do (x.to_float() - lo) / r end)
   end

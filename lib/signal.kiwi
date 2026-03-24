@@ -31,9 +31,9 @@ package signal
     _handlers[sig_upper] = handler
 
     task::spawn(with (_sig) do
-      while signal::trapped(_sig) do
+      while trapped(_sig) do
         if __signal_check__(_sig)
-          signal::_handlers[_sig]()
+          _handlers[_sig]()
         end
         task::sleep(50)
       end
