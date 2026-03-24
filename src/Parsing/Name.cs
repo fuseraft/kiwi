@@ -424,6 +424,8 @@ public enum TokenName
   Ops_BitwiseXorAssign,
   Ops_Divide,
   Ops_DivideAssign,
+  Ops_IntDivide,
+  Ops_IntDivideAssign,
   Ops_Equal,
   Ops_Exponent,
   Ops_ExponentAssign,

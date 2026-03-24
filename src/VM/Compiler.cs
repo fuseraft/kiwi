@@ -381,17 +381,18 @@ public sealed class Compiler
     {
         switch (op)
         {
-            case TokenName.Ops_AddAssign:              Emit(Opcode.Add,   0, 0, line); break;
-            case TokenName.Ops_SubtractAssign:         Emit(Opcode.Sub,   0, 0, line); break;
-            case TokenName.Ops_MultiplyAssign:         Emit(Opcode.Mul,   0, 0, line); break;
-            case TokenName.Ops_DivideAssign:           Emit(Opcode.Div,   0, 0, line); break;
-            case TokenName.Ops_ModuloAssign:           Emit(Opcode.Mod,   0, 0, line); break;
-            case TokenName.Ops_ExponentAssign:         Emit(Opcode.Pow,   0, 0, line); break;
-            case TokenName.Ops_BitwiseAndAssign:       Emit(Opcode.BAnd,  0, 0, line); break;
-            case TokenName.Ops_BitwiseOrAssign:        Emit(Opcode.BOr,   0, 0, line); break;
-            case TokenName.Ops_BitwiseXorAssign:       Emit(Opcode.BXor,  0, 0, line); break;
-            case TokenName.Ops_BitwiseLeftShiftAssign: Emit(Opcode.BLSh,  0, 0, line); break;
-            case TokenName.Ops_BitwiseRightShiftAssign: Emit(Opcode.BRSh, 0, 0, line); break;
+            case TokenName.Ops_AddAssign:              Emit(Opcode.Add,    0, 0, line); break;
+            case TokenName.Ops_SubtractAssign:         Emit(Opcode.Sub,    0, 0, line); break;
+            case TokenName.Ops_MultiplyAssign:         Emit(Opcode.Mul,    0, 0, line); break;
+            case TokenName.Ops_DivideAssign:           Emit(Opcode.Div,    0, 0, line); break;
+            case TokenName.Ops_IntDivideAssign:        Emit(Opcode.IntDiv, 0, 0, line); break;
+            case TokenName.Ops_ModuloAssign:           Emit(Opcode.Mod,    0, 0, line); break;
+            case TokenName.Ops_ExponentAssign:         Emit(Opcode.Pow,    0, 0, line); break;
+            case TokenName.Ops_BitwiseAndAssign:       Emit(Opcode.BAnd,   0, 0, line); break;
+            case TokenName.Ops_BitwiseOrAssign:        Emit(Opcode.BOr,    0, 0, line); break;
+            case TokenName.Ops_BitwiseXorAssign:       Emit(Opcode.BXor,   0, 0, line); break;
+            case TokenName.Ops_BitwiseLeftShiftAssign: Emit(Opcode.BLSh,   0, 0, line); break;
+            case TokenName.Ops_BitwiseRightShiftAssign: Emit(Opcode.BRSh,  0, 0, line); break;
             case TokenName.Ops_BitwiseUnsignedRightShiftAssign: Emit(Opcode.BURSh, 0, 0, line); break;
             default: /* leave as-is - callers handle && / || */ break;
         }
@@ -677,6 +678,7 @@ public sealed class Compiler
             TokenName.Ops_Subtract         or TokenName.Ops_SubtractAssign         => Opcode.Sub,
             TokenName.Ops_Multiply         or TokenName.Ops_MultiplyAssign         => Opcode.Mul,
             TokenName.Ops_Divide           or TokenName.Ops_DivideAssign           => Opcode.Div,
+            TokenName.Ops_IntDivide        or TokenName.Ops_IntDivideAssign        => Opcode.IntDiv,
             TokenName.Ops_Modulus          or TokenName.Ops_ModuloAssign           => Opcode.Mod,
             TokenName.Ops_Exponent         or TokenName.Ops_ExponentAssign         => Opcode.Pow,
             TokenName.Ops_BitwiseAnd       or TokenName.Ops_BitwiseAndAssign       => Opcode.BAnd,
@@ -967,6 +969,7 @@ public sealed class Compiler
                 TokenName.Ops_SubtractAssign         => Opcode.Sub,
                 TokenName.Ops_MultiplyAssign         => Opcode.Mul,
                 TokenName.Ops_DivideAssign           => Opcode.Div,
+                TokenName.Ops_IntDivideAssign        => Opcode.IntDiv,
                 TokenName.Ops_ModuloAssign           => Opcode.Mod,
                 TokenName.Ops_ExponentAssign         => Opcode.Pow,
                 TokenName.Ops_BitwiseAndAssign       => Opcode.BAnd,

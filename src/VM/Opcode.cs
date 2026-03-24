@@ -77,7 +77,7 @@ public enum Opcode : byte
     Swap,
 
     // -- Arithmetic ------------------------------------------------------------
-    Add, Sub, Mul, Div, Mod, Pow,
+    Add, Sub, Mul, Div, IntDiv, Mod, Pow,
     /// <summary>
     /// Unary negation
     /// </summary>
