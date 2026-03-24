@@ -1065,3 +1065,115 @@ println "Distance: ${math::abs(a - b)}"  # 36
 diff = math::abs(0.1 + 0.2 - 0.3)
 println diff < math::eps(9)  # true
 ```
+
+---
+
+## Euclidean Division
+
+Euclidean division guarantees that the remainder `r` is always non-negative (`0 <= r < |divisor|`), regardless of the signs of the operands. This differs from truncated division (`/`) and floor division (`//`) when the operands have mixed signs.
+
+The three operations satisfy the identity:
+
+```
+dividend == divisor * ediv(dividend, divisor) + emod(dividend, divisor)
+```
+
+| `a` | `b` | `a // b` (floor) | `ediv(a, b)` | `emod(a, b)` |
+| ---: | ---: | ---: | ---: | ---: |
+| 7 | 2 | 3 | 3 | 1 |
+| -7 | 2 | -4 | -4 | 1 |
+| 7 | -2 | -4 | -3 | 1 |
+| -7 | -2 | 3 | 4 | 1 |
+
+### `ediv(_dividend, _divisor)`
+
+Compute the Euclidean quotient.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer`\|`float` | `_dividend` | The dividend. |
+| `integer`\|`float` | `_divisor` | The divisor (must not be zero). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `integer` | The Euclidean quotient. |
+
+**Example**
+
+```kiwi
+import "math"
+
+println math::ediv(7, 2)    # 3
+println math::ediv(-7, 2)   # -4
+println math::ediv(7, -2)   # -3
+println math::ediv(-7, -2)  # 4
+```
+
+### `emod(_dividend, _divisor)`
+
+Compute the Euclidean remainder (always non-negative).
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer`\|`float` | `_dividend` | The dividend. |
+| `integer`\|`float` | `_divisor` | The divisor (must not be zero). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `integer` | The Euclidean remainder (`0 <= r < |divisor|`). |
+
+**Example**
+
+```kiwi
+import "math"
+
+println math::emod(7, 2)    # 1
+println math::emod(-7, 2)   # 1
+println math::emod(7, -2)   # 1
+println math::emod(-7, -2)  # 1
+```
+
+### `divmod(_dividend, _divisor)`
+
+Compute the Euclidean quotient and remainder together, returning `[q, r]`.
+
+**Parameters**
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `integer`\|`float` | `_dividend` | The dividend. |
+| `integer`\|`float` | `_divisor` | The divisor (must not be zero). |
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `list` | A two-element list `[quotient, remainder]`. |
+
+**Example**
+
+```kiwi
+import "math"
+
+q, r = math::divmod(17, 5)
+println "17 = 5 * ${q} + ${r}"   # 17 = 5 * 3 + 2
+
+# Works correctly for negative dividends
+q, r = math::divmod(-17, 5)
+println "-17 = 5 * ${q} + ${r}"  # -17 = 5 * -4 + 3
+
+# Useful for time/unit conversions
+total_seconds = 3661
+hours, rem     = math::divmod(total_seconds, 3600)
+minutes, secs  = math::divmod(rem, 60)
+println "${hours}h ${minutes}m ${secs}s"   # 1h 1m 1s
+```
+

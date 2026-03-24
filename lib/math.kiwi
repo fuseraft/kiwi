@@ -436,4 +436,48 @@ package math
   fn abs(_value)
     return __abs__(_value)
   end
+
+  /#
+  @summary Computes the Euclidean quotient of `_dividend` divided by `_divisor`.
+  @description
+    Euclidean division guarantees that the remainder is always non-negative
+    (i.e. `0 <= r < |_divisor|`), regardless of the signs of the operands.
+    This differs from truncated division (`/`) and floor division (`//`) when
+    operands have mixed signs.
+  @param integer|float _dividend : The dividend.
+  @param integer|float _divisor  : The divisor (must not be zero).
+  @return integer : The Euclidean quotient.
+  #/
+  fn ediv(_dividend, _divisor)
+    abs_d = math::abs(_divisor)
+    q = _dividend // abs_d
+    _divisor < 0 ? -q : q
+  end
+
+  /#
+  @summary Computes the Euclidean remainder of `_dividend` divided by `_divisor`.
+  @description
+    The result is always non-negative: `0 <= r < |_divisor|`.
+    Satisfies `_dividend == _divisor * math::ediv(_dividend, _divisor) + math::emod(_dividend, _divisor)`.
+  @param integer|float _dividend : The dividend.
+  @param integer|float _divisor  : The divisor (must not be zero).
+  @return integer : The Euclidean remainder.
+  #/
+  fn emod(_dividend, _divisor)
+    _dividend - _divisor * math::ediv(_dividend, _divisor)
+  end
+
+  /#
+  @summary Performs Euclidean division and returns both the quotient and remainder.
+  @description
+    Returns `[q, r]` such that `_dividend == _divisor * q + r` and `0 <= r < |_divisor|`.
+  @param integer|float _dividend : The dividend.
+  @param integer|float _divisor  : The divisor (must not be zero).
+  @return list : A two-element list `[quotient, remainder]`.
+  #/
+  fn divmod(_dividend, _divisor)
+    q = math::ediv(_dividend, _divisor)
+    r = _dividend - _divisor * q
+    [q, r]
+  end
 end
