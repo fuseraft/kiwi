@@ -192,7 +192,7 @@ package time
   fn monthdays(_year: integer, _month: integer): integer
     if [4, 6, 9, 11].contains(_month)
       return 30
-    elsif 2 == _month and time::leapyear(_year)
+    elsif 2 == _month and leapyear(_year)
       return 29
     elsif 2 == _month
       return 28
@@ -239,7 +239,7 @@ package time
   @return boolean : The number of days in a given month.
   #/
   fn valid_day(_year: integer, _month: integer, _day: integer): boolean
-    (_day > 0 and _day <= time::monthdays(_year, _month))
+    (_day > 0 and _day <= monthdays(_year, _month))
   end
 
   /#

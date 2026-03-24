@@ -237,7 +237,7 @@ package xml
   @summary Internal: recursively wraps the hashmap tree from `__xml_parse__` into `XmlNode` structs.
   #/
   fn _wrap(m)
-    kids = m["children"].map(with (c) do xml::_wrap(c) end)
+    kids = m["children"].map(with (c) do _wrap(c) end)
     XmlNode.new(m["tag"], m["attrs"], kids, m["content"])
   end
 
@@ -248,7 +248,7 @@ package xml
   @throws string      : On malformed XML.
   #/
   fn parse(input: string): any
-    xml::_wrap(__xml_parse__(input))
+    _wrap(__xml_parse__(input))
   end
 
   /#
@@ -259,7 +259,7 @@ package xml
   #/
   fn parse_file(file_path: string): any
     throw "File does not exist: ${file_path}" when !fio::isfile(file_path)
-    xml::_wrap(__xml_parsefile__(file_path))
+    _wrap(__xml_parsefile__(file_path))
   end
 
   /#

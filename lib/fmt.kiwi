@@ -103,20 +103,20 @@ package fmt
       elsif spec == "f"
         v    = arg.to_float()
         prec = precision >= 0 ? precision : 6
-        formatted = fmt::_format_float(v, prec)
+        formatted = _format_float(v, prec)
         formatted = "+" + formatted when plus_sign && v >= 0
       elsif spec == "e"
         # Scientific notation (simplified)
         v = arg.to_float()
-        formatted = fmt::_format_scientific(v, precision >= 0 ? precision : 6)
+        formatted = _format_scientific(v, precision >= 0 ? precision : 6)
       elsif spec == "x"
         formatted = arg.to_integer().to_hex()
       elsif spec == "X"
         formatted = arg.to_integer().to_hex().uppercase()
       elsif spec == "o"
-        formatted = fmt::_to_base(arg.to_integer(), 8)
+        formatted = _to_base(arg.to_integer(), 8)
       elsif spec == "b"
-        formatted = fmt::_to_base(arg.to_integer(), 2)
+        formatted = _to_base(arg.to_integer(), 2)
       elsif spec == "c"
         n_val = arg.is_a(integer) ? arg : arg.to_integer()
         formatted = [n_val].to_bytes().to_string()
@@ -166,7 +166,7 @@ package fmt
     sign = neg ? "-" : ""
     e_sign = exp >= 0 ? "+" : "-"
     e_abs  = exp.abs()
-    "${sign}${fmt::_format_float(mant, precision)}e${e_sign}${e_abs.to_string().padstart(2, "0")}"
+    "${sign}${_format_float(mant, precision)}e${e_sign}${e_abs.to_string().padstart(2, "0")}"
   end
 
   fn _to_base(n, base)
@@ -188,7 +188,7 @@ package fmt
   @param list args : Arguments list.
   #/
   fn printf(format_str, args = [])
-    print fmt::sprintf(format_str, args)
+    print sprintf(format_str, args)
   end
 
   /#
@@ -197,6 +197,6 @@ package fmt
   @param list args : Arguments list.
   #/
   fn printlnf(format_str, args = [])
-    println fmt::sprintf(format_str, args)
+    println sprintf(format_str, args)
   end
 end

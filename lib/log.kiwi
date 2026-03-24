@@ -35,7 +35,7 @@ package log
   end
 
   fn _write(lv, msg)
-    return when !log::_should_log(lv)
+    return when !_should_log(lv)
 
     parts = ["[" + lv + "]"]
     parts.push("[" + time::now().to_string() + "]") when _state["timestamps"]
@@ -51,7 +51,7 @@ package log
   @param any msg : The message to log.
   #/
   fn debug(msg)
-    log::_write("DEBUG", msg)
+    _write("DEBUG", msg)
   end
 
   /#
@@ -59,7 +59,7 @@ package log
   @param any msg : The message to log.
   #/
   fn info(msg)
-    log::_write("INFO", msg)
+    _write("INFO", msg)
   end
 
   /#
@@ -67,7 +67,7 @@ package log
   @param any msg : The message to log.
   #/
   fn warn(msg)
-    log::_write("WARN", msg)
+    _write("WARN", msg)
   end
 
   /#
@@ -75,7 +75,7 @@ package log
   @param any msg : The message to log.
   #/
   fn error(msg)
-    log::_write("ERROR", msg)
+    _write("ERROR", msg)
   end
 
   /#
@@ -83,7 +83,7 @@ package log
   @param any msg : The message to log.
   #/
   fn fatal(msg)
-    log::_write("FATAL", msg)
+    _write("FATAL", msg)
     exit(1)
   end
 end

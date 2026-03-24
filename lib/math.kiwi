@@ -449,7 +449,7 @@ package math
   @return integer : The Euclidean quotient.
   #/
   fn ediv(_dividend, _divisor)
-    abs_d = math::abs(_divisor)
+    abs_d = abs(_divisor)
     q = _dividend // abs_d
     _divisor < 0 ? -q : q
   end
@@ -464,7 +464,7 @@ package math
   @return integer : The Euclidean remainder.
   #/
   fn emod(_dividend, _divisor)
-    _dividend - _divisor * math::ediv(_dividend, _divisor)
+    _dividend - _divisor * ediv(_dividend, _divisor)
   end
 
   /#
@@ -476,7 +476,7 @@ package math
   @return list : A two-element list `[quotient, remainder]`.
   #/
   fn divmod(_dividend, _divisor)
-    q = math::ediv(_dividend, _divisor)
+    q = ediv(_dividend, _divisor)
     r = _dividend - _divisor * q
     [q, r]
   end
