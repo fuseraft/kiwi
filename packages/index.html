@@ -2031,6 +2031,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#calling-sibling-functions-inside-a-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calling Sibling Functions Inside a Package
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Calling Sibling Functions Inside a Package">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type-keyword-naming-caveat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type-keyword naming caveat
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3845,6 +3873,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#calling-sibling-functions-inside-a-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calling Sibling Functions Inside a Package
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Calling Sibling Functions Inside a Package">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#type-keyword-naming-caveat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Type-keyword naming caveat
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -4175,6 +4231,47 @@
 <li>Type extension only applies to built-in types. Struct methods are defined inside the struct body using <code>fn</code>.</li>
 <li>Functions with no type hint on the first parameter are still callable as <code>pkg::func(value)</code> but will <strong>not</strong> be dispatched as instance methods.</li>
 </ul>
+<hr />
+<h2 id="calling-sibling-functions-inside-a-package">Calling Sibling Functions Inside a Package<a class="headerlink" href="#calling-sibling-functions-inside-a-package" title="Permanent link">&para;</a></h2>
+<p>Functions defined inside the same package can call each other using their <strong>unqualified</strong> name — no <code>pkg::</code> prefix needed.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>package math_utils
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>  fn double(x)
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>    x * 2
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>  end
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>  fn quadruple(x)
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>    double(double(x))   # calls sibling — no math_utils:: prefix needed
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>  end
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>
+</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>  fn triple(x)
+</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>    double(x) + x
+</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>  end
+</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>end
+</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>
+</span><span id="__span-24-15"><a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a>export &quot;math_utils&quot;
+</span><span id="__span-24-16"><a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>
+</span><span id="__span-24-17"><a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a>println math_utils::quadruple(5)  # 20
+</span><span id="__span-24-18"><a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a>println math_utils::triple(4)     # 12
+</span></code></pre></div>
+<p>This also works inside struct methods and lambdas defined within the package.</p>
+<h3 id="type-keyword-naming-caveat">Type-keyword naming caveat<a class="headerlink" href="#type-keyword-naming-caveat" title="Permanent link">&para;</a></h3>
+<p>The following identifiers are <strong>reserved type keywords</strong> in Kiwi and are parsed as string literals when used as bare names — even inside a package:</p>
+<p><code>any</code>, <code>none</code>, <code>string</code>, <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>hashmap</code>, <code>list</code>, <code>lambda</code>, <code>date</code>, <code>generator</code>, <code>object</code>, <code>pointer</code></p>
+<p>If a package function shares its name with one of these keywords, it <strong>must</strong> be called using the fully-qualified <code>pkg::name(...)</code> form, even from within the same package:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>package mylib
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>  fn any(lst, pred)   # shares name with type keyword &quot;any&quot;
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>    for x in lst do
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>      return true when pred(x)
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>    end
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>    false
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>  end
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>  fn none(lst, pred)
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a>    not mylib::any(lst, pred)   # must qualify — bare `any(...)` parses as the string &quot;any&quot;
+</span><span id="__span-25-11"><a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a>  end
+</span><span id="__span-25-12"><a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a>end
+</span></code></pre></div>
+<p>Choosing names that don't collide with type keywords (e.g. <code>find_any</code>, <code>has_match</code>) avoids this entirely.</p>
 
 
 
