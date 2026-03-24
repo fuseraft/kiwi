@@ -1,6 +1,6 @@
 /#
   Generator benchmarks — tree-walker only (not compatible with --vm).
-  Run: kiwi tests/bench_generators
+  Run: kiwi bench/generators
 #/
 
 bench::run("generator: consume 500-yield sequence", with do

@@ -12,7 +12,7 @@
     500k rows ≈ 30 MB
 
   Run from the project root:
-    kiwi tests/bench_csv_large
+    kiwi bench/csv_large
 #/
 
 # fixture generator
