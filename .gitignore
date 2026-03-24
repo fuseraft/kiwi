@@ -9,7 +9,7 @@ data.csv
 debug.kiwi.txt
 /src/.vs/kiwi
 src/.vs/
-kiwi_crash.log
 site/
+kiwi_crash.log
 tasks.db*
 kiwi-notes.md
