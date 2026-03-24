@@ -133,6 +133,37 @@ end
 println add(*nums)  # 6
 ```
 
+### Hoisting
+
+Top-level functions are **hoisted**. They are registered before any code in the script runs, so you can call a function that is defined further down in the file.
+
+```kiwi
+println greet("Kiwi")  # Hello, Kiwi!
+
+fn greet(name)
+  return "Hello, ${name}!"
+end
+```
+
+Mutual recursion works for the same reason. In the example below, both functions are available before either is called:
+
+```kiwi
+println is_even(4)  # true
+println is_odd(3)   # true
+
+fn is_even(n)
+  return true when n == 0
+  return is_odd(n - 1)
+end
+
+fn is_odd(n)
+  return false when n == 0
+  return is_even(n - 1)
+end
+```
+
+Hoisting applies only to **top-level** function definitions. Functions defined inside other functions, loops, or conditional blocks are not hoisted.
+
 ### Scope
 
 Functions use lexical scoping — each call gets its own local scope, and outer (global) variables are readable and writable from inside. See [Scoping](scoping.md) for the complete rules.
