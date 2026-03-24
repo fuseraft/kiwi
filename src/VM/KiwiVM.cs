@@ -1706,6 +1706,7 @@ public sealed class KiwiVM
                             kfunc.DefaultParameters.Add(pn);
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             kfunc.VariadicParamName = sub.VariadicParamName;
+                        if (_pkgPrefix.Length > 0) sub.PackagePrefix = _pkgPrefix;
 
                         var struc = _pendingStructs.Peek();
                         kfunc.OwnerStruct = struc.Name;
