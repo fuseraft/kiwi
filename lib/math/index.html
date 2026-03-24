@@ -3211,6 +3211,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#euclidean-division" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Euclidean Division
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Euclidean Division">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ediv_dividend-_divisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ediv(_dividend, _divisor)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#emod_dividend-_divisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        emod(_dividend, _divisor)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#divmod_dividend-_divisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        divmod(_dividend, _divisor)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -4448,6 +4498,56 @@
     <span class="md-ellipsis">
       
         abs(_value)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#euclidean-division" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Euclidean Division
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Euclidean Division">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ediv_dividend-_divisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ediv(_dividend, _divisor)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#emod_dividend-_divisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        emod(_dividend, _divisor)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#divmod_dividend-_divisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        divmod(_dividend, _divisor)
       
     </span>
   </a>
@@ -6390,6 +6490,202 @@
 </span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a># Tolerance check
 </span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>diff = math::abs(0.1 + 0.2 - 0.3)
 </span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>println diff &lt; math::eps(9)  # true
+</span></code></pre></div>
+<hr />
+<h2 id="euclidean-division">Euclidean Division<a class="headerlink" href="#euclidean-division" title="Permanent link">&para;</a></h2>
+<p>Euclidean division guarantees that the remainder <code>r</code> is always non-negative (<code>0 &lt;= r &lt; |divisor|</code>), regardless of the signs of the operands. This differs from truncated division (<code>/</code>) and floor division (<code>//</code>) when the operands have mixed signs.</p>
+<p>The three operations satisfy the identity:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>dividend == divisor * ediv(dividend, divisor) + emod(dividend, divisor)
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><code>a</code></th>
+<th style="text-align: right;"><code>b</code></th>
+<th style="text-align: right;"><code>a // b</code> (floor)</th>
+<th style="text-align: right;"><code>ediv(a, b)</code></th>
+<th style="text-align: right;"><code>emod(a, b)</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: right;">-7</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-4</td>
+<td style="text-align: right;">-4</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-2</td>
+<td style="text-align: right;">-4</td>
+<td style="text-align: right;">-3</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td style="text-align: right;">-7</td>
+<td style="text-align: right;">-2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ediv_dividend-_divisor"><code>ediv(_dividend, _divisor)</code><a class="headerlink" href="#ediv_dividend-_divisor" title="Permanent link">&para;</a></h3>
+<p>Compute the Euclidean quotient.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code>|<code>float</code></td>
+<td style="text-align: left;"><code>_dividend</code></td>
+<td style="text-align: left;">The dividend.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code>|<code>float</code></td>
+<td style="text-align: left;"><code>_divisor</code></td>
+<td style="text-align: left;">The divisor (must not be zero).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The Euclidean quotient.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>import &quot;math&quot;
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>println math::ediv(7, 2)    # 3
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>println math::ediv(-7, 2)   # -4
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>println math::ediv(7, -2)   # -3
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>println math::ediv(-7, -2)  # 4
+</span></code></pre></div>
+<h3 id="emod_dividend-_divisor"><code>emod(_dividend, _divisor)</code><a class="headerlink" href="#emod_dividend-_divisor" title="Permanent link">&para;</a></h3>
+<p>Compute the Euclidean remainder (always non-negative).</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code>|<code>float</code></td>
+<td style="text-align: left;"><code>_dividend</code></td>
+<td style="text-align: left;">The dividend.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code>|<code>float</code></td>
+<td style="text-align: left;"><code>_divisor</code></td>
+<td style="text-align: left;">The divisor (must not be zero).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;">The Euclidean remainder (<code>0 &lt;= r &lt; |divisor|</code>).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>import &quot;math&quot;
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>println math::emod(7, 2)    # 1
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>println math::emod(-7, 2)   # 1
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>println math::emod(7, -2)   # 1
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>println math::emod(-7, -2)  # 1
+</span></code></pre></div>
+<h3 id="divmod_dividend-_divisor"><code>divmod(_dividend, _divisor)</code><a class="headerlink" href="#divmod_dividend-_divisor" title="Permanent link">&para;</a></h3>
+<p>Compute the Euclidean quotient and remainder together, returning <code>[q, r]</code>.</p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>integer</code>|<code>float</code></td>
+<td style="text-align: left;"><code>_dividend</code></td>
+<td style="text-align: left;">The dividend.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code>|<code>float</code></td>
+<td style="text-align: left;"><code>_divisor</code></td>
+<td style="text-align: left;">The divisor (must not be zero).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list</code></td>
+<td style="text-align: left;">A two-element list <code>[quotient, remainder]</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>import &quot;math&quot;
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>q, r = math::divmod(17, 5)
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>println &quot;17 = 5 * ${q} + ${r}&quot;   # 17 = 5 * 3 + 2
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a># Works correctly for negative dividends
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>q, r = math::divmod(-17, 5)
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>println &quot;-17 = 5 * ${q} + ${r}&quot;  # -17 = 5 * -4 + 3
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a># Useful for time/unit conversions
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>total_seconds = 3661
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>hours, rem     = math::divmod(total_seconds, 3600)
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>minutes, secs  = math::divmod(rem, 60)
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>println &quot;${hours}h ${minutes}m ${secs}s&quot;   # 1h 1m 1s
 </span></code></pre></div>
 
 
