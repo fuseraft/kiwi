@@ -1874,6 +1874,7 @@ public sealed class KiwiVM
         }
 
         var reordered = new Value[paramCount];
+        for (int i = 0; i < paramCount; i++) reordered[i] = Value.Default; // null sentinel, not zero-init
         var filled    = new bool[paramCount]; // true once a slot has been assigned
         var consumed  = new bool[argc];       // true once a raw arg has been placed
 
