@@ -459,6 +459,36 @@ public sealed class KiwiVM
                         }
                         else
                         {
+                            // Package-internal call: if the current chunk has a package prefix
+                            // (e.g. "foo::"), try looking up "foo::name" before giving up.
+                            // This lets package-internal functions call each other without
+                            // the caller having to write the full qualified name.
+                            var pkgPfx = frame.Chunk.PackagePrefix;
+                            if (pkgPfx.Length > 0)
+                            {
+                                var qualName = pkgPfx + name;
+                                if (_context.HasFunction(qualName))
+                                {
+                                    var fn = _context.Functions[qualName];
+                                    Push(Value.CreateLambda(new LambdaRef { Identifier = qualName, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues }));
+                                    break;
+                                }
+                                if (_context.HasLambda(qualName))
+                                {
+                                    Push(Value.CreateLambda(_context.Lambdas[qualName].Ref));
+                                    break;
+                                }
+                                if (_context.HasConstant(qualName))
+                                {
+                                    Push(_context.Constants[qualName]);
+                                    break;
+                                }
+                                if (_context.HasPackageVariable(qualName))
+                                {
+                                    Push(_context.PackageVariables[qualName]);
+                                    break;
+                                }
+                            }
                             // When not found globally and we're inside a struct method,
                             // treat it as an implicit @.name() call on self.
                             if (frame.Self != null)
@@ -943,6 +973,7 @@ public sealed class KiwiVM
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             kfunc.VariadicParamName = sub.VariadicParamName;
                         kfunc.CapturedScope = _globals;
+                        if (_pkgPrefix.Length > 0) sub.PackagePrefix = _pkgPrefix;
 
                         _context.Functions[funcName] = kfunc;
                         InvalidateName(funcName); // invalidate both resolution caches
@@ -977,6 +1008,7 @@ public sealed class KiwiVM
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             kfunc.VariadicParamName = sub.VariadicParamName;
                         kfunc.CapturedScope = _globals;
+                        if (_pkgPrefix.Length > 0) sub.PackagePrefix = _pkgPrefix;
 
                         _context.Functions[funcName] = kfunc;
                         InvalidateName(funcName);
