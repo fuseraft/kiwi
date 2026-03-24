@@ -64,8 +64,13 @@ public sealed class Compiler
     public static Chunk CompileProgram(ProgramNode program)
     {
         var c = new Compiler("<main>", null, isGlobal: true);
+        // Pass 1: hoist top-level function definitions so they are available
+        // before any code that precedes them in source order.
         foreach (var s in program.Statements)
-            if (s != null) c.CompileStatement(s);
+            if (s is FunctionNode) c.CompileStatement(s);
+        // Pass 2: compile all remaining (non-function) statements in order.
+        foreach (var s in program.Statements)
+            if (s != null && s is not FunctionNode) c.CompileStatement(s);
         c.Emit(Opcode.Halt);
         return c._chunk;
     }
