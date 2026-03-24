@@ -12,6 +12,7 @@ Kiwi provides a full set of operators for arithmetic, comparison, logic, bitwise
 | `-` | Subtract | `10 - 3` | `7` |
 | `*` | Multiply | `3 * 4` | `12` |
 | `/` | Divide | `10 / 4` | `2` |
+| `//` | Integer divide | `7 // 2` | `3` |
 | `%` | Modulo | `10 % 3` | `1` |
 | `**` | Exponent | `2 ** 8` | `256` |
 
@@ -21,6 +22,14 @@ Kiwi provides a full set of operators for arithmetic, comparison, logic, bitwise
 println 10 / 4    # 2     (integer division)
 println 10 / 4.0  # 2.5   (float division)
 println 10. / 4   # 2.5   (trailing dot promotes to float)
+```
+
+**`//` always returns an integer (floor division):** Floors both operands to integers before dividing, and the result always rounds toward negative infinity regardless of sign.
+
+```kiwi
+println 7 // 2      # 3
+println -7 // 2     # -4  (floors toward -∞, not toward 0)
+println 7.9 // 2    # 3   (float operand is floored first)
 ```
 
 **String and list `+` and `*`:** `+` concatenates strings and lists; `*` repeats them.
@@ -179,6 +188,7 @@ Each compound operator reads the current value, applies the operation, and write
 | `-=` | `a = a - b` |
 | `*=` | `a = a * b` |
 | `/=` | `a = a / b` |
+| `//=` | `a = a // b` |
 | `%=` | `a = a % b` |
 | `**=` | `a = a ** b` |
 
@@ -188,8 +198,9 @@ n += 5    # 25
 n -= 10   # 15
 n *= 4    # 60
 n /= 3    # 20
-n %= 7    # 6
-n **= 3   # 216
+n //= 3   # 6
+n %= 5    # 1
+n **= 3   # 1
 ```
 
 Compound assignment also works on list indices and hashmap keys:
@@ -286,7 +297,7 @@ Operators are evaluated in the following order (highest to lowest). Operators on
 | :---: | :--- | :--- |
 | 1 (highest) | `**` | Right-associative |
 | 2 | unary `-`, `!`, `not`, `~` | |
-| 3 | `*`, `/`, `%` | |
+| 3 | `*`, `/`, `//`, `%` | |
 | 4 | `+`, `-` | |
 | 5 | `<<`, `>>`, `>>>` | |
 | 6 | `&` | |
@@ -297,7 +308,7 @@ Operators are evaluated in the following order (highest to lowest). Operators on
 | 11 | `||`, `or` | |
 | 12 | `??` | |
 | 13 | `? :` | Right-associative |
-| 14 (lowest) | `=`, `+=`, `-=`, `*=`, etc. | Right-associative |
+| 14 (lowest) | `=`, `+=`, `-=`, `*=`, `//=`, etc. | Right-associative |
 
 When in doubt, use parentheses:
 
