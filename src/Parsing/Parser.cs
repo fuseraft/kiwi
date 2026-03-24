@@ -176,6 +176,12 @@ public partial class Parser
                 node = ParseExpression();
                 break;
 
+            // A lambda expression (`with (...) do ... end`) used as a bare statement
+            // (e.g. the last expression in a function body that returns a lambda).
+            case TokenType.Lambda:
+                node = ParseExpression();
+                break;
+
             case TokenType.Newline:
                 return null;
 
@@ -2627,7 +2633,11 @@ public partial class Parser
                 node = ParseMemberAccess(node);
                 break;
             case TokenType.LParen when token.Span.Line == Previous().Span.Line:
-                node = ParseFunctionCall(identifierName, type);
+                // @instanceVar(args) — treat as a lambda call on the stored value,
+                // not as a named function call (which would look for a struct method).
+                node = isInstance
+                    ? ParseLambdaCall(node)
+                    : ParseFunctionCall(identifierName, type);
                 break;
             case TokenType.LBracket when token.Span.Line == Previous().Span.Line:
                 node = ParseIndexing(node);
