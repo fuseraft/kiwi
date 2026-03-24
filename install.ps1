@@ -19,6 +19,9 @@
 .PARAMETER Url
   Download a pre-built binary from this URL instead of building from source
 
+.PARAMETER UseExisting
+  Use the binary already present in .\bin\ instead of building from source
+
 .PARAMETER Uninstall
   Remove Kiwi from the system
 
@@ -30,6 +33,7 @@
   .\install.ps1 -System
   .\install.ps1 -Prefix "C:\tools\kiwi"
   .\install.ps1 -Url "https://example.com/kiwi.exe"
+  .\install.ps1 -UseExisting
   .\install.ps1 -Update
   .\install.ps1 -Uninstall
 
@@ -50,6 +54,7 @@ param (
   [string]$Prefix,
 
   [string]$Url,
+  [switch]$UseExisting,
   [switch]$Uninstall,
   [switch]$Update
 )
@@ -214,7 +219,36 @@ New-Item -ItemType Directory -Force -Path $LibDir | Out-Null
 # -------------------------------------------------------------------------
 # Build or Download
 # -------------------------------------------------------------------------
-if ($Url) {
+if ($UseExisting) {
+  # -------------------------------------------------------------------------
+  # Use the binary already present in .\bin\
+  # -------------------------------------------------------------------------
+  Write-Header 'Using existing binary'
+
+  $ScriptDir  = if ($PSCommandPath) { Split-Path -Parent $PSCommandPath } else { (Get-Location).Path }
+  $LocalBin   = Join-Path $ScriptDir 'bin\kiwi.exe'
+
+  if (-not (Test-Path $LocalBin)) {
+    Write-Fatal "No existing binary found at $LocalBin. Build first with .\build.sh or omit -UseExisting."
+  }
+
+  Copy-Item -Force $LocalBin $BinDir
+  Write-Success "Binary copied from $LocalBin"
+
+  # Copy settings file if present
+  $LocalSettings = Join-Path $ScriptDir 'bin\kiwi-settings.json'
+  if (Test-Path $LocalSettings) { Copy-Item -Force $LocalSettings $BinDir }
+
+  # Copy any native DLLs produced alongside the binary
+  Get-ChildItem -Path (Join-Path $ScriptDir 'bin') -Filter '*.dll' | ForEach-Object {
+    Copy-Item -Force $_.FullName $BinDir
+  }
+
+  # Install stdlib from the local repo
+  Copy-Item -Recurse -Force (Join-Path $ScriptDir 'lib\*') $LibDir
+  Write-Success 'Standard library installed'
+
+} elseif ($Url) {
   # -------------------------------------------------------------------------
   # Download pre-built binary
   # -------------------------------------------------------------------------

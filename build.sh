@@ -36,10 +36,30 @@ esac
 RUNTIME_ID="$DEFAULT_RID"  # Default RID; override with env var or argument
 
 # Allow overriding runtime identifier via environment variable or argument
+USE_EXISTING=false
+REMAINING_ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --use-existing|-e) USE_EXISTING=true ;;
+    *) REMAINING_ARGS+=("$arg") ;;
+  esac
+done
+
 if [[ -n "${KIWI_RUNTIME_ID:-}" ]]; then
   RUNTIME_ID="$KIWI_RUNTIME_ID"
-elif [[ $# -gt 0 ]]; then
-  RUNTIME_ID="$1"
+elif [[ ${#REMAINING_ARGS[@]} -gt 0 ]]; then
+  RUNTIME_ID="${REMAINING_ARGS[0]}"
+fi
+
+# Skip build if --use-existing / -e and the binary is already present
+if $USE_EXISTING; then
+  EXISTING_BIN="$OUTPUT_DIR/kiwi"
+  [[ "$RUNTIME_ID" == "win-x64" ]] && EXISTING_BIN="$OUTPUT_DIR/kiwi.exe"
+  if [[ -f "$EXISTING_BIN" ]]; then
+    echo "Using existing binary at $EXISTING_BIN (skipping build)."
+    exit 0
+  fi
+  echo "No existing binary found at $EXISTING_BIN — building from source."
 fi
 
 # Validate common RIDs
