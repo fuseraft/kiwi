@@ -1486,7 +1486,7 @@ public class Interpreter
             return val;
         }
 
-        return Value.CreateNull();
+        throw new VariableUndefinedError(node.Token, node.Name);
     }
 
     private bool AssertTypeMatch(Token t, Value v, List<int> types) =>
