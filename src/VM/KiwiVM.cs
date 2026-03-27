@@ -351,7 +351,7 @@ public sealed class KiwiVM
                             if (frame.Self != null)
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
-                                Push(Value.Default);
+                                throw new VariableUndefinedError(frame.GetToken(), name);
                             // Don't cache mutable globals
                         }
                         break;
@@ -1981,14 +1981,19 @@ internal static class VMFrameExt
 {
     internal static Token GetToken(this VMFrame frame)
     {
-        if (frame.CallSiteToken is { } cst)
-            return cst;
-
-        // No call-site token (e.g. top-level frame): build one from the chunk's
-        // debug info so errors point at the right file and line.
+        // Prefer the chunk's own debug info: it points at the instruction that
+        // actually caused the error, not the call site.
         int instrIdx = Math.Max(0, frame.IP - 1);
         int line     = frame.Chunk.GetLine(instrIdx);
         int fileId   = frame.Chunk.GetFileId(instrIdx);
-        return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(fileId, line, 0), string.Empty, Value.Default);
+
+        if (line > 0)
+            return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(fileId, line, 0), string.Empty, Value.Default);
+
+        // No debug info (e.g. synthesised chunk) — fall back to the call-site token.
+        if (frame.CallSiteToken is { } cst)
+            return cst;
+
+        return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(0, 0, 0), string.Empty, Value.Default);
     }
 }
