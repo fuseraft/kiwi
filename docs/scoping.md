@@ -33,12 +33,12 @@ fn make_counter(start)
     n += 1
     n
   end
-  step.to_lambda()
+  step
 end
 
 c = make_counter(0)
-println c.call([])  # 1
-println c.call([])  # 2
+println c()  # 1
+println c()  # 2
 ```
 
 Reading an outer variable works because scope lookup walks up the chain. Writing to an outer name updates the existing binding; writing a **new** name creates a local variable.
