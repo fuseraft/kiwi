@@ -24,10 +24,12 @@ public class VMScriptRunner : ScriptRunner
         catch (KiwiError e)
         {
             ErrorHandler.PrintError(e);
+            return 1;
         }
         catch (Exception e)
         {
             ErrorHandler.DumpCrashLog(e);
+            return 1;
         }
 
         return SuccessReturnCode;
@@ -77,10 +79,12 @@ public class VMScriptRunner : ScriptRunner
         catch (KiwiError e)
         {
             ErrorHandler.PrintError(e);
+            return 1;
         }
         catch (Exception e)
         {
             ErrorHandler.DumpCrashLog(e);
+            return 1;
         }
 
         return SuccessReturnCode;

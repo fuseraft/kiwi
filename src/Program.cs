@@ -10,10 +10,10 @@ public class Program
 {
     public static int Main(string[] args)
     {
-        var exitCode = 1;
-        
+        var exitCode = 0;
+
         try
-        {   
+        {
             Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
             Console.InputEncoding  = Encoding.UTF8;
 
@@ -29,22 +29,13 @@ public class Program
             {
                 foreach (var script in config.Scripts)
                 {
-                    var _ = runner.Run(script, config.Args);
-
-                    if (exitCode != 0 && exitCode != _)
-                    {
-                        exitCode = _;
-                    }
+                    var result = runner.Run(script, config.Args);
+                    if (result != 0) exitCode = result;
                 }
             }
             else
             {
-                var _ = runner.Run(string.Empty, config.Args);
-
-                if (exitCode != 0 && exitCode != _)
-                {
-                    exitCode = _;
-                }
+                exitCode = runner.Run(string.Empty, config.Args);
             }
         }
         catch (CliError e)
