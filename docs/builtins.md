@@ -1026,7 +1026,7 @@ println true.truthy()   # prints: true
 
 Returns the type of the value as a string.
 
-Valid types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `lambda`, `date`, `bytes`, `none`. For struct instances, returns the struct name.
+Valid types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `lambda`, `date`, `bytes`, `null`. For struct instances, returns the struct name.
 
 ```kiwi
 struct MyStruct end
@@ -1066,14 +1066,14 @@ These builtins are called as standalone functions (not with dot-notation) and pr
 
 Returns the type of `value` as a string. Unlike `.type()`, `typeof` can be called on any expression and works well in situations where method chaining is awkward.
 
-Valid types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `lambda`, `date`, `bytes`, `none`. For struct instances, returns the struct name.
+Valid types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `lambda`, `date`, `bytes`, `null`. For struct instances, returns the struct name.
 
 ```kiwi
 println typeof(42)          # prints: integer
 println typeof(3.14)        # prints: float
 println typeof("hello")     # prints: string
 println typeof([1, 2, 3])   # prints: list
-println typeof(null)        # prints: none
+println typeof(null)        # prints: null
 
 struct Point end
 p = Point.new()

@@ -70,7 +70,7 @@ Kiwi has a small, practical set of built-in types:
 | `string`   | `"hello"`, `'raw'`             |
 | `list`     | `[1, 2, 3]`                    |
 | `hashmap`  | `{name: "Alice", age: 30}`     |
-| `none`     | `null`                         |
+| `null`     | `null`                         |
 
 You can check a value's type at runtime using `std::type()`:
 

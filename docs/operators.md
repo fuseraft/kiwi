@@ -11,17 +11,17 @@ Kiwi provides a full set of operators for arithmetic, comparison, logic, bitwise
 | `+` | Add | `3 + 4` | `7` |
 | `-` | Subtract | `10 - 3` | `7` |
 | `*` | Multiply | `3 * 4` | `12` |
-| `/` | Divide | `10 / 4` | `2` |
+| `/` | Divide | `10 / 4` | `2.5` |
 | `//` | Integer divide | `7 // 2` | `3` |
 | `%` | Modulo | `10 % 3` | `1` |
 | `**` | Exponent | `2 ** 8` | `256` |
 
-**Integer vs float division:** When both operands are integers the result is an integer. Add a decimal point to get a float.
+**`/` always returns a float:** Division always produces a `float`, even when both operands are integers. Use `//` when you need an integer result.
 
 ```kiwi
-println 10 / 4    # 2     (integer division)
-println 10 / 4.0  # 2.5   (float division)
-println 10. / 4   # 2.5   (trailing dot promotes to float)
+println 10 / 4    # 2.5   (always float)
+println 10 / 4.0  # 2.5
+println 10 // 4   # 2     (integer division — use // for whole-number results)
 ```
 
 **`//` always returns an integer (floor division):** Floors both operands to integers before dividing, and the result always rounds toward negative infinity regardless of sign.
@@ -197,7 +197,7 @@ n = 20
 n += 5    # 25
 n -= 10   # 15
 n *= 4    # 60
-n /= 3    # 20
+n /= 3    # 20.0  (float — /= follows / semantics)
 n //= 3   # 6
 n %= 5    # 1
 n **= 3   # 1

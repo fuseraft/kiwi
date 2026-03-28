@@ -39,7 +39,7 @@ Kiwi’s type hint system supports the following builtin types:
 - **bytes**: Represents a byte array.
 - **pointer**: Represents a pointer to a managed reference.
 - **generator**: Represents a generator object (returned by a generator function).
-- **none**: Represents a `null` value.
+- **null**: Represents a `null` value. (`none` is accepted as a legacy alias.)
 - **any**: Accepts any type. Useful for parameters or return values where the type is flexible.
 
 ## Function Parameters with Type Hints
@@ -72,10 +72,10 @@ end
 
 ### Nullable Parameters
 
-The most common use case is allowing `null` alongside a concrete type:
+The most common use case is allowing `null` alongside a concrete type. You can write this as a union (`string|null`) or use the `?` shorthand:
 
 ```kiwi
-fn greet(name: string|none = null)
+fn greet(name: string? = null)   # string? is equivalent to string|null
   if name == null
     println("Hello, stranger!")
   else
@@ -85,6 +85,14 @@ end
 
 greet()          # Hello, stranger!
 greet("Scotty")  # Hello, Scotty!
+```
+
+The `?` suffix can be appended to any type name and expands to a union with `null`:
+
+```kiwi
+fn find(id: integer?): string?
+  # accepts null id, may return null
+end
 ```
 
 ### Multiple Types
@@ -104,14 +112,14 @@ process(3.14)  # value: 3.14
 A function can declare multiple valid return types:
 
 ```kiwi
-fn divide(a: integer, b: integer): integer|float
+fn divide(a: integer, b: integer): float
   if b == 0
-    return 0
+    return 0.0
   end
-  return a / b
+  return a / b   # / always returns float
 end
 
-fn maybe(flag: boolean): string|none
+fn maybe(flag: boolean): string?
   if flag
     return "hello"
   end

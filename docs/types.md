@@ -15,7 +15,7 @@ Kiwi supports the following builtin types. To build your own type, see [Structs]
 | [`integer`](#integer) | A 64-bit integer. | See below for an example. |
 | [`lambda`](#lambda) | An anonymous function. | See [lambdas](lambdas.md). |
 | [`list`](#list) | A list of values. | See [Lists](lists.md). |
-| [`none`](#none) | A null value. | See below for an example. |
+| [`null`](#null) | A null value. | See below for an example. |
 | [`object`](#object) | An instance of a `struct`. | See [Structs](structs.md) and [Abstract Structs](abstract_structs.md). |
 | [`pointer`](#pointer) | A pointer to a managed reference. | See example below. |
 | [`string`](#string) | A sequence of characters. | See [Strings](strings.md). |
@@ -156,7 +156,7 @@ println(list) # prints: [1, 2, 3, 4, 5]
 
 ---
 
-### `none`
+### `null`
 
 A `null` value. A value that points to nothing.
 
