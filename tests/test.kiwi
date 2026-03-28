@@ -1,7 +1,17 @@
 /#
-The Kiwi Project 1.4.0
-#/
+@file    tests/test.kiwi
+@summary Kiwi test runner — entry point for the full test suite.
 
+  Loads lib/testsuite.kiwi, which discovers and runs all test files under
+  tests/lib/suite/ and tests/lib/stdlib/, then prints a pass/fail summary.
+
+  Usage:
+    kiwi tests/test
+
+  Exit codes:
+    0  — all tests passed
+    1  — one or more tests failed
+#/
 
 fn main()
   include "lib/testsuite"
