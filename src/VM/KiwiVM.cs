@@ -524,18 +524,13 @@ public sealed class KiwiVM
                             _pathCache[name] = GlobalKind.UserGlobal; // mutable: cache kind only
                             Push(gv);
                         }
-                        else if (_context.HasPackage(name))
-                        {
-                            var v = Value.CreatePackage(name);
-                            _nameCache[name] = v; // packages never change
-                            Push(v);
-                        }
                         else
                         {
-                            // Package-internal call: if the current chunk has a package prefix
-                            // (e.g. "foo::"), try looking up "foo::name" before giving up.
-                            // This lets package-internal functions call each other without
-                            // the caller having to write the full qualified name.
+                            // Package-internal call: try "pkg::name" before falling back to
+                            // a bare package or struct-method lookup.  This lets closures
+                            // returned from package functions (e.g. bench::timed) still
+                            // resolve sibling functions (e.g. bench::fmt) even when a
+                            // same-named stdlib package exists (e.g. package fmt).
                             var pkgPfx = frame.Chunk.PackagePrefix;
                             if (pkgPfx.Length > 0)
                             {
@@ -562,9 +557,15 @@ public sealed class KiwiVM
                                     break;
                                 }
                             }
+                            if (_context.HasPackage(name))
+                            {
+                                var v = Value.CreatePackage(name);
+                                _nameCache[name] = v; // packages never change
+                                Push(v);
+                            }
                             // When not found globally and we're inside a struct method,
                             // treat it as an implicit @.name() call on self.
-                            if (frame.Self != null)
+                            else if (frame.Self != null)
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
                                 throw new VariableUndefinedError(frame.GetToken(), name);
