@@ -279,9 +279,9 @@ public struct MathOp
     {
         if (left.IsInteger() && right.IsInteger())
         {
-            type = Typing.ValueType.Integer;
-            var rhs = GetNonZero(token, right.GetInteger());
-            return new(left.GetInteger() / rhs, type);
+            type = Typing.ValueType.Float;
+            var rhs = GetNonZero(token, (double)right.GetInteger());
+            return new((double)left.GetInteger() / rhs, type);
         }
         else if (left.IsFloat() && right.IsFloat())
         {

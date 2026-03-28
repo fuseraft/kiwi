@@ -34,7 +34,7 @@ package bench
     sorted = timings.sort()
     total  = timings.sum()
     mean   = total / n_f
-    median = n % 2 == 1 ? sorted[n / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+    median = n % 2 == 1 ? sorted[n // 2] : (sorted[n // 2 - 1] + sorted[n // 2]) / 2.0
 
     sq_sum = 0.0
     for t in timings do

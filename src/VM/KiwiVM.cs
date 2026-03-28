@@ -449,11 +449,11 @@ public sealed class KiwiVM
                                     Push(_context.PackageVariables[name]);
                                     break;
                                 case GlobalKind.UserGlobal:
-                                    if (_globals.TryGet(name, out var gvp) && !gvp.IsNull())
-                                        Push(gvp);
+                                    if (_globals.TryGet(name, out var gvp))
+                                        Push(gvp); // null is a valid value
                                     else
                                     {
-                                        _pathCache.Remove(name); // stale — fall through to slow path
+                                        _pathCache.Remove(name); // deleted — fall through to slow path
                                         pathHandled = false;
                                     }
                                     break;
@@ -519,10 +519,10 @@ public sealed class KiwiVM
                             _nameCache[name] = v; // struct definitions are stable
                             Push(v);
                         }
-                        else if (_globals.TryGet(name, out var gv) && !gv.IsNull())
+                        else if (_globals.TryGet(name, out var gv))
                         {
                             _pathCache[name] = GlobalKind.UserGlobal; // mutable: cache kind only
-                            Push(gv);
+                            Push(gv); // null is a valid value
                         }
                         else
                         {

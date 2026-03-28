@@ -168,7 +168,7 @@ struct MD5
     end
 
     chunk_size = 64  # 64 bytes = 512 bits
-    num_chunks = message.size() / chunk_size
+    num_chunks = message.size() // chunk_size
 
     for chunk_index in [0 to num_chunks - 1] do
       # Extract the current chunk:

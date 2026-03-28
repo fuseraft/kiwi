@@ -83,19 +83,19 @@ struct Heap
   end
 
   private fn heapify_up(index: integer)
-    var (parent_index: integer = (index - 1) / 2)
+    var (parent_index: integer = (index - 1) // 2)
 
     if @heap_type == "min"
       while index > 0 && @heap.get(index) < @heap.get(parent_index) do
         swap(index, parent_index)
         index = parent_index
-        parent_index = (index - 1) / 2
+        parent_index = (index - 1) // 2
       end
     else
       while index > 0 && @heap.get(index) > @heap.get(parent_index) do
         swap(index, parent_index)
         index = parent_index
-        parent_index = (index - 1) / 2
+        parent_index = (index - 1) // 2
       end
     end
   end
