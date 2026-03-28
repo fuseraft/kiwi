@@ -2656,10 +2656,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_any_list-_predicate" class="md-nav__link">
+  <a href="#any_list-_predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        _any(_list, _predicate)
+        any(_list, _predicate)
       
     </span>
   </a>
@@ -2667,10 +2667,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_count_list-_predicate" class="md-nav__link">
+  <a href="#count_list-_predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        _count(_list, _predicate)
+        count(_list, _predicate)
       
     </span>
   </a>
@@ -2744,10 +2744,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_none_list-_predicate" class="md-nav__link">
+  <a href="#none_list-_predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        _none(_list, _predicate)
+        none(_list, _predicate)
       
     </span>
   </a>
@@ -2800,17 +2800,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notes-on-underscore-prefixed-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notes on Underscore-Prefixed Functions
-      
-    </span>
-  </a>
   
 </li>
       
@@ -3619,10 +3608,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_any_list-_predicate" class="md-nav__link">
+  <a href="#any_list-_predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        _any(_list, _predicate)
+        any(_list, _predicate)
       
     </span>
   </a>
@@ -3630,10 +3619,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_count_list-_predicate" class="md-nav__link">
+  <a href="#count_list-_predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        _count(_list, _predicate)
+        count(_list, _predicate)
       
     </span>
   </a>
@@ -3707,10 +3696,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_none_list-_predicate" class="md-nav__link">
+  <a href="#none_list-_predicate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        _none(_list, _predicate)
+        none(_list, _predicate)
       
     </span>
   </a>
@@ -3763,17 +3752,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notes-on-underscore-prefixed-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notes on Underscore-Prefixed Functions
-      
-    </span>
-  </a>
   
 </li>
       
@@ -3898,7 +3876,7 @@
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>println list::all([2, 3, 6], do (n) =&gt; n % 2 == 0)  # prints: false
 </span></code></pre></div>
 <hr />
-<h3 id="_any_list-_predicate"><code>_any(_list, _predicate)</code><a class="headerlink" href="#_any_list-_predicate" title="Permanent link">&para;</a></h3>
+<h3 id="any_list-_predicate"><code>any(_list, _predicate)</code><a class="headerlink" href="#any_list-_predicate" title="Permanent link">&para;</a></h3>
 <p>Returns <code>true</code> if at least one element in the list satisfies the predicate. Short-circuits on the first match.</p>
 <p><strong>Parameters</strong></p>
 <table>
@@ -3940,11 +3918,11 @@
 <p><strong>Example</strong></p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;list&quot;
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>println list::_any([1, 3, 4], do (n) =&gt; n % 2 == 0)  # prints: true
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>println list::_any([1, 3, 5], do (n) =&gt; n % 2 == 0)  # prints: false
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>println list::any([1, 3, 4], do (n) =&gt; n % 2 == 0)  # prints: true
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>println list::any([1, 3, 5], do (n) =&gt; n % 2 == 0)  # prints: false
 </span></code></pre></div>
 <hr />
-<h3 id="_count_list-_predicate"><code>_count(_list, _predicate)</code><a class="headerlink" href="#_count_list-_predicate" title="Permanent link">&para;</a></h3>
+<h3 id="count_list-_predicate"><code>count(_list, _predicate)</code><a class="headerlink" href="#count_list-_predicate" title="Permanent link">&para;</a></h3>
 <p>Returns the number of elements in the list that satisfy the predicate.</p>
 <p><strong>Parameters</strong></p>
 <table>
@@ -3986,7 +3964,7 @@
 <p><strong>Example</strong></p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;list&quot;
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>println list::_count([1, 2, 3, 4, 5], do (n) =&gt; n &gt; 2)  # prints: 3
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>println list::count([1, 2, 3, 4, 5], do (n) =&gt; n &gt; 2)  # prints: 3
 </span></code></pre></div>
 <hr />
 <h3 id="find_list-_predicate"><code>find(_list, _predicate)</code><a class="headerlink" href="#find_list-_predicate" title="Permanent link">&para;</a></h3>
@@ -4259,7 +4237,7 @@
 </span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>println result  # prints: 4
 </span></code></pre></div>
 <hr />
-<h3 id="_none_list-_predicate"><code>_none(_list, _predicate)</code><a class="headerlink" href="#_none_list-_predicate" title="Permanent link">&para;</a></h3>
+<h3 id="none_list-_predicate"><code>none(_list, _predicate)</code><a class="headerlink" href="#none_list-_predicate" title="Permanent link">&para;</a></h3>
 <p>Returns <code>true</code> if no element in the list satisfies the predicate.</p>
 <p><strong>Parameters</strong></p>
 <table>
@@ -4301,8 +4279,8 @@
 <p><strong>Example</strong></p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>import &quot;list&quot;
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>println list::_none([1, 3, 5], do (n) =&gt; n % 2 == 0)  # prints: true
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>println list::_none([1, 2, 5], do (n) =&gt; n % 2 == 0)  # prints: false
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>println list::none([1, 3, 5], do (n) =&gt; n % 2 == 0)  # prints: true
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>println list::none([1, 2, 5], do (n) =&gt; n % 2 == 0)  # prints: false
 </span></code></pre></div>
 <hr />
 <h3 id="one_list-_predicate"><code>one(_list, _predicate)</code><a class="headerlink" href="#one_list-_predicate" title="Permanent link">&para;</a></h3>
@@ -4477,12 +4455,6 @@
 </span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>println list::sum_float([1, 1.5, 2.5, &quot;x&quot;, 3])  # prints: 4.0
 </span></code></pre></div>
 <hr />
-<h2 id="notes-on-underscore-prefixed-functions">Notes on Underscore-Prefixed Functions<a class="headerlink" href="#notes-on-underscore-prefixed-functions" title="Permanent link">&para;</a></h2>
-<p>The functions <code>_any</code>, <code>_count</code>, and <code>_none</code> have underscore prefixes in their names to avoid conflicts with Kiwi built-in keywords or reserved identifiers. They are called exactly as written, including the underscore:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>list::_any(data, predicate)
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>list::_count(data, predicate)
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>list::_none(data, predicate)
-</span></code></pre></div>
 
 
 
