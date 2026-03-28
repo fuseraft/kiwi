@@ -158,6 +158,7 @@ public partial class Parser
             case TokenType.LBrace:
             case TokenType.LBracket:
             case TokenType.LParen:
+            case TokenType.Lambda:
             case TokenType.Literal:
             case TokenType.Operator:
             case TokenType.Identifier:
@@ -2592,7 +2593,7 @@ public partial class Parser
                 node = ParseMemberAccess(node);
                 break;
             case TokenType.LParen when token.Span.Line == Previous().Span.Line:
-                node = ParseFunctionCall(identifierName, type);
+                node = isInstance ? ParseLambdaCall(node) : ParseFunctionCall(identifierName, type);
                 break;
             case TokenType.LBracket when token.Span.Line == Previous().Span.Line:
                 node = ParseIndexing(node);

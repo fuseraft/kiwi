@@ -1,0 +1,158 @@
+/#
+  debug/ast.kiwi — Tiny AST node library evaluated by the stress-test.
+
+  Nodes: NumLit, BoolLit, StrLit, VarRef, BinOp, LambdaExpr, ApplyExpr,
+         ListExpr, SeqExpr
+
+  Each node exposes:  eval_node(env) -> value
+#/
+
+package ast
+
+  struct NumLit
+    @value
+    fn new(v)
+      @value = v
+    end
+    fn eval_node(env)
+      @value
+    end
+  end
+
+  struct BoolLit
+    @value
+    fn new(v)
+      @value = v
+    end
+    fn eval_node(env)
+      @value
+    end
+  end
+
+  struct StrLit
+    @value
+    fn new(v)
+      @value = v
+    end
+    fn eval_node(env)
+      @value
+    end
+  end
+
+  struct VarRef
+    @name
+    fn new(n)
+      @name = n
+    end
+    fn eval_node(env)
+      env["lookup"](@name)
+    end
+  end
+
+  struct BinOp
+    @op
+    @left
+    @right
+    fn new(op, l, r)
+      @op    = op
+      @left  = l
+      @right = r
+    end
+    fn eval_node(env)
+      lv = @left.eval_node(env)
+      rv = @right.eval_node(env)
+      if @op == "+"
+        lv + rv
+      elsif @op == "-"
+        lv - rv
+      elsif @op == "*"
+        lv * rv
+      elsif @op == "/"
+        lv / rv
+      elsif @op == "%"
+        lv % rv
+      elsif @op == "=="
+        lv == rv
+      elsif @op == "!="
+        lv != rv
+      elsif @op == "<"
+        lv < rv
+      elsif @op == ">"
+        lv > rv
+      elsif @op == "<="
+        lv <= rv
+      elsif @op == ">="
+        lv >= rv
+      elsif @op == "&&"
+        lv && rv
+      elsif @op == "||"
+        lv || rv
+      else
+        throw "BinOp: unknown op '${@op}'"
+      end
+    end
+  end
+
+  struct LambdaExpr
+    @param
+    @body
+    fn new(p, b)
+      @param = p
+      @body  = b
+    end
+    fn eval_node(env)
+      param_copy = @param
+      body_copy  = @body
+      with (arg) do
+        child = env["child"]()
+        child["bind"](param_copy, arg)
+        body_copy.eval_node(child)
+      end
+    end
+  end
+
+  struct ApplyExpr
+    @func
+    @arg
+    fn new(f, a)
+      @func = f
+      @arg  = a
+    end
+    fn eval_node(env)
+      fn_val  = @func.eval_node(env)
+      arg_val = @arg.eval_node(env)
+      fn_val(arg_val)
+    end
+  end
+
+  struct ListExpr
+    @items
+    fn new(items)
+      @items = items
+    end
+    fn eval_node(env)
+      result = []
+      for item in @items do
+        result.push(item.eval_node(env))
+      end
+      result
+    end
+  end
+
+  struct SeqExpr
+    @nodes
+    fn new(nodes)
+      @nodes = nodes
+    end
+    fn eval_node(env)
+      last = null
+      for node in @nodes do
+        last = node.eval_node(env)
+      end
+      last
+    end
+  end
+
+end
+
+export "ast"

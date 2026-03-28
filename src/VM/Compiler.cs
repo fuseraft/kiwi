@@ -69,6 +69,19 @@ public sealed class Compiler
         return c._chunk;
     }
 
+    /// <summary>
+    /// Compile a program that is included into an already-running VM (not the entry point).
+    /// Uses ReturnNull instead of Halt so the include frame can be cleanly popped by the VM.
+    /// </summary>
+    public static Chunk CompileIncludedProgram(ProgramNode program)
+    {
+        var c = new Compiler("<include>", null, isGlobal: true);
+        foreach (var s in program.Statements)
+            if (s != null) c.CompileStatement(s);
+        c.Emit(Opcode.ReturnNull);
+        return c._chunk;
+    }
+
     public static Chunk CompileFunction(FunctionNode fn, Compiler? enclosing)
     {
         var c = new Compiler(fn.Name, enclosing, isGlobal: false);

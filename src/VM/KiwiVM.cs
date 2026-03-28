@@ -76,7 +76,9 @@ public sealed class KiwiVM
     private readonly Dictionary<string, Value> _nameCache = new(StringComparer.Ordinal);
 
     // -- Closure ID counter (replaces Guid.NewGuid) ----------------------------
-    private int _closureIdCounter;
+    // Must be global (not per-VM) so that task VMs don't collide with each other
+    // or with the main VM in the shared _context.Lambdas dictionary.
+    private static int _globalClosureIdCounter;
 
 
     // -- Shared runtime state (shared with the tree-walking interpreter) -------
@@ -119,6 +121,7 @@ public sealed class KiwiVM
     public Value Execute(Chunk chunk)
     {
         PushFrame("<main>", chunk, stackBase: 0, upvalues: []);
+        _frames[0].IsGlobalScope = true;
         // Initialize locals to null (LocalCount slots)
         for (int i = 0; i < chunk.LocalCount; i++)
             _stack[i] = Value.Default;
@@ -132,6 +135,44 @@ public sealed class KiwiVM
     /// an interpreter-side call (e.g. an interpreted lambda calling a VM-compiled function).
     /// Sets up a new VM frame, runs to completion, and returns the result.
     /// </summary>
+    /// <summary>
+    /// Execute a top-level program chunk inline (as if it were included into the current program).
+    /// Compiles the included file's packages/functions into VM bytecode and discards any return value.
+    /// </summary>
+    public void ExecuteInclude(Chunk chunk, Token token)
+    {
+        int savedSp         = _sp;
+        int savedFrameCount = _frameCount;
+        int calleeBase      = _sp;
+        var savedBelow      = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+
+        // Reserve space for locals
+        for (int i = 0; i < chunk.LocalCount; i++)
+        {
+            if (calleeBase + i < _stack.Length) _stack[calleeBase + i] = Value.Default;
+        }
+        _sp = calleeBase + chunk.LocalCount;
+
+        int stopAt = _frameCount;
+        PushFrame("<include>", chunk, calleeBase, [], token);
+        _frames[_frameCount - 1].IsGlobalScope = true;
+
+        try
+        {
+            RunLoop(stopAt);
+        }
+        catch
+        {
+            _sp         = savedSp;
+            _frameCount = savedFrameCount;
+            throw;
+        }
+
+        // Restore the slot potentially clobbered by Return's Push(result)
+        if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
+        _sp = savedSp; // discard return value, restore stack
+    }
+
     public Value InvokeVMCallable(Callable callable, List<Value> args, Token token, InstanceRef? instance = null)
     {
         var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
@@ -343,6 +384,30 @@ public sealed class KiwiVM
                             var v = Value.CreatePackage(name);
                             _nameCache[name] = v; // packages never change
                             Push(v);
+                        }
+                        else if (!string.IsNullOrEmpty(frame.Chunk.PackagePrefix))
+                        {
+                            // Package-internal sibling call: try pkg::name fallback.
+                            var qualName = frame.Chunk.PackagePrefix + "::" + name;
+                            if (_context.HasFunction(qualName))
+                            {
+                                var fn = _context.Functions[qualName];
+                                var v  = Value.CreateLambda(new LambdaRef { Identifier = qualName, VMChunk = fn.VMChunk, VMUpvalues = fn.VMUpvalues });
+                                Push(v);
+                            }
+                            else if (_context.HasStruct(qualName))
+                            {
+                                var v = Value.CreateStruct(new StructRef { Identifier = qualName });
+                                Push(v);
+                            }
+                            else if (frame.Self != null)
+                            {
+                                Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
+                            }
+                            else
+                            {
+                                throw new VariableUndefinedError(frame.GetToken(), name);
+                            }
                         }
                         else
                         {
@@ -735,9 +800,14 @@ public sealed class KiwiVM
                         var rawName  = frame.Chunk.Names[B];
 
                         // Qualify the name with the current package prefix (if any).
-                        var funcName = _interp.PackageStack.Count > 0
-                            ? string.Join("::", _interp.PackageStack.Reverse()) + "::" + rawName
-                            : rawName;
+                        var pkgPrefix = _interp.PackageStack.Count > 0
+                            ? string.Join("::", _interp.PackageStack.Reverse())
+                            : string.Empty;
+                        var funcName = pkgPrefix.Length > 0 ? pkgPrefix + "::" + rawName : rawName;
+
+                        // Store the package prefix on the sub-chunk so LoadGlobal can
+                        // resolve unqualified sibling calls when executing this function.
+                        sub.PackagePrefix = pkgPrefix;
 
                         // Build upvalue array for the closure (even for named functions)
                         var upvalues = BuildUpvalues(sub, frame);
@@ -760,8 +830,9 @@ public sealed class KiwiVM
                         _context.Functions[funcName] = kfunc;
                         _nameCache.Remove(funcName); // invalidate stale cached lambda ref
 
-                        // If defined inside another function frame, track for cleanup on return.
-                        if (_frameCount > 1)
+                        // If defined inside another function frame (but not a global-scope
+                        // include frame), track for cleanup on return.
+                        if (_frameCount > 1 && !_frames[_frameCount - 1].IsGlobalScope)
                             _frames[_frameCount - 1].TrackLocalFunction(funcName);
 
                         break;
@@ -771,6 +842,10 @@ public sealed class KiwiVM
                     case Opcode.MakeClosure:
                     {
                         var sub      = frame.Chunk.SubChunks[A];
+                        // Inherit the enclosing function's package prefix so that
+                        // LoadGlobal inside this closure can resolve sibling functions.
+                        if (!string.IsNullOrEmpty(frame.Chunk.PackagePrefix) && string.IsNullOrEmpty(sub.PackagePrefix))
+                            sub.PackagePrefix = frame.Chunk.PackagePrefix;
                         var upvalues = BuildUpvalues(sub, frame);
 
                         var klambda = new KLambda(BuildLambdaNode(sub))
@@ -786,7 +861,7 @@ public sealed class KiwiVM
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             klambda.VariadicParamName = sub.VariadicParamName;
 
-                        var id   = $"__lam_{_closureIdCounter++}";
+                        var id   = $"__lam_{Interlocked.Increment(ref _globalClosureIdCounter)}";
                         var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues };
                         klambda.Ref = lref;
                         _context.Lambdas[id] = klambda;
@@ -1424,6 +1499,14 @@ public sealed class KiwiVM
                         }
                         _context.Structs[struc.Name] = struc;
                         _nameCache.Remove(struc.Name);
+                        // Also register under the qualified pkg::StructName so
+                        // LoadGlobal("pkg::Struct") finds it when inside a package.
+                        if (_interp.PackageStack.Count > 0)
+                        {
+                            var qualName = string.Join("::", _interp.PackageStack.Reverse()) + "::" + struc.Name;
+                            _context.Structs[qualName] = struc;
+                            _nameCache.Remove(qualName);
+                        }
                         break;
                     }
 

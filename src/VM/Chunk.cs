@@ -106,6 +106,12 @@ public class Chunk
     public string VariadicParamName { get; set; } = string.Empty;
 
     /// <summary>
+    /// The package prefix this chunk was compiled inside (e.g. "env"), or empty string if top-level.
+    /// Used by LoadGlobal to resolve unqualified sibling-function calls inside package functions.
+    /// </summary>
+    public string PackagePrefix { get; set; } = string.Empty;
+
+    /// <summary>
     /// Maps every pre-scanned local variable to its stack slot index (relative to frame base).
     /// Populated by the compiler so the VM can build an interpreter scope for InterpFallback.
     /// </summary>

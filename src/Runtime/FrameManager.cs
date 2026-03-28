@@ -92,7 +92,7 @@ internal sealed class FrameManager
                     ctx.Functions.Remove(fname);
             if (frame.HasLocalLambdas)
                 foreach (var lname in frame.LocalLambdas)
-                    ctx.Lambdas.Remove(lname);
+                    ctx.Lambdas.TryRemove(lname, out _);
         }
 
         var ret = frame.ReturnValue ?? Value.Default;

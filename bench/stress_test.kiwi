@@ -1,0 +1,572 @@
+/#
+  debug.kiwi — Kiwi stress test harness.
+
+  Exercises: abstract struct hierarchies, deep closure capture, Church-numeral
+  lambda calculus, generator-driven random eval, multi-stage pipeline DSL,
+  concurrent task evaluation via channels, mutual recursion via closures,
+  decorator usage, and variadic/splat functions.
+
+  Run from the project root: kiwi debug.kiwi
+#/
+
+include "stress/ast"
+include "stress/env"
+include "stress/codegen"
+include "stress/pipeline"
+
+import "task"
+
+/# ─── Global test counters ───────────────────────────────────────────────── #/
+
+global.dbg_passed = 0
+global.dbg_failed = 0
+
+/# ─── Helpers ──────────────────────────────────────────────────────────────── #/
+
+fn sep(title)
+  bar = "─" * 60
+  println "\n${bar}"
+  println "  ${title}"
+  println bar
+end
+
+fn assert_eq(label, got, expected)
+  ok     = got == expected
+  status = ok ? "PASS" : "FAIL"
+  println "  [${status}] ${label}"
+  if !ok
+    println "        got: ${got}"
+    println "   expected: ${expected}"
+  end
+  global.dbg_passed = global.dbg_passed + (ok ? 1 : 0)
+  global.dbg_failed = global.dbg_failed + (ok ? 0 : 1)
+end
+
+fn assert_true(label, cond)
+  assert_eq(label, cond, true)
+end
+
+fn safe_eval(node, env_ref)
+  result = null
+  ok     = true
+  err    = ""
+  try
+    result = node.eval_node(env_ref)
+  catch e
+    ok  = false
+    err = e.to_string()
+  end
+  { "ok": ok, "value": result, "error": err }
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Phase 1 — Correctness: known expressions with known expected values
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+@bench::timed
+fn phase1_correctness(root)
+  sep("Phase 1: Correctness (AST eval)")
+
+  cases = codegen::known_cases()
+  println "  Running ${cases.size()} known-answer tests..."
+
+  for c in cases do
+    r = safe_eval(c["node"], root)
+    if r["ok"]
+      assert_eq(c["label"], r["value"], c["expected"])
+    else
+      assert_eq(c["label"], "ERROR: ${r["error"]}", c["expected"])
+    end
+  end
+
+  /# Extra: ListExpr evaluates to a Kiwi list; verify sum #/
+  list_items = [ast::NumLit.new(1), ast::NumLit.new(2), ast::NumLit.new(3),
+                ast::NumLit.new(4), ast::NumLit.new(5)]
+  list_node  = ast::ListExpr.new(list_items)
+  list_val   = list_node.eval_node(root)
+  assert_eq("ListExpr [1..5] .sum() = 15", list_val.sum(), 15)
+
+  /# Seq: evaluate multiple expressions, return last #/
+  seq_node = ast::SeqExpr.new([
+    ast::NumLit.new(1),
+    ast::NumLit.new(2),
+    ast::BinOp.new("*", ast::NumLit.new(6), ast::NumLit.new(7))
+  ])
+  assert_eq("SeqExpr last = 42", seq_node.eval_node(root), 42)
+
+  /# VarRef reads from the root environment #/
+  assert_true("VarRef(phi) > 1.6", root["lookup"]("phi") > 1.6)
+
+  println "  Done."
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Phase 2 — Lambda calculus: Church numerals + curried functions
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+fn church_to_int(ch)
+  inc     = with (x) do x + 1 end
+  counter = ch(inc)
+  counter(0)
+end
+
+@bench::timed
+fn phase2_lambda_calculus(root)
+  sep("Phase 2: Lambda Calculus (Church numerals)")
+
+  /# zero = lam f . lam x . x #/
+  zero_ast = ast::LambdaExpr.new("f",
+               ast::LambdaExpr.new("x", ast::VarRef.new("x")))
+
+  /# succ = lam n . lam f . lam x . f(n(f)(x)) #/
+  n_f      = ast::ApplyExpr.new(ast::VarRef.new("n"), ast::VarRef.new("f"))
+  n_f_x    = ast::ApplyExpr.new(n_f, ast::VarRef.new("x"))
+  f_nfx    = ast::ApplyExpr.new(ast::VarRef.new("f"), n_f_x)
+  succ_ast = ast::LambdaExpr.new("n",
+               ast::LambdaExpr.new("f",
+                 ast::LambdaExpr.new("x", f_nfx)))
+
+  /# add = lam m . lam n . lam f . lam x . m(f)(n(f)(x)) #/
+  m_f       = ast::ApplyExpr.new(ast::VarRef.new("m"), ast::VarRef.new("f"))
+  n_f2      = ast::ApplyExpr.new(ast::VarRef.new("n"), ast::VarRef.new("f"))
+  n_f2_x    = ast::ApplyExpr.new(n_f2, ast::VarRef.new("x"))
+  m_f_inner = ast::ApplyExpr.new(m_f, n_f2_x)
+  add_ast   = ast::LambdaExpr.new("m",
+                ast::LambdaExpr.new("n",
+                  ast::LambdaExpr.new("f",
+                    ast::LambdaExpr.new("x", m_f_inner))))
+
+  zero_val = zero_ast.eval_node(root)
+  succ_val = succ_ast.eval_node(root)
+  add_val  = add_ast.eval_node(root)
+
+  one_val   = succ_val(zero_val)
+  two_val   = succ_val(one_val)
+  three_val = succ_val(two_val)
+  four_val  = succ_val(three_val)
+  five_val  = succ_val(four_val)
+
+  assert_eq("Church 0 = 0", church_to_int(zero_val),  0)
+  assert_eq("Church 1 = 1", church_to_int(one_val),   1)
+  assert_eq("Church 2 = 2", church_to_int(two_val),   2)
+  assert_eq("Church 3 = 3", church_to_int(three_val), 3)
+  assert_eq("Church 4 = 4", church_to_int(four_val),  4)
+  assert_eq("Church 5 = 5", church_to_int(five_val),  5)
+
+  /# add(two)(three) = 5 #/
+  added = add_val(two_val)(three_val)
+  assert_eq("Church add(2)(3) = 5", church_to_int(added), 5)
+
+  /# add(four)(four) = 8 #/
+  eight = add_val(four_val)(four_val)
+  assert_eq("Church add(4)(4) = 8", church_to_int(eight), 8)
+
+  /# Curried multiply: (lam x . lam y . x*y)(7)(6) = 42 #/
+  mul_lam = ast::LambdaExpr.new("x",
+              ast::LambdaExpr.new("y",
+                ast::BinOp.new("*", ast::VarRef.new("x"), ast::VarRef.new("y"))))
+  apply7  = ast::ApplyExpr.new(mul_lam, ast::NumLit.new(7))
+  apply76 = ast::ApplyExpr.new(apply7,  ast::NumLit.new(6))
+  assert_eq("(lam x. lam y. x*y)(7)(6) = 42", apply76.eval_node(root), 42)
+
+  /# compose(double)(inc)(10) = 22  #/
+  comp_body  = ast::ApplyExpr.new(ast::VarRef.new("f"),
+                 ast::ApplyExpr.new(ast::VarRef.new("g"), ast::VarRef.new("x")))
+  comp_ast   = ast::LambdaExpr.new("f",
+                 ast::LambdaExpr.new("g",
+                   ast::LambdaExpr.new("x", comp_body)))
+  double_ast = ast::LambdaExpr.new("x",
+                 ast::BinOp.new("*", ast::VarRef.new("x"), ast::NumLit.new(2)))
+  inc_ast    = ast::LambdaExpr.new("x",
+                 ast::BinOp.new("+", ast::VarRef.new("x"), ast::NumLit.new(1)))
+
+  comp_val   = comp_ast.eval_node(root)
+  double_val = double_ast.eval_node(root)
+  inc_lam    = inc_ast.eval_node(root)
+
+  composed = comp_val(double_val)(inc_lam)
+  assert_eq("compose(double)(inc)(10) = 22", composed(10), 22)
+
+  println "  Done."
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Phase 3 — Generator-driven random evaluation
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+@bench::timed
+fn phase3_random_eval(root)
+  sep("Phase 3: Random AST eval via generator (500 expressions)")
+
+  ok_count  = 0
+  err_count = 0
+  num_exprs = 500
+  root_vars = ["pi", "e", "phi", "zero", "one", "two", "ten", "hundred"]
+
+  for node in codegen::expr_stream(num_exprs, 5, root_vars) do
+    r = safe_eval(node, root)
+    if r["ok"]
+      ok_count  += 1
+    else
+      err_count += 1
+    end
+  end
+
+  println "  Evaluated ${num_exprs} random expressions."
+  println "    ok    : ${ok_count}"
+  println "    errors: ${err_count}"
+  rate = ok_count.to_float() / num_exprs.to_float()
+  println "    success rate: ${math::round(rate * 100.0, 1)}%"
+  assert_true("at least 50% eval without error (rest are expected type mismatches)",
+              rate >= 0.5)
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Phase 4 — Pipeline DSL stress test
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+@bench::timed
+fn phase4_pipelines()
+  sep("Phase 4: Pipeline DSL")
+
+  /# Pipeline A: numeric chain with many stages #/
+  data_a = []
+  repeat 1000 as i do data_a.push(i + 1) end
+
+  pa = pipeline::Pipeline.new("A")
+  pa.add(pipeline::FilterStage.new("odd",    with (x) do x % 2 == 1 end))
+  pa.add(pipeline::MapStage.new("square",    with (x) do x * x end))
+  pa.add(pipeline::FilterStage.new(">10000", with (x) do x > 10000 end))
+  pa.add(pipeline::SortStage.new("asc",      with (a, b) do a < b end))
+  pa.add(pipeline::TakeStage.new(10))
+  pa.add(pipeline::ReduceStage.new("sum",    0, with (acc, x) do acc + x end))
+
+  result_a = pa.run(data_a)
+  println "  ${pa.describe()}"
+  println "  result: ${result_a[0]}"
+  assert_true("pipeline A produced a result", result_a.size() == 1)
+
+  /# Pipeline B: zip, filter, unique #/
+  data_b1 = []
+  data_b2 = []
+  repeat 200 as i do
+    data_b1.push(i + 1)
+    data_b2.push((i % 10) + 1)
+  end
+
+  pb = pipeline::Pipeline.new("B")
+  pb.add(pipeline::ZipWithStage.new("pair",    data_b2, with (a, b) do { "v": a, "k": b } end))
+  pb.add(pipeline::FilterStage.new("k<5",               with (r) do r["k"] < 5 end))
+  pb.add(pipeline::UniqueStage.new(                      with (r) do r["k"] end))
+  pb.add(pipeline::MapStage.new("extract_v",             with (r) do r["v"] end))
+  pb.add(pipeline::SortStage.new("asc",                  with (a, b) do a < b end))
+
+  result_b = pb.run(data_b1)
+  println "  ${pb.describe()}"
+  println "  result (${result_b.size()} items): ${result_b.to_string()}"
+  assert_true("pipeline B produced 4 unique k<5 items", result_b.size() == 4)
+
+  /# Pipeline C: flat_map + drop + group #/
+  data_c = []
+  repeat 30 as i do data_c.push(i + 1) end
+
+  pc = pipeline::Pipeline.new("C")
+  pc.add(pipeline::FlatMapStage.new("triplicate", with (x) do [x, x * 2, x * 3] end))
+  pc.add(pipeline::FilterStage.new("even",        with (x) do x % 2 == 0 end))
+  pc.add(pipeline::DropStage.new(5))
+  pc.add(pipeline::UniqueStage.new(               with (x) do x end))
+  pc.add(pipeline::SortStage.new("desc",          with (a, b) do a > b end))
+  pc.add(pipeline::TakeStage.new(5))
+  pc.add(pipeline::ReduceStage.new("product",     1, with (acc, x) do acc * x end))
+
+  result_c = pc.run(data_c)
+  println "  ${pc.describe()}"
+  println "  result: ${result_c[0]}"
+  assert_true("pipeline C produced a single result", result_c.size() == 1)
+
+  println "  Done."
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Phase 5 — Closure stress: mutual recursion + higher-order factories
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+@bench::timed
+fn phase5_closures()
+  sep("Phase 5: Closure Stress (mutual recursion, factories, variadic)")
+
+  /# Mutual recursion via captured variable references #/
+  is_even = null
+  is_odd  = null
+
+  is_even = with (n) do
+    return true when n == 0
+    is_odd(n - 1)
+  end
+
+  is_odd = with (n) do
+    return false when n == 0
+    is_even(n - 1)
+  end
+
+  assert_eq("mutual: is_even(0) = true",   is_even(0),   true)
+  assert_eq("mutual: is_odd(1) = true",    is_odd(1),    true)
+  assert_eq("mutual: is_even(100) = true", is_even(100), true)
+  assert_eq("mutual: is_odd(99) = true",   is_odd(99),   true)
+  assert_eq("mutual: is_even(7) = false",  is_even(7),   false)
+
+  /# Closure-captured counter factory #/
+  fn make_counter(start)
+    state = [start]
+    {
+      "inc": with do state[0] = state[0] + 1 end,
+      "dec": with do state[0] = state[0] - 1 end,
+      "get": with do state[0] end
+    }
+  end
+
+  c1 = make_counter(0)
+  c2 = make_counter(100)
+
+  repeat 5 do c1["inc"]() end
+  repeat 3 do c1["dec"]() end
+  repeat 10 do c2["inc"]() end
+
+  assert_eq("counter c1 after +5-3 = 2",    c1["get"](), 2)
+  assert_eq("counter c2 after 100+10 = 110", c2["get"](), 110)
+  assert_true("counters are independent",    c1["get"]() != c2["get"]())
+
+  /# 10-deep composition chain #/
+  fn compose(f, g)
+    with (x) do f(g(x)) end
+  end
+
+  step  = with (x) do x + 1 end
+  add10 = step
+  repeat 9 do
+    add10 = compose(step, add10)
+  end
+
+  assert_eq("10-deep compose add1 applied to 5 = 15", add10(5), 15)
+
+  /# Memoized fibonacci via self-referential closure cell #/
+  fn make_memo(fn_ref)
+    cache = {}
+    with (n) do
+      key = n.to_string()
+      return cache[key] when cache.has_key(key)
+      r       = fn_ref(n)
+      cache[key] = r
+      r
+    end
+  end
+
+  fib_cell    = [null]
+  raw_fib     = with (n) do
+    return n when n < 2
+    fib_cell[0](n - 1) + fib_cell[0](n - 2)
+  end
+  fib_cell[0] = make_memo(raw_fib)
+  fib         = fib_cell[0]
+
+  assert_eq("memoized fib(10) = 55",   fib(10), 55)
+  assert_eq("memoized fib(20) = 6765", fib(20), 6765)
+  assert_eq("memoized fib(30) = 832040", fib(30), 832040)
+
+  /# Variadic + splat #/
+  fn sum_all(*nums)
+    nums.reduce(0, with (acc, x) do acc + x end)
+  end
+
+  assert_eq("variadic sum_all(1,2,3,4,5) = 15", sum_all(1, 2, 3, 4, 5), 15)
+
+  parts = [10, 20, 30]
+  assert_eq("splat sum_all(*[10,20,30]) = 60", sum_all(*parts), 60)
+
+  println "  Done."
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Phase 6 — Concurrency: workers evaluate random ASTs via channels + mutex
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+@bench::timed
+fn phase6_concurrency(root)
+  sep("Phase 6: Concurrency (task::spawn + channels)")
+
+  n_workers        = 4
+  exprs_per_worker = 75
+  ch               = task::channel()
+
+  repeat n_workers as w do
+    task::spawn(with (channel, wid, env_ref) do
+      ok_count  = 0
+      err_count = 0
+      repeat 75 do
+        node = codegen::rand_expr(3, [])
+        try
+          node.eval_node(env_ref)
+          ok_count  += 1
+        catch e
+          err_count += 1
+        end
+      end
+      channel.send({ "worker": wid, "ok": ok_count, "errors": err_count })
+    end, [ch, w, root])
+  end
+
+  total_ok  = 0
+  total_err = 0
+  repeat n_workers do
+    r         = ch.recv()
+    println "  Worker ${r["worker"]}: ${r["ok"]} ok, ${r["errors"]} errors"
+    total_ok  = total_ok  + r["ok"]
+    total_err = total_err + r["errors"]
+  end
+  ch.close()
+
+  total = n_workers * exprs_per_worker
+  println "  Total: ${total_ok}/${total} ok, ${total_err} errors"
+  conc_rate = total_ok.to_float() / total.to_float()
+  println "  Success rate: ${math::round(conc_rate * 100.0, 1)}%"
+  assert_true("concurrent eval: >50% succeeded",
+              conc_rate >= 0.5)
+
+  /# Mutex-guarded shared counter: 10 tasks × 100 increments = 1000 #/
+  sep("Phase 6b: Mutex")
+
+  counter = [0]
+  mtx     = task::mutex()
+  tids    = []
+
+  repeat 10 as t do
+    tid = task::spawn(with (cnt, m) do
+      repeat 100 do
+        m.synchronize(with do
+          cnt[0] = cnt[0] + 1
+        end)
+      end
+    end, [counter, mtx])
+    tids.push(tid)
+  end
+
+  for tid in tids do
+    task::await(tid)
+  end
+
+  println "  counter = ${counter[0]} (expected 1000)"
+  assert_eq("mutex counter = 1000", counter[0], 1000)
+
+  mtx.destroy()
+  println "  Done."
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Phase 7 — Decorator showcase + bench::mark registration
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+@bench::mark("dbg: recursive fib(30)")
+fn bench_fib()
+  fn rfib(n)
+    return n when n < 2
+    rfib(n - 1) + rfib(n - 2)
+  end
+  rfib(30)
+end
+
+@bench::mark("dbg: 10k random AST nodes (depth 4)")
+fn bench_codegen()
+  i = 0
+  while i < 10000 do
+    codegen::rand_expr(4, [])
+    i += 1
+  end
+end
+
+@bench::mark("dbg: pipeline 5000 ints, 5 stages")
+fn bench_pipeline()
+  data = []
+  repeat 5000 as i do data.push(i + 1) end
+
+  p = pipeline::Pipeline.new("bench")
+  p.add(pipeline::FilterStage.new("odd",   with (x) do x % 2 == 1 end))
+  p.add(pipeline::MapStage.new("square",   with (x) do x * x end))
+  p.add(pipeline::SortStage.new("asc",     with (a, b) do a < b end))
+  p.add(pipeline::TakeStage.new(100))
+  p.add(pipeline::ReduceStage.new("sum",   0, with (acc, x) do acc + x end))
+  p.run(data)
+end
+
+@bench::mark("dbg: env chain depth-20 lookup")
+fn bench_env_chain()
+  r   = env::make_root()
+  cur = r
+  repeat 20 do
+    child = cur["child"]()
+    child["bind"]("x", 42)
+    cur = child
+  end
+  repeat 1000 do
+    cur["lookup"]("pi")
+    cur["lookup"]("x")
+  end
+end
+
+@bench::mark("dbg: Church add(10)(10)")
+fn bench_church()
+  r2   = env::make_root()
+  za   = ast::LambdaExpr.new("f", ast::LambdaExpr.new("x", ast::VarRef.new("x")))
+  nf   = ast::ApplyExpr.new(ast::VarRef.new("n"), ast::VarRef.new("f"))
+  nfx  = ast::ApplyExpr.new(nf, ast::VarRef.new("x"))
+  fnfx = ast::ApplyExpr.new(ast::VarRef.new("f"), nfx)
+  sa   = ast::LambdaExpr.new("n",
+           ast::LambdaExpr.new("f", ast::LambdaExpr.new("x", fnfx)))
+  mf   = ast::ApplyExpr.new(ast::VarRef.new("m"), ast::VarRef.new("f"))
+  nf2  = ast::ApplyExpr.new(ast::VarRef.new("n"), ast::VarRef.new("f"))
+  nf2x = ast::ApplyExpr.new(nf2, ast::VarRef.new("x"))
+  mfi  = ast::ApplyExpr.new(mf, nf2x)
+  aa   = ast::LambdaExpr.new("m",
+           ast::LambdaExpr.new("n",
+             ast::LambdaExpr.new("f",
+               ast::LambdaExpr.new("x", mfi))))
+
+  zv = za.eval_node(r2)
+  sv = sa.eval_node(r2)
+  av = aa.eval_node(r2)
+
+  n10 = zv
+  repeat 10 do n10 = sv(n10) end
+  church_to_int(av(n10)(n10))
+end
+
+/# ═══════════════════════════════════════════════════════════════════════════
+   Main
+   ═══════════════════════════════════════════════════════════════════════════ #/
+
+println "=" * 62
+println "  Kiwi Stress Test"
+println "=" * 62
+
+root = env::make_root()
+
+phase1_correctness(root)
+phase2_lambda_calculus(root)
+phase3_random_eval(root)
+phase4_pipelines()
+phase5_closures()
+phase6_concurrency(root)
+
+sep("Phase 7: Benchmarks (bench::mark, 10 iters / 2 warmup)")
+bench::run_all(10, 2)
+
+sep("Summary")
+total = global.dbg_passed + global.dbg_failed
+println "  Tests passed : ${global.dbg_passed} / ${total}"
+println "  Tests failed : ${global.dbg_failed} / ${total}"
+println ""
+if global.dbg_failed == 0
+  println "  All tests passed!"
+else
+  println "  ${global.dbg_failed} test(s) FAILED."
+  exit 1
+end

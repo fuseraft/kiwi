@@ -695,7 +695,18 @@ public class Interpreter
 
         using var lexer = new Lexer(fullPath);
         var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
-        Interpret(ast);
+
+        var vm = VM.KiwiVM.Current;
+        if (vm != null)
+        {
+            // Compile and run via the VM so functions in the included file get VM chunks.
+            var chunk = VM.Compiler.CompileIncludedProgram((Parsing.AST.ProgramNode)ast);
+            vm.ExecuteInclude(chunk, node.Token);
+        }
+        else
+        {
+            Interpret(ast);
+        }
 
         ExecutionPath = oldExecutionPath;
 
@@ -3429,9 +3440,12 @@ public class Interpreter
 
         // If the function was compiled as VM bytecode, evaluate args and delegate to the VM.
         // The frame is still pushed so the caller's doPop=true path pops it correctly.
-        var vm = VM.KiwiVM.Current;
-        if (vm != null && func.VMChunk != null)
+        // When KiwiVM.Current is null (e.g. an AST-mode task thread calling a VM-compiled
+        // package function), create an on-demand VM so the bytecode body executes instead of
+        // the empty AST stub.  This mirrors the on-demand path in CallFunction(KFunction,…).
+        if (func.VMChunk != null)
         {
+            var vm = VM.KiwiVM.Current ?? new VM.KiwiVM(this, func.CapturedScope ?? _globalScope);
             // Resolve named/positional/splat args; for variadic functions, also collect
             // overflow varargs and append them so the VM receives the full flat arg list.
             Scope? varScope = string.IsNullOrEmpty(func.VariadicParamName) ? null : new Scope(null);
