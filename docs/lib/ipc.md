@@ -81,7 +81,7 @@ Sends a UTF-8 string message over an open pipe. The message is framed with a 4-b
 | `string`  | `_message` | The message to send                                 |
 
 **Returns**
-Nothing (`none`).
+Nothing (`null`).
 
 **Throws**
 - `SystemError` — if the handle is invalid or the send fails
@@ -131,7 +131,7 @@ Closes an open pipe handle and releases the underlying OS resource.
 | `integer` | `_handle` | Pipe handle to close   |
 
 **Returns**
-Nothing (`none`).
+Nothing (`null`).
 
 **Example**
 ```kiwi

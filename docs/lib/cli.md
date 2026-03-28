@@ -15,7 +15,7 @@ Prints an informational message with a cyan `info` label.
 |----------|-------|---------------------|---------|
 | `string` | `msg` | The message to print | —      |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -28,7 +28,7 @@ Prints a warning message with a yellow `warn` label.
 |----------|-------|---------------------|---------|
 | `string` | `msg` | The message to print | —      |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -41,7 +41,7 @@ Prints an error message with a red `error` label.
 |----------|-------|---------------------|---------|
 | `string` | `msg` | The message to print | —      |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -54,7 +54,7 @@ Prints a success message with a green `ok` label.
 |----------|-------|---------------------|---------|
 | `string` | `msg` | The message to print | —      |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -67,7 +67,7 @@ Prints a section header with the title underlined by `=` characters.
 |----------|---------|--------------------|---------|
 | `string` | `title` | The section title  | —       |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -80,7 +80,7 @@ Prints a horizontal rule made of `-` characters.
 |-----------|---------|---------------------|---------|
 | `integer` | `width` | Width of the rule   | `40`    |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -95,7 +95,7 @@ Prints a key-value pair with the key padded to a fixed column width.
 | `any`     | `val`   | The value                          | —       |
 | `integer` | `width` | Column width for the key           | `16`    |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -109,7 +109,7 @@ Prints a formatted table with auto-sized columns and box-drawing borders.
 | `list` | `headers` | Column header strings                    | —       |
 | `list` | `rows`    | List of row lists (each row is a `list`) | —       |
 
-**Returns** `none`
+**Returns** `null`
 
 **Example**
 ```kiwi
@@ -229,7 +229,7 @@ Registers an option that takes a value argument.
 ### `@.help()`
 Prints formatted help text listing all registered flags and options with their defaults.
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 

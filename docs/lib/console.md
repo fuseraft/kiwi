@@ -17,7 +17,7 @@ Sets the **foreground** (text) color.
 |----------|---------|--------------------------------------------------|---------|
 | `string` | `color` | Case-insensitive color name (see [Color Names](#color-names)) | —       |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -27,7 +27,7 @@ Sets the **background** color.
 **Parameters**  
 Same as `fg()`.
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -35,7 +35,7 @@ Same as `fg()`.
 Resets foreground and background colors to their default values.
 
 **Parameters** None  
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -43,7 +43,7 @@ Resets foreground and background colors to their default values.
 Clears the entire console screen.
 
 **Parameters** None  
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -56,7 +56,7 @@ Shows or hides the text cursor.
 |-----------|--------------|-----------------------------|---------|
 | `boolean` | `is_visible` | `true` = show, `false` = hide | —       |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -84,7 +84,7 @@ Sets the title of the terminal window (supported on Windows and many Unix termin
 |----------|-------------|----------------------|---------|
 | `string` | `new_title` | Window title text    | —       |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -152,7 +152,7 @@ Writes text without adding a newline.
 |----------|--------|-----------------|---------|
 | `string` | `msg`  | Text to output  | `""`    |
 
-**Returns** `none`
+**Returns** `null`
 
 ---
 
@@ -160,7 +160,7 @@ Writes text without adding a newline.
 Writes text followed by a newline.
 
 **Parameters** Same as `write()`  
-**Returns** `none`
+**Returns** `null`
 
 **Aliases**: `writeline`
 
