@@ -132,4 +132,25 @@ foreach ($dir in @('src\bin', 'src\obj', 'obj')) {
   if (Test-Path $full) { Remove-Item -Recurse -Force $full }
 }
 
+# Sync to existing user/system install if one is present
+$SyncCandidates = @(
+  (Join-Path $env:LOCALAPPDATA 'kiwi\bin'),
+  (Join-Path $env:ProgramFiles  'kiwi\bin')
+)
+
+foreach ($InstallBinDir in $SyncCandidates) {
+  $InstalledExe = Join-Path $InstallBinDir 'kiwi.exe'
+  if (Test-Path $InstalledExe) {
+    $InstallLibDir = Join-Path (Split-Path -Parent $InstallBinDir) 'lib'
+    Copy-Item -Force (Join-Path $OutputDir 'kiwi.exe') $InstallBinDir
+    $SettingsSrc = Join-Path $OutputDir 'kiwi-settings.json'
+    if (Test-Path $SettingsSrc) { Copy-Item -Force $SettingsSrc $InstallBinDir }
+    Get-ChildItem -Path $OutputDir -Filter '*.dll' | ForEach-Object {
+      Copy-Item -Force $_.FullName $InstallBinDir
+    }
+    Copy-Item -Recurse -Force (Join-Path $PSScriptRoot 'lib\*') $InstallLibDir
+    Write-Host "Synced to existing install at $InstallBinDir"
+  }
+}
+
 Write-Host "Build succeeded! Try running '$OutputDir\kiwi.exe -h' and happy coding!"

@@ -118,6 +118,25 @@ for dir in "src/bin" "src/obj" "obj"; do
   fi
 done
 
+# Sync to existing user/system install if one is present
+if [[ "$RUNTIME_ID" != "win-x64" ]]; then
+  NEW_BIN="$OUTPUT_DIR/kiwi"
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+  for INSTALL_BIN_DIR in "$HOME/.kiwi/bin" "/opt/kiwi/bin"; do
+    if [[ -f "$INSTALL_BIN_DIR/kiwi" ]]; then
+      INSTALL_LIB_DIR="${INSTALL_BIN_DIR%/bin}/lib"
+      cp "$NEW_BIN" "$INSTALL_BIN_DIR/kiwi"
+      chmod +x "$INSTALL_BIN_DIR/kiwi"
+      cp -r "$SCRIPT_DIR/lib/." "$INSTALL_LIB_DIR/"
+      [[ -f "$OUTPUT_DIR/kiwi-settings.json" ]] && cp "$OUTPUT_DIR/kiwi-settings.json" "$INSTALL_BIN_DIR/"
+      find "$OUTPUT_DIR" -maxdepth 1 \( -name "*.so" -o -name "*.dylib" \) \
+        -exec cp {} "$INSTALL_BIN_DIR/" \; 2>/dev/null || true
+      echo "Synced to existing install at $INSTALL_BIN_DIR"
+    fi
+  done
+fi
+
 # Adjust execution message for Windows
 if [[ "$RUNTIME_ID" == "win-x64" ]]; then
   echo "Build succeeded! Try running '$OUTPUT_DIR\\kiwi.exe -h' and happy coding!"
