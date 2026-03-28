@@ -3,6 +3,7 @@ using System.IO.Pipes;
 using System.Text;
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
+using kiwi.Settings;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
 
@@ -15,6 +16,7 @@ public static class IpcBuiltinHandler
 
     public static Value Execute(Token token, TokenName builtin, List<Value> args)
     {
+        if (Kiwi.Settings.SafeMode) throw new SafeModeError(token, "ipc");
         return builtin switch
         {
             TokenName.Builtin_Ipc_Create  => Create(token, args),

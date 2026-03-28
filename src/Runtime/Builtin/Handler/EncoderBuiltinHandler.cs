@@ -1,3 +1,4 @@
+using System.Text;
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
 using kiwi.Tracing.Error;
@@ -13,8 +14,10 @@ public static class EncoderBuiltinHandler
         {
             TokenName.Builtin_Encoder_Base64Decode => Base64Decode(token, args),
             TokenName.Builtin_Encoder_Base64Encode => Base64Encode(token, args),
-            TokenName.Builtin_Encoder_UrlDecode => UrlDecode(token, args),
-            TokenName.Builtin_Encoder_UrlEncode => UrlEncode(token, args),
+            TokenName.Builtin_Encoder_HexDecode    => HexDecode(token, args),
+            TokenName.Builtin_Encoder_HexEncode    => HexEncode(token, args),
+            TokenName.Builtin_Encoder_UrlDecode    => UrlDecode(token, args),
+            TokenName.Builtin_Encoder_UrlEncode    => UrlEncode(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
@@ -82,6 +85,49 @@ public static class EncoderBuiltinHandler
         }
 
         throw new InvalidOperationError(token, "Expected a list or bytes.");
+    }
+
+    private static Value HexDecode(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, EncoderBuiltin.HexDecode, 1, args.Count);
+        ParameterTypeMismatchError.ExpectString(token, EncoderBuiltin.HexDecode, 0, args[0]);
+
+        var hex = args[0].GetString().Replace(" ", "").Replace("-", "");
+        if (hex.Length % 2 != 0)
+            throw new InvalidOperationError(token, "Hex string must have even length.");
+
+        try
+        {
+            return Value.CreateBytes(Convert.FromHexString(hex));
+        }
+        catch
+        {
+            throw new InvalidOperationError(token, "Invalid hex string.");
+        }
+    }
+
+    private static Value HexEncode(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, EncoderBuiltin.HexEncode, 1, args.Count);
+
+        if (args[0].IsString())
+        {
+            var bytes = Encoding.UTF8.GetBytes(args[0].GetString());
+            return Value.CreateString(Convert.ToHexString(bytes).ToLowerInvariant());
+        }
+        else if (args[0].IsBytes())
+        {
+            return Value.CreateString(Convert.ToHexString(args[0].GetBytes()).ToLowerInvariant());
+        }
+        else if (args[0].IsList())
+        {
+            var byteArr = args[0].GetList()
+                .Select(v => { TypeError.ExpectInteger(token, v); return (byte)v.GetInteger(); })
+                .ToArray();
+            return Value.CreateString(Convert.ToHexString(byteArr).ToLowerInvariant());
+        }
+
+        throw new InvalidOperationError(token, "hexencode requires string, bytes, or list.");
     }
 
     private static Value UrlDecode(Token token, List<Value> args)

@@ -237,7 +237,7 @@ package xml
   @summary Internal: recursively wraps the hashmap tree from `__xml_parse__` into `XmlNode` structs.
   #/
   fn _wrap(m)
-    kids = m["children"].map(with (c) do xml::_wrap(c) end)
+    kids = m["children"].map(with (c) do _wrap(c) end)
     XmlNode.new(m["tag"], m["attrs"], kids, m["content"])
   end
 
@@ -248,7 +248,7 @@ package xml
   @throws string      : On malformed XML.
   #/
   fn parse(input: string): any
-    xml::_wrap(__xml_parse__(input))
+    _wrap(__xml_parse__(input))
   end
 
   /#
@@ -259,7 +259,7 @@ package xml
   #/
   fn parse_file(file_path: string): any
     throw "File does not exist: ${file_path}" when !fio::isfile(file_path)
-    xml::_wrap(__xml_parsefile__(file_path))
+    _wrap(__xml_parsefile__(file_path))
   end
 
   /#
@@ -308,6 +308,218 @@ package xml
   #/
   fn stringify(node: any, indent: integer = 0): string
     node.serialize(indent)
+  end
+
+  /#
+  @summary A fluent builder for extracting structured records from one or more XML sources.
+  @description
+    Created via `xml::pipeline()`. Chain `.select()`, `.with_schema()`,
+    `.from_file()` or `.from_string()`, and optionally `.as_dataset()` to configure
+    each source. Call `.parse()` to execute.
+
+    **How elements become records**: each selected element's attributes and direct
+    child text-elements are merged into a flat hashmap. Given:
+    ```xml
+    <item id="1"><name>Widget</name><price>9.99</price></item>
+    ```
+    the record is `{"id": "1", "name": "Widget", "price": "9.99"}`.
+    Schema coercion is then applied by field name.
+
+    **Schema types** (passed as strings): `"string"`, `"integer"`, `"float"`,
+    `"boolean"`, `"null"`. Unrecognised types leave the value as-is.
+
+    **`.select(tag)`** uses `find_all_deep(tag)` — all matching elements at any
+    depth become records. If omitted, the root element itself is used as the
+    sole record.
+
+    **Return value of `.parse()`**:
+    - No datasets: single source → list of hashmaps; multiple sources → list of lists.
+    - All datasets: hashmap mapping each dataset name to its list of hashmaps.
+    - Mixed (some named, some not) → raises a pipeline error.
+  #/
+  struct XmlPipeline
+    /#
+    @summary Initialises an empty pipeline builder.
+    #/
+    fn new()
+      @sources  = []
+      @_select  = null
+      @_schema  = null
+      @_dataset = null
+    end
+
+    /#
+    @summary Sets the element tag name to extract as records from the next source.
+    @description Uses `find_all_deep(tag)` on the parsed root — every matching
+                 element at any depth becomes one record. If not called, the root
+                 element itself is used as a single record.
+    @param string tag : The XML element tag name to select.
+    @return XmlPipeline : self, for chaining.
+    #/
+    fn select(tag: string): XmlPipeline
+      @_select = tag
+      @
+    end
+
+    /#
+    @summary Sets a type-coercion schema for the next source.
+    @description Keys are field names (attribute names or child element tag names);
+                 values are type strings: `"string"`, `"integer"`, `"float"`,
+                 `"boolean"`, `"null"`.
+    @param hashmap schema : Map of field name to type string.
+    @return XmlPipeline : self, for chaining.
+    #/
+    fn with_schema(schema: hashmap): XmlPipeline
+      @_schema = schema
+      @
+    end
+
+    /#
+    @summary Registers an XML file as a source using the current pending settings.
+    @description Commits any pending `.select()`, `.with_schema()` settings to
+                 this source, then resets them for the next source.
+    @param string path : Path to the XML file.
+    @return XmlPipeline : self, for chaining.
+    @throws string : If the file does not exist at parse time.
+    #/
+    fn from_file(path: string): XmlPipeline
+      entry = {
+        kind:    "file",
+        source:  path,
+        select:  @_select,
+        schema:  @_schema,
+        dataset: @_dataset
+      }
+      @sources.push(entry)
+      @_select  = null
+      @_schema  = null
+      @_dataset = null
+      @
+    end
+
+    /#
+    @summary Registers an in-memory XML string as a source using the current pending settings.
+    @param string input : A valid XML string.
+    @return XmlPipeline : self, for chaining.
+    #/
+    fn from_string(input: string): XmlPipeline
+      entry = {
+        kind:    "string",
+        source:  input,
+        select:  @_select,
+        schema:  @_schema,
+        dataset: @_dataset
+      }
+      @sources.push(entry)
+      @_select  = null
+      @_schema  = null
+      @_dataset = null
+      @
+    end
+
+    /#
+    @summary Names the most recently registered source as a dataset.
+    @description Must be called after `from_file()` or `from_string()`. The name
+                 becomes the key in the hashmap returned by `.parse()` when at
+                 least one dataset is defined.
+    @param string name : The dataset key name.
+    @return XmlPipeline : self, for chaining.
+    @throws string : If called before any source is registered.
+    #/
+    fn as_dataset(name: string): XmlPipeline
+      if @sources.size() == 0
+        throw "XmlPipeline: as_dataset() called before from_file() or from_string()"
+      end
+      last = @sources[@sources.size() - 1]
+      last["dataset"] = name
+      @sources[@sources.size() - 1] = last
+      @
+    end
+
+    /#
+    @summary Executes the pipeline and returns the parsed results.
+    @description
+      - All unnamed sources: single source → list of hashmaps; multiple → list of lists.
+      - All named datasets: hashmap keyed by dataset name.
+      - Mixed named/unnamed: raises a pipeline error.
+    @return list|hashmap : Parsed XML data.
+    @throws string : On missing file or mixed dataset/non-dataset sources.
+    #/
+    fn parse()
+      has_dataset = false
+      has_unnamed = false
+      for s in @sources do
+        if s["dataset"] != null
+          has_dataset = true
+        else
+          has_unnamed = true
+        end
+      end
+      if has_dataset && has_unnamed
+        throw "XmlPipeline: cannot mix named datasets with unnamed sources — either name all sources with as_dataset() or none"
+      end
+      if has_dataset
+        result = {}
+        for s in @sources do
+          result[s["dataset"]] = @._load(s)
+        end
+        return result
+      end
+      if @sources.size() == 1
+        return @._load(@sources[0])
+      end
+      result = []
+      for s in @sources do
+        result.push(@._load(s))
+      end
+      result
+    end
+
+    /#
+    @summary Loads a single source entry and returns a list of record hashmaps.
+    @param hashmap entry : A source descriptor created by `from_file()` or `from_string()`.
+    @return list : List of hashmaps, one per matched element.
+    @throws string : If the file does not exist.
+    #/
+    fn _load(entry: hashmap)
+      kind   = entry["kind"]
+      source = entry["source"]
+      tag    = entry["select"]
+      schema = entry["schema"]
+      if kind == "file"
+        if !fio::isfile(source)
+          throw "XmlPipeline: file does not exist: ${source}"
+        end
+        return __xml_parsefile_maps__(source, tag, schema)
+      end
+      __xml_parse_maps__(source, tag, schema)
+    end
+  end
+
+  /#
+  @summary Creates a new XmlPipeline builder for fluent XML record extraction.
+  @return XmlPipeline : A new pipeline builder instance.
+  @example
+  ---
+  # Extract all <item> elements with type coercion
+  rows = xml::pipeline()
+    .select("item")
+    .with_schema({"id": "integer", "price": "float", "active": "boolean"})
+    .from_file("catalog.xml")
+    .parse()
+
+  # Multiple named datasets
+  data = xml::pipeline()
+    .select("user").from_file("users.xml").as_dataset("users")
+    .select("role").from_file("roles.xml").as_dataset("roles")
+    .parse()
+
+  users = data["users"]
+  roles = data["roles"]
+  ---
+  #/
+  fn pipeline(): XmlPipeline
+    XmlPipeline.new()
   end
 end
 

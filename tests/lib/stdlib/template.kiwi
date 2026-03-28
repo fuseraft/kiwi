@@ -1,0 +1,62 @@
+@tester::test("template: render basic substitution")
+fn test_template_render_basic()
+  result = template::render("Hello, {{name}}!", { "name": "Kiwi" })
+  tester::assert_eq(result, "Hello, Kiwi!")
+end
+
+@tester::test("template: render multiple variables")
+fn test_template_render_multiple()
+  result = template::render("{{greeting}}, {{name}}. You are {{age}} years old.", {
+    "greeting": "Hello",
+    "name": "Alice",
+    "age": 30
+  })
+  tester::assert_eq(result, "Hello, Alice. You are 30 years old.")
+end
+
+@tester::test("template: render unknown key is left in place")
+fn test_template_render_unknown_key()
+  result = template::render("Hello, {{name}}! {{unknown}}", { "name": "Bob" })
+  tester::assert_eq(result, "Hello, Bob! {{unknown}}")
+end
+
+@tester::test("template: render empty template")
+fn test_template_render_empty()
+  tester::assert_eq(template::render("", {}), "")
+  tester::assert_eq(template::render("no placeholders", {}), "no placeholders")
+end
+
+@tester::test("template: render converts values to string")
+fn test_template_render_type_conversion()
+  result = template::render("count={{count}} flag={{flag}} ratio={{ratio}}", {
+    "count": 42,
+    "flag": true,
+    "ratio": 3.14
+  })
+  tester::assert_eq(result, "count=42 flag=true ratio=3.14")
+end
+
+@tester::test("template: render repeated placeholder")
+fn test_template_render_repeated()
+  result = template::render("{{x}} + {{x}} = ?", { "x": "5" })
+  tester::assert_eq(result, "5 + 5 = ?")
+end
+
+@tester::test("template: render_each list of rows")
+fn test_template_render_each()
+  rows = template::render_each("{{id}}: {{name}}", [
+    { "id": 1, "name": "Alice" },
+    { "id": 2, "name": "Bob" },
+    { "id": 3, "name": "Carol" }
+  ])
+  tester::assert_eq(rows.size(), 3)
+  tester::assert_eq(rows[0], "1: Alice")
+  tester::assert_eq(rows[1], "2: Bob")
+  tester::assert_eq(rows[2], "3: Carol")
+end
+
+@tester::test("template: render_each empty list")
+fn test_template_render_each_empty()
+  rows = template::render_each("{{x}}", [])
+  tester::assert_eq(rows.size(), 0)
+end

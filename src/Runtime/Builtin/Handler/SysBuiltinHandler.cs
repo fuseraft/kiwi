@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
+using kiwi.Settings;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
 
@@ -14,6 +15,7 @@ public static class SysBuiltinHandler
 
     public static Value Execute(Token token, TokenName builtin, List<Value> args)
     {
+        if (Kiwi.Settings.SafeMode) throw new SafeModeError(token, "sys");
         return builtin switch
         {
             TokenName.Builtin_Sys_Exec    => Exec(token, args),

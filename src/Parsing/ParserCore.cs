@@ -350,6 +350,32 @@ public partial class Parser(bool rethrowErrors = false)
         return false;
     }
 
+    /// <summary>
+    /// Returns true when the token stream from the current position matches the
+    /// pack-assignment pattern: [, identifier]+ followed immediately by '=' or '=&lt;'.
+    /// Used to distinguish  a, b = [1,2]  from  for k, v in ...  and typed params.
+    /// </summary>
+    private bool IsPackAssignAhead()
+    {
+        int pos = stream.Position; // currently pointing at the first ','
+        while (pos + 1 < stream.Size)
+        {
+            // Must be a comma
+            if (stream.At(pos).Type != TokenType.Comma) return false;
+            pos++;
+            // Must be followed by an identifier
+            if (stream.At(pos).Type != TokenType.Identifier) return false;
+            pos++;
+            // Now expect either another ',' (more LHS vars), '=', or '=<'
+            var next = stream.At(pos);
+            if (next.Name == TokenName.Ops_Assign || next.Name == TokenName.Ops_Unpack)
+                return true;
+            // Anything other than another comma → not a pack assignment
+            if (next.Type != TokenType.Comma) return false;
+        }
+        return false;
+    }
+
     private void Rewind()
     {
         stream.Rewind();
@@ -419,7 +445,7 @@ public partial class Parser(bool rethrowErrors = false)
 
     private bool IsMultiplicativeOperator() => token.Name switch
     {
-        TokenName.Ops_Multiply or TokenName.Ops_Divide or TokenName.Ops_Modulus or TokenName.Ops_Exponent => true,
+        TokenName.Ops_Multiply or TokenName.Ops_Divide or TokenName.Ops_IntDivide or TokenName.Ops_Modulus or TokenName.Ops_Exponent => true,
         _ => false,
     };
 
@@ -437,13 +463,13 @@ public partial class Parser(bool rethrowErrors = false)
 
     private bool IsAssignmentOperator() => token.Name switch
     {
-        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
+        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_IntDivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
         _ => false,
     };
 
     private static bool IsAssignmentOperator(TokenName name) => name switch
     {
-        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
+        TokenName.Ops_Assign or TokenName.Ops_AddAssign or TokenName.Ops_SubtractAssign or TokenName.Ops_MultiplyAssign or TokenName.Ops_DivideAssign or TokenName.Ops_IntDivideAssign or TokenName.Ops_ExponentAssign or TokenName.Ops_OrAssign or TokenName.Ops_AndAssign or TokenName.Ops_ModuloAssign or TokenName.Ops_BitwiseOrAssign or TokenName.Ops_BitwiseAndAssign or TokenName.Ops_BitwiseXorAssign or TokenName.Ops_BitwiseNotAssign or TokenName.Ops_BitwiseLeftShiftAssign or TokenName.Ops_BitwiseRightShiftAssign or TokenName.Ops_BitwiseUnsignedRightShiftAssign => true,
         _ => false,
     };
 

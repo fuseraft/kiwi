@@ -24,8 +24,9 @@ package json
   /#
   @summary A fluent builder for loading and selecting fields from one or more JSON sources.
   @description
-    Created via `json::pipeline()`. Chain `.select()`, `.from_file()` or `.from_string()`,
-    and optionally `.as_dataset()` to configure each source, then call `.parse()` to execute.
+    Created via `json::pipeline()`. Chain `.select()`, `.with_schema()`, `.from_file()` or
+    `.from_string()`, and optionally `.as_dataset()` to configure each source, then call
+    `.parse()` to execute.
 
     JSON sources must contain either an array of objects or a single object (wrapped into
     a one-element list automatically). `.select(keys)` retains only the named fields from
@@ -60,6 +61,7 @@ package json
     fn new()
       @sources  = []
       @_select  = null
+      @_schema  = null
       @_dataset = null
     end
 
@@ -74,6 +76,20 @@ package json
     end
 
     /#
+    @summary Sets a type-coercion schema for the next source.
+    @description Keys are field names; values are type strings:
+                 `"string"`, `"integer"`, `"float"`, `"boolean"`, `"null"`.
+                 Coercion is applied after field selection. Fields not present
+                 in the row are silently skipped.
+    @param hashmap schema : Map of field name to type string.
+    @return JsonPipeline : self, for chaining.
+    #/
+    fn with_schema(schema: hashmap): JsonPipeline
+      @_schema = schema
+      @
+    end
+
+    /#
     @summary Registers a JSON file as a source using the current pending settings.
     @param string path : Path to the JSON file.
     @return JsonPipeline : self, for chaining.
@@ -84,10 +100,12 @@ package json
         kind:    "file",
         source:  path,
         select:  @_select,
+        schema:  @_schema,
         dataset: @_dataset
       }
       @sources.push(entry)
       @_select  = null
+      @_schema  = null
       @_dataset = null
       @
     end
@@ -102,10 +120,12 @@ package json
         kind:    "string",
         source:  input,
         select:  @_select,
+        schema:  @_schema,
         dataset: @_dataset
       }
       @sources.push(entry)
       @_select  = null
+      @_schema  = null
       @_dataset = null
       @
     end
@@ -176,20 +196,14 @@ package json
     fn _load(entry: hashmap)
       kind   = entry["kind"]
       source = entry["source"]
-      raw    = null
+      schema = entry["schema"]
       if kind == "file"
         if !fio::isfile(source)
           throw "JsonPipeline: file does not exist: ${source}"
         end
-        raw = __json_parse__(fio::read(source))
+        rows = __json_parse_maps__(fio::read(source), schema)
       else
-        raw = __json_parse__(source)
-      end
-      rows = []
-      if typeof(raw) == "list"
-        rows = raw
-      else
-        rows = [raw]
+        rows = __json_parse_maps__(source, schema)
       end
       keys = entry["select"]
       if keys != null

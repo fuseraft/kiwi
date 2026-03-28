@@ -200,7 +200,7 @@ package table
       result = []
       for row in @rows do
         k = json::stringify(row)
-        if !seen.keys().contains(k)
+        if !seen.has_key(k)
           seen[k] = true
           result.push(row)
         end
@@ -232,18 +232,21 @@ package table
 
     /#
     @summary Keeps only rows that have a matching row in `other`.
+    @description Uses a hash index on `other` for O(n+m) performance.
     @param list   other     : The right-side list of hashmaps.
     @param string left_key  : The join field on the left (this table).
     @param string right_key : The join field on the right (`other`).
     @return Table : self, for chaining.
     #/
     fn inner_join(other: list, left_key: string, right_key: string): Table
+      idx = other.group_by_field(right_key)
       result = []
       for lr in @rows do
-        lv = lr[left_key]
-        for rr in other do
-          rv = rr[right_key]
-          result.push(@._merge_rows(lr, rr)) when lv == rv
+        k = "${lr[left_key]}"
+        if idx.has_key(k)
+          for rr in idx[k] do
+            result.push(@._merge_rows(lr, rr))
+          end
         end
       end
       @rows = result
@@ -251,25 +254,25 @@ package table
     end
 
     /#
-    @summary Keeps all left rows; right-side fields are null when there is no match.
+    @summary Keeps all left rows; right-side fields are absent when there is no match.
+    @description Uses a hash index on `other` for O(n+m) performance.
     @param list   other     : The right-side list of hashmaps.
     @param string left_key  : The join field on the left (this table).
     @param string right_key : The join field on the right (`other`).
     @return Table : self, for chaining.
     #/
     fn left_join(other: list, left_key: string, right_key: string): Table
+      idx = other.group_by_field(right_key)
       result = []
       for lr in @rows do
-        lv = lr[left_key]
-        match_count = 0
-        for rr in other do
-          rv = rr[right_key]
-          if lv == rv
+        k = "${lr[left_key]}"
+        if idx.has_key(k)
+          for rr in idx[k] do
             result.push(@._merge_rows(lr, rr))
-            match_count += 1
           end
+        else
+          result.push(lr)
         end
-        result.push(lr) when match_count == 0
       end
       @rows = result
       @
@@ -277,24 +280,24 @@ package table
 
     /#
     @summary Keeps all right rows; left-side fields are absent when there is no match.
+    @description Uses a hash index on `@rows` for O(n+m) performance.
     @param list   other     : The right-side list of hashmaps.
     @param string left_key  : The join field on the left (this table).
     @param string right_key : The join field on the right (`other`).
     @return Table : self, for chaining.
     #/
     fn right_join(other: list, left_key: string, right_key: string): Table
+      idx = @rows.group_by_field(left_key)
       result = []
       for rr in other do
-        rv = rr[right_key]
-        match_count = 0
-        for lr in @rows do
-          lv = lr[left_key]
-          if lv == rv
+        k = "${rr[right_key]}"
+        if idx.has_key(k)
+          for lr in idx[k] do
             result.push(@._merge_rows(lr, rr))
-            match_count += 1
           end
+        else
+          result.push(rr)
         end
-        result.push(rr) when match_count == 0
       end
       @rows = result
       @
@@ -302,33 +305,31 @@ package table
 
     /#
     @summary Keeps all rows from both sides; unmatched rows have fields only from their side.
+    @description Uses hash indexes on both sides for O(n+m) performance.
     @param list   other     : The right-side list of hashmaps.
     @param string left_key  : The join field on the left (this table).
     @param string right_key : The join field on the right (`other`).
     @return Table : self, for chaining.
     #/
     fn full_join(other: list, left_key: string, right_key: string): Table
-      result = []
-      matched_ri = {}
+      right_idx = other.group_by_field(right_key)
+      left_keys = {}
       for lr in @rows do
-        lv = lr[left_key]
-        match_count = 0
-        ri = 0
-        for rr in other do
-          rv = rr[right_key]
-          if lv == rv
-            result.push(@._merge_rows(lr, rr))
-            matched_ri["${ri}"] = true
-            match_count += 1
-          end
-          ri += 1
-        end
-        result.push(lr) when match_count == 0
+        left_keys["${lr[left_key]}"] = true
       end
-      ri = 0
+      result = []
+      for lr in @rows do
+        k = "${lr[left_key]}"
+        if right_idx.has_key(k)
+          for rr in right_idx[k] do
+            result.push(@._merge_rows(lr, rr))
+          end
+        else
+          result.push(lr)
+        end
+      end
       for rr in other do
-        result.push(rr) when !matched_ri.keys().contains("${ri}")
-        ri += 1
+        result.push(rr) when !left_keys.has_key("${rr[right_key]}")
       end
       @rows = result
       @
@@ -454,6 +455,8 @@ package table
       Columns are derived from the first row's keys. Each column is wide enough
       to fit its header and all its values. Returns `self` so it can be inserted
       anywhere in a chain without breaking it.
+    @param integer max_width : Maximum column width in characters (0 = unlimited).
+                               Values longer than `max_width` are truncated with `…`.
     @return Table : self, for chaining.
     @example
     ---
@@ -461,9 +464,12 @@ package table
       .where(do (r) => r["active"] end)
       .order_by("name")
       .display()
+
+    # Cap every column at 30 characters
+    table::from(rows).display(30)
     ---
     #/
-    fn display(): Table
+    fn display(max_width: integer = 0): Table
       if @rows.size() == 0
         println "(empty table)"
         return @
@@ -472,12 +478,14 @@ package table
       # Seed widths with header lengths
       widths = {}
       for col in cols do
-        widths[col] = col.size()
+        cap = max_width > 0 && col.size() > max_width ? max_width : col.size()
+        widths[col] = cap
       end
-      # Expand widths to fit data values
+      # Expand widths to fit data values (capped by max_width)
       for row in @rows do
         for col in cols do
-          w = "${row[col]}".size()
+          w = row[col] != null ? "${row[col]}".size() : 0
+          w = max_width when max_width > 0 && w > max_width
           widths[col] = w when w > widths[col]
         end
       end
@@ -490,7 +498,9 @@ package table
       println sep
       header = "|"
       for col in cols do
-        header += " " + string::padend(col, widths[col]) + " |"
+        h = col
+        h = col[0:max_width - 1] + "…" when max_width > 0 && col.size() > max_width
+        header += " " + string::padend(h, widths[col]) + " |"
       end
       println header
       println sep
@@ -498,7 +508,9 @@ package table
       for row in @rows do
         line = "|"
         for col in cols do
-          line += " " + string::padend("${row[col]}", widths[col]) + " |"
+          s = row[col] != null ? "${row[col]}" : ""
+          s = s[0:max_width - 1] + "…" when max_width > 0 && s.size() > max_width
+          line += " " + string::padend(s, widths[col]) + " |"
         end
         println line
       end

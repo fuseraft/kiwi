@@ -1,0 +1,145 @@
+/# ==============================================================================
+   Testing xml::pipeline() — fluent XML record extraction with schemas and datasets.
+  ============================================================================== #/
+@tester::test("xml pipeline")
+fn test_xml_pipeline()
+  catalog_xml = "/tmp/kiwi_test_catalog.xml"
+  users_xml   = "/tmp/kiwi_test_users.xml"
+  roles_xml   = "/tmp/kiwi_test_roles.xml"
+  multi1_xml  = "/tmp/kiwi_test_xml1.xml"
+  multi2_xml  = "/tmp/kiwi_test_xml2.xml"
+
+  fio::write(catalog_xml, '<catalog><item id="1" active="true"><name>Widget</name><price>9.99</price></item><item id="2" active="false"><name>Gadget</name><price>14.50</price></item></catalog>')
+  fio::write(users_xml,   '<users><user id="10"><name>Alice</name><role>admin</role></user><user id="20"><name>Bob</name><role>user</role></user></users>')
+  fio::write(roles_xml,   '<roles><role code="1"><label>admin</label></role><role code="2"><label>user</label></role></roles>')
+  fio::write(multi1_xml,  '<data><rec x="1" y="2"/></data>')
+  fio::write(multi2_xml,  '<data><rec a="10" b="20"/></data>')
+
+  # -----------------------------------------------------------------------
+  # C1: select + from_string, no schema — string fields
+  # -----------------------------------------------------------------------
+  rows = xml::pipeline()
+    .select("item")
+    .from_string('<catalog><item id="1"><name>Widget</name><price>9.99</price></item><item id="2"><name>Gadget</name><price>14.50</price></item></catalog>')
+    .parse()
+  tester::assert(rows.size() == 2,             "C1a: two items")
+  tester::assert(rows[0]["id"]   == "1",       "C1b: id is string without schema")
+  tester::assert(rows[0]["name"] == "Widget",  "C1c: child text extracted")
+  tester::assert(rows[1]["name"] == "Gadget",  "C1d: second item name")
+
+  # -----------------------------------------------------------------------
+  # C2: select + with_schema — typed values
+  # -----------------------------------------------------------------------
+  typed = xml::pipeline()
+    .select("item")
+    .with_schema({"id": "integer", "price": "float", "active": "boolean"})
+    .from_file(catalog_xml)
+    .parse()
+  tester::assert(typed.size() == 2,             "C2a: two typed items")
+  tester::assert(typed[0]["id"]     == 1,       "C2b: integer coercion")
+  tester::assert(typed[0]["price"]  == 9.99,    "C2c: float coercion")
+  tester::assert(typed[0]["active"] == true,    "C2d: boolean true coercion")
+  tester::assert(typed[1]["active"] == false,   "C2e: boolean false coercion")
+  tester::assert(typed[0]["name"]   == "Widget","C2f: unschema'd field unchanged")
+
+  # -----------------------------------------------------------------------
+  # C3: no select — root as single record
+  # -----------------------------------------------------------------------
+  root_row = xml::pipeline()
+    .from_string('<record x="1" y="2"/>')
+    .parse()
+  tester::assert(root_row.size() == 1,     "C3a: single root record")
+  tester::assert(root_row[0]["x"] == "1",  "C3b: root attr x")
+  tester::assert(root_row[0]["y"] == "2",  "C3c: root attr y")
+
+  # -----------------------------------------------------------------------
+  # C4: single named dataset — returns hashmap
+  # -----------------------------------------------------------------------
+  ds = xml::pipeline()
+    .select("user")
+    .from_file(users_xml).as_dataset("users")
+    .parse()
+  tester::assert(typeof(ds) == "hashmap",        "C4a: dataset result is hashmap")
+  tester::assert(ds["users"].size() == 2,        "C4b: two users")
+  tester::assert(ds["users"][0]["name"] == "Alice", "C4c: first user name")
+
+  # -----------------------------------------------------------------------
+  # C5: multiple named datasets
+  # -----------------------------------------------------------------------
+  multi = xml::pipeline()
+    .select("user").from_file(users_xml).as_dataset("users")
+    .select("role").from_file(roles_xml).as_dataset("roles")
+    .parse()
+  tester::assert(typeof(multi) == "hashmap",      "C5a: multi-dataset is hashmap")
+  tester::assert(multi["users"].size() == 2,      "C5b: two users")
+  tester::assert(multi["roles"].size() == 2,      "C5c: two roles")
+  tester::assert(multi["roles"][0]["label"] == "admin", "C5d: first role label")
+
+  # -----------------------------------------------------------------------
+  # C6: multiple unnamed sources — list of lists
+  # -----------------------------------------------------------------------
+  both = xml::pipeline()
+    .select("rec").from_file(multi1_xml)
+    .select("rec").from_file(multi2_xml)
+    .parse()
+  tester::assert(typeof(both) == "list",   "C6a: multi-unnamed result is list")
+  tester::assert(both.size() == 2,         "C6b: two sub-lists")
+  tester::assert(both[0][0]["x"] == "1",   "C6c: first source first rec x")
+  tester::assert(both[1][0]["a"] == "10",  "C6d: second source first rec a")
+
+  # -----------------------------------------------------------------------
+  # C7: mixed mode raises error
+  # -----------------------------------------------------------------------
+  mixed_ok = false
+  try
+    xml::pipeline()
+      .from_file(users_xml).as_dataset("users")
+      .from_file(roles_xml)
+      .parse()
+  catch err
+    mixed_ok = true
+  end
+  tester::assert(mixed_ok, "C7: mixed dataset/unnamed raises error")
+
+  # -----------------------------------------------------------------------
+  # C8: as_dataset before source raises error
+  # -----------------------------------------------------------------------
+  order_ok = false
+  try
+    xml::pipeline().as_dataset("bad").parse()
+  catch err
+    order_ok = true
+  end
+  tester::assert(order_ok, "C8: as_dataset before source raises error")
+
+  # -----------------------------------------------------------------------
+  # C9: missing file raises error
+  # -----------------------------------------------------------------------
+  missing_ok = false
+  try
+    xml::pipeline().from_file("/tmp/kiwi_no_such_file.xml").parse()
+  catch err
+    missing_ok = true
+  end
+  tester::assert(missing_ok, "C9: missing file raises error")
+
+  # -----------------------------------------------------------------------
+  # C10: deep find_all_deep — nested elements
+  # -----------------------------------------------------------------------
+  deep = xml::pipeline()
+    .select("leaf")
+    .from_string('<root><outer><leaf val="1"/></outer><leaf val="2"/></root>')
+    .parse()
+  tester::assert(deep.size() == 2,          "C10a: finds nested and shallow leaves")
+  tester::assert(deep[0]["val"] == "1",     "C10b: nested leaf first (depth-first)")
+  tester::assert(deep[1]["val"] == "2",     "C10c: shallow leaf second")
+
+  # -----------------------------------------------------------------------
+  # Cleanup
+  # -----------------------------------------------------------------------
+  fio::remove(catalog_xml)
+  fio::remove(users_xml)
+  fio::remove(roles_xml)
+  fio::remove(multi1_xml)
+  fio::remove(multi2_xml)
+end

@@ -19,7 +19,7 @@ package bench
   @param lambda b : A no-argument lambda containing the code to benchmark.
   #/
   fn register(name: string, b: lambda)
-    bench::initialize()
+    initialize()
     global.benchmarks.set(name, b)
   end
 
@@ -85,8 +85,8 @@ package bench
       timings.push(time::ticksms(t1 - t0))
     end
 
-    s = bench::stats(timings)
-    println "  mean: ${bench::fmt(s.mean)}  min: ${bench::fmt(s.min)}  max: ${bench::fmt(s.max)}"
+    s = stats(timings)
+    println "  mean: ${fmt(s.mean)}  min: ${fmt(s.min)}  max: ${fmt(s.max)}"
 
     {
       name:       name,
@@ -107,14 +107,14 @@ package bench
   @return list : A list of result hashmaps for all registered benchmarks.
   #/
   fn run_all(iterations: integer = 100, warmup: integer = 5): list
-    bench::initialize()
+    initialize()
     results = []
 
     for name, b in global.benchmarks do
-      results.push(bench::run(name, b, iterations, warmup))
+      results.push(run(name, b, iterations, warmup))
     end
 
-    bench::print_summary(results)
+    print_summary(results)
     results
   end
 
@@ -132,7 +132,7 @@ package bench
     bench::run_all()
   #/
   fn mark(f, name: string = "benchmark")
-    bench::initialize()
+    initialize()
     global.benchmarks.set(name, f)
     return f
   end
@@ -152,7 +152,7 @@ package bench
     end
   #/
   fn profile(f, name: string = "benchmark", iterations: integer = 100, warmup: integer = 5)
-    bench::run(name, f, iterations, warmup)
+    run(name, f, iterations, warmup)
     return f
   end
 
@@ -172,7 +172,7 @@ package bench
       t0 = time::ticks()
       result = f(*args)
       elapsed = time::ticksms(time::ticks() - t0)
-      println "elapsed: ${bench::fmt(elapsed)}"
+      println "elapsed: ${fmt(elapsed)}"
       return result
     end
   end
@@ -208,11 +208,11 @@ package bench
     for r in results do
       row = r.name.padend(col_name, " ") +
             ("${r.iterations}").padend(col_iters, " ") +
-            bench::fmt(r.mean).padend(col_val, " ") +
-            bench::fmt(r.median).padend(col_val, " ") +
-            bench::fmt(r.min).padend(col_val, " ") +
-            bench::fmt(r.max).padend(col_val, " ") +
-            bench::fmt(r.stddev)
+            fmt(r.mean).padend(col_val, " ") +
+            fmt(r.median).padend(col_val, " ") +
+            fmt(r.min).padend(col_val, " ") +
+            fmt(r.max).padend(col_val, " ") +
+            fmt(r.stddev)
       println row
     end
 

@@ -14,7 +14,7 @@
     - Generators
     - Mixed / real-world patterns
 
-  Run from the project root: kiwi tests/bench
+  Run from the project root: kiwi bench/bench
 #/
 
 
@@ -438,4 +438,4 @@ bench::run_all(50, 3)
 
 /# -- Generators (tree-walker only) -------------------------------------------- #/
 # To benchmark generators, run without --vm:
-#   kiwi tests/bench_generators
+#   kiwi bench/generators

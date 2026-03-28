@@ -106,6 +106,16 @@ Retains only the specified fields from each object in the **next** registered so
 | :--- | :--- | :--- |
 | `list` | `keys` | Field names to keep. |
 
+### `.with_schema(schema)`
+
+Sets a type-coercion schema for the **next** registered source. Keys are field names; values are type strings. Coercion is applied after any `.select()` filtering, so only retained fields need schema entries.
+
+| Type | Name | Description |
+| :--- | :--- | :--- |
+| `hashmap` | `schema` | Map of field name → type string. |
+
+**Supported types**: `"string"`, `"integer"`, `"float"`, `"boolean"`, `"null"`. Unrecognised types leave the value as-is. Fields absent from the row are silently skipped. Coercion is idempotent — already-typed values (e.g. JSON integers) pass through unchanged.
+
 ### `.from_file(path)`
 
 Registers a JSON file as a source using any pending `.select()` setting.
@@ -168,6 +178,34 @@ rows = json::pipeline()
   .parse()
 
 # Each row has only "id" and "name"
+```
+
+### Schema coercion
+
+Use `.with_schema()` when field values need type coercion — common when loading JSON that stores numbers or booleans as strings, or when you want to enforce types regardless of the source format.
+
+```kiwi
+# JSON with string-valued fields
+rows = json::pipeline()
+  .with_schema({"id": "integer", "score": "float", "active": "boolean"})
+  .from_string('[{"id":"1","score":"9.5","active":"true"},{"id":"2","score":"7.0","active":"false"}]')
+  .parse()
+
+println rows[0]["id"]     # 1      (integer)
+println rows[0]["score"]  # 9.5    (float)
+println rows[0]["active"] # true   (boolean)
+```
+
+Schema works alongside `.select()`:
+
+```kiwi
+rows = json::pipeline()
+  .select(["id", "name"])
+  .with_schema({"id": "string"})
+  .from_file("users.json")
+  .parse()
+
+# id is now a string; name is untouched
 ```
 
 ### Multiple named datasets

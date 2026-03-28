@@ -1,0 +1,107 @@
+/#
+  Large-scale CSV pipeline benchmark
+
+  Tests csv::pipeline at scales relevant to real-world data files, using an
+  8-column schema that exercises every SchemaKind: integer, string, string?,
+  float, boolean.  These are the same types used by the LAPD crime-data script.
+
+  Fixtures written to /tmp once before benchmarks, removed afterwards.
+  Each fixture row is ~60 bytes, so:
+    100k rows ≈  6 MB
+    250k rows ≈ 15 MB
+    500k rows ≈ 30 MB
+
+  Run from the project root:
+    kiwi bench/csv_large
+#/
+
+# fixture generator
+
+fn gen_rows(n: integer): string
+  lines = ["id,name,category,score,active,rank,lat,lon"]
+  repeat n as i do
+    cat  = "gamma"
+    cat  = "alpha" when i % 3 == 0
+    cat  = "beta"  when i % 3 == 1
+    actv = i % 7 != 0 ? "true" : ""
+    lat  = 34.0 + (i % 1000) * 0.001
+    lon  = -118.0 - (i % 1000) * 0.001
+    lines.push("${i},user_${i},${cat},${i % 1000},${actv},${i % 100},${lat},${lon}")
+  end
+  lines.join("\n") + "\n"
+end
+
+# schema
+
+schema = [
+  "integer",  # id
+  "string",   # name
+  "string",   # category
+  "integer",  # score
+  "string?",  # active  — empty fields → null
+  "integer",  # rank
+  "float",    # lat
+  "float"     # lon
+]
+
+# write fixtures
+
+var (
+  f_100k : string = "/tmp/kiwi_bench_large_100k.csv",
+  f_250k : string = "/tmp/kiwi_bench_large_250k.csv",
+  f_500k : string = "/tmp/kiwi_bench_large_500k.csv"
+)
+
+println "Generating fixtures..."
+fio::write(f_100k, gen_rows(100000))
+fio::write(f_250k, gen_rows(250000))
+fio::write(f_500k, gen_rows(500000))
+println "Done. Running benchmarks...\n"
+
+# benchmarks
+
+bench::register("csv large: 100k rows, no schema", with do
+  csv::pipeline().from_file(f_100k).parse()
+end)
+
+bench::register("csv large: 100k rows, 8-col schema", with do
+  csv::pipeline().with_schema(schema).from_file(f_100k).parse()
+end)
+
+bench::register("csv large: 250k rows, no schema", with do
+  csv::pipeline().from_file(f_250k).parse()
+end)
+
+bench::register("csv large: 250k rows, 8-col schema", with do
+  csv::pipeline().with_schema(schema).from_file(f_250k).parse()
+end)
+
+bench::register("csv large: 500k rows, no schema", with do
+  csv::pipeline().from_file(f_500k).parse()
+end)
+
+bench::register("csv large: 500k rows, 8-col schema", with do
+  csv::pipeline().with_schema(schema).from_file(f_500k).parse()
+end)
+
+bench::register("csv large: 500k rows, schema + filter active", with do
+  rows = csv::pipeline().with_schema(schema).from_file(f_500k).parse()
+  rows.filter(with (r) do r["active"] != null end).size()
+end)
+
+bench::register("csv large: 500k rows, schema + group_by_field", with do
+  rows = csv::pipeline().with_schema(schema).from_file(f_500k).parse()
+  rows.group_by_field("category")
+end)
+
+# run (low iterations — files are large)
+
+bench::run_all(3, 1)
+
+# cleanup
+
+println "\nCleaning up fixtures..."
+fio::remove(f_100k)
+fio::remove(f_250k)
+fio::remove(f_500k)
+println "Done."

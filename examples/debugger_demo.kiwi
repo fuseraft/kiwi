@@ -1,0 +1,66 @@
+# debugger_demo.kiwi
+#
+# A small script for exploring kdb, the Kiwi debugger.
+#
+# Run with:  kiwi --debug examples/debugger_demo.kiwi
+#
+# Useful commands to try:
+#   s          step into the next statement
+#   n          step over (stay at the same call depth)
+#   f          finish (step out of the current function)
+#   r          run to the next breakpoint (or end)
+#   b <line>   set a breakpoint at a line number
+#   l          show local variables in the current frame
+#   p <expr>   evaluate an expression in the current context
+#   bt         print the call stack
+#   list       show source lines around the current position
+#   h          help
+#   q          quit
+
+fn factorial(n: integer): integer
+  if n <= 1
+    return 1
+  end
+  return n * factorial(n - 1)
+end
+
+fn fizzbuzz(limit: integer)
+  results = []
+  for i in [1 to limit] do
+    if i % 15 == 0
+      results.push("FizzBuzz")
+    elsif i % 3 == 0
+      results.push("Fizz")
+    elsif i % 5 == 0
+      results.push("Buzz")
+    else
+      results.push(i.to_string())
+    end
+  end
+  return results
+end
+
+fn greet(name: string): string
+  greeting = "Hello, ${name}!"
+  return greeting
+end
+
+# --- main ---
+
+message = greet("Kiwi")
+println message
+
+facts = []
+for n in [1 to 7] do
+  facts.push(factorial(n))
+end
+println "Factorials 1-7: ${facts}"
+
+fb = fizzbuzz(20)
+println "FizzBuzz 1-20:  ${fb}"
+
+total = 0
+for x in facts do
+  total += x
+end
+println "Sum of factorials: ${total}"

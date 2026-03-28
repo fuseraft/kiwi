@@ -1,6 +1,7 @@
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
 using kiwi.Parsing.Keyword;
+using kiwi.Tracing.Error;
 using kiwi.Typing;
 
 namespace kiwi.VM;
@@ -63,8 +64,13 @@ public sealed class Compiler
     public static Chunk CompileProgram(ProgramNode program)
     {
         var c = new Compiler("<main>", null, isGlobal: true);
+        // Pass 1: hoist top-level function definitions so they are available
+        // before any code that precedes them in source order.
         foreach (var s in program.Statements)
-            if (s != null) c.CompileStatement(s);
+            if (s is FunctionNode) c.CompileStatement(s);
+        // Pass 2: compile all remaining (non-function) statements in order.
+        foreach (var s in program.Statements)
+            if (s != null && s is not FunctionNode) c.CompileStatement(s);
         c.Emit(Opcode.Halt);
         return c._chunk;
     }
@@ -79,6 +85,30 @@ public sealed class Compiler
         foreach (var s in program.Statements)
             if (s != null) c.CompileStatement(s);
         c.Emit(Opcode.ReturnNull);
+        return c._chunk;
+    }
+
+    /// <summary>
+    /// Compile a program as a returnable expression: all-but-last statements are compiled
+    /// normally (results discarded); the last statement is compiled as an expression whose
+    /// value is returned to the caller. Used by the debugger's 'p' command.
+    /// </summary>
+    public static Chunk CompileExpression(ProgramNode program)
+    {
+        var c = new Compiler("<eval>", null, isGlobal: true);
+        var stmts = program.Statements;
+        for (int i = 0; i < stmts.Count - 1; i++)
+            if (stmts[i] != null) c.CompileStatement(stmts[i]!);
+        if (stmts.Count > 0 && stmts[^1] != null)
+        {
+            if (!c.CompileNode(stmts[^1]!))
+                c.Emit(Opcode.Null);
+        }
+        else
+        {
+            c.Emit(Opcode.Null);
+        }
+        c.Emit(Opcode.Return);
         return c._chunk;
     }
 
@@ -164,8 +194,6 @@ public sealed class Compiler
         }
 
         _chunk.LocalCount = _slotCount;
-
-        // Publish name→slot mapping so the VM can expose locals to interpreter fallbacks.
         foreach (var lv in _locals)
             _chunk.LocalNames.Add((lv.Name, lv.Slot));
     }
@@ -371,17 +399,18 @@ public sealed class Compiler
     {
         switch (op)
         {
-            case TokenName.Ops_AddAssign:              Emit(Opcode.Add,   0, 0, line); break;
-            case TokenName.Ops_SubtractAssign:         Emit(Opcode.Sub,   0, 0, line); break;
-            case TokenName.Ops_MultiplyAssign:         Emit(Opcode.Mul,   0, 0, line); break;
-            case TokenName.Ops_DivideAssign:           Emit(Opcode.Div,   0, 0, line); break;
-            case TokenName.Ops_ModuloAssign:           Emit(Opcode.Mod,   0, 0, line); break;
-            case TokenName.Ops_ExponentAssign:         Emit(Opcode.Pow,   0, 0, line); break;
-            case TokenName.Ops_BitwiseAndAssign:       Emit(Opcode.BAnd,  0, 0, line); break;
-            case TokenName.Ops_BitwiseOrAssign:        Emit(Opcode.BOr,   0, 0, line); break;
-            case TokenName.Ops_BitwiseXorAssign:       Emit(Opcode.BXor,  0, 0, line); break;
-            case TokenName.Ops_BitwiseLeftShiftAssign: Emit(Opcode.BLSh,  0, 0, line); break;
-            case TokenName.Ops_BitwiseRightShiftAssign: Emit(Opcode.BRSh, 0, 0, line); break;
+            case TokenName.Ops_AddAssign:              Emit(Opcode.Add,    0, 0, line); break;
+            case TokenName.Ops_SubtractAssign:         Emit(Opcode.Sub,    0, 0, line); break;
+            case TokenName.Ops_MultiplyAssign:         Emit(Opcode.Mul,    0, 0, line); break;
+            case TokenName.Ops_DivideAssign:           Emit(Opcode.Div,    0, 0, line); break;
+            case TokenName.Ops_IntDivideAssign:        Emit(Opcode.IntDiv, 0, 0, line); break;
+            case TokenName.Ops_ModuloAssign:           Emit(Opcode.Mod,    0, 0, line); break;
+            case TokenName.Ops_ExponentAssign:         Emit(Opcode.Pow,    0, 0, line); break;
+            case TokenName.Ops_BitwiseAndAssign:       Emit(Opcode.BAnd,   0, 0, line); break;
+            case TokenName.Ops_BitwiseOrAssign:        Emit(Opcode.BOr,    0, 0, line); break;
+            case TokenName.Ops_BitwiseXorAssign:       Emit(Opcode.BXor,   0, 0, line); break;
+            case TokenName.Ops_BitwiseLeftShiftAssign: Emit(Opcode.BLSh,   0, 0, line); break;
+            case TokenName.Ops_BitwiseRightShiftAssign: Emit(Opcode.BRSh,  0, 0, line); break;
             case TokenName.Ops_BitwiseUnsignedRightShiftAssign: Emit(Opcode.BURSh, 0, 0, line); break;
             default: /* leave as-is - callers handle && / || */ break;
         }
@@ -414,12 +443,13 @@ public sealed class Compiler
             case ASTNodeType.HashLiteral:      CompileHash           ((HashLiteralNode)node,       ln); return true;
             case ASTNodeType.RangeLiteral:     CompileRange          ((RangeLiteralNode)node,      ln); return true;
             case ASTNodeType.Index:            CompileIndex          ((IndexingNode)node,          ln); return true;
-            case ASTNodeType.IndexAssignment:  CompileIndexAssign    ((IndexAssignmentNode)node,   ln); return true;
+            case ASTNodeType.IndexAssignment:  CompileIndexAssign    ((IndexAssignmentNode)node,   ln); return false;
             case ASTNodeType.Slice:            CompileSlice          ((SliceNode)node,             ln); return true;
             case ASTNodeType.MemberAccess:     CompileMemberAccess   ((MemberAccessNode)node,      ln); return true;
             case ASTNodeType.MemberAssignment: CompileMemberAssign   ((MemberAssignmentNode)node,  ln); return true;
             case ASTNodeType.Self:             CompileSelf           ((SelfNode)node,              ln); return true;
             case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
+            case ASTNodeType.SuperCall:        CompileSuperCall      ((SuperCallNode)node,         ln); return true;
             case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
             case ASTNodeType.PrintXy:          CompilePrintXy        ((PrintXyNode)node,           ln); return false;
             case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return true;
@@ -440,10 +470,12 @@ public sealed class Compiler
             case ASTNodeType.Struct:           CompileStruct         ((StructNode)node,            ln); return false;
             case ASTNodeType.Package:          CompilePackage        ((PackageNode)node,           ln); return false;
             case ASTNodeType.Export:           CompileExport         ((ExportNode)node,            ln); return false;
+            case ASTNodeType.Import:           CompileImport         ((ImportNode)node,            ln); return true;
+            case ASTNodeType.Require:          CompileRequire        ((RequireNode)node,           ln); return false;
             case ASTNodeType.Eval:             CompileEval           ((EvalNode)node,              ln); return true;
             case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return false;
             case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
-            case ASTNodeType.DecoratedFunction: Fallback             (node);                            return true;
+            case ASTNodeType.DecoratedFunction: CompileDecoratedFunction((DecoratedFunctionNode)node, ln); return false;
             case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
             case ASTNodeType.LambdaCall:       CompileLambdaCall     ((LambdaCallNode)node,        ln); return true;
             case ASTNodeType.FunctionCall:     CompileFuncCall       ((FunctionCallNode)node,      ln); return true;
@@ -457,7 +489,7 @@ public sealed class Compiler
                     if (s != null) CompileStatement(s);
                 return false;
             default:
-                Fallback(node); return true;
+                throw new SyntaxError(node.Token, $"Unsupported AST node type in VM compiler: {node.Type}");
         }
     }
 
@@ -468,14 +500,6 @@ public sealed class Compiler
     {
         if (CompileNode(node))
             Emit(Opcode.Pop);
-    }
-
-    // -- Fallback to interpreter -----------------------------------------------
-
-    private void Fallback(ASTNode node)
-    {
-        int idx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.InterpFallback, idx, 0, node.Token.Span.Line);
     }
 
     // -- Literal ---------------------------------------------------------------
@@ -530,7 +554,19 @@ public sealed class Compiler
             CompileNode(node.Condition);
             int skip = EmitJump(Opcode.JumpF, ln);
             DoAssignment(node, ln, leaveValue: false);
-            PatchJump(skip);
+            if (node.ElseInitializer != null)
+            {
+                int end = EmitJump(Opcode.Jump, ln);
+                PatchJump(skip);
+                // Else branch: assign ElseInitializer to the same target
+                var elseNode = new AssignmentNode(node.Left, node.Name, node.Op, node.ElseInitializer) { Token = node.Token };
+                DoAssignment(elseNode, ln, leaveValue: false);
+                PatchJump(end);
+            }
+            else
+            {
+                PatchJump(skip);
+            }
             return false;
         }
 
@@ -588,8 +624,8 @@ public sealed class Compiler
                 Emit(Opcode.StoreStaticAttr, ni, 0, ln);
                 return leaveValue;
             }
-            // Other complex LHS → fallback
-            Fallback(node); return false;
+            // Other complex LHS — not reachable through normal parsing.
+            throw new SyntaxError(node.Token, $"Unsupported assignment left-hand side: {node.Left?.Type}");
         }
 
         bool compound = node.Op != TokenName.Ops_Assign;
@@ -615,7 +651,7 @@ public sealed class Compiler
     {
         if (node.Initializer != null) CompileNode(node.Initializer);
         else                         Emit(Opcode.Null, 0, 0, ln);
-        Emit(Opcode.StoreGlobal, _chunk.AddName(node.Name), 0, ln);
+        Emit(Opcode.StoreConst, _chunk.AddName(node.Name), 0, ln);
     }
 
     // -- Binary ----------------------------------------------------------------
@@ -660,6 +696,7 @@ public sealed class Compiler
             TokenName.Ops_Subtract         or TokenName.Ops_SubtractAssign         => Opcode.Sub,
             TokenName.Ops_Multiply         or TokenName.Ops_MultiplyAssign         => Opcode.Mul,
             TokenName.Ops_Divide           or TokenName.Ops_DivideAssign           => Opcode.Div,
+            TokenName.Ops_IntDivide        or TokenName.Ops_IntDivideAssign        => Opcode.IntDiv,
             TokenName.Ops_Modulus          or TokenName.Ops_ModuloAssign           => Opcode.Mod,
             TokenName.Ops_Exponent         or TokenName.Ops_ExponentAssign         => Opcode.Pow,
             TokenName.Ops_BitwiseAnd       or TokenName.Ops_BitwiseAndAssign       => Opcode.BAnd,
@@ -679,17 +716,8 @@ public sealed class Compiler
         };
 
         if (op == (Opcode)255)
-        {
-            // Unknown binary op - reconstruct the node and fallback
-            // (stack already has left and right on it - pop them first)
-            Emit(Opcode.Pop, 0, 0, ln);
-            Emit(Opcode.Pop, 0, 0, ln);
-            Fallback(node);
-        }
-        else
-        {
-            Emit(op, 0, 0, ln);
-        }
+            throw new SyntaxError(node.Token, $"Unsupported binary operator: {node.Op}");
+        Emit(op, 0, 0, ln);
     }
 
     // -- Unary -----------------------------------------------------------------
@@ -704,8 +732,8 @@ public sealed class Compiler
             TokenName.Ops_BitwiseNot or TokenName.Ops_BitwiseNotAssign => Opcode.BNot,
             _ => (Opcode)255
         };
-        if (op == (Opcode)255) { Emit(Opcode.Pop); Fallback(node); }
-        else                    Emit(op, 0, 0, ln);
+        if (op == (Opcode)255) throw new SyntaxError(node.Token, $"Unsupported unary operator: {node.Op}");
+        Emit(op, 0, 0, ln);
     }
 
     // -- Ternary ---------------------------------------------------------------
@@ -870,10 +898,10 @@ public sealed class Compiler
 
     private void CompilePackAssign(PackAssignmentNode node, int ln)
     {
-        // All LHS elements must be simple identifiers
+        // All LHS elements must be simple identifiers.
         foreach (var lhs in node.Left)
             if (lhs != null && lhs is not IdentifierNode)
-            { Fallback(node); return; }
+                throw new SyntaxError(node.Token, "Left side of pack assignment must be an identifier.");
 
         int lhsCount = node.Left.Count;
         int rhsCount = node.Right.Count(r => r != null);
@@ -914,13 +942,13 @@ public sealed class Compiler
 
     private void CompileIndexAssign(IndexAssignmentNode node, int ln)
     {
-        if (node.Object == null) { Fallback(node); return; }
+        if (node.Object == null) throw new SyntaxError(node.Token, "Index assignment has no target object.");
 
         if (node.Object.Type == ASTNodeType.Slice)
         {
             // Slice assignment: a[start:stop:step] = rhs
-            // Compound slice assign (+=, etc.) not supported — fall back.
-            if (node.Op != TokenName.Ops_Assign) { Fallback(node); return; }
+            // Compound slice assign (+=, etc.) not supported — raise error.
+            if (node.Op != TokenName.Ops_Assign) throw new SyntaxError(node.Token, "Compound assignment operators are not supported on slice ranges.");
             var sliceExpr = (SliceNode)node.Object;
             if (sliceExpr.SlicedObject != null) CompileNode(sliceExpr.SlicedObject);
             else                                EmitLoad("", ln);
@@ -931,13 +959,12 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         Emit(Opcode.Null, 0, 0, ln);
             Emit(Opcode.SliceSet, flags, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
             return;
         }
 
         if (node.Object.Type != ASTNodeType.Index)
-        {
-            Fallback(node); return;
-        }
+            throw new SyntaxError(node.Token, $"Unsupported index-assignment target node type: {node.Object.Type}");
         var idx = (IndexingNode)node.Object!;
 
         if (node.Op == TokenName.Ops_Assign)
@@ -949,6 +976,7 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         Emit(Opcode.Null, 0, 0, ln);
             Emit(Opcode.IndexSet, 0, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
         }
         else
         {
@@ -959,6 +987,7 @@ public sealed class Compiler
                 TokenName.Ops_SubtractAssign         => Opcode.Sub,
                 TokenName.Ops_MultiplyAssign         => Opcode.Mul,
                 TokenName.Ops_DivideAssign           => Opcode.Div,
+                TokenName.Ops_IntDivideAssign        => Opcode.IntDiv,
                 TokenName.Ops_ModuloAssign           => Opcode.Mod,
                 TokenName.Ops_ExponentAssign         => Opcode.Pow,
                 TokenName.Ops_BitwiseAndAssign       => Opcode.BAnd,
@@ -970,7 +999,7 @@ public sealed class Compiler
                 _ => (Opcode)255
             };
 
-            if (innerOp == (Opcode)255) { Fallback(node); return; }
+            if (innerOp == (Opcode)255) throw new SyntaxError(node.Token, $"Unsupported compound index-assignment operator: {node.Op}");
 
             if (idx.IndexedObject != null) CompileNode(idx.IndexedObject);
             else                           EmitLoad(idx.Name ?? "", ln);
@@ -978,6 +1007,7 @@ public sealed class Compiler
             if (node.Initializer != null) CompileNode(node.Initializer);
             else                         Emit(Opcode.Null, 0, 0, ln);
             Emit(Opcode.IndexOpAssign, (int)innerOp, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
         }
     }
 
@@ -1028,6 +1058,16 @@ public sealed class Compiler
 
     private void CompileStaticSelf(StaticSelfNode node, int ln)
         => Emit(Opcode.LoadStaticAttr, _chunk.AddName(node.Name), 0, ln);
+
+    private void CompileSuperCall(SuperCallNode node, int ln)
+    {
+        // Stack before CallSuperMethod: [arg0, …, argN-1]
+        // The VM handler pulls `self` from frame.Self and resolves the base struct
+        // via frame.OwnerStruct — no explicit object on the stack.
+        int argc    = CompileArgs(node.Arguments);
+        int nameIdx = _chunk.AddName(node.MethodName);
+        Emit(Opcode.CallSuperMethod, argc, nameIdx, ln);
+    }
 
     // -- Print -----------------------------------------------------------------
 
@@ -1401,6 +1441,73 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         Emit(Opcode.DefFunc, si, ni, ln);
     }
 
+    // -- Decorated function ----------------------------------------------------
+
+    private void CompileDecoratedFunction(DecoratedFunctionNode node, int ln)
+    {
+        // 1. Compile the inner function and emit DefFuncAndPush:
+        //    registers the KFunction AND pushes an internal lambda-ref for it.
+        var sub = CompileFunction(node.Function, enclosing: this);
+        int si  = _chunk.AddSubChunk(sub);
+        int ni  = _chunk.AddName(node.Function.Name);
+        Emit(Opcode.DefFuncAndPush, si, ni, ln);
+        // Stack: [internal_fn_lambda]
+
+        // 2. Apply decorators from bottom to top (innermost first).
+        for (int i = node.Decorators.Count - 1; i >= 0; i--)
+        {
+            var (decoExpr, extraArgs) = node.Decorators[i];
+
+            // Push the decorator callable.
+            // Stack: [current_fn, decorator]
+            if (decoExpr is IdentifierNode id)
+                EmitLoad(id.Name, ln);
+            else
+                CompileNode(decoExpr!);
+
+            // Swap: put decorator below current_fn so it lands at funcSlot.
+            // Stack: [decorator, current_fn]
+            Emit(Opcode.Swap, 0, 0, ln);
+
+            // Push extra args (if any) and call.
+            // Final stack before Call: [decorator, current_fn, extraArg0, ...]
+            bool hasNamed = HasNamedArg(extraArgs);
+            if (hasNamed)
+            {
+                // Build the arg-name array: "" for current_fn (positional), then extra arg names.
+                var filteredExtras = extraArgs.Where(a => a != null).ToList();
+                var names = new string[1 + filteredExtras.Count];
+                names[0] = ""; // current_fn is always the first positional arg
+                int n = 1;
+                foreach (var a in filteredExtras)
+                {
+                    if (a is NamedArgumentNode named)
+                    {
+                        names[n] = named.Name;
+                        CompileNode(named.Value!);
+                    }
+                    else
+                    {
+                        names[n] = "";
+                        CompileNode(a!);
+                    }
+                    n++;
+                }
+                int nameSetIdx = _chunk.AddArgNameSet(names);
+                Emit(Opcode.CallNamed, n, nameSetIdx, ln);
+            }
+            else
+            {
+                int extraArgc = CompileArgs(extraArgs);
+                Emit(Opcode.Call, 1 + extraArgc, 0, ln);
+            }
+            // Stack: [new_current_fn]
+        }
+
+        // 3. Store the final decorated value back, replacing the original function entry.
+        Emit(Opcode.StoreDecoratedFunc, ni, 0, ln);
+    }
+
     // -- Lambda ----------------------------------------------------------------
 
     private void CompileLambdaDef(LambdaNode node, int ln)
@@ -1416,7 +1523,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
-        if (hasNamed && hasSplat) { Fallback(node); return; }
+        if (hasNamed && hasSplat) throw new SyntaxError(node.Token, "Splat (*) and named arguments cannot be combined in the same call.");
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.LambdaNode!);
         if (hasNamed)
@@ -1453,18 +1560,18 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // not yet natively compiled and still need the interpreter fallback.
         if (node.Op != TokenName.Default && !CoreBuiltin.IsBuiltin(node.Op))
         {
-            // Named or splat args still require interpreter fallback (rare edge case).
             bool hasNamedB = HasNamedArg(node.Arguments);
             bool hasSplatB = HasSplatNode(node.Arguments);
-            if (hasNamedB || hasSplatB) { Fallback(node); return; }
-            int argcB    = CompileArgs(node.Arguments);
+            if (hasSplatB) throw new SyntaxError(node.Token, "Splat (*) arguments are not supported in builtin calls.");
+            // Named args: compile their values positionally (ExecuteBuiltin receives a plain List<Value>).
+            int argcB    = hasNamedB ? CompileNamedArgValues(node.Arguments) : CompileArgs(node.Arguments);
             int nodeIdxB = _chunk.AddNodeFallback(node);
             Emit(Opcode.CallBuiltin, nodeIdxB, argcB, ln);
             return;
         }
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
-        if (hasNamed && hasSplat) { Fallback(node); return; }
+        if (hasNamed && hasSplat) throw new SyntaxError(node.Token, "Splat (*) and named arguments cannot be combined in the same call.");
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         EmitLoad(node.FunctionName, ln);
         if (hasNamed)
@@ -1486,7 +1593,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         bool hasNamed = HasNamedArg(node.Arguments);
         bool hasSplat = HasSplatNode(node.Arguments);
-        if (hasNamed && hasSplat) { Fallback(node); return; }
+        if (hasNamed && hasSplat) throw new SyntaxError(node.Token, "Splat (*) and named arguments cannot be combined in the same call.");
         if (hasSplat) Emit(Opcode.SplatReset, 0, 0, ln);
         CompileNode(node.Object!);
         if (hasNamed)
@@ -1623,20 +1730,38 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
     private void CompileExport(ExportNode node, int ln)
     {
-        int nodeIdx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.Export, nodeIdx, 0, ln);
+        if (node.PackageName != null) CompileNode(node.PackageName);
+        else                          Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.Export, 0, 0, ln);
+    }
+
+    private void CompileImport(ImportNode node, int ln)
+    {
+        // Compile the package name expression; the ImportPkg opcode pops it,
+        // calls ImportPackage, and pushes Value.CreatePackage(name) as the result.
+        if (node.PackageName != null) CompileNode(node.PackageName);
+        else                          Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.ImportPkg, 0, 0, ln);
+    }
+
+    private void CompileRequire(RequireNode node, int ln)
+    {
+        // Push the static package name and emit a runtime check.
+        Emit(Opcode.Const, _chunk.AddConstant(Value.CreateString(node.PackageName)), 0, ln);
+        Emit(Opcode.Require, 0, 0, ln);
     }
 
     private void CompileEval(EvalNode node, int ln)
     {
-        int nodeIdx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.Eval, nodeIdx, 0, ln);
+        if (node.ParseValue != null) CompileNode(node.ParseValue);
+        else                         Emit(Opcode.Null, 0, 0, ln);
+        Emit(Opcode.Eval, 0, 0, ln);
     }
 
     private void CompileInclude(IncludeNode node, int ln)
     {
-        int nodeIdx = _chunk.AddNodeFallback(node);
-        Emit(Opcode.Include, nodeIdx, 0, ln);
+        CompileNode(node.Path);
+        Emit(Opcode.Include, 0, 0, ln);
     }
 
     // -- Enum definition -------------------------------------------------------
@@ -1784,6 +1909,27 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             {
                 CompileNode(a);
             }
+            n++;
+        }
+        return n;
+    }
+
+    /// <summary>
+    /// Like <see cref="CompileArgs"/> but extracts the value expression from
+    /// <see cref="NamedArgumentNode"/> entries (ignoring their names).
+    /// Used for builtin calls where the callee receives a plain List&lt;Value&gt;
+    /// and does not perform named-argument reordering.
+    /// </summary>
+    private int CompileNamedArgValues(IEnumerable<ASTNode?> args)
+    {
+        int n = 0;
+        foreach (var a in args)
+        {
+            if (a == null) continue;
+            if (a is NamedArgumentNode named)
+                CompileNode(named.Value!);
+            else
+                CompileNode(a);
             n++;
         }
         return n;

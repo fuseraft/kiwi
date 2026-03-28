@@ -7,7 +7,7 @@ package console
   @param string color : The color name (e.g., `"RED"`, `"BLUE"`). See `console::get_colors()`.
   #/
   fn bg(color: string)
-    __console_background__(console::map_color(color))
+    __console_background__(map_color(color))
   end
 
   /#
@@ -15,7 +15,7 @@ package console
   @param string color : The color name (e.g., `"GREEN"`, `"WHITE"`). See `console::get_colors()`.
   #/
   fn fg(color: string)
-    __console_foreground__(console::map_color(color))
+    __console_foreground__(map_color(color))
   end
 
   /#
@@ -24,7 +24,7 @@ package console
   @return integer : The color code, or `0` (black) if the name is not recognized.
   #/
   fn map_color(name: string): integer
-    console::get_colors().get(name.uppercase(), 0)
+    get_colors().get(name.uppercase(), 0)
   end
 
   /#

@@ -14,7 +14,7 @@ curl -sSL https://raw.githubusercontent.com/fuseraft/kiwi/main/install.sh | bash
 irm https://raw.githubusercontent.com/fuseraft/kiwi/main/install.ps1 | iex
 ```
 
-Both installers build Kiwi from source (requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)) and add `kiwi` to your PATH. Open a new terminal and you're ready:
+Both installers build Kiwi from source (requires the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)) and add `kiwi` to your PATH. Open a new terminal and you're ready:
 ```bash
 kiwi --help
 ```
@@ -60,6 +60,15 @@ Open VS Code, launch Quick Open (<kbd>Ctrl</kbd>+<kbd>P</kbd>), paste the follow
 
 ```
 ext install fuseraft.kiwi-lang
+```
+
+## Package Manager
+
+[Zest](https://github.com/fuseraft/zest) is the official package manager for Kiwi.
+Install community packages directly from GitHub with semver constraints and a lock file.
+
+```bash
+zest install owner/repo
 ```
 
 ## Documentation

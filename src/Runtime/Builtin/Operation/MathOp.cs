@@ -30,11 +30,16 @@ public struct MathOp
         return GetModResult(token, ref left, ref right, ref type);
     }
 
-    public static Value Div(Token token, ref Value left, ref Value right,
-                       bool doAssign = false)
+    public static Value Div(Token token, ref Value left, ref Value right, bool doAssign = false)
     {
         Typing.ValueType type = Typing.ValueType.None;
         return GetDivResult(token, ref left, ref right, ref type);
+    }
+
+    public static Value IntDiv(Token token, ref Value left, ref Value right, bool doAssign = false)
+    {
+        Typing.ValueType type = Typing.ValueType.None;
+        return GetIntDivResult(token, ref left, ref right, ref type);
     }
 
     public static Value Mul(Token token, ref Value left, ref Value right, bool doAssign = false)
@@ -298,6 +303,24 @@ public struct MathOp
         }
 
         throw new ConversionError(token, "Conversion error in division.");
+    }
+
+    private static Value GetIntDivResult(Token token, ref Value left, ref Value right, ref Typing.ValueType type)
+    {
+        type = Typing.ValueType.Integer;
+        long lhs, rhs;
+        if (left.IsInteger())       lhs = left.GetInteger();
+        else if (left.IsFloat())    lhs = (long)Math.Floor(left.GetFloat());
+        else throw new ConversionError(token, "Conversion error in integer division.");
+
+        if (right.IsInteger())      rhs = GetNonZero(token, right.GetInteger());
+        else if (right.IsFloat())   rhs = GetNonZero(token, (long)Math.Floor(right.GetFloat()));
+        else throw new ConversionError(token, "Conversion error in integer division.");
+
+        // Floor division: result rounds toward negative infinity
+        long q = lhs / rhs;
+        if ((lhs ^ rhs) < 0 && q * rhs != lhs) q--;
+        return new(q, type);
     }
 
     private static Value GetMulResult(Token token, ref Value left, ref Value right, ref Typing.ValueType type)

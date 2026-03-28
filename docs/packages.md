@@ -376,3 +376,57 @@ The following stdlib packages use this pattern:
 - If two loaded packages extend the same type with the same function name, the last one loaded wins.
 - Type extension only applies to built-in types. Struct methods are defined inside the struct body using `fn`.
 - Functions with no type hint on the first parameter are still callable as `pkg::func(value)` but will **not** be dispatched as instance methods.
+
+---
+
+## Calling Sibling Functions Inside a Package
+
+Functions defined inside the same package can call each other using their **unqualified** name — no `pkg::` prefix needed.
+
+```kiwi
+package math_utils
+  fn double(x)
+    x * 2
+  end
+
+  fn quadruple(x)
+    double(double(x))   # calls sibling — no math_utils:: prefix needed
+  end
+
+  fn triple(x)
+    double(x) + x
+  end
+end
+
+export "math_utils"
+
+println math_utils::quadruple(5)  # 20
+println math_utils::triple(4)     # 12
+```
+
+This also works inside struct methods and lambdas defined within the package.
+
+### Type-keyword naming caveat
+
+The following identifiers are **reserved type keywords** in Kiwi and are parsed as string literals when used as bare names — even inside a package:
+
+`any`, `none`, `string`, `integer`, `float`, `boolean`, `hashmap`, `list`, `lambda`, `date`, `generator`, `object`, `pointer`
+
+If a package function shares its name with one of these keywords, it **must** be called using the fully-qualified `pkg::name(...)` form, even from within the same package:
+
+```kiwi
+package mylib
+  fn any(lst, pred)   # shares name with type keyword "any"
+    for x in lst do
+      return true when pred(x)
+    end
+    false
+  end
+
+  fn none(lst, pred)
+    not mylib::any(lst, pred)   # must qualify — bare `any(...)` parses as the string "any"
+  end
+end
+```
+
+Choosing names that don't collide with type keywords (e.g. `find_any`, `has_match`) avoids this entirely.
