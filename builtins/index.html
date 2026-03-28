@@ -6707,7 +6707,7 @@
 </span></code></pre></div>
 <h3 id="type"><code>type()</code><a class="headerlink" href="#type" title="Permanent link">&para;</a></h3>
 <p>Returns the type of the value as a string.</p>
-<p>Valid types: <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>string</code>, <code>list</code>, <code>hashmap</code>, <code>lambda</code>, <code>date</code>, <code>bytes</code>, <code>none</code>. For struct instances, returns the struct name.</p>
+<p>Valid types: <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>string</code>, <code>list</code>, <code>hashmap</code>, <code>lambda</code>, <code>date</code>, <code>bytes</code>, <code>null</code>. For struct instances, returns the struct name.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-89-1"><a id="__codelineno-89-1" name="__codelineno-89-1" href="#__codelineno-89-1"></a>struct MyStruct end
 </span><span id="__span-89-2"><a id="__codelineno-89-2" name="__codelineno-89-2" href="#__codelineno-89-2"></a>
 </span><span id="__span-89-3"><a id="__codelineno-89-3" name="__codelineno-89-3" href="#__codelineno-89-3"></a>instance = MyStruct.new()
@@ -6732,12 +6732,12 @@
 <p>These builtins are called as standalone functions (not with dot-notation) and provide runtime introspection.</p>
 <h3 id="typeofvalue"><code>typeof(value)</code><a class="headerlink" href="#typeofvalue" title="Permanent link">&para;</a></h3>
 <p>Returns the type of <code>value</code> as a string. Unlike <code>.type()</code>, <code>typeof</code> can be called on any expression and works well in situations where method chaining is awkward.</p>
-<p>Valid types: <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>string</code>, <code>list</code>, <code>hashmap</code>, <code>lambda</code>, <code>date</code>, <code>bytes</code>, <code>none</code>. For struct instances, returns the struct name.</p>
+<p>Valid types: <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>string</code>, <code>list</code>, <code>hashmap</code>, <code>lambda</code>, <code>date</code>, <code>bytes</code>, <code>null</code>. For struct instances, returns the struct name.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-92-1"><a id="__codelineno-92-1" name="__codelineno-92-1" href="#__codelineno-92-1"></a>println typeof(42)          # prints: integer
 </span><span id="__span-92-2"><a id="__codelineno-92-2" name="__codelineno-92-2" href="#__codelineno-92-2"></a>println typeof(3.14)        # prints: float
 </span><span id="__span-92-3"><a id="__codelineno-92-3" name="__codelineno-92-3" href="#__codelineno-92-3"></a>println typeof(&quot;hello&quot;)     # prints: string
 </span><span id="__span-92-4"><a id="__codelineno-92-4" name="__codelineno-92-4" href="#__codelineno-92-4"></a>println typeof([1, 2, 3])   # prints: list
-</span><span id="__span-92-5"><a id="__codelineno-92-5" name="__codelineno-92-5" href="#__codelineno-92-5"></a>println typeof(null)        # prints: none
+</span><span id="__span-92-5"><a id="__codelineno-92-5" name="__codelineno-92-5" href="#__codelineno-92-5"></a>println typeof(null)        # prints: null
 </span><span id="__span-92-6"><a id="__codelineno-92-6" name="__codelineno-92-6" href="#__codelineno-92-6"></a>
 </span><span id="__span-92-7"><a id="__codelineno-92-7" name="__codelineno-92-7" href="#__codelineno-92-7"></a>struct Point end
 </span><span id="__span-92-8"><a id="__codelineno-92-8" name="__codelineno-92-8" href="#__codelineno-92-8"></a>p = Point.new()
