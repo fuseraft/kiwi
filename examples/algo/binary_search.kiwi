@@ -1,0 +1,28 @@
+
+arr = [-5, -2, 0, 1, 2, 4, 5, 6, 7, 10]
+
+fn binary_search(arr, target)
+    left, right = 0, arr.size() - 1
+
+    while left <= right do
+        mid = left + (right - left) // 2
+
+        if arr[mid] == target
+            return mid
+        elsif arr[mid] < target
+            left = mid + 1
+        else
+            right = mid - 1
+        end
+    end
+
+    -1
+end
+
+target = 4
+result = binary_search(arr, target)
+if result != -1
+    println "Element found at index: ${result}"
+else
+    println "Element not found in the array." 
+end

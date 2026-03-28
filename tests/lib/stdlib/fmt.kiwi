@@ -1,0 +1,76 @@
+@tester::test("fmt: sprintf %s string")
+fn test_fmt_sprintf_string()
+  tester::assert_eq(fmt::sprintf("%s", ["hello"]), "hello")
+  tester::assert_eq(fmt::sprintf("Hello, %s!", ["World"]), "Hello, World!")
+  tester::assert_eq(fmt::sprintf("%s and %s", ["foo", "bar"]), "foo and bar")
+end
+
+@tester::test("fmt: sprintf %d integer")
+fn test_fmt_sprintf_integer()
+  tester::assert_eq(fmt::sprintf("%d", [42]), "42")
+  tester::assert_eq(fmt::sprintf("%d", [-7]), "-7")
+  tester::assert_eq(fmt::sprintf("%d + %d = %d", [1, 2, 3]), "1 + 2 = 3")
+end
+
+@tester::test("fmt: sprintf %f float")
+fn test_fmt_sprintf_float()
+  tester::assert_eq(fmt::sprintf("%.2f", [3.14159]), "3.14")
+  tester::assert_eq(fmt::sprintf("%.0f", [2.9]), "3")
+  tester::assert_eq(fmt::sprintf("%f", [1.0]), "1.000000")
+end
+
+@tester::test("fmt: sprintf %x hex")
+fn test_fmt_sprintf_hex()
+  tester::assert_eq(fmt::sprintf("%x", [255]), "ff")
+  tester::assert_eq(fmt::sprintf("%x", [16]), "10")
+  tester::assert_eq(fmt::sprintf("%X", [255]), "FF")
+end
+
+@tester::test("fmt: sprintf %o octal")
+fn test_fmt_sprintf_octal()
+  tester::assert_eq(fmt::sprintf("%o", [8]), "10")
+  tester::assert_eq(fmt::sprintf("%o", [255]), "377")
+end
+
+@tester::test("fmt: sprintf %b binary")
+fn test_fmt_sprintf_binary()
+  tester::assert_eq(fmt::sprintf("%b", [5]), "101")
+  tester::assert_eq(fmt::sprintf("%b", [255]), "11111111")
+  tester::assert_eq(fmt::sprintf("%b", [0]), "0")
+end
+
+@tester::test("fmt: sprintf %c character")
+fn test_fmt_sprintf_char()
+  tester::assert_eq(fmt::sprintf("%c", [65]), "A")
+  tester::assert_eq(fmt::sprintf("%c", [97]), "a")
+end
+
+@tester::test("fmt: sprintf %% literal percent")
+fn test_fmt_sprintf_literal_percent()
+  tester::assert_eq(fmt::sprintf("100%%"), "100%")
+  tester::assert_eq(fmt::sprintf("%d%%", [50]), "50%")
+end
+
+@tester::test("fmt: sprintf width and alignment")
+fn test_fmt_sprintf_width_alignment()
+  tester::assert_eq(fmt::sprintf("%10s", ["hi"]), "        hi")
+  tester::assert_eq(fmt::sprintf("%-10s", ["hi"]), "hi        ")
+end
+
+@tester::test("fmt: sprintf zero padding")
+fn test_fmt_sprintf_zero_padding()
+  tester::assert_eq(fmt::sprintf("%05d", [42]), "00042")
+  tester::assert_eq(fmt::sprintf("%08d", [1]), "00000001")
+end
+
+@tester::test("fmt: sprintf no args")
+fn test_fmt_sprintf_no_args()
+  tester::assert_eq(fmt::sprintf("plain string"), "plain string")
+  tester::assert_eq(fmt::sprintf(""), "")
+end
+
+@tester::test("fmt: sprintf string precision truncation")
+fn test_fmt_sprintf_string_precision()
+  tester::assert_eq(fmt::sprintf("%.3s", ["hello"]), "hel")
+  tester::assert_eq(fmt::sprintf("%.5s", ["hi"]), "hi")
+end

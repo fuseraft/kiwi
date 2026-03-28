@@ -57,6 +57,12 @@ public class Chunk
     public List<int>               Lines     { get; } = [];
     public List<int>               FileIds   { get; } = [];
 
+    /// <summary>
+    /// Maps each named local variable to its stack slot index (relative to frame base).
+    /// Populated by the compiler for debugger introspection; empty for global-scope chunks.
+    /// </summary>
+    public List<(string Name, int Slot)> LocalNames { get; } = [];
+
     // -- Fallback AST nodes ----------------------------------------------------
     public List<ASTNode>           NodePool  { get; } = [];
 
@@ -85,6 +91,13 @@ public class Chunk
     public bool IsGenerator { get; set; }
 
     /// <summary>
+    /// The package prefix (e.g. "foo::") of the package this function was defined in.
+    /// Empty for top-level functions.  Set by the VM at DefFunc time.
+    /// Used by LoadGlobal to resolve unqualified names inside package functions.
+    /// </summary>
+    public string PackagePrefix { get; set; } = string.Empty;
+
+    /// <summary>
     /// Number of explicit parameters (not counting variadic).
     /// </summary>
     public int Arity { get; set; }
@@ -104,18 +117,6 @@ public class Chunk
     /// Name of the variadic parameter, empty if none.
     /// </summary>
     public string VariadicParamName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The package prefix this chunk was compiled inside (e.g. "env"), or empty string if top-level.
-    /// Used by LoadGlobal to resolve unqualified sibling-function calls inside package functions.
-    /// </summary>
-    public string PackagePrefix { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Maps every pre-scanned local variable to its stack slot index (relative to frame base).
-    /// Populated by the compiler so the VM can build an interpreter scope for InterpFallback.
-    /// </summary>
-    public List<(string Name, int Slot)> LocalNames { get; } = [];
 
     /// <summary>
     /// Parameter names that have default expressions (subset of ParamNames).
@@ -167,8 +168,8 @@ public class Chunk
     }
 
     /// <summary>
-    /// Store an AST node in the fallback pool and return its index.
-    /// Used by the InterpFallback opcode.
+    /// Store an AST node in the node pool and return its index.
+    /// Used by CallBuiltin (to pass Token/Op) and PackageBegin (to store the AST for retry).
     /// </summary>
     public int AddNodeFallback(ASTNode node)
     {

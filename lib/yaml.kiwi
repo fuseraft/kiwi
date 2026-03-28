@@ -714,7 +714,7 @@ package yaml
   #/
   fn parse_file(file_path: string): any
     throw "File not found: ${file_path}" when !fio::isfile(file_path)
-    yaml::parse(fio::read(file_path))
+    parse(fio::read(file_path))
   end
 
   /#

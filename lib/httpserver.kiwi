@@ -1,0 +1,1021 @@
+/#
+@summary A production-grade HTTP server with routing, middleware pipeline,
+         static file serving, sessions, and Tomcat-style configuration.
+#/
+package httpserver
+
+  # ---------------------------------------------------------------------------
+  # MIME type table
+  # ---------------------------------------------------------------------------
+  _MIME = {
+    "html":  "text/html; charset=utf-8",
+    "htm":   "text/html; charset=utf-8",
+    "xhtml": "application/xhtml+xml",
+    "css":   "text/css",
+    "js":    "application/javascript",
+    "mjs":   "application/javascript",
+    "json":  "application/json",
+    "xml":   "application/xml",
+    "txt":   "text/plain; charset=utf-8",
+    "md":    "text/markdown",
+    "csv":   "text/csv",
+    "png":   "image/png",
+    "jpg":   "image/jpeg",
+    "jpeg":  "image/jpeg",
+    "gif":   "image/gif",
+    "webp":  "image/webp",
+    "svg":   "image/svg+xml",
+    "ico":   "image/x-icon",
+    "bmp":   "image/bmp",
+    "tiff":  "image/tiff",
+    "woff":  "font/woff",
+    "woff2": "font/woff2",
+    "ttf":   "font/ttf",
+    "otf":   "font/otf",
+    "eot":   "application/vnd.ms-fontobject",
+    "pdf":   "application/pdf",
+    "zip":   "application/zip",
+    "gz":    "application/gzip",
+    "tar":   "application/x-tar",
+    "mp4":   "video/mp4",
+    "webm":  "video/webm",
+    "ogg":   "video/ogg",
+    "avi":   "video/x-msvideo",
+    "mp3":   "audio/mpeg",
+    "wav":   "audio/wav",
+    "flac":  "audio/flac",
+    "wasm":  "application/wasm"
+  }
+
+  # HTTP status reason phrases
+  _STATUS = {
+    200: "OK",
+    201: "Created",
+    202: "Accepted",
+    204: "No Content",
+    301: "Moved Permanently",
+    302: "Found",
+    304: "Not Modified",
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    409: "Conflict",
+    422: "Unprocessable Entity",
+    429: "Too Many Requests",
+    500: "Internal Server Error",
+    502: "Bad Gateway",
+    503: "Service Unavailable"
+  }
+
+  # ---------------------------------------------------------------------------
+  # Package-level helper functions
+  # ---------------------------------------------------------------------------
+
+  /#
+  @summary Returns the MIME type for a file extension (no dot).
+  #/
+  fn _mime(ext)
+    _MIME.get(ext.lowercase(), "application/octet-stream")
+  end
+
+  /#
+  @summary Parses a cookie header string into a hashmap.
+  #/
+  fn _parse_cookies(cookie_header)
+    result = {}
+    return result when cookie_header == null || cookie_header == ""
+    for part in cookie_header.split(";") do
+      trimmed = part.strip()
+      eq = trimmed.index("=")
+      if eq > 0
+        k = trimmed[0:eq].strip()
+        v = trimmed[eq + 1:].strip()
+        result[k] = v
+      end
+    end
+    result
+  end
+
+  /#
+  @summary Parses an application/x-www-form-urlencoded body.
+  #/
+  fn _parse_form(body)
+    result = {}
+    return result when body == null || body == ""
+    for pair in body.split("&") do
+      eq = pair.index("=")
+      if eq >= 0
+        k = encode::url_decode(pair[0:eq])
+        v = encode::url_decode(pair[eq + 1:])
+        result[k] = v
+      else
+        result[encode::url_decode(pair)] = ""
+      end
+    end
+    result
+  end
+
+  /#
+  @summary Matches a route pattern against a path. Returns null on no match,
+           or a hashmap of extracted parameters on success.
+           Supports :param segments and a trailing * wildcard.
+  #/
+  fn _match_route(pattern, path)
+    p_segs = pattern.split("/")
+    r_segs = path.split("/")
+    params = {}
+
+    has_wildcard = p_segs.size() > 0 && p_segs[p_segs.size() - 1] == "*"
+
+    if has_wildcard
+      # Path must have at least (p_segs.size - 1) segments
+      return null when r_segs.size() < p_segs.size() - 1
+      i = 0
+      while i < p_segs.size() - 1 do
+        ps = p_segs[i]
+        if ps.begins_with(":")
+          pname = ps[1:]
+          params[pname] = r_segs[i]
+        else
+          return null when ps != r_segs[i]
+        end
+        i = i + 1
+      end
+      # Capture the wildcard remainder
+      rest = ""
+      i = p_segs.size() - 1
+      while i < r_segs.size() do
+        rest = rest + "/" + r_segs[i] when i > p_segs.size() - 1
+        rest = r_segs[i] when i == p_segs.size() - 1
+        i = i + 1
+      end
+      params["*"] = rest
+      return params
+    end
+
+    # Exact segment count required
+    return null when p_segs.size() != r_segs.size()
+
+    i = 0
+    while i < p_segs.size() do
+      ps = p_segs[i]
+      if ps.begins_with(":")
+        pname = ps[1:]
+        params[pname] = r_segs[i]
+      else
+        return null when ps != r_segs[i]
+      end
+      i = i + 1
+    end
+    params
+  end
+
+  /#
+  @summary Runs a middleware chain starting at ctx["idx"].
+           Each middleware receives (req, res, next) where next is a zero-arg lambda.
+           The ctx hashmap holds shared mutable state (idx, done) across closures.
+  #/
+  fn _run_mw(mws, req, res, ctx)
+    idx = ctx["idx"]
+    return when idx >= mws.size() || ctx["done"]
+    ctx["idx"] = idx + 1
+    mw = mws[idx]
+    mw(req, res, with () do _run_mw(mws, req, res, ctx) end)
+  end
+
+  /#
+  @summary Core request dispatcher. Runs middleware then the matched route handler.
+           Called from a spawned task (one task per request).
+  #/
+  fn _dispatch(server, raw)
+    req  = Request.new(raw, {})
+    res  = Response.new(server.id(), raw["id"])
+    t0   = time::ticks()
+
+    try
+      # Route lookup
+      route    = null
+      params   = {}
+      method   = raw["method"].uppercase()
+      path_str = raw["path"]
+
+      for entry in server.routes() do
+        em = entry["method"]
+        next when em != method && em != "*"
+        matched = _match_route(entry["pattern"], path_str)
+        if matched != null
+          route  = entry
+          params = matched
+          break
+        end
+      end
+
+      req = Request.new(raw, params)
+
+      # Build middleware list: copy server middlewares (avoid mutating @middlewares)
+      mws = server.middlewares()[0:]
+
+      # Append the terminal handler (route or 404)
+      if route != null
+        handler = route["handler"]
+        mws.push(with (req2, res2, next2) do handler(req2, res2) end)
+      else
+        mws.push(with (req2, res2, next2) do res2.not_found() end)
+      end
+
+      ctx = { "idx": 0, "done": false }
+      _run_mw(mws, req, res, ctx)
+      res.not_found() when !res.sent()
+
+    catch e
+      hook = server.error_hook()
+      if hook != null
+        try
+          hook(e, req, res)
+        catch _e2
+        end
+      end
+      res.server_error() when !res.sent()
+    end
+
+    elapsed = (time::ticks() - t0) * 1000
+    _log(server.cfg(), req, res, elapsed)
+  end
+
+  /#
+  @summary Writes an access log line according to the configured format.
+  #/
+  fn _log(cfg, req, res, elapsed_ms)
+    fmt = cfg["log"]
+    return when fmt == "none" || fmt == false || fmt == null
+    ts     = time::timestamp()
+    method = req.method()
+    path_s = req.path()
+    status = res.status_code()
+    remote = req.remote_addr()
+    if fmt == "combined"
+      eprintln "${remote} - [${ts}] \"${method} ${path_s}\" ${status} ${elapsed_ms}ms"
+    else
+      eprintln "[${ts}] ${method} ${path_s} ${status} ${elapsed_ms}ms"
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Config struct
+  # ---------------------------------------------------------------------------
+  /#
+  @summary Server configuration. All setter methods return self for fluent chaining.
+  #/
+  struct Config
+    fn new()
+      @host       = "localhost"
+      @port       = 8080
+      @workers    = 10
+      @timeout_ms = 5000
+      @log        = "combined"
+      @cors       = false
+      @cors_origin = "*"
+    end
+
+    /#
+    @summary Sets the bind host.
+    @param string v : Hostname or IP address.
+    @return Config : self
+    #/
+    fn host(v)
+      @host = v
+      @
+    end
+
+    /#
+    @summary Sets the listening port.
+    @param integer v : Port number.
+    @return Config : self
+    #/
+    fn port(v)
+      @port = v
+      @
+    end
+
+    /#
+    @summary Sets max concurrent request worker tasks.
+    @param integer v : Worker count.
+    @return Config : self
+    #/
+    fn workers(v)
+      @workers = v
+      @
+    end
+
+    /#
+    @summary Sets the accept-poll timeout in milliseconds.
+    @param integer v : Milliseconds to wait per accept call.
+    @return Config : self
+    #/
+    fn timeout(v)
+      @timeout_ms = v
+      @
+    end
+
+    /#
+    @summary Sets the access log format.
+    @param string|boolean v : "combined", "simple", "none", or false to disable.
+    @return Config : self
+    #/
+    fn logging(v)
+      @log = v
+      @
+    end
+
+    /#
+    @summary Enables CORS with an optional allowed origin.
+    @param string origin : Allowed origin (default "*").
+    @return Config : self
+    #/
+    fn cors(origin = "*")
+      @cors = true
+      @cors_origin = origin
+      @
+    end
+
+    fn get_host()       @host        end
+    fn get_port()       @port        end
+    fn get_workers()    @workers     end
+    fn get_timeout()    @timeout_ms  end
+    fn get_log()        @log         end
+    fn get_cors()       @cors        end
+    fn get_cors_origin()@cors_origin end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Request struct
+  # ---------------------------------------------------------------------------
+  /#
+  @summary Represents an incoming HTTP request.
+  #/
+  struct Request
+    fn new(raw, params)
+      @raw     = raw
+      @params  = params
+      @_form    = null
+      @_json    = null
+      @_cookies = null
+    end
+
+    /#
+    @summary Returns the HTTP method (uppercase).
+    @return string
+    #/
+    fn method()
+      @raw["method"]
+    end
+
+    /#
+    @summary Returns the URL path.
+    @return string
+    #/
+    fn path()
+      @raw["path"]
+    end
+
+    /#
+    @summary Returns the query string parameters as a hashmap.
+    @return hashmap
+    #/
+    fn query()
+      @raw["query"]
+    end
+
+    /#
+    @summary Returns a single query parameter, or default if absent.
+    @param string name : Parameter name.
+    @param any default_val : Default value (default null).
+    @return any
+    #/
+    fn query_param(name, default_val = null)
+      @raw["query"].get(name, default_val)
+    end
+
+    /#
+    @summary Returns all request headers as a hashmap (keys lowercased).
+    @return hashmap
+    #/
+    fn headers()
+      @raw["headers"]
+    end
+
+    /#
+    @summary Returns a header value by name (case-insensitive), or null.
+    @param string name : Header name.
+    @return string|null
+    #/
+    fn header(name)
+      @raw["headers"].get(name.lowercase(), null)
+    end
+
+    /#
+    @summary Returns the raw request body string.
+    @return string
+    #/
+    fn body()
+      @raw["body"]
+    end
+
+    /#
+    @summary Returns the client IP address.
+    @return string
+    #/
+    fn remote_addr()
+      @raw["remote_addr"]
+    end
+
+    /#
+    @summary Returns the internal request ID (used for responding).
+    @return integer
+    #/
+    fn id()
+      @raw["id"]
+    end
+
+    /#
+    @summary Returns a route parameter by name, or null if not present.
+    @param string name : Parameter name (from the pattern, e.g. "id" for /:id).
+    @return string|null
+    #/
+    fn param(name)
+      @params.get(name, null)
+    end
+
+    /#
+    @summary Returns all route parameters.
+    @return hashmap
+    #/
+    fn params()
+      @params
+    end
+
+    /#
+    @summary Returns the Content-Type header value.
+    @return string|null
+    #/
+    fn content_type()
+      @.header("content-type")
+    end
+
+    /#
+    @summary Returns true if the Content-Type indicates JSON.
+    @return boolean
+    #/
+    fn is_json()
+      ct = @.content_type()
+      ct != null && ct.begins_with("application/json")
+    end
+
+    /#
+    @summary Returns true if the Content-Type indicates form-encoded data.
+    @return boolean
+    #/
+    fn is_form()
+      ct = @.content_type()
+      ct != null && ct.begins_with("application/x-www-form-urlencoded")
+    end
+
+    /#
+    @summary Parses and returns the request body as a JSON value (cached).
+    @return any
+    #/
+    fn json()
+      @_json = deserialize(@raw["body"]) when @_json == null
+      @_json
+    end
+
+    /#
+    @summary Parses the body as URL-encoded form data (cached).
+    @return hashmap
+    #/
+    fn form()
+      @_form = _parse_form(@raw["body"]) when @_form == null
+      @_form
+    end
+
+    /#
+    @summary Returns a cookie value by name, or null (cookies parsed lazily).
+    @param string name : Cookie name.
+    @return string|null
+    #/
+    fn cookie(name)
+      @.cookies().get(name, null)
+    end
+
+    /#
+    @summary Returns all cookies as a hashmap (parsed lazily).
+    @return hashmap
+    #/
+    fn cookies()
+      @_cookies = _parse_cookies(@.header("cookie")) when @_cookies == null
+      @_cookies
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Response struct
+  # ---------------------------------------------------------------------------
+  /#
+  @summary Represents an HTTP response being built and sent.
+  #/
+  struct Response
+    fn new(server_id, request_id)
+      @server_id  = server_id
+      @request_id = request_id
+      @headers    = { "Content-Type": "text/plain; charset=utf-8" }
+      @cookies    = []
+      @sent       = false
+      @_status    = 200
+    end
+
+    /#
+    @summary Returns true if the response has already been sent.
+    @return boolean
+    #/
+    fn sent()
+      @sent
+    end
+
+    /#
+    @summary Returns the HTTP status code that was (or will be) sent.
+    @return integer
+    #/
+    fn status_code()
+      @_status
+    end
+
+    /#
+    @summary Sets a response header.
+    @param string key : Header name.
+    @param string value : Header value.
+    @return Response : self
+    #/
+    fn header(key, value)
+      @headers[key] = value
+      @
+    end
+
+    /#
+    @summary Sends the response with a status code and body.
+    @param integer status : HTTP status code.
+    @param string|bytes body : Response body.
+    #/
+    fn send(status, body)
+      return when @sent
+      @sent    = true
+      @_status = status
+      h = @headers
+      h["__set_cookies__"] = @cookies when @cookies.size() > 0
+      __httpserver_respond__(@server_id, @request_id, status, h, body.to_string())
+    end
+
+    /#
+    @summary Sends a file's contents as the response body.
+    @param string fs_path : Filesystem path to the file.
+    @param integer status : HTTP status code (default 200).
+    #/
+    fn file(fs_path, status = 200)
+      return when @sent
+      if !fio::exists(fs_path) || fio::isdir(fs_path)
+        @.not_found()
+        return
+      end
+      ext  = fio::ext(fs_path)
+      mime = _mime(ext)
+      @.header("Content-Type", mime)
+      body_bytes = fio::readbytes(fs_path)
+      @sent    = true
+      @_status = status
+      h = @headers
+      h["__set_cookies__"] = @cookies when @cookies.size() > 0
+      __httpserver_respond__(@server_id, @request_id, status, h, body_bytes)
+    end
+
+    /#
+    @summary Sends a plain-text response.
+    @param string body : Response body.
+    @param integer status : HTTP status code (default 200).
+    #/
+    fn text(body, status = 200)
+      @.header("Content-Type", "text/plain; charset=utf-8")
+      @.send(status, body)
+    end
+
+    /#
+    @summary Sends an HTML response.
+    @param string body : HTML body.
+    @param integer status : HTTP status code (default 200).
+    #/
+    fn html(body, status = 200)
+      @.header("Content-Type", "text/html; charset=utf-8")
+      @.send(status, body)
+    end
+
+    /#
+    @summary Sends a JSON response.
+    @param any body : Value to serialize (or a pre-serialized string).
+    @param integer status : HTTP status code (default 200).
+    #/
+    fn json(body, status = 200)
+      @.header("Content-Type", "application/json")
+      body_str = body.is_a(string) ? body : json::stringify(body)
+      @.send(status, body_str)
+    end
+
+    /#
+    @summary Sends a redirect response.
+    @param string location : Target URL.
+    @param integer status : HTTP status code (default 302).
+    #/
+    fn redirect(location, status = 302)
+      @.header("Location", location)
+      @.send(status, "")
+    end
+
+    /#
+    @summary Appends a Set-Cookie header to the response.
+    @param string name : Cookie name.
+    @param string value : Cookie value.
+    @param string path : Cookie path (default "/").
+    @param integer max_age : Max-Age in seconds (default null = session cookie).
+    @param boolean http_only : HttpOnly flag (default true).
+    @param boolean secure : Secure flag (default false).
+    @param string same_site : SameSite policy: "Strict", "Lax", or "None" (default "Lax").
+    @return Response : self
+    #/
+    fn cookie(name, value, path = "/", max_age = null, http_only = true, secure = false, same_site = "Lax")
+      c = "${name}=${encode::url_encode(value)}; Path=${path}"
+      c = c + "; Max-Age=${max_age}"  when max_age != null
+      c = c + "; SameSite=${same_site}"
+      c = c + "; HttpOnly"            when http_only
+      c = c + "; Secure"              when secure
+      @cookies.push(c)
+      @
+    end
+
+    /#
+    @summary Clears a cookie by setting its expiry to the past.
+    @param string name : Cookie name.
+    @param string path : Cookie path (default "/").
+    @return Response : self
+    #/
+    fn clear_cookie(name, path = "/")
+      @.cookie(name, "", path, 0, true, false)
+    end
+
+    /#
+    @summary Sets Cache-Control headers to prevent caching.
+    @return Response : self
+    #/
+    fn no_cache()
+      @.header("Cache-Control", "no-store, no-cache, must-revalidate")
+      @.header("Pragma", "no-cache")
+      @.header("Expires", "0")
+      @
+    end
+
+    /#
+    @summary Sends a 404 Not Found response.
+    @param string msg : Response body (default "Not Found").
+    #/
+    fn not_found(msg = "Not Found")
+      @.text(msg, 404)
+    end
+
+    /#
+    @summary Sends a 400 Bad Request response.
+    @param string msg : Response body (default "Bad Request").
+    #/
+    fn bad_request(msg = "Bad Request")
+      @.text(msg, 400)
+    end
+
+    /#
+    @summary Sends a 401 Unauthorized response.
+    @param string msg : Response body.
+    #/
+    fn unauthorized(msg = "Unauthorized")
+      @.text(msg, 401)
+    end
+
+    /#
+    @summary Sends a 403 Forbidden response.
+    @param string msg : Response body.
+    #/
+    fn forbidden(msg = "Forbidden")
+      @.text(msg, 403)
+    end
+
+    /#
+    @summary Sends a 500 Internal Server Error response.
+    @param string msg : Response body.
+    #/
+    fn server_error(msg = "Internal Server Error")
+      @.text(msg, 500)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Router struct (route group under a prefix)
+  # ---------------------------------------------------------------------------
+  /#
+  @summary A route group that delegates to a Server with a path prefix applied.
+  #/
+  struct Router
+    fn new(server, prefix)
+      @server = server
+      @prefix = prefix
+    end
+
+    fn get(path, handler)    @server.get(@prefix + path, handler)    @ end
+    fn post(path, handler)   @server.post(@prefix + path, handler)   @ end
+    fn put(path, handler)    @server.put(@prefix + path, handler)    @ end
+    fn patch(path, handler)  @server.patch(@prefix + path, handler)  @ end
+    fn delete(path, handler) @server.delete(@prefix + path, handler) @ end
+    fn all_methods(path, handler)    @server.all_methods(@prefix + path, handler)    @ end
+
+    /#
+    @summary Creates a nested sub-router under this group's prefix.
+    @param string sub_prefix : Additional prefix for the sub-group.
+    @return Router : New router with combined prefix.
+    #/
+    fn group(sub_prefix)
+      Router.new(@server, @prefix + sub_prefix)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Server struct
+  # ---------------------------------------------------------------------------
+  /#
+  @summary Production-grade HTTP server with routing, middleware, and static serving.
+  #/
+  struct Server
+    fn new(cfg)
+      @cfg_map = {
+        "host":       cfg.get_host(),
+        "port":       cfg.get_port(),
+        "workers":    cfg.get_workers(),
+        "timeout_ms": cfg.get_timeout(),
+        "log":        cfg.get_log(),
+        "cors":       cfg.get_cors(),
+        "cors_origin":cfg.get_cors_origin()
+      }
+      @id          = null
+      @running     = false
+      @routes      = []
+      @middlewares = []
+      @error_hook  = null
+      @start_hook  = null
+      @stop_hook   = null
+    end
+
+    # -- Route registration ---------------------------------------------------
+
+    /#
+    @summary Registers a GET route handler.
+    @param string path : URL pattern (supports :param and * wildcard).
+    @param lambda handler : fn(req, res) handler.
+    @return Server : self
+    #/
+    fn get(path, handler)
+      @routes.push({ "method": "GET",    "pattern": path, "handler": handler })
+      @
+    end
+
+    /#
+    @summary Registers a POST route handler.
+    #/
+    fn post(path, handler)
+      @routes.push({ "method": "POST",   "pattern": path, "handler": handler })
+      @
+    end
+
+    /#
+    @summary Registers a PUT route handler.
+    #/
+    fn put(path, handler)
+      @routes.push({ "method": "PUT",    "pattern": path, "handler": handler })
+      @
+    end
+
+    /#
+    @summary Registers a PATCH route handler.
+    #/
+    fn patch(path, handler)
+      @routes.push({ "method": "PATCH",  "pattern": path, "handler": handler })
+      @
+    end
+
+    /#
+    @summary Registers a DELETE route handler.
+    #/
+    fn delete(path, handler)
+      @routes.push({ "method": "DELETE", "pattern": path, "handler": handler })
+      @
+    end
+
+    /#
+    @summary Registers a handler for all HTTP methods.
+    #/
+    fn all_methods(path, handler)
+      @routes.push({ "method": "*",      "pattern": path, "handler": handler })
+      @
+    end
+
+    # -- Middleware -----------------------------------------------------------
+
+    /#
+    @summary Adds a middleware function to the pipeline.
+    @param lambda mw : fn(req, res, next) middleware.  Call next() to continue.
+    @return Server : self
+    #/
+    fn use(mw)
+      @middlewares.push(mw)
+      @
+    end
+
+    /#
+    @summary Registers middleware to serve static files from a directory.
+    @param string url_prefix : URL path prefix (e.g. "/public").
+    @param string dir : Filesystem directory to serve from.
+    @return Server : self
+    #/
+    fn static_files(url_prefix, dir)
+      prefix = url_prefix
+      root   = dir
+      @.use(with (req, res, nxt) do
+        p = req.path()
+        if p.begins_with(prefix)
+          rel  = p[prefix.size():]
+          rel  = "/" + rel when !rel.begins_with("/")
+          fp   = root + rel
+          if fio::exists(fp) && !fio::isdir(fp)
+            res.file(fp)
+            return
+          end
+        end
+        nxt()
+      end)
+      @
+    end
+
+    # -- Lifecycle & hooks ----------------------------------------------------
+
+    /#
+    @summary Registers an error handler: fn(err, req, res).
+    @param lambda hook : Error handler lambda.
+    @return Server : self
+    #/
+    fn on_error(hook)
+      @error_hook = hook
+      @
+    end
+
+    /#
+    @summary Registers a startup hook: fn() called after server starts listening.
+    @param lambda hook : Startup hook lambda.
+    @return Server : self
+    #/
+    fn on_start(hook)
+      @start_hook = hook
+      @
+    end
+
+    /#
+    @summary Registers a shutdown hook: fn() called before server stops.
+    @param lambda hook : Shutdown hook lambda.
+    @return Server : self
+    #/
+    fn on_stop(hook)
+      @stop_hook = hook
+      @
+    end
+
+    /#
+    @summary Creates a sub-router for grouping routes under a common prefix.
+    @param string prefix : URL path prefix.
+    @return Router
+    #/
+    fn group(prefix)
+      Router.new(@, prefix)
+    end
+
+    # -- Start / Stop ---------------------------------------------------------
+
+    /#
+    @summary Starts the server.
+    @param boolean block : If true, block the caller (serve in the calling thread).
+    @return Server : self
+    #/
+    fn start(block = false)
+      @id      = __httpserver_create__(@cfg_map["host"], @cfg_map["port"])
+      @running = true
+
+      # Auto-install CORS middleware when configured
+      if @cfg_map["cors"]
+        cors_origin = @cfg_map["cors_origin"]
+        cors_mw = with (req, res, nxt) do
+          res.header("Access-Control-Allow-Origin", cors_origin)
+          res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD")
+          res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+          if req.method() == "OPTIONS"
+            res.send(204, "")
+            return
+          end
+          nxt()
+        end
+        @middlewares = [cors_mw] + @middlewares
+      end
+
+      if @cfg_map["log"] != "none" && @cfg_map["log"] != false
+        eprintln "[httpserver] listening on http://${@cfg_map["host"]}:${@cfg_map["port"]}"
+      end
+
+      @start_hook() when @start_hook != null
+
+      worker = with (_srv) do
+        while _srv.running() do
+          raw = __httpserver_accept__(_srv.id(), _srv.cfg()["timeout_ms"])
+          next when raw == null
+          task::spawn(with (_s, _r) do
+            _dispatch(_s, _r)
+          end, [_srv, raw])
+        end
+      end
+
+      if block
+        worker(@)
+      else
+        task::spawn(worker, [@])
+      end
+
+      @
+    end
+
+    /#
+    @summary Stops the server.
+    @return Server : self
+    #/
+    fn stop()
+      @running = false
+      @stop_hook() when @stop_hook != null
+      if @cfg_map["log"] != "none" && @cfg_map["log"] != false
+        eprintln "[httpserver] server stopped"
+      end
+      __httpserver_stop__(@id) when @id != null
+      @
+    end
+
+    # -- Accessors (used by _dispatch and Router) ----------------------------
+
+    fn id()          @id          end
+    fn running()     @running     end
+    fn cfg()         @cfg_map     end
+    fn routes()      @routes      end
+    fn middlewares() @middlewares end
+    fn error_hook()  @error_hook  end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Factory functions
+  # ---------------------------------------------------------------------------
+
+  /#
+  @summary Creates a new HTTP server with default configuration.
+  @param integer port : Port to listen on (default 8080).
+  @param string host : Bind address (default "localhost").
+  @return Server
+  #/
+  fn create(port = 8080, host = "localhost")
+    cfg = Config.new()
+    cfg.port(port)
+    cfg.host(host)
+    Server.new(cfg)
+  end
+
+  /#
+  @summary Creates a new HTTP server from a Config object.
+  @param Config cfg : Server configuration.
+  @return Server
+  #/
+  fn create_with_config(cfg)
+    Server.new(cfg)
+  end
+
+  /#
+  @summary Returns a new Config builder.
+  @return Config
+  #/
+  fn config()
+    Config.new()
+  end
+
+end

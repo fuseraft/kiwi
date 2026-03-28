@@ -1,0 +1,92 @@
+/#
+@summary A package for UDP (datagram) socket communication.
+#/
+package udp
+  /#
+  A UDP socket supporting send and receive operations.
+  #/
+  struct Socket
+    fn new()
+      @id = __udp_create__()
+    end
+
+    /#
+    @summary Binds the socket to a local port.
+    @param integer port : Port number to bind.
+    @param string host : Host address (default "0.0.0.0").
+    @return Socket : self
+    #/
+    fn bind(port, host = "0.0.0.0")
+      __udp_bind__(@id, port, host)
+      @
+    end
+
+    /#
+    @summary Sends data to a remote host.
+    @param string host : Destination host.
+    @param integer port : Destination port.
+    @param string|bytes data : Data to send.
+    @return integer : Number of bytes sent.
+    #/
+    fn send(host, port, data)
+      __udp_send__(@id, host, port, data)
+    end
+
+    /#
+    @summary Receives a datagram. Returns a hashmap with "data" (string), "from_host", "from_port".
+    @param integer buffer_size : Max bytes to receive (default 65535).
+    @return hashmap : { "data": string, "from_host": string, "from_port": integer }
+    #/
+    fn recv(buffer_size = 65535)
+      result = __udp_recv__(@id, buffer_size)
+      result["data"] = result["data"].to_string()
+      result
+    end
+
+    /#
+    @summary Receives a datagram. Returns raw bytes in "data" field.
+    @param integer buffer_size : Max bytes to receive (default 65535).
+    @return hashmap : { "data": bytes, "from_host": string, "from_port": integer }
+    #/
+    fn recv_bytes(buffer_size = 65535)
+      __udp_recv__(@id, buffer_size)
+    end
+
+    /#
+    @summary Sets the receive timeout.
+    @param integer ms : Timeout in milliseconds.
+    @return Socket : self
+    #/
+    fn timeout(ms)
+      __udp_settimeout__(@id, ms)
+      @
+    end
+
+    /#
+    @summary Closes the socket.
+    #/
+    fn close()
+      __udp_close__(@id)
+    end
+  end
+
+  /#
+  @summary Creates a new UDP socket.
+  @return Socket
+  #/
+  fn socket()
+    Socket.new()
+  end
+
+  /#
+  @summary Sends a single datagram and closes the socket immediately.
+  @param string host : Destination host.
+  @param integer port : Destination port.
+  @param string|bytes data : Data to send.
+  #/
+  fn send(host, port, data)
+    s = Socket.new()
+    s.send(host, port, data)
+    s.close()
+  end
+end

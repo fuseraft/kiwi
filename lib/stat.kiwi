@@ -1,0 +1,189 @@
+/#
+@summary A package providing descriptive statistics functions.
+#/
+package stat
+  /#
+  @summary Computes the sum of a list of numbers.
+  @param list data : A list of numeric values.
+  @return integer|float : The sum.
+  #/
+  fn sum(data)
+    data.reduce(0, with (acc, x) do acc + x end)
+  end
+
+  /#
+  @summary Returns the minimum value in a list.
+  @param list data : A list of numeric values.
+  @return integer|float : The minimum value.
+  #/
+  fn min(data)
+    data.min()
+  end
+
+  /#
+  @summary Returns the maximum value in a list.
+  @param list data : A list of numeric values.
+  @return integer|float : The maximum value.
+  #/
+  fn max(data)
+    data.max()
+  end
+
+  /#
+  @summary Computes the range (max - min) of a list.
+  @param list data : A list of numeric values.
+  @return integer|float : The range.
+  #/
+  fn range(data)
+    max(data) - min(data)
+  end
+
+  /#
+  @summary Computes the arithmetic mean of a list.
+  @param list data : A list of numeric values.
+  @return float : The mean.
+  #/
+  fn mean(data)
+    sum(data).to_float() / data.size()
+  end
+
+  /#
+  @summary Returns a sorted copy of a list.
+  @param list data : A list of comparable values.
+  @return list : Sorted list.
+  #/
+  fn sorted(data)
+    data.clone().sort()
+  end
+
+  /#
+  @summary Computes the median of a list.
+  @param list data : A list of numeric values.
+  @return integer|float : The median.
+  #/
+  fn median(data)
+    s = sorted(data)
+    n = s.size()
+    m = n / 2
+    n % 2 == 0 ? (s[m - 1].to_float() + s[m].to_float()) / 2.0 : s[m]
+  end
+
+  /#
+  @summary Returns all modes (most frequent values) of a list.
+  @param list data : A list of values.
+  @return list : A list of modal values.
+  #/
+  fn mode(data)
+    counts = {}
+    for x in data do
+      key = x.to_string()
+      counts[key] = counts.has_key(key) ? counts[key] + 1 : 1
+    end
+    max_count = counts.values().max()
+    data.filter(with (x) do counts[x.to_string()] == max_count end).unique()
+  end
+
+  /#
+  @summary Computes the variance of a list.
+  @param list data : A list of numeric values.
+  @param boolean population : If true, computes population variance. Defaults to false (sample).
+  @return float : The variance.
+  #/
+  fn variance(data, population = false)
+    n  = data.size()
+    m  = mean(data)
+    sq = data.reduce(0.0, with (acc, x) do acc + (x.to_float() - m) ** 2 end)
+    population ? sq / n : sq / (n - 1)
+  end
+
+  /#
+  @summary Computes the standard deviation of a list.
+  @param list data : A list of numeric values.
+  @param boolean population : If true, computes population stdev. Defaults to false (sample).
+  @return float : The standard deviation.
+  #/
+  fn stdev(data, population = false)
+    math::sqrt(variance(data, population))
+  end
+
+  /#
+  @summary Computes the p-th percentile of a list (linear interpolation).
+  @param list data : A list of numeric values.
+  @param integer|float p : Percentile in [0, 100].
+  @return float : The p-th percentile.
+  #/
+  fn percentile(data, p)
+    s   = sorted(data)
+    n   = s.size()
+    idx = p.to_float() / 100.0 * (n - 1)
+    lo  = math::floor(idx).to_integer()
+    hi  = math::ceil(idx).to_integer()
+    lo == hi ? s[lo].to_float() : s[lo].to_float() + (s[hi].to_float() - s[lo].to_float()) * (idx - lo)
+  end
+
+  /#
+  @summary Computes the sample covariance of two lists.
+  @param list x_data : First list of numeric values.
+  @param list y_data : Second list of numeric values.
+  @return float : The sample covariance.
+  #/
+  fn covariance(x_data, y_data)
+    n  = x_data.size()
+    mx = mean(x_data)
+    my = mean(y_data)
+    i  = 0
+    s  = 0.0
+    while i < n do
+      s += (x_data[i].to_float() - mx) * (y_data[i].to_float() - my)
+      i += 1
+    end
+    s / (n - 1)
+  end
+
+  /#
+  @summary Computes the Pearson correlation coefficient of two lists.
+  @param list x_data : First list of numeric values.
+  @param list y_data : Second list of numeric values.
+  @return float : Correlation in [-1, 1].
+  #/
+  fn correlation(x_data, y_data)
+    covariance(x_data, y_data) / (stdev(x_data) * stdev(y_data))
+  end
+
+  /#
+  @summary Computes z-scores (standard scores) for a list.
+  @param list data : A list of numeric values.
+  @return list : List of z-scores.
+  #/
+  fn zscore(data)
+    m = mean(data)
+    s = stdev(data)
+    data.map(with (x) do (x.to_float() - m) / s end)
+  end
+
+  /#
+  @summary Computes a frequency table for a list.
+  @param list data : A list of values.
+  @return hashmap : Maps each unique value (as string) to its count.
+  #/
+  fn frequency(data)
+    counts = {}
+    for x in data do
+      key = x.to_string()
+      counts[key] = counts.has_key(key) ? counts[key] + 1 : 1
+    end
+    counts
+  end
+
+  /#
+  @summary Normalizes a list to [0, 1] range.
+  @param list data : A list of numeric values.
+  @return list : Normalized values.
+  #/
+  fn normalize(data)
+    lo = min(data).to_float()
+    hi = max(data).to_float()
+    r  = hi - lo
+    r == 0.0 ? data.map(with (_) do 0.0 end) : data.map(with (x) do (x.to_float() - lo) / r end)
+  end
+end

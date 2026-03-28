@@ -82,7 +82,7 @@ package dotenv
 
       val = ""
       if raw.begins_with('"')
-        val = dotenv::_parse_dquoted(raw)
+        val = _parse_dquoted(raw)
       elsif raw.begins_with("'")
         close = raw.lastindex("'")
         val = close > 0 ? raw[1:close] : raw[1:]
@@ -108,7 +108,7 @@ package dotenv
       throw "File does not exist: ${file_path}"
     end
 
-    dotenv::parse(fio::read(file_path))
+    parse(fio::read(file_path))
   end
 
   /#
@@ -119,7 +119,7 @@ package dotenv
   @throws string : If the file does not exist.
   #/
   fn load(file_path: string = ".env", overwrite: boolean = true): hashmap
-    vars = dotenv::parse_file(file_path)
+    vars = parse_file(file_path)
 
     for key, val in vars do
       if overwrite || env::get(key).empty()

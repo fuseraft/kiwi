@@ -119,9 +119,56 @@ fn test_json_pipeline()
   tester::assert(missing_ok, "B10: missing file raises error")
 
   # -----------------------------------------------------------------------
+  # B11: with_schema — coerce string-valued JSON fields
+  # -----------------------------------------------------------------------
+  str_json = "/tmp/kiwi_test_strvals.json"
+  fio::write(str_json, '[{"id":"1","score":"9.5","active":"true"},{"id":"2","score":"7.0","active":"false"}]')
+  coerced = json::pipeline()
+    .with_schema({"id": "integer", "score": "float", "active": "boolean"})
+    .from_file(str_json)
+    .parse()
+  tester::assert(coerced[0]["id"]     == 1,    "B11a: integer coercion")
+  tester::assert(coerced[0]["score"]  == 9.5,  "B11b: float coercion")
+  tester::assert(coerced[0]["active"] == true, "B11c: boolean true coercion")
+  tester::assert(coerced[1]["active"] == false,"B11d: boolean false coercion")
+
+  # -----------------------------------------------------------------------
+  # B12: with_schema on already-typed JSON values — idempotent
+  # -----------------------------------------------------------------------
+  typed2 = json::pipeline()
+    .with_schema({"id": "integer", "active": "boolean"})
+    .from_file(users_json)
+    .parse()
+  tester::assert(typed2[0]["id"]     == 1,    "B12a: integer already typed")
+  tester::assert(typed2[0]["active"] == true, "B12b: boolean already typed")
+
+  # -----------------------------------------------------------------------
+  # B13: with_schema combined with select
+  # -----------------------------------------------------------------------
+  sel_coerced = json::pipeline()
+    .select(["id", "active"])
+    .with_schema({"id": "string"})
+    .from_file(users_json)
+    .parse()
+  tester::assert(sel_coerced[0].keys().size() == 2, "B13a: two keys after select")
+  tester::assert(sel_coerced[0]["id"] == "1",        "B13b: integer coerced to string")
+  tester::assert(sel_coerced[0]["active"] == true,   "B13c: unschema'd field untouched")
+
+  # -----------------------------------------------------------------------
+  # B14: with_schema from_string
+  # -----------------------------------------------------------------------
+  s_coerced = json::pipeline()
+    .with_schema({"x": "float"})
+    .from_string('[{"x":"1"},{"x":"2"}]')
+    .parse()
+  tester::assert(s_coerced[0]["x"] == 1.0, "B14a: string-to-float from_string")
+  tester::assert(s_coerced[1]["x"] == 2.0, "B14b: second row float")
+
+  # -----------------------------------------------------------------------
   # Cleanup
   # -----------------------------------------------------------------------
   fio::remove(users_json)
   fio::remove(roles_json)
   fio::remove(obj_json)
+  fio::remove(str_json)
 end

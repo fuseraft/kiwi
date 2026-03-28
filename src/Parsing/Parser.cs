@@ -114,6 +114,9 @@ public partial class Parser
             case TokenName.KW_Var:
                 return ParseVar();
 
+            case TokenName.KW_Super:
+                return ParseSuperCall();
+
             default:
                 throw new SyntaxError(GetErrorToken(), $"Unexpected keyword '{token.Text}'.");
         }
@@ -136,6 +139,12 @@ public partial class Parser
 
             case TokenType.Error:
                 node = ParseError();
+                break;
+
+            // when super.method() is used as a statement, route through ParseExpression so
+            // operators and chained calls after the super call are parsed correctly.
+            case TokenType.Keyword when GetTokenName() == TokenName.KW_Super:
+                node = ParseExpression();
                 break;
 
             // when @var or @@var used as a statement, route through ParseExpression so binary
@@ -2297,6 +2306,28 @@ public partial class Parser
         return node;
     }
 
+    private ASTNode? ParseSuperCall()
+    {
+        var superToken = token.Clone();
+        Next(); // consume 'super'
+
+        if (GetTokenType() != TokenType.Dot)
+            throw new SyntaxError(GetErrorToken(), "Expected '.' after 'super'.");
+        Next(); // consume '.'
+
+        if (GetTokenType() != TokenType.Identifier)
+            throw new SyntaxError(GetErrorToken(), "Expected method name after 'super.'.");
+
+        var methodName = token.Text;
+        Next(); // consume method name
+
+        if (GetTokenType() != TokenType.LParen)
+            throw new SyntaxError(GetErrorToken(), "Expected '(' after super method name.");
+
+        var arguments = CollectCallArguments();
+        return new SuperCallNode(methodName, arguments) { Token = superToken };
+    }
+
     private ASTNode? ParseMemberAccess(ASTNode? left)
     {
         while (GetTokenType() == TokenType.Dot)
@@ -2368,9 +2399,13 @@ public partial class Parser
                 new IdentifierNode(identifierName));
         }
 
-        if (!MatchName(TokenName.Ops_Unpack))
+        if (MatchName(TokenName.Ops_Unpack))
         {
-            throw new SyntaxError(GetErrorToken(), "Expected an unpack operator, '=<', in pack assignment.");
+            Console.Error.WriteLine($"Deprecation warning: '=<' is deprecated. Use '=' for unpacking instead.");
+        }
+        else if (!MatchName(TokenName.Ops_Assign))
+        {
+            throw new SyntaxError(GetErrorToken(), "Expected '=' in pack assignment.");
         }
 
         var lhsLength = assignment.Left.Count;
@@ -2593,7 +2628,11 @@ public partial class Parser
                 node = ParseMemberAccess(node);
                 break;
             case TokenType.LParen when token.Span.Line == Previous().Span.Line:
-                node = isInstance ? ParseLambdaCall(node) : ParseFunctionCall(identifierName, type);
+                // @instanceVar(args) — treat as a lambda call on the stored value,
+                // not as a named function call (which would look for a struct method).
+                node = isInstance
+                    ? ParseLambdaCall(node)
+                    : ParseFunctionCall(identifierName, type);
                 break;
             case TokenType.LBracket when token.Span.Line == Previous().Span.Line:
                 node = ParseIndexing(node);
@@ -2604,7 +2643,7 @@ public partial class Parser
             case TokenType.Qualifier when Peek().Type is TokenType.Identifier or TokenType.Typename:
                 node = ParseQualifiedIdentifier(identifierName);
                 break;
-            case TokenType.Comma when !packed && LookAhead([TokenName.Ops_Unpack]):
+            case TokenType.Comma when !packed && IsPackAssignAhead():
                 node = ParsePackAssignment(node);
                 break;
             default:

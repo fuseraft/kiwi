@@ -1,11 +1,13 @@
 
 using System.Text;
 using kiwi.Parsing;
+using kiwi.Parsing.AST;
 using kiwi.Runtime.Builtin.Util;
 using kiwi.Settings;
 using kiwi.Tracing;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
+using kiwi.VM;
 
 namespace kiwi.Runtime.Runner;
 
@@ -107,10 +109,16 @@ public class REPLRunner(Interpreter interpreter) : IRunner
                 inContinuation = false;
 
                 // Execute and auto-print non-null results
-                var result = Interpreter.Interpret(ast);
+                var chunk = Compiler.CompileExpression((ProgramNode)ast);
+                var vm = new KiwiVM(Interpreter);
+                KiwiVM.Current = vm;
+                var result = vm.Execute(chunk);
                 if (!result.IsNull())
                 {
-                    Console.WriteLine($"=> {Serializer.Serialize(result, wrapStrings: true)}");
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    Console.Write("=> ");
+                    Console.ResetColor();
+                    Console.WriteLine(Serializer.Serialize(result, wrapStrings: true));
                 }
             }
             catch (UnexpectedEndOfFileError)
@@ -146,7 +154,10 @@ public class REPLRunner(Interpreter interpreter) : IRunner
         LoadStandardLibrary(ref streams);
 
         var ast = parser.ParseTokenStreamCollection(streams);
-        Interpreter.Interpret(ast);
+        var chunk = Compiler.CompileProgram((ProgramNode)ast);
+        var vm = new KiwiVM(Interpreter);
+        KiwiVM.Current = vm;
+        vm.Execute(chunk);
     }
 
     private void LoadStandardLibrary(ref List<TokenStream> streams)

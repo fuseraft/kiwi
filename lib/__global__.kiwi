@@ -6,9 +6,10 @@ const KIWI_STDLIB_VERSION = "1.4.0"
 
 const STDLIB_PACKAGES = [
   "bench", "cli", "hashable", "compress", "console", "crypto", "csv",
-  "date", "dotenv", "env", "error", "fio", "http", "ipc", "iter", "json", "list", "path", "math", "socket", "tls",
-  "std", "stdin", "string", "sys", "task", "tester", "time",
-  "reflector", "regex", "xml", "protobuf", "pipeline", "yaml", "text", "table", "faker"
+  "date", "dotenv", "encode", "env", "error", "fio", "fmt", "http", "httpserver", "ipc",
+  "iter", "json", "list", "log", "path", "math", "signal", "smtp", "socket", "stat",
+  "std", "stdin", "string", "sys", "task", "template", "tester", "time", "tls", "udp",
+  "reflector", "regex", "xml", "protobuf", "pipeline", "yaml", "text", "table", "faker", "stopwatch"
 ]
 
 for pkg in STDLIB_PACKAGES do

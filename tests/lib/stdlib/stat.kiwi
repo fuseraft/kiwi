@@ -1,0 +1,132 @@
+@tester::test("stat: sum")
+fn test_stat_sum()
+  tester::assert_eq(stat::sum([1, 2, 3, 4, 5]), 15)
+  tester::assert_eq(stat::sum([0]), 0)
+  tester::assert_eq(stat::sum([-1, 1]), 0)
+end
+
+@tester::test("stat: min and max")
+fn test_stat_min_max()
+  data = [4, 7, 1, 9, 3]
+  tester::assert_eq(stat::min(data), 1)
+  tester::assert_eq(stat::max(data), 9)
+end
+
+@tester::test("stat: range")
+fn test_stat_range()
+  tester::assert_eq(stat::range([1, 5, 3, 9, 2]), 8)
+  tester::assert_eq(stat::range([7, 7, 7]), 0)
+end
+
+@tester::test("stat: mean")
+fn test_stat_mean()
+  tester::assert_eq(stat::mean([1, 2, 3, 4, 5]), 3.0)
+  tester::assert_eq(stat::mean([10, 20]), 15.0)
+  tester::assert_eq(stat::mean([0, 0, 0]), 0.0)
+end
+
+@tester::test("stat: sorted does not mutate")
+fn test_stat_sorted_no_mutate()
+  data = [3, 1, 4, 1, 5, 9, 2, 6]
+  s = stat::sorted(data)
+  tester::assert_eq(s[0], 1)
+  tester::assert_eq(s[s.size() - 1], 9)
+  tester::assert_eq(data[0], 3)  # original unchanged
+end
+
+@tester::test("stat: median odd count")
+fn test_stat_median_odd()
+  tester::assert_eq(stat::median([3, 1, 4, 1, 5]), 3)
+  tester::assert_eq(stat::median([10]), 10)
+end
+
+@tester::test("stat: median even count")
+fn test_stat_median_even()
+  tester::assert_eq(stat::median([1, 2, 3, 4]), 2.5)
+  tester::assert_eq(stat::median([10, 20]), 15.0)
+end
+
+@tester::test("stat: mode")
+fn test_stat_mode()
+  m = stat::mode([1, 2, 2, 3, 3, 3])
+  tester::assert_eq(m, [3])
+
+  m2 = stat::mode([1, 1, 2, 2])
+  tester::assert_eq(m2.size(), 2)
+  tester::assert(m2.contains(1))
+  tester::assert(m2.contains(2))
+end
+
+@tester::test("stat: variance sample and population")
+fn test_stat_variance()
+  data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
+  tester::assert_eq(math::round(stat::variance(data), 4), 4.5714)
+  tester::assert_eq(stat::variance(data, true), 4.0)
+end
+
+@tester::test("stat: stdev")
+fn test_stat_stdev()
+  data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
+  tester::assert_eq(math::round(stat::stdev(data, true), 4), 2.0)
+end
+
+@tester::test("stat: percentile")
+fn test_stat_percentile()
+  data = [1.0, 2.0, 3.0, 4.0, 5.0]
+  tester::assert_eq(stat::percentile(data, 0), 1.0)
+  tester::assert_eq(stat::percentile(data, 100), 5.0)
+  tester::assert_eq(stat::percentile(data, 50), 3.0)
+end
+
+@tester::test("stat: zscore")
+fn test_stat_zscore()
+  data = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]
+  z = stat::zscore(data)
+  tester::assert_eq(z.size(), data.size())
+  # Mean of z-scores should be ~0
+  tester::assert(math::abs(stat::mean(z)) < 0.0001)
+  # Stdev of z-scores should be ~1
+  tester::assert(math::abs(stat::stdev(z) - 1.0) < 0.0001)
+end
+
+@tester::test("stat: frequency")
+fn test_stat_frequency()
+  f = stat::frequency([1, 2, 2, 3, 3, 3])
+  tester::assert_eq(f["1"], 1)
+  tester::assert_eq(f["2"], 2)
+  tester::assert_eq(f["3"], 3)
+end
+
+@tester::test("stat: normalize")
+fn test_stat_normalize()
+  n = stat::normalize([0, 5, 10])
+  tester::assert_eq(n[0], 0.0)
+  tester::assert_eq(n[1], 0.5)
+  tester::assert_eq(n[2], 1.0)
+end
+
+@tester::test("stat: normalize constant input")
+fn test_stat_normalize_constant()
+  n = stat::normalize([7, 7, 7])
+  for v in n do
+    tester::assert_eq(v, 0.0)
+  end
+end
+
+@tester::test("stat: covariance")
+fn test_stat_covariance()
+  x = [1.0, 2.0, 3.0, 4.0, 5.0]
+  y = [2.0, 4.0, 5.0, 4.0, 5.0]
+  tester::assert_eq(math::round(stat::covariance(x, y), 4), 1.5)
+end
+
+@tester::test("stat: correlation")
+fn test_stat_correlation()
+  x = [1.0, 2.0, 3.0, 4.0, 5.0]
+  y = [1.0, 2.0, 3.0, 4.0, 5.0]
+  tester::assert_eq(math::round(stat::correlation(x, y), 4), 1.0)
+
+  # Perfect negative correlation
+  y2 = [5.0, 4.0, 3.0, 2.0, 1.0]
+  tester::assert_eq(math::round(stat::correlation(x, y2), 4), -1.0)
+end

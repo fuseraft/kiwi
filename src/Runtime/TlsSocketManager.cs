@@ -210,7 +210,17 @@ public sealed class TlsSocketManager
         san.AddIpAddress(IPAddress.Loopback);
         req.CertificateExtensions.Add(san.Build());
 
-        return req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+        using var ephemeral = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+
+        // On Windows, Schannel (the platform TLS provider) requires the server certificate's
+        // private key to be accessible via a CNG key storage provider. An in-memory key from
+        // CreateSelfSigned is not registered with CNG, so AuthenticateAsServerAsync hangs
+        // indefinitely while Schannel tries to locate the key. Exporting to PFX and reimporting
+        // with EphemeralKeySet registers the key with CNG without persisting anything to disk,
+        // and works correctly on both Windows (Schannel) and Linux (OpenSSL).
+        var pfx = ephemeral.Export(X509ContentType.Pfx);
+        return new X509Certificate2(pfx, (string?)null,
+            X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet);
     }
 }
 

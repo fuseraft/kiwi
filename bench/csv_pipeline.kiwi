@@ -16,7 +16,7 @@
     /tmp/kiwi_bench_sparse.csv   — 1 000 rows with empty fields
     /tmp/kiwi_bench_quoted.csv   — 2 000 rows with quoted, comma-embedded fields
 
-  Run from the project root: kiwi tests/bench_csv_pipeline
+  Run from the project root: kiwi bench/csv_pipeline
 #/
 
 # ─── fixture helpers ──────────────────────────────────────────────────────────

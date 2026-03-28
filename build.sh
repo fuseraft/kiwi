@@ -11,16 +11,16 @@ set -euo pipefail 2>/dev/null || set -e
 
 # Check for dotnet CLI
 if ! type -p dotnet >/dev/null 2>&1; then
-  echo "The 'dotnet' CLI could not be found. Please install the .NET 8 SDK and try again."
+  echo "The 'dotnet' CLI could not be found. Please install the .NET 9 SDK and try again."
   exit 1
 fi
 
-# Expect .NET 8
+# Expect .NET 9+
 DOTNET_VERSION=$(dotnet --version 2>/dev/null || echo "unknown")
 DOTNET_VERSION_MAJOR=${DOTNET_VERSION%%.*}
 
-if [[ "$DOTNET_VERSION_MAJOR" -lt 8 ]]; then
-  echo "Kiwi requires .NET 8 or higher. Found: $DOTNET_VERSION"
+if [[ "$DOTNET_VERSION_MAJOR" -lt 9 ]]; then
+  echo "Kiwi requires .NET 9 or higher. Found: $DOTNET_VERSION"
   exit 1
 fi
 
@@ -36,10 +36,30 @@ esac
 RUNTIME_ID="$DEFAULT_RID"  # Default RID; override with env var or argument
 
 # Allow overriding runtime identifier via environment variable or argument
+USE_EXISTING=false
+REMAINING_ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --use-existing|-e) USE_EXISTING=true ;;
+    *) REMAINING_ARGS+=("$arg") ;;
+  esac
+done
+
 if [[ -n "${KIWI_RUNTIME_ID:-}" ]]; then
   RUNTIME_ID="$KIWI_RUNTIME_ID"
-elif [[ $# -gt 0 ]]; then
-  RUNTIME_ID="$1"
+elif [[ ${#REMAINING_ARGS[@]} -gt 0 ]]; then
+  RUNTIME_ID="${REMAINING_ARGS[0]}"
+fi
+
+# Skip build if --use-existing / -e and the binary is already present
+if $USE_EXISTING; then
+  EXISTING_BIN="$OUTPUT_DIR/kiwi"
+  [[ "$RUNTIME_ID" == "win-x64" ]] && EXISTING_BIN="$OUTPUT_DIR/kiwi.exe"
+  if [[ -f "$EXISTING_BIN" ]]; then
+    echo "Using existing binary at $EXISTING_BIN (skipping build)."
+    exit 0
+  fi
+  echo "No existing binary found at $EXISTING_BIN — building from source."
 fi
 
 # Validate common RIDs

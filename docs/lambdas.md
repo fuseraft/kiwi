@@ -8,11 +8,22 @@ Lambdas are used to treat callables (i.e. functions) as first-class citizens. Yo
 
 There are many ways to define a lambda.
 
-### Converting a function to a lambda
+### Passing a function as a lambda
 
-You can convert a function to a lambda by calling `to_lambda()` on it.
+Named functions can be passed anywhere a lambda is expected — no conversion needed.
 
-*Note: Remember you can invoke any callable directly or by calling `.call([parameters])` on it.*
+```kiwi
+fn double(x)
+  x * 2
+end
+
+println [1, 2, 3].map(double)   # [2, 4, 6]
+println [1, 2, 3].filter(double) # [2, 4, 6]  (truthy values kept)
+```
+
+This works with all higher-order list methods: `map`, `filter`, `each`, `sort`, `reduce`, `all`, `none`.
+
+You can also pass a function as a parameter and call it directly:
 
 ```kiwi
 fn say_hello(name: string)
@@ -25,9 +36,9 @@ end
 
 fn get_strategy(strategy: string)
   if strategy == "hello"
-    return say_hello.to_lambda()
+    return say_hello
   elsif strategy == "bye"
-    return say_bye.to_lambda()
+    return say_bye
   else
     throw "Unknown strategy"
   end
@@ -40,6 +51,10 @@ end
 use_strategy("hello", "World")
 use_strategy("bye", "World")
 ```
+
+*Note: Remember you can invoke any callable directly or by calling `.call([parameters])` on it.*
+
+> **Note:** `.to_lambda()` still works but is no longer required when passing a function as a callable.
 
 ### Using `do` (lambda block and arrow functions)
 

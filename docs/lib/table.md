@@ -117,6 +117,8 @@ Removes duplicate rows by comparing all fields.
 
 All join methods return `self`. When a left and right row are merged, right-side fields overwrite left-side fields on name collision. Use `.rename()` or `.select()` before joining to avoid unwanted overwrites.
 
+All four join methods use a hash index on the right-side table, giving **O(n+m)** performance regardless of table size.
+
 #### `.inner_join(other, left_key, right_key)`
 
 Keeps only rows that have at least one matching row in `other`.
@@ -244,11 +246,15 @@ Returns the number of rows.
 
 **Returns** `integer`
 
-#### `.display()`
+#### `.display(max_width?)`
 
 Prints the table as a formatted ASCII grid and returns `self` for continued chaining.
 
-Columns are derived from the first row's keys. Each column is wide enough to fit its header and all its values.
+Columns are derived from the first row's keys. Each column is wide enough to fit its header and all its values. When `max_width` is set, any value longer than that many characters is truncated and suffixed with `…`.
+
+| Type | Name | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `integer` | `max_width` | Maximum column width in characters. `0` means unlimited. | `0` |
 
 **Returns** `Table` (self)
 
@@ -262,6 +268,13 @@ table::from(rows)
 # |  1 | Alice |     9 |
 # …
 # (4 row(s))
+
+# Cap every column at 25 characters
+table::from(rows).display(25)
+# +----+---------------------------+-------+
+# | id | name                      | score |
+# +----+---------------------------+-------+
+# |  1 | A very long name that g…  |     9 |
 ```
 
 ---

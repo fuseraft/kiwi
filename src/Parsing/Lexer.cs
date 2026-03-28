@@ -428,6 +428,8 @@ public class Lexer : IDisposable
             "-=" => TokenName.Ops_SubtractAssign,
             "*=" => TokenName.Ops_MultiplyAssign,
             "/=" => TokenName.Ops_DivideAssign,
+            "//=" => TokenName.Ops_IntDivideAssign,
+            "//" => TokenName.Ops_IntDivide,
             "%=" => TokenName.Ops_ModuloAssign,
             "|=" => TokenName.Ops_BitwiseOrAssign,
             "&=" => TokenName.Ops_BitwiseAndAssign,
@@ -1056,6 +1058,12 @@ public class Lexer : IDisposable
         else if (ProtobufBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (XmlBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (IpcBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (CryptoBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (HttpServerBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (MutexBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (SignalBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (SmtpBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (UdpBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);
     }
@@ -1093,6 +1101,8 @@ public class Lexer : IDisposable
             "%=" => TokenName.Ops_ModuloAssign,
             "/" => TokenName.Ops_Divide,
             "/=" => TokenName.Ops_DivideAssign,
+            "//=" => TokenName.Ops_IntDivideAssign,
+            "//" => TokenName.Ops_IntDivide,
             "&&" => TokenName.Ops_And,
             "&&=" => TokenName.Ops_AndAssign,
             "||" => TokenName.Ops_Or,
@@ -1274,6 +1284,7 @@ public class Lexer : IDisposable
             "static" => TokenName.KW_Static,
             "enum" => TokenName.KW_Enum,
             "struct" => TokenName.KW_Struct,
+            "super" => TokenName.KW_Super,
             "throw" => TokenName.KW_Throw,
             "to" => TokenName.KW_To,
             "try" => TokenName.KW_Try,

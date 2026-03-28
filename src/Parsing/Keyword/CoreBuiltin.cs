@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 namespace kiwi.Parsing.Keyword;
 
 public static class CoreBuiltin
@@ -84,7 +85,7 @@ public static class CoreBuiltin
     public const string Year            = "year";
     public const string Zip             = "zip";
 
-    private static readonly IReadOnlyDictionary<string, TokenName> _map
+    private static readonly FrozenDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
         {
             { Append,          TokenName.Builtin_Core_Append      },
@@ -166,10 +167,10 @@ public static class CoreBuiltin
             { Values,          TokenName.Builtin_Core_Values      },
             { Year,            TokenName.Builtin_Core_Year        },
             { Zip,             TokenName.Builtin_Core_Zip         },
-        };
+        }.ToFrozenDictionary();
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();
-    public static IReadOnlyDictionary<string, TokenName> Map => _map;
+    public static FrozenDictionary<string, TokenName> Map => _map;
 
     public static bool IsBuiltin(string arg)
     {
@@ -216,6 +217,12 @@ public static class CoreBuiltin
         if (XmlBuiltin.Map.ContainsKey(arg))         return true;
         if (TimeBuiltin.Map.ContainsKey(arg))        return true;
         if (IpcBuiltin.Map.ContainsKey(arg))         return true;
+        if (CryptoBuiltin.Map.ContainsKey(arg))      return true;
+        if (HttpServerBuiltin.Map.ContainsKey(arg))  return true;
+        if (MutexBuiltin.Map.ContainsKey(arg))       return true;
+        if (SignalBuiltin.Map.ContainsKey(arg))      return true;
+        if (SmtpBuiltin.Map.ContainsKey(arg))        return true;
+        if (UdpBuiltin.Map.ContainsKey(arg))         return true;
 
         // not a builtin method
         return false;

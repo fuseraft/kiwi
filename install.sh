@@ -106,6 +106,7 @@ OPTIONS:
   --system            Install system-wide to /opt/kiwi          (requires sudo)
   --prefix=PATH       Install to a custom directory
   --url=URL           Download a pre-built binary instead of building from source
+  --use-existing      Use the binary already in ./bin/ instead of building
   --uninstall         Remove Kiwi
   --update            Remove the old install and reinstall the latest
   -h, --help          Show this help
@@ -115,6 +116,7 @@ EXAMPLES:
   ./install.sh --system                 # System-wide install  (sudo)
   ./install.sh --prefix=/usr/local      # Custom prefix
   ./install.sh --url=https://...        # Install a pre-built binary
+  ./install.sh --use-existing           # Install the binary already in ./bin/
   ./install.sh --update                 # Update to latest
   ./install.sh --uninstall              # Remove Kiwi
 
@@ -132,16 +134,18 @@ PREFIX=""
 BINARY_URL=""
 UNINSTALL=false
 UPDATE=false
+USE_EXISTING=false
 
 for arg in "$@"; do
   case "$arg" in
-    --user)       INSTALL_MODE="user" ;;
-    --system)     INSTALL_MODE="system" ;;
-    --prefix=*)   INSTALL_MODE="custom"; PREFIX="${arg#--prefix=}" ;;
-    --url=*)      BINARY_URL="${arg#--url=}" ;;
-    --uninstall)  UNINSTALL=true ;;
-    --update)     UPDATE=true ;;
-    -h|--help)    usage; exit 0 ;;
+    --user)         INSTALL_MODE="user" ;;
+    --system)       INSTALL_MODE="system" ;;
+    --prefix=*)     INSTALL_MODE="custom"; PREFIX="${arg#--prefix=}" ;;
+    --url=*)        BINARY_URL="${arg#--url=}" ;;
+    --use-existing) USE_EXISTING=true ;;
+    --uninstall)    UNINSTALL=true ;;
+    --update)       UPDATE=true ;;
+    -h|--help)      usage; exit 0 ;;
     *) die "Unknown argument: $arg  (run with --help for usage)" ;;
   esac
 done
@@ -217,7 +221,33 @@ mkdir -p "$BIN_DIR" "$LIB_DIR"
 # -------------------------------------------------------------------------
 # Build or Download
 # -------------------------------------------------------------------------
-if [[ -n "$BINARY_URL" ]]; then
+if $USE_EXISTING; then
+  # -------------------------------------------------------------------------
+  # Use the binary already present in ./bin/
+  # -------------------------------------------------------------------------
+  header "Using existing binary"
+
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-./install.sh}")" 2>/dev/null && pwd || pwd)"
+  LOCAL_BIN="$SCRIPT_DIR/bin/kiwi"
+
+  [[ -f "$LOCAL_BIN" ]] || die "No existing binary found at $LOCAL_BIN. Build first with ./build.sh or omit --use-existing."
+
+  cp "$LOCAL_BIN" "$BIN_DIR/"
+  chmod +x "$BIN_DIR/kiwi"
+  success "Binary copied from $LOCAL_BIN"
+
+  # Copy settings file if present
+  [[ -f "$SCRIPT_DIR/bin/kiwi-settings.json" ]] && cp "$SCRIPT_DIR/bin/kiwi-settings.json" "$BIN_DIR/"
+
+  # Copy any native libraries produced alongside the binary
+  find "$SCRIPT_DIR/bin" -maxdepth 1 \( -name "*.so" -o -name "*.dylib" \) \
+    -exec cp {} "$BIN_DIR/" \; 2>/dev/null || true
+
+  # Install stdlib from the local repo
+  cp -r "$SCRIPT_DIR/lib/." "$LIB_DIR/"
+  success "Standard library installed"
+
+elif [[ -n "$BINARY_URL" ]]; then
   # -------------------------------------------------------------------------
   # Download pre-built binary
   # -------------------------------------------------------------------------
@@ -253,11 +283,11 @@ else
 
   # .NET SDK check
   command -v dotnet >/dev/null 2>&1 \
-    || die ".NET 8 SDK not found. Install from: https://dotnet.microsoft.com/download/dotnet/8.0"
+    || die ".NET 9 SDK not found. Install from: https://dotnet.microsoft.com/download/dotnet/9.0"
 
   DOTNET_VER="$(dotnet --version 2>/dev/null || echo "0.0.0")"
   DOTNET_MAJOR="${DOTNET_VER%%.*}"
-  [[ "$DOTNET_MAJOR" -ge 8 ]] || die "Kiwi requires .NET 8 or higher. Found: $DOTNET_VER"
+  [[ "$DOTNET_MAJOR" -ge 9 ]] || die "Kiwi requires .NET 9 or higher. Found: $DOTNET_VER"
   info ".NET SDK $DOTNET_VER"
 
   # Locate repo — running from a clone, or need to clone fresh

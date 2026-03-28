@@ -133,7 +133,7 @@ public partial class Serializer
 
         var first = true;
 
-        foreach (var key in hash.Keys)
+        foreach (var kvp in hash)
         {
             if (!first)
             {
@@ -144,16 +144,15 @@ public partial class Serializer
                 first = false;
             }
 
-            sv.Append($"{Serialize(key, true)}: ");
-            var v = hash[key];
+            sv.Append($"{Serialize(kvp.Key, true)}: ");
 
-            if (v.IsHashmap())
+            if (kvp.Value.IsHashmap())
             {
-                sv.Append(Serialize(v));
+                sv.Append(Serialize(kvp.Value));
             }
             else
             {
-                sv.Append(Serialize(v, true));
+                sv.Append(Serialize(kvp.Value, true));
             }
         }
 
@@ -305,7 +304,7 @@ public partial class Serializer
         var indentString = GetPrettyIndentation(indent + 2);
         var first = true;
 
-        foreach (var key in hash.Keys)
+        foreach (var kvp in hash)
         {
             if (!first)
             {
@@ -316,24 +315,23 @@ public partial class Serializer
                 first = false;
             }
 
-            sv.Append($"{indentString}{Serialize(key, true)}: ");
+            sv.Append($"{indentString}{Serialize(kvp.Key, true)}: ");
 
-            var v = hash[key];
-            if (v.IsHashmap())
+            if (kvp.Value.IsHashmap())
             {
-                sv.Append(PrettySerializeHashmap(v.GetHashmap(), indent + 2));
+                sv.Append(PrettySerializeHashmap(kvp.Value.GetHashmap(), indent + 2));
             }
-            else if (v.IsList())
+            else if (kvp.Value.IsList())
             {
-                sv.Append(PrettySerializeList(v.GetList(), indent + 2));
+                sv.Append(PrettySerializeList(kvp.Value.GetList(), indent + 2));
             }
-            else if (v.IsString())
+            else if (kvp.Value.IsString())
             {
-                sv.Append($"\"{v.GetString()}\"");
+                sv.Append($"\"{kvp.Value.GetString()}\"");
             }
             else
             {
-                sv.Append(PrettySerialize(v));
+                sv.Append(PrettySerialize(kvp.Value));
             }
         }
 
@@ -399,6 +397,8 @@ public partial class Serializer
             TokenName.Ops_BitwiseXorAssign => "^=",
             TokenName.Ops_Divide => "/",
             TokenName.Ops_DivideAssign => "/=",
+            TokenName.Ops_IntDivide => "//",
+            TokenName.Ops_IntDivideAssign => "//=",
             TokenName.Ops_Equal => "==",
             TokenName.Ops_Exponent => "**",
             TokenName.Ops_ExponentAssign => "**=",

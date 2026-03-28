@@ -5,7 +5,7 @@
 
 .DESCRIPTION
   Installs the Kiwi programming language on Windows.
-  Builds from source (requires .NET 8 SDK) or downloads a pre-built binary.
+  Builds from source (requires .NET 9 SDK) or downloads a pre-built binary.
 
 .PARAMETER User
   Install for the current user only (default: $env:LOCALAPPDATA\kiwi)
@@ -19,6 +19,9 @@
 .PARAMETER Url
   Download a pre-built binary from this URL instead of building from source
 
+.PARAMETER UseExisting
+  Use the binary already present in .\bin\ instead of building from source
+
 .PARAMETER Uninstall
   Remove Kiwi from the system
 
@@ -30,6 +33,7 @@
   .\install.ps1 -System
   .\install.ps1 -Prefix "C:\tools\kiwi"
   .\install.ps1 -Url "https://example.com/kiwi.exe"
+  .\install.ps1 -UseExisting
   .\install.ps1 -Update
   .\install.ps1 -Uninstall
 
@@ -50,6 +54,7 @@ param (
   [string]$Prefix,
 
   [string]$Url,
+  [switch]$UseExisting,
   [switch]$Uninstall,
   [switch]$Update
 )
@@ -214,7 +219,36 @@ New-Item -ItemType Directory -Force -Path $LibDir | Out-Null
 # -------------------------------------------------------------------------
 # Build or Download
 # -------------------------------------------------------------------------
-if ($Url) {
+if ($UseExisting) {
+  # -------------------------------------------------------------------------
+  # Use the binary already present in .\bin\
+  # -------------------------------------------------------------------------
+  Write-Header 'Using existing binary'
+
+  $ScriptDir  = if ($PSCommandPath) { Split-Path -Parent $PSCommandPath } else { (Get-Location).Path }
+  $LocalBin   = Join-Path $ScriptDir 'bin\kiwi.exe'
+
+  if (-not (Test-Path $LocalBin)) {
+    Write-Fatal "No existing binary found at $LocalBin. Build first with .\build.sh or omit -UseExisting."
+  }
+
+  Copy-Item -Force $LocalBin $BinDir
+  Write-Success "Binary copied from $LocalBin"
+
+  # Copy settings file if present
+  $LocalSettings = Join-Path $ScriptDir 'bin\kiwi-settings.json'
+  if (Test-Path $LocalSettings) { Copy-Item -Force $LocalSettings $BinDir }
+
+  # Copy any native DLLs produced alongside the binary
+  Get-ChildItem -Path (Join-Path $ScriptDir 'bin') -Filter '*.dll' | ForEach-Object {
+    Copy-Item -Force $_.FullName $BinDir
+  }
+
+  # Install stdlib from the local repo
+  Copy-Item -Recurse -Force (Join-Path $ScriptDir 'lib\*') $LibDir
+  Write-Success 'Standard library installed'
+
+} elseif ($Url) {
   # -------------------------------------------------------------------------
   # Download pre-built binary
   # -------------------------------------------------------------------------
@@ -247,13 +281,13 @@ if ($Url) {
   # Check .NET SDK
   $DotnetExe = Get-Command dotnet -ErrorAction SilentlyContinue
   if (-not $DotnetExe) {
-    Write-Fatal ".NET 8 SDK not found.`nInstall from: https://dotnet.microsoft.com/download/dotnet/8.0"
+    Write-Fatal ".NET 9 SDK not found.`nInstall from: https://dotnet.microsoft.com/download/dotnet/9.0"
   }
 
   $DotnetVer = (dotnet --version 2>$null) -replace '\s',''
   $DotnetMajor = [int]($DotnetVer -split '\.')[0]
-  if ($DotnetMajor -lt 8) {
-    Write-Fatal "Kiwi requires .NET 8 or higher. Found: $DotnetVer"
+  if ($DotnetMajor -lt 9) {
+    Write-Fatal "Kiwi requires .NET 9 or higher. Found: $DotnetVer"
   }
   Write-Info ".NET SDK $DotnetVer"
 

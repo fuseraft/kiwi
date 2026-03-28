@@ -54,6 +54,7 @@ public enum ASTNodeType
     Slice,
     Splat,
     Struct,
+    SuperCall,
     TernaryOperation,
     Throw,
     Try,

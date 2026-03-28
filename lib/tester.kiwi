@@ -60,7 +60,7 @@ package tester
     end
   #/
   fn test(f: lambda, name: string): lambda
-    tester::register_test(name, f)
+    register_test(name, f)
     return f
   end
 
@@ -105,7 +105,7 @@ package tester
     # tests via @tester::test do not cause a "collection modified" error.
     names = _tests.keys()
     for name in names do
-      tester::run_test(name, _tests[name], results)
+      run_test(name, _tests[name], results)
     end
 
     return results
