@@ -29,7 +29,8 @@ public class SerializerBuiltinHandler
         var ast = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
         var chunk = Compiler.CompileExpression((ProgramNode)ast);
         var savedVM = KiwiVM.Current;
-        try   { return new KiwiVM(new Interpreter()).Execute(chunk); }
+        var existingVM = KiwiVM.Current;
+        try   { return existingVM != null ? new KiwiVM(existingVM).Execute(chunk) : new KiwiVM().Execute(chunk); }
         finally { KiwiVM.Current = savedVM; }
     }
 

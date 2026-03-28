@@ -75,45 +75,27 @@ public class Program
         }
         else if (config.UseREPL)
         {
-            return new REPLRunner(new()
-            {
-                CliArgs = ParseKeyValueArgs(config.Args),
-            });
+            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args) };
         }
         else if (config.ExecuteCode != null)
         {
-            return new CodeRunner(config.ExecuteCode, new()
-            {
-                CliArgs = ParseKeyValueArgs(config.Args),
-            });
+            return new CodeRunner(config.ExecuteCode) { CliArgs = ParseKeyValueArgs(config.Args) };
         }
         else if (config.UseDebugger)
         {
-            return new DebugRunner(new()
-            {
-                CliArgs = ParseKeyValueArgs(config.Args),
-            });
+            return new DebugRunner { CliArgs = ParseKeyValueArgs(config.Args) };
         }
         else if (config.HasScripts)
         {
-            return new VMScriptRunner(new()
-            {
-                CliArgs = ParseKeyValueArgs(config.Args),
-            });
+            return new VMScriptRunner { CliArgs = ParseKeyValueArgs(config.Args) };
         }
 
         if (!Console.IsInputRedirected)
         {
-            return new REPLRunner(new()
-            {
-                CliArgs = ParseKeyValueArgs(config.Args),
-            });
+            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args) };
         }
 
-        return new StdInRunner(new()
-        {
-            CliArgs = ParseKeyValueArgs(config.Args),
-        });
+        return new StdInRunner { CliArgs = ParseKeyValueArgs(config.Args) };
     }
 
     /// <summary>

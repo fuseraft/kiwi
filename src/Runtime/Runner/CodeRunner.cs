@@ -7,7 +7,7 @@ namespace kiwi.Runtime.Runner;
 /// <summary>
 /// Runs a string of code passed via <c>-e</c>/<c>--execute</c>.
 /// </summary>
-public class CodeRunner(string code, Interpreter interpreter) : VMScriptRunner(interpreter)
+public class CodeRunner(string code) : VMScriptRunner
 {
     public override int Run(string script, List<string> args)
     {

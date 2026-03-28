@@ -10,7 +10,7 @@ using kiwi.VM;
 
 namespace kiwi.Runtime.Runner;
 
-public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
+public class DebugRunner : VMScriptRunner
 {
     private readonly DebugState _state = new();
     private readonly HashSet<string> _stdlibDirs = [];
@@ -291,10 +291,10 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
 
             // Temporarily inject current locals into the global scope so the
             // eval expression can reference variables by name.
-            var globals = Interpreter.GetGlobalScope();
+            var globals = _currentVM?.GetGlobalScope();
             var displaced = new List<(string Name, Value Old)>();
 
-            if (_currentVM != null)
+            if (_currentVM != null && globals != null)
             {
                 foreach (var (name, val) in _currentVM.GetCurrentLocals())
                 {
@@ -310,17 +310,20 @@ public class DebugRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
 
             try
             {
-                var evalVm = new KiwiVM(Interpreter);
+                var evalVm = _currentVM != null ? new KiwiVM(_currentVM) : new KiwiVM();
                 var result = evalVm.Execute(chunk);
                 C(ConsoleColor.Cyan, Serializer.Serialize(result), newline: true);
             }
             finally
             {
                 KiwiVM.Current = savedCurrent;
-                foreach (var (name, old) in displaced)
+                if (globals != null)
                 {
-                    if (old.IsNull()) globals.Remove(name);
-                    else globals.Declare(name, old);
+                    foreach (var (name, old) in displaced)
+                    {
+                        if (old.IsNull()) globals.Remove(name);
+                        else globals.Declare(name, old);
+                    }
                 }
                 if (_currentVM != null) _currentVM.DebugHook = savedHook;
             }

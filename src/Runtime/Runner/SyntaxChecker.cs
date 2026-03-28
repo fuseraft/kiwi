@@ -10,7 +10,7 @@ namespace kiwi.Runtime.Runner;
 /// </summary>
 public class SyntaxChecker : ScriptRunner
 {
-    public SyntaxChecker() : base(new()) { }
+    public SyntaxChecker() { }
 
     public override int Run(string script, List<string> args)
     {

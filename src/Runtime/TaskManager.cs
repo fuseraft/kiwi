@@ -3,6 +3,7 @@ using kiwi.Parsing;
 using kiwi.Tracing;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
+using kiwi.VM;
 
 namespace kiwi.Runtime;
 
@@ -85,6 +86,7 @@ public sealed class TaskManager
         state.Status = TaskStatus.Running;
         state.Exception = null;
         state.Completed = 0;
+        state.CallerVM  = null;
         state.Completion.Reset();
 
         _stateBag.Add(state);
@@ -101,6 +103,7 @@ public sealed class TaskManager
         state.Lambda = lambda;
         state.Args = args;
         state.Status = TaskStatus.Running;
+        state.CallerVM = KiwiVM.Current; // snapshot so the task thread can create a sub-VM
 
         _tasks[state.Id] = state;
 
@@ -109,16 +112,14 @@ public sealed class TaskManager
         {
             try
             {
-                // Each task gets its own isolated interpreter instance
-                // TODO: globals copied from main
-                var taskInterp = new Interpreter
-                {
-                    CurrentTaskId = state.Id,
-                };
+                // Each task runs in a fresh VM that shares the caller's context.
+                // KiwiVM.Current is thread-static; create a new VM for this thread.
+                var callerVM = state.CallerVM;
+                var taskVM   = callerVM != null ? new KiwiVM(callerVM) : new KiwiVM();
+                taskVM.CurrentTaskId = state.Id;
+                KiwiVM.Current = taskVM;
 
-                taskInterp.SetContext(context);
-
-                state.Result = taskInterp.InvokeEvent(token, state.Lambda, state.Args);
+                state.Result = taskVM.InvokeEvent(token, state.Lambda, state.Args);
                 state.Status = TaskStatus.Completed;
             }
             catch (Exception ex)
@@ -216,4 +217,5 @@ internal sealed class TaskState
     public ManualResetEventSlim Completion = new(false);
     public Exception? Exception;
     public int Completed; // 0 = no, 1 = yes
+    public KiwiVM? CallerVM; // snapshot of KiwiVM.Current at Spawn time
 }

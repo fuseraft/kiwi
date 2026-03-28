@@ -1,4 +1,5 @@
 using kiwi.Parsing;
+using kiwi.VM;
 using kiwi.Parsing.Keyword;
 using kiwi.Runtime.Builtin.Operation;
 using kiwi.Tracing.Error;
@@ -8,13 +9,13 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public static class ReflectorBuiltinHandler
 {
-    public static Value Execute(Interpreter interp, Token token, TokenName op, List<Value> args, KContext context, Stack<StackFrame> callStack, Stack<string> funcStack)
+    public static Value Execute(KiwiVM vm, Token token, TokenName op, List<Value> args, KContext context, Stack<StackFrame> callStack)
     {
         return op switch
         {
-            TokenName.Builtin_Reflector_CallStack     => CallStack(token, funcStack, args),
+            TokenName.Builtin_Reflector_CallStack     => CallStack(token, callStack, args),
             TokenName.Builtin_Reflector_FrameFlags    => FFlags(token, callStack, args),
-            TokenName.Builtin_Reflector_GetFunc       => GetFunc(interp, token, context, args),
+            TokenName.Builtin_Reflector_GetFunc       => GetFunc(vm, token, context, args),
             TokenName.Builtin_Reflector_ObjectContext => ObjectContext(token, callStack, args),
             TokenName.Builtin_Reflector_RetVal        => RetVal(token, callStack, args),
             TokenName.Builtin_Reflector_State         => State(token, context, callStack, args),
@@ -22,11 +23,11 @@ public static class ReflectorBuiltinHandler
         };
     }
 
-    private static Value CallStack(Token token, Stack<string> funcStack, List<Value> args)
+    private static Value CallStack(Token token, Stack<StackFrame> callStack, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, ReflectorBuiltin.CallStack, 0, args.Count);
 
-        var names = funcStack.Reverse().Select(Value.CreateString).ToList();
+        var names = callStack.Reverse().Select(f => Value.CreateString(f.Name)).ToList();
         return Value.CreateList(names);
     }
 
@@ -74,7 +75,7 @@ public static class ReflectorBuiltinHandler
         return Value.CreateList(flags);
     }
 
-    private static Value GetFunc(Interpreter interp, Token token, KContext context, List<Value> args)
+    private static Value GetFunc(KiwiVM vm, Token token, KContext context, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, ReflectorBuiltin.GetFunc, 1, args.Count);
         ParameterTypeMismatchError.ExpectString(token, ReflectorBuiltin.GetFunc, 0, args[0]);
@@ -85,7 +86,7 @@ public static class ReflectorBuiltinHandler
             return Value.CreateNull();
         }
 
-        return CallableBuiltinHandler.ToLambda(interp, token, func, callableName, []);
+        return CallableBuiltinHandler.ToLambda(vm, token, func, callableName, []);
     }
 
     private static Value ObjectContext(Token token, Stack<StackFrame> callStack, List<Value> args)

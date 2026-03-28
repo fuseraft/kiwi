@@ -2,10 +2,13 @@ using System.Buffers;
 using System.Runtime.InteropServices;
 using kiwi.Parsing;
 using kiwi.Parsing.AST;
+using kiwi.Parsing.Keyword;
 using kiwi.Runtime;
 using kiwi.Runtime.Builtin.Handler;
 using kiwi.Runtime.Builtin.Operation;
 using kiwi.Runtime.Builtin.Dispatcher;
+using kiwi.Runtime.Builtin.Util;
+using kiwi.Settings;
 using kiwi.Tracing;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
@@ -96,11 +99,26 @@ public sealed class KiwiVM
     private int _dbgLastFileId = -1;
     private int _dbgLastLine   = -1;
 
-    // -- Shared runtime state (shared with the tree-walking interpreter) -------
-    private readonly Interpreter          _interp;
-    private readonly Scope                _globals;   // = interp._globalScope
-    private readonly KContext             _context;   // = interp.Context
+    // -- Shared runtime state --------------------------------------------------
+    private readonly Scope                _globals;
+    private readonly KContext             _context;
     private readonly System.Text.StringBuilder _interpSB = new();  // reused for Interpolate opcode
+
+    // -- Interpreter-side state (formerly on Interpreter class) ----------------
+    private GeneratorRef? _activeGenerator;
+
+    public Dictionary<string, string> CliArgs { get; set; } = [];
+    public string ExecutionPath { get; set; } = string.Empty;
+    public string EntryPath     { get; set; } = string.Empty;
+    /// <summary>Working directory at the time kiwi was invoked.</summary>
+    public string ProjectRoot   { get; set; } = Directory.GetCurrentDirectory();
+    public Stack<StackFrame> CallStack { get; set; } = [];
+    internal Stack<string> PackageStack { get; set; } = [];
+    internal Stack<string> StructStack  { get; set; } = [];
+    public long CurrentTaskId { get; set; } = 0;
+    public void SetContext(KContext context) { /* context is readonly in KiwiVM – no-op kept for API compat */ }
+    /// <summary>Exposes the shared context for handlers that need it.</summary>
+    public KContext Context => _context;
 
     // -- Thread-local slot -----------------------------------------------------
     [ThreadStatic]
@@ -108,25 +126,39 @@ public sealed class KiwiVM
 
     // -- Construction ----------------------------------------------------------
 
-    public KiwiVM(Interpreter interp)
+    /// <summary>Root VM: creates its own context and globals.</summary>
+    public KiwiVM()
     {
-        _interp  = interp;
-        _globals = interp.GetGlobalScope();
-        _context = interp.Context;
-        Current  = this;
+        _context = new KContext();
+        _globals = new Scope();
+        _globals.Declare("global", Value.CreateHashmap());
+        Current = this;
     }
 
-    /// <summary>
-    /// Constructor for task-thread VMs: uses an explicit globals scope (typically the
-    /// main interpreter's global scope, obtained from <see cref="Callable.CapturedScope"/>)
-    /// rather than the fresh task-interpreter scope.
-    /// </summary>
-    public KiwiVM(Interpreter interp, Scope globals)
+    /// <summary>Sub-VM sharing all state from parent.</summary>
+    public KiwiVM(KiwiVM parent)
     {
-        _interp  = interp;
-        _globals = globals;
-        _context = interp.Context;
-        Current  = this;
+        _context  = parent._context;
+        _globals  = parent._globals;
+        CliArgs   = parent.CliArgs;
+        ExecutionPath = parent.ExecutionPath;
+        EntryPath     = parent.EntryPath;
+        ProjectRoot   = parent.ProjectRoot;
+        CallStack     = parent.CallStack;
+        Current = this;
+    }
+
+    /// <summary>Sub-VM with explicit globals (for task threads / generators).</summary>
+    public KiwiVM(KiwiVM parent, Scope globals)
+    {
+        _context  = parent._context;
+        _globals  = globals;
+        CliArgs   = parent.CliArgs;
+        ExecutionPath = parent.ExecutionPath;
+        EntryPath     = parent.EntryPath;
+        ProjectRoot   = parent.ProjectRoot;
+        CallStack     = parent.CallStack;
+        Current = this;
     }
 
     // -- Cache helpers ---------------------------------------------------------
@@ -776,8 +808,8 @@ public sealed class KiwiVM
                     case Opcode.Concat:
                     {
                         var r = Pop(); var l = Pop();
-                        var ls = l.IsString() ? l.GetString() : _interp.Serialize(l);
-                        var rs = r.IsString() ? r.GetString() : _interp.Serialize(r);
+                        var ls = l.IsString() ? l.GetString() : Serialize(l);
+                        var rs = r.IsString() ? r.GetString() : Serialize(r);
                         Push(Value.CreateString(ls + rs));
                         break;
                     }
@@ -851,7 +883,7 @@ public sealed class KiwiVM
                         _sp = objSlot; // collapse obj+args
 
                         // Dispatch
-                        var callResult = _interp.DispatchMethod(obj, methodName, args, frame.GetToken());
+                        var callResult = DispatchMethod(obj, methodName, args, frame.GetToken());
                         Push(callResult);
                         break;
                     }
@@ -894,7 +926,7 @@ public sealed class KiwiVM
                         if (superFn == null)
                             throw new RuntimeError(frame.GetToken(), $"Method '{methodName}' not found in base of '{ownerStruct}'.", []);
 
-                        var superResult = _interp.InvokeCallable(superFn, args, frame.GetToken(), methodName, frame.Self);
+                        var superResult = InvokeCallable(superFn, args, frame.GetToken(), methodName, frame.Self);
                         Push(superResult);
                         break;
                     }
@@ -946,7 +978,7 @@ public sealed class KiwiVM
                                     method.VariadicParamName, frame.GetToken(), methodName);
                                 var reorderedArgs = CollectArgs(calleeBase, newArgc);
                                 Value reorderedResult;
-                                try { reorderedResult = _interp.DispatchMethod(obj, methodName, reorderedArgs, frame.GetToken()); }
+                                try { reorderedResult = DispatchMethod(obj, methodName, reorderedArgs, frame.GetToken()); }
                                 finally { ReturnArgs(reorderedArgs); }
                                 _sp = objSlot;
                                 Push(reorderedResult);
@@ -958,7 +990,7 @@ public sealed class KiwiVM
                         var plainArgs = new Value[argc];
                         for (int i = 0; i < argc; i++) plainArgs[i] = _stack[_sp - argc + i];
                         _sp = objSlot;
-                        Push(_interp.DispatchMethod(obj, methodName, plainArgs, frame.GetToken()));
+                        Push(DispatchMethod(obj, methodName, plainArgs, frame.GetToken()));
                         break;
                     }
 
@@ -1200,7 +1232,7 @@ public sealed class KiwiVM
                     {
                         var key = Pop();
                         var obj = Pop();
-                        Push(_interp.GetIndex(obj, key, frame.GetToken()));
+                        Push(GetIndex(obj, key, frame.GetToken()));
                         break;
                     }
                     case Opcode.IndexSet:
@@ -1208,7 +1240,7 @@ public sealed class KiwiVM
                         var val = Pop();
                         var key = Pop();
                         var obj = Pop();
-                        _interp.SetIndex(obj, key, val, frame.GetToken());
+                        SetIndex(obj, key, val, frame.GetToken());
                         Push(val);
                         break;
                     }
@@ -1218,7 +1250,7 @@ public sealed class KiwiVM
                         var key = Pop();
                         var obj = Pop();
                         var tok = frame.GetToken();
-                        var old = _interp.GetIndex(obj, key, tok);
+                        var old = GetIndex(obj, key, tok);
                         Value newVal = (Opcode)A switch
                         {
                             Opcode.Add  => MathOp.Add(tok, ref old, ref rhs),
@@ -1235,7 +1267,7 @@ public sealed class KiwiVM
                             Opcode.BURSh=> BitwiseOp.UnsignedRightshift(tok, ref old, ref rhs),
                             _           => rhs
                         };
-                        _interp.SetIndex(obj, key, newVal, tok);
+                        SetIndex(obj, key, newVal, tok);
                         Push(newVal);
                         break;
                     }
@@ -1263,7 +1295,7 @@ public sealed class KiwiVM
                         if ((A & 2) != 0) stopV  = Pop();
                         if ((A & 1) != 0) startV = Pop();
                         var obj = Pop();
-                        Push(_interp.GetSlice(obj, startV, stopV, stepV, frame.GetToken()));
+                        Push(GetSlice(obj, startV, stopV, stepV, frame.GetToken()));
                         break;
                     }
 
@@ -1274,7 +1306,7 @@ public sealed class KiwiVM
                         Value? stopV  = (A & 2) != 0 ? Pop() : (Value?)null;
                         Value? startV = (A & 1) != 0 ? Pop() : (Value?)null;
                         var obj = Pop();
-                        _interp.SetSlice(obj, startV, stopV, stepV, rhs, frame.GetToken());
+                        SetSlice(obj, startV, stopV, stepV, rhs, frame.GetToken());
                         Push(rhs);
                         break;
                     }
@@ -1284,7 +1316,7 @@ public sealed class KiwiVM
                     {
                         var memberName = frame.Chunk.Names[A];
                         var obj        = Pop();
-                        Push(_interp.GetMember(obj, memberName, frame.GetToken()));
+                        Push(GetMember(obj, memberName, frame.GetToken()));
                         break;
                     }
                     case Opcode.SetMember:
@@ -1292,7 +1324,7 @@ public sealed class KiwiVM
                         var memberName = frame.Chunk.Names[A];
                         var obj        = Pop();
                         var val        = Pop();
-                        _interp.SetMember(obj, memberName, val, frame.GetToken());
+                        SetMember(obj, memberName, val, frame.GetToken());
                         Push(val);
                         break;
                     }
@@ -1350,7 +1382,7 @@ public sealed class KiwiVM
                         var args       = new List<Value>(argc);
                         for (int i = _sp - argc; i < _sp; i++) args.Add(_stack[i]);
                         _sp -= argc;
-                        Push(_interp.CreateObject(structName, args, frame.GetToken()));
+                        Push(CreateObject(structName, args, frame.GetToken()));
                         break;
                     }
 
@@ -1363,7 +1395,7 @@ public sealed class KiwiVM
                         sb.Clear();
                         int interpBase = _sp - A;
                         for (int i = interpBase; i < _sp; i++)
-                            sb.Append(_interp.Serialize(_stack[i]));
+                            sb.Append(Serialize(_stack[i]));
                         _sp = interpBase;
                         Push(Value.CreateString(sb.ToString()));
                         break;
@@ -1373,7 +1405,7 @@ public sealed class KiwiVM
                     case Opcode.Print:
                     {
                         var v         = Pop();
-                        var text      = _interp.Serialize(v);
+                        var text      = Serialize(v);
                         bool newline  = (A & 1) != 0;
                         bool stderr   = (A & 2) != 0;
                         var writer    = stderr ? Console.Error : Console.Out;
@@ -1387,7 +1419,7 @@ public sealed class KiwiVM
                         var y    = Pop();
                         var x    = Pop();
                         var v    = Pop();
-                        var text = _interp.Serialize(v);
+                        var text = Serialize(v);
                         int col  = x.IsInteger() ? (int)x.GetInteger() : x.IsFloat() ? (int)x.GetFloat() : 1;
                         int row  = y.IsInteger() ? (int)y.GetInteger() : y.IsFloat() ? (int)y.GetFloat() : 1;
                         Console.SetCursorPosition(col - 1, row - 1);
@@ -1538,7 +1570,7 @@ public sealed class KiwiVM
                     case Opcode.Yield:
                     {
                         var v = Pop();
-                        _interp.YieldFromVM(v);
+                        YieldFromVM(v);
                         break;
                     }
 
@@ -1565,7 +1597,7 @@ public sealed class KiwiVM
                         else
                         {
                             errType = KiwiError.DefaultErrorType;
-                            errMsg  = _interp.Serialize(v);
+                            errMsg  = Serialize(v);
                         }
                         throw new RuntimeError(tok, errType, errMsg, [frame.FormatTrace()]);
                     }
@@ -1619,7 +1651,7 @@ public sealed class KiwiVM
                         var args = new List<Value>(B);
                         for (int i = 0; i < B; i++) args.Add(Pop());
                         args.Reverse();
-                        Push(_interp.ExecuteBuiltin(node.Token, node.Op, args));
+                        Push(ExecuteBuiltin(node.Token, node.Op, args));
                         break;
                     }
 
@@ -1627,14 +1659,14 @@ public sealed class KiwiVM
                     case Opcode.Export:
                     {
                         var pkgName = Pop();
-                        _interp.ImportPackage(frame.GetToken(), pkgName);
+                        ImportPackage(frame.GetToken(), pkgName);
                         break;
                     }
 
                     case Opcode.ImportPkg:
                     {
                         var pkgName = Pop();
-                        _interp.ImportPackage(frame.GetToken(), pkgName);
+                        ImportPackage(frame.GetToken(), pkgName);
                         Push(Value.CreatePackage(pkgName.GetString()));
                         break;
                     }
@@ -1656,7 +1688,7 @@ public sealed class KiwiVM
                         var code = Pop();
                         if (!code.IsString())
                             throw new KiwiError(frame.GetToken(), "eval() requires a string expression.");
-                        Push(_interp.EvalCode(frame.GetToken(), code.GetString()));
+                        Push(EvalCode(frame.GetToken(), code.GetString()));
                         break;
                     }
 
@@ -1665,7 +1697,7 @@ public sealed class KiwiVM
                         var path = Pop();
                         if (!path.IsString())
                             throw new InvalidOperationError(frame.GetToken(), "Include path must be a string.");
-                        _interp.IncludeFile(frame.GetToken(), path.GetString());
+                        IncludeFile(frame.GetToken(), path.GetString());
                         break;
                     }
 
@@ -1682,21 +1714,21 @@ public sealed class KiwiVM
                     {
                         var callback  = Pop();
                         var eventName = Pop();
-                        _interp.Context.Events.On(eventName.GetString(), callback, priority: A);
+                        _context.Events.On(eventName.GetString(), callback, priority: A);
                         break;
                     }
                     case Opcode.EventOnce:
                     {
                         var callback  = Pop();
                         var eventName = Pop();
-                        _interp.Context.Events.Once(eventName.GetString(), callback, priority: A);
+                        _context.Events.Once(eventName.GetString(), callback, priority: A);
                         break;
                     }
                     case Opcode.EventOff:
                     {
                         Value? callback = A == 1 ? Pop() : null;
                         var eventName = Pop();
-                        _interp.Context.Events.Off(eventName.GetString(), callback);
+                        _context.Events.Off(eventName.GetString(), callback);
                         break;
                     }
                     case Opcode.EventEmit:
@@ -1706,11 +1738,11 @@ public sealed class KiwiVM
                         for (int ei = 0; ei < A; ei++) args.Add(Value.Default);
                         for (int ei = A - 1; ei >= 0; ei--) args[ei] = Pop();
                         var eventName = Pop();
-                        bool pushedFrame = _interp.CallStack.Count == 0;
-                        if (pushedFrame) _interp.PushVMDispatchFrame(_globals);
+                        bool pushedFrame = CallStack.Count == 0;
+                        if (pushedFrame) PushVMDispatchFrame(_globals);
                         List<Value> results;
-                        try   { results = _interp.Context.Events.Emit(_interp, frame.GetToken(), eventName.GetString(), args); }
-                        finally { if (pushedFrame) _interp.PopVMDispatchFrame(); }
+                        try   { results = _context.Events.Emit(this, frame.GetToken(), eventName.GetString(), args); }
+                        finally { if (pushedFrame) PopVMDispatchFrame(); }
                         Push(Value.CreateList(results));
                         break;
                     }
@@ -1730,7 +1762,7 @@ public sealed class KiwiVM
                             struc.BaseStruct = baseName;
                         }
                         _pendingStructs.Push(struc);
-                        _interp.StructStack.Push(structName);
+                        StructStack.Push(structName);
                         break;
                     }
                     case Opcode.DefMethod:
@@ -1774,7 +1806,7 @@ public sealed class KiwiVM
                     case Opcode.StructEnd:
                     {
                         var struc = _pendingStructs.Pop();
-                        _interp.StructStack.Pop();
+                        StructStack.Pop();
                         if (!struc.IsAbstract && !string.IsNullOrEmpty(struc.BaseStruct))
                         {
                             var baseStruc = _context.Structs[struc.BaseStruct];
@@ -1811,17 +1843,17 @@ public sealed class KiwiVM
                                 : new PackageNode(null);
                             _context.Packages[qualifiedName] = new KPackage(pkgAst);
                         }
-                        _interp.PackageStack.Push(localName);
+                        PackageStack.Push(localName);
                         _pkgPrefixStack.Push(_pkgPrefix);
                         _pkgPrefix = qualifiedName + "::";
                         break;
                     }
                     case Opcode.PackageEnd:
                     {
-                        _interp.PackageStack.Pop();
+                        PackageStack.Pop();
                         var qualifiedName = _pkgPrefix.Length >= 2 ? _pkgPrefix[..^2] : _pkgPrefix;
                         _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
-                        _interp.RegisterTypeBuiltins(qualifiedName);
+                        RegisterTypeBuiltins(qualifiedName);
                         _context.ImportedPackages.Add(qualifiedName);
                         InvalidateName(qualifiedName);
                         break;
@@ -1830,7 +1862,7 @@ public sealed class KiwiVM
                     {
                         // Package activation failed: pop the stack but don't mark as imported.
                         // The stored PackageNode AST allows ImportPackage to retry later.
-                        _interp.PackageStack.Pop();
+                        PackageStack.Pop();
                         _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         break;
                     }
@@ -2109,7 +2141,7 @@ public sealed class KiwiVM
             var selfVal = Value.CreateObject(lr.BoundSelf!);
             var args    = CollectArgs(funcSlot + 1, argc);
             Value boundResult;
-            try { boundResult = _interp.DispatchMethod(selfVal, lr.Identifier, args, token); }
+            try { boundResult = DispatchMethod(selfVal, lr.Identifier, args, token); }
             finally { ReturnArgs(args); }
             _sp = funcSlot;
             Push(boundResult);
@@ -2140,7 +2172,7 @@ public sealed class KiwiVM
                 var callable2 = _context.HasFunction(lr2.Identifier)
                     ? (Callable)_context.Functions[lr2.Identifier]
                     : _context.Lambdas[lr2.Identifier];
-                namedCallableResult = _interp.InvokeCallable(callable2, argsL, token, lr2.Identifier);
+                namedCallableResult = InvokeCallable(callable2, argsL, token, lr2.Identifier);
             }
             finally { ReturnArgs(argsL); }
             _sp = funcSlot;
@@ -2174,7 +2206,7 @@ public sealed class KiwiVM
                 var selfVal = Value.CreateObject(lr.BoundSelf);
                 var args    = CollectArgs(calleeBase, argc);
                 Value boundSelfResult;
-                try { boundSelfResult = _interp.DispatchMethod(selfVal, lr.Identifier, args, token); }
+                try { boundSelfResult = DispatchMethod(selfVal, lr.Identifier, args, token); }
                 finally { ReturnArgs(args); }
                 _sp = funcSlot;
                 Push(boundSelfResult);
@@ -2198,7 +2230,7 @@ public sealed class KiwiVM
                         KFunction? kfGen = !string.IsNullOrEmpty(lr.Identifier) && _context.HasFunction(lr.Identifier)
                             ? _context.Functions[lr.Identifier] : null;
                         genResult = kfGen != null
-                            ? _interp.CreateGeneratorFromValues(kfGen, args, token)
+                            ? CreateGeneratorFromValues(kfGen, args, token)
                             : Value.Default;
                     }
                     finally { ReturnArgs(args); }
@@ -2221,7 +2253,7 @@ public sealed class KiwiVM
                     {
                         var args = CollectArgs(calleeBase, argc);
                         Value kfGenResult;
-                        try { kfGenResult = _interp.CreateGeneratorFromValues(kf, args, token); }
+                        try { kfGenResult = CreateGeneratorFromValues(kf, args, token); }
                         finally { ReturnArgs(args); }
                         _sp = funcSlot;
                         Push(kfGenResult);
@@ -2233,7 +2265,7 @@ public sealed class KiwiVM
                 }
                 var args2 = CollectArgs(calleeBase, argc);
                 Value kfResult;
-                try { kfResult = _interp.InvokeCallable(kf, args2, token, lr.Identifier); }
+                try { kfResult = InvokeCallable(kf, args2, token, lr.Identifier); }
                 finally { ReturnArgs(args2); }
                 _sp = funcSlot;
                 Push(kfResult);
@@ -2253,7 +2285,7 @@ public sealed class KiwiVM
                 // Fallback to interpreter
                 var args = CollectArgs(calleeBase, argc);
                 Value klResult;
-                try { klResult = _interp.InvokeCallable(kl, args, token, kl.VMChunk?.Name ?? "<lambda>"); }
+                try { klResult = InvokeCallable(kl, args, token, kl.VMChunk?.Name ?? "<lambda>"); }
                 finally { ReturnArgs(args); }
                 _sp = funcSlot;
                 Push(klResult);
@@ -2274,13 +2306,13 @@ public sealed class KiwiVM
                 {
                     var lr = funcVal.GetLambda();
                     if (_context.HasLambda(lr.Identifier))
-                        callResult = _interp.InvokeCallable(_context.Lambdas[lr.Identifier], args, token, lr.Identifier);
+                        callResult = InvokeCallable(_context.Lambdas[lr.Identifier], args, token, lr.Identifier);
                     else
                         callResult = Value.Default;
                 }
                 else if (funcVal.IsStruct())
                 {
-                    callResult = _interp.CreateObject(funcVal.GetStruct().Identifier, args, token);
+                    callResult = CreateObject(funcVal.GetStruct().Identifier, args, token);
                 }
                 else
                 {
@@ -2322,7 +2354,7 @@ public sealed class KiwiVM
 
         if (func == null) return null;
 
-        return _interp.InvokeCallable(func, [right], token, $"{inst.StructName}#{func.Name}", inst);
+        return InvokeCallable(func, [right], token, $"{inst.StructName}#{func.Name}", inst);
     }
 
     // -- Call helpers ----------------------------------------------------------
@@ -2403,6 +2435,616 @@ public sealed class KiwiVM
             ln.Parameters.Add(new KeyValuePair<string, ASTNode?>(sub.ParamNames[i], null));
         ln.VariadicParamName = sub.VariadicParamName;
         return ln;
+    }
+
+    // =========================================================================
+    // Methods formerly on Interpreter — now live directly on KiwiVM
+    // =========================================================================
+
+    /// <summary>Returns the global scope.</summary>
+    public Scope GetGlobalScope() => _globals;
+
+    /// <summary>
+    /// Compile and run a single AST node through a fresh sub-VM.
+    /// Used by the legacy tree-walker fallback paths.
+    /// </summary>
+    private Value Interpret(ASTNode? node)
+    {
+        if (node == null) return Value.Default;
+        var prog = new ProgramNode([node!]);
+        var chunk = Compiler.CompileExpression(prog);
+        var savedVM = KiwiVM.Current;
+        try   { return new KiwiVM(this).Execute(chunk); }
+        finally { KiwiVM.Current = savedVM; }
+    }
+
+    public Value FuncToLambda(KFunction func)
+    {
+        var lambdaId  = func.Name;
+        var lambdaDecl = func.Decl.ToLambda();
+        var kl = new KLambda(lambdaDecl)
+        {
+            Parameters        = func.Parameters,
+            DefaultParameters = func.DefaultParameters,
+            TypeHints         = func.TypeHints,
+            ReturnTypeHint    = func.ReturnTypeHint,
+            CapturedScope     = func.CapturedScope,
+            VariadicParamName = func.VariadicParamName,
+            VMChunk           = func.VMChunk,
+            VMUpvalues        = func.VMUpvalues,
+            Ref               = new LambdaRef { Identifier = lambdaId }
+        };
+        _context.Lambdas[lambdaId] = kl;
+        return Value.CreateLambda(new LambdaRef { Identifier = lambdaId, VMChunk = func.VMChunk, VMUpvalues = func.VMUpvalues });
+    }
+
+    public Value InvokeCallable(Callable callable, IReadOnlyList<Value> args, Token token, string displayName, InstanceRef? instance = null)
+    {
+        var vm = KiwiVM.Current ?? this;
+        if (callable is KFunction kf && kf.VMChunk != null)
+            return vm.InvokeVMCallable(kf, args, token, instance);
+        if (callable is KLambda kl && kl.VMChunk != null)
+            return vm.InvokeVMCallable(kl, args, token, instance);
+        throw new InvalidOperationError(token, $"Callable `{displayName}` has no compiled VM chunk.");
+    }
+
+    public Value InvokeEvent(Token token, LambdaRef lambda, List<Value> args)
+    {
+        var lambdaName   = lambda.Identifier;
+        var targetLambda = lambdaName;
+
+        if (!_context.HasLambda(targetLambda))
+        {
+            if (!_context.HasMappedLambda(targetLambda))
+                throw new CallableError(token, $"Could not find target lambda `{targetLambda}`");
+            targetLambda = _context.LambdaTable[targetLambda];
+        }
+
+        var func  = _context.Lambdas[targetLambda];
+        var subVm = new KiwiVM(this, func.CapturedScope ?? GetGlobalScope());
+        return subVm.InvokeVMCallable(func, args, token, null);
+    }
+
+    public Value IncludeFile(Token token, string filePath)
+    {
+        var fullPath = ResolveIncludePath(token, filePath);
+
+        if (_context.Includes.Contains(fullPath))
+            return Value.Default;
+
+        _context.Includes.Add(fullPath);
+
+        if (!FileUtil.FileExists(token, fullPath))
+            throw new InvalidOperationError(token, $"File not found: {filePath}");
+
+        var oldExecutionPath = ExecutionPath;
+        var savedVM = KiwiVM.Current;
+        ExecutionPath = fullPath;
+
+        try
+        {
+            using var lexer = new Lexer(fullPath);
+            var ast   = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
+            var chunk = Compiler.CompileProgram((ProgramNode)ast);
+            new KiwiVM(this).Execute(chunk);
+        }
+        finally
+        {
+            KiwiVM.Current = savedVM;
+            ExecutionPath  = oldExecutionPath;
+        }
+
+        return Value.Default;
+    }
+
+    private string ResolveIncludePath(Token token, string filePath)
+    {
+        var currentDir = FileUtil.GetParentPath(token, ExecutionPath);
+
+        bool isExplicitRelative = filePath.StartsWith("./",  StringComparison.Ordinal)
+                               || filePath.StartsWith("../", StringComparison.Ordinal);
+
+        if (isExplicitRelative)
+            return FindWithExtensions(Path.GetFullPath(Path.Combine(currentDir, filePath)));
+
+        var fromRoot = FindWithExtensions(Path.GetFullPath(Path.Combine(ProjectRoot, filePath)));
+        if (File.Exists(fromRoot))
+            return fromRoot;
+
+        return FindWithExtensions(Path.GetFullPath(Path.Combine(currentDir, filePath)));
+    }
+
+    private static string FindWithExtensions(string p)
+    {
+        if (Path.HasExtension(p)) return p;
+        foreach (var ext in Kiwi.Settings.Extensions.Recognized)
+            if (File.Exists(p + ext)) return p + ext;
+        return p + Kiwi.Settings.Extensions.Primary;
+    }
+
+    public Value CreateGeneratorFromValues(KFunction func, IReadOnlyList<Value> args, Token token)
+    {
+        var ownedArgs        = args.ToArray();
+        var generatorRef     = new GeneratorRef();
+        var capturedGlobal   = _globals;
+        var capturedContext  = _context;
+        var capturedExecPath = ExecutionPath;
+        var capturedEntryPath = EntryPath;
+        var capturedFunc     = func;
+        var capturedToken    = token;
+        var capturedCliArgs  = CliArgs;
+        var capturedRoot     = ProjectRoot;
+
+        generatorRef.Start(() =>
+        {
+            // Build a minimal root VM to host the generator thread.
+            // We can't reuse a KiwiVM(parent) constructor here because the
+            // calling VM may be on another thread; build from context directly.
+            var genVM = new KiwiVM(capturedGlobal, capturedContext,
+                capturedExecPath, capturedEntryPath, capturedRoot, capturedCliArgs);
+            genVM._activeGenerator = generatorRef;
+            genVM.RunGeneratorBody(capturedFunc, ownedArgs, capturedToken, generatorRef);
+        });
+
+        return Value.CreateGenerator(generatorRef);
+    }
+
+    /// <summary>Private constructor used by CreateGeneratorFromValues to build a thread-local VM.</summary>
+    private KiwiVM(Scope globals, KContext context, string execPath, string entryPath, string projectRoot, Dictionary<string, string> cliArgs)
+    {
+        _context      = context;
+        _globals      = globals;
+        ExecutionPath = execPath;
+        EntryPath     = entryPath;
+        ProjectRoot   = projectRoot;
+        CliArgs       = cliArgs;
+        Current = this;
+    }
+
+    internal void RunGeneratorBody(KFunction func, IReadOnlyList<Value> args, Token token, GeneratorRef generatorRef)
+    {
+        _activeGenerator = generatorRef;
+        var subVm = new KiwiVM(this, func.CapturedScope ?? _globals);
+        subVm._activeGenerator = generatorRef;
+        subVm.InvokeVMCallable(func, args, token, null);
+    }
+
+    public Value EvalCode(Token token, string code)
+    {
+        using Lexer lexer = new(token.Span.File, code);
+        var ast    = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
+        var chunk  = Compiler.CompileExpression((ProgramNode)ast);
+        var savedVM = KiwiVM.Current;
+        try   { return new KiwiVM(this).Execute(chunk); }
+        finally { KiwiVM.Current = savedVM; }
+    }
+
+    public Value ExecuteBuiltin(Token token, TokenName op, List<Value> args)
+    {
+        if (KiwiBuiltin.IsBuiltin(op))
+            return KiwiBuiltinHandler.Execute(token, op, args, ExecutionPath, EntryPath);
+        if (ReflectorBuiltin.IsBuiltin(op))
+            return ReflectorBuiltinHandler.Execute(this, token, op, args, _context, CallStack);
+        if (TaskBuiltin.IsBuiltin(op))
+            return TaskBuiltinHandler.Execute(token, op, args, _context);
+        if (ChannelBuiltin.IsBuiltin(op))
+            return ChannelBuiltinHandler.Execute(token, op, args);
+        if (SocketBuiltin.IsBuiltin(op))
+            return SocketBuiltinHandler.Execute(token, op, args);
+        if (TlsSocketBuiltin.IsBuiltin(op))
+            return TlsSocketBuiltinHandler.Execute(token, op, args);
+        return BuiltinDispatch.Execute(token, op, args, CliArgs);
+    }
+
+    private Value CallPackageMethod(MethodCallNode node, PackageRef pkg)
+    {
+        var qualifiedName = pkg.Identifier + "::" + node.MethodName;
+        if (_context.Functions.TryGetValue(qualifiedName, out KFunction? func))
+        {
+            var args = node.Arguments
+                .Select(a => a is LiteralNode ln ? ln.Value : Value.Default)
+                .ToList();
+
+            if (func.IsGenerator)
+                return CreateGeneratorFromValues(func, args, node.Token);
+
+            return InvokeCallable(func, args, node.Token, qualifiedName);
+        }
+        throw new FunctionUndefinedError(node.Token, node.MethodName);
+    }
+
+    internal void RegisterTypeBuiltins(string packageName)
+    {
+        if (TypeRegistry.TryGetPrimitiveType(packageName, out int type))
+        {
+            var prefix = packageName + "::";
+            var funcs  = _context.Functions.Where(x => x.Key.StartsWith(prefix)).ToList();
+            foreach (var func in funcs)
+                TypeBuiltins.Register(type, func.Key.Replace(prefix, string.Empty), func.Value);
+        }
+    }
+
+    public void ImportPackage(Token token, Value packageName)
+    {
+        if (!packageName.IsString())
+            throw new InvalidOperationError(token, "Expected the name of a package to import.");
+
+        var packageNameValue = packageName.GetString();
+
+        if (_context.ImportedPackages.Contains(packageNameValue))
+            return;
+
+        if (!_context.HasPackage(packageNameValue))
+        {
+            var packagePath = FileUtil.TryGetExtensionless(token, packageNameValue, ExecutionPath);
+            if (FileUtil.IsScript(token, packagePath))
+            {
+                ImportExternal(token, packagePath);
+                return;
+            }
+            throw new PackageUndefinedError(token, packageNameValue);
+        }
+
+        PackageStack.Push(packageNameValue);
+        var decl = _context.Packages[packageNameValue].Decl;
+
+        if (decl.Body.Count > 0)
+        {
+            var prog    = new ProgramNode([decl]);
+            var chunk   = Compiler.CompileProgram(prog);
+            var savedVM = KiwiVM.Current;
+            try { new KiwiVM(this).Execute(chunk); }
+            finally { KiwiVM.Current = savedVM; }
+        }
+
+        if (PackageStack.Count > 0)
+            PackageStack.Pop();
+
+        RegisterTypeBuiltins(packageNameValue);
+        _context.ImportedPackages.Add(packageNameValue);
+    }
+
+    private void ImportExternal(Token token, string packageName)
+    {
+        var packagePath = FileUtil.TryGetExtensionless(token, packageName);
+        var content     = FileUtil.ReadFile(token, packagePath);
+        if (string.IsNullOrEmpty(content)) return;
+
+        var path = FileUtil.GetAbsolutePath(token, packagePath);
+
+        if (_context.Includes.Contains(path)) return;
+        _context.Includes.Add(path);
+
+        using Lexer lexer = new(path);
+        var tokenStream = lexer.GetTokenStream();
+        var ast   = (ProgramNode)new Parser(true).ParseTokenStream(tokenStream, true);
+        var chunk = Compiler.CompileProgram(ast);
+        var savedVM = KiwiVM.Current;
+        try { new KiwiVM(this).Execute(chunk); }
+        finally { KiwiVM.Current = savedVM; }
+    }
+
+    public void PushVMDispatchFrame(Scope globals, InstanceRef? self = null)
+    {
+        var frame = new StackFrame("<vm-dispatch>", globals);
+        if (self != null) frame.SetObjectContext(self);
+        CallStack.Push(frame);
+    }
+
+    public void PopVMDispatchFrame() => CallStack.Pop();
+
+    public Value DispatchMethod(Value obj, string methodName, IReadOnlyList<Value> args, Token token)
+    {
+        if (obj.IsPackage())
+        {
+            var argNodes = args.Select(a => (ASTNode?)new LiteralNode(a) { Token = token }).ToList();
+            var node = new MethodCallNode(null, methodName, TokenName.Ops_Assign, argNodes) { Token = token };
+            return CallPackageMethod(node, obj.GetPackage());
+        }
+        if (obj.IsObject()) return CallObjectMethodDirect(token, methodName, obj.GetObject(), args);
+        if (obj.IsStruct()) return CallStructMethodDirect(token, methodName, obj.GetStruct(), args);
+
+        if (ListBuiltin.Map.TryGetValue(methodName, out TokenName listOp))
+        {
+            bool pushedFrame = CallStack.Count == 0;
+            if (pushedFrame) CallStack.Push(new StackFrame("<vm-dispatch>", _globals));
+            try   { return ListBuiltinHandler.HandleListBuiltin(this, token, ref obj, listOp, args); }
+            finally { if (pushedFrame) CallStack.Pop(); }
+        }
+        if (CallableBuiltin.Map.TryGetValue(methodName, out _))
+            return HandleCallableBuiltinDirect(token, obj, methodName, args);
+        if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))
+            return BuiltinDispatch.Execute(token, coreOp, obj, args);
+
+        var typeId = TypeRegistry.GetType(token, obj);
+        if (TypeBuiltins.TryGetBuiltin(typeId, methodName, out KFunction? typeBuiltin) && typeBuiltin != null)
+        {
+            var tArgs = new List<Value>(args.Count + 1) { obj };
+            tArgs.AddRange(args);
+            return InvokeCallable(typeBuiltin, tArgs, token, methodName);
+        }
+
+        throw new FunctionUndefinedError(token, methodName);
+    }
+
+    private static readonly HashSet<TokenName> _objectSpecificBuiltins =
+    [
+        TokenName.Builtin_Core_Clone,
+        TokenName.Builtin_Core_Get,
+        TokenName.Builtin_Core_HasKey,
+        TokenName.Builtin_Core_IsA,
+        TokenName.Builtin_Core_Keys,
+        TokenName.Builtin_Core_Set,
+        TokenName.Builtin_Core_Values,
+    ];
+
+    private Value CallObjectMethodDirect(Token token, string methodName, InstanceRef obj, IReadOnlyList<Value> args)
+    {
+        if (!_context.HasStruct(obj.StructName))
+            throw new StructUndefinedError(token, obj.StructName);
+
+        var struc = _context.Structs[obj.StructName];
+        if (!TryResolveStructMethod(struc, obj, methodName, out KFunction? fn))
+        {
+            if (CoreBuiltin.Map.TryGetValue(methodName, out TokenName coreOp))
+            {
+                if (_objectSpecificBuiltins.Contains(coreOp))
+                    return ObjectBuiltinHandler.Handle(this, token, coreOp, obj, struc.BaseStruct, args);
+                return BuiltinDispatch.Execute(token, coreOp, Value.CreateObject(obj), args);
+            }
+            throw new UnimplementedMethodError(token, obj.StructName, methodName);
+        }
+
+        bool isCtor = methodName == "new";
+        if (isCtor)
+        {
+            var inst = new InstanceRef { StructName = obj.StructName, Identifier = obj.StructName };
+            return InvokeCallable(fn!, args, token, methodName, inst);
+        }
+        return InvokeCallable(fn!, args, token, methodName, obj);
+    }
+
+    private bool TryResolveStructMethod(KStruct struc, InstanceRef obj, string methodName, out KFunction? fn)
+    {
+        if (struc.Methods.TryGetValue(methodName, out fn)) return true;
+        if (!string.IsNullOrEmpty(struc.BaseStruct) && _context.HasStruct(struc.BaseStruct))
+            return TryResolveStructMethod(_context.Structs[struc.BaseStruct], obj, methodName, out fn);
+        fn = null;
+        return false;
+    }
+
+    private Value CallStructMethodDirect(Token token, string methodName, StructRef sref, IReadOnlyList<Value> args)
+    {
+        var structName = sref.Identifier;
+        if (!_context.HasStruct(structName))
+            throw new StructUndefinedError(token, structName);
+        var struc = _context.Structs[structName];
+
+        if (methodName == "new" && struc.IsAbstract)
+            throw new AbstractInstantiationError(token, structName);
+
+        KFunction? fn   = null;
+        var search = struc;
+        while (search != null)
+        {
+            if (search.Methods.TryGetValue(methodName, out fn)) break;
+            fn     = null;
+            search = !string.IsNullOrEmpty(search.BaseStruct) && _context.HasStruct(search.BaseStruct)
+                ? _context.Structs[search.BaseStruct]
+                : null;
+        }
+
+        if (fn == null)
+        {
+            if (methodName == "new")
+            {
+                var inst = new InstanceRef { StructName = structName, Identifier = structName };
+                return Value.CreateObject(inst);
+            }
+            throw new UnimplementedMethodError(token, structName, methodName);
+        }
+
+        if (methodName == "new")
+        {
+            var inst = new InstanceRef { StructName = structName, Identifier = structName };
+            InvokeCallable(fn, args, token, methodName, inst);
+            return Value.CreateObject(inst);
+        }
+        var structSelf = new InstanceRef { StructName = structName, Identifier = structName };
+        return InvokeCallable(fn, args, token, methodName, structSelf);
+    }
+
+    private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, IReadOnlyList<Value> args)
+    {
+        if (!CallableBuiltin.Map.TryGetValue(methodName, out var op))
+            throw new FunctionUndefinedError(token, methodName);
+
+        Callable? callable  = null;
+        string? callableName = null;
+
+        if (obj.IsLambda())
+        {
+            callableName = obj.GetLambda().Identifier;
+            if (_context.HasLambda(callableName))       callable = _context.Lambdas[callableName];
+            else if (_context.HasMappedLambda(callableName)) callable = _context.Lambdas[_context.LambdaTable[callableName]];
+            else if (_context.HasFunction(callableName)) callable = _context.Functions[callableName];
+        }
+
+        if (callableName == null)
+            throw new InvalidOperationError(token, $"Expected a callable for function `{CallableBuiltin.MapName(op)}`.");
+        if (callable == null)
+            throw new InvalidOperationError(token, $"Expected a callable for function `{CallableBuiltin.MapName(op)}` on `{callableName}`.");
+        if (callable is not KFunction && callable is not KLambda)
+            throw new InvalidOperationError(token, $"Expected a function or lambda for function `{CallableBuiltin.MapName(op)}` on `{callableName}`.");
+
+        return CallableBuiltinHandler.Execute(this, token, op, callable, callableName, args as List<Value> ?? new List<Value>(args));
+    }
+
+    public Value GetIndex(Value obj, Value key, Token token)
+    {
+        if (obj.IsList())
+        {
+            var idx  = kiwi.Runtime.Builtin.Operation.ConversionOp.GetInteger(token, key);
+            var list = obj.GetList();
+            if (idx < 0 || idx >= list.Count)
+                throw new IndexError(token, "List index out of bounds.");
+            return list[(int)idx];
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap().TryGetValue(key, out var v);
+            return v ?? Value.CreateNull();
+        }
+        if (obj.IsString())
+        {
+            var s   = obj.GetString();
+            var idx = kiwi.Runtime.Builtin.Operation.ConversionOp.GetInteger(token, key);
+            if (idx < 0 || idx >= s.Length)
+                throw new IndexError(token, "String index out of bounds.");
+            return Value.CreateString(s[(int)idx].ToString());
+        }
+        if (obj.IsBytes())
+        {
+            var bytes = obj.GetBytes();
+            var idx   = kiwi.Runtime.Builtin.Operation.ConversionOp.GetInteger(token, key);
+            if (idx < 0 || idx >= bytes.Length)
+                throw new IndexError(token, "Bytes index out of bounds.");
+            return Value.CreateInteger(bytes[(int)idx]);
+        }
+        throw new InvalidOperationError(token, "Cannot index this type.");
+    }
+
+    public void SetIndex(Value obj, Value key, Value value, Token token)
+    {
+        if (obj.IsList())
+        {
+            var idx  = kiwi.Runtime.Builtin.Operation.ConversionOp.GetInteger(token, key);
+            var list = obj.GetList();
+            if (idx < 0 || idx >= list.Count)
+                throw new IndexError(token, "List index out of bounds.");
+            list[(int)idx] = value;
+            return;
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap()[key] = value;
+            return;
+        }
+        throw new InvalidOperationError(token, "Cannot index-assign this type.");
+    }
+
+    public Value GetSlice(Value obj, Value? startV, Value? stopV, Value? stepV, Token token)
+    {
+        var startVal = startV ?? Value.CreateInteger(0L);
+        var stopVal  = stopV  ?? (obj.IsList()   ? Value.CreateInteger(obj.GetList().Count) :
+                                  obj.IsString() ? Value.CreateInteger(obj.GetString().Length) :
+                                  obj.IsBytes()  ? Value.CreateInteger(obj.GetBytes().Length) :
+                                                   Value.CreateInteger(0L));
+        var stepVal  = stepV  ?? Value.CreateInteger(1L);
+        var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
+
+        if (obj.IsString()) return kiwi.Runtime.Builtin.Util.SliceUtil.StringSlice(token, slice, obj.GetString());
+        if (obj.IsList())   return kiwi.Runtime.Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList());
+        if (obj.IsBytes())  return kiwi.Runtime.Builtin.Util.SliceUtil.BytesSlice(token, slice, obj.GetBytes());
+        throw new InvalidOperationError(token, "Cannot slice this type.");
+    }
+
+    public void SetSlice(Value obj, Value? startV, Value? stopV, Value? stepV, Value rhs, Token token)
+    {
+        var startVal = startV ?? Value.CreateInteger(0L);
+        var stopVal  = stopV  ?? (obj.IsList()  ? Value.CreateInteger(obj.GetList().Count) :
+                                  obj.IsBytes() ? Value.CreateInteger(obj.GetBytes().Length) :
+                                                  Value.CreateInteger(0L));
+        var stepVal  = stepV  ?? Value.CreateInteger(1L);
+        var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
+
+        if (obj.IsList() && rhs.IsList())
+        {
+            var targetList = obj.GetList();
+            var rhsValues  = rhs.GetList();
+            kiwi.Runtime.Builtin.Util.SliceUtil.UpdateListSlice(token, false, ref targetList, slice, rhsValues);
+        }
+    }
+
+    public Value GetMember(Value obj, string memberName, Token token)
+    {
+        if (obj.IsObject())
+        {
+            var inst = obj.GetObject();
+            if (!inst.InstanceVariables.TryGetValue("@" + memberName, out var v))
+                inst.InstanceVariables.TryGetValue(memberName, out v);
+            return v ?? Value.Default;
+        }
+        if (obj.IsPackage())
+        {
+            var pkgName       = obj.GetPackage().Identifier;
+            var qualifiedName = pkgName + "::" + memberName;
+            if (_context.Constants.TryGetValue(qualifiedName, out Value? constVal))
+                return constVal;
+            if (_context.PackageVariables.TryGetValue(qualifiedName, out Value? pkgVar))
+                return pkgVar;
+            if (_context.HasFunction(qualifiedName))
+                return Value.CreateLambda(new LambdaRef { Identifier = qualifiedName });
+            return Value.Default;
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap().TryGetValue(Value.CreateString(memberName), out var v);
+            return v ?? Value.Default;
+        }
+        if (obj.IsStruct())
+        {
+            var kstruct = _context.Structs[obj.GetStruct().Identifier];
+            if (kstruct.StaticVariables.TryGetValue("@@" + memberName, out var sv))
+                return sv;
+            return Value.Default;
+        }
+        throw new InvalidOperationError(token, $"Cannot access member '{memberName}' on this type.");
+    }
+
+    public void SetMember(Value obj, string memberName, Value value, Token token)
+    {
+        if (obj.IsObject())
+        {
+            var iv  = obj.GetObject().InstanceVariables;
+            var key = iv.ContainsKey("@" + memberName) ? "@" + memberName : memberName;
+            iv[key] = value;
+            return;
+        }
+        if (obj.IsHashmap())
+        {
+            obj.GetHashmap()[Value.CreateString(memberName)] = value;
+            return;
+        }
+        if (obj.IsStruct())
+        {
+            var sName = obj.GetStruct().Identifier;
+            if (_context.HasStruct(sName))
+                _context.Structs[sName].StaticVariables["@@" + memberName] = value;
+            return;
+        }
+        if (obj.IsPackage()) return; // no-op
+        throw new InvalidOperationError(token, $"Cannot set member '{memberName}' on this type.");
+    }
+
+    public Value CreateObject(string structName, IReadOnlyList<Value> args, Token token)
+    {
+        if (!_context.HasStruct(structName))
+            throw new StructUndefinedError(token, structName);
+        var struc = _context.Structs[structName];
+        var inst  = new InstanceRef { StructName = structName, Identifier = structName };
+        if (struc.Methods.TryGetValue("new", out KFunction? ctor))
+            InvokeCallable(ctor, args, token, "new", inst);
+        return Value.CreateObject(inst);
+    }
+
+    public string Serialize(Value v) => Serializer.Serialize(v);
+
+    public void YieldFromVM(Value v)
+    {
+        if (_activeGenerator == null)
+            throw new RuntimeError(Token.Eof, "'yield' used outside of a generator.", []);
+        _activeGenerator.Yield(v);
     }
 }
 

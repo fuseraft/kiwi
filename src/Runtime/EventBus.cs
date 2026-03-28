@@ -1,6 +1,7 @@
 using kiwi.Parsing;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
+using kiwi.VM;
 
 namespace kiwi.Runtime;
 
@@ -56,7 +57,7 @@ public sealed class EventBus
     ///   caller, enabling request/response patterns.
     /// </para>
     /// </summary>
-    public List<Value> Emit(Interpreter interp, Token token, string eventName, List<Value> data)
+    public List<Value> Emit(KiwiVM vm, Token token, string eventName, List<Value> data)
     {
         var results = new List<Value>();
         List<string>? errors = null;
@@ -78,7 +79,7 @@ public sealed class EventBus
 
                 try
                 {
-                    results.Add(interp.InvokeEvent(token, handler.Callback.GetLambda(), data));
+                    results.Add(vm.InvokeEvent(token, handler.Callback.GetLambda(), data));
                 }
                 catch (Exception ex)
                 {

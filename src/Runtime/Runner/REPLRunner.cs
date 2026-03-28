@@ -11,18 +11,18 @@ using kiwi.VM;
 
 namespace kiwi.Runtime.Runner;
 
-public class REPLRunner(Interpreter interpreter) : IRunner
+public class REPLRunner : IRunner
 {
     /// <summary>
     /// A success return code. A placeholder until a smarter mechanism is implemented.
     /// </summary>
     private const int SuccessReturnCode = 0;
 
-    /// <summary>
-    /// Gets the local interpreter.
-    /// </summary>
-    private Interpreter Interpreter { get; } = interpreter;
+    /// <summary>CLI args forwarded from Program.cs.</summary>
+    public Dictionary<string, string> CliArgs { get; init; } = [];
+
     private LineEditor Editor { get; } = new();
+    private KiwiVM? _vm;
 
     /// <summary>
     /// Gets or sets a flag indicating whether the standard library has been loaded.
@@ -110,7 +110,7 @@ public class REPLRunner(Interpreter interpreter) : IRunner
 
                 // Execute and auto-print non-null results
                 var chunk = Compiler.CompileExpression((ProgramNode)ast);
-                var vm = new KiwiVM(Interpreter);
+                var vm = _vm != null ? new KiwiVM(_vm) : new KiwiVM();
                 KiwiVM.Current = vm;
                 var result = vm.Execute(chunk);
                 if (!result.IsNull())
@@ -155,9 +155,10 @@ public class REPLRunner(Interpreter interpreter) : IRunner
 
         var ast = parser.ParseTokenStreamCollection(streams);
         var chunk = Compiler.CompileProgram((ProgramNode)ast);
-        var vm = new KiwiVM(Interpreter);
-        KiwiVM.Current = vm;
-        vm.Execute(chunk);
+        _vm = new KiwiVM();
+        _vm.CliArgs = CliArgs;
+        KiwiVM.Current = _vm;
+        _vm.Execute(chunk);
     }
 
     private void LoadStandardLibrary(ref List<TokenStream> streams)

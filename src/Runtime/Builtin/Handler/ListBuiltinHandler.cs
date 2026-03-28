@@ -1,4 +1,5 @@
 using kiwi.Parsing;
+using kiwi.VM;
 using kiwi.Runtime.Builtin.Operation;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
@@ -7,7 +8,7 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public class ListBuiltinHandler
 {    
-    public static Value HandleListBuiltin(Interpreter interp, Token token, ref Value obj, TokenName op, IReadOnlyList<Value> args)
+    public static Value HandleListBuiltin(KiwiVM vm, Token token, ref Value obj, TokenName op, IReadOnlyList<Value> args)
     {
         if (!obj.IsList())
         {
@@ -62,42 +63,42 @@ public class ListBuiltinHandler
             var lambdaRef = arg.GetLambda();
 
             Callable? lambda = null;
-            interp.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var kl);
+            vm.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var kl);
             if (kl != null) lambda = kl;
-            else if (interp.Context.Functions.TryGetValue(lambdaRef.Identifier, out var kf)) lambda = kf;
+            else if (vm.Context.Functions.TryGetValue(lambdaRef.Identifier, out var kf)) lambda = kf;
 
             if (lambda == null)
             {
                 throw new InvalidOperationError(token, $"Unrecognized lambda '{lambdaRef.Identifier}'.");
             }
 
-            var isReturnSet = interp.CallStack.Peek().IsFlagSet(FrameFlags.Return);
+            var isReturnSet = vm.CallStack.Peek().IsFlagSet(FrameFlags.Return);
             var result = Value.Default;
 
             switch (op)
             {
                 case TokenName.Builtin_List_Sort:
-                    result = LambdaSort(interp, lambda, list, token);
+                    result = LambdaSort(vm, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_Each:
-                    result = LambdaEach(interp, lambda, list, token);
+                    result = LambdaEach(vm, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_Map:
-                    result = LambdaMap(interp, lambda, list, token);
+                    result = LambdaMap(vm, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_None:
-                    result = LambdaNone(interp, lambda, list, token);
+                    result = LambdaNone(vm, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_Filter:
-                    result = LambdaFilter(interp, lambda, list, token);
+                    result = LambdaFilter(vm, lambda, list, token);
                     break;
 
                 case TokenName.Builtin_List_All:
-                    result = LambdaAll(interp, lambda, list, token);
+                    result = LambdaAll(vm, lambda, list, token);
 
                     break;
 
@@ -105,7 +106,7 @@ public class ListBuiltinHandler
                     break;
             }
 
-            var frame = interp.CallStack.Peek();
+            var frame = vm.CallStack.Peek();
             if (!isReturnSet && frame.IsFlagSet(FrameFlags.Return) && frame.ReturnValue != null)
             {
                 if (!BooleanOp.IsSame(frame.ReturnValue, result))
@@ -128,34 +129,34 @@ public class ListBuiltinHandler
             var lambdaRef = arg.GetLambda();
 
             Callable? lambda2 = null;
-            interp.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var kl2);
+            vm.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var kl2);
             if (kl2 != null) lambda2 = kl2;
-            else if (interp.Context.Functions.TryGetValue(lambdaRef.Identifier, out var kf2)) lambda2 = kf2;
+            else if (vm.Context.Functions.TryGetValue(lambdaRef.Identifier, out var kf2)) lambda2 = kf2;
 
             if (lambda2 == null)
             {
                 throw new InvalidOperationError(token, $"Unrecognized lambda '{lambdaRef.Identifier}'.");
             }
 
-            return LambdaReduce(interp, lambda2, args[0], list, token);
+            return LambdaReduce(vm, lambda2, args[0], list, token);
         }
 
         throw new InvalidOperationError(token, "Invalid specialized list builtin invocation.");
     }
 
 
-    private static Value LambdaSort(Interpreter interp, Callable lambda, List<Value> list, Token token)
+    private static Value LambdaSort(KiwiVM vm, Callable lambda, List<Value> list, Token token)
     {
         list.Sort((a, b) =>
         {
-            if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [a, b], token, "<sort>"))) return -1;
-            if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, [b, a], token, "<sort>"))) return 1;
+            if (BooleanOp.IsTruthy(vm.InvokeCallable(lambda, [a, b], token, "<sort>"))) return -1;
+            if (BooleanOp.IsTruthy(vm.InvokeCallable(lambda, [b, a], token, "<sort>"))) return 1;
             return 0;
         });
         return Value.CreateList(list);
     }
 
-    private static Value LambdaEach(Interpreter interp, Callable lambda, List<Value> list, Token token)
+    private static Value LambdaEach(KiwiVM vm, Callable lambda, List<Value> list, Token token)
     {
         bool twoArgs = lambda.Parameters.Count > 1;
         var buf = new Value[twoArgs ? 2 : 1];
@@ -163,32 +164,32 @@ public class ListBuiltinHandler
         {
             buf[0] = list[i];
             if (twoArgs) buf[1] = Value.CreateInteger(i);
-            interp.InvokeCallable(lambda, buf, token, "<each>");
+            vm.InvokeCallable(lambda, buf, token, "<each>");
         }
         return Value.Default;
     }
 
-    private static Value LambdaNone(Interpreter interp, Callable lambda, List<Value> list, Token token)
+    private static Value LambdaNone(KiwiVM vm, Callable lambda, List<Value> list, Token token)
     {
-        var filtered = LambdaFilter(interp, lambda, list, token);
+        var filtered = LambdaFilter(vm, lambda, list, token);
         if (filtered.IsList())
             return filtered.GetList().Count == 0 ? Value.True : Value.False;
         return Value.False;
     }
 
-    private static Value LambdaMap(Interpreter interp, Callable lambda, List<Value> list, Token token)
+    private static Value LambdaMap(KiwiVM vm, Callable lambda, List<Value> list, Token token)
     {
         var mapped = new List<Value>(list.Count);
         var buf    = new Value[1];
         foreach (var item in list)
         {
             buf[0] = item;
-            mapped.Add(interp.InvokeCallable(lambda, buf, token, "<map>"));
+            mapped.Add(vm.InvokeCallable(lambda, buf, token, "<map>"));
         }
         return Value.CreateList(mapped);
     }
 
-    private static Value LambdaReduce(Interpreter interp, Callable lambda, Value accumulator, List<Value> list, Token token)
+    private static Value LambdaReduce(KiwiVM vm, Callable lambda, Value accumulator, List<Value> list, Token token)
     {
         var acc = accumulator;
         var buf = new Value[2];
@@ -197,7 +198,7 @@ public class ListBuiltinHandler
             var prev = acc;
             buf[0] = acc;
             buf[1] = item;
-            var result = interp.InvokeCallable(lambda, buf, token, "<reduce>");
+            var result = vm.InvokeCallable(lambda, buf, token, "<reduce>");
             // If the lambda returns null it likely mutated the accumulator in-place
             // (e.g. `acc["key"] = val`); keep the original reference in that case.
             acc = result.IsNull() ? prev : result;
@@ -205,26 +206,26 @@ public class ListBuiltinHandler
         return acc;
     }
 
-    private static Value LambdaAll(Interpreter interp, Callable lambda, List<Value> list, Token token)
+    private static Value LambdaAll(KiwiVM vm, Callable lambda, List<Value> list, Token token)
     {
         var buf = new Value[1];
         foreach (var item in list)
         {
             buf[0] = item;
-            if (!BooleanOp.IsTruthy(interp.InvokeCallable(lambda, buf, token, "<all>")))
+            if (!BooleanOp.IsTruthy(vm.InvokeCallable(lambda, buf, token, "<all>")))
                 return Value.False;
         }
         return Value.True;
     }
 
-    private static Value LambdaFilter(Interpreter interp, Callable lambda, List<Value> list, Token token)
+    private static Value LambdaFilter(KiwiVM vm, Callable lambda, List<Value> list, Token token)
     {
         var filtered = new List<Value>();
         var buf      = new Value[1];
         foreach (var item in list)
         {
             buf[0] = item;
-            if (BooleanOp.IsTruthy(interp.InvokeCallable(lambda, buf, token, "<filter>")))
+            if (BooleanOp.IsTruthy(vm.InvokeCallable(lambda, buf, token, "<filter>")))
                 filtered.Add(item);
         }
         return Value.CreateList(filtered);

@@ -7,8 +7,11 @@ using kiwi.VM;
 
 namespace kiwi.Runtime.Runner;
 
-public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
+public class VMScriptRunner : ScriptRunner
 {
+    /// <summary>CLI args forwarded from Program.cs.</summary>
+    public Dictionary<string, string> CliArgs { get; init; } = [];
+
     public override int Run(string script, List<string> args)
     {
         ExecutionPath = script;
@@ -49,23 +52,22 @@ public class VMScriptRunner(Interpreter interpreter) : ScriptRunner(interpreter)
 
             streams.Clear();
 
-            Interpreter.ExecutionPath = ExecutionPath;
-            Interpreter.ProjectRoot   = Directory.GetCurrentDirectory();
-            Interpreter.EntryPath = string.IsNullOrEmpty(ExecutionPath)
-                ? Directory.GetCurrentDirectory()
-                : Path.GetFullPath(ExecutionPath);
-
             SocketManager.Instance.Start();
             TlsSocketManager.Instance.Start();
 
-            // Compile and execute via VM; stdlib nodes are interpreted via the tree-walker
-            // (the stdlib is currently always pre-loaded through the existing Interpreter path).
-            // For now we run the stdlib through the interpreter, then compile and run user code.
             var programNode = (ProgramNode)ast;
             var chunk = Compiler.CompileProgram(programNode);
             if (System.Environment.GetEnvironmentVariable("KIWI_DISASM") == "1")
                 Disassembler.Dump(chunk);
-            var vm = new KiwiVM(Interpreter);
+
+            var vm = new KiwiVM();
+            vm.CliArgs       = CliArgs;
+            vm.ExecutionPath = ExecutionPath;
+            vm.ProjectRoot   = Directory.GetCurrentDirectory();
+            vm.EntryPath     = string.IsNullOrEmpty(ExecutionPath)
+                ? Directory.GetCurrentDirectory()
+                : Path.GetFullPath(ExecutionPath);
+
             KiwiVM.Current = vm;
             ConfigureVM(vm);
             vm.Execute(chunk);
