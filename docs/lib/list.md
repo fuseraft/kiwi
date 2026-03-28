@@ -68,7 +68,7 @@ println list::all([2, 3, 6], do (n) => n % 2 == 0)  # prints: false
 
 ---
 
-### `_any(_list, _predicate)`
+### `any(_list, _predicate)`
 
 Returns `true` if at least one element in the list satisfies the predicate. Short-circuits on the first match.
 
@@ -90,13 +90,13 @@ Returns `true` if at least one element in the list satisfies the predicate. Shor
 ```kiwi
 import "list"
 
-println list::_any([1, 3, 4], do (n) => n % 2 == 0)  # prints: true
-println list::_any([1, 3, 5], do (n) => n % 2 == 0)  # prints: false
+println list::any([1, 3, 4], do (n) => n % 2 == 0)  # prints: true
+println list::any([1, 3, 5], do (n) => n % 2 == 0)  # prints: false
 ```
 
 ---
 
-### `_count(_list, _predicate)`
+### `count(_list, _predicate)`
 
 Returns the number of elements in the list that satisfy the predicate.
 
@@ -118,7 +118,7 @@ Returns the number of elements in the list that satisfy the predicate.
 ```kiwi
 import "list"
 
-println list::_count([1, 2, 3, 4, 5], do (n) => n > 2)  # prints: 3
+println list::count([1, 2, 3, 4, 5], do (n) => n > 2)  # prints: 3
 ```
 
 ---
@@ -289,7 +289,7 @@ println result  # prints: 4
 
 ---
 
-### `_none(_list, _predicate)`
+### `none(_list, _predicate)`
 
 Returns `true` if no element in the list satisfies the predicate.
 
@@ -311,8 +311,8 @@ Returns `true` if no element in the list satisfies the predicate.
 ```kiwi
 import "list"
 
-println list::_none([1, 3, 5], do (n) => n % 2 == 0)  # prints: true
-println list::_none([1, 2, 5], do (n) => n % 2 == 0)  # prints: false
+println list::none([1, 3, 5], do (n) => n % 2 == 0)  # prints: true
+println list::none([1, 2, 5], do (n) => n % 2 == 0)  # prints: false
 ```
 
 ---
@@ -425,12 +425,3 @@ println list::sum_float([1, 1.5, 2.5, "x", 3])  # prints: 4.0
 
 ---
 
-## Notes on Underscore-Prefixed Functions
-
-The functions `_any`, `_count`, and `_none` have underscore prefixes in their names to avoid conflicts with Kiwi built-in keywords or reserved identifiers. They are called exactly as written, including the underscore:
-
-```kiwi
-list::_any(data, predicate)
-list::_count(data, predicate)
-list::_none(data, predicate)
-```
