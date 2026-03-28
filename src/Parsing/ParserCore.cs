@@ -409,11 +409,29 @@ public partial class Parser(bool rethrowErrors = false)
     {
         var types = new List<int> { GetTypeName() };
 
+        // support nullable shorthand: typename? → typename|null
+        if (GetTokenType() == TokenType.Question)
+        {
+            Next();  // consume '?'
+            var nullType = TypeRegistry.GetType("null");
+            if (!types.Contains(nullType))
+                types.Add(nullType);
+        }
+
         // support union types: type1|type2|...
         while (GetTokenName() == TokenName.Ops_BitwiseOr && IsValidTypeNameAhead())
         {
             Next();  // consume '|'
             types.Add(GetTypeName());
+
+            // each member of a union can also be nullable
+            if (GetTokenType() == TokenType.Question)
+            {
+                Next();  // consume '?'
+                var nullType = TypeRegistry.GetType("null");
+                if (!types.Contains(nullType))
+                    types.Add(nullType);
+            }
         }
 
         return types;

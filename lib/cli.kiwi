@@ -130,8 +130,8 @@ package cli
   @return string : The progress bar string.
   #/
   fn progress_bar(current: integer, total: integer, width: integer = 30): string
-    pct = total > 0 ? (current * 100 / total) : 0
-    filled = total > 0 ? (current * width / total) : 0
+    pct = total > 0 ? (current * 100 // total) : 0
+    filled = total > 0 ? (current * width // total) : 0
     bar = "#" * filled + "." * (width - filled)
     "[${bar}] ${pct.to_string().padstart(3)}%"
   end

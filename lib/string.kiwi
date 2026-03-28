@@ -216,7 +216,7 @@ package string
     return "${_input}" when ("${_input}").size() >= _width
     _padding = " " when _padding.size() != 1
     _total_padding = _width - ("${_input}").size()
-    _left_padding_size = _total_padding / 2
+    _left_padding_size = _total_padding // 2
     _right_padding_size = _total_padding - _left_padding_size
     _left_pad = _padding * _left_padding_size
     _right_pad = _padding * _right_padding_size

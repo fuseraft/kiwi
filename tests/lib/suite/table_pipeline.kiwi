@@ -159,7 +159,7 @@ fn test_table_pipeline()
   sales_row = dept_stats[1]
   tester::assert(eng_row["dept"] == "eng",              "D14b: eng group key")
   tester::assert(eng_row["headcount"] == 2,             "D14c: eng headcount")
-  tester::assert(eng_row["avg_score"] == 8,             "D14d: eng avg score (9+8)/2")
+  tester::assert(eng_row["avg_score"] == 8.5,           "D14d: eng avg score (9+8)/2")
   tester::assert(sales_row["headcount"] == 2,           "D14e: sales headcount")
 
   # agg without group_by raises error

@@ -31,6 +31,13 @@ public struct BooleanOp
     {
         if (v1.Type != v2.Type)
         {
+            // numeric cross-type: integer == float and float == integer
+            if ((v1.IsInteger() || v1.IsFloat()) && (v2.IsInteger() || v2.IsFloat()))
+            {
+                double d1 = v1.IsFloat() ? v1.GetFloat() : (double)v1.GetInteger();
+                double d2 = v2.IsFloat() ? v2.GetFloat() : (double)v2.GetInteger();
+                return d1 == d2;
+            }
             return false;
         }
 

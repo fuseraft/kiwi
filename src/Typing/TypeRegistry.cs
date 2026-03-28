@@ -36,7 +36,7 @@ public static class TypeRegistry
         RegisterType("bytes");
         RegisterType("object");
         RegisterType("pointer");
-        RegisterType("none");
+        RegisterType("null");
 
         // map primitive types to value type enum
         registeredPrimitives.Add(GetType("integer"), ValueType.Integer);
@@ -80,7 +80,7 @@ public static class TypeRegistry
             Typing.ValueType.Date => "date",
             Typing.ValueType.Lambda => "lambda",
             Typing.ValueType.List => "list",
-            Typing.ValueType.None => "none",
+            Typing.ValueType.None => "null",
             Typing.ValueType.String => "string",
             Typing.ValueType.Pointer => "pointer",
             Typing.ValueType.Bytes => "bytes",

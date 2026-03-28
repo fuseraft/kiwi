@@ -994,7 +994,8 @@ public class Lexer : IDisposable
         else if (IsTypenameKeyword(text, out kw))
         {
             var typeName = CreateToken(TokenType.Typename, span, text, kw);
-            typeName.Value = Value.CreateString(text);
+            // "none" is a legacy alias; normalize to "null" so typeof/is_a are consistent.
+            typeName.Value = Value.CreateString(text == "none" ? "null" : text);
             return typeName;
         }
         else if (IsLogicalKeyword(text, out kw))

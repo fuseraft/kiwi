@@ -101,9 +101,9 @@ fn test_operator_overloads_arithmetic()
   tester::assert((n * number(3)).get_value() == 30, "10 * 3 == 30")
   tester::assert((n * 3).get_value() == 30,         "10 * 3 (raw) == 30")
 
-  # /
-  tester::assert((n / number(4)).get_value() == 2,  "10 / 4 == 2 (integer)")
-  tester::assert((n / 4).get_value() == 2,          "10 / 4 (raw) == 2")
+  # /  (division always returns float)
+  tester::assert((n / number(4)).get_value() == 2.5, "10 / 4 == 2.5")
+  tester::assert((n / 4).get_value() == 2.5,         "10 / 4 (raw) == 2.5")
 
   # %
   tester::assert((n % number(3)).get_value() == 1,  "10 % 3 == 1")

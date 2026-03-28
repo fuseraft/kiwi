@@ -146,7 +146,7 @@ package fmt
     neg     = rounded < 0
     rounded = neg ? -rounded : rounded
     int_r   = rounded.to_integer()
-    f_int   = int_r / math::pow(10.0, precision.to_float()).to_integer()
+    f_int   = int_r // math::pow(10.0, precision.to_float()).to_integer()
     f_frac  = int_r % math::pow(10.0, precision.to_float()).to_integer()
     sign    = neg ? "-" : ""
     prec    = precision
@@ -177,7 +177,7 @@ package fmt
     result = ""
     while n > 0 do
       result = digits[n % base] + result
-      n = n / base
+      n = n // base
     end
     neg ? "-" + result : result
   end

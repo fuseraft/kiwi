@@ -372,7 +372,7 @@ public static class CoreBuiltinHandler
             Typing.ValueType.Object => Value.CreateBoolean(typeName.Equals("object")),
             Typing.ValueType.Lambda => Value.CreateBoolean(typeName.Equals("lambda")),
             Typing.ValueType.Bytes => Value.CreateBoolean(typeName.Equals("bytes")),
-            Typing.ValueType.None => Value.CreateBoolean(typeName.Equals("none")),
+            Typing.ValueType.None => Value.CreateBoolean(typeName.Equals("null") || typeName.Equals("none")),
             _ => Value.False,
         };
     }
