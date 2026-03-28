@@ -114,11 +114,11 @@ for i in [0..49].reverse() do
   end
 
   sum[i + 2] = tempSum % 10
-  carry = tempSum / 10
+  carry = tempSum // 10
 end
 
 sum[1] = carry % 10
-sum[0] = carry / 10
+sum[0] = carry // 10
 
 index = 0
 while sum[index] == 0 do

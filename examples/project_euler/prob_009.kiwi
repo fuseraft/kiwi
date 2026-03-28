@@ -4,8 +4,8 @@ fn pythagorean_triplet(sum)
   found = false
   result = 0
 
-  for a in [1 .. (sum / 3) + 1] do
-    for b in [a .. sum / 2] do
+  for a in [1 .. (sum // 3) + 1] do
+    for b in [a .. sum // 2] do
       c = sum - a - b
       product = a ** 2 + b ** 2
       

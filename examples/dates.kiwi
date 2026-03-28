@@ -77,7 +77,7 @@ end
   Returns the ISO week number (1–53) for a given date.
 #/
 fn week_number(dt: date): integer
-  (time::yearday(dt) + 6) / 7
+  (time::yearday(dt) + 6) // 7
 end
 
 today = time::now()

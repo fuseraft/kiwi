@@ -105,7 +105,7 @@ section("ASCII sine wave")
 
 const COLS   = 60
 const ROWS   = 11
-const ORIGIN = ROWS / 2
+const ORIGIN = ROWS // 2
 
 for row in std::range(0, ROWS) do
   line = ""
