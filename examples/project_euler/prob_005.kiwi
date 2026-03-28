@@ -11,7 +11,7 @@ fn gcd(a, b)
 end
 
 fn lcm(a, b)
-  return __abs__(a * b) / gcd(a, b)
+  return __abs__(a * b) // gcd(a, b)
 end
 
 fn smallest_multiple(n)
