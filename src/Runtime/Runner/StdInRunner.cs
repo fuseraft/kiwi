@@ -7,7 +7,7 @@ namespace kiwi.Runtime.Runner;
 /// <summary>
 /// Runs a script from standard input (stdin), e.g., `cat script.kiwi | kiwi`.
 /// </summary>
-public class StdInRunner(Interpreter interpreter) : VMScriptRunner(interpreter)
+public class StdInRunner : VMScriptRunner
 {
     /// <summary>
     /// Maximum size of input data streamed from stdin (default: 40 MB).

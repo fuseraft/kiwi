@@ -1,4 +1,5 @@
 using kiwi.Parsing;
+using kiwi.VM;
 using kiwi.Parsing.Keyword;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
@@ -7,7 +8,7 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public class ObjectBuiltinHandler
 {
-    public static Value Handle(Interpreter interp, Token token, TokenName builtin, InstanceRef obj, string baseStruct, IReadOnlyList<Value> args)
+    public static Value Handle(KiwiVM vm, Token token, TokenName builtin, InstanceRef obj, string baseStruct, IReadOnlyList<Value> args)
     {
         var instVars = obj.InstanceVariables;
 
@@ -53,13 +54,13 @@ public class ObjectBuiltinHandler
                 List<string> hierarchy = [obj.StructName];
                 if (!string.IsNullOrEmpty(baseStruct))
                 {
-                    var baseStructName = interp.Context.Structs[baseStruct].Name;
+                    var baseStructName = vm.Context.Structs[baseStruct].Name;
                     while (!string.IsNullOrEmpty(baseStructName))
                     {
                         hierarchy.Add(baseStructName);
-                        if (!string.IsNullOrEmpty(interp.Context.Structs[baseStructName].BaseStruct))
+                        if (!string.IsNullOrEmpty(vm.Context.Structs[baseStructName].BaseStruct))
                         {
-                            baseStructName = interp.Context.Structs[baseStructName].BaseStruct;
+                            baseStructName = vm.Context.Structs[baseStructName].BaseStruct;
                             continue;
                         }
                         break;

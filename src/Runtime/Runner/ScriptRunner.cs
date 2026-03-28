@@ -5,17 +5,12 @@ using kiwi.Tracing;
 using kiwi.Tracing.Error;
 
 namespace kiwi.Runtime.Runner;
-public class ScriptRunner(Interpreter interpreter) : IRunner
+public class ScriptRunner : IRunner
 {
     /// <summary>
     /// A success return code. A placeholder until a smarter mechanism is implemented.
     /// </summary>
     protected const int SuccessReturnCode = 0;
-
-    /// <summary>
-    /// Gets the local interpreter.
-    /// </summary>
-    protected Interpreter Interpreter { get; } = interpreter;
 
     /// <summary>
     /// Gets or sets a flag indicating whether the standard library has been loaded.

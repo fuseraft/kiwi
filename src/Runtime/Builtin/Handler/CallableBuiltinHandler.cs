@@ -2,43 +2,44 @@ using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
+using kiwi.VM;
 
 namespace kiwi.Runtime.Builtin.Handler;
 public static class CallableBuiltinHandler
 {
-    public static Value Execute(Interpreter interp, Token token, TokenName builtin, Callable callable, string callableName, List<Value> args)
+    public static Value Execute(KiwiVM vm, Token token, TokenName builtin, Callable callable, string callableName, List<Value> args)
     {
         return builtin switch
         {
-            TokenName.Builtin_Callable_Call => Call(interp, token, callable, callableName, args),
+            TokenName.Builtin_Callable_Call => Call(vm, token, callable, callableName, args),
             TokenName.Builtin_Callable_Parameters => Parameters(token, callable, args),
             TokenName.Builtin_Callable_Returns => Returns(token, callable, args),
-            TokenName.Builtin_Callable_ToLambda => ToLambda(interp, token, callable, callableName, args),
+            TokenName.Builtin_Callable_ToLambda => ToLambda(vm, token, callable, callableName, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
 
-    public static Value ToLambda(Interpreter interp, Token token, Callable callable, string callableName, List<Value> args)
+    public static Value ToLambda(KiwiVM vm, Token token, Callable callable, string callableName, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CallableBuiltin.ToLambda, 0, args.Count);
-        
+
         if (callable is KFunction func)
         {
-            return interp.FuncToLambda(func);
+            return vm.FuncToLambda(func);
         }
         else if (callable is KLambda)
         {
             return Value.CreateLambda(new LambdaRef { Identifier = callableName });
         }
-        
+
         throw new InvalidOperationError(token, "Expected a function or a lambda as a callable.");
     }
 
-    private static Value Call(Interpreter interp, Token token, Callable callable, string callableName, List<Value> args)
+    private static Value Call(KiwiVM vm, Token token, Callable callable, string callableName, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, CallableBuiltin.Call, 1, args.Count);
         TypeError.ExpectList(token, args[0]);
-        return interp.InvokeCallable(callable, args[0].GetList(), token, callableName);
+        return vm.InvokeCallable(callable, args[0].GetList(), token, callableName);
     }
 
     private static Value Parameters(Token token, Callable callable, List<Value> args)
