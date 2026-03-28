@@ -262,6 +262,7 @@ public class Interpreter
         var oldExecutionPath = ExecutionPath;
         var savedVM = VM.KiwiVM.Current;
         ExecutionPath = fullPath;
+
         try
         {
             using var lexer = new Lexer(fullPath);

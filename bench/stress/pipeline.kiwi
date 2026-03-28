@@ -1,0 +1,206 @@
+/#
+  debug/pipeline.kiwi — Composable pipeline DSL for the stress test.
+
+  Stages:
+    FilterStage, MapStage, SortStage, TakeStage, DropStage,
+    ReduceStage, ZipWithStage, UniqueStage, FlatMapStage
+
+  Pipeline:
+    pipeline::Pipeline.new(name)
+      .add(stage)  -> self
+      .run(data)   -> list
+      .describe()  -> string
+#/
+
+package pipeline
+
+  struct FilterStage
+    @name
+    @pred
+    fn new(name, pred)
+      @name = name
+      @pred = pred
+    end
+    fn run(data)
+      data.filter(@pred)
+    end
+    fn describe()
+      "filter(${@name})"
+    end
+  end
+
+  struct MapStage
+    @name
+    @mapper
+    fn new(name, fn_ref)
+      @name   = name
+      @mapper = fn_ref
+    end
+    fn run(data)
+      data.map(@mapper)
+    end
+    fn describe()
+      "map(${@name})"
+    end
+  end
+
+  struct SortStage
+    @name
+    @cmp
+    fn new(name, cmp)
+      @name = name
+      @cmp  = cmp
+    end
+    fn run(data)
+      data.sort(@cmp)
+    end
+    fn describe()
+      "sort(${@name})"
+    end
+  end
+
+  struct TakeStage
+    @n
+    fn new(n)
+      @n = n
+    end
+    fn run(data)
+      data.take(@n)
+    end
+    fn describe()
+      "take(${@n})"
+    end
+  end
+
+  struct DropStage
+    @n
+    fn new(n)
+      @n = n
+    end
+    fn run(data)
+      data.skip(@n)
+    end
+    fn describe()
+      "drop(${@n})"
+    end
+  end
+
+  struct ReduceStage
+    @name
+    @init
+    @reducer
+    fn new(name, init, fn_ref)
+      @name    = name
+      @init    = init
+      @reducer = fn_ref
+    end
+    fn run(data)
+      [data.reduce(@init, @reducer)]
+    end
+    fn describe()
+      "reduce(${@name})"
+    end
+  end
+
+  struct ZipWithStage
+    @name
+    @other
+    @zipper
+    fn new(name, other, fn_ref)
+      @name   = name
+      @other  = other
+      @zipper = fn_ref
+    end
+    fn run(data)
+      result = []
+      limit  = data.size()
+      if @other.size() < limit
+        limit = @other.size()
+      end
+      i = 0
+      while i < limit do
+        result.push(@zipper(data[i], @other[i]))
+        i += 1
+      end
+      result
+    end
+    fn describe()
+      "zip_with(${@name})"
+    end
+  end
+
+  struct UniqueStage
+    @key_fn
+    fn new(key_fn)
+      @key_fn = key_fn
+    end
+    fn run(data)
+      key_fn_ = @key_fn
+      seen    = {}
+      result  = []
+      for item in data do
+        k = key_fn_(item).to_string()
+        if !seen.has_key(k)
+          seen[k] = true
+          result.push(item)
+        end
+      end
+      result
+    end
+    fn describe()
+      "unique"
+    end
+  end
+
+  struct FlatMapStage
+    @name
+    @mapper
+    fn new(name, fn_ref)
+      @name   = name
+      @mapper = fn_ref
+    end
+    fn run(data)
+      mapper_ = @mapper
+      result  = []
+      for item in data do
+        sub = mapper_(item)
+        for x in sub do
+          result.push(x)
+        end
+      end
+      result
+    end
+    fn describe()
+      "flat_map(${@name})"
+    end
+  end
+
+  struct Pipeline
+    @name
+    @stages
+    fn new(name)
+      @name   = name
+      @stages = []
+    end
+    fn add(stage)
+      @stages.push(stage)
+    end
+    fn run(data)
+      result = data
+      for stage in @stages do
+        result = stage.run(result)
+      end
+      result
+    end
+    fn describe()
+      parts = ["Pipeline(${@name})"]
+      for stage in @stages do
+        parts.push(stage.describe())
+      end
+      parts.join(" -> ")
+    end
+  end
+
+end
+
+export "pipeline"
