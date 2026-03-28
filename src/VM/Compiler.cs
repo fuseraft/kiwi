@@ -76,6 +76,19 @@ public sealed class Compiler
     }
 
     /// <summary>
+    /// Compile a program that is included into an already-running VM (not the entry point).
+    /// Uses ReturnNull instead of Halt so the include frame can be cleanly popped by the VM.
+    /// </summary>
+    public static Chunk CompileIncludedProgram(ProgramNode program)
+    {
+        var c = new Compiler("<include>", null, isGlobal: true);
+        foreach (var s in program.Statements)
+            if (s != null) c.CompileStatement(s);
+        c.Emit(Opcode.ReturnNull);
+        return c._chunk;
+    }
+
+    /// <summary>
     /// Compile a program as a returnable expression: all-but-last statements are compiled
     /// normally (results discarded); the last statement is compiled as an expression whose
     /// value is returned to the caller. Used by the debugger's 'p' command.

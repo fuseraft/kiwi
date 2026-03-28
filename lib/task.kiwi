@@ -3,6 +3,35 @@
 #/
 package task
   /#
+  Represents a mutex (binary semaphore backed by a buffered channel).
+  #/
+  struct Mutex
+    fn new()
+      @chan = Channel.new(1)
+      @chan.send(true)
+    end
+
+    /#
+    @summary Runs fn_ref while holding the mutex.
+    #/
+    fn synchronize(fn_ref)
+      @chan.recv()
+      err = null
+      try
+        fn_ref()
+      catch e
+        err = e
+      end
+      @chan.send(true)
+      throw err when err != null
+    end
+
+    fn destroy()
+      @chan.close()
+    end
+  end
+
+  /#
   Represents a channel
   #/
   struct Channel
@@ -55,6 +84,14 @@ package task
 
   fn channel(cap: integer = 0): Channel
     Channel.new(cap)
+  end
+
+  /#
+  @summary Creates a new mutex.
+  @returns A Mutex instance.
+  #/
+  fn mutex(): Mutex
+    Mutex.new()
   end
 
   /#

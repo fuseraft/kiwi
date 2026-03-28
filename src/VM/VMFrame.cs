@@ -95,6 +95,12 @@ public sealed class VMFrame(string name, Chunk chunk, int stackBase, Upvalue[] u
     public HashSet<string>? LocalFunctions => _localFunctions;
 
     /// <summary>
+    /// When true, this frame runs at global scope (top-level or an included
+    /// program chunk). Functions defined here must NOT be cleaned up on return.
+    /// </summary>
+    public bool IsGlobalScope { get; set; }
+
+    /// <summary>
     /// Human-readable name of this function/lambda for stack traces.
     /// </summary>
     public string Name { get; } = name;

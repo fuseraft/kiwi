@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using kiwi.Typing;
 
 namespace kiwi.Runtime;
@@ -9,9 +10,12 @@ public class KContext
     public Dictionary<string, KPackage> Packages { get; set; } = [];
     public Dictionary<string, KFunction> Functions { get; set; } = [];
     public Dictionary<string, KFunction> Methods { get; set; } = [];
-    public Dictionary<string, KLambda> Lambdas { get; set; } = [];
+    // ConcurrentDictionary: task threads concurrently register lambdas (with do...end),
+    // so this must be thread-safe.
+    public ConcurrentDictionary<string, KLambda> Lambdas { get; set; } = new();
     public Dictionary<string, KStruct> Structs { get; set; } = [];
-    public Dictionary<string, string> LambdaTable { get; set; } = [];
+    // ConcurrentDictionary: task threads may map lambda names concurrently.
+    public ConcurrentDictionary<string, string> LambdaTable { get; set; } = new();
     public Dictionary<string, Value> Constants { get; set; } = [];
     public Dictionary<string, Value> PackageVariables { get; set; } = [];
     public EventBus Events { get; } = new();
@@ -37,7 +41,7 @@ public class KContext
 
         foreach (var kvp in Lambdas)
         {
-            cloned.Lambdas.Add(kvp.Key, kvp.Value.Clone());
+            cloned.Lambdas[kvp.Key] = kvp.Value.Clone();
         }
 
         foreach (var kvp in Structs)
@@ -55,6 +59,8 @@ public class KContext
             cloned.PackageVariables.Add(kvp.Key, kvp.Value);
         }
 
+        // Share the same LambdaTable reference — task threads write to it with GUID keys
+        // so sharing is safe and avoids stale lookups across interpreter instances.
         cloned.LambdaTable = LambdaTable;
         cloned.ImportedPackages = [.. ImportedPackages];
 

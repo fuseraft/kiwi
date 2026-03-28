@@ -167,18 +167,13 @@ public partial class Parser
             case TokenType.LBrace:
             case TokenType.LBracket:
             case TokenType.LParen:
+            case TokenType.Lambda:
             case TokenType.Literal:
             case TokenType.Operator:
             case TokenType.Identifier:
             case TokenType.String:
             case TokenType.Bytes:
             case TokenType.Interpolation:
-                node = ParseExpression();
-                break;
-
-            // A lambda expression (`with (...) do ... end`) used as a bare statement
-            // (e.g. the last expression in a function body that returns a lambda).
-            case TokenType.Lambda:
                 node = ParseExpression();
                 break;
 

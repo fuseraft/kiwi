@@ -1,4 +1,4 @@
-requires "hashable"
+require "hashable"
 
 package path
   /#

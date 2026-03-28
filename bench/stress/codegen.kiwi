@@ -1,0 +1,169 @@
+/#
+  debug/codegen.kiwi — Random AST generator and known-answer test cases.
+
+  Provides:
+    codegen::rand_expr(depth, vars)         -> ASTNode
+    codegen::expr_stream(n, depth, vars)    -> generator of ASTNodes
+    codegen::known_cases()                  -> list of {label, node, expected}
+#/
+
+package codegen
+
+  fn _rand_int(lo, hi)
+    math::random(lo, hi)
+  end
+
+  fn _pick(lst)
+    lst[_rand_int(0, lst.size() - 1)]
+  end
+
+  fn _rand_op()
+    _pick(["+", "-", "*"])
+  end
+
+  fn rand_expr(depth, vars)
+    use_terminal = depth <= 0
+    if !use_terminal
+      r = _rand_int(0, 9)
+      use_terminal = r < 4
+    end
+
+    if use_terminal
+      if vars.size() > 0 && _rand_int(0, 1) == 0
+        ast::VarRef.new(_pick(vars))
+      else
+        ast::NumLit.new(_rand_int(1, 20))
+      end
+    else
+      r2 = _rand_int(0, 9)
+      if r2 < 7
+        ast::BinOp.new(_rand_op(), rand_expr(depth - 1, vars), rand_expr(depth - 1, vars))
+      else
+        param = _pick(["a", "b", "c", "x", "y"])
+        child_vars = vars + [param]
+        ast::LambdaExpr.new(param, rand_expr(depth - 1, child_vars))
+      end
+    end
+  end
+
+  fn expr_stream(n, depth, vars)
+    i = 0
+    while i < n do
+      yield rand_expr(depth, vars)
+      i += 1
+    end
+  end
+
+  fn known_cases()
+    cases = []
+
+    cases.push({
+      "label":    "NumLit 42 = 42",
+      "node":     ast::NumLit.new(42),
+      "expected": 42
+    })
+
+    cases.push({
+      "label":    "BinOp 3+4 = 7",
+      "node":     ast::BinOp.new("+", ast::NumLit.new(3), ast::NumLit.new(4)),
+      "expected": 7
+    })
+
+    cases.push({
+      "label":    "BinOp 10-3 = 7",
+      "node":     ast::BinOp.new("-", ast::NumLit.new(10), ast::NumLit.new(3)),
+      "expected": 7
+    })
+
+    cases.push({
+      "label":    "BinOp 6*7 = 42",
+      "node":     ast::BinOp.new("*", ast::NumLit.new(6), ast::NumLit.new(7)),
+      "expected": 42
+    })
+
+    cases.push({
+      "label":    "BinOp 10/2 = 5",
+      "node":     ast::BinOp.new("/", ast::NumLit.new(10), ast::NumLit.new(2)),
+      "expected": 5
+    })
+
+    cases.push({
+      "label":    "BinOp 10%3 = 1",
+      "node":     ast::BinOp.new("%", ast::NumLit.new(10), ast::NumLit.new(3)),
+      "expected": 1
+    })
+
+    cases.push({
+      "label":    "BinOp nested (2+3)*4 = 20",
+      "node":     ast::BinOp.new("*",
+                    ast::BinOp.new("+", ast::NumLit.new(2), ast::NumLit.new(3)),
+                    ast::NumLit.new(4)),
+      "expected": 20
+    })
+
+    cases.push({
+      "label":    "VarRef(zero) = 0",
+      "node":     ast::VarRef.new("zero"),
+      "expected": 0
+    })
+
+    cases.push({
+      "label":    "VarRef(ten) = 10",
+      "node":     ast::VarRef.new("ten"),
+      "expected": 10
+    })
+
+    cases.push({
+      "label":    "VarRef(hundred) = 100",
+      "node":     ast::VarRef.new("hundred"),
+      "expected": 100
+    })
+
+    cases.push({
+      "label":    "BoolLit true = true",
+      "node":     ast::BoolLit.new(true),
+      "expected": true
+    })
+
+    cases.push({
+      "label":    "BoolLit false = false",
+      "node":     ast::BoolLit.new(false),
+      "expected": false
+    })
+
+    cases.push({
+      "label":    "StrLit hello = hello",
+      "node":     ast::StrLit.new("hello"),
+      "expected": "hello"
+    })
+
+    cases.push({
+      "label":    "BinOp 5==5 = true",
+      "node":     ast::BinOp.new("==", ast::NumLit.new(5), ast::NumLit.new(5)),
+      "expected": true
+    })
+
+    cases.push({
+      "label":    "BinOp 5!=6 = true",
+      "node":     ast::BinOp.new("!=", ast::NumLit.new(5), ast::NumLit.new(6)),
+      "expected": true
+    })
+
+    cases.push({
+      "label":    "BinOp 3<5 = true",
+      "node":     ast::BinOp.new("<", ast::NumLit.new(3), ast::NumLit.new(5)),
+      "expected": true
+    })
+
+    cases.push({
+      "label":    "BinOp 5>3 = true",
+      "node":     ast::BinOp.new(">", ast::NumLit.new(5), ast::NumLit.new(3)),
+      "expected": true
+    })
+
+    cases
+  end
+
+end
+
+export "codegen"

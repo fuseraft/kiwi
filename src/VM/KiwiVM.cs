@@ -85,7 +85,9 @@ public sealed class KiwiVM
     private readonly Stack<string> _pkgPrefixStack = new();
 
     // -- Closure ID counter (replaces Guid.NewGuid) ----------------------------
-    private int _closureIdCounter;
+    // Must be global (not per-VM) so that task VMs don't collide with each other
+    // or with the main VM in the shared _context.Lambdas dictionary.
+    private static int _globalClosureIdCounter;
 
     // -- VM debug hook ---------------------------------------------------------
     // Fires when the execution crosses into a new source line.
@@ -144,6 +146,7 @@ public sealed class KiwiVM
     public Value Execute(Chunk chunk)
     {
         PushFrame("<main>", chunk, stackBase: 0, upvalues: []);
+        _frames[0].IsGlobalScope = true;
         // Initialize locals to null (LocalCount slots)
         for (int i = 0; i < chunk.LocalCount; i++)
             _stack[i] = Value.Default;
@@ -157,6 +160,44 @@ public sealed class KiwiVM
     /// an interpreter-side call (e.g. an interpreted lambda calling a VM-compiled function).
     /// Sets up a new VM frame, runs to completion, and returns the result.
     /// </summary>
+    /// <summary>
+    /// Execute a top-level program chunk inline (as if it were included into the current program).
+    /// Compiles the included file's packages/functions into VM bytecode and discards any return value.
+    /// </summary>
+    public void ExecuteInclude(Chunk chunk, Token token)
+    {
+        int savedSp         = _sp;
+        int savedFrameCount = _frameCount;
+        int calleeBase      = _sp;
+        var savedBelow      = calleeBase > 0 ? _stack[calleeBase - 1] : Value.Default;
+
+        // Reserve space for locals
+        for (int i = 0; i < chunk.LocalCount; i++)
+        {
+            if (calleeBase + i < _stack.Length) _stack[calleeBase + i] = Value.Default;
+        }
+        _sp = calleeBase + chunk.LocalCount;
+
+        int stopAt = _frameCount;
+        PushFrame("<include>", chunk, calleeBase, [], token);
+        _frames[_frameCount - 1].IsGlobalScope = true;
+
+        try
+        {
+            RunLoop(stopAt);
+        }
+        catch
+        {
+            _sp         = savedSp;
+            _frameCount = savedFrameCount;
+            throw;
+        }
+
+        // Restore the slot potentially clobbered by Return's Push(result)
+        if (calleeBase > 0) _stack[calleeBase - 1] = savedBelow;
+        _sp = savedSp; // discard return value, restore stack
+    }
+
     public Value InvokeVMCallable(Callable callable, IReadOnlyList<Value> args, Token token, InstanceRef? instance = null)
     {
         var sub      = callable is KFunction kf ? kf.VMChunk! : ((KLambda)callable).VMChunk!;
@@ -494,7 +535,7 @@ public sealed class KiwiVM
                             if (frame.Self != null)
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
-                                Push(Value.Default);
+                                throw new VariableUndefinedError(frame.GetToken(), name);
                         }
                         break;
                     }
@@ -978,8 +1019,9 @@ public sealed class KiwiVM
                         _context.Functions[funcName] = kfunc;
                         InvalidateName(funcName); // invalidate both resolution caches
 
-                        // If defined inside another function frame, track for cleanup on return.
-                        if (_frameCount > 1)
+                        // If defined inside another function frame (but not a global-scope
+                        // include frame), track for cleanup on return.
+                        if (_frameCount > 1 && !_frames[_frameCount - 1].IsGlobalScope)
                             _frames[_frameCount - 1].TrackLocalFunction(funcName);
 
                         break;
@@ -1034,7 +1076,7 @@ public sealed class KiwiVM
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             klambda.VariadicParamName = sub.VariadicParamName;
 
-                        var internalId = $"__deco_{_closureIdCounter++}__";
+                        var internalId = $"__deco_{Interlocked.Increment(ref _globalClosureIdCounter)}__";
                         var lref       = new LambdaRef { Identifier = internalId, VMChunk = sub, VMUpvalues = upvalues };
                         klambda.Ref    = lref;
                         _context.Lambdas[internalId] = klambda;
@@ -1086,6 +1128,10 @@ public sealed class KiwiVM
                     case Opcode.MakeClosure:
                     {
                         var sub      = frame.Chunk.SubChunks[A];
+                        // Inherit the enclosing function's package prefix so that
+                        // LoadGlobal inside this closure can resolve sibling functions.
+                        if (!string.IsNullOrEmpty(frame.Chunk.PackagePrefix) && string.IsNullOrEmpty(sub.PackagePrefix))
+                            sub.PackagePrefix = frame.Chunk.PackagePrefix;
                         var upvalues = BuildUpvalues(sub, frame);
 
                         // Propagate package prefix from the enclosing frame so that
@@ -1106,7 +1152,7 @@ public sealed class KiwiVM
                         if (!string.IsNullOrEmpty(sub.VariadicParamName))
                             klambda.VariadicParamName = sub.VariadicParamName;
 
-                        var id   = $"__lam_{_closureIdCounter++}";
+                        var id   = $"__lam_{Interlocked.Increment(ref _globalClosureIdCounter)}";
                         var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues };
                         klambda.Ref = lref;
                         _context.Lambdas[id] = klambda;
@@ -2366,14 +2412,19 @@ internal static class VMFrameExt
 {
     internal static Token GetToken(this VMFrame frame)
     {
-        if (frame.CallSiteToken is { } cst)
-            return cst;
-
-        // No call-site token (e.g. top-level frame): build one from the chunk's
-        // debug info so errors point at the right file and line.
+        // Prefer the chunk's own debug info: it points at the instruction that
+        // actually caused the error, not the call site.
         int instrIdx = Math.Max(0, frame.IP - 1);
         int line     = frame.Chunk.GetLine(instrIdx);
         int fileId   = frame.Chunk.GetFileId(instrIdx);
-        return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(fileId, line, 0), string.Empty, Value.Default);
+
+        if (line > 0)
+            return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(fileId, line, 0), string.Empty, Value.Default);
+
+        // No debug info (e.g. synthesised chunk) — fall back to the call-site token.
+        if (frame.CallSiteToken is { } cst)
+            return cst;
+
+        return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(0, 0, 0), string.Empty, Value.Default);
     }
 }
