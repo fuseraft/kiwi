@@ -14,3 +14,4 @@ kiwi_crash.log
 tasks.db*
 kiwi-notes.md
 config/kiwi-team.json
+.fuseraft/repl_events.jsonl

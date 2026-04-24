@@ -1,0 +1,140 @@
+(* Kiwi Language EBNF Grammar v0.2 - Full Keywords Coverage *)
+(* Updated: All KW_* from TokenName enum (Name.cs), excluding Builtin_* functions. *)
+(* Typenames tokenized separately as Types_*. Logical ops as Ops_*. Special: @ @@ ... *)
+(* Sources: Lexer.cs IsKeyword* methods, Name.cs enum. *)
+
+(* Lexical Elements *)
+ws ::= ( " " | "\t" | "\r" | "\n" )+
+comment ::= "#" ~[\n]*
+          | "/#" ( ~["#/"] | "#" ~["/"] | "/#" )* "#/"
+
+identifier ::= letter ( letter | digit | "_" )*
+letter ::= "a".."z" | "A".."Z"
+digit ::= "0".."9"
+
+(* Reserved Keywords - ALPHABETIC (cannot be identifiers) *)
+keyword ::= abstract_kw | access_kw | control_kw | literal_kw | lambda_kw | logical_kw | print_kw | loop_kw | decl_kw | other_kw
+
+abstract_kw ::= "abstract" | "override" | "private" | "static"
+access_kw ::= "export" | "import" | "include" | "require" | "package"
+control_kw ::= "if" | "elsif" | "else" | "end" | "case" | "try" | "catch" | "finally" | "when"
+decl_kw ::= "fn" | "def" | "struct" | "enum" | "interface" | "const" | "var"
+loop_kw ::= "for" | "in" | "while" | "do" | "repeat" | "break" | "next" | "yield"
+print_kw ::= "print" | "println" | "printxy" | "eprint" | "eprintln"
+literal_kw ::= "null" | "true" | "false"
+lambda_kw ::= "with"
+logical_kw ::= "and" | "or"
+other_kw ::= "as" | "emit" | "eval" | "exit" | "off" | "on" | "once" | "return" | "super" | "throw" | "to"
+
+(* Special Keywords (non-alphabetic) *)
+special_kw ::= "@"    (* this *)
+             | "@@"  (* @@ staticself *)
+             | "..." (* pass *)
+
+(* Typenames - tokenized as types, reserved *)
+typename ::= "integer" | "float" | "boolean" | "date" 
+           | "any" | "hashmap" | "generator" | "lambda" 
+           | "string" | "list" | "object" | "none" | "pointer" | "bytes"
+
+number ::= ["-"] digit+ ( ["."] digit* [ ("e"|"E") ["-"] digit+ ] )?
+string_lit ::= "\"" ( "\\\"" | "\\\\" | ~[\\\"] | "${" expr "}" )* "\"" 
+             | "'" ~["'"]* "'"
+bool_lit ::= "true" | "false"
+null_lit ::= "null"
+
+(* Operators *)
+assign_op ::= "=" | "+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "<<=" | ">>=" | ">>>=" 
+            | "|=" | "&=" | "^=" | "||=" | "&&="
+rel_op ::= "<" | ">" | "<=" | ">=" | "==" | "!="
+add_op ::= "+" | "-"
+mul_op ::= "*" | "/" | "//" | "%"
+shift_op ::= "<<" | ">>" | ">>>"
+bit_op ::= "|" | "&" | "^" | "~"
+log_op ::= "and" | "or" | "||" | "&&" | "!"
+pow_op ::= "**"
+range_op ::= "to"
+
+(* Syntax *)
+program ::= { declaration | stmt }
+
+declaration ::= package_decl
+              | import_decl | export_decl | require_decl | include_decl
+              | fn_decl | const_decl | var_decl
+              | struct_decl | enum_decl | interface_decl
+
+package_decl ::= "package" identifier { "::" identifier } ["\n"] block
+fn_decl ::= [ abstract_kw ] [ "private" ] ["static"] [ "override" ] ( "fn" | "def" ) identifier 
+            "(" [ param_list ] ")" [ ":" type ] ["\n"] block
+struct_decl ::= [ abstract_kw ] "struct" identifier ["\n"] block
+enum_decl ::= "enum" identifier ["\n"] block
+interface_decl ::= [ abstract_kw ] "interface" identifier ["\n"] block
+
+import_decl ::= "import" string_lit
+export_decl ::= "export" string_lit
+require_decl ::= "require" string_lit
+include_decl ::= "include" string_lit
+
+const_decl ::= "const" identifier ":" type "=" expr
+var_decl ::= [ "var" ] identifier [ ":" type ] [ "=" expr ]
+
+param_list ::= param ( "," param )*
+param ::= identifier [ ":" type ] [ "=" expr ] | "*" identifier  (* variadic *)
+
+block ::= "\n"* stmt* "end"
+
+stmt ::= expr_stmt | if_stmt | case_stmt | for_stmt | while_stmt | repeat_stmt | do_stmt
+       | try_stmt | return_stmt | yield_stmt | throw_stmt | break_stmt | next_stmt
+       | print_stmt | eval_stmt | exit_stmt
+
+expr_stmt ::= expr [ when_guard ] ("\n" | ";")
+if_stmt ::= "if" expr block { "elsif" expr block } [ "else" block ] "end"
+case_stmt ::= "case" expr "\n" { "when" expr block } [ "else" block ] "end"
+for_stmt ::= "for" identifier "in" expr block "end"  (* or for i, k in ... *)
+while_stmt ::= "while" expr block "end"
+repeat_stmt ::= "repeat" expr [ "as" identifier ] block "end"
+do_stmt ::= "do" block "end"  (* infinite? *)
+try_stmt ::= "try" block [ "catch" [ "(" identifier [ "," identifier ] ")" ] block ] [ "finally" block ] "end"  (* err, match *)
+return_stmt ::= "return" [ expr ] [ when_guard ]
+yield_stmt ::= "yield" [ expr ] [ when_guard ]
+throw_stmt ::= "throw" expr [ when_guard ]
+break_stmt ::= "break" [ when_guard ]
+next_stmt ::= "next" [ when_guard ]
+print_stmt ::= print_kw [ "(" arg_list ")" ]
+eval_stmt ::= "eval" expr
+exit_stmt ::= "exit" [ expr ]
+
+when_guard ::= "when" expr  (* optional off/on/once? *)
+
+(* Expressions: Pratt precedence levels *)
+expr ::= logical_or
+logical_or ::= logical_and ( log_op logical_and )*
+logical_and ::= equality ( log_op equality )*
+equality ::= relational ( rel_op relational )*
+relational ::= shift ( rel_op shift )*
+shift ::= additive ( shift_op additive )*
+additive ::= multiplicative ( add_op multiplicative )*
+multiplicative ::= power ( mul_op power )*
+power ::= unary ( pow_op unary )*
+unary ::= "!" unary | "-" unary | "~" unary | primary
+primary ::= identifier | literal | "(" expr ")" | list_lit | hashmap_lit | range_lit
+          | lambda | special_kw
+          | primary "." identifier | primary "[" expr "]" | primary "(" arg_list ")" | primary "::" identifier
+
+(* Calls/Access *)
+arg_list ::= [ named_arg ( "," named_arg )* ] | splat_arg
+named_arg ::= identifier ":" expr
+splat_arg ::= "*" expr
+
+lambda ::= "do" "(" [ param_list ] ")" [ "=>" ] block
+         | lambda_kw "(" param_list ")" block
+
+list_lit ::= "[" [ expr ( "," expr )* [ "," ] ] "]"
+hashmap_lit ::= "{" [ keyval ( "," keyval )* [ "," ] ] "}"
+keyval ::= ( identifier | string_lit ) ":" expr
+range_lit ::= "[" expr range_op expr "]"
+
+literal ::= number | string_lit | bool_lit | null_lit
+
+type ::= typename | identifier | type "[" "]" | "(" type ")" | type "|" type  (* union *)
+
+(* Ignore ws, comments *)
