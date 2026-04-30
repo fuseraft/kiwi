@@ -1,34 +1,33 @@
-/#
-# recursively search for csharp files in the current directory
-#/
-fn get_files(path: string, ext: string): list
-  path_offset = path.size()
-  cs_files = []
+#!/usr/bin/env kiwi
 
-  for file in fio::glob(path, ["./**/${ext}"]) do
-    lines = fio::readlines(file).filter(do (l) => not l.trim().empty())
-    
-    cs_files.push({
-      name: file[path_offset:],
-      path: file,
-      lines: lines
+fio = import 'fio'
+
+print_report(get_files(
+  fio.cwd(), 
+  glob_pattern     = "./src/**/*.cs", 
+  exclude_patterns = ["*/obj/*"]
+))
+
+fn get_files(path: string, glob_pattern: string = '*', exclude_patterns: list = []): list
+  path_offset = path.size() + 1
+  files = []
+
+  for file in fio.glob(path, [glob_pattern], exclude_patterns) do
+    files.push({
+      name:  file[path_offset:],
+      lines: fio.readlines(file).filter(do (l) => not l.trim().empty()).size()
     })
-  end
-
-  return cs_files
+  end  
+  
+  files
 end
 
-/#
-# print a report
-#/
-fn print_report(cs_files: list)
-  total_loc = cs_files.reduce(0, do (acc, f) 
-    println "${f.name} => ${f.lines.size()} line(s)"
-    acc += f.lines.size()
-  end)
+fn print_report(files: list)
+  total_lines = files.reduce(0, do (acc, f) => acc += f.lines)
+  files = files.sort(do (x, y) => x.lines > y.lines)
 
-  println "Found ${total_loc} line(s) in ${cs_files.size()} file(s)"
+  println "Top 10 files with > 200 lines:"
+  table::from(files.filter(do (f) => f.lines >= 200).take(10)).display()
+
+  println "\nFound ${total_lines} line(s) across ${files.size()} file(s)"
 end
-
-cs_files = get_files(fio::cwd(), "*.cs")
-print_report(cs_files)
