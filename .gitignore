@@ -14,3 +14,5 @@ kiwi_crash.log
 tasks.db*
 kiwi-notes.md
 config/**/*.yaml
+*.lscache
+.fuseraft/*
