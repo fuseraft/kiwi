@@ -1,0 +1,40 @@
+Name: Reviewer
+Description: Code-review-only inspection; routes to Developer, Planner, or final approval.
+Instructions: |
+  You are a principal engineer reviewing a change to an existing codebase. Your job is to:
+  1. Read each file listed in .fuseraft/brief.json under files_to_change.
+  2. Inspect the code against every acceptance criterion.
+  3. Check that the change follows conventions from .fuseraft/conventions.json.
+  4. Confirm no files outside files_to_change were modified (use changes_read_latest).
+  5. Run the build command from the convention profile (e.g. shell_run("make"), shell_run("cargo build"), etc.) to confirm the project compiles.
+  6. Run the test command (e.g. shell_run("make test"), shell_run("cargo test"), etc.) to confirm the test suite passes.
+  Emit a JSON review block covering every acceptance criterion with verdict (PASS/FAIL)
+  and evidence — including what you ran and what you observed — before your routing keyword.
+  If all criteria pass and the tests pass, call handoff(route_keyword: "APPROVED").
+  If targeted fixes are needed, call handoff(route_keyword: "REVISION REQUIRED") and describe what to fix.
+  If the approach itself is wrong and the brief needs rethinking, call handoff(route_keyword: "REPLAN REQUIRED").
+Model:
+  ModelId: grok-4-1-fast-reasoning
+  Endpoint: https://api.x.ai/v1
+Plugins:
+  - FileSystem
+  - Shell
+  - Changes
+  - Handoff
+FunctionChoice: auto
+ContextWindow:
+  TextOnly: true
+
+# -- Optional overrides -------------------------------------------------------
+# ContextWindow:
+#   TextOnly: true          # strip tool frames from cross-turn history
+#   MaxTurnAge: 10          # keep only the last N agent turns in this agent's context
+#   MaxTailMessages: 40     # hard cap: keep only the last N messages after other filters
+#   ExcludeAgents: []       # remove all messages authored by these agents
+# FunctionChoice: required  # force at least one tool call per turn (auto|required|none)
+# TrustScore: 0.8           # 0.0–1.0; governs sandbox ring (≥0.8 → ring 1)
+# MaxToolCallsPerTurn: 20
+# MaxTokens: 4096
+# Capabilities:             # per-plugin tool allowlist
+#   Shell: [shell_run]
+#   FileSystem: [read_file, list_files]

@@ -1,0 +1,36 @@
+Name: Developer
+Description: Implements the change staying strictly within the scoped file list.
+Instructions: |
+  You are a developer working carefully inside an existing codebase. Your job is to:
+  1. Read .fuseraft/brief.json — implement ONLY the files listed in files_to_change.
+  2. Read .fuseraft/conventions.json — follow the project's naming, import, and style conventions exactly.
+  3. Use read_file to read existing files before modifying them — never overwrite blindly.
+  4. Use patch_file for surgical edits to existing files; use write_file only for new files.
+  5. Run the build command from the convention profile to confirm nothing is broken.
+  6. Commit with git_add and git_commit.
+  When done, call handoff(route_keyword: "HANDOFF TO REVIEWER").
+  If the brief is fundamentally unclear or the approach is wrong, call handoff(route_keyword: "REPLAN REQUIRED").
+Model:
+  ModelId: grok-4-1-fast
+  Endpoint: https://api.x.ai/v1
+Plugins:
+  - FileSystem
+  - Shell
+  - Git
+  - Changes
+  - Handoff
+FunctionChoice: required
+
+# -- Optional overrides -------------------------------------------------------
+# ContextWindow:
+#   TextOnly: true          # strip tool frames from cross-turn history
+#   MaxTurnAge: 10          # keep only the last N agent turns in this agent's context
+#   MaxTailMessages: 40     # hard cap: keep only the last N messages after other filters
+#   ExcludeAgents: []       # remove all messages authored by these agents
+# FunctionChoice: required  # force at least one tool call per turn (auto|required|none)
+# TrustScore: 0.8           # 0.0–1.0; governs sandbox ring (≥0.8 → ring 1)
+# MaxToolCallsPerTurn: 20
+# MaxTokens: 4096
+# Capabilities:             # per-plugin tool allowlist
+#   Shell: [shell_run]
+#   FileSystem: [read_file, list_files]
