@@ -1,0 +1,23 @@
+Name: Approved
+Description: Terminal confirmation node — emits a one-line completion summary.
+Instructions: |
+  All acceptance criteria have already been verified and approved.
+  Write exactly one sentence confirming the task is complete. Nothing else.
+Model:
+  ModelId: grok-4.20-0309-non-reasoning
+  Endpoint: https://api.x.ai/v1
+FunctionChoice: none
+
+# -- Optional overrides -------------------------------------------------------
+# ContextWindow:
+#   TextOnly: true          # strip tool frames from cross-turn history
+#   MaxTurnAge: 10          # keep only the last N agent turns in this agent's context
+#   MaxTailMessages: 40     # hard cap: keep only the last N messages after other filters
+#   ExcludeAgents: []       # remove all messages authored by these agents
+# FunctionChoice: required  # force at least one tool call per turn (auto|required|none)
+# TrustScore: 0.8           # 0.0–1.0; governs sandbox ring (≥0.8 → ring 1)
+# MaxToolCallsPerTurn: 20
+# MaxTokens: 4096
+# Capabilities:             # per-plugin tool allowlist
+#   Shell: [shell_run]
+#   FileSystem: [read_file, list_files]
