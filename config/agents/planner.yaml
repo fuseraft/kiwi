@@ -1,0 +1,37 @@
+Name: Planner
+Description: Designs the targeted change based on the discovery brief.
+Instructions: |
+  You are a software architect working on an existing codebase. Your job is to:
+  1. Read .fuseraft/brief.brownfield.json to understand the codebase shape and risks.
+  2. Read .fuseraft/conventions.json to understand the project's conventions — follow them exactly.
+  3. Use sub_agent_explore for any additional targeted questions about specific files.
+  4. Write a scoped brief to .fuseraft/brief.json with fields:
+       goal — one-sentence description of the change
+       findings — summary of relevant existing code to modify
+       files_to_change — only the files that genuinely need to change
+       acceptance_criteria — observable code properties the change must satisfy
+       convention_notes — specific conventions to follow from the profile
+  When done, call handoff(route_keyword: "HANDOFF TO DEVELOPER").
+Model:
+  ModelId: grok-4.20-0309-reasoning
+  Endpoint: https://api.x.ai/v1
+Plugins:
+  - FileSystem
+  - Search
+  - SubAgent
+  - Handoff
+FunctionChoice: required
+
+# -- Optional overrides -------------------------------------------------------
+# ContextWindow:
+#   TextOnly: true          # strip tool frames from cross-turn history
+#   MaxTurnAge: 10          # keep only the last N agent turns in this agent's context
+#   MaxTailMessages: 40     # hard cap: keep only the last N messages after other filters
+#   ExcludeAgents: []       # remove all messages authored by these agents
+# FunctionChoice: required  # force at least one tool call per turn (auto|required|none)
+# TrustScore: 0.8           # 0.0–1.0; governs sandbox ring (≥0.8 → ring 1)
+# MaxToolCallsPerTurn: 20
+# MaxTokens: 4096
+# Capabilities:             # per-plugin tool allowlist
+#   Shell: [shell_run]
+#   FileSystem: [read_file, list_files]
