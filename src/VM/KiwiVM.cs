@@ -1698,7 +1698,8 @@ public sealed class KiwiVM
                         var path = Pop();
                         if (!path.IsString())
                             throw new InvalidOperationError(frame.GetToken(), "Include path must be a string.");
-                        IncludeFile(frame.GetToken(), path.GetString());
+                        var pkg = IncludeFile(frame.GetToken(), path.GetString());
+                        Push(pkg);
                         break;
                     }
 
@@ -2526,8 +2527,14 @@ public sealed class KiwiVM
         {
             using var lexer = new Lexer(fullPath);
             var ast   = new Parser(true).ParseTokenStream(lexer.GetTokenStream(), true);
-            var chunk = Compiler.CompileProgram((ProgramNode)ast);
+            var prog = (ProgramNode)ast;
+            var pkgNode = prog.Statements.OfType<PackageNode>().FirstOrDefault();
+            string pkgName = "";
+            if (pkgNode?.PackageName is IdentifierNode id) pkgName = id.Name;
+            else if (pkgNode?.PackageName is LiteralNode lit && lit.Value.IsString()) pkgName = lit.Value.GetString();
+            var chunk = Compiler.CompileProgram(prog);
             new KiwiVM(this).Execute(chunk);
+            return string.IsNullOrEmpty(pkgName) ? Value.Default : Value.CreatePackage(pkgName);
         }
         finally
         {

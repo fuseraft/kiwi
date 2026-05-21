@@ -1,6 +1,6 @@
 namespace kiwi.Parsing.AST;
 
-public class IncludeNode(ASTNode path) : ASTNode(ASTNodeType.Include)
+public class IncludeNode(ASTNode path) : ASTNode(ASTNodeType.Include) // expression yields package
 {
     public ASTNode Path { get; } = path;
 
