@@ -21,7 +21,7 @@ Instructions: |
 
   When both files are written, call handoff(route_keyword: "RECON COMPLETE").
 Model:
-  ModelId: grok-4.20-multi-agent-0309
+  ModelId: grok-4.1-fast
   Endpoint: https://api.x.ai/v1
 Plugins:
   - FileSystem

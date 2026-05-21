@@ -11,7 +11,7 @@ Instructions: |
   When done, call handoff(route_keyword: "HANDOFF TO REVIEWER").
   If the brief is fundamentally unclear or the approach is wrong, call handoff(route_keyword: "REPLAN REQUIRED").
 Model:
-  ModelId: grok-4.20-multi-agent-0309
+  ModelId: grok-4.1-fast
   Endpoint: https://api.x.ai/v1
 Plugins:
   - FileSystem
