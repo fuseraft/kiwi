@@ -13,4 +13,10 @@ site/
 kiwi_crash.log
 tasks.db*
 kiwi-notes.md
-config/kiwi-team.json
+*.lscache
+.fuseraft/*
+!.fuseraft/config/
+!.fuseraft/config/**
+!.fuseraft/context/
+!.fuseraft/context/**
+tmp/
