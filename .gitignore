@@ -19,3 +19,4 @@ kiwi-notes.md
 !.fuseraft/config/**
 !.fuseraft/context/
 !.fuseraft/context/**
+tmp/
