@@ -15,4 +15,7 @@ tasks.db*
 kiwi-notes.md
 *.lscache
 .fuseraft/*
-!.fuseraft/config/**/*.yaml
+!.fuseraft/config/
+!.fuseraft/config/**
+!.fuseraft/context/
+!.fuseraft/context/**

@@ -16,7 +16,7 @@ Instructions: |
   If targeted fixes are needed, call handoff(route_keyword: "REVISION REQUIRED") and describe what to fix.
   If the approach itself is wrong and the brief needs rethinking, call handoff(route_keyword: "REPLAN REQUIRED").
 Model:
-  ModelId: grok-4.20-0309-reasoning
+  ModelId: grok-4.1-fast-reasoning
   Endpoint: https://api.x.ai/v1
 Plugins:
   - FileSystem

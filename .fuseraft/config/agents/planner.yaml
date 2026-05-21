@@ -13,7 +13,7 @@ Instructions: |
        convention_notes — specific conventions to follow from the profile
   When done, call handoff(route_keyword: "HANDOFF TO DEVELOPER").
 Model:
-  ModelId: grok-4.20-0309-reasoning
+  ModelId: grok-4.1-fast-reasoning
   Endpoint: https://api.x.ai/v1
 Plugins:
   - FileSystem
