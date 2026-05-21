@@ -4,7 +4,7 @@ Instructions: |
   All acceptance criteria have already been verified and approved.
   Write exactly one sentence confirming the task is complete. Nothing else.
 Model:
-  ModelId: grok-4.1-fast-non-reasoning
+  ModelId: grok-4-1-fast-non-reasoning
   Endpoint: https://api.x.ai/v1
 FunctionChoice: none
 
