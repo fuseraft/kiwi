@@ -473,7 +473,7 @@ public sealed class Compiler
             case ASTNodeType.Import:           CompileImport         ((ImportNode)node,            ln); return true;
             case ASTNodeType.Require:          CompileRequire        ((RequireNode)node,           ln); return false;
             case ASTNodeType.Eval:             CompileEval           ((EvalNode)node,              ln); return true;
-            case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return false;
+            case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return true;
             case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
             case ASTNodeType.DecoratedFunction: CompileDecoratedFunction((DecoratedFunctionNode)node, ln); return false;
             case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
@@ -1761,7 +1761,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void CompileInclude(IncludeNode node, int ln)
     {
         CompileNode(node.Path);
-        Emit(Opcode.Include, 0, 0, ln);
+        Emit(Opcode.Include, 0, 0, ln); // now leaves package Value on stack
     }
 
     // -- Enum definition -------------------------------------------------------
