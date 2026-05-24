@@ -2541,8 +2541,6 @@ public sealed class KiwiVM
             KiwiVM.Current = savedVM;
             ExecutionPath  = oldExecutionPath;
         }
-
-        return Value.Default;
     }
 
     private string ResolveIncludePath(Token token, string filePath)
