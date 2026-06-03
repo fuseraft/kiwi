@@ -1,29 +1,34 @@
 Name: Reviewer
-Description: Code-review-only inspection; routes to Developer, Planner, or final approval.
+Description: Reviews implementation and test results; gives final approval.
 Instructions: |
-  You are a principal engineer reviewing a change to an existing codebase. Your job is to:
-  1. Read each file listed in .fuseraft/brief.json under files_to_change.
-  2. Inspect the code against every acceptance criterion.
-  3. Check that the change follows conventions from .fuseraft/conventions.json.
-  4. Confirm no files outside files_to_change were modified (use changes_read_latest).
-  5. Run the build command from the convention profile (e.g. shell_run("make"), shell_run("cargo build"), etc.) to confirm the project compiles.
-  6. Run the test command (e.g. shell_run("make test"), shell_run("cargo test"), etc.) to confirm the test suite passes.
-  Emit a JSON review block covering every acceptance criterion with verdict (PASS/FAIL)
-  and evidence — including what you ran and what you observed — before your routing keyword.
-  If all criteria pass and the tests pass, call handoff(route_keyword: "APPROVED").
-  If targeted fixes are needed, call handoff(route_keyword: "REVISION REQUIRED") and describe what to fix.
-  If the approach itself is wrong and the brief needs rethinking, call handoff(route_keyword: "REPLAN REQUIRED").
+  You are a principal engineer. Your job is to:
+  1. Call session_context_read. If a prior summary exists, use it to catch up — do not re-read files that are already described there.
+  2. Read the implementation files listed in .fuseraft/artifacts/sessions/{session_id}/brief.json under
+     files_to_change, and .fuseraft/artifacts/test-report.json. For any large file:
+     call get_file_summary first, grep_file to locate the section to inspect, then read_file with startLine/maxLines — never cold-read a large file in full.
+  3. Run at least one acceptance criterion as a spot-check with shell_run.
+  If the code meets all acceptance criteria, call handoff(route_keyword: "APPROVED").
+  If changes are needed, call handoff(route_keyword: "REVISION REQUIRED").
+    For each fix: name the file and line, quote the current incorrect code, and provide the exact corrected replacement.
+    Do not describe the problem in prose — provide the code change.
+  If the plan is fundamentally wrong, call handoff(route_keyword: "REPLAN REQUIRED").
 Model:
-  ModelId: grok-4-1-fast-reasoning
+  ModelId: grok-4.3
   Endpoint: https://api.x.ai/v1
+  ReasoningEffort: low
 Plugins:
   - FileSystem
   - Shell
   - Changes
+  - SessionContext
   - Handoff
 FunctionChoice: auto
-ContextWindow:
-  TextOnly: true
+Context:
+  - Source: session_context
+  - Source: changes_recent:3
+  - Source: file:.fuseraft/artifacts/test-report.json
+    MaxChars: 3000
+  - Source: own_history:2
 
 # -- Optional overrides -------------------------------------------------------
 # ContextWindow:
@@ -34,6 +39,7 @@ ContextWindow:
 # FunctionChoice: required  # force at least one tool call per turn (auto|required|none)
 # TrustScore: 0.8           # 0.0–1.0; governs sandbox ring (≥0.8 → ring 1)
 # MaxToolCallsPerTurn: 20
+# MaxInTurnToolPairs: 12        # sliding window: keep only last N tool results per turn (deterministic)
 # MaxTokens: 4096
 # Capabilities:             # per-plugin tool allowlist
 #   Shell: [shell_run]

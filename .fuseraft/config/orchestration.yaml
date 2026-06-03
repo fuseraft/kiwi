@@ -1,28 +1,89 @@
 Orchestration:
-  Name: Brownfield Graph Pipeline
+  Name: Software Development Team
   Description: >-
-    Archaeologist → Planner → Developer → Reviewer expressed as a directed graph.
-    The Reviewer has two distinct back-edge targets: "REVISION REQUIRED" returns to
-    Developer for targeted fixes; "REPLAN REQUIRED" returns to Planner when the
-    approach needs rethinking. Multi-target back-edges from a single node are the
-    key advantage of graph routing over state machine for complex review cycles.
+    Planner → Developer → Tester → Reviewer with state machine routing,
+    evidence contracts, failure handling, and self-verification.
 
   Security:
     FileSystemSandboxPath: .   # set to your project root (e.g. ~/projects/myapp)
 
-  Brownfield:
-    EntryPoints:
-      - src/   # replace with your actual entry points (e.g. cmd/server/main.go)
-    SeedEnvelopeFromBrief: true
-    DiscoveryBriefPath: .fuseraft/brief.brownfield.json
-    ConventionProfilePath: .fuseraft/conventions.json
+  EvidenceStore:
+    Path: .fuseraft/state/evidence.json
 
   ChangeTracking:
     Path: .fuseraft/state/changes.json
 
   Validation:
-    BriefPath: .fuseraft/brief.json
+    BriefPath: .fuseraft/artifacts/sessions/{session_id}/brief.json
+    TestReportPath: .fuseraft/artifacts/test-report.json
     ChangeLogPath: .fuseraft/state/changes.json
+
+  Contracts:
+    - Name: BriefExists
+      Requires:
+        - Type: FileExists
+          Path: .fuseraft/artifacts/sessions/{session_id}/brief.json
+
+    - Name: ImplementationComplete
+      Requires:
+        - Type: FilesWritten
+          Source: .fuseraft/artifacts/sessions/{session_id}/brief.json
+          Field: files_to_change
+        - Type: CommandSucceeded
+          Pattern: "build|compile"
+
+    - Name: TestsValid
+      Requires:
+        - Type: FileExists
+          Path: .fuseraft/artifacts/test-report.json
+        - Type: TestReport
+          NoFailures: true
+          HasAssertions: true
+
+  FailureHandling:
+    MissingEvidence:
+      Action: Reinstruct
+      Threshold: 3
+    ConflictingEvidence:
+      Action: Reinstruct
+      Threshold: 2
+    NoProgress:
+      Action: Abort
+      Threshold: 3
+    # Hard backstop: escalate to HITL after this many consecutive contract
+    # failures on any transition, regardless of per-type action. Prevents
+    # Reinstruct from looping indefinitely when a contract cannot be satisfied.
+    MaxConsecutiveContractFailures: 6
+    # Escalate to HITL when an agent runs this many turns without emitting
+    # any routing signal. Survives compaction — unlike the history-scan loop
+    # warning — so it catches agents stuck after repeated compaction cycles.
+    MaxConsecutiveTurnsWithoutSignal: 8
+
+  Verifier:
+    AgentName: Verifier
+    EveryNTurns: 5
+    TriggerOnSuspiciousTransition: true
+    FindingsKeyword: INCONSISTENCY
+
+  Compaction:
+    TriggerTurnCount: 30
+    KeepRecentTurns: 8
+    Mode: lossless
+
+  # WarnTurnTokens: warn when a single turn's input exceeds this value.
+  # Keep this below ContextBudget.CutoverAt so the warning fires before
+  # compaction is forced, giving an advance signal rather than a post-hoc note.
+  WarnTurnTokens: 60000
+
+  # ContextBudget: per-agent cumulative input-token thresholds. Warns before
+  # context rot sets in, then triggers compaction automatically. Counters reset
+  # after each compaction cycle so the session can run indefinitely.
+  # MaxSingleTurnInputTokens guards against single-turn explosions that exhaust
+  # the cumulative budget in one shot — compaction fires before the next turn.
+  ContextBudget:
+    WarnAt: 60000
+    CutoverAt: 100000
+    MaxSingleTurnInputTokens: 200000
 
   Events:
     Path: .fuseraft/logs/events.jsonl
@@ -30,70 +91,65 @@ Orchestration:
   # Each agent lives in its own YAML file in agents/ — edit, version, or reuse
   # them independently across configs. Inline fields override the file at load time.
   Agents:
-    - AgentFile: agents/archaeologist.yaml
     - AgentFile: agents/planner.yaml
     - AgentFile: agents/developer.yaml
+    - AgentFile: agents/tester.yaml
     - AgentFile: agents/reviewer.yaml
-    - AgentFile: agents/approved.yaml
+    - AgentFile: agents/verifier.yaml
 
   Selection:
-    Type: graph
-    Graph:
-      EntryNode: recon
-      MaxRetries: 4
+    Type: statemachine
+    StateMachine:
+      Initial: Planning
 
-      Nodes:
-        - Id: recon
-          Agent: Archaeologist
-        - Id: planner
+      States:
+        Planning:
           Agent: Planner
-        - Id: developer
+          Transitions:
+            - To: Implementation
+              Signal: "HANDOFF TO DEVELOPER"
+              Contract: BriefExists
+
+        Implementation:
           Agent: Developer
-        - Id: reviewer
-          Agent: Reviewer             # routes on keyword — NOT terminal
-        - Id: approved                # terminal node — session ends after this run
-          Agent: Approved
+          Transitions:
+            - To: Testing
+              Signal: "HANDOFF TO TESTER"
+              Contract: ImplementationComplete
+              HandoffContext:
+                - Source: session_context
+                - Source: changes_recent
+                - Source: brief_field:test_targets
+            - To: Planning
+              Signal: "REPLAN REQUIRED"
+
+        Testing:
+          Agent: Tester
+          Transitions:
+            - To: Review
+              Signal: "HANDOFF TO REVIEWER"
+              Contract: TestsValid
+              HandoffContext:
+                - Source: session_context
+                - Source: changes_recent
+                - Source: file:.fuseraft/artifacts/test-report.json
+            - To: Implementation
+              Signal: "BUGS FOUND"
+              HandoffContext:
+                - Source: session_context
+                - Source: changes_recent
+
+        Review:
+          Agent: Reviewer
+          Transitions:
+            - To: Done
+              Signal: APPROVED
+            - To: Implementation
+              Signal: "REVISION REQUIRED"
+
+        Done:
+          Agent: Reviewer
           Terminal: true
-
-      # Key pattern: Reviewer routes to TWO different back-edge targets
-      # "REVISION REQUIRED" → developer  (fix is targeted; recon/planning stay valid)
-      # "REPLAN REQUIRED"   → planner    (approach is wrong; needs a new brief)
-      # This cannot be expressed in a state machine without duplicating states or
-      # adding a routing guard — in graph it is simply two labelled edges.
-      Edges:
-        # Forward edges
-        - From: recon
-          To: planner
-          Keyword: "RECON COMPLETE"
-          Validators: [RequireWriteFile]       # blocks until discovery files are written
-
-        - From: planner
-          To: developer
-          Keyword: "HANDOFF TO DEVELOPER"
-          Validators: [RequireBrief]           # blocks until brief.json is valid
-
-        - From: developer
-          To: reviewer
-          Keyword: "HANDOFF TO REVIEWER"
-          Validators: [RequireWriteFile]       # blocks until at least one file is written
-
-        - From: reviewer
-          To: approved
-          Keyword: "APPROVED"
-          Validators: [RequireReviewJudgement] # blocks until a review JSON block exists
-
-        # Back-edges
-        - From: reviewer
-          To: developer
-          Keyword: "REVISION REQUIRED"         # targeted fix → restart from developer
-
-        - From: reviewer
-          To: planner
-          Keyword: "REPLAN REQUIRED"           # rethink approach → restart from planner
-
-        - From: developer
-          To: planner
-          Keyword: "REPLAN REQUIRED"           # developer can also escalate to planner
 
   Termination:
     Type: composite
@@ -105,42 +161,15 @@ Orchestration:
         MaxIterations: 60
 
   # ---------------------------------------------------------------------------
-  # OPTIONAL EXTRAS — uncomment as needed
+  # OPTIONAL EXTRAS — uncomment and fill in as needed
   # ---------------------------------------------------------------------------
 
-  # EvidenceStore:
-  #   Path: .fuseraft/state/evidence.json
+  # MaxTotalTokens: 500000
 
-  # Contracts:
-  #   - Name: ReconComplete
-  #     Requires:
-  #       - Type: FileExists
-  #         Path: .fuseraft/brief.brownfield.json
-  #       - Type: FileExists
-  #         Path: .fuseraft/conventions.json
-  #   - Name: BriefExists
-  #     Requires:
-  #       - Type: FileExists
-  #         Path: .fuseraft/brief.json
-
-  # FailureHandling:
-  #   MissingEvidence:
-  #     Action: Reinstruct
-  #     Threshold: 3
-  #   NoProgress:
-  #     Action: Abort
-  #     Threshold: 3
-
-  Compaction:
-    TriggerTurnCount: 30
-    KeepRecentTurns: 8
-    Mode: lossless
-
-  # ContextBudget: per-agent cumulative input-token thresholds. Warns before
-  # context rot sets in, then triggers compaction automatically. Requires Compaction.
-  # ContextBudget:
-  #   WarnAt: 80000
-  #   CutoverAt: 120000
+  # McpServers:
+  #   - Name: my-mcp-server
+  #     Command: npx
+  #     Args: [-y, "@modelcontextprotocol/server-filesystem", "."]
 
   # Checkpoint:
   #   Mode: json
@@ -148,6 +177,7 @@ Orchestration:
 
   # Models:
   #   fast:
-  #     ModelId: grok-4
+  #     ModelId: grok-4.3
   #   reasoning:
-  #     ModelId: grok-4
+  #     ModelId: grok-4.3
+  #     ReasoningEffort: low
