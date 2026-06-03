@@ -21,3 +21,4 @@ kiwi-notes.md
 !.fuseraft/context/**
 !.fuseraft/architecture.yaml
 tmp/
+task.md
