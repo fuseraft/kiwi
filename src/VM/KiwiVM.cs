@@ -2902,6 +2902,15 @@ public sealed class KiwiVM
         {
             var kstruct = _context.Structs[structName];
             var callArgs = new object[] { kstruct }.Concat(args.Select(a => (object)a)).ToArray();
+            var delParams = fn.Delegate.Method.GetParameters();
+            if (callArgs.Length < delParams.Length)
+            {
+                var padded = new object[delParams.Length];
+                Array.Copy(callArgs, padded, callArgs.Length);
+                for (int i = callArgs.Length; i < delParams.Length; i++)
+                    padded[i] = null;
+                callArgs = padded;
+            }
             return (Value)fn.Delegate.DynamicInvoke(callArgs)!;
         }
 
