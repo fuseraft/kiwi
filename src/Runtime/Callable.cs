@@ -61,6 +61,7 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     /// that happen to share the same name.
     /// </summary>
     public bool IsPackageFunction { get; set; }
+    public Delegate? Delegate { get; set; }
 
     /// <summary>
     /// The name of the struct that declared this method (empty for free functions).
@@ -214,7 +215,19 @@ public static class TypeBuiltins
 
     public static void RegisterEnumBuiltins()
     {
-        // Enum builtins registered via TypeBuiltins or KiwiVM; placeholder to satisfy compile
+        int enumType = TypeRegistry.GetType("enum");
+        TypeBuiltins.Register(enumType, "size", CreateEnumBuiltin("size", EnumPackage.Size));
+        TypeBuiltins.Register(enumType, "keys", CreateEnumBuiltin("keys", EnumPackage.Keys));
+        TypeBuiltins.Register(enumType, "values", CreateEnumBuiltin("values", EnumPackage.Values));
+        TypeBuiltins.Register(enumType, "to_hashmap", CreateEnumBuiltin("to_hashmap", EnumPackage.ToHashmap));
+        TypeBuiltins.Register(enumType, "get", CreateEnumBuiltin("get", EnumPackage.Get));
+    }
+
+    private static KFunction CreateEnumBuiltin(string name, Delegate d)
+    {
+        var fn = new KFunction(new FunctionNode { Name = name });
+        fn.Delegate = d;
+        return fn;
     }
 
     public static bool TryGetBuiltin(int type, string name, out KFunction? func)
