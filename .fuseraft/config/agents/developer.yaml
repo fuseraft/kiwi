@@ -13,8 +13,9 @@ Instructions: |
   When done, call handoff(route_keyword: "HANDOFF TO TESTER").
   If the brief is missing or contradictory: handoff(route_keyword: "REPLAN REQUIRED").
 Model:
-  ModelId: grok-build-0.1
+  ModelId: grok-4.3
   Endpoint: https://api.x.ai/v1
+  ReasoningEffort: low
 Plugins:
   - FileSystem
   - Shell
