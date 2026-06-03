@@ -31,6 +31,8 @@ Orchestration:
           Field: files_to_change
         - Type: CommandSucceeded
           Pattern: "build|compile"
+        - Type: CommandSucceeded
+          PatternField: "verify_command"
 
     - Name: TestsValid
       Requires:
@@ -122,6 +124,10 @@ Orchestration:
                 - Source: brief_field:test_targets
             - To: Planning
               Signal: "REPLAN REQUIRED"
+              HandoffContext:
+                - Source: session_context
+                - Source: changes_recent
+                - Source: file:.fuseraft/artifacts/test-report.json
 
         Testing:
           Agent: Tester
@@ -138,6 +144,7 @@ Orchestration:
               HandoffContext:
                 - Source: session_context
                 - Source: changes_recent
+                - Source: file:.fuseraft/artifacts/test-report.json
 
         Review:
           Agent: Reviewer
