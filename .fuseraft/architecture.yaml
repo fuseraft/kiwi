@@ -1,0 +1,54 @@
+# Architecture layer manifest — fuseraft arch check reads this file.
+# Kiwi interpreter layers based on src/ structure.
+Layers:
+  - Name: Configuration
+    Paths:
+      - src/Configuration/
+    MayDependOn: []
+
+  - Name: Parsing
+    Paths:
+      - src/Parsing/
+    MayDependOn:
+      - Configuration
+
+  - Name: Typing
+    Paths:
+      - src/Typing/
+    MayDependOn:
+      - Configuration
+
+  - Name: Tracing
+    Paths:
+      - src/Tracing/
+    MayDependOn:
+      - Configuration
+
+  - Name: VM
+    Paths:
+      - src/VM/
+    MayDependOn:
+      - Parsing
+      - Typing
+      - Configuration
+
+  - Name: Runtime
+    Paths:
+      - src/Runtime/
+    MayDependOn:
+      - Parsing
+      - VM
+      - Typing
+      - Tracing
+      - Configuration
+
+  - Name: Core
+    Paths:
+      - src/Program.cs
+    MayDependOn:
+      - Configuration
+      - Parsing
+      - VM
+      - Runtime
+      - Typing
+      - Tracing

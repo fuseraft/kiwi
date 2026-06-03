@@ -19,4 +19,5 @@ kiwi-notes.md
 !.fuseraft/config/**
 !.fuseraft/context/
 !.fuseraft/context/**
+!.fuseraft/architecture.yaml
 tmp/
