@@ -80,3 +80,19 @@ fn test_enums()
   end
   tester::assert(result == "not found", "A21: enum value works in conditional")
 end
+
+enum Status
+  Pending
+  Active
+  Inactive
+end
+
+tester::assert(Status.size() == 3)
+tester::assert(Status.keys() == ["Pending", "Active", "Inactive"])
+tester::assert(Status.values() == [0, 1, 2])
+hm = Status.to_hashmap()
+tester::assert(hm.size() == 3)
+tester::assert(Status.get("Pending") == 0)
+tester::assert(Status.get("Missing", -1) == -1)
+try Status.get("Missing") catch e tester::assert(e != null) end
+end

@@ -2,6 +2,9 @@ using kiwi.Parsing.AST;
 using kiwi.Parsing;
 using kiwi.Typing;
 using kiwi.VM;
+using kiwi.Typing;
+
+using kiwi.Packages;
 
 namespace kiwi.Runtime;
 
@@ -191,6 +194,8 @@ public static class TypeBuiltins
 {
     private static Dictionary<int, Dictionary<string, KFunction>> builtins = [];
 
+
+
     public static void Register(int type, string name, KFunction func)
     {
         if (!builtins.TryGetValue(type, out Dictionary<string, KFunction>? map))
@@ -205,6 +210,16 @@ public static class TypeBuiltins
         }
 
         map.Add(name, func);
+    }
+
+    public static void RegisterEnumBuiltins()
+    {
+        int enumType = TypeRegistry.GetEnumType();
+        Register(enumType, "size", new KFunction(EnumPackage.Size));
+        Register(enumType, "keys", new KFunction(EnumPackage.Keys));
+        Register(enumType, "values", new KFunction(EnumPackage.Values));
+        Register(enumType, "to_hashmap", new KFunction(EnumPackage.ToHashmap));
+        Register(enumType, "get", new KFunction(EnumPackage.Get));
     }
 
     public static bool TryGetBuiltin(int type, string name, out KFunction? func)
