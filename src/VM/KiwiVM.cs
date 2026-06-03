@@ -133,6 +133,7 @@ public sealed class KiwiVM
         _context = new KContext();
         _globals = new Scope();
         _globals.Declare("global", Value.CreateHashmap());
+        TypeBuiltins.RegisterEnumBuiltins();
         Current = this;
     }
 
@@ -1887,6 +1888,8 @@ public sealed class KiwiVM
                         var kenum = _pendingStructs.Pop();
                         _context.Structs[kenum.Name] = kenum;
                         InvalidateName(kenum.Name);
+                        // register enum builtins for this concrete type name
+                        TypeBuiltins.RegisterEnumBuiltinsForName(kenum.Name);
                         break;
                     }
 
@@ -2823,6 +2826,12 @@ public sealed class KiwiVM
     private bool TryResolveStructMethod(KStruct struc, InstanceRef obj, string methodName, out KFunction? fn)
     {
         if (struc.Methods.TryGetValue(methodName, out fn)) return true;
+        if (struc.IsEnum)
+        {
+            int enumType = TypeRegistry.GetType("enum");
+            if (TypeBuiltins.TryGetBuiltin(enumType, methodName, out fn) && fn != null) return true;
+            if (TypeBuiltins.TryGetBuiltinForName(struc.Name, methodName, out fn) && fn != null) return true;
+        }
         if (!string.IsNullOrEmpty(struc.BaseStruct) && _context.HasStruct(struc.BaseStruct))
             return TryResolveStructMethod(_context.Structs[struc.BaseStruct], obj, methodName, out fn);
         fn = null;
