@@ -8,6 +8,7 @@ using kiwi.Runtime.Builtin.Handler;
 using kiwi.Runtime.Builtin.Operation;
 using kiwi.Runtime.Builtin.Dispatcher;
 using kiwi.Runtime.Builtin.Util;
+using kiwi.Packages;
 using kiwi.Settings;
 using kiwi.Tracing;
 using kiwi.Tracing.Error;
@@ -2661,6 +2662,7 @@ public sealed class KiwiVM
 
     internal void RegisterTypeBuiltins(string packageName)
     {
+        TypeBuiltins.RegisterEnumBuiltins();
         if (TypeRegistry.TryGetPrimitiveType(packageName, out int type))
         {
             var prefix = packageName + "::";
@@ -2690,6 +2692,14 @@ public sealed class KiwiVM
             }
             throw new PackageUndefinedError(token, packageNameValue);
         }
+
+        if (packageNameValue == "enum")
+        {
+            EnumPackage.RegisterBuiltins();
+            _context.ImportedPackages.Add(packageNameValue);
+            return;
+        }
+        // dispatch for .size etc on IsEnum KStruct handled in CallInstruction via TypeBuiltins
 
         PackageStack.Push(packageNameValue);
         var decl = _context.Packages[packageNameValue].Decl;

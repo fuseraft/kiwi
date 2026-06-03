@@ -2,6 +2,15 @@
 
 Enums define a named set of constant values. They are useful for representing a fixed collection of related states, codes, or categories.
 
+## Builtins
+
+- `.size()`: integer count of members
+- `.keys()`: list of string names
+- `.values()`: list of values
+- `.to_hashmap()`: hashmap name->value
+- `.get(key, default?)`: value or default or error
+.size, .keys, .values, .to_hashmap, .get added for iteration and access.
+
 ---
 
 ## Defining an Enum
