@@ -2884,7 +2884,9 @@ public sealed class KiwiVM
                 int enumType = TypeRegistry.GetType("enum");
                 if (TypeBuiltins.TryGetBuiltin(enumType, methodName, out fn) && fn != null)
                     enumBuiltin = true;
-                else if (TypeBuiltins.TryGetBuiltinForName(structName, methodName, out fn) && fn != null)
+                if (!enumBuiltin && TypeBuiltins.TryGetBuiltinForName(structName, methodName, out fn) && fn != null)
+                    enumBuiltin = true;
+                if (!enumBuiltin && TypeBuiltins.TryGetBuiltin(enumType, methodName, out fn) && fn != null)
                     enumBuiltin = true;
             }
             if (fn == null)
@@ -2898,7 +2900,13 @@ public sealed class KiwiVM
             }
         }
 
-        if (enumBuiltin && fn != null && fn.Delegate != null)
+        if (methodName == "new")
+        {
+            var inst = new InstanceRef { StructName = structName, Identifier = structName };
+            InvokeCallable(fn, args, token, methodName, inst);
+            return Value.CreateObject(inst);
+        }
+        if (enumBuiltin)
         {
             var kstruct = _context.Structs[structName];
             var callArgs = new object[] { kstruct }.Concat(args.Select(a => (object)a)).ToArray();
@@ -2907,18 +2915,10 @@ public sealed class KiwiVM
             {
                 var padded = new object[delParams.Length];
                 Array.Copy(callArgs, padded, callArgs.Length);
-                for (int i = callArgs.Length; i < delParams.Length; i++)
-                    padded[i] = null;
+                for (int i = callArgs.Length; i < delParams.Length; i++) padded[i] = null;
                 callArgs = padded;
             }
             return (Value)fn.Delegate.DynamicInvoke(callArgs)!;
-        }
-
-        if (methodName == "new")
-        {
-            var inst = new InstanceRef { StructName = structName, Identifier = structName };
-            InvokeCallable(fn, args, token, methodName, inst);
-            return Value.CreateObject(inst);
         }
         var self = new InstanceRef { StructName = structName, Identifier = structName };
         return InvokeCallable(fn, args, token, methodName, self);
