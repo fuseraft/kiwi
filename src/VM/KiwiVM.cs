@@ -2855,6 +2855,21 @@ public sealed class KiwiVM
         return false;
     }
 
+    private Value InvokeEnumBuiltin(KFunction fn, string structName, IReadOnlyList<Value> args)
+    {
+        var kstruct = _context.Structs[structName];
+        var callArgs = new object[] { kstruct }.Concat(args.Select(a => (object)a)).ToArray();
+        var delParams = fn.Delegate.Method.GetParameters();
+        if (callArgs.Length < delParams.Length)
+        {
+            var padded = new object[delParams.Length];
+            Array.Copy(callArgs, padded, callArgs.Length);
+            for (int i = callArgs.Length; i < delParams.Length; i++) padded[i] = null;
+            callArgs = padded;
+        }
+        return (Value)fn.Delegate.DynamicInvoke(callArgs)!;
+    }
+
     private Value CallStructMethodDirect(Token token, string methodName, StructRef sref, IReadOnlyList<Value> args)
     {
         var structName = sref.Identifier;
@@ -2876,18 +2891,15 @@ public sealed class KiwiVM
                 : null;
         }
 
-        bool enumBuiltin = false;
         if (fn == null)
         {
             if (struc.IsEnum)
             {
                 int enumType = TypeRegistry.GetType("enum");
                 if (TypeBuiltins.TryGetBuiltin(enumType, methodName, out fn) && fn != null)
-                    enumBuiltin = true;
-                if (!enumBuiltin && TypeBuiltins.TryGetBuiltinForName(structName, methodName, out fn) && fn != null)
-                    enumBuiltin = true;
-                if (!enumBuiltin && TypeBuiltins.TryGetBuiltin(enumType, methodName, out fn) && fn != null)
-                    enumBuiltin = true;
+                    goto invokeEnum;
+                if (TypeBuiltins.TryGetBuiltinForName(structName, methodName, out fn) && fn != null)
+                    goto invokeEnum;
             }
             if (fn == null)
             {
@@ -2906,22 +2918,9 @@ public sealed class KiwiVM
             InvokeCallable(fn, args, token, methodName, inst);
             return Value.CreateObject(inst);
         }
-        if (enumBuiltin)
-        {
-            var kstruct = _context.Structs[structName];
-            var callArgs = new object[] { kstruct }.Concat(args.Select(a => (object)a)).ToArray();
-            var delParams = fn.Delegate.Method.GetParameters();
-            if (callArgs.Length < delParams.Length)
-            {
-                var padded = new object[delParams.Length];
-                Array.Copy(callArgs, padded, callArgs.Length);
-                for (int i = callArgs.Length; i < delParams.Length; i++) padded[i] = null;
-                callArgs = padded;
-            }
-            return (Value)fn.Delegate.DynamicInvoke(callArgs)!;
-        }
-        var self = new InstanceRef { StructName = structName, Identifier = structName };
-        return InvokeCallable(fn, args, token, methodName, self);
+
+invokeEnum:
+        return InvokeEnumBuiltin(fn, structName, args);
     }
 
     private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, IReadOnlyList<Value> args)
