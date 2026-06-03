@@ -223,6 +223,17 @@ public static class TypeBuiltins
         TypeBuiltins.Register(enumType, "get", CreateEnumBuiltin("get", EnumPackage.Get));
     }
 
+    public static void RegisterEnumBuiltinsForName(string enumName)
+    {
+        TypeRegistry.RegisterType(enumName);
+        int type = TypeRegistry.GetType(enumName);
+        TypeBuiltins.Register(type, "size", CreateEnumBuiltin("size", EnumPackage.Size));
+        TypeBuiltins.Register(type, "keys", CreateEnumBuiltin("keys", EnumPackage.Keys));
+        TypeBuiltins.Register(type, "values", CreateEnumBuiltin("values", EnumPackage.Values));
+        TypeBuiltins.Register(type, "to_hashmap", CreateEnumBuiltin("to_hashmap", EnumPackage.ToHashmap));
+        TypeBuiltins.Register(type, "get", CreateEnumBuiltin("get", EnumPackage.Get));
+    }
+
     private static KFunction CreateEnumBuiltin(string name, Delegate d)
     {
         var fn = new KFunction(new FunctionNode { Name = name });
@@ -243,5 +254,11 @@ public static class TypeBuiltins
 
         func = null;
         return false;
+    }
+
+    public static bool TryGetBuiltinForName(string name, string method, out KFunction? func)
+    {
+        int type = TypeRegistry.GetType(name);
+        return TryGetBuiltin(type, method, out func);
     }
 }
