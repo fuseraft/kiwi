@@ -2487,8 +2487,25 @@ public sealed class KiwiVM
     public Value InvokeCallable(Callable callable, IReadOnlyList<Value> args, Token token, string displayName, InstanceRef? instance = null)
     {
         var vm = KiwiVM.Current ?? this;
-        if (callable is KFunction kf && kf.VMChunk != null)
-            return vm.InvokeVMCallable(kf, args, token, instance);
+        if (callable is KFunction kf)
+        {
+            if (kf.Delegate != null)
+            {
+                var a = args.ToArray();
+                try { return (Value)kf.Delegate.DynamicInvoke(a)!; }
+                catch
+                {
+                    if (instance != null)
+                    {
+                        var sa = new[] { Value.CreateObject(instance) }.Concat(a).ToArray();
+                        return (Value)kf.Delegate.DynamicInvoke(sa)!;
+                    }
+                    throw;
+                }
+            }
+            if (kf.VMChunk != null)
+                return vm.InvokeVMCallable(kf, args, token, instance);
+        }
         if (callable is KLambda kl && kl.VMChunk != null)
             return vm.InvokeVMCallable(kl, args, token, instance);
         throw new InvalidOperationError(token, $"Callable `{displayName}` has no compiled VM chunk.");
@@ -2859,14 +2876,33 @@ public sealed class KiwiVM
                 : null;
         }
 
+        bool enumBuiltin = false;
         if (fn == null)
         {
-            if (methodName == "new")
+            if (struc.IsEnum)
             {
-                var inst = new InstanceRef { StructName = structName, Identifier = structName };
-                return Value.CreateObject(inst);
+                int enumType = TypeRegistry.GetType("enum");
+                if (TypeBuiltins.TryGetBuiltin(enumType, methodName, out fn) && fn != null)
+                    enumBuiltin = true;
+                else if (TypeBuiltins.TryGetBuiltinForName(structName, methodName, out fn) && fn != null)
+                    enumBuiltin = true;
             }
-            throw new UnimplementedMethodError(token, structName, methodName);
+            if (fn == null)
+            {
+                if (methodName == "new")
+                {
+                    var inst = new InstanceRef { StructName = structName, Identifier = structName };
+                    return Value.CreateObject(inst);
+                }
+                throw new UnimplementedMethodError(token, structName, methodName);
+            }
+        }
+
+        if (enumBuiltin && fn != null && fn.Delegate != null)
+        {
+            var kstruct = _context.Structs[structName];
+            var callArgs = new object[] { kstruct }.Concat(args.Select(a => (object)a)).ToArray();
+            return (Value)fn.Delegate.DynamicInvoke(callArgs)!;
         }
 
         if (methodName == "new")
@@ -2875,8 +2911,8 @@ public sealed class KiwiVM
             InvokeCallable(fn, args, token, methodName, inst);
             return Value.CreateObject(inst);
         }
-        var structSelf = new InstanceRef { StructName = structName, Identifier = structName };
-        return InvokeCallable(fn, args, token, methodName, structSelf);
+        var self = new InstanceRef { StructName = structName, Identifier = structName };
+        return InvokeCallable(fn, args, token, methodName, self);
     }
 
     private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, IReadOnlyList<Value> args)
