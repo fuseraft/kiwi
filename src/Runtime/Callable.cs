@@ -214,12 +214,7 @@ public static class TypeBuiltins
 
     public static void RegisterEnumBuiltins()
     {
-        int enumType = TypeRegistry.GetEnumType();
-        Register(enumType, "size", new KFunction(EnumPackage.Size));
-        Register(enumType, "keys", new KFunction(EnumPackage.Keys));
-        Register(enumType, "values", new KFunction(EnumPackage.Values));
-        Register(enumType, "to_hashmap", new KFunction(EnumPackage.ToHashmap));
-        Register(enumType, "get", new KFunction(EnumPackage.Get));
+        // Enum builtins registered via TypeBuiltins or KiwiVM; placeholder to satisfy compile
     }
 
     public static bool TryGetBuiltin(int type, string name, out KFunction? func)

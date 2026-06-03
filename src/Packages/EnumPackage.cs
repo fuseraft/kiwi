@@ -48,6 +48,6 @@ public static class EnumPackage
             return v;
         if (def != null)
             return def;
-        throw new InvalidOperationError(new Token(TokenType.EOF, ""), $"Enum member '{k}' not found");
+        throw new Exception($"Enum member '{k}' not found");
     }
 }
