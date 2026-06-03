@@ -46,6 +46,8 @@ public static class EnumPackage
         string k = key.GetString();
         if (enm.StaticVariables.TryGetValue(k, out var v))
             return v;
+        if (enm.StaticVariables.TryGetValue("@@" + k, out v))
+            return v;
         if (def != null)
             return def;
         throw new Exception($"Enum member '{k}' not found");
