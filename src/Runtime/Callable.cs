@@ -215,6 +215,8 @@ public static class TypeBuiltins
 
     public static void RegisterEnumBuiltins()
     {
+        if (!TypeRegistry.IsRegistered("enum"))
+            TypeRegistry.RegisterType("enum");
         int enumType = TypeRegistry.GetType("enum");
         TypeBuiltins.Register(enumType, "size", CreateEnumBuiltin("size", EnumPackage.Size));
         TypeBuiltins.Register(enumType, "keys", CreateEnumBuiltin("keys", EnumPackage.Keys));
@@ -225,7 +227,8 @@ public static class TypeBuiltins
 
     public static void RegisterEnumBuiltinsForName(string enumName)
     {
-        TypeRegistry.RegisterType(enumName);
+        if (!TypeRegistry.IsRegistered(enumName))
+            TypeRegistry.RegisterType(enumName);
         int type = TypeRegistry.GetType(enumName);
         TypeBuiltins.Register(type, "size", CreateEnumBuiltin("size", EnumPackage.Size));
         TypeBuiltins.Register(type, "keys", CreateEnumBuiltin("keys", EnumPackage.Keys));
@@ -258,7 +261,13 @@ public static class TypeBuiltins
 
     public static bool TryGetBuiltinForName(string name, string method, out KFunction? func)
     {
-        int type = TypeRegistry.GetType(name);
-        return TryGetBuiltin(type, method, out func);
+        if (TypeRegistry.IsRegistered(name))
+        {
+            int type = TypeRegistry.GetType(name);
+            if (TryGetBuiltin(type, method, out func)) return true;
+        }
+        // fallback to base enum type
+        int enumType = TypeRegistry.GetType("enum");
+        return TryGetBuiltin(enumType, method, out func);
     }
 }
