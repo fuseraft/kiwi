@@ -2897,9 +2897,9 @@ public sealed class KiwiVM
             {
                 int enumType = TypeRegistry.GetType("enum");
                 if (TypeBuiltins.TryGetBuiltin(enumType, methodName, out fn) && fn != null)
-                    goto invokeEnum;
+                    return InvokeEnumBuiltin(fn, structName, args);
                 if (TypeBuiltins.TryGetBuiltinForName(structName, methodName, out fn) && fn != null)
-                    goto invokeEnum;
+                    return InvokeEnumBuiltin(fn, structName, args);
             }
             if (fn == null)
             {
@@ -2918,9 +2918,8 @@ public sealed class KiwiVM
             InvokeCallable(fn, args, token, methodName, inst);
             return Value.CreateObject(inst);
         }
-
-invokeEnum:
-        return InvokeEnumBuiltin(fn, structName, args);
+        var structSelf = new InstanceRef { StructName = structName, Identifier = structName };
+        return InvokeCallable(fn, args, token, methodName, structSelf);
     }
 
     private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, IReadOnlyList<Value> args)

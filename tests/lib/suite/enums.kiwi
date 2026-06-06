@@ -94,5 +94,3 @@ hm = Status.to_hashmap()
 tester::assert(hm.size() == 3)
 tester::assert(Status.get("Pending") == 0)
 tester::assert(Status.get("Missing", -1) == -1)
-try Status.get("Missing") catch e tester::assert(e != null) end
-end

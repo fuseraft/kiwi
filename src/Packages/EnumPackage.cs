@@ -23,7 +23,7 @@ public static class EnumPackage
 
     public static Value Keys(KStruct enm)
     {
-        var keys = enm.StaticVariables.Keys.Select(k => Value.CreateString(k)).ToList();
+        var keys = enm.StaticVariables.Keys.Select(k => Value.CreateString(k.StartsWith("@@") ? k[2..] : k)).ToList();
         return Value.CreateList(keys);
     }
 
@@ -37,7 +37,10 @@ public static class EnumPackage
     {
         var dict = new Dictionary<Value, Value>();
         foreach (var kv in enm.StaticVariables)
-            dict[Value.CreateString(kv.Key)] = kv.Value;
+        {
+            var key = kv.Key.StartsWith("@@") ? kv.Key[2..] : kv.Key;
+            dict[Value.CreateString(key)] = kv.Value;
+        }
         return Value.CreateHashmap(dict);
     }
 

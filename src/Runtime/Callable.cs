@@ -2,7 +2,6 @@ using kiwi.Parsing.AST;
 using kiwi.Parsing;
 using kiwi.Typing;
 using kiwi.VM;
-using kiwi.Typing;
 
 using kiwi.Packages;
 
