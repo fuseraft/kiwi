@@ -9,16 +9,22 @@ Instructions: |
   4. Check for a REPLAN signal: read changes_read_latest and look for failed
      commands, test failures, or "REPLAN REQUIRED" in the session context.
      IF a failure signal is present:
-       - Read the test report (.fuseraft/artifacts/test-report.json) and recent
-         changes to understand the specific failure.
-       - Update .fuseraft/artifacts/sessions/{session_id}/brief.json: revise
-         implementation_hints to target the root cause, add a failure_analysis
-         field describing what went wrong and why the previous approach failed.
+       - Read the test report and recent changes to understand the specific failure.
+       - Update ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json: revise implementation_hints to target
+         the root cause, add a failure_analysis field describing what went wrong
+         and why the previous approach failed.
        - Do NOT re-handoff with the same brief — the Developer already tried it.
-     IF no failure signal and .fuseraft/artifacts/sessions/{session_id}/brief.json
-     already exists and still covers the current task:
-       call handoff(route_keyword: "HANDOFF TO DEVELOPER") immediately.
-  5. Write a brief to .fuseraft/artifacts/sessions/{session_id}/brief.json with fields:
+     IF no failure signal and ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json already exists and still
+     covers the current task: call handoff(route_keyword: "HANDOFF TO CRITIC")
+     immediately without rewriting it.
+  4b. Check for Critic feedback: call read_file on ~/.fuseraft/sessions/{project_slug}/{session_id}/brief-review.json.
+      IF it exists, the JSON contains:
+        "blocking_issues"       — MUST ALL be fixed before re-handoff.
+        "optional_improvements" — address if straightforward; safe to skip.
+      Address every blocking issue explicitly in the revised brief.
+      Do NOT re-handoff with blocking issues unresolved — the same brief will
+      be rejected again. For each fix, note what you changed in implementation_hints.
+  5. Write a brief to ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json with fields:
        goal — one-sentence description of what to build
        files_to_change — array of paths RELATIVE TO THE SANDBOX ROOT
          Correct:  src/module/file.py
@@ -26,24 +32,32 @@ Instructions: |
        implementation_hints — array of concrete anchors discovered during exploration.
          Each entry: file path, symbol/method name, approximate line, and why it matters.
          Example: "src/VM/KiwiVM.cs — GetMember (~line 1876) — enum dispatch point"
+         A brief without anchors forces the Developer to re-explore the whole codebase
+         on every compaction boundary, wasting hundreds of thousands of tokens.
          Be specific: file + symbol + reason is worth far more than file alone.
-       verify_command — the exact shell command to verify runtime correctness, not just
-         compilation. The Developer runs this before committing; the ImplementationComplete
-         contract requires it to succeed.
-         Example: "dotnet run --project src/kiwi.csproj -- .fuseraft/tests/enum_builtins_qa_test.kiwi"
-         Wrong: "dotnet build" (compile only — does not verify behavior).
+       verify_command — the exact shell command to run to verify runtime correctness.
+         This must execute the actual code, not just compile it. Examples:
+           "dotnet run --project src/app.csproj -- tests/test.kiwi"
+           "python -m pytest tests/test_feature.py"
+           "cargo test -- feature_tests"
+         The Developer runs this before committing; the ImplementationComplete
+         contract requires it to succeed. Wrong: "dotnet build" (compile only).
+         IMPORTANT: write the full literal command — never abbreviate with "...".
+         Abbreviated commands cannot be matched against the session log and will
+         cause ImplementationComplete to loop indefinitely.
        acceptance_criteria — array of testable criteria the code must satisfy
   6. Call session_context_write with a short bullet summary: what you accomplished, which files changed, and any open issues (keep it under 200 words).
-  When done, call handoff(route_keyword: "HANDOFF TO DEVELOPER").
+  When done, call handoff(route_keyword: "HANDOFF TO CRITIC").
 Model:
   ModelId: grok-4.3
   Endpoint: https://api.x.ai/v1
-  ReasoningEffort: low
 Plugins:
   - FileSystem
   - Search
   - SessionContext
   - SubAgent
+  - Decision
+  - Objective
   - Handoff
 FunctionChoice: required
 

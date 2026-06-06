@@ -1,38 +1,37 @@
 Orchestration:
   Name: Software Development Team
   Description: >-
-    Planner → Developer → Tester → Reviewer with state machine routing,
+    Planner → PlannerCritic → Developer → Tester → Reviewer with state machine routing,
     evidence contracts, failure handling, and self-verification.
 
   Security:
     FileSystemSandboxPath: .   # set to your project root (e.g. ~/projects/myapp)
 
   EvidenceStore:
-    Path: .fuseraft/state/evidence.json
+    Path: ~/.fuseraft/state/{project_slug}/evidence.json
 
   ChangeTracking:
-    Path: .fuseraft/state/changes.json
+    Path: ~/.fuseraft/state/{project_slug}/changes.json
 
   Validation:
-    BriefPath: .fuseraft/artifacts/sessions/{session_id}/brief.json
+    BriefPath: ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json
     TestReportPath: .fuseraft/artifacts/test-report.json
-    ChangeLogPath: .fuseraft/state/changes.json
+    ChangeLogPath: ~/.fuseraft/state/{project_slug}/changes.json
 
   Contracts:
     - Name: BriefExists
       Requires:
         - Type: FileExists
-          Path: .fuseraft/artifacts/sessions/{session_id}/brief.json
+          Path: ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json
 
     - Name: ImplementationComplete
       Requires:
         - Type: FilesWritten
-          Source: .fuseraft/artifacts/sessions/{session_id}/brief.json
+          Source: ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json
           Field: files_to_change
         - Type: CommandSucceeded
-          Pattern: "build|compile"
-        - Type: CommandSucceeded
-          PatternField: "verify_command"
+          PatternField: verify_command
+          Pattern: "build|compile|test|check"
 
     - Name: TestsValid
       Requires:
@@ -88,12 +87,13 @@ Orchestration:
     MaxSingleTurnInputTokens: 200000
 
   Events:
-    Path: .fuseraft/logs/events.jsonl
+    Path: ~/.fuseraft/sessions/{project_slug}/{session_id}/events.jsonl
 
   # Each agent lives in its own YAML file in agents/ — edit, version, or reuse
   # them independently across configs. Inline fields override the file at load time.
   Agents:
     - AgentFile: agents/planner.yaml
+    - AgentFile: agents/planner-critic.yaml
     - AgentFile: agents/developer.yaml
     - AgentFile: agents/tester.yaml
     - AgentFile: agents/reviewer.yaml
@@ -108,9 +108,21 @@ Orchestration:
         Planning:
           Agent: Planner
           Transitions:
+            - To: BriefReview
+              Signal: "HANDOFF TO CRITIC"
+
+        BriefReview:
+          Agent: PlannerCritic
+          Transitions:
             - To: Implementation
-              Signal: "HANDOFF TO DEVELOPER"
+              Signal: "BRIEF APPROVED"
               Contract: BriefExists
+            - To: Planning
+              Signal: "BRIEF REJECTED"
+              MaxRevisits: 3
+              ReviewArtifactPath: ~/.fuseraft/sessions/{project_slug}/{session_id}/brief-review.json
+              HandoffContext:
+                - Source: file:~/.fuseraft/sessions/{project_slug}/{session_id}/brief-review.json
 
         Implementation:
           Agent: Developer

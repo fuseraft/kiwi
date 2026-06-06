@@ -1,4 +1,35 @@
 # Architecture layer manifest — fuseraft arch check reads this file.
+#
+# Language: which source files and import statements to scan.
+# Supported values:
+#   csharp (default)  python  java  typescript  javascript  go  rust  ruby
+# Unknown values fall back to csharp.
+#
+Language: csharp
+
+# Layers define named regions of your codebase and their allowed dependencies.
+#
+# Name        — display name used in violation reports.
+# Paths       — source path prefixes that belong to this layer (relative to project root).
+# Namespaces  — module/namespace prefixes owned by this layer.
+#               csharp: inferred as "fuseraft.<Name>" when omitted.
+#               All other languages: must be declared explicitly. Examples:
+#                 python     — myapp.core
+#                 java       — com.example.core
+#                 typescript — src/core  (or @myorg/core for packages)
+#                 go         — github.com/myorg/myrepo/core
+#                 rust       — myapp::core
+#                 ruby       — myapp/core
+# MayDependOn — names of layers this layer is allowed to import from.
+#               Omit or leave empty to forbid all cross-layer imports.
+#
+# Quick start — run `fuseraft repl` and paste this prompt to auto-populate:
+#   "Read the source tree and populate .fuseraft/architecture.yaml with the
+#    actual layers, source paths, namespace prefixes, and MayDependOn rules
+#    for this project. Set Language to the project's primary language.
+#    Use write_file to save the result."
+#
+# Architecture layer manifest — fuseraft arch check reads this file.
 # Kiwi interpreter layers based on src/ structure.
 Layers:
   - Name: Configuration

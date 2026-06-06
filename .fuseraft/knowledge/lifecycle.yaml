@@ -1,0 +1,25 @@
+# Knowledge lifecycle policy — fuseraft knowledge gc reads this file.
+# All values are in days. Run: fuseraft knowledge gc
+#
+# AdrRetentionDays: days after Superseded status before archiving (0 = immediate).
+AdrRetentionDays: 0
+#
+# MemoryReinforceWindowDays: Approved memories not reinforced within this window
+#   are demoted back to Candidate for re-review.
+MemoryReinforceWindowDays: 90
+#
+# ConfidenceDecayDays: Verified provenance claims older than this (with no ExpiresAt)
+#   decay to Inferred. Set to 0 to disable decay.
+ConfidenceDecayDays: 30
+#
+# OrphanedNodeGracePeriodDays: graph nodes with no edges and no recent file touch
+#   are pruned after this many days. Set to 0 to disable.
+OrphanedNodeGracePeriodDays: 7
+#
+# MaxProvenanceAgeDays: expired provenance records (past ExpiresAt) are archived
+#   after this many additional days. 0 = archive immediately.
+MaxProvenanceAgeDays: 0
+#
+# MemoryCandidatePruningDays: Candidate memories not reinforced within this window
+#   are permanently deleted from knowledge/repository/. Set to 0 to disable.
+MemoryCandidatePruningDays: 180
