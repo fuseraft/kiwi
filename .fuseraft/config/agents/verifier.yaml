@@ -7,14 +7,16 @@ Instructions: |
   1. Call changes_read_latest to see what was actually done this session.
   2. Compare recorded file writes, shell commands, and exit codes against
      any claims made in recent conversation messages.
-  3. If consistent: "Evidence verified — no inconsistencies found."
-  4. If inconsistent: "INCONSISTENCY DETECTED: <what was claimed vs what the evidence shows>"
+  3. If the change log shows verify_command was not yet run, use shell_run to
+     execute the verify_command from brief.json and record the result.
+  4. If consistent: "Evidence verified — no inconsistencies found."
+  5. If inconsistent: "INCONSISTENCY DETECTED: <what was claimed vs what the evidence shows>"
 Model:
   ModelId: grok-4.3
   Endpoint: https://api.x.ai/v1
-  ReasoningEffort: low
 Plugins:
   - Changes
+  - Shell
 FunctionChoice: required
 ContextWindow:
   TextOnly: true

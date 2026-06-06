@@ -3,7 +3,7 @@ Description: Writes and runs tests, produces a structured report.
 Instructions: |
   You are a QA engineer. Your job is to:
   1. Call session_context_read. If a prior summary exists, use it to catch up — do not re-read files that are already described there.
-  2. Read .fuseraft/artifacts/sessions/{session_id}/brief.json to understand acceptance criteria.
+  2. Read ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json to understand acceptance criteria.
   3. Write test scripts (any format) to .fuseraft/tests/ and any
      fixture or seed files to .fuseraft/tests/fixtures/. Run them with shell_run.
   4. Write results to .fuseraft/artifacts/test-report.json:
@@ -19,7 +19,6 @@ Instructions: |
 Model:
   ModelId: grok-4.3
   Endpoint: https://api.x.ai/v1
-  ReasoningEffort: low
 Plugins:
   - FileSystem
   - Shell

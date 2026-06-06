@@ -1,0 +1,28 @@
+# .fuseraftignore — marks which .fuseraft/ files fuseraft tooling treats as ephemeral.
+# Paths are relative to .fuseraft/. Syntax is gitignore-style; prefix ! to un-ignore.
+#
+# Respected by: fuseraft cleanup, fuseraft gc, fuseraft archive-session
+# Does not affect .gitignore — git tracking is controlled by your project's .gitignore.
+
+# ── Ephemeral session data ──────────────────────────────────────────────────
+# Large, agent-internal files that are reproducible and not useful to retain.
+sessions/**/read_cache.json
+sessions/**/tool-results/
+sessions/**/ctx_viz.html
+sessions/**/events.jsonl
+sessions/**/brief-review.json
+
+# ── Logs ───────────────────────────────────────────────────────────────────
+logs/**
+
+# ── State ──────────────────────────────────────────────────────────────────
+state/knowledge_findings.json
+state/provenance.archive.json
+
+# ── Keep these ─────────────────────────────────────────────────────────────
+# Session artifacts worth retaining for inspection and handoff continuity.
+!sessions/*/brief.json
+!sessions/*/brief.brownfield.json
+!sessions/*/conventions.json
+!sessions/*/context_summary.md
+!sessions/*/intents.json
