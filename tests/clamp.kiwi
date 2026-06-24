@@ -1,0 +1,3 @@
+print(clamp(5, 0, 10))
+print(clamp(-3, 0, 10))
+print(clamp(15, 0, 10))
