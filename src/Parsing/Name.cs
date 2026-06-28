@@ -56,6 +56,7 @@ public enum TokenName
   Builtin_Core_Append,
   Builtin_Core_BeginsWith,
   Builtin_Core_Between,
+  Builtin_Core_Clamp,
   Builtin_Core_Chars,
   Builtin_Core_Chomp,
   Builtin_Core_Clear,

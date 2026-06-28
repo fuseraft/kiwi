@@ -82,6 +82,7 @@ public static class CoreBuiltinHandler
             TokenName.Builtin_Core_Month => Month(token, value, args),
             TokenName.Builtin_Core_Year => Year(token, value, args),
             TokenName.Builtin_Core_Between => Between(token, value, args),
+            TokenName.Builtin_Core_Clamp => Clamp(token, value, args),
             TokenName.Builtin_Core_RReplace => RReplace(token, value, args),
             TokenName.Builtin_Core_RSplit => RSplit(token, value, args),
             TokenName.Builtin_Core_Find => Find(token, value, args),
@@ -280,6 +281,40 @@ public static class CoreBuiltinHandler
         }
 
         throw new InvalidOperationError(token, $"Invalid type for `{CoreBuiltin.Between}`: {TypeRegistry.GetTypeName(value)}");
+    }
+
+    private static Value Clamp(Token token, Value value, IReadOnlyList<Value> args)
+    {
+        if (args.Count == 3)
+        {
+            ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 0, args[0]);
+            ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 1, args[1]);
+            ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 2, args[2]);
+            var v = args[0].GetNumber();
+            var min = args[1].GetNumber();
+            var max = args[2].GetNumber();
+            return Value.CreateFloat(Math.Clamp(v, min, max));
+        }
+
+        if (args.Count == 2)
+        {
+            ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 0, value);
+            ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 1, args[0]);
+            ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 2, args[1]);
+            var vR = value.GetNumber();
+            var minR = args[0].GetNumber();
+            var maxR = args[1].GetNumber();
+            return Value.CreateFloat(Math.Clamp(vR, minR, maxR));
+        }
+
+        ParameterCountMismatchError.Check(token, CoreBuiltin.Clamp, 2, args.Count);
+        ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 0, value);
+        ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 1, args[0]);
+        ParameterTypeMismatchError.ExpectNumber(token, CoreBuiltin.Clamp, 2, args[1]);
+        var vR2 = value.GetNumber();
+        var minR2 = args[0].GetNumber();
+        var maxR2 = args[1].GetNumber();
+        return Value.CreateFloat(Math.Clamp(vR2, minR2, maxR2));
     }
 
     private static Value Hour(Token token, Value value, IReadOnlyList<Value> args)
