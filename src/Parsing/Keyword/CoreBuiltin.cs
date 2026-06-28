@@ -6,6 +6,7 @@ public static class CoreBuiltin
     public const string Append          = "append";
     public const string BeginsWith      = "begins_with";
     public const string Between         = "between";
+    public const string Clamp           = "clamp";
     public const string Chars           = "chars";
     public const string Chomp           = "chomp";
     public const string Clear           = "clear";
@@ -91,6 +92,7 @@ public static class CoreBuiltin
             { Append,          TokenName.Builtin_Core_Append      },
             { BeginsWith,      TokenName.Builtin_Core_BeginsWith  },
             { Between,         TokenName.Builtin_Core_Between     },
+            { Clamp,           TokenName.Builtin_Core_Clamp       },
             { Chars,           TokenName.Builtin_Core_Chars       },
             { Chomp,           TokenName.Builtin_Core_Chomp       },
             { Clear,           TokenName.Builtin_Core_Clear       },

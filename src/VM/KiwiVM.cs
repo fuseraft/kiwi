@@ -2300,7 +2300,22 @@ public sealed class KiwiVM
         }
 
         if (funcVal.IsNull())
+        {
+            if (callName != null && CoreBuiltin.Map.TryGetValue(callName, out TokenName coreOp))
+            {
+                var coreArgs = CollectArgs(calleeBase, argc);
+                Value coreResult;
+                try
+                {
+                    coreResult = BuiltinDispatch.Execute(token, coreOp, Value.Default, coreArgs);
+                }
+                finally { ReturnArgs(coreArgs); }
+                _sp = funcSlot;
+                Push(coreResult);
+                return false;
+            }
             throw new FunctionUndefinedError(token, callName ?? "<unknown>");
+        }
 
         // Interpreter fallback for builtins / tree-walked functions
         {
@@ -2812,6 +2827,7 @@ public sealed class KiwiVM
         TokenName.Builtin_Core_Keys,
         TokenName.Builtin_Core_Set,
         TokenName.Builtin_Core_Values,
+        TokenName.Builtin_Core_Clamp,
     ];
 
     private Value CallObjectMethodDirect(Token token, string methodName, InstanceRef obj, IReadOnlyList<Value> args)
