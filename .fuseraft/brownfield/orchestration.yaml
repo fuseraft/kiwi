@@ -1,0 +1,131 @@
+Orchestration:
+  Name: Brownfield Pipeline
+  Description: >-
+    Archaeologist → Planner → Developer → Reviewer as a directed graph. One-time recon
+    writes a convention profile and discovery brief; all subsequent agents read these
+    rather than re-exploring the codebase. Reviewer has two back-edge targets:
+    REVISION REQUIRED → Developer, REPLAN REQUIRED → Planner.
+
+  Security:
+    FileSystemSandboxPath: .   # set to your project root (e.g. ~/projects/myapp)
+
+  Brownfield:
+    EntryPoints:
+      - src/Program.cs
+      - src/VM/KiwiVM.cs
+      - src/Typing/Value.cs
+    SeedEnvelopeFromBrief: true
+    DiscoveryBriefPath: ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.brownfield.json
+    ConventionProfilePath: ~/.fuseraft/sessions/{project_slug}/{session_id}/conventions.json
+
+  ChangeTracking:
+    Path: ~/.fuseraft/state/{project_slug}/changes.json
+
+  Validation:
+    BriefPath: ~/.fuseraft/sessions/{project_slug}/{session_id}/brief.json
+    ChangeLogPath: ~/.fuseraft/state/{project_slug}/changes.json
+
+  Events:
+    Path: ~/.fuseraft/sessions/{project_slug}/{session_id}/events.jsonl
+
+  WarnTurnTokens: 60000
+
+  # Each agent lives in its own YAML file in agents/ — edit, version, or reuse
+  # them independently across configs.
+  Agents:
+    - AgentFile: agents/archaeologist.yaml
+    - AgentFile: agents/planner.yaml
+    - AgentFile: agents/developer.yaml
+    - AgentFile: agents/reviewer.yaml
+    - AgentFile: agents/approved.yaml
+
+  Selection:
+    Type: graph
+    Graph:
+      EntryNode: recon
+      MaxRetries: 4
+
+      Nodes:
+        - Id: recon
+          Agent: Archaeologist
+        - Id: planner
+          Agent: Planner
+        - Id: developer
+          Agent: Developer
+        - Id: reviewer
+          Agent: Reviewer
+        - Id: approved
+          Agent: Approved
+          Terminal: true
+
+      Edges:
+        # Forward edges
+        - From: recon
+          To: planner
+          Keyword: "RECON COMPLETE"
+          Validators: [RequireWriteFile]       # blocks until discovery files are written
+
+        - From: planner
+          To: developer
+          Keyword: "HANDOFF TO DEVELOPER"
+          Validators: [RequireBrief]           # blocks until brief.json is valid
+
+        - From: developer
+          To: reviewer
+          Keyword: "HANDOFF TO REVIEWER"
+          Validators: [RequireWriteFile]       # blocks until at least one file is written
+
+        - From: reviewer
+          To: approved
+          Keyword: "APPROVED"
+          Validators: [RequireReviewJudgement]
+
+        # Back-edges
+        - From: reviewer
+          To: developer
+          Keyword: "REVISION REQUIRED"         # targeted fix — bypass recon and planning
+
+        - From: reviewer
+          To: planner
+          Keyword: "REPLAN REQUIRED"           # approach rethink — skip recon
+
+        - From: developer
+          To: planner
+          Keyword: "REPLAN REQUIRED"           # developer can also escalate
+
+  Termination:
+    Type: composite
+    Strategies:
+      - Type: regex
+        Pattern: "\\bAPPROVED\\b"
+        AgentNames: [Reviewer]
+      - Type: maxiterations
+        MaxIterations: 60
+
+  Compaction:
+    TriggerTurnCount: 30
+    KeepRecentTurns: 8
+    Mode: intent
+
+  ContextBudget:
+    WarnAt: 60000
+    CutoverAt: 100000
+    MaxSingleTurnInputTokens: 200000
+
+  # ---------------------------------------------------------------------------
+  # OPTIONAL EXTRAS — uncomment as needed
+  # ---------------------------------------------------------------------------
+
+  # EvidenceStore:
+  #   Path: ~/.fuseraft/state/{project_slug}/evidence.json
+
+  # Checkpoint:
+  #   Mode: json
+  #   Path: .fuseraft/checkpoints
+
+  # Models:
+  #   fast:
+  #     ModelId: grok-4.3
+  #   reasoning:
+  #     ModelId: grok-4.3
+  #     ReasoningEffort: low
