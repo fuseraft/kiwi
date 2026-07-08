@@ -1,0 +1,9 @@
+include "lib/tester"
+
+s = "hello"
+l = [1,2,3]
+h = {a:1, b:2}
+
+tester::assert_eq(s.size(), s.length(), "string size() == string length()")
+tester::assert_eq(l.size(), l.length(), "list size() == list length()")
+tester::assert_eq(h.size(), h.length(), "hashmap size() == hashmap length()")
