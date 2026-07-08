@@ -18,6 +18,7 @@ public static class CoreBuiltinHandler
             TokenName.Builtin_Core_Join => Join(token, value, args),
             TokenName.Builtin_Core_HasKey => HasKey(token, value, args),
             TokenName.Builtin_Core_Size => Size(token, value, args),
+            TokenName.Builtin_Core_Length => Length(token, value, args),
             TokenName.Builtin_Core_Uppercase => Uppercase(token, value, args),
             TokenName.Builtin_Core_Lowercase => Lowercase(token, value, args),
             TokenName.Builtin_Core_BeginsWith => BeginsWith(token, value, args),
@@ -2043,6 +2044,30 @@ public static class CoreBuiltinHandler
     private static Value Size(Token token, Value value, IReadOnlyList<Value> args)
     {
         ParameterCountMismatchError.Check(token, CoreBuiltin.Size, 0, args.Count);
+
+        if (value.IsString())
+        {
+            return Value.CreateInteger(value.GetString().Length);
+        }
+        else if (value.IsList())
+        {
+            return Value.CreateInteger(value.GetList().Count);
+        }
+        else if (value.IsHashmap())
+        {
+            return Value.CreateInteger(value.GetHashmap().Count);
+        }
+        else if (value.IsBytes())
+        {
+            return Value.CreateInteger(value.GetBytes().Length);
+        }
+
+        throw new InvalidOperationError(token, "Expected a string, list, hashmap, or bytes.");
+    }
+
+    private static Value Length(Token token, Value value, IReadOnlyList<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CoreBuiltin.Length, 0, args.Count);
 
         if (value.IsString())
         {

@@ -63,6 +63,7 @@ public static class CoreBuiltin
     public const string Set             = "set";
     public const string Shift           = "shift";
     public const string Size            = "size";
+    public const string Length          = "length";
     public const string Slice           = "slice";
     public const string Split           = "split";
     public const string Substring       = "substring";
@@ -149,6 +150,7 @@ public static class CoreBuiltin
             { Set,             TokenName.Builtin_Core_Set         },
             { Shift,           TokenName.Builtin_Core_Shift       },
             { Size,            TokenName.Builtin_Core_Size        },
+            { Length,          TokenName.Builtin_Core_Length      },
             { Slice,           TokenName.Builtin_Core_Slice       },
             { Split,           TokenName.Builtin_Core_Split       },
             { Substring,       TokenName.Builtin_Core_Substring   },

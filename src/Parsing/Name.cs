@@ -113,6 +113,7 @@ public enum TokenName
   Builtin_Core_Set,
   Builtin_Core_Shift,
   Builtin_Core_Size,
+  Builtin_Core_Length,
   Builtin_Core_Slice,
   Builtin_Core_Split,
   Builtin_Core_Substring,
