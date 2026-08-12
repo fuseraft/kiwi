@@ -4,6 +4,10 @@ Kiwi supports the following builtin types. To build your own type, see [Structs]
 
 ---
 
+> **Reserved as identifiers:** `boolean`, `bytes`, `date`, `float`, `generator`, `hashmap`, `integer`, `lambda`, `list`, `object`, `pointer`, and `string` are all tokenized as type keywords, not plain names. None of them can be used as a variable name, function/method name, or parameter name — `fn foo(list)` and `list = [1, 2, 3]` both fail to parse with `Expected parameter name.` / `Unexpected token in statement: Typename`. Pick a different identifier (e.g. `items`, `data`, `values`) instead. `any` and `null`/`none` are reserved too, for the same reason.
+
+---
+
 | Type | Description | Documentation |
 | :--- | :--- | :--- |
 | [`boolean`](#boolean) | A `true` or `false` value. | See below for an example. |

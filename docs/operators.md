@@ -132,6 +132,8 @@ fn clamp(n, lo, hi)
 end
 ```
 
+> **Pitfall — no `?`-suffixed predicate methods:** Unlike Ruby/Elixir, Kiwi has no naming convention where a boolean-returning method ends in `?` (there is no `.empty?()` or `.has_key?()` — use the plain names `.empty()` / `.has_key()`, see [Builtins](builtins.md)). `?` is *only* the ternary/null-coalescing operator, and the lexer treats it that way wherever it appears. Writing `if x.has_key?(y) ... end` does not fail with a clear "undefined method" error — the parser consumes the `?` as the start of a ternary expression, then fails looking for its `:`, producing a cascade of confusing errors (`Expected ':' in ternary operation`, `Expected if-statement or case-statement`) anchored on the lines *after* the real mistake, not on it. If you see that error shape, check for a stray `?` on a method call first.
+
 ---
 
 ## Bitwise

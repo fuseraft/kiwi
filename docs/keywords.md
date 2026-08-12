@@ -2,6 +2,12 @@
 
 This document provides an overview of reserved keywords in Kiwi, along with explanations and usage examples.
 
+## Types
+
+`boolean`, `bytes`, `date`, `float`, `generator`, `hashmap`, `integer`, `lambda`, `list`, `object`, `pointer`, `string`, `any`, and `none` are lexed as type keywords, not identifiers. **None of them can be used as a variable, function, method, or parameter name** — e.g. `fn foo(list)` or `list = [1, 2, 3]` both fail to parse. `null` is reserved for the same reason, via a separate literal-keyword path.
+
+See [Types](types.md) for the full type reference.
+
 ## Variables
 
 ### `var`

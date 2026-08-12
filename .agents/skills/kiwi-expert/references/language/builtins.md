@@ -345,7 +345,7 @@ println(hashmap.keys()) # prints: ["key1", "key2", "key3"]
 
 ### `has_key(key)`
 
-Returns true if a hashmap contains a given key.
+Returns true if a hashmap contains a given key. **Not** `has_key?` — Kiwi predicate methods never take a `?` suffix (see the pitfall note in [Operators — Ternary](operators.md#ternary--)); a stray `?` here is parsed as the ternary operator and produces misleading downstream syntax errors instead of a clean "undefined method" error.
 
 ```kiwi
 hashmap = { "key1": true, "key2": 1 }

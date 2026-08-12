@@ -199,3 +199,20 @@ If stdin is piped, the piped code is run with the arguments available as usual:
 echo 'println env::argv()' | kiwi -name=scotty
 # {"name": "scotty"}
 ```
+
+### Bare positional arguments
+
+Arguments with no leading `-`/`--`/`/` and no `=` are **positional arguments** — e.g. the numbers in `kiwi bubblesort.kiwi 5 3 8 1`. They are not dropped or special-cased: each one becomes its own key in the `env::argv()` hashmap, mapped to itself (`argv["5"] == "5"`).
+
+```
+kiwi -e 'println env::argv()' 5 3 8 1
+# {"5": "5", "3": "3", "8": "8", "1": "1"}
+```
+
+To recover them as an ordered list (the common case for a script that takes `script.kiwi item1 item2 ...`), use `env::args()` — the raw, unparsed argument list:
+
+```kiwi
+data = env::args()   # ["5", "3", "8", "1"], in argument order
+```
+
+**Don't use `env::argv().keys()` for this.** `argv()` is a hashmap, so duplicate positional values collapse into one entry before your script sees them — `kiwi script.kiwi 5 3 8 3 1` gives `argv().keys() == ["5","3","8","1"]`, silently dropping the repeated `3`. `env::args()` has no such issue since it isn't backed by a hashmap. See [`env::args()`](../lib/env.md#args) for details, and [`cli::CliParser`](../lib/cli.md#cliparser) if you need to mix flags/options with positional arguments — it separates parsed flags/options from a plain `"_args"` list of positionals (note: `CliParser`'s `"_args"` is currently derived from `argv()` internally and inherits the same duplicate-collapsing limitation).
