@@ -246,6 +246,8 @@ Parses `env::argv()` against the registered flags and options.
 
 Flags and options are accepted in both long form (`--name`) and short form (`-n`).
 
+> **Caveat:** `"_args"` is currently derived from `env::argv()`'s keys internally, so duplicate positional values collapse into one entry (see [`env::argv()`](env.md#argv)) — if your positional arguments might repeat (e.g. a list of words that could contain the same word twice), read `env::args()` directly instead of relying on `"_args"`.
+
 ---
 
 ## Usage Example

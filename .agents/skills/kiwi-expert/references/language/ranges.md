@@ -28,6 +28,8 @@ println r
 # Prints: [20, 19, 18]
 ```
 
+> **Pitfall — loop bounds that can invert:** `[a to b]` is never empty and never errors when `b < a` — it just counts *down*. This is easy to hit by accident in a shrinking loop bound like `for i in [0 to n-2] do ... end`: as soon as `n` reaches `1`, `n-2` is `-1`, and `[0 to -1]` silently becomes the 2-element descending list `[0, -1]` rather than an empty range — the loop body then runs with `i = -1`, which typically blows up as an out-of-bounds index rather than failing fast at the boundary. If a loop bound is computed and could reach 0 or go negative, guard the loop's entry condition explicitly (e.g. `while cond and n > 1 do ...`) rather than trusting `[0 to n-2]` to become empty on its own.
+
 ## In `case when`
 
 Ranges can appear directly in `when` clauses without brackets. The match is O(1) — no list is constructed.

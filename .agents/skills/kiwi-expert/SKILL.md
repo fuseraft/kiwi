@@ -195,6 +195,21 @@ end
 for x in countdown(5) do ... end   # lazy — pulls one value per iteration
 ```
 
+### CLI Arguments
+
+Two builtins, two different jobs — **use the right one, they're not interchangeable:**
+
+- `env::args()` — raw, ordered `list` of arguments exactly as passed, duplicates and all. **Use this for `script.kiwi item1 item2 ...` style positional-list programs.**
+- `env::argv()` — `hashmap` of key-value args. `-key=value`/`--key=value` → `argv["key"]=="value"`; a bare positional (no `=`) is self-mapped, `argv["5"]=="5"`. Since it's a hashmap, **duplicate positional values silently collapse to one entry** — `kiwi script.kiwi 5 3 8 3 1` → only 4 keys, the repeated `3` is gone. Use `argv()` for actual key-value options, not for a plain arg list.
+
+```kiwi
+# kiwi script.kiwi apple banana apple -name=world
+env::args()    # ["apple", "banana", "apple", "-name=world"]  (raw, nothing dropped)
+env::argv()    # {"apple": "apple", "banana": "banana", "name": "world"}  (deduped, parsed)
+```
+
+If you need real flags/options *and* positionals together, use `CliParser` (`import "cli"`) — it gives you a `"_args"` list of positionals separated from parsed flags/options. Caveat: `CliParser`'s `"_args"` is built from `argv()` internally, so it inherits the same duplicate-collapsing limitation — don't rely on it if positionals might repeat. See `references/lib/cli.md`.
+
 ### Comments & Docstrings — pitfall
 
 ```kiwi
@@ -217,6 +232,9 @@ fn add(a, b) a + b end
 - Loop skip is `next` (not `continue`), with optional `when` guard.
 - Identifiers (functions, methods) must be `snake_case`; camelCase is not idiomatic and may not match dispatch conventions in stdlib packages.
 - `typeof(x)` is a global function; `.type()` is the equivalent method — both exist, use whichever reads better at the call site.
+- Built-in type names (`list`, `hashmap`, `string`, `integer`, `float`, `boolean`, `date`, `any`, `generator`, `lambda`, `object`, `pointer`, `bytes`, `none`) can't be used as a variable, function, or parameter name — `fn foo(list)` is a parse error (`Expected parameter name.`). Use `items`/`data`/`values` etc. instead.
+- No `?`-suffixed predicate methods (no `.empty?()`/`.has_key?()` like Ruby) — use `.empty()`/`.has_key()`. A stray trailing `?` is parsed as the ternary operator, not flagged as an unknown method — it produces a confusing cascade of `Expected ':' in ternary operation` / `Expected if-statement or case-statement` errors on unrelated-looking lines. See `references/language/operators.md#ternary--`.
+- For a `script.kiwi item1 item2 ...` style positional-arg list, use `env::args()` — **not** `env::argv().keys()`. `argv()` is a hashmap, so it silently drops duplicate positional values; `env::args()` is the raw ordered list and doesn't have that problem. See [CLI Arguments](#cli-arguments) above.
 
 ---
 

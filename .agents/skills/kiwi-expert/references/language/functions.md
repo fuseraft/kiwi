@@ -11,6 +11,18 @@ greet("world") # prints: Hello, world!
 greet()        # prints: Hello, Kiwi!
 ```
 
+A parameter name can't be one of Kiwi's built-in type names (`list`, `hashmap`, `string`, `integer`, `float`, `boolean`, `date`, `any`, `generator`, `lambda`, `object`, `pointer`, `bytes`, `none`) — these are reserved as type keywords, and using one produces a parse error (`Expected parameter name.`). This applies to variable names generally, not just parameters. See [Types](types.md).
+
+```kiwi
+fn foo(list)     # error: Expected parameter name.
+  ...
+end
+
+fn foo(items)    # ok
+  ...
+end
+```
+
 ### Return Value
 
 A function returns the value of its **last evaluated expression** — `return` is optional. Use `return` when you need to return early or when the expression isn't naturally last.
