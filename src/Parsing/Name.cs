@@ -141,6 +141,7 @@ public enum TokenName
   Builtin_Encoder_UrlDecode,
   Builtin_Encoder_UrlEncode,
   Builtin_Env_GetAll,
+  Builtin_Env_GetArgs,
   Builtin_Env_GetArgv,
   Builtin_Env_GetEnvironmentVariable,
   Builtin_Env_GetXarg,

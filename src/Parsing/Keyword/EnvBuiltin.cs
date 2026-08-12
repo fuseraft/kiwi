@@ -3,6 +3,7 @@ namespace kiwi.Parsing.Keyword;
 public static class EnvBuiltin
 {
     public const string GetArgv                   = "__env_argv__";
+    public const string GetArgs                   = "__env_args__";
     public const string GetXarg                   = "__env_xarg__";
     public const string OS                        = "__env_os__";
     public const string User                      = "__env_user__";
@@ -16,6 +17,7 @@ public static class EnvBuiltin
         = new Dictionary<string, TokenName>
         {
             { GetArgv,                  TokenName.Builtin_Env_GetArgv },
+            { GetArgs,                  TokenName.Builtin_Env_GetArgs },
             { GetXarg,                  TokenName.Builtin_Env_GetXarg },
             { GetAll,                   TokenName.Builtin_Env_GetAll },
             { OS,                       TokenName.Builtin_Env_OS },

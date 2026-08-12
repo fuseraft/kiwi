@@ -8,11 +8,12 @@ namespace kiwi.Runtime.Builtin.Handler;
 
 public static class EnvBuiltinHandler
 {
-    public static Value Execute(Token token, TokenName builtin, List<Value> args, Dictionary<string, string> cliArgs)
+    public static Value Execute(Token token, TokenName builtin, List<Value> args, Dictionary<string, string> cliArgs, List<string> rawArgs)
     {
         return builtin switch
         {
             TokenName.Builtin_Env_GetArgv => GetArgv(token, args, cliArgs),
+            TokenName.Builtin_Env_GetArgs => GetArgs(token, args, rawArgs),
             TokenName.Builtin_Env_GetXarg => GetXarg(token, args, cliArgs),
             TokenName.Builtin_Env_GetAll => GetAll(token, args),
             TokenName.Builtin_Env_GetEnvironmentVariable => GetEnvironmentVariable(token, args),
@@ -37,6 +38,13 @@ public static class EnvBuiltinHandler
         }
 
         return Value.CreateHashmap(argv);
+    }
+
+    private static Value GetArgs(Token token, List<Value> args, List<string> rawArgs)
+    {
+        ParameterCountMismatchError.Check(token, EnvBuiltin.GetArgs, 0, args.Count);
+
+        return Value.CreateList([.. rawArgs.Select(Value.CreateString)]);
     }
 
     private static Value GetXarg(Token token, List<Value> args, Dictionary<string, string> cliArgs)
