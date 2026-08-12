@@ -66,27 +66,27 @@ public class Program
         }
         else if (config.UseREPL)
         {
-            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args) };
+            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
         }
         else if (config.ExecuteCode != null)
         {
-            return new CodeRunner(config.ExecuteCode) { CliArgs = ParseKeyValueArgs(config.Args) };
+            return new CodeRunner(config.ExecuteCode) { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
         }
         else if (config.UseDebugger)
         {
-            return new DebugRunner { CliArgs = ParseKeyValueArgs(config.Args) };
+            return new DebugRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
         }
         else if (config.HasScripts)
         {
-            return new VMScriptRunner { CliArgs = ParseKeyValueArgs(config.Args) };
+            return new VMScriptRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
         }
 
         if (!Console.IsInputRedirected)
         {
-            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args) };
+            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
         }
 
-        return new StdInRunner { CliArgs = ParseKeyValueArgs(config.Args) };
+        return new StdInRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
     }
 
     /// <summary>

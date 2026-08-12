@@ -109,6 +109,8 @@ public sealed class KiwiVM
     private GeneratorRef? _activeGenerator;
 
     public Dictionary<string, string> CliArgs { get; set; } = [];
+    /// <summary>Raw, ordered CLI arguments (duplicates preserved) — the source `CliArgs` is built from.</summary>
+    public List<string> RawArgs { get; set; } = [];
     public string ExecutionPath { get; set; } = string.Empty;
     public string EntryPath     { get; set; } = string.Empty;
     /// <summary>Working directory at the time kiwi was invoked.</summary>
@@ -143,6 +145,7 @@ public sealed class KiwiVM
         _context  = parent._context;
         _globals  = parent._globals;
         CliArgs   = parent.CliArgs;
+        RawArgs   = parent.RawArgs;
         ExecutionPath = parent.ExecutionPath;
         EntryPath     = parent.EntryPath;
         ProjectRoot   = parent.ProjectRoot;
@@ -156,6 +159,7 @@ public sealed class KiwiVM
         _context  = parent._context;
         _globals  = globals;
         CliArgs   = parent.CliArgs;
+        RawArgs   = parent.RawArgs;
         ExecutionPath = parent.ExecutionPath;
         EntryPath     = parent.EntryPath;
         ProjectRoot   = parent.ProjectRoot;
@@ -2615,6 +2619,7 @@ public sealed class KiwiVM
         var capturedFunc     = func;
         var capturedToken    = token;
         var capturedCliArgs  = CliArgs;
+        var capturedRawArgs  = RawArgs;
         var capturedRoot     = ProjectRoot;
 
         generatorRef.Start(() =>
@@ -2623,7 +2628,7 @@ public sealed class KiwiVM
             // We can't reuse a KiwiVM(parent) constructor here because the
             // calling VM may be on another thread; build from context directly.
             var genVM = new KiwiVM(capturedGlobal, capturedContext,
-                capturedExecPath, capturedEntryPath, capturedRoot, capturedCliArgs);
+                capturedExecPath, capturedEntryPath, capturedRoot, capturedCliArgs, capturedRawArgs);
             genVM._activeGenerator = generatorRef;
             genVM.RunGeneratorBody(capturedFunc, ownedArgs, capturedToken, generatorRef);
         });
@@ -2632,7 +2637,7 @@ public sealed class KiwiVM
     }
 
     /// <summary>Private constructor used by CreateGeneratorFromValues to build a thread-local VM.</summary>
-    private KiwiVM(Scope globals, KContext context, string execPath, string entryPath, string projectRoot, Dictionary<string, string> cliArgs)
+    private KiwiVM(Scope globals, KContext context, string execPath, string entryPath, string projectRoot, Dictionary<string, string> cliArgs, List<string> rawArgs)
     {
         _context      = context;
         _globals      = globals;
@@ -2640,6 +2645,7 @@ public sealed class KiwiVM
         EntryPath     = entryPath;
         ProjectRoot   = projectRoot;
         CliArgs       = cliArgs;
+        RawArgs       = rawArgs;
         Current = this;
     }
 
@@ -2675,7 +2681,7 @@ public sealed class KiwiVM
             return SocketBuiltinHandler.Execute(token, op, args);
         if (TlsSocketBuiltin.IsBuiltin(op))
             return TlsSocketBuiltinHandler.Execute(token, op, args);
-        return BuiltinDispatch.Execute(token, op, args, CliArgs);
+        return BuiltinDispatch.Execute(token, op, args, CliArgs, RawArgs);
     }
 
     private Value CallPackageMethod(MethodCallNode node, PackageRef pkg)

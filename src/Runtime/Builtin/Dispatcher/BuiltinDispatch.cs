@@ -18,7 +18,7 @@ public struct BuiltinDispatch
         throw new FunctionUndefinedError(token, token.Text);
     }
 
-    public static Value Execute(Token token, TokenName builtin, List<Value> args, Dictionary<string, string> cliArgs)
+    public static Value Execute(Token token, TokenName builtin, List<Value> args, Dictionary<string, string> cliArgs, List<string> rawArgs)
     {
         if (FileIOBuiltin.IsBuiltin(builtin))
         {
@@ -34,7 +34,7 @@ public struct BuiltinDispatch
         }
         else if (EnvBuiltin.IsBuiltin(builtin))
         {
-            return EnvBuiltinHandler.Execute(token, builtin, args, cliArgs);
+            return EnvBuiltinHandler.Execute(token, builtin, args, cliArgs, rawArgs);
         }
         else if (EncoderBuiltin.IsBuiltin(builtin))
         {

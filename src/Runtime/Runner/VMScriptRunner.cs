@@ -11,6 +11,8 @@ public class VMScriptRunner : ScriptRunner
 {
     /// <summary>CLI args forwarded from Program.cs.</summary>
     public Dictionary<string, string> CliArgs { get; init; } = [];
+    /// <summary>Raw, ordered CLI args forwarded from Program.cs (duplicates preserved).</summary>
+    public List<string> RawArgs { get; init; } = [];
 
     public override int Run(string script, List<string> args)
     {
@@ -64,6 +66,7 @@ public class VMScriptRunner : ScriptRunner
 
             var vm = new KiwiVM();
             vm.CliArgs       = CliArgs;
+            vm.RawArgs       = RawArgs;
             vm.ExecutionPath = ExecutionPath;
             vm.ProjectRoot   = Directory.GetCurrentDirectory();
             vm.EntryPath     = string.IsNullOrEmpty(ExecutionPath)

@@ -20,6 +20,8 @@ public class REPLRunner : IRunner
 
     /// <summary>CLI args forwarded from Program.cs.</summary>
     public Dictionary<string, string> CliArgs { get; init; } = [];
+    /// <summary>Raw, ordered CLI args forwarded from Program.cs (duplicates preserved).</summary>
+    public List<string> RawArgs { get; init; } = [];
 
     private LineEditor Editor { get; } = new();
     private KiwiVM? _vm;
@@ -157,6 +159,7 @@ public class REPLRunner : IRunner
         var chunk = Compiler.CompileProgram((ProgramNode)ast);
         _vm = new KiwiVM();
         _vm.CliArgs = CliArgs;
+        _vm.RawArgs = RawArgs;
         KiwiVM.Current = _vm;
         _vm.Execute(chunk);
     }
