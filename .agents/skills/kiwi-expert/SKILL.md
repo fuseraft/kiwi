@@ -96,6 +96,32 @@ next when guard
 
 Truthy: non-zero numbers, non-empty strings/lists/hashmaps, `true`. Falsy: `0`, `""`, `[]`, `{}`, `false`, `null`.
 
+### Conditionals vs. Loops (critical syntax difference)
+
+**Conditionals (`if` / `case`) — NO `do` keyword:**
+
+```kiwi
+if cond ... elsif other ... else ... end
+status = age >= 18 ? "adult" : "minor"
+case value
+when 1..9:   "single"
+when 10, 20: "special"
+else:        "other"
+end
+```
+
+**Loops (`for` / `while` / `repeat`) — require `do`:**
+
+```kiwi
+for item in collection do ... end
+while cond do ... end
+repeat 5 do ... end
+repeat 5 as i do ... end
+```
+
+**Common mistake to avoid:** `if cond do ... end` is invalid.  
+Only loops use the `do ... end` form.
+
 ### Functions & Lambdas
 
 ```kiwi
