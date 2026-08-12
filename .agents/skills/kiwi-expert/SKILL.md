@@ -74,7 +74,6 @@ Built-in types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `nul
 
 ```kiwi
 if cond ... elsif other ... else ... end
-result = if x > 0 then "pos" else "neg" end   # if is also an expression
 status = age >= 18 ? "adult" : "minor"        # ternary
 
 case value
@@ -130,7 +129,7 @@ struct Dog < Animal          # inheritance
 end
 
 abstract struct Shape        # cannot be instantiated directly
-  fn area(): float           # abstract method — subclasses must implement
+  abstract fn area() end     # abstract method — subclasses must implement with `override`
 end
 ```
 
@@ -153,7 +152,7 @@ throw "plain string"     # becomes a generic error
 
 ```kiwi
 math = import "math"     # bound to a local name
-math.sqrt(16)
+math.sqrt(16.0)          # note: sqrt requires a float argument, not an integer
 import "http"            # or unbound — most stdlib packages are also directly qualified
 http::get(url)           # `pkg::func()` qualified form works once imported
 ```
