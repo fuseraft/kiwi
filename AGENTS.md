@@ -4,6 +4,12 @@ Kiwi is a dynamically-typed scripting language written in C# (.NET 9). The inter
 
 ---
 
+## Kiwi Language & Stdlib Reference
+
+Before answering a question about Kiwi syntax, keywords, operators, types, control flow, error handling, or a standard library package (`fio`, `http`, `json`, `regex`, `table`, `task`, `sqlite`, etc.), call `load_skill("kiwi-expert")`. It indexes the maintained docs by topic (`references/language/*.md`, `references/lib/*.md`) so you don't have to reconstruct answers from scratch. The reference docs can lag the source in `lib/*.kiwi` — if an answer seems incomplete or you need certainty, cross-check against source or run a throwaway script with `./bin/kiwi`.
+
+---
+
 ## Repository Layout
 
 ```

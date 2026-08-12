@@ -1,0 +1,173 @@
+# Lambdas
+
+Lambdas are used to treat callables (i.e. functions) as first-class citizens. You can pass lambdas as method parameters.
+
+---
+
+## Defining and calling lambdas
+
+There are many ways to define a lambda.
+
+### Passing a function as a lambda
+
+Named functions can be passed anywhere a lambda is expected — no conversion needed.
+
+```kiwi
+fn double(x)
+  x * 2
+end
+
+println [1, 2, 3].map(double)   # [2, 4, 6]
+println [1, 2, 3].filter(double) # [2, 4, 6]  (truthy values kept)
+```
+
+This works with all higher-order list methods: `map`, `filter`, `each`, `sort`, `reduce`, `all`, `none`.
+
+You can also pass a function as a parameter and call it directly:
+
+```kiwi
+fn say_hello(name: string)
+  println "Hello, ${name}!"
+end
+
+fn say_bye(name: string)
+  println "Bye, ${name}!"
+end
+
+fn get_strategy(strategy: string)
+  if strategy == "hello"
+    return say_hello
+  elsif strategy == "bye"
+    return say_bye
+  else
+    throw "Unknown strategy"
+  end
+end
+
+fn use_strategy(strategy: string, name: string)
+  get_strategy(strategy).call([name])
+end
+
+use_strategy("hello", "World")
+use_strategy("bye", "World")
+```
+
+*Note: Remember you can invoke any callable directly or by calling `.call([parameters])` on it.*
+
+> **Note:** `.to_lambda()` still works but is no longer required when passing a function as a callable.
+
+### Using `do` (lambda block and arrow functions)
+
+For simple one liners, you might use an arrow function.
+```kiwi
+println [1 to 10].filter(do (n) => n % 2 == 0)
+# [2, 4, 6, 8, 10]
+```
+
+Arrow lambdas passed as call arguments may optionally include a closing `end`, which is useful for visual symmetry with multi-line blocks.
+```kiwi
+println [1 to 10].filter(do (n) => n % 2 == 0 end)
+# [2, 4, 6, 8, 10]
+```
+
+Package calls (`::`) and other complex expressions work in arrow lambdas too:
+```kiwi
+files = fio::listdir("/tmp", false).filter(do (e) => fio::isfile(e) end)
+```
+
+Or for more complex requirements, you can implement within a block.
+
+*Note: Remember, the last evaluation of the callable is its return value!*
+```kiwi
+println [1 to 10].filter(do (n)
+    n % 2 != 0
+end)
+# [1, 3, 5, 7, 9]
+```
+
+Some more examples:
+```kiwi
+# An assigned lambda
+say_hello = do (name: string) => println "Hello, ${name}!"
+
+# Direct invocation of closure
+(do (name: string) => println "Hello, ${name}!")("World!")
+```
+
+### Using the `with` keyword
+
+For demonstration, we will define a list of hashmaps called `id_list` to be used in the examples below.
+
+```kiwi
+# Define a list of hashmaps to work with in our example.
+id_list = [
+  {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
+  {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
+]
+```
+
+## Inline lambdas
+
+Lambdas can be used inline (without assignment).
+
+```kiwi
+println(id_list.filter(do (item) => item["id"] % 2 == 0))
+# prints: [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
+```
+
+## Assigned lambdas
+
+You can assign a reference to a lambda for reuse.
+
+```kiwi
+odd_item_id = do (item) => item["id"] % 2 != 0
+
+println(id_list.filter(odd_item_id))
+# prints: [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}]
+```
+
+## Passing lambdas as parameters
+
+You can pass lambdas as parameters to methods.
+
+```kiwi
+puts = do (s) => println(s)
+
+puts("Hello, World!") # prints: Hello, World!
+
+fn use_lambda(print_func, message)
+  print_func(message)
+end
+
+use_lambda(puts, "Hello, Kiwi!") # prints: Hello, Kiwi!
+```
+
+Named parameters work with lambdas too.
+
+```kiwi
+fn apply(f: lambda, x: integer, y: integer): integer
+  f(x, y)
+end
+
+add = with (a, b) do a + b end
+
+println apply(f=add, x=3, y=4) # 7
+println apply(add, y: 10, x: 2)  # 12
+```
+
+## Variadic lambdas
+
+Lambdas support variadic parameters with `*` the same way functions do.
+
+```kiwi
+sum = with (*args) do
+  total = 0
+  for x in args do
+    total += x
+  end
+  return total
+end
+
+println sum(1, 2, 3)     # 6
+println sum(*[10, 20])   # 30 (splat)
+```
