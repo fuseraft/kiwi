@@ -65,10 +65,35 @@ if args["help"]
   exit(0)
 end
 
+# -- Auth (hashed key from TASKAPI_KEY env var) -------------------------------
+var auth_state = { expected_hash: "" }
+
+fn init_auth()
+  raw = env::get("TASKAPI_KEY")
+  if !raw.empty()
+    auth_state.set("expected_hash", crypto::sha256_hash(raw))
+  end
+end
+
 var HOST       = args["host"]
 var PORT       = args["port"].to_integer()
+
+init_auth()
 var DB_PATH    = args["db"]
 var START_TIME = time::ticks()
+
+fn require_auth(req): list|none
+  expected = auth_state.get("expected_hash", "")
+  if expected.empty()
+    return null   # no key configured → open access
+  end
+  h = req["headers"]
+  supplied = h.get("X-API-Key", h.get("x-api-key", ""))
+  if supplied.empty() || crypto::sha256_hash(supplied) != expected
+    return [401, err_resp(401, "missing or invalid X-API-Key")]
+  end
+  null
+end
 
 # -- Database helpers -----------------------------------------------------------
 
@@ -106,6 +131,14 @@ fn init_db()
   db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_done     ON tasks (done)")
   db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks (priority)")
   db.exec("CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks (due_date)")
+
+  db.exec("CREATE TABLE IF NOT EXISTS task_tags (
+    task_id INTEGER NOT NULL,
+    tag     TEXT    NOT NULL,
+    FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
+  )")
+  db.exec("CREATE INDEX IF NOT EXISTS idx_task_tags_task ON task_tags (task_id)")
+  db.exec("CREATE INDEX IF NOT EXISTS idx_task_tags_tag  ON task_tags (tag)")
 
   db.close()
 end
@@ -184,13 +217,19 @@ end
 
 # -- Domain logic ---------------------------------------------------------------
 
-fn row_to_task(row)
+fn row_to_task(db, row)
+  tags = []
+  if row.has_key("id")
+    tr = db.query_params("SELECT tag FROM task_tags WHERE task_id = @p1 ORDER BY tag", [row["id"]])
+    for t in tr do tags.push(t["tag"]) end
+  end
   {
     id:         row["id"],
     title:      row["title"],
     priority:   row["priority"],
     done:       row["done"] == 1,
     due_date:   row["due_date"],
+    tags:       tags,
     created_at: row["created_at"],
     updated_at: row["updated_at"]
   }
@@ -307,7 +346,7 @@ fn handle_list(db, req): list
 
   tasks = []
   for row in rows do
-    tasks.push(row_to_task(row))
+    tasks.push(row_to_task(db, row))
   end
 
   pages = total == 0 ? 1 : ((total + limit - 1) / limit).to_integer()
@@ -352,9 +391,19 @@ fn handle_create(db, req): list
   )
 
   id   = db.last_insert_id()
+
+  tags = data.get("tags", [])
+  if typeof(tags) == list
+    for tg in tags do
+      if typeof(tg) == string && !tg.trim().empty()
+        db.exec_params("INSERT INTO task_tags (task_id, tag) VALUES (@p1, @p2)", [id, tg.trim().to_lower()])
+      end
+    end
+  end
+
   rows = db.query_params("SELECT * FROM tasks WHERE id = @p1", [id])
 
-  [201, json_resp(201, row_to_task(rows[0]))]
+  [201, json_resp(201, row_to_task(db, rows[0]))]
 end
 
 fn handle_get(db, id: integer): list
@@ -362,7 +411,7 @@ fn handle_get(db, id: integer): list
   if rows.empty()
     return [404, err_resp(404, "Task ${id} not found")]
   end
-  [200, json_resp(200, row_to_task(rows[0]))]
+  [200, json_resp(200, row_to_task(db, rows[0]))]
 end
 
 fn handle_update(db, id: integer, req): list
@@ -411,7 +460,20 @@ fn handle_update(db, id: integer, req): list
     updates.push("due_date = @p${params.size()}")
   end
 
-  if updates.empty()
+  # tags replacement
+  if data.has_key("tags")
+    db.exec_params("DELETE FROM task_tags WHERE task_id = @p1", [id])
+    new_tags = data.get("tags", [])
+    if typeof(new_tags) == list
+      for tg in new_tags do
+        if typeof(tg) == string && !tg.trim().empty()
+          db.exec_params("INSERT INTO task_tags (task_id, tag) VALUES (@p1, @p2)", [id, tg.trim().to_lower()])
+        end
+      end
+    end
+  end
+
+  if updates.empty() && !data.has_key("tags")
     return [400, err_resp(400, "No fields to update")]
   end
 
@@ -427,7 +489,7 @@ fn handle_update(db, id: integer, req): list
   )
 
   rows = db.query_params("SELECT * FROM tasks WHERE id = @p1", [id])
-  [200, json_resp(200, row_to_task(rows[0]))]
+  [200, json_resp(200, row_to_task(db, rows[0]))]
 end
 
 fn handle_delete(db, id: integer): list
@@ -517,6 +579,27 @@ fn handle_csv(db): list
   })]
 end
 
+fn handle_search(db, req): list
+  q = req["query"].get("q", "")
+  if typeof(q) != string || q.trim().empty()
+    return [400, err_resp(400, "q parameter is required")]
+  end
+  term = "%" + q.trim().to_lower() + "%"
+  sql = "
+    SELECT DISTINCT t.*
+    FROM tasks t
+    LEFT JOIN task_tags tt ON tt.task_id = t.id
+    WHERE lower(t.title) LIKE @p1 OR lower(tt.tag) LIKE @p1
+    ORDER BY t.id
+  "
+  rows = db.query_params(sql, [term])
+  tasks = []
+  for row in rows do
+    tasks.push(row_to_task(db, row))
+  end
+  [200, json_resp(200, { tasks: tasks, count: tasks.size(), q: q.trim() })]
+end
+
 # -- Router ---------------------------------------------------------------------
 
 fn route(db, method: string, path: string, req): list
@@ -545,12 +628,21 @@ fn route(db, method: string, path: string, req): list
     return method == "GET" ? handle_csv(db) : method_not_allowed("GET, OPTIONS")
   end
 
+  # GET /tasks/search
+  if path == "/tasks/search"
+    return method == "GET" ? handle_search(db, req) : method_not_allowed("GET, OPTIONS")
+  end
+
   # /tasks
   if path == "/tasks"
     if method == "GET"
       return handle_list(db, req)
     end
     if method == "POST"
+      auth_err = require_auth(req)
+      if auth_err != null
+        return auth_err
+      end
       return handle_create(db, req)
     end
     return method_not_allowed("GET, POST, OPTIONS")
@@ -564,9 +656,17 @@ fn route(db, method: string, path: string, req): list
       return handle_get(db, id)
     end
     if method == "PUT"
+      auth_err = require_auth(req)
+      if auth_err != null
+        return auth_err
+      end
       return handle_update(db, id, req)
     end
     if method == "DELETE"
+      auth_err = require_auth(req)
+      if auth_err != null
+        return auth_err
+      end
       return handle_delete(db, id)
     end
     return method_not_allowed("GET, PUT, DELETE, OPTIONS")
