@@ -43,6 +43,15 @@ public sealed class Compiler
     private readonly Compiler? _enclosing;
     private readonly bool      _isGlobal;
 
+    /// <summary>
+    /// Names known to be top-level globals, shared by reference across the root compiler
+    /// and every nested function/lambda compiler beneath it. Populated once, up front, from
+    /// a full scan of the top-level program (see the entry points below). Used by
+    /// <see cref="SetupLocals"/> so a plain `name = ...` assignment inside a function updates
+    /// an existing global of the same name instead of silently shadowing it with a new local.
+    /// </summary>
+    private readonly HashSet<string> _globalNames;
+
     private readonly List<LocalVar>          _locals   = [];
     private readonly List<UpvalueDescriptor> _upvalues = [];
     private readonly List<LoopCtx>           _loops    = []; // last = innermost
@@ -52,18 +61,20 @@ public sealed class Compiler
 
     // -- Construction ----------------------------------------------------------
 
-    private Compiler(string name, Compiler? enclosing, bool isGlobal)
+    private Compiler(string name, Compiler? enclosing, bool isGlobal, HashSet<string>? globalNames = null)
     {
-        _chunk     = new Chunk { Name = name };
-        _enclosing = enclosing;
-        _isGlobal  = isGlobal;
+        _chunk       = new Chunk { Name = name };
+        _enclosing   = enclosing;
+        _isGlobal    = isGlobal;
+        _globalNames = globalNames ?? enclosing?._globalNames ?? [];
     }
 
     // -- Public entry points ---------------------------------------------------
 
     public static Chunk CompileProgram(ProgramNode program)
     {
-        var c = new Compiler("<main>", null, isGlobal: true);
+        var c = new Compiler("<main>", null, isGlobal: true, globalNames: []);
+        c._globalNames.UnionWith(c.CollectAssigned(program.Statements));
         // Pass 1: hoist top-level function definitions so they are available
         // before any code that precedes them in source order.
         foreach (var s in program.Statements)
@@ -81,7 +92,8 @@ public sealed class Compiler
     /// </summary>
     public static Chunk CompileIncludedProgram(ProgramNode program)
     {
-        var c = new Compiler("<include>", null, isGlobal: true);
+        var c = new Compiler("<include>", null, isGlobal: true, globalNames: []);
+        c._globalNames.UnionWith(c.CollectAssigned(program.Statements));
         foreach (var s in program.Statements)
             if (s != null) c.CompileStatement(s);
         c.Emit(Opcode.ReturnNull);
@@ -95,8 +107,9 @@ public sealed class Compiler
     /// </summary>
     public static Chunk CompileExpression(ProgramNode program)
     {
-        var c = new Compiler("<eval>", null, isGlobal: true);
+        var c = new Compiler("<eval>", null, isGlobal: true, globalNames: []);
         var stmts = program.Statements;
+        c._globalNames.UnionWith(c.CollectAssigned(stmts));
         for (int i = 0; i < stmts.Count - 1; i++)
             if (stmts[i] != null) c.CompileStatement(stmts[i]!);
         if (stmts.Count > 0 && stmts[^1] != null)
@@ -200,7 +213,7 @@ public sealed class Compiler
 
     // -- Name pre-scan ---------------------------------------------------------
 
-    private static HashSet<string> CollectAssigned(IEnumerable<ASTNode?> stmts)
+    private HashSet<string> CollectAssigned(IEnumerable<ASTNode?> stmts)
     {
         var out_ = new HashSet<string>(StringComparer.Ordinal);
         foreach (var s in stmts)
@@ -208,7 +221,7 @@ public sealed class Compiler
         return out_;
     }
 
-    private static void ScanNode(ASTNode node, HashSet<string> out_)
+    private void ScanNode(ASTNode node, HashSet<string> out_)
     {
         switch (node.Type)
         {
@@ -217,8 +230,11 @@ public sealed class Compiler
                 var a = (AssignmentNode)node;
                 // Only pre-declare locals for simple assignments (=), not compound assignments
                 // like +=, -= etc., which read an existing variable and should not create a new local.
+                // Also skip names that are already known top-level globals so a plain
+                // reassignment inside a function updates the existing global instead of
+                // silently shadowing it with a same-named local (see scoping.md).
                 if ((a.Left == null || a.Left is IdentifierNode) && !string.IsNullOrEmpty(a.Name)
-                    && a.Op == TokenName.Ops_Assign)
+                    && a.Op == TokenName.Ops_Assign && !_globalNames.Contains(a.Name))
                     out_.Add(a.Name);
                 if (a.Initializer != null) ScanNode(a.Initializer, out_);
                 if (a.Condition   != null) ScanNode(a.Condition,   out_);
