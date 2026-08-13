@@ -283,11 +283,11 @@ else
 
   # .NET SDK check
   command -v dotnet >/dev/null 2>&1 \
-    || die ".NET 9 SDK not found. Install from: https://dotnet.microsoft.com/download/dotnet/9.0"
+    || die ".NET 10 SDK not found. Install from: https://dotnet.microsoft.com/download/dotnet/10.0"
 
   DOTNET_VER="$(dotnet --version 2>/dev/null || echo "0.0.0")"
   DOTNET_MAJOR="${DOTNET_VER%%.*}"
-  [[ "$DOTNET_MAJOR" -ge 9 ]] || die "Kiwi requires .NET 9 or higher. Found: $DOTNET_VER"
+  [[ "$DOTNET_MAJOR" -ge 10 ]] || die "Kiwi requires .NET 10 or higher. Found: $DOTNET_VER"
   info ".NET SDK $DOTNET_VER"
 
   # Locate repo — running from a clone, or need to clone fresh

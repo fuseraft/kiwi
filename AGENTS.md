@@ -1,6 +1,6 @@
 # Kiwi — Agent Guide
 
-Kiwi is a dynamically-typed scripting language written in C# (.NET 9). The interpreter lives in `src/`, the standard library in `lib/`, and the test suite in `tests/`. Understanding this two-language split (C# interpreter + Kiwi scripts) is the foundation for working in this repo.
+Kiwi is a dynamically-typed scripting language written in C# (.NET 10). The interpreter lives in `src/`, the standard library in `lib/`, and the test suite in `tests/`. Understanding this two-language split (C# interpreter + Kiwi scripts) is the foundation for working in this repo.
 
 ---
 
@@ -13,7 +13,7 @@ Before answering a question about Kiwi syntax, keywords, operators, types, contr
 ## Repository Layout
 
 ```
-src/          C# interpreter (.NET 9)
+src/          C# interpreter (.NET 10)
 lib/          Standard library (~50 Kiwi modules)
 tests/        Test suite (written in Kiwi)
 examples/     Example Kiwi scripts
