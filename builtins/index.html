@@ -2629,6 +2629,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#length" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        length()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#maplambda" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5468,6 +5479,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#length" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        length()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#maplambda" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -6387,221 +6409,227 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-52-1"><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a>println([1, 0, 0, 1, 0, 1, 1].lastindex(1))  # prints: 6
 </span><span id="__span-52-2"><a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>println([1, 2, 3, 4, 5].lastindex(6))         # prints: -1
 </span></code></pre></div>
+<h3 id="length"><code>length()</code><a class="headerlink" href="#length" title="Permanent link">&para;</a></h3>
+<p>Alias for <a href="#size"><code>size()</code></a>. Returns the size of a list, string, hashmap, or byte array as an integer.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-53-1"><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>println(&quot;four&quot;.length())            # prints: 4
+</span><span id="__span-53-2"><a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>println([1, 2, 3, true].length())   # prints: 4
+</span><span id="__span-53-3"><a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a>println({a: 1, b: 2}.length())      # prints: 2
+</span></code></pre></div>
 <h3 id="maplambda"><code>map(lambda)</code><a class="headerlink" href="#maplambda" title="Permanent link">&para;</a></h3>
 <p>Transform each element in a list, returning a new list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-53-1"><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a>list = [&quot;kiwi&quot;, &quot;mango&quot;, &quot;banana&quot;]
-</span><span id="__span-53-2"><a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>println list.map(do (item) =&gt; item.uppercase())
-</span><span id="__span-53-3"><a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a># prints: [&quot;KIWI&quot;, &quot;MANGO&quot;, &quot;BANANA&quot;]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-54-1"><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>list = [&quot;kiwi&quot;, &quot;mango&quot;, &quot;banana&quot;]
+</span><span id="__span-54-2"><a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>println list.map(do (item) =&gt; item.uppercase())
+</span><span id="__span-54-3"><a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a># prints: [&quot;KIWI&quot;, &quot;MANGO&quot;, &quot;BANANA&quot;]
 </span></code></pre></div>
 <h3 id="max"><code>max()</code><a class="headerlink" href="#max" title="Permanent link">&para;</a></h3>
 <p>Get the highest value in a list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-54-1"><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a>println [1, 2, 3].max()      # prints: 3
-</span><span id="__span-54-2"><a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>println [&quot;a&quot;, &quot;z&quot;, &quot;m&quot;].max() # prints: z
+<div class="language-text highlight"><pre><span></span><code><span id="__span-55-1"><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>println [1, 2, 3].max()      # prints: 3
+</span><span id="__span-55-2"><a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a>println [&quot;a&quot;, &quot;z&quot;, &quot;m&quot;].max() # prints: z
 </span></code></pre></div>
 <h3 id="min"><code>min()</code><a class="headerlink" href="#min" title="Permanent link">&para;</a></h3>
 <p>Get the lowest value in a list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-55-1"><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a>println [1, 2, 3].min()       # prints: 1
-</span><span id="__span-55-2"><a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a>println [&quot;a&quot;, &quot;z&quot;, &quot;m&quot;].min() # prints: a
+<div class="language-text highlight"><pre><span></span><code><span id="__span-56-1"><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>println [1, 2, 3].min()       # prints: 1
+</span><span id="__span-56-2"><a id="__codelineno-56-2" name="__codelineno-56-2" href="#__codelineno-56-2"></a>println [&quot;a&quot;, &quot;z&quot;, &quot;m&quot;].min() # prints: a
 </span></code></pre></div>
 <h3 id="nonelambda"><code>none(lambda)</code><a class="headerlink" href="#nonelambda" title="Permanent link">&para;</a></h3>
 <p>Returns true if <strong>no</strong> elements in the list satisfy the predicate. The inverse of <code>all</code>.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-56-1"><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a>list = [1, 3, 5, 7]
-</span><span id="__span-56-2"><a id="__codelineno-56-2" name="__codelineno-56-2" href="#__codelineno-56-2"></a>println list.none(do (n) =&gt; n % 2 == 0)  # prints: true  (no even numbers)
-</span><span id="__span-56-3"><a id="__codelineno-56-3" name="__codelineno-56-3" href="#__codelineno-56-3"></a>
-</span><span id="__span-56-4"><a id="__codelineno-56-4" name="__codelineno-56-4" href="#__codelineno-56-4"></a>list.push(4)
-</span><span id="__span-56-5"><a id="__codelineno-56-5" name="__codelineno-56-5" href="#__codelineno-56-5"></a>println list.none(do (n) =&gt; n % 2 == 0)  # prints: false (4 is even)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-57-1"><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>list = [1, 3, 5, 7]
+</span><span id="__span-57-2"><a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>println list.none(do (n) =&gt; n % 2 == 0)  # prints: true  (no even numbers)
+</span><span id="__span-57-3"><a id="__codelineno-57-3" name="__codelineno-57-3" href="#__codelineno-57-3"></a>
+</span><span id="__span-57-4"><a id="__codelineno-57-4" name="__codelineno-57-4" href="#__codelineno-57-4"></a>list.push(4)
+</span><span id="__span-57-5"><a id="__codelineno-57-5" name="__codelineno-57-5" href="#__codelineno-57-5"></a>println list.none(do (n) =&gt; n % 2 == 0)  # prints: false (4 is even)
 </span></code></pre></div>
 <h3 id="pop"><code>pop()</code><a class="headerlink" href="#pop" title="Permanent link">&para;</a></h3>
 <p>Returns and removes a value from the end of a list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-57-1"><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>list = [1, 2, 3]
-</span><span id="__span-57-2"><a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>println list.pop() # prints: 3
-</span><span id="__span-57-3"><a id="__codelineno-57-3" name="__codelineno-57-3" href="#__codelineno-57-3"></a>println list       # prints: [1, 2]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-58-1"><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>list = [1, 2, 3]
+</span><span id="__span-58-2"><a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a>println list.pop() # prints: 3
+</span><span id="__span-58-3"><a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a>println list       # prints: [1, 2]
 </span></code></pre></div>
 <h3 id="pushvalue"><code>push(value)</code><a class="headerlink" href="#pushvalue" title="Permanent link">&para;</a></h3>
 <p>Pushes a value onto the end of a list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-58-1"><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>list = [1, 2, 3]
-</span><span id="__span-58-2"><a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a>list.push(4)
-</span><span id="__span-58-3"><a id="__codelineno-58-3" name="__codelineno-58-3" href="#__codelineno-58-3"></a>println list  # prints: [1, 2, 3, 4]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-59-1"><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>list = [1, 2, 3]
+</span><span id="__span-59-2"><a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a>list.push(4)
+</span><span id="__span-59-3"><a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a>println list  # prints: [1, 2, 3, 4]
 </span></code></pre></div>
 <h3 id="reduceaccumulator-lambda"><code>reduce(accumulator, lambda)</code><a class="headerlink" href="#reduceaccumulator-lambda" title="Permanent link">&para;</a></h3>
 <p>Aggregate the items in a list into a single value.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-59-1"><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a>numbers = [1, 2, 3, 4, 5]
-</span><span id="__span-59-2"><a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a>sum = numbers.reduce(0, do (acc, n) =&gt; acc + n)
-</span><span id="__span-59-3"><a id="__codelineno-59-3" name="__codelineno-59-3" href="#__codelineno-59-3"></a>println sum  # prints: 15
-</span></code></pre></div>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-60-1"><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a>numbers = [1, 2, 3, 4, 5]
-</span><span id="__span-60-2"><a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>result = numbers.reduce({}, do (acc, n)
-</span><span id="__span-60-3"><a id="__codelineno-60-3" name="__codelineno-60-3" href="#__codelineno-60-3"></a>  acc[&quot;key${n}&quot;] = n
-</span><span id="__span-60-4"><a id="__codelineno-60-4" name="__codelineno-60-4" href="#__codelineno-60-4"></a>  acc
-</span><span id="__span-60-5"><a id="__codelineno-60-5" name="__codelineno-60-5" href="#__codelineno-60-5"></a>end)
-</span><span id="__span-60-6"><a id="__codelineno-60-6" name="__codelineno-60-6" href="#__codelineno-60-6"></a>println result  # prints: {&quot;key1&quot;: 1, &quot;key2&quot;: 2, &quot;key3&quot;: 3, &quot;key4&quot;: 4, &quot;key5&quot;: 5}
+</span><span id="__span-60-2"><a id="__codelineno-60-2" name="__codelineno-60-2" href="#__codelineno-60-2"></a>sum = numbers.reduce(0, do (acc, n) =&gt; acc + n)
+</span><span id="__span-60-3"><a id="__codelineno-60-3" name="__codelineno-60-3" href="#__codelineno-60-3"></a>println sum  # prints: 15
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-61-1"><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>numbers = [1, 2, 3, 4, 5]
+</span><span id="__span-61-2"><a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>result = numbers.reduce({}, do (acc, n)
+</span><span id="__span-61-3"><a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a>  acc[&quot;key${n}&quot;] = n
+</span><span id="__span-61-4"><a id="__codelineno-61-4" name="__codelineno-61-4" href="#__codelineno-61-4"></a>  acc
+</span><span id="__span-61-5"><a id="__codelineno-61-5" name="__codelineno-61-5" href="#__codelineno-61-5"></a>end)
+</span><span id="__span-61-6"><a id="__codelineno-61-6" name="__codelineno-61-6" href="#__codelineno-61-6"></a>println result  # prints: {&quot;key1&quot;: 1, &quot;key2&quot;: 2, &quot;key3&quot;: 3, &quot;key4&quot;: 4, &quot;key5&quot;: 5}
 </span></code></pre></div>
 <h3 id="removevalue"><code>remove(value)</code><a class="headerlink" href="#removevalue" title="Permanent link">&para;</a></h3>
 <p>Remove the first occurrence of a specific value in a list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-61-1"><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a>println([1, 2, 3].remove(2))           # prints: [1, 3]
-</span><span id="__span-61-2"><a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a>println([&quot;a&quot;, &quot;b&quot;, 3, 4].remove(&quot;b&quot;))  # prints: [&quot;a&quot;, 3, 4]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-62-1"><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>println([1, 2, 3].remove(2))           # prints: [1, 3]
+</span><span id="__span-62-2"><a id="__codelineno-62-2" name="__codelineno-62-2" href="#__codelineno-62-2"></a>println([&quot;a&quot;, &quot;b&quot;, 3, 4].remove(&quot;b&quot;))  # prints: [&quot;a&quot;, 3, 4]
 </span></code></pre></div>
 <h3 id="remove_atindex"><code>remove_at(index)</code><a class="headerlink" href="#remove_atindex" title="Permanent link">&para;</a></h3>
 <p>Remove a value from a list at a specified index.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-62-1"><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>println([&quot;a&quot;, &quot;b&quot;, 3, 4].remove_at(0)) # prints: [&quot;b&quot;, 3, 4]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-63-1"><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>println([&quot;a&quot;, &quot;b&quot;, 3, 4].remove_at(0)) # prints: [&quot;b&quot;, 3, 4]
 </span></code></pre></div>
 <h3 id="reverse"><code>reverse()</code><a class="headerlink" href="#reverse" title="Permanent link">&para;</a></h3>
 <p>Reverse a list or a string.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-63-1"><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>println([1, 2, 3].reverse())   # prints: [3, 2, 1]
-</span><span id="__span-63-2"><a id="__codelineno-63-2" name="__codelineno-63-2" href="#__codelineno-63-2"></a>println(&quot;kiwi&quot;.reverse())      # prints: iwik
+<div class="language-text highlight"><pre><span></span><code><span id="__span-64-1"><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a>println([1, 2, 3].reverse())   # prints: [3, 2, 1]
+</span><span id="__span-64-2"><a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a>println(&quot;kiwi&quot;.reverse())      # prints: iwik
 </span></code></pre></div>
 <h3 id="rotaten"><code>rotate(n)</code><a class="headerlink" href="#rotaten" title="Permanent link">&para;</a></h3>
 <p>Rotate the values of the list by a specified number of positions.</p>
 <p>If <code>n</code> is positive, values rotate right. If <code>n</code> is negative, values rotate left.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-64-1"><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a>println &quot;abcd&quot;.chars().rotate(1)  # prints: [&quot;d&quot;, &quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
-</span><span id="__span-64-2"><a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a>println &quot;abcd&quot;.chars().rotate(0)  # prints: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;]
-</span><span id="__span-64-3"><a id="__codelineno-64-3" name="__codelineno-64-3" href="#__codelineno-64-3"></a>println &quot;abcd&quot;.chars().rotate(-1) # prints: [&quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;a&quot;]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-65-1"><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>println &quot;abcd&quot;.chars().rotate(1)  # prints: [&quot;d&quot;, &quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+</span><span id="__span-65-2"><a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>println &quot;abcd&quot;.chars().rotate(0)  # prints: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;]
+</span><span id="__span-65-3"><a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a>println &quot;abcd&quot;.chars().rotate(-1) # prints: [&quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;a&quot;]
 </span></code></pre></div>
 <h3 id="shift"><code>shift()</code><a class="headerlink" href="#shift" title="Permanent link">&para;</a></h3>
 <p>Removes and returns the first value of a list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-65-1"><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>list = [1, 2, 3]
-</span><span id="__span-65-2"><a id="__codelineno-65-2" name="__codelineno-65-2" href="#__codelineno-65-2"></a>println(list.shift()) # prints: 1
-</span><span id="__span-65-3"><a id="__codelineno-65-3" name="__codelineno-65-3" href="#__codelineno-65-3"></a>println(list)         # prints: [2, 3]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-66-1"><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a>list = [1, 2, 3]
+</span><span id="__span-66-2"><a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a>println(list.shift()) # prints: 1
+</span><span id="__span-66-3"><a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a>println(list)         # prints: [2, 3]
 </span></code></pre></div>
 <h3 id="size"><code>size()</code><a class="headerlink" href="#size" title="Permanent link">&para;</a></h3>
-<p>Returns the size of a list, string, hashmap, or byte array as an integer.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-66-1"><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a>println(&quot;four&quot;.size())            # prints: 4
-</span><span id="__span-66-2"><a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a>println([1, 2, 3, true].size())   # prints: 4
-</span><span id="__span-66-3"><a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a>println({a: 1, b: 2}.size())      # prints: 2
+<p>Returns the size of a list, string, hashmap, or byte array as an integer. See also <a href="#length"><code>length()</code></a>, an alias.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-67-1"><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a>println(&quot;four&quot;.size())            # prints: 4
+</span><span id="__span-67-2"><a id="__codelineno-67-2" name="__codelineno-67-2" href="#__codelineno-67-2"></a>println([1, 2, 3, true].size())   # prints: 4
+</span><span id="__span-67-3"><a id="__codelineno-67-3" name="__codelineno-67-3" href="#__codelineno-67-3"></a>println({a: 1, b: 2}.size())      # prints: 2
 </span></code></pre></div>
 <h3 id="skipn"><code>skip(n)</code><a class="headerlink" href="#skipn" title="Permanent link">&para;</a></h3>
 <p>Returns a new list with the first <code>n</code> elements removed.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-67-1"><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a>println([1, 2, 3, 4, 5].skip(2))  # prints: [3, 4, 5]
-</span><span id="__span-67-2"><a id="__codelineno-67-2" name="__codelineno-67-2" href="#__codelineno-67-2"></a>println([1, 2, 3].skip(10))       # prints: []
+<div class="language-text highlight"><pre><span></span><code><span id="__span-68-1"><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>println([1, 2, 3, 4, 5].skip(2))  # prints: [3, 4, 5]
+</span><span id="__span-68-2"><a id="__codelineno-68-2" name="__codelineno-68-2" href="#__codelineno-68-2"></a>println([1, 2, 3].skip(10))       # prints: []
 </span></code></pre></div>
 <h3 id="slicestart-end"><code>slice(start, end)</code><a class="headerlink" href="#slicestart-end" title="Permanent link">&para;</a></h3>
 <p>Get a subset of the list, specifying start (inclusive) and end (exclusive) indices.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-68-1"><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>println([1, 2, 3].slice(1, 2)) # prints: [2]
-</span><span id="__span-68-2"><a id="__codelineno-68-2" name="__codelineno-68-2" href="#__codelineno-68-2"></a>println([1, 2, 3].slice(0, 3)) # prints: [1, 2, 3]
-</span><span id="__span-68-3"><a id="__codelineno-68-3" name="__codelineno-68-3" href="#__codelineno-68-3"></a>println([1, 2, 3].slice(0, 2)) # prints: [1, 2]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-69-1"><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>println([1, 2, 3].slice(1, 2)) # prints: [2]
+</span><span id="__span-69-2"><a id="__codelineno-69-2" name="__codelineno-69-2" href="#__codelineno-69-2"></a>println([1, 2, 3].slice(0, 3)) # prints: [1, 2, 3]
+</span><span id="__span-69-3"><a id="__codelineno-69-3" name="__codelineno-69-3" href="#__codelineno-69-3"></a>println([1, 2, 3].slice(0, 2)) # prints: [1, 2]
 </span></code></pre></div>
 <h3 id="sort"><code>sort()</code><a class="headerlink" href="#sort" title="Permanent link">&para;</a></h3>
 <p>Sort a list in ascending order.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-69-1"><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>list = [&quot;kiwi&quot;, &quot;mango&quot;, &quot;guava&quot;]
-</span><span id="__span-69-2"><a id="__codelineno-69-2" name="__codelineno-69-2" href="#__codelineno-69-2"></a>println(list.sort()) # prints: [&quot;guava&quot;, &quot;kiwi&quot;, &quot;mango&quot;]
-</span><span id="__span-69-3"><a id="__codelineno-69-3" name="__codelineno-69-3" href="#__codelineno-69-3"></a>
-</span><span id="__span-69-4"><a id="__codelineno-69-4" name="__codelineno-69-4" href="#__codelineno-69-4"></a>println([3, 1, 2].sort()) # prints: [1, 2, 3]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-70-1"><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a>list = [&quot;kiwi&quot;, &quot;mango&quot;, &quot;guava&quot;]
+</span><span id="__span-70-2"><a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>println(list.sort()) # prints: [&quot;guava&quot;, &quot;kiwi&quot;, &quot;mango&quot;]
+</span><span id="__span-70-3"><a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a>
+</span><span id="__span-70-4"><a id="__codelineno-70-4" name="__codelineno-70-4" href="#__codelineno-70-4"></a>println([3, 1, 2].sort()) # prints: [1, 2, 3]
 </span></code></pre></div>
 <h3 id="sortlambda"><code>sort(lambda)</code><a class="headerlink" href="#sortlambda" title="Permanent link">&para;</a></h3>
 <p>Sort a list using a custom comparator. The lambda receives two elements and should return <code>true</code> if the first argument should come before the second.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-70-1"><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a># Sort descending
-</span><span id="__span-70-2"><a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>nums = [3, 1, 4, 1, 5, 9, 2, 6]
-</span><span id="__span-70-3"><a id="__codelineno-70-3" name="__codelineno-70-3" href="#__codelineno-70-3"></a>println nums.sort(do (a, b) =&gt; a &gt; b)  # prints: [9, 6, 5, 4, 3, 2, 1, 1]
-</span><span id="__span-70-4"><a id="__codelineno-70-4" name="__codelineno-70-4" href="#__codelineno-70-4"></a>
-</span><span id="__span-70-5"><a id="__codelineno-70-5" name="__codelineno-70-5" href="#__codelineno-70-5"></a># Sort strings by length
-</span><span id="__span-70-6"><a id="__codelineno-70-6" name="__codelineno-70-6" href="#__codelineno-70-6"></a>words = [&quot;banana&quot;, &quot;fig&quot;, &quot;kiwi&quot;, &quot;mango&quot;]
-</span><span id="__span-70-7"><a id="__codelineno-70-7" name="__codelineno-70-7" href="#__codelineno-70-7"></a>println words.sort(do (a, b) =&gt; a.size() &lt; b.size())
-</span><span id="__span-70-8"><a id="__codelineno-70-8" name="__codelineno-70-8" href="#__codelineno-70-8"></a># prints: [&quot;fig&quot;, &quot;kiwi&quot;, &quot;mango&quot;, &quot;banana&quot;]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-71-1"><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a># Sort descending
+</span><span id="__span-71-2"><a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a>nums = [3, 1, 4, 1, 5, 9, 2, 6]
+</span><span id="__span-71-3"><a id="__codelineno-71-3" name="__codelineno-71-3" href="#__codelineno-71-3"></a>println nums.sort(do (a, b) =&gt; a &gt; b)  # prints: [9, 6, 5, 4, 3, 2, 1, 1]
+</span><span id="__span-71-4"><a id="__codelineno-71-4" name="__codelineno-71-4" href="#__codelineno-71-4"></a>
+</span><span id="__span-71-5"><a id="__codelineno-71-5" name="__codelineno-71-5" href="#__codelineno-71-5"></a># Sort strings by length
+</span><span id="__span-71-6"><a id="__codelineno-71-6" name="__codelineno-71-6" href="#__codelineno-71-6"></a>words = [&quot;banana&quot;, &quot;fig&quot;, &quot;kiwi&quot;, &quot;mango&quot;]
+</span><span id="__span-71-7"><a id="__codelineno-71-7" name="__codelineno-71-7" href="#__codelineno-71-7"></a>println words.sort(do (a, b) =&gt; a.size() &lt; b.size())
+</span><span id="__span-71-8"><a id="__codelineno-71-8" name="__codelineno-71-8" href="#__codelineno-71-8"></a># prints: [&quot;fig&quot;, &quot;kiwi&quot;, &quot;mango&quot;, &quot;banana&quot;]
 </span></code></pre></div>
 <h3 id="sum"><code>sum()</code><a class="headerlink" href="#sum" title="Permanent link">&para;</a></h3>
 <p>Sum the numeric values in a list. Returns an integer if all values are integers, otherwise a float.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-71-1"><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a>println([1, 2, 3].sum())         # prints: 6
-</span><span id="__span-71-2"><a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a>println([1.5, 2.5, 3.0].sum())   # prints: 7.0
+<div class="language-text highlight"><pre><span></span><code><span id="__span-72-1"><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>println([1, 2, 3].sum())         # prints: 6
+</span><span id="__span-72-2"><a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a>println([1.5, 2.5, 3.0].sum())   # prints: 7.0
 </span></code></pre></div>
 <h3 id="swapindex1-index2"><code>swap(index1, index2)</code><a class="headerlink" href="#swapindex1-index2" title="Permanent link">&para;</a></h3>
 <p>Swaps two values in a list by index.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-72-1"><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>list = [1, 2, 3]
-</span><span id="__span-72-2"><a id="__codelineno-72-2" name="__codelineno-72-2" href="#__codelineno-72-2"></a>list.swap(0, 1)
-</span><span id="__span-72-3"><a id="__codelineno-72-3" name="__codelineno-72-3" href="#__codelineno-72-3"></a>println(list) # prints: [2, 1, 3]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-73-1"><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a>list = [1, 2, 3]
+</span><span id="__span-73-2"><a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>list.swap(0, 1)
+</span><span id="__span-73-3"><a id="__codelineno-73-3" name="__codelineno-73-3" href="#__codelineno-73-3"></a>println(list) # prints: [2, 1, 3]
 </span></code></pre></div>
 <h3 id="taken"><code>take(n)</code><a class="headerlink" href="#taken" title="Permanent link">&para;</a></h3>
 <p>Returns a new list containing only the first <code>n</code> elements.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-73-1"><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a>println([1, 2, 3, 4, 5].take(3))  # prints: [1, 2, 3]
-</span><span id="__span-73-2"><a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a>println([1, 2].take(10))          # prints: [1, 2]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-74-1"><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a>println([1, 2, 3, 4, 5].take(3))  # prints: [1, 2, 3]
+</span><span id="__span-74-2"><a id="__codelineno-74-2" name="__codelineno-74-2" href="#__codelineno-74-2"></a>println([1, 2].take(10))          # prints: [1, 2]
 </span></code></pre></div>
 <h3 id="to_bytes"><code>to_bytes()</code><a class="headerlink" href="#to_bytes" title="Permanent link">&para;</a></h3>
 <p>Converts a string or list value to a byte array.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-74-1"><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a>println(&quot;kiwi&quot;.to_bytes())         # byte array of UTF-8 encoded string
-</span><span id="__span-74-2"><a id="__codelineno-74-2" name="__codelineno-74-2" href="#__codelineno-74-2"></a>println(&quot;kiwi&quot;.chars().to_bytes()) # same result via chars
+<div class="language-text highlight"><pre><span></span><code><span id="__span-75-1"><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a>println(&quot;kiwi&quot;.to_bytes())         # byte array of UTF-8 encoded string
+</span><span id="__span-75-2"><a id="__codelineno-75-2" name="__codelineno-75-2" href="#__codelineno-75-2"></a>println(&quot;kiwi&quot;.chars().to_bytes()) # same result via chars
 </span></code></pre></div>
 <h3 id="to_hex"><code>to_hex()</code><a class="headerlink" href="#to_hex" title="Permanent link">&para;</a></h3>
 <p>Converts a byte array or list of integer byte values to a lowercase hexadecimal string.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-75-1"><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a>println([97, 115, 116, 114, 97, 108].to_hex()) # prints: 61737472616c
-</span><span id="__span-75-2"><a id="__codelineno-75-2" name="__codelineno-75-2" href="#__codelineno-75-2"></a>println(&quot;kiwi&quot;.chars().to_bytes().to_hex())
+<div class="language-text highlight"><pre><span></span><code><span id="__span-76-1"><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a>println([97, 115, 116, 114, 97, 108].to_hex()) # prints: 61737472616c
+</span><span id="__span-76-2"><a id="__codelineno-76-2" name="__codelineno-76-2" href="#__codelineno-76-2"></a>println(&quot;kiwi&quot;.chars().to_bytes().to_hex())
 </span></code></pre></div>
 <h3 id="unique"><code>unique()</code><a class="headerlink" href="#unique" title="Permanent link">&para;</a></h3>
 <p>Remove duplicate values from the list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-76-1"><a id="__codelineno-76-1" name="__codelineno-76-1" href="#__codelineno-76-1"></a>println(&quot;aaaabbcccc&quot;.chars().unique()) # prints: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
-</span><span id="__span-76-2"><a id="__codelineno-76-2" name="__codelineno-76-2" href="#__codelineno-76-2"></a>println([1, 2, 2, 3, 3, 3].unique())  # prints: [1, 2, 3]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-77-1"><a id="__codelineno-77-1" name="__codelineno-77-1" href="#__codelineno-77-1"></a>println(&quot;aaaabbcccc&quot;.chars().unique()) # prints: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+</span><span id="__span-77-2"><a id="__codelineno-77-2" name="__codelineno-77-2" href="#__codelineno-77-2"></a>println([1, 2, 2, 3, 3, 3].unique())  # prints: [1, 2, 3]
 </span></code></pre></div>
 <h3 id="unshiftvalue"><code>unshift(value)</code><a class="headerlink" href="#unshiftvalue" title="Permanent link">&para;</a></h3>
 <p>Inserts a value at the beginning of a list.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-77-1"><a id="__codelineno-77-1" name="__codelineno-77-1" href="#__codelineno-77-1"></a>list = [1, 2, 3]
-</span><span id="__span-77-2"><a id="__codelineno-77-2" name="__codelineno-77-2" href="#__codelineno-77-2"></a>list.unshift(0)
-</span><span id="__span-77-3"><a id="__codelineno-77-3" name="__codelineno-77-3" href="#__codelineno-77-3"></a>println list  # prints: [0, 1, 2, 3]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-78-1"><a id="__codelineno-78-1" name="__codelineno-78-1" href="#__codelineno-78-1"></a>list = [1, 2, 3]
+</span><span id="__span-78-2"><a id="__codelineno-78-2" name="__codelineno-78-2" href="#__codelineno-78-2"></a>list.unshift(0)
+</span><span id="__span-78-3"><a id="__codelineno-78-3" name="__codelineno-78-3" href="#__codelineno-78-3"></a>println list  # prints: [0, 1, 2, 3]
 </span></code></pre></div>
 <h3 id="ziplist"><code>zip(list)</code><a class="headerlink" href="#ziplist" title="Permanent link">&para;</a></h3>
 <p>Combine values from two lists into pairs.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-78-1"><a id="__codelineno-78-1" name="__codelineno-78-1" href="#__codelineno-78-1"></a>println([1, 2].zip([3, 4])) # prints: [[1, 3], [2, 4]]
-</span><span id="__span-78-2"><a id="__codelineno-78-2" name="__codelineno-78-2" href="#__codelineno-78-2"></a>println([1, 2, 3].zip([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])) # prints: [[1, &quot;a&quot;], [2, &quot;b&quot;], [3, &quot;c&quot;]]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-79-1"><a id="__codelineno-79-1" name="__codelineno-79-1" href="#__codelineno-79-1"></a>println([1, 2].zip([3, 4])) # prints: [[1, 3], [2, 4]]
+</span><span id="__span-79-2"><a id="__codelineno-79-2" name="__codelineno-79-2" href="#__codelineno-79-2"></a>println([1, 2, 3].zip([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])) # prints: [[1, &quot;a&quot;], [2, &quot;b&quot;], [3, &quot;c&quot;]]
 </span></code></pre></div>
 <h2 id="conversion-and-type-checking">Conversion and Type Checking<a class="headerlink" href="#conversion-and-type-checking" title="Permanent link">&para;</a></h2>
 <h3 id="betweena-b_1"><code>between(a, b)</code><a class="headerlink" href="#betweena-b_1" title="Permanent link">&para;</a></h3>
 <p>See <a href="#betweena-b">Range Checking — <code>between</code></a>.</p>
 <h3 id="clone"><code>clone()</code><a class="headerlink" href="#clone" title="Permanent link">&para;</a></h3>
 <p>Returns a deep copy of the value.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-79-1"><a id="__codelineno-79-1" name="__codelineno-79-1" href="#__codelineno-79-1"></a>list = [1, 2, 3, true, false]
-</span><span id="__span-79-2"><a id="__codelineno-79-2" name="__codelineno-79-2" href="#__codelineno-79-2"></a>list2 = list.clone()
-</span><span id="__span-79-3"><a id="__codelineno-79-3" name="__codelineno-79-3" href="#__codelineno-79-3"></a>list2[0] = &quot;hello&quot;
-</span><span id="__span-79-4"><a id="__codelineno-79-4" name="__codelineno-79-4" href="#__codelineno-79-4"></a>
-</span><span id="__span-79-5"><a id="__codelineno-79-5" name="__codelineno-79-5" href="#__codelineno-79-5"></a>println(list)  # prints: [1, 2, 3, true, false]
-</span><span id="__span-79-6"><a id="__codelineno-79-6" name="__codelineno-79-6" href="#__codelineno-79-6"></a>println(list2) # prints: [&quot;hello&quot;, 2, 3, true, false]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-80-1"><a id="__codelineno-80-1" name="__codelineno-80-1" href="#__codelineno-80-1"></a>list = [1, 2, 3, true, false]
+</span><span id="__span-80-2"><a id="__codelineno-80-2" name="__codelineno-80-2" href="#__codelineno-80-2"></a>list2 = list.clone()
+</span><span id="__span-80-3"><a id="__codelineno-80-3" name="__codelineno-80-3" href="#__codelineno-80-3"></a>list2[0] = &quot;hello&quot;
+</span><span id="__span-80-4"><a id="__codelineno-80-4" name="__codelineno-80-4" href="#__codelineno-80-4"></a>
+</span><span id="__span-80-5"><a id="__codelineno-80-5" name="__codelineno-80-5" href="#__codelineno-80-5"></a>println(list)  # prints: [1, 2, 3, true, false]
+</span><span id="__span-80-6"><a id="__codelineno-80-6" name="__codelineno-80-6" href="#__codelineno-80-6"></a>println(list2) # prints: [&quot;hello&quot;, 2, 3, true, false]
 </span></code></pre></div>
 <h3 id="emptydefault-null"><code>empty(default = null)</code><a class="headerlink" href="#emptydefault-null" title="Permanent link">&para;</a></h3>
 <p>Returns true if the value is a "default" (zero-like) value: empty string, empty list, empty hashmap, <code>0</code>, <code>0.0</code>, <code>false</code>, or <code>null</code>.</p>
 <p>If a <code>default</code> argument is provided, returns that value when empty instead of <code>true</code>.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-80-1"><a id="__codelineno-80-1" name="__codelineno-80-1" href="#__codelineno-80-1"></a>println((0).empty())    # prints: true
-</span><span id="__span-80-2"><a id="__codelineno-80-2" name="__codelineno-80-2" href="#__codelineno-80-2"></a>println(&quot;&quot;.empty())     # prints: true
-</span><span id="__span-80-3"><a id="__codelineno-80-3" name="__codelineno-80-3" href="#__codelineno-80-3"></a>println([].empty())     # prints: true
-</span><span id="__span-80-4"><a id="__codelineno-80-4" name="__codelineno-80-4" href="#__codelineno-80-4"></a>println({}.empty())     # prints: true
-</span><span id="__span-80-5"><a id="__codelineno-80-5" name="__codelineno-80-5" href="#__codelineno-80-5"></a>println(false.empty())  # prints: true
-</span><span id="__span-80-6"><a id="__codelineno-80-6" name="__codelineno-80-6" href="#__codelineno-80-6"></a>println(&quot;hi&quot;.empty())   # prints: false
-</span><span id="__span-80-7"><a id="__codelineno-80-7" name="__codelineno-80-7" href="#__codelineno-80-7"></a>
-</span><span id="__span-80-8"><a id="__codelineno-80-8" name="__codelineno-80-8" href="#__codelineno-80-8"></a># With a default value:
-</span><span id="__span-80-9"><a id="__codelineno-80-9" name="__codelineno-80-9" href="#__codelineno-80-9"></a>name = &quot;&quot;
-</span><span id="__span-80-10"><a id="__codelineno-80-10" name="__codelineno-80-10" href="#__codelineno-80-10"></a>println name.empty(&quot;anonymous&quot;)  # prints: anonymous
-</span><span id="__span-80-11"><a id="__codelineno-80-11" name="__codelineno-80-11" href="#__codelineno-80-11"></a>
-</span><span id="__span-80-12"><a id="__codelineno-80-12" name="__codelineno-80-12" href="#__codelineno-80-12"></a>score = 100
-</span><span id="__span-80-13"><a id="__codelineno-80-13" name="__codelineno-80-13" href="#__codelineno-80-13"></a>println score.empty(0)            # prints: 100  (not empty, returns value itself)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-81-1"><a id="__codelineno-81-1" name="__codelineno-81-1" href="#__codelineno-81-1"></a>println((0).empty())    # prints: true
+</span><span id="__span-81-2"><a id="__codelineno-81-2" name="__codelineno-81-2" href="#__codelineno-81-2"></a>println(&quot;&quot;.empty())     # prints: true
+</span><span id="__span-81-3"><a id="__codelineno-81-3" name="__codelineno-81-3" href="#__codelineno-81-3"></a>println([].empty())     # prints: true
+</span><span id="__span-81-4"><a id="__codelineno-81-4" name="__codelineno-81-4" href="#__codelineno-81-4"></a>println({}.empty())     # prints: true
+</span><span id="__span-81-5"><a id="__codelineno-81-5" name="__codelineno-81-5" href="#__codelineno-81-5"></a>println(false.empty())  # prints: true
+</span><span id="__span-81-6"><a id="__codelineno-81-6" name="__codelineno-81-6" href="#__codelineno-81-6"></a>println(&quot;hi&quot;.empty())   # prints: false
+</span><span id="__span-81-7"><a id="__codelineno-81-7" name="__codelineno-81-7" href="#__codelineno-81-7"></a>
+</span><span id="__span-81-8"><a id="__codelineno-81-8" name="__codelineno-81-8" href="#__codelineno-81-8"></a># With a default value:
+</span><span id="__span-81-9"><a id="__codelineno-81-9" name="__codelineno-81-9" href="#__codelineno-81-9"></a>name = &quot;&quot;
+</span><span id="__span-81-10"><a id="__codelineno-81-10" name="__codelineno-81-10" href="#__codelineno-81-10"></a>println name.empty(&quot;anonymous&quot;)  # prints: anonymous
+</span><span id="__span-81-11"><a id="__codelineno-81-11" name="__codelineno-81-11" href="#__codelineno-81-11"></a>
+</span><span id="__span-81-12"><a id="__codelineno-81-12" name="__codelineno-81-12" href="#__codelineno-81-12"></a>score = 100
+</span><span id="__span-81-13"><a id="__codelineno-81-13" name="__codelineno-81-13" href="#__codelineno-81-13"></a>println score.empty(0)            # prints: 100  (not empty, returns value itself)
 </span></code></pre></div>
 <h3 id="is_atype_name"><code>is_a(type_name)</code><a class="headerlink" href="#is_atype_name" title="Permanent link">&para;</a></h3>
 <p>Used for type-checking. Accepts a type name string or a struct reference. For struct instances, also checks the full inheritance hierarchy.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-81-1"><a id="__codelineno-81-1" name="__codelineno-81-1" href="#__codelineno-81-1"></a>println(&quot;foobar&quot;.is_a(string))     # prints: true
-</span><span id="__span-81-2"><a id="__codelineno-81-2" name="__codelineno-81-2" href="#__codelineno-81-2"></a>println(42.is_a(integer))          # prints: true
-</span><span id="__span-81-3"><a id="__codelineno-81-3" name="__codelineno-81-3" href="#__codelineno-81-3"></a>println([].is_a(list))             # prints: true
-</span><span id="__span-81-4"><a id="__codelineno-81-4" name="__codelineno-81-4" href="#__codelineno-81-4"></a>
-</span><span id="__span-81-5"><a id="__codelineno-81-5" name="__codelineno-81-5" href="#__codelineno-81-5"></a>struct Animal end
-</span><span id="__span-81-6"><a id="__codelineno-81-6" name="__codelineno-81-6" href="#__codelineno-81-6"></a>struct Dog &lt; Animal end
-</span><span id="__span-81-7"><a id="__codelineno-81-7" name="__codelineno-81-7" href="#__codelineno-81-7"></a>
-</span><span id="__span-81-8"><a id="__codelineno-81-8" name="__codelineno-81-8" href="#__codelineno-81-8"></a>d = Dog.new()
-</span><span id="__span-81-9"><a id="__codelineno-81-9" name="__codelineno-81-9" href="#__codelineno-81-9"></a>println d.is_a(Dog)     # prints: true
-</span><span id="__span-81-10"><a id="__codelineno-81-10" name="__codelineno-81-10" href="#__codelineno-81-10"></a>println d.is_a(Animal)  # prints: true  (checks hierarchy)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-82-1"><a id="__codelineno-82-1" name="__codelineno-82-1" href="#__codelineno-82-1"></a>println(&quot;foobar&quot;.is_a(string))     # prints: true
+</span><span id="__span-82-2"><a id="__codelineno-82-2" name="__codelineno-82-2" href="#__codelineno-82-2"></a>println(42.is_a(integer))          # prints: true
+</span><span id="__span-82-3"><a id="__codelineno-82-3" name="__codelineno-82-3" href="#__codelineno-82-3"></a>println([].is_a(list))             # prints: true
+</span><span id="__span-82-4"><a id="__codelineno-82-4" name="__codelineno-82-4" href="#__codelineno-82-4"></a>
+</span><span id="__span-82-5"><a id="__codelineno-82-5" name="__codelineno-82-5" href="#__codelineno-82-5"></a>struct Animal end
+</span><span id="__span-82-6"><a id="__codelineno-82-6" name="__codelineno-82-6" href="#__codelineno-82-6"></a>struct Dog &lt; Animal end
+</span><span id="__span-82-7"><a id="__codelineno-82-7" name="__codelineno-82-7" href="#__codelineno-82-7"></a>
+</span><span id="__span-82-8"><a id="__codelineno-82-8" name="__codelineno-82-8" href="#__codelineno-82-8"></a>d = Dog.new()
+</span><span id="__span-82-9"><a id="__codelineno-82-9" name="__codelineno-82-9" href="#__codelineno-82-9"></a>println d.is_a(Dog)     # prints: true
+</span><span id="__span-82-10"><a id="__codelineno-82-10" name="__codelineno-82-10" href="#__codelineno-82-10"></a>println d.is_a(Animal)  # prints: true  (checks hierarchy)
 </span></code></pre></div>
 <h3 id="pretty"><code>pretty()</code><a class="headerlink" href="#pretty" title="Permanent link">&para;</a></h3>
 <p>Returns a pretty-printed (indented) serialization of the value.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-82-1"><a id="__codelineno-82-1" name="__codelineno-82-1" href="#__codelineno-82-1"></a>hashmap = {
-</span><span id="__span-82-2"><a id="__codelineno-82-2" name="__codelineno-82-2" href="#__codelineno-82-2"></a>  &quot;key1&quot;: true,
-</span><span id="__span-82-3"><a id="__codelineno-82-3" name="__codelineno-82-3" href="#__codelineno-82-3"></a>  &quot;key2&quot;: 1,
-</span><span id="__span-82-4"><a id="__codelineno-82-4" name="__codelineno-82-4" href="#__codelineno-82-4"></a>  &quot;key3&quot;: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
-</span><span id="__span-82-5"><a id="__codelineno-82-5" name="__codelineno-82-5" href="#__codelineno-82-5"></a>}
-</span><span id="__span-82-6"><a id="__codelineno-82-6" name="__codelineno-82-6" href="#__codelineno-82-6"></a>
-</span><span id="__span-82-7"><a id="__codelineno-82-7" name="__codelineno-82-7" href="#__codelineno-82-7"></a>println(hashmap.pretty())
-</span><span id="__span-82-8"><a id="__codelineno-82-8" name="__codelineno-82-8" href="#__codelineno-82-8"></a>/# prints:
-</span><span id="__span-82-9"><a id="__codelineno-82-9" name="__codelineno-82-9" href="#__codelineno-82-9"></a>{
-</span><span id="__span-82-10"><a id="__codelineno-82-10" name="__codelineno-82-10" href="#__codelineno-82-10"></a>  &quot;key1&quot;: true,
-</span><span id="__span-82-11"><a id="__codelineno-82-11" name="__codelineno-82-11" href="#__codelineno-82-11"></a>  &quot;key2&quot;: 1,
-</span><span id="__span-82-12"><a id="__codelineno-82-12" name="__codelineno-82-12" href="#__codelineno-82-12"></a>  &quot;key3&quot;: [
-</span><span id="__span-82-13"><a id="__codelineno-82-13" name="__codelineno-82-13" href="#__codelineno-82-13"></a>    &quot;a&quot;,
-</span><span id="__span-82-14"><a id="__codelineno-82-14" name="__codelineno-82-14" href="#__codelineno-82-14"></a>    &quot;b&quot;,
-</span><span id="__span-82-15"><a id="__codelineno-82-15" name="__codelineno-82-15" href="#__codelineno-82-15"></a>    &quot;c&quot;
-</span><span id="__span-82-16"><a id="__codelineno-82-16" name="__codelineno-82-16" href="#__codelineno-82-16"></a>  ]
-</span><span id="__span-82-17"><a id="__codelineno-82-17" name="__codelineno-82-17" href="#__codelineno-82-17"></a>}
-</span><span id="__span-82-18"><a id="__codelineno-82-18" name="__codelineno-82-18" href="#__codelineno-82-18"></a>#/
+<div class="language-text highlight"><pre><span></span><code><span id="__span-83-1"><a id="__codelineno-83-1" name="__codelineno-83-1" href="#__codelineno-83-1"></a>hashmap = {
+</span><span id="__span-83-2"><a id="__codelineno-83-2" name="__codelineno-83-2" href="#__codelineno-83-2"></a>  &quot;key1&quot;: true,
+</span><span id="__span-83-3"><a id="__codelineno-83-3" name="__codelineno-83-3" href="#__codelineno-83-3"></a>  &quot;key2&quot;: 1,
+</span><span id="__span-83-4"><a id="__codelineno-83-4" name="__codelineno-83-4" href="#__codelineno-83-4"></a>  &quot;key3&quot;: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+</span><span id="__span-83-5"><a id="__codelineno-83-5" name="__codelineno-83-5" href="#__codelineno-83-5"></a>}
+</span><span id="__span-83-6"><a id="__codelineno-83-6" name="__codelineno-83-6" href="#__codelineno-83-6"></a>
+</span><span id="__span-83-7"><a id="__codelineno-83-7" name="__codelineno-83-7" href="#__codelineno-83-7"></a>println(hashmap.pretty())
+</span><span id="__span-83-8"><a id="__codelineno-83-8" name="__codelineno-83-8" href="#__codelineno-83-8"></a>/# prints:
+</span><span id="__span-83-9"><a id="__codelineno-83-9" name="__codelineno-83-9" href="#__codelineno-83-9"></a>{
+</span><span id="__span-83-10"><a id="__codelineno-83-10" name="__codelineno-83-10" href="#__codelineno-83-10"></a>  &quot;key1&quot;: true,
+</span><span id="__span-83-11"><a id="__codelineno-83-11" name="__codelineno-83-11" href="#__codelineno-83-11"></a>  &quot;key2&quot;: 1,
+</span><span id="__span-83-12"><a id="__codelineno-83-12" name="__codelineno-83-12" href="#__codelineno-83-12"></a>  &quot;key3&quot;: [
+</span><span id="__span-83-13"><a id="__codelineno-83-13" name="__codelineno-83-13" href="#__codelineno-83-13"></a>    &quot;a&quot;,
+</span><span id="__span-83-14"><a id="__codelineno-83-14" name="__codelineno-83-14" href="#__codelineno-83-14"></a>    &quot;b&quot;,
+</span><span id="__span-83-15"><a id="__codelineno-83-15" name="__codelineno-83-15" href="#__codelineno-83-15"></a>    &quot;c&quot;
+</span><span id="__span-83-16"><a id="__codelineno-83-16" name="__codelineno-83-16" href="#__codelineno-83-16"></a>  ]
+</span><span id="__span-83-17"><a id="__codelineno-83-17" name="__codelineno-83-17" href="#__codelineno-83-17"></a>}
+</span><span id="__span-83-18"><a id="__codelineno-83-18" name="__codelineno-83-18" href="#__codelineno-83-18"></a>#/
 </span></code></pre></div>
 <h3 id="to_dateformat-null"><code>to_date(format = null)</code><a class="headerlink" href="#to_dateformat-null" title="Permanent link">&para;</a></h3>
 <p>Converts a string or integer to a date value.</p>
@@ -6611,43 +6639,43 @@
 <li><strong>Integer</strong>: treated as a Unix timestamp in <strong>milliseconds</strong>.</li>
 </ul>
 <p>Returns a default (zero) date if parsing fails.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-83-1"><a id="__codelineno-83-1" name="__codelineno-83-1" href="#__codelineno-83-1"></a>d1 = &quot;2024-06-15&quot;.to_date()
-</span><span id="__span-83-2"><a id="__codelineno-83-2" name="__codelineno-83-2" href="#__codelineno-83-2"></a>println d1.year()   # prints: 2024
-</span><span id="__span-83-3"><a id="__codelineno-83-3" name="__codelineno-83-3" href="#__codelineno-83-3"></a>println d1.month()  # prints: 6
-</span><span id="__span-83-4"><a id="__codelineno-83-4" name="__codelineno-83-4" href="#__codelineno-83-4"></a>println d1.day()    # prints: 15
-</span><span id="__span-83-5"><a id="__codelineno-83-5" name="__codelineno-83-5" href="#__codelineno-83-5"></a>
-</span><span id="__span-83-6"><a id="__codelineno-83-6" name="__codelineno-83-6" href="#__codelineno-83-6"></a># Custom format
-</span><span id="__span-83-7"><a id="__codelineno-83-7" name="__codelineno-83-7" href="#__codelineno-83-7"></a>d2 = &quot;15/06/2024&quot;.to_date(&quot;dd/MM/yyyy&quot;)
-</span><span id="__span-83-8"><a id="__codelineno-83-8" name="__codelineno-83-8" href="#__codelineno-83-8"></a>println d2.year()   # prints: 2024
-</span><span id="__span-83-9"><a id="__codelineno-83-9" name="__codelineno-83-9" href="#__codelineno-83-9"></a>
-</span><span id="__span-83-10"><a id="__codelineno-83-10" name="__codelineno-83-10" href="#__codelineno-83-10"></a># From Unix timestamp (ms)
-</span><span id="__span-83-11"><a id="__codelineno-83-11" name="__codelineno-83-11" href="#__codelineno-83-11"></a>d3 = 1718409600000.to_date()
-</span><span id="__span-83-12"><a id="__codelineno-83-12" name="__codelineno-83-12" href="#__codelineno-83-12"></a>println d3.year()   # prints: 2024
+<div class="language-text highlight"><pre><span></span><code><span id="__span-84-1"><a id="__codelineno-84-1" name="__codelineno-84-1" href="#__codelineno-84-1"></a>d1 = &quot;2024-06-15&quot;.to_date()
+</span><span id="__span-84-2"><a id="__codelineno-84-2" name="__codelineno-84-2" href="#__codelineno-84-2"></a>println d1.year()   # prints: 2024
+</span><span id="__span-84-3"><a id="__codelineno-84-3" name="__codelineno-84-3" href="#__codelineno-84-3"></a>println d1.month()  # prints: 6
+</span><span id="__span-84-4"><a id="__codelineno-84-4" name="__codelineno-84-4" href="#__codelineno-84-4"></a>println d1.day()    # prints: 15
+</span><span id="__span-84-5"><a id="__codelineno-84-5" name="__codelineno-84-5" href="#__codelineno-84-5"></a>
+</span><span id="__span-84-6"><a id="__codelineno-84-6" name="__codelineno-84-6" href="#__codelineno-84-6"></a># Custom format
+</span><span id="__span-84-7"><a id="__codelineno-84-7" name="__codelineno-84-7" href="#__codelineno-84-7"></a>d2 = &quot;15/06/2024&quot;.to_date(&quot;dd/MM/yyyy&quot;)
+</span><span id="__span-84-8"><a id="__codelineno-84-8" name="__codelineno-84-8" href="#__codelineno-84-8"></a>println d2.year()   # prints: 2024
+</span><span id="__span-84-9"><a id="__codelineno-84-9" name="__codelineno-84-9" href="#__codelineno-84-9"></a>
+</span><span id="__span-84-10"><a id="__codelineno-84-10" name="__codelineno-84-10" href="#__codelineno-84-10"></a># From Unix timestamp (ms)
+</span><span id="__span-84-11"><a id="__codelineno-84-11" name="__codelineno-84-11" href="#__codelineno-84-11"></a>d3 = 1718409600000.to_date()
+</span><span id="__span-84-12"><a id="__codelineno-84-12" name="__codelineno-84-12" href="#__codelineno-84-12"></a>println d3.year()   # prints: 2024
 </span></code></pre></div>
 <h3 id="to_float"><code>to_float()</code><a class="headerlink" href="#to_float" title="Permanent link">&para;</a></h3>
 <p>Converts a numeric or string value to a float.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-84-1"><a id="__codelineno-84-1" name="__codelineno-84-1" href="#__codelineno-84-1"></a>pi = &quot;3.14159&quot;.to_float()
-</span><span id="__span-84-2"><a id="__codelineno-84-2" name="__codelineno-84-2" href="#__codelineno-84-2"></a>tau = pi * 2
-</span><span id="__span-84-3"><a id="__codelineno-84-3" name="__codelineno-84-3" href="#__codelineno-84-3"></a>println(tau) # 6.28318
+<div class="language-text highlight"><pre><span></span><code><span id="__span-85-1"><a id="__codelineno-85-1" name="__codelineno-85-1" href="#__codelineno-85-1"></a>pi = &quot;3.14159&quot;.to_float()
+</span><span id="__span-85-2"><a id="__codelineno-85-2" name="__codelineno-85-2" href="#__codelineno-85-2"></a>tau = pi * 2
+</span><span id="__span-85-3"><a id="__codelineno-85-3" name="__codelineno-85-3" href="#__codelineno-85-3"></a>println(tau) # 6.28318
 </span></code></pre></div>
 <h3 id="to_integer"><code>to_integer()</code><a class="headerlink" href="#to_integer" title="Permanent link">&para;</a></h3>
 <p>Converts a numeric or string value to an integer (truncates floats).</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-85-1"><a id="__codelineno-85-1" name="__codelineno-85-1" href="#__codelineno-85-1"></a>n = &quot;100&quot;.to_integer()
-</span><span id="__span-85-2"><a id="__codelineno-85-2" name="__codelineno-85-2" href="#__codelineno-85-2"></a>n += 0.5
-</span><span id="__span-85-3"><a id="__codelineno-85-3" name="__codelineno-85-3" href="#__codelineno-85-3"></a>println(n)              # 100.5
-</span><span id="__span-85-4"><a id="__codelineno-85-4" name="__codelineno-85-4" href="#__codelineno-85-4"></a>
-</span><span id="__span-85-5"><a id="__codelineno-85-5" name="__codelineno-85-5" href="#__codelineno-85-5"></a>println(n.to_integer()) # 100
+<div class="language-text highlight"><pre><span></span><code><span id="__span-86-1"><a id="__codelineno-86-1" name="__codelineno-86-1" href="#__codelineno-86-1"></a>n = &quot;100&quot;.to_integer()
+</span><span id="__span-86-2"><a id="__codelineno-86-2" name="__codelineno-86-2" href="#__codelineno-86-2"></a>n += 0.5
+</span><span id="__span-86-3"><a id="__codelineno-86-3" name="__codelineno-86-3" href="#__codelineno-86-3"></a>println(n)              # 100.5
+</span><span id="__span-86-4"><a id="__codelineno-86-4" name="__codelineno-86-4" href="#__codelineno-86-4"></a>
+</span><span id="__span-86-5"><a id="__codelineno-86-5" name="__codelineno-86-5" href="#__codelineno-86-5"></a>println(n.to_integer()) # 100
 </span></code></pre></div>
 <h3 id="to_list"><code>to_list()</code><a class="headerlink" href="#to_list" title="Permanent link">&para;</a></h3>
 <p>Converts a string to a list of characters, or a byte array to a list of integer byte values.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-86-1"><a id="__codelineno-86-1" name="__codelineno-86-1" href="#__codelineno-86-1"></a>println(&quot;abc&quot;.to_list())           # prints: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
-</span><span id="__span-86-2"><a id="__codelineno-86-2" name="__codelineno-86-2" href="#__codelineno-86-2"></a>println(&quot;kiwi&quot;.to_bytes().to_list()) # prints: [107, 105, 119, 105]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-87-1"><a id="__codelineno-87-1" name="__codelineno-87-1" href="#__codelineno-87-1"></a>println(&quot;abc&quot;.to_list())           # prints: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+</span><span id="__span-87-2"><a id="__codelineno-87-2" name="__codelineno-87-2" href="#__codelineno-87-2"></a>println(&quot;kiwi&quot;.to_bytes().to_list()) # prints: [107, 105, 119, 105]
 </span></code></pre></div>
 <h3 id="to_stringformat-null"><code>to_string(format = null)</code><a class="headerlink" href="#to_stringformat-null" title="Permanent link">&para;</a></h3>
 <p>Converts a value to a string.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-87-1"><a id="__codelineno-87-1" name="__codelineno-87-1" href="#__codelineno-87-1"></a>n = 100
-</span><span id="__span-87-2"><a id="__codelineno-87-2" name="__codelineno-87-2" href="#__codelineno-87-2"></a>s = [n, n.to_string()]
-</span><span id="__span-87-3"><a id="__codelineno-87-3" name="__codelineno-87-3" href="#__codelineno-87-3"></a>println(s)  # prints: [100, &quot;100&quot;]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-88-1"><a id="__codelineno-88-1" name="__codelineno-88-1" href="#__codelineno-88-1"></a>n = 100
+</span><span id="__span-88-2"><a id="__codelineno-88-2" name="__codelineno-88-2" href="#__codelineno-88-2"></a>s = [n, n.to_string()]
+</span><span id="__span-88-3"><a id="__codelineno-88-3" name="__codelineno-88-3" href="#__codelineno-88-3"></a>println(s)  # prints: [100, &quot;100&quot;]
 </span></code></pre></div>
 <h4 id="formatting-options">Formatting Options<a class="headerlink" href="#formatting-options" title="Permanent link">&para;</a></h4>
 <p>For integer and float values, an optional format specifier can be passed.</p>
@@ -6695,61 +6723,61 @@
 </table>
 <h3 id="truthy"><code>truthy()</code><a class="headerlink" href="#truthy" title="Permanent link">&para;</a></h3>
 <p>Returns the truthiness of a value.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-88-1"><a id="__codelineno-88-1" name="__codelineno-88-1" href="#__codelineno-88-1"></a>println null.truthy()   # prints: false  — null is never truthy
-</span><span id="__span-88-2"><a id="__codelineno-88-2" name="__codelineno-88-2" href="#__codelineno-88-2"></a>println (0).truthy()    # prints: false  — 0 is the only non-truthy integer
-</span><span id="__span-88-3"><a id="__codelineno-88-3" name="__codelineno-88-3" href="#__codelineno-88-3"></a>println (1).truthy()    # prints: true
-</span><span id="__span-88-4"><a id="__codelineno-88-4" name="__codelineno-88-4" href="#__codelineno-88-4"></a>println &quot;&quot;.truthy()     # prints: false
-</span><span id="__span-88-5"><a id="__codelineno-88-5" name="__codelineno-88-5" href="#__codelineno-88-5"></a>println &quot;0&quot;.truthy()    # prints: true   — non-empty strings are truthy
-</span><span id="__span-88-6"><a id="__codelineno-88-6" name="__codelineno-88-6" href="#__codelineno-88-6"></a>println [].truthy()     # prints: false
-</span><span id="__span-88-7"><a id="__codelineno-88-7" name="__codelineno-88-7" href="#__codelineno-88-7"></a>println [0].truthy()    # prints: true   — non-empty lists are truthy
-</span><span id="__span-88-8"><a id="__codelineno-88-8" name="__codelineno-88-8" href="#__codelineno-88-8"></a>println {}.truthy()     # prints: false  — empty hashmaps are not truthy
-</span><span id="__span-88-9"><a id="__codelineno-88-9" name="__codelineno-88-9" href="#__codelineno-88-9"></a>println true.truthy()   # prints: true
+<div class="language-text highlight"><pre><span></span><code><span id="__span-89-1"><a id="__codelineno-89-1" name="__codelineno-89-1" href="#__codelineno-89-1"></a>println null.truthy()   # prints: false  — null is never truthy
+</span><span id="__span-89-2"><a id="__codelineno-89-2" name="__codelineno-89-2" href="#__codelineno-89-2"></a>println (0).truthy()    # prints: false  — 0 is the only non-truthy integer
+</span><span id="__span-89-3"><a id="__codelineno-89-3" name="__codelineno-89-3" href="#__codelineno-89-3"></a>println (1).truthy()    # prints: true
+</span><span id="__span-89-4"><a id="__codelineno-89-4" name="__codelineno-89-4" href="#__codelineno-89-4"></a>println &quot;&quot;.truthy()     # prints: false
+</span><span id="__span-89-5"><a id="__codelineno-89-5" name="__codelineno-89-5" href="#__codelineno-89-5"></a>println &quot;0&quot;.truthy()    # prints: true   — non-empty strings are truthy
+</span><span id="__span-89-6"><a id="__codelineno-89-6" name="__codelineno-89-6" href="#__codelineno-89-6"></a>println [].truthy()     # prints: false
+</span><span id="__span-89-7"><a id="__codelineno-89-7" name="__codelineno-89-7" href="#__codelineno-89-7"></a>println [0].truthy()    # prints: true   — non-empty lists are truthy
+</span><span id="__span-89-8"><a id="__codelineno-89-8" name="__codelineno-89-8" href="#__codelineno-89-8"></a>println {}.truthy()     # prints: false  — empty hashmaps are not truthy
+</span><span id="__span-89-9"><a id="__codelineno-89-9" name="__codelineno-89-9" href="#__codelineno-89-9"></a>println true.truthy()   # prints: true
 </span></code></pre></div>
 <h3 id="type"><code>type()</code><a class="headerlink" href="#type" title="Permanent link">&para;</a></h3>
 <p>Returns the type of the value as a string.</p>
 <p>Valid types: <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>string</code>, <code>list</code>, <code>hashmap</code>, <code>lambda</code>, <code>date</code>, <code>bytes</code>, <code>null</code>. For struct instances, returns the struct name.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-89-1"><a id="__codelineno-89-1" name="__codelineno-89-1" href="#__codelineno-89-1"></a>struct MyStruct end
-</span><span id="__span-89-2"><a id="__codelineno-89-2" name="__codelineno-89-2" href="#__codelineno-89-2"></a>
-</span><span id="__span-89-3"><a id="__codelineno-89-3" name="__codelineno-89-3" href="#__codelineno-89-3"></a>instance = MyStruct.new()
-</span><span id="__span-89-4"><a id="__codelineno-89-4" name="__codelineno-89-4" href="#__codelineno-89-4"></a>println(instance.type())                  # prints: MyStruct
-</span><span id="__span-89-5"><a id="__codelineno-89-5" name="__codelineno-89-5" href="#__codelineno-89-5"></a>println(&quot;Kiwis are delicious!&quot;.type())    # prints: string
-</span><span id="__span-89-6"><a id="__codelineno-89-6" name="__codelineno-89-6" href="#__codelineno-89-6"></a>println(42.type())                        # prints: integer
-</span><span id="__span-89-7"><a id="__codelineno-89-7" name="__codelineno-89-7" href="#__codelineno-89-7"></a>println(3.14.type())                      # prints: float
+<div class="language-text highlight"><pre><span></span><code><span id="__span-90-1"><a id="__codelineno-90-1" name="__codelineno-90-1" href="#__codelineno-90-1"></a>struct MyStruct end
+</span><span id="__span-90-2"><a id="__codelineno-90-2" name="__codelineno-90-2" href="#__codelineno-90-2"></a>
+</span><span id="__span-90-3"><a id="__codelineno-90-3" name="__codelineno-90-3" href="#__codelineno-90-3"></a>instance = MyStruct.new()
+</span><span id="__span-90-4"><a id="__codelineno-90-4" name="__codelineno-90-4" href="#__codelineno-90-4"></a>println(instance.type())                  # prints: MyStruct
+</span><span id="__span-90-5"><a id="__codelineno-90-5" name="__codelineno-90-5" href="#__codelineno-90-5"></a>println(&quot;Kiwis are delicious!&quot;.type())    # prints: string
+</span><span id="__span-90-6"><a id="__codelineno-90-6" name="__codelineno-90-6" href="#__codelineno-90-6"></a>println(42.type())                        # prints: integer
+</span><span id="__span-90-7"><a id="__codelineno-90-7" name="__codelineno-90-7" href="#__codelineno-90-7"></a>println(3.14.type())                      # prints: float
 </span></code></pre></div>
 <h3 id="deserializestr"><code>deserialize(str)</code><a class="headerlink" href="#deserializestr" title="Permanent link">&para;</a></h3>
 <p>Deserializes a JSON-like string into a Kiwi value.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-90-1"><a id="__codelineno-90-1" name="__codelineno-90-1" href="#__codelineno-90-1"></a>string = &quot;[1, 2, 3]&quot;
-</span><span id="__span-90-2"><a id="__codelineno-90-2" name="__codelineno-90-2" href="#__codelineno-90-2"></a>list = deserialize(string)
-</span><span id="__span-90-3"><a id="__codelineno-90-3" name="__codelineno-90-3" href="#__codelineno-90-3"></a>list.push(4)
-</span><span id="__span-90-4"><a id="__codelineno-90-4" name="__codelineno-90-4" href="#__codelineno-90-4"></a>println(list)  # prints: [1, 2, 3, 4]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-91-1"><a id="__codelineno-91-1" name="__codelineno-91-1" href="#__codelineno-91-1"></a>string = &quot;[1, 2, 3]&quot;
+</span><span id="__span-91-2"><a id="__codelineno-91-2" name="__codelineno-91-2" href="#__codelineno-91-2"></a>list = deserialize(string)
+</span><span id="__span-91-3"><a id="__codelineno-91-3" name="__codelineno-91-3" href="#__codelineno-91-3"></a>list.push(4)
+</span><span id="__span-91-4"><a id="__codelineno-91-4" name="__codelineno-91-4" href="#__codelineno-91-4"></a>println(list)  # prints: [1, 2, 3, 4]
 </span></code></pre></div>
 <h3 id="serializevalue"><code>serialize(value)</code><a class="headerlink" href="#serializevalue" title="Permanent link">&para;</a></h3>
 <p>Serializes a Kiwi value into its string representation.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-91-1"><a id="__codelineno-91-1" name="__codelineno-91-1" href="#__codelineno-91-1"></a>data = { name: &quot;kiwi&quot;, version: 1 }
-</span><span id="__span-91-2"><a id="__codelineno-91-2" name="__codelineno-91-2" href="#__codelineno-91-2"></a>println serialize(data)  # prints: {&quot;name&quot;: &quot;kiwi&quot;, &quot;version&quot;: 1}
+<div class="language-text highlight"><pre><span></span><code><span id="__span-92-1"><a id="__codelineno-92-1" name="__codelineno-92-1" href="#__codelineno-92-1"></a>data = { name: &quot;kiwi&quot;, version: 1 }
+</span><span id="__span-92-2"><a id="__codelineno-92-2" name="__codelineno-92-2" href="#__codelineno-92-2"></a>println serialize(data)  # prints: {&quot;name&quot;: &quot;kiwi&quot;, &quot;version&quot;: 1}
 </span></code></pre></div>
 <h2 id="kiwi-global-builtins">Kiwi Global Builtins<a class="headerlink" href="#kiwi-global-builtins" title="Permanent link">&para;</a></h2>
 <p>These builtins are called as standalone functions (not with dot-notation) and provide runtime introspection.</p>
 <h3 id="typeofvalue"><code>typeof(value)</code><a class="headerlink" href="#typeofvalue" title="Permanent link">&para;</a></h3>
 <p>Returns the type of <code>value</code> as a string. Unlike <code>.type()</code>, <code>typeof</code> can be called on any expression and works well in situations where method chaining is awkward.</p>
 <p>Valid types: <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>string</code>, <code>list</code>, <code>hashmap</code>, <code>lambda</code>, <code>date</code>, <code>bytes</code>, <code>null</code>. For struct instances, returns the struct name.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-92-1"><a id="__codelineno-92-1" name="__codelineno-92-1" href="#__codelineno-92-1"></a>println typeof(42)          # prints: integer
-</span><span id="__span-92-2"><a id="__codelineno-92-2" name="__codelineno-92-2" href="#__codelineno-92-2"></a>println typeof(3.14)        # prints: float
-</span><span id="__span-92-3"><a id="__codelineno-92-3" name="__codelineno-92-3" href="#__codelineno-92-3"></a>println typeof(&quot;hello&quot;)     # prints: string
-</span><span id="__span-92-4"><a id="__codelineno-92-4" name="__codelineno-92-4" href="#__codelineno-92-4"></a>println typeof([1, 2, 3])   # prints: list
-</span><span id="__span-92-5"><a id="__codelineno-92-5" name="__codelineno-92-5" href="#__codelineno-92-5"></a>println typeof(null)        # prints: null
-</span><span id="__span-92-6"><a id="__codelineno-92-6" name="__codelineno-92-6" href="#__codelineno-92-6"></a>
-</span><span id="__span-92-7"><a id="__codelineno-92-7" name="__codelineno-92-7" href="#__codelineno-92-7"></a>struct Point end
-</span><span id="__span-92-8"><a id="__codelineno-92-8" name="__codelineno-92-8" href="#__codelineno-92-8"></a>p = Point.new()
-</span><span id="__span-92-9"><a id="__codelineno-92-9" name="__codelineno-92-9" href="#__codelineno-92-9"></a>println typeof(p)           # prints: Point
+<div class="language-text highlight"><pre><span></span><code><span id="__span-93-1"><a id="__codelineno-93-1" name="__codelineno-93-1" href="#__codelineno-93-1"></a>println typeof(42)          # prints: integer
+</span><span id="__span-93-2"><a id="__codelineno-93-2" name="__codelineno-93-2" href="#__codelineno-93-2"></a>println typeof(3.14)        # prints: float
+</span><span id="__span-93-3"><a id="__codelineno-93-3" name="__codelineno-93-3" href="#__codelineno-93-3"></a>println typeof(&quot;hello&quot;)     # prints: string
+</span><span id="__span-93-4"><a id="__codelineno-93-4" name="__codelineno-93-4" href="#__codelineno-93-4"></a>println typeof([1, 2, 3])   # prints: list
+</span><span id="__span-93-5"><a id="__codelineno-93-5" name="__codelineno-93-5" href="#__codelineno-93-5"></a>println typeof(null)        # prints: null
+</span><span id="__span-93-6"><a id="__codelineno-93-6" name="__codelineno-93-6" href="#__codelineno-93-6"></a>
+</span><span id="__span-93-7"><a id="__codelineno-93-7" name="__codelineno-93-7" href="#__codelineno-93-7"></a>struct Point end
+</span><span id="__span-93-8"><a id="__codelineno-93-8" name="__codelineno-93-8" href="#__codelineno-93-8"></a>p = Point.new()
+</span><span id="__span-93-9"><a id="__codelineno-93-9" name="__codelineno-93-9" href="#__codelineno-93-9"></a>println typeof(p)           # prints: Point
 </span></code></pre></div>
 <h3 id="__execpath__"><code>__execpath__()</code><a class="headerlink" href="#__execpath__" title="Permanent link">&para;</a></h3>
 <p>Returns the absolute path of the Kiwi executable. Returns an empty string if the path cannot be determined.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-93-1"><a id="__codelineno-93-1" name="__codelineno-93-1" href="#__codelineno-93-1"></a>println __execpath__()  # e.g. /usr/local/bin/kiwi
+<div class="language-text highlight"><pre><span></span><code><span id="__span-94-1"><a id="__codelineno-94-1" name="__codelineno-94-1" href="#__codelineno-94-1"></a>println __execpath__()  # e.g. /usr/local/bin/kiwi
 </span></code></pre></div>
 <h3 id="__entrypath__"><code>__entrypath__()</code><a class="headerlink" href="#__entrypath__" title="Permanent link">&para;</a></h3>
 <p>Returns the path of the entry-point script (the <code>.kiwi</code> file that was passed to the interpreter). Useful for locating files relative to the running script.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-94-1"><a id="__codelineno-94-1" name="__codelineno-94-1" href="#__codelineno-94-1"></a>println __entrypath__()  # e.g. /home/user/scripts/main.kiwi
+<div class="language-text highlight"><pre><span></span><code><span id="__span-95-1"><a id="__codelineno-95-1" name="__codelineno-95-1" href="#__codelineno-95-1"></a>println __entrypath__()  # e.g. /home/user/scripts/main.kiwi
 </span></code></pre></div>
 <h3 id="__tokenize__code"><code>__tokenize__(code)</code><a class="headerlink" href="#__tokenize__code" title="Permanent link">&para;</a></h3>
 <p>Lexes the string <code>code</code> using the Kiwi lexer and returns a hashmap. On success the hashmap contains a <code>"tokens"</code> key whose value is a list of token descriptors. On failure it contains an <code>"error"</code> key with the error message.</p>
@@ -6785,10 +6813,10 @@
 </tr>
 </tbody>
 </table>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-95-1"><a id="__codelineno-95-1" name="__codelineno-95-1" href="#__codelineno-95-1"></a>result = __tokenize__(&quot;x = 1 + 2&quot;)
-</span><span id="__span-95-2"><a id="__codelineno-95-2" name="__codelineno-95-2" href="#__codelineno-95-2"></a>for tok in result[&quot;tokens&quot;]
-</span><span id="__span-95-3"><a id="__codelineno-95-3" name="__codelineno-95-3" href="#__codelineno-95-3"></a>  println &quot;${tok[&quot;token&quot;]}: &#39;${tok[&quot;text&quot;]}&#39; (${tok[&quot;type&quot;]}) @ ${tok[&quot;span&quot;][&quot;line&quot;]}:${tok[&quot;span&quot;][&quot;pos&quot;]}&quot;
-</span><span id="__span-95-4"><a id="__codelineno-95-4" name="__codelineno-95-4" href="#__codelineno-95-4"></a>end
+<div class="language-text highlight"><pre><span></span><code><span id="__span-96-1"><a id="__codelineno-96-1" name="__codelineno-96-1" href="#__codelineno-96-1"></a>result = __tokenize__(&quot;x = 1 + 2&quot;)
+</span><span id="__span-96-2"><a id="__codelineno-96-2" name="__codelineno-96-2" href="#__codelineno-96-2"></a>for tok in result[&quot;tokens&quot;]
+</span><span id="__span-96-3"><a id="__codelineno-96-3" name="__codelineno-96-3" href="#__codelineno-96-3"></a>  println &quot;${tok[&quot;token&quot;]}: &#39;${tok[&quot;text&quot;]}&#39; (${tok[&quot;type&quot;]}) @ ${tok[&quot;span&quot;][&quot;line&quot;]}:${tok[&quot;span&quot;][&quot;pos&quot;]}&quot;
+</span><span id="__span-96-4"><a id="__codelineno-96-4" name="__codelineno-96-4" href="#__codelineno-96-4"></a>end
 </span></code></pre></div>
 <h3 id="__memusage__"><code>__memusage__()</code><a class="headerlink" href="#__memusage__" title="Permanent link">&para;</a></h3>
 <p>Returns a hashmap of memory diagnostics for the current runtime process.</p>
@@ -6826,12 +6854,12 @@
 </tr>
 </tbody>
 </table>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-96-1"><a id="__codelineno-96-1" name="__codelineno-96-1" href="#__codelineno-96-1"></a>mem = __memusage__()
-</span><span id="__span-96-2"><a id="__codelineno-96-2" name="__codelineno-96-2" href="#__codelineno-96-2"></a>mb = do (b) =&gt; (b / 1048576.0).to_string(&quot;f1&quot;) + &quot; MB&quot;
-</span><span id="__span-96-3"><a id="__codelineno-96-3" name="__codelineno-96-3" href="#__codelineno-96-3"></a>
-</span><span id="__span-96-4"><a id="__codelineno-96-4" name="__codelineno-96-4" href="#__codelineno-96-4"></a>println &quot;working set : ${mb(mem[&quot;working_set&quot;])}&quot;
-</span><span id="__span-96-5"><a id="__codelineno-96-5" name="__codelineno-96-5" href="#__codelineno-96-5"></a>println &quot;gc heap     : ${mb(mem[&quot;gc_heap&quot;])}&quot;
-</span><span id="__span-96-6"><a id="__codelineno-96-6" name="__codelineno-96-6" href="#__codelineno-96-6"></a>println &quot;gen0 / gen1 / gen2 collections: ${mem[&quot;gen0_collections&quot;]} / ${mem[&quot;gen1_collections&quot;]} / ${mem[&quot;gen2_collections&quot;]}&quot;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-97-1"><a id="__codelineno-97-1" name="__codelineno-97-1" href="#__codelineno-97-1"></a>mem = __memusage__()
+</span><span id="__span-97-2"><a id="__codelineno-97-2" name="__codelineno-97-2" href="#__codelineno-97-2"></a>mb = do (b) =&gt; (b / 1048576.0).to_string(&quot;f1&quot;) + &quot; MB&quot;
+</span><span id="__span-97-3"><a id="__codelineno-97-3" name="__codelineno-97-3" href="#__codelineno-97-3"></a>
+</span><span id="__span-97-4"><a id="__codelineno-97-4" name="__codelineno-97-4" href="#__codelineno-97-4"></a>println &quot;working set : ${mb(mem[&quot;working_set&quot;])}&quot;
+</span><span id="__span-97-5"><a id="__codelineno-97-5" name="__codelineno-97-5" href="#__codelineno-97-5"></a>println &quot;gc heap     : ${mb(mem[&quot;gc_heap&quot;])}&quot;
+</span><span id="__span-97-6"><a id="__codelineno-97-6" name="__codelineno-97-6" href="#__codelineno-97-6"></a>println &quot;gen0 / gen1 / gen2 collections: ${mem[&quot;gen0_collections&quot;]} / ${mem[&quot;gen1_collections&quot;]} / ${mem[&quot;gen2_collections&quot;]}&quot;
 </span></code></pre></div>
 
 
