@@ -3122,8 +3122,24 @@ public sealed class KiwiVM
         if (!_context.HasStruct(structName))
             throw new StructUndefinedError(token, structName);
         var struc = _context.Structs[structName];
-        var inst  = new InstanceRef { StructName = structName, Identifier = structName };
-        if (struc.Methods.TryGetValue("new", out KFunction? ctor))
+
+        if (struc.IsAbstract)
+            throw new AbstractInstantiationError(token, structName);
+
+        var inst = new InstanceRef { StructName = structName, Identifier = structName };
+
+        KFunction? ctor = null;
+        var search = struc;
+        while (search != null)
+        {
+            if (search.Methods.TryGetValue("new", out ctor)) break;
+            ctor   = null;
+            search = !string.IsNullOrEmpty(search.BaseStruct) && _context.HasStruct(search.BaseStruct)
+                ? _context.Structs[search.BaseStruct]
+                : null;
+        }
+
+        if (ctor != null)
             InvokeCallable(ctor, args, token, "new", inst);
         return Value.CreateObject(inst);
     }
