@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -3951,6 +3951,9 @@
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  n
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>end
 </span></code></pre></div>
+<blockquote>
+<p><strong>Pitfall — no <code>?</code>-suffixed predicate methods:</strong> Unlike Ruby/Elixir, Kiwi has no naming convention where a boolean-returning method ends in <code>?</code> (there is no <code>.empty?()</code> or <code>.has_key?()</code> — use the plain names <code>.empty()</code> / <code>.has_key()</code>, see <a href="../builtins/">Builtins</a>). <code>?</code> is <em>only</em> the ternary/null-coalescing operator, and the lexer treats it that way wherever it appears. Writing <code>if x.has_key?(y) ... end</code> does not fail with a clear "undefined method" error — the parser consumes the <code>?</code> as the start of a ternary expression, then fails looking for its <code>:</code>, producing a cascade of confusing errors (<code>Expected ':' in ternary operation</code>, <code>Expected if-statement or case-statement</code>) anchored on the lines <em>after</em> the real mistake, not on it. If you see that error shape, check for a stray <code>?</code> on a method call first.</p>
+</blockquote>
 <hr />
 <h2 id="bitwise">Bitwise<a class="headerlink" href="#bitwise" title="Permanent link">&para;</a></h2>
 <table>
@@ -4387,7 +4390,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

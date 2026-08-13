@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -938,6 +938,17 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#variables" class="md-nav__link">
@@ -4194,6 +4205,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#variables" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -5022,6 +5044,9 @@
 
 <h1 id="reserved-keywords-in-kiwi">Reserved Keywords in Kiwi<a class="headerlink" href="#reserved-keywords-in-kiwi" title="Permanent link">&para;</a></h1>
 <p>This document provides an overview of reserved keywords in Kiwi, along with explanations and usage examples.</p>
+<h2 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h2>
+<p><code>boolean</code>, <code>bytes</code>, <code>date</code>, <code>float</code>, <code>generator</code>, <code>hashmap</code>, <code>integer</code>, <code>lambda</code>, <code>list</code>, <code>object</code>, <code>pointer</code>, <code>string</code>, <code>any</code>, and <code>none</code> are lexed as type keywords, not identifiers. <strong>None of them can be used as a variable, function, method, or parameter name</strong> — e.g. <code>fn foo(list)</code> or <code>list = [1, 2, 3]</code> both fail to parse. <code>null</code> is reserved for the same reason, via a separate literal-keyword path.</p>
+<p>See <a href="../types/">Types</a> for the full type reference.</p>
 <h2 id="variables">Variables<a class="headerlink" href="#variables" title="Permanent link">&para;</a></h2>
 <h3 id="var"><code>var</code><a class="headerlink" href="#var" title="Permanent link">&para;</a></h3>
 <p>The <code>var</code> keyword is used to declare a variable.</p>
@@ -5369,7 +5394,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

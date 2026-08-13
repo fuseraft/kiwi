@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1686,6 +1686,17 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#builtins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Builtins
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#defining-an-enum" class="md-nav__link">
@@ -3458,6 +3469,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#builtins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Builtins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#defining-an-enum" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3550,6 +3572,15 @@
 
 <h1 id="enums">Enums<a class="headerlink" href="#enums" title="Permanent link">&para;</a></h1>
 <p>Enums define a named set of constant values. They are useful for representing a fixed collection of related states, codes, or categories.</p>
+<h2 id="builtins">Builtins<a class="headerlink" href="#builtins" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>.size()</code>: integer count of members</li>
+<li><code>.keys()</code>: list of string names</li>
+<li><code>.values()</code>: list of values</li>
+<li><code>.to_hashmap()</code>: hashmap name-&gt;value</li>
+<li><code>.get(key, default?)</code>: value or default or error
+.size, .keys, .values, .to_hashmap, .get added for iteration and access.</li>
+</ul>
 <hr />
 <h2 id="defining-an-enum">Defining an Enum<a class="headerlink" href="#defining-an-enum" title="Permanent link">&para;</a></h2>
 <p>Use the <code>enum</code> keyword followed by a name and a block of member declarations, closed with <code>end</code>.</p>
@@ -3698,7 +3729,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

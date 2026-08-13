@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -819,6 +819,17 @@
     <span class="md-ellipsis">
       
         -&lt;key&gt;=&lt;value&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bare-positional-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bare positional arguments
       
     </span>
   </a>
@@ -3794,6 +3805,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#bare-positional-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bare positional arguments
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3933,6 +3955,15 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>echo &#39;println env::argv()&#39; | kiwi -name=scotty
 </span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a># {&quot;name&quot;: &quot;scotty&quot;}
 </span></code></pre></div>
+<h3 id="bare-positional-arguments">Bare positional arguments<a class="headerlink" href="#bare-positional-arguments" title="Permanent link">&para;</a></h3>
+<p>Arguments with no leading <code>-</code>/<code>--</code>/<code>/</code> and no <code>=</code> are <strong>positional arguments</strong> — e.g. the numbers in <code>kiwi bubblesort.kiwi 5 3 8 1</code>. They are not dropped or special-cased: each one becomes its own key in the <code>env::argv()</code> hashmap, mapped to itself (<code>argv["5"] == "5"</code>).</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>kiwi -e &#39;println env::argv()&#39; 5 3 8 1
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a># {&quot;5&quot;: &quot;5&quot;, &quot;3&quot;: &quot;3&quot;, &quot;8&quot;: &quot;8&quot;, &quot;1&quot;: &quot;1&quot;}
+</span></code></pre></div>
+<p>To recover them as an ordered list (the common case for a script that takes <code>script.kiwi item1 item2 ...</code>), use <code>env::args()</code> — the raw, unparsed argument list:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>data = env::args()   # [&quot;5&quot;, &quot;3&quot;, &quot;8&quot;, &quot;1&quot;], in argument order
+</span></code></pre></div>
+<p><strong>Don't use <code>env::argv().keys()</code> for this.</strong> <code>argv()</code> is a hashmap, so duplicate positional values collapse into one entry before your script sees them — <code>kiwi script.kiwi 5 3 8 3 1</code> gives <code>argv().keys() == ["5","3","8","1"]</code>, silently dropping the repeated <code>3</code>. <code>env::args()</code> has no such issue since it isn't backed by a hashmap. See <a href="../lib/env/#args"><code>env::args()</code></a> for details, and <a href="../lib/cli/#cliparser"><code>cli::CliParser</code></a> if you need to mix flags/options with positional arguments — it separates parsed flags/options from a plain <code>"_args"</code> list of positionals (note: <code>CliParser</code>'s <code>"_args"</code> is currently derived from <code>argv()</code> internally and inherits the same duplicate-collapsing limitation).</p>
 
 
 
@@ -4007,7 +4038,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
