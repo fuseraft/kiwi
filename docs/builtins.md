@@ -589,6 +589,16 @@ println([1, 0, 0, 1, 0, 1, 1].lastindex(1))  # prints: 6
 println([1, 2, 3, 4, 5].lastindex(6))         # prints: -1
 ```
 
+### `length()`
+
+Alias for [`size()`](#size). Returns the size of a list, string, hashmap, or byte array as an integer.
+
+```kiwi
+println("four".length())            # prints: 4
+println([1, 2, 3, true].length())   # prints: 4
+println({a: 1, b: 2}.length())      # prints: 2
+```
+
 ### `map(lambda)`
 
 Transform each element in a list, returning a new list.
@@ -718,7 +728,7 @@ println(list)         # prints: [2, 3]
 
 ### `size()`
 
-Returns the size of a list, string, hashmap, or byte array as an integer.
+Returns the size of a list, string, hashmap, or byte array as an integer. See also [`length()`](#length), an alias.
 
 ```kiwi
 println("four".size())            # prints: 4

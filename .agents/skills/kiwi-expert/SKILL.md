@@ -227,7 +227,7 @@ fn add(a, b) a + b end
 
 ### Common Pitfalls
 
-- No `.length()` — use `.size()` for strings, lists, and hashmaps.
+- `.length()` and `.size()` are equivalent for strings, lists, hashmaps, and bytes — use whichever reads better (added in `c7324d07`, mirrors `.size()`'s dispatch).
 - No `nil` — the only absence value is `null`.
 - Loop skip is `next` (not `continue`), with optional `when` guard.
 - Identifiers (functions, methods) must be `snake_case`; camelCase is not idiomatic and may not match dispatch conventions in stdlib packages.
