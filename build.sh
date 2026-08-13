@@ -11,16 +11,16 @@ set -euo pipefail 2>/dev/null || set -e
 
 # Check for dotnet CLI
 if ! type -p dotnet >/dev/null 2>&1; then
-  echo "The 'dotnet' CLI could not be found. Please install the .NET 9 SDK and try again."
+  echo "The 'dotnet' CLI could not be found. Please install the .NET 10 SDK and try again."
   exit 1
 fi
 
-# Expect .NET 9+
+# Expect .NET 10+
 DOTNET_VERSION=$(dotnet --version 2>/dev/null || echo "unknown")
 DOTNET_VERSION_MAJOR=${DOTNET_VERSION%%.*}
 
-if [[ "$DOTNET_VERSION_MAJOR" -lt 9 ]]; then
-  echo "Kiwi requires .NET 9 or higher. Found: $DOTNET_VERSION"
+if [[ "$DOTNET_VERSION_MAJOR" -lt 10 ]]; then
+  echo "Kiwi requires .NET 10 or higher. Found: $DOTNET_VERSION"
   exit 1
 fi
 

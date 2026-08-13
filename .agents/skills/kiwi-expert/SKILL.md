@@ -5,7 +5,7 @@ description: Expert reference for the Kiwi scripting language — syntax, keywor
 
 # Kiwi Expert
 
-Kiwi is a dynamically-typed scripting language (interpreter in C#/.NET 9, stack-based VM). This skill turns an agent into a precise reference user for the language: a compact cheat sheet for orientation, a full topic-indexed reference set for depth, and a verification habit for anything uncertain.
+Kiwi is a dynamically-typed scripting language (interpreter in C#/.NET 10, stack-based VM). This skill turns an agent into a precise reference user for the language: a compact cheat sheet for orientation, a full topic-indexed reference set for depth, and a verification habit for anything uncertain.
 
 ## When to Use
 
