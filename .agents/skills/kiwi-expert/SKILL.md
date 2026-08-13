@@ -1,6 +1,6 @@
 ---
 name: kiwi-expert
-description: Expert reference for the Kiwi scripting language — syntax, keywords, operators, types, control flow, structs, error handling, generators, packages, and the full standard library (47 packages). Trigger when writing, reading, reviewing, or debugging .kiwi scripts, or when a question concerns Kiwi language semantics, a stdlib package (fio, http, json, regex, table, task, sqlite, httpserver, etc.), or the VM/runtime's execution rules.
+description: Expert reference for the Kiwi scripting language — syntax, keywords, operators, types, control flow, structs, error handling, generators, packages, and the full standard library (49 packages). Trigger when writing, reading, reviewing, or debugging .kiwi scripts, or when a question concerns Kiwi language semantics, a stdlib package (fio, http, json, regex, table, task, sqlite, httpserver, etc.), or the VM/runtime's execution rules.
 ---
 
 # Kiwi Expert
@@ -59,7 +59,7 @@ var count: integer = 0     # optional explicit `var` + type hint
 a, b, c = 10, 20, 30       # multiple assignment
 ```
 
-Built-in types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `null`, `date`, `bytes`, `generator`, `lambda`, `function`, `object` (struct instance), `pointer`.
+Built-in types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `null`, `date`, `bytes`, `generator`, `lambda`, `object` (struct instance), `pointer`. There is no separate `function` type — named functions and anonymous lambdas both report `typeof()` as `lambda`.
 
 `typeof(x)` (global function) or `x.type()` (method) both return the type name string.
 
