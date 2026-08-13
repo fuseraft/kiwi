@@ -113,8 +113,8 @@ Parses a list of command-line argument strings into a hashmap of key-value pairs
 
 | Type | Name | Description |
 | :--- | :--- | :--- |
-| `list` | `args` | A list of argument strings. Defaults to `env::argv().keys()` if empty. |
-| `list` | `value_opts` | A list of option names that expect a following value argument. |
+| `list` | `args` | A list of argument strings. Defaults to `env::args()` (the raw, unparsed argument list) if empty. |
+| `list` | `value_opts` | A list of option names that expect a following value argument — match the *raw* token, dashes included (e.g. `"--output"`, not `"output"`). |
 
 **Returns**
 
@@ -129,6 +129,8 @@ cfg = env::parse_args([], ["--output"])
 println cfg["--output"]   # prints: result.txt
 println cfg["--verbose"]  # prints: true
 ```
+
+Only the space-separated form (`--output result.txt`) is understood — `parse_args` walks raw tokens and does not split on `=`, so `--output=result.txt` is treated as one opaque flag token (`cfg["--output=result.txt"] = true`) rather than a key/value pair. Use the space-separated form, or pre-split `=`-joined tokens yourself before calling `parse_args`.
 
 **Throws**
 If a value option is listed in `value_opts` but no following argument exists.
