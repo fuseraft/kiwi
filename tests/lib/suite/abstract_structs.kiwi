@@ -40,6 +40,15 @@ fn test_abstract_structs()
   end
   tester::assert(caught_abstract_instantiation)
 
+  # Abstract struct cannot be instantiated via bare struct-name call either
+  caught_abstract_instantiation_bare = false
+  try
+    a2 = Animal()
+  catch (err)
+    caught_abstract_instantiation_bare = true
+  end
+  tester::assert(caught_abstract_instantiation_bare)
+
   # Concrete derived struct missing abstract method throws at definition time
   caught_missing_method = false
   try

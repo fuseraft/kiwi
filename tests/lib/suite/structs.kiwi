@@ -163,4 +163,24 @@ fn test_structs()
   tester::assert(b1.describe() == "box(84) has 2 digits",   "A19: nested fallback self-context in describe()")
   tester::assert(b2.digit_count() == 4,                     "A20: second instance independent digit_count")
   tester::assert(b1.get() == 42,                            "A21: b1 @v unchanged after b2 ops")
+
+  # bare struct-name call (no `.new`) must resolve the constructor the same
+  # way `.new()` does, including walking up to an inherited constructor
+  struct Animal
+    fn new(name)
+      @name = name
+    end
+
+    fn name() @name end
+  end
+
+  struct Dog < Animal
+    fn bark() "${@name} says woof" end
+  end
+
+  a  = Animal("Cat")
+  dg = Dog("Rex")
+  tester::assert(a.name() == "Cat",           "A22: bare-call resolves own constructor")
+  tester::assert(dg.name() == "Rex",          "A23: bare-call resolves inherited constructor")
+  tester::assert(dg.bark() == "Rex says woof", "A24: inherited-constructor state visible in subclass method")
 end
