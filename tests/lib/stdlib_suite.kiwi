@@ -27,7 +27,10 @@ var (stdlib_tests: list = [
   "udp",
 
   # HTTP server
-  "httpserver"
+  "httpserver",
+
+  # Filesystem watching
+  "watch"
 ])
 
 for stdlib_test in stdlib_tests do

@@ -53,5 +53,6 @@ The standard library is a collection of packages containing useful functions and
 | [`text`](text.md) | Fluent line-oriented text processing pipeline with filter, map, match, and split steps. |
 | [`time`](time.md) | Time and date utilities. |
 | [`udp`](udp.md) | UDP socket communication for sending and receiving datagrams. |
+| [`watch`](watch.md) | Polls a file or directory on a background task and reports created, modified, and deleted entries. |
 | [`xml`](xml.md) | XML parser and serializer using a tree of `XmlNode` structs. |
 | [`yaml`](yaml.md) | YAML parser and serializer. |

@@ -1,0 +1,240 @@
+/#
+@summary A package for watching files and directories for changes.
+         Watching runs by polling on a background task (see `task`), so it
+         works everywhere without relying on OS-specific file system events.
+#/
+package watch
+  /#
+  @summary A background poller that reports created, modified, and deleted
+           entries under a path.
+  @example
+  ---
+  import watch
+
+  w = watch::new("./data")
+  w.on_create(with (path) do println "created: ${path}" end)
+  w.on_modify(with (path) do println "modified: ${path}" end)
+  w.on_delete(with (path) do println "deleted: ${path}" end)
+  w.start()
+
+  # ... later ...
+  w.stop()
+  ---
+  #/
+  struct Watcher
+    @path        = ""
+    @recursive   = true
+    @interval_ms = 300
+    @ignore      = []
+    @running     = false
+    @primed      = false
+    @snapshot    = {}
+    @handlers    = {}
+
+    /#
+    @summary Creates a new Watcher. Call `.start()` to begin watching.
+    @param string _path : The file or directory path to watch.
+    @param boolean _recursive : Watch subdirectories recursively. Defaults to `true`.
+    @param integer _interval_ms : Poll interval in milliseconds. Defaults to `300`.
+    @param list _ignore : Entries whose path contains any of these substrings are skipped. Defaults to `[]`.
+    #/
+    fn new(_path: string, _recursive: boolean = true, _interval_ms: integer = 300, _ignore: list = [])
+      @path        = _path
+      @recursive   = _recursive
+      @interval_ms = _interval_ms
+      @ignore      = _ignore
+      @running     = false
+      @primed      = false
+      @snapshot    = {}
+      @handlers    = { "create": [], "modify": [], "delete": [], "change": [] }
+    end
+
+    /#
+    @summary Registers a callback fired when a new entry appears.
+    @param lambda callback : Invoked with `(path)`.
+    @return Watcher : self, for chaining.
+    #/
+    fn on_create(callback: lambda): Watcher
+      _bind("create", callback)
+    end
+
+    /#
+    @summary Registers a callback fired when an entry's contents or size change.
+    @param lambda callback : Invoked with `(path)`.
+    @return Watcher : self, for chaining.
+    #/
+    fn on_modify(callback: lambda): Watcher
+      _bind("modify", callback)
+    end
+
+    /#
+    @summary Registers a callback fired when an entry disappears.
+    @param lambda callback : Invoked with `(path)`.
+    @return Watcher : self, for chaining.
+    #/
+    fn on_delete(callback: lambda): Watcher
+      _bind("delete", callback)
+    end
+
+    /#
+    @summary Registers a callback fired for every create, modify, or delete.
+    @param lambda callback : Invoked with `(event, path)`.
+    @return Watcher : self, for chaining.
+    #/
+    fn on_change(callback: lambda): Watcher
+      _bind("change", callback)
+    end
+
+    fn _bind(key: string, callback: lambda): Watcher
+      @handlers[key].push(callback)
+      @
+    end
+
+    /#
+    @summary Takes an initial snapshot and starts polling in a background task.
+             Calling `.start()` while already running has no effect.
+    @return Watcher : self.
+    #/
+    fn start(): Watcher
+      return @ when @running
+
+      @snapshot = _scan()
+      @primed   = true
+      @running  = true
+
+      task::spawn(with (_w) do
+        while _w.is_running() do
+          task::sleep(_w.interval_ms())
+          _w._poll() when _w.is_running()
+        end
+      end, [@])
+
+      @
+    end
+
+    /#
+    @summary Stops watching. The background task exits on its next tick.
+    @return Watcher : self.
+    #/
+    fn stop(): Watcher
+      @running = false
+      @
+    end
+
+    /#
+    @summary Checks whether the watcher is currently running.
+    @return boolean
+    #/
+    fn is_running(): boolean
+      @running
+    end
+
+    /#
+    @summary Gets the poll interval in milliseconds.
+    @return integer
+    #/
+    fn interval_ms(): integer
+      @interval_ms
+    end
+
+    /#
+    @summary Immediately scans and fires any pending events synchronously,
+             without waiting for the next background tick. The first call
+             (before `.start()`, or on a freshly created Watcher) only
+             establishes the baseline snapshot and fires no events; later
+             calls diff against the previous snapshot as usual. Useful for
+             tests or manual polling loops instead of `.start()`.
+    @return Watcher : self.
+    #/
+    fn poll(): Watcher
+      if @primed
+        _poll()
+      else
+        @snapshot = _scan()
+        @primed   = true
+      end
+      @
+    end
+
+    fn _poll()
+      current = _scan()
+      _diff(@snapshot, current)
+      @snapshot = current
+    end
+
+    fn _scan(): hashmap
+      snap = {}
+      return snap when !fio::exists(@path)
+
+      entries = fio::isdir(@path) ? fio::listdir(@path, @recursive) : [@path]
+
+      for p in entries do
+        next when !@ignore.empty() && string::contains_any(p, @ignore)
+        snap[p] = _signature(p)
+      end
+
+      snap
+    end
+
+    fn _signature(p: string): string
+      return "dir" when fio::isdir(p)
+
+      try
+        info = fio::fileinfo(p)
+        return "${info["last_write_time"].to_string("yyyy-MM-dd HH:mm:ss.fff")}:${fio::filesize(p)}"
+      catch
+        return "?"
+      end
+    end
+
+    fn _diff(previous: hashmap, current: hashmap)
+      for p in current.keys() do
+        if !previous.has_key(p)
+          _fire("create", p)
+        elsif previous[p] != current[p]
+          _fire("modify", p)
+        end
+      end
+
+      for p in previous.keys() do
+        _fire("delete", p) when !current.has_key(p)
+      end
+    end
+
+    fn _fire(event: string, p: string)
+      for cb in @handlers[event] do
+        cb(p)
+      end
+
+      for cb in @handlers["change"] do
+        cb(event, p)
+      end
+    end
+  end
+
+  /#
+  @summary Creates a new Watcher without starting it.
+  @param string _path : The file or directory path to watch.
+  @param boolean _recursive : Watch subdirectories recursively. Defaults to `true`.
+  @param integer _interval_ms : Poll interval in milliseconds. Defaults to `300`.
+  @param list _ignore : Entries whose path contains any of these substrings are skipped. Defaults to `[]`.
+  @return Watcher
+  #/
+  fn new(_path: string, _recursive: boolean = true, _interval_ms: integer = 300, _ignore: list = []): Watcher
+    Watcher.new(_path, _recursive, _interval_ms, _ignore)
+  end
+
+  /#
+  @summary Creates a Watcher, registers a single callback for all change events, and starts it.
+  @param string _path : The file or directory path to watch.
+  @param lambda callback : Invoked with `(event, path)` for every create/modify/delete.
+  @param boolean _recursive : Watch subdirectories recursively. Defaults to `true`.
+  @param integer _interval_ms : Poll interval in milliseconds. Defaults to `300`.
+  @return Watcher : The running watcher. Call `.stop()` to end it.
+  #/
+  fn watch(_path: string, callback: lambda, _recursive: boolean = true, _interval_ms: integer = 300): Watcher
+    w = Watcher.new(_path, _recursive, _interval_ms)
+    w.on_change(callback)
+    w.start()
+  end
+end

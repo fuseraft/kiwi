@@ -1,6 +1,6 @@
 ---
 name: kiwi-expert
-description: Expert reference for the Kiwi scripting language — syntax, keywords, operators, types, control flow, structs, error handling, generators, packages, and the full standard library (49 packages). Trigger when writing, reading, reviewing, or debugging .kiwi scripts, or when a question concerns Kiwi language semantics, a stdlib package (fio, http, json, regex, table, task, sqlite, httpserver, etc.), or the VM/runtime's execution rules.
+description: Expert reference for the Kiwi scripting language — syntax, keywords, operators, types, control flow, structs, error handling, generators, packages, and the full standard library (50 packages). Trigger when writing, reading, reviewing, or debugging .kiwi scripts, or when a question concerns Kiwi language semantics, a stdlib package (fio, http, json, regex, table, task, sqlite, httpserver, etc.), or the VM/runtime's execution rules.
 ---
 
 # Kiwi Expert
@@ -333,5 +333,6 @@ fn add(a, b) a + b end
 | `text` | Line-oriented text processing pipeline | `text.md` |
 | `time` | Time/date utilities | `time.md` |
 | `udp` | UDP socket communication | `udp.md` |
+| `watch` | Poll a path on a background task for created/modified/deleted entries | `watch.md` |
 | `xml` | XML parse/serialize (`XmlNode`) | `xml.md` |
 | `yaml` | YAML parse/serialize | `yaml.md` |

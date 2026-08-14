@@ -1,0 +1,149 @@
+fn _watch_test_dir(suffix: string): string
+  d = fio::combine([fio::tmpdir(), "kiwi_watch_test_${sys::pid()}_${suffix}"])
+  fio::rmdirf(d) when fio::exists(d)
+  fio::mkdirp(d)
+  d
+end
+
+@tester::test("watch: new() creates an idle, unstarted Watcher")
+fn test_watch_new_is_idle()
+  dir = _watch_test_dir("idle")
+  w = watch::new(dir)
+  tester::assert(!w.is_running(), "a freshly created Watcher should not be running")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch: start() and stop() toggle is_running()")
+fn test_watch_start_stop()
+  dir = _watch_test_dir("startstop")
+  w = watch::new(dir, true, 50)
+  w.start()
+  tester::assert(w.is_running(), "Watcher should be running after start()")
+  w.start() # idempotent, should not raise or double-spawn
+  w.stop()
+  tester::assert(!w.is_running(), "Watcher should not be running after stop()")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch: on_create fires for a new file")
+fn test_watch_on_create()
+  dir = _watch_test_dir("create")
+  created = []
+
+  w = watch::new(dir, true, 50)
+  w.on_create(with (p) do created.push(fio::filename(p)) end)
+  w.start()
+
+  task::sleep(150)
+  fio::write(fio::combine([dir, "a.txt"]), "hello")
+  task::sleep(250)
+  w.stop()
+
+  tester::assert(created.contains("a.txt"), "on_create should fire for a newly written file")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch: on_modify fires when a file's contents change")
+fn test_watch_on_modify()
+  dir = _watch_test_dir("modify")
+  path = fio::combine([dir, "a.txt"])
+  fio::write(path, "hello")
+  modified = []
+
+  w = watch::new(dir, true, 50)
+  w.on_modify(with (p) do modified.push(fio::filename(p)) end)
+  w.poll() # establish baseline synchronously
+
+  fio::write(path, "hello world") # different size, so the signature changes regardless of mtime resolution
+  w.poll()
+
+  tester::assert(modified.contains("a.txt"), "on_modify should fire when file contents change")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch: on_delete fires when a file is removed")
+fn test_watch_on_delete()
+  dir = _watch_test_dir("delete")
+  path = fio::combine([dir, "a.txt"])
+  fio::write(path, "hello")
+  deleted = []
+
+  w = watch::new(dir, true, 50)
+  w.on_delete(with (p) do deleted.push(fio::filename(p)) end)
+  w.start()
+
+  task::sleep(150)
+  fio::remove(path)
+  task::sleep(250)
+  w.stop()
+
+  tester::assert(deleted.contains("a.txt"), "on_delete should fire when a watched file is removed")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch: on_change receives (event, path) for every kind of change")
+fn test_watch_on_change()
+  dir = _watch_test_dir("change")
+  seen = []
+
+  w = watch::new(dir, true, 50)
+  w.on_change(with (event, p) do seen.push("${event}:${fio::filename(p)}") end)
+  w.start()
+
+  task::sleep(150)
+  fio::write(fio::combine([dir, "a.txt"]), "hello")
+  task::sleep(250)
+  w.stop()
+
+  tester::assert(seen.contains("create:a.txt"), "on_change should report create events")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch: ignore list excludes matching entries")
+fn test_watch_ignore()
+  dir = _watch_test_dir("ignore")
+  created = []
+
+  w = watch::new(dir, true, 50, [".log"])
+  w.on_create(with (p) do created.push(fio::filename(p)) end)
+  w.poll() # baseline
+
+  fio::write(fio::combine([dir, "keep.txt"]), "1")
+  fio::write(fio::combine([dir, "noisy.log"]), "1")
+  w.poll()
+
+  tester::assert(created.contains("keep.txt"), "non-ignored entries should still be reported")
+  tester::assert(!created.contains("noisy.log"), "entries matching the ignore list should be skipped")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch: poll() establishes a baseline without firing events on the first call")
+fn test_watch_poll_baseline()
+  dir = _watch_test_dir("baseline")
+  fio::write(fio::combine([dir, "preexisting.txt"]), "1")
+  created = []
+
+  w = watch::new(dir, true, 50)
+  w.on_create(with (p) do created.push(fio::filename(p)) end)
+  w.poll() # first call: baseline only, no create events for pre-existing files
+
+  tester::assert_eq(created, [], "poll() should not report pre-existing entries as created on the first call")
+  fio::rmdirf(dir)
+end
+
+@tester::test("watch::watch() starts a running Watcher with a single change callback")
+fn test_watch_convenience_fn()
+  dir = _watch_test_dir("convenience")
+  events = []
+
+  w = watch::watch(dir, with (event, p) do events.push(event) end, true, 50)
+  tester::assert(w.is_running(), "watch::watch() should return a started Watcher")
+
+  task::sleep(150)
+  fio::write(fio::combine([dir, "a.txt"]), "1")
+  task::sleep(250)
+  w.stop()
+
+  tester::assert(events.contains("create"), "watch::watch() callback should observe create events")
+  fio::rmdirf(dir)
+end
