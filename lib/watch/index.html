@@ -10,11 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/yaml/">
+        <link rel="canonical" href="https://fuseraft.github.io/kiwi/lib/watch/">
       
       
-        <link rel="prev" href="../xml/">
+        <link rel="prev" href="../udp/">
       
+      
+        <link rel="next" href="../xml/">
       
       
         
@@ -25,7 +27,7 @@
     
     
       
-        <title>yaml - Kiwi</title>
+        <title>watch - Kiwi</title>
       
     
     
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#yaml" class="md-skip">
+        <a href="#watch" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              yaml
+              watch
             
           </span>
         </div>
@@ -3257,10 +3259,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../watch/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    watch
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -3276,6 +3305,264 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#package-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Package Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Package Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#watchnewpath-recursive-true-interval_ms-300-ignore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watch::new(path, recursive = true, interval_ms = 300, ignore = [])
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#watchwatchpath-callback-recursive-true-interval_ms-300" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watch::watch(path, callback, recursive = true, interval_ms = 300)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watcher-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watcher Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Watcher Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#on_createcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_create(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_modifycallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_modify(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_deletecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_delete(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_changecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_change(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .start()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .is_running()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interval_ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .interval_ms()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .poll()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-change-detection-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Change Detection Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#watching-a-single-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watching a single file
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ignoring-noisy-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ignoring noisy paths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-liner-with-watchwatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-liner with watch::watch()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-polling-instead-of-a-background-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual polling instead of a background task
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -3313,37 +3600,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    yaml
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../yaml/" class="md-nav__link">
         
   
   
@@ -3359,159 +3619,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#package-functions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Package Functions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Package Functions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parseinput" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse(input)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parse_filefile_path" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse_file(file_path)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parse_allinput" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse_all(input)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stringifyvalue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        stringify(value)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Examples
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#nested-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Nested mapping
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sequence-of-mappings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Sequence of mappings
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#anchors-and-aliases" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Anchors and aliases
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#round-trip-parse-stringify-parse" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Round-trip (parse → stringify → parse)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scalar-type-coercion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scalar type coercion
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -3551,6 +3658,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#package-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3563,10 +3681,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#parseinput" class="md-nav__link">
+  <a href="#watchnewpath-recursive-true-interval_ms-300-ignore" class="md-nav__link">
     <span class="md-ellipsis">
       
-        parse(input)
+        watch::new(path, recursive = true, interval_ms = 300, ignore = [])
       
     </span>
   </a>
@@ -3574,32 +3692,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse_filefile_path" class="md-nav__link">
+  <a href="#watchwatchpath-callback-recursive-true-interval_ms-300" class="md-nav__link">
     <span class="md-ellipsis">
       
-        parse_file(file_path)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parse_allinput" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        parse_all(input)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stringifyvalue" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        stringify(value)
+        watch::watch(path, callback, recursive = true, interval_ms = 300)
       
     </span>
   </a>
@@ -3608,6 +3704,133 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watcher-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watcher Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Watcher Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#on_createcallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_create(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_modifycallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_modify(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_deletecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_delete(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on_changecallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .on_change(callback)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .start()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .stop()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is_running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .is_running()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interval_ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .interval_ms()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#poll" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .poll()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-change-detection-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Change Detection Works
+      
+    </span>
+  </a>
   
 </li>
       
@@ -3624,10 +3847,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#nested-mapping" class="md-nav__link">
+  <a href="#watching-a-single-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Nested mapping
+        Watching a single file
       
     </span>
   </a>
@@ -3635,10 +3858,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sequence-of-mappings" class="md-nav__link">
+  <a href="#ignoring-noisy-paths" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Sequence of mappings
+        Ignoring noisy paths
       
     </span>
   </a>
@@ -3646,10 +3869,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#anchors-and-aliases" class="md-nav__link">
+  <a href="#one-liner-with-watchwatch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Anchors and aliases
+        One-liner with watch::watch()
       
     </span>
   </a>
@@ -3657,21 +3880,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#round-trip-parse-stringify-parse" class="md-nav__link">
+  <a href="#manual-polling-instead-of-a-background-task" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Round-trip (parse → stringify → parse)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scalar-type-coercion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scalar type coercion
+        Manual polling instead of a background task
       
     </span>
   </a>
@@ -3700,7 +3912,7 @@
 
 
   
-    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/yaml.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/fuseraft/kiwi/edit/main/docs/lib/watch.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -3708,23 +3920,28 @@
   
 
 
-<h1 id="yaml"><code>yaml</code><a class="headerlink" href="#yaml" title="Permanent link">&para;</a></h1>
-<p>The <code>yaml</code> package provides a pure-Kiwi YAML 1.2 parser and serializer.</p>
-<p><strong>Supported features:</strong>
-- Block mappings and sequences (any indentation)
-- Flow collections: <code>{}</code> and <code>[]</code>
-- Scalars: <code>null</code>, boolean, integer, float, plain and quoted strings
-- Single- and double-quoted strings with escape sequences
-- Block scalars: <code>|</code> (literal) and <code>&gt;</code> (folded)
-- Inline comments
-- Anchors (<code>&amp;name</code>) and aliases (<code>*name</code>)
-- Document markers (<code>---</code> and <code>...</code>)
-- Multi-document streams via <code>parse_all()</code>
-- Serialization via <code>stringify()</code></p>
+<h1 id="watch"><code>watch</code><a class="headerlink" href="#watch" title="Permanent link">&para;</a></h1>
+<p>The <code>watch</code> package provides a <code>Watcher</code> struct that polls a file or directory
+on a background task and reports entries that are created, modified, or
+deleted. It's built on <code>fio</code> and <code>task</code>, so it works anywhere Kiwi runs
+without relying on OS-specific file system event APIs.</p>
+<hr />
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>import &quot;watch&quot;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>w = watch::new(&quot;./data&quot;)
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>w.on_create(with (path) do println &quot;created: ${path}&quot; end)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>w.on_modify(with (path) do println &quot;modified: ${path}&quot; end)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>w.on_delete(with (path) do println &quot;deleted: ${path}&quot; end)
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>w.start()
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a># ... later ...
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>w.stop()
+</span></code></pre></div>
 <hr />
 <h2 id="package-functions">Package Functions<a class="headerlink" href="#package-functions" title="Permanent link">&para;</a></h2>
-<h3 id="parseinput"><code>parse(input)</code><a class="headerlink" href="#parseinput" title="Permanent link">&para;</a></h3>
-<p>Parses a YAML string and returns the first document as a Kiwi value.</p>
+<h3 id="watchnewpath-recursive-true-interval_ms-300-ignore"><code>watch::new(path, recursive = true, interval_ms = 300, ignore = [])</code><a class="headerlink" href="#watchnewpath-recursive-true-interval_ms-300-ignore" title="Permanent link">&para;</a></h3>
+<p>Creates a new <code>Watcher</code> without starting it.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
@@ -3737,132 +3954,23 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>input</code></td>
-<td style="text-align: left;">The YAML-formatted string to parse.</td>
+<td style="text-align: left;"><code>path</code></td>
+<td style="text-align: left;">The file or directory path to watch.</td>
 </tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
 <tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>recursive</code></td>
+<td style="text-align: left;">Watch subdirectories recursively. Defaults to <code>true</code>.</td>
 </tr>
-</thead>
-<tbody>
 <tr>
-<td style="text-align: left;"><code>any</code></td>
-<td style="text-align: left;">A Kiwi value: <code>hashmap</code>, <code>list</code>, <code>string</code>, <code>integer</code>, <code>float</code>, <code>boolean</code>, or <code>null</code>.</td>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;"><code>interval_ms</code></td>
+<td style="text-align: left;">Poll interval in milliseconds. Defaults to <code>300</code>.</td>
 </tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>doc = yaml::parse(&quot;name: Kiwi\nversion: 2\nactive: true&quot;)
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>println doc[&quot;name&quot;]    # Kiwi
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>println doc[&quot;version&quot;] # 2
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>println doc[&quot;active&quot;]  # true
-</span></code></pre></div>
-<hr />
-<h3 id="parse_filefile_path"><code>parse_file(file_path)</code><a class="headerlink" href="#parse_filefile_path" title="Permanent link">&para;</a></h3>
-<p>Parses a YAML file and returns the first document.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>file_path</code></td>
-<td style="text-align: left;">Path to the YAML file.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>any</code></td>
-<td style="text-align: left;">The parsed document.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Throws</strong></p>
-<p><code>string</code> — if the file does not exist.</p>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>doc = yaml::parse_file(&quot;/etc/myapp/config.yaml&quot;)
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>println doc[&quot;database&quot;][&quot;host&quot;]
-</span></code></pre></div>
-<hr />
-<h3 id="parse_allinput"><code>parse_all(input)</code><a class="headerlink" href="#parse_allinput" title="Permanent link">&para;</a></h3>
-<p>Parses a YAML string containing multiple <code>---</code>-separated documents and returns all of them as a list.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>input</code></td>
-<td style="text-align: left;">A YAML string with one or more documents.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Returns</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
 <tr>
 <td style="text-align: left;"><code>list</code></td>
-<td style="text-align: left;">One parsed document per <code>---</code> section.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>src = &quot;---\nname: first\n---\nname: second&quot;
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>docs = yaml::parse_all(src)
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>println docs.size()       # 2
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>println docs[0][&quot;name&quot;]   # first
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>println docs[1][&quot;name&quot;]   # second
-</span></code></pre></div>
-<hr />
-<h3 id="stringifyvalue"><code>stringify(value)</code><a class="headerlink" href="#stringifyvalue" title="Permanent link">&para;</a></h3>
-<p>Serializes a Kiwi value to a YAML-formatted string.</p>
-<p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>any</code></td>
-<td style="text-align: left;"><code>value</code></td>
-<td style="text-align: left;">The value to serialize (<code>hashmap</code>, <code>list</code>, scalar, or <code>null</code>).</td>
+<td style="text-align: left;"><code>ignore</code></td>
+<td style="text-align: left;">Entries whose path contains any of these substrings are skipped. Defaults to <code>[]</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -3876,114 +3984,146 @@
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;">YAML-formatted string.</td>
+<td style="text-align: left;"><code>Watcher</code></td>
+<td style="text-align: left;">An idle watcher. Call <code>.start()</code> to begin watching.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong></p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>data = {name: &quot;Alice&quot;, scores: [95, 87, 100], active: true}
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>println yaml::stringify(data)
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a># name: Alice
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a># scores:
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>#   - 95
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>#   - 87
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>#   - 100
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a># active: true
-</span></code></pre></div>
 <hr />
-<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<h3 id="nested-mapping">Nested mapping<a class="headerlink" href="#nested-mapping" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>src = &quot;
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>server:
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  host: localhost
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>  port: 8080
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>  tls: false
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>&quot;
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>cfg = yaml::parse(src)
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>host = cfg[&quot;server&quot;][&quot;host&quot;]
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>port = cfg[&quot;server&quot;][&quot;port&quot;]
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>println &quot;${host}:${port}&quot;  # localhost:8080
-</span></code></pre></div>
-<h3 id="sequence-of-mappings">Sequence of mappings<a class="headerlink" href="#sequence-of-mappings" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>src = &quot;
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>- name: Alice
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  age: 30
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>- name: Bob
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  age: 25
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>&quot;
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>people = yaml::parse(src)
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>for p in people do
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>  n = p[&quot;name&quot;]
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>  a = p[&quot;age&quot;]
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  println &quot;${n} is ${a}&quot;
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>end
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a># Alice is 30
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a># Bob is 25
-</span></code></pre></div>
-<h3 id="anchors-and-aliases">Anchors and aliases<a class="headerlink" href="#anchors-and-aliases" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>src = &quot;
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>defaults: &amp;defaults
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  timeout: 30
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  retries: 3
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>production:
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  &lt;&lt;: *defaults
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  host: prod.example.com
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>&quot;
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>doc = yaml::parse(src)
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>println doc[&quot;defaults&quot;][&quot;timeout&quot;]  # 30
-</span></code></pre></div>
-<h3 id="round-trip-parse-stringify-parse">Round-trip (parse → stringify → parse)<a class="headerlink" href="#round-trip-parse-stringify-parse" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>original = {project: &quot;Kiwi&quot;, version: 2, tags: [&quot;scripting&quot;, &quot;aot&quot;]}
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>serialized = yaml::stringify(original)
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>restored = yaml::parse(serialized)
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>tags = restored[&quot;tags&quot;]
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>println tags[0]  # scripting
-</span></code></pre></div>
-<h3 id="scalar-type-coercion">Scalar type coercion<a class="headerlink" href="#scalar-type-coercion" title="Permanent link">&para;</a></h3>
-<p>YAML scalars are automatically coerced to Kiwi types:</p>
+<h3 id="watchwatchpath-callback-recursive-true-interval_ms-300"><code>watch::watch(path, callback, recursive = true, interval_ms = 300)</code><a class="headerlink" href="#watchwatchpath-callback-recursive-true-interval_ms-300" title="Permanent link">&para;</a></h3>
+<p>Creates a <code>Watcher</code>, registers <code>callback</code> for every change event, and starts it immediately.</p>
+<p><strong>Parameters</strong></p>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">YAML literal</th>
-<th style="text-align: left;">Kiwi type</th>
-<th style="text-align: left;">Value</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code>42</code></td>
-<td style="text-align: left;"><code>integer</code></td>
-<td style="text-align: left;"><code>42</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>3.14</code></td>
-<td style="text-align: left;"><code>float</code></td>
-<td style="text-align: left;"><code>3.14</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>true</code> / <code>True</code> / <code>TRUE</code></td>
-<td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;"><code>true</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>false</code> / <code>False</code> / <code>FALSE</code></td>
-<td style="text-align: left;"><code>boolean</code></td>
-<td style="text-align: left;"><code>false</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>null</code> / <code>~</code> / <code>Null</code></td>
-<td style="text-align: left;"><code>null</code></td>
-<td style="text-align: left;"><code>null</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>"hello"</code></td>
 <td style="text-align: left;"><code>string</code></td>
-<td style="text-align: left;"><code>"hello"</code></td>
+<td style="text-align: left;"><code>path</code></td>
+<td style="text-align: left;">The file or directory path to watch.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>lambda</code></td>
+<td style="text-align: left;"><code>callback</code></td>
+<td style="text-align: left;">Invoked with <code>(event, path)</code> for every create/modify/delete.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>boolean</code></td>
+<td style="text-align: left;"><code>recursive</code></td>
+<td style="text-align: left;">Watch subdirectories recursively. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>integer</code></td>
+<td style="text-align: left;"><code>interval_ms</code></td>
+<td style="text-align: left;">Poll interval in milliseconds. Defaults to <code>300</code>.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Returns</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>Watcher</code></td>
+<td style="text-align: left;">The running watcher. Call <code>.stop()</code> to end it.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="watcher-methods"><code>Watcher</code> Methods<a class="headerlink" href="#watcher-methods" title="Permanent link">&para;</a></h2>
+<h3 id="on_createcallback"><code>.on_create(callback)</code><a class="headerlink" href="#on_createcallback" title="Permanent link">&para;</a></h3>
+<p>Registers a callback fired when a new entry appears. Invoked with <code>(path)</code>.</p>
+<h3 id="on_modifycallback"><code>.on_modify(callback)</code><a class="headerlink" href="#on_modifycallback" title="Permanent link">&para;</a></h3>
+<p>Registers a callback fired when an entry's contents or size change. Invoked with <code>(path)</code>.</p>
+<h3 id="on_deletecallback"><code>.on_delete(callback)</code><a class="headerlink" href="#on_deletecallback" title="Permanent link">&para;</a></h3>
+<p>Registers a callback fired when an entry disappears. Invoked with <code>(path)</code>.</p>
+<h3 id="on_changecallback"><code>.on_change(callback)</code><a class="headerlink" href="#on_changecallback" title="Permanent link">&para;</a></h3>
+<p>Registers a callback fired for every create, modify, or delete. Invoked with <code>(event, path)</code>, where <code>event</code> is <code>"create"</code>, <code>"modify"</code>, or <code>"delete"</code>.</p>
+<p>Multiple callbacks can be registered per event; each one runs on every matching change.</p>
+<hr />
+<h3 id="start"><code>.start()</code><a class="headerlink" href="#start" title="Permanent link">&para;</a></h3>
+<p>Takes an initial snapshot and starts polling in a background task. Calling <code>.start()</code> while already running has no effect.</p>
+<p><strong>Returns</strong> <code>Watcher</code> — self.</p>
+<hr />
+<h3 id="stop"><code>.stop()</code><a class="headerlink" href="#stop" title="Permanent link">&para;</a></h3>
+<p>Stops watching. The background task exits on its next tick (within <code>interval_ms</code>).</p>
+<p><strong>Returns</strong> <code>Watcher</code> — self.</p>
+<hr />
+<h3 id="is_running"><code>.is_running()</code><a class="headerlink" href="#is_running" title="Permanent link">&para;</a></h3>
+<p><strong>Returns</strong> <code>boolean</code> — <code>true</code> while the watcher's background task is active.</p>
+<hr />
+<h3 id="interval_ms"><code>.interval_ms()</code><a class="headerlink" href="#interval_ms" title="Permanent link">&para;</a></h3>
+<p><strong>Returns</strong> <code>integer</code> — the configured poll interval.</p>
+<hr />
+<h3 id="poll"><code>.poll()</code><a class="headerlink" href="#poll" title="Permanent link">&para;</a></h3>
+<p>Immediately scans and fires any pending events synchronously, without waiting for the next background tick. The <strong>first</strong> call (on a freshly created <code>Watcher</code>, before <code>.start()</code>) only establishes the baseline snapshot and fires no events; subsequent calls diff against the previous snapshot as usual. Useful for tests or a manual polling loop instead of <code>.start()</code>.</p>
+<p><strong>Returns</strong> <code>Watcher</code> — self.</p>
+<hr />
+<h2 id="how-change-detection-works">How Change Detection Works<a class="headerlink" href="#how-change-detection-works" title="Permanent link">&para;</a></h2>
+<p>On each tick, <code>watch</code> lists the entries under <code>path</code> (via <code>fio::listdir</code>) and
+builds a signature for each file from its last-write time and size (via
+<code>fio::fileinfo</code> / <code>fio::filesize</code>). Comparing the new signature map against
+the previous one produces the create/modify/delete events. Directories are
+tracked for creation and deletion but never reported as "modified".</p>
+<p>Because detection is signature-based polling rather than a live OS event
+feed, very fast back-to-back writes between two polls are collapsed into a
+single <code>modify</code> event, and changes are only observed after up to
+<code>interval_ms</code> has elapsed. Lower <code>interval_ms</code> for snappier detection at the
+cost of more frequent directory scans.</p>
+<hr />
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<h3 id="watching-a-single-file">Watching a single file<a class="headerlink" href="#watching-a-single-file" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>import &quot;watch&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>w = watch::new(&quot;./config.json&quot;)
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>w.on_modify(with (path) do
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  println &quot;config changed, reloading...&quot;
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>end)
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>w.start()
+</span></code></pre></div>
+<h3 id="ignoring-noisy-paths">Ignoring noisy paths<a class="headerlink" href="#ignoring-noisy-paths" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>import &quot;watch&quot;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>w = watch::new(&quot;./project&quot;, true, 500, [&quot;.git&quot;, &quot;node_modules&quot;, &quot;.log&quot;])
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>w.on_change(with (event, path) do
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  println &quot;${event}: ${path}&quot;
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>end)
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>w.start()
+</span></code></pre></div>
+<h3 id="one-liner-with-watchwatch">One-liner with <code>watch::watch()</code><a class="headerlink" href="#one-liner-with-watchwatch" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>import &quot;watch&quot;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>import &quot;task&quot;
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>w = watch::watch(&quot;./src&quot;, with (event, path) do
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  println &quot;[${event}] ${path}&quot;
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>end)
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>while w.is_running() do
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  task::sleep(1000)
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>end
+</span></code></pre></div>
+<h3 id="manual-polling-instead-of-a-background-task">Manual polling instead of a background task<a class="headerlink" href="#manual-polling-instead-of-a-background-task" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>import &quot;watch&quot;
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>w = watch::new(&quot;./data&quot;)
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>w.on_create(with (path) do println &quot;created: ${path}&quot; end)
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>w.poll() # establishes the baseline; no events fire yet
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a># ... time passes, files change ...
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>w.poll() # fires events for anything that changed since the last poll
+</span></code></pre></div>
 
 
 
