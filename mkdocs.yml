@@ -163,5 +163,6 @@ nav:
     - text: lib/text.md
     - time: lib/time.md
     - udp: lib/udp.md
+    - watch: lib/watch.md
     - xml: lib/xml.md
     - yaml: lib/yaml.md

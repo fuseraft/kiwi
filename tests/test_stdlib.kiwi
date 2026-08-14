@@ -1,6 +1,6 @@
 /#
 Kiwi Standard Library Test Suite
-Tests for stdlib packages: encode, fmt, stat, template, log, signal, udp, httpserver
+Tests for stdlib packages: encode, fmt, stat, template, log, signal, udp, httpserver, watch
 #/
 
 fn main()
