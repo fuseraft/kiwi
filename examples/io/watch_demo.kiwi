@@ -1,0 +1,59 @@
+/#
+Demonstrates the `watch` package: watches a directory in the background
+and prints create/modify/delete events as they happen.
+
+Run it directly:
+  ./bin/kiwi examples/io/watch_demo.kiwi
+#/
+
+demo_dir = fio::combine([fio::tmpdir(), "kiwi_watch_demo"])
+fio::rmdirf(demo_dir) when fio::exists(demo_dir)
+fio::mkdirp(demo_dir)
+
+println "Watching ${demo_dir}\n"
+
+w = watch::new(demo_dir, true, 200)
+
+w.on_create(with (path) do println "  [+] created:  ${fio::filename(path)}" end)
+w.on_modify(with (path) do println "  [~] modified: ${fio::filename(path)}" end)
+w.on_delete(with (path) do println "  [-] deleted:  ${fio::filename(path)}" end)
+
+w.start()
+
+# Runs `action`, then pauses long enough for the watcher's background task
+# to poll again and report whatever `action` changed.
+fn step(msg: string, action: lambda)
+  println msg
+  action()
+  task::sleep(400)
+end
+
+note_path = fio::combine([demo_dir, "note.txt"])
+sub_dir   = fio::combine([demo_dir, "sub"])
+
+step("Creating note.txt...", with () do
+  fio::write(note_path, "hello")
+end)
+
+step("Editing note.txt...", with () do
+  fio::write(note_path, "hello, world!")
+end)
+
+step("Creating sub/ directory...", with () do
+  fio::mkdir(sub_dir)
+end)
+
+step("Deleting note.txt...", with () do
+  fio::remove(note_path)
+end)
+
+step("Deleting sub/ directory...", with () do
+  fio::rmdir(sub_dir)
+end)
+
+w.stop()
+task::sleep(250) # let the background task see is_running() == false and exit
+
+fio::rmdirf(demo_dir)
+
+println "\nDone."
