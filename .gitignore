@@ -16,7 +16,7 @@ kiwi-notes.md
 *.lscache
 !.fuseraft/architecture.yaml
 tmp/
-task.md
+/task.md
 
 # .fuseraft/ — user-authored; runtime artifacts live globally in ~/.fuseraft/
 # Stale local runtime dirs from before the global migration — delete once confirmed empty
