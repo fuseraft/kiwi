@@ -1,0 +1,329 @@
+/#
+donut.kiwi - a spinning ASCII torus.
+
+Not a unit test. Not a REPL scratchpad.
+A self-contained 3-D donut, rendered with z-buffering
+into a character framebuffer and animated in your terminal.
+
+Inspired by the classic "donut.c" - rewritten in Kiwi
+using operator-overloaded vectors, lazy generators, and
+the console package. Press Ctrl+C to stop (or it exits
+after a few dozen frames so non-interactive runs are safe).
+#/
+
+import "math"
+import "console"
+import "task"
+import "signal"
+
+# -----------------------------------------------------------------------------
+# Tiny linear algebra - because a donut deserves real vectors
+# -----------------------------------------------------------------------------
+
+struct Vec3
+  fn new(x = 0.0, y = 0.0, z = 0.0)
+    @x = x * 1.0
+    @y = y * 1.0
+    @z = z * 1.0
+  end
+
+  fn +(o: Vec3): Vec3
+    Vec3.new(@x + o.x, @y + o.y, @z + o.z)
+  end
+
+  fn -(o: Vec3): Vec3
+    Vec3.new(@x - o.x, @y - o.y, @z - o.z)
+  end
+
+  fn *(s): Vec3
+    Vec3.new(@x * s, @y * s, @z * s)
+  end
+
+  fn dot(o: Vec3)
+    @x * o.x + @y * o.y + @z * o.z
+  end
+
+  fn cross(o: Vec3): Vec3
+    Vec3.new(
+      @y * o.z - @z * o.y,
+      @z * o.x - @x * o.z,
+      @x * o.y - @y * o.x
+    )
+  end
+
+  fn length()
+    math::sqrt(@x * @x + @y * @y + @z * @z)
+  end
+
+  fn normalized(): Vec3
+    len = @.length()
+    return Vec3.new() when len == 0.0
+    @ * (1.0 / len)
+  end
+
+  fn rotated_x(a): Vec3
+    c = math::cos(a)
+    s = math::sin(a)
+    Vec3.new(@x, @y * c - @z * s, @y * s + @z * c)
+  end
+
+  fn rotated_y(a): Vec3
+    c = math::cos(a)
+    s = math::sin(a)
+    Vec3.new(@x * c + @z * s, @y, -@x * s + @z * c)
+  end
+
+  fn rotated_z(a): Vec3
+    c = math::cos(a)
+    s = math::sin(a)
+    Vec3.new(@x * c - @y * s, @x * s + @y * c, @z)
+  end
+
+  fn to_string(): string
+    "Vec3(${@x}, ${@y}, ${@z})"
+  end
+end
+
+# -----------------------------------------------------------------------------
+# Parameter-space generators - lazy rings all the way down
+# -----------------------------------------------------------------------------
+
+fn angle_ring(steps)
+  step = (2.0 * math::acos(-1.0)) / steps
+  i = 0
+  while i < steps do
+    yield i * step
+    i += 1
+  end
+end
+
+# -----------------------------------------------------------------------------
+# The torus itself
+# -----------------------------------------------------------------------------
+
+struct Torus
+  fn new(R = 1.0, r = 0.4)
+    @R = R * 1.0          # major radius (center of tube to center of donut)
+    @r = r * 1.0          # minor radius (tube thickness)
+  end
+
+  # Sample a point on the surface + its outward unit normal.
+  fn sample(theta, phi)
+    ct = math::cos(theta)
+    st = math::sin(theta)
+    cp = math::cos(phi)
+    sp = math::sin(phi)
+
+    # Center of the tube circle at angle theta
+    cx = @R * ct
+    cy = @R * st
+
+    point = Vec3.new(
+      cx + @r * cp * ct,
+      cy + @r * cp * st,
+      @r * sp
+    )
+
+    normal = Vec3.new(cp * ct, cp * st, sp).normalized()
+    { "p": point, "n": normal }
+  end
+end
+
+# -----------------------------------------------------------------------------
+# ASCII framebuffer with a depth buffer
+# -----------------------------------------------------------------------------
+
+struct Frame
+  # Ramp from dim to bright - classic donut shading alphabet
+  static fn ramp()
+    ".,-~:;=!*#$@"
+  end
+
+  fn new(w, h)
+    @w = w
+    @h = h
+    @chars = [" "] * (w * h)
+    @zbuf  = [0.0] * (w * h)
+  end
+
+  fn clear()
+    n = @w * @h
+    i = 0
+    while i < n do
+      @chars[i] = " "
+      @zbuf[i]  = 0.0
+      i += 1
+    end
+  end
+
+  fn plot(x, y, inv_z, luminance)
+    return when x < 0 || y < 0 || x >= @w || y >= @h
+    return when inv_z <= @zbuf[y * @w + x]
+
+    ramp = Frame.ramp()
+    idx = math::floor(luminance * (ramp.size() - 1)).to_integer()
+    idx = 0 when idx < 0
+    idx = ramp.size() - 1 when idx >= ramp.size()
+
+    @zbuf[y * @w + x]  = inv_z
+    @chars[y * @w + x] = ramp[idx]
+  end
+
+  fn to_string(): string
+    rows = []
+    y = 0
+    while y < @h do
+      row = ""
+      x = 0
+      while x < @w do
+        row += @chars[y * @w + x]
+        x += 1
+      end
+      rows.push(row)
+      y += 1
+    end
+    rows.join("\n")
+  end
+end
+
+# -----------------------------------------------------------------------------
+# Soft camera + light
+# -----------------------------------------------------------------------------
+
+struct Camera
+  fn new(zoom = 5.0, distance = 5.0)
+    @zoom = zoom * 1.0
+    @distance = distance * 1.0
+    @light = Vec3.new(0.0, 1.0, -1.0).normalized()
+  end
+
+  fn project(p: Vec3, frame: Frame)
+    # Translate into camera space (camera looks down -Z toward origin)
+    z = p.z + @distance
+    return null when z <= 0.1
+
+    inv_z = 1.0 / z
+    # Non-square terminals: characters are ~twice as tall as wide
+    xp = (frame.w / 2.0 + @zoom * p.x * inv_z * frame.h).to_integer()
+    yp = (frame.h / 2.0 - @zoom * p.y * inv_z * frame.h * 0.5).to_integer()
+    { "x": xp, "y": yp, "inv_z": inv_z }
+  end
+
+  fn shade(normal: Vec3)
+    # Lambertian term, clamped to [0, 1]
+    lum = normal.dot(@light)
+    lum < 0.0 ? 0.0 : (lum > 1.0 ? 1.0 : lum)
+  end
+end
+
+# -----------------------------------------------------------------------------
+# Renderer
+# -----------------------------------------------------------------------------
+
+struct DonutWorld
+  fn new(width = 64, height = 28)
+    @torus  = Torus.new(1.0, 0.45)
+    @cam    = Camera.new(5.0, 5.0)
+    @frame  = Frame.new(width, height)
+    @a = 0.0   # rotation around X
+    @b = 0.0   # rotation around Z
+    @theta_steps = 90
+    @phi_steps   = 30
+  end
+
+  fn tick(da = 0.07, db = 0.03)
+    @frame.clear()
+
+    for theta in angle_ring(@theta_steps) do
+      for phi in angle_ring(@phi_steps) do
+        s = @torus.sample(theta, phi)
+
+        # Spin the donut in object space
+        p = s["p"].rotated_x(@a).rotated_z(@b)
+        n = s["n"].rotated_x(@a).rotated_z(@b)
+
+        proj = @cam.project(p, @frame)
+        next when proj == null
+
+        lum = @cam.shade(n)
+        # Keep very dim faces barely visible so the silhouette holds
+        lum = 0.05 when lum < 0.05
+
+        @frame.plot(proj["x"], proj["y"], proj["inv_z"], lum)
+      end
+    end
+
+    @a += da
+    @b += db
+    @frame.to_string()
+  end
+end
+
+# -----------------------------------------------------------------------------
+# Drive it
+# -----------------------------------------------------------------------------
+
+fn banner()
+  console::fg("CYAN")
+  println ""
+  println "  ~~~  kiwi donut - perspective torus in pure Kiwi  ~~~"
+  console::fg("DARK_GRAY")
+  println "  operator-overloaded Vec3 | lazy angle generators | z-buffered ASCII"
+  println "  Ctrl+C to bail  |  auto-stops after 120 frames"
+  console::reset()
+  println ""
+end
+
+fn main()
+  running = true
+  frames  = 0
+  max_frames = 120
+
+  # Graceful Ctrl+C - signal package parks a handler, we just flip a flag.
+  try
+    signal::on_sigint(do () => running = false)
+  catch
+    # Some environments may not wire signals; animation still auto-stops.
+  end
+
+  banner()
+  console::cursor_visible(false)
+  console::title("kiwi donut")
+
+  world = DonutWorld.new(64, 28)
+  t0 = time::ticks()
+  # Real ESC via unicode escape - "\e" is two literal chars in Kiwi strings.
+  home = "\u001b[H"
+  console::clear()
+
+  while running && frames < max_frames do
+    picture = world.tick()
+
+    # Home the cursor, then paint over the previous frame in place.
+    print home
+    console::fg("YELLOW")
+    println picture
+    console::reset()
+
+    frames += 1
+    elapsed_ms = time::ticksms(time::ticks() - t0)
+    elapsed_s  = elapsed_ms / 1000.0
+    fps = frames / (elapsed_s > 0.001 ? elapsed_s : 0.001)
+
+    console::fg("DARK_GRAY")
+    println "  frame ${frames}  |  ${math::round(fps, 1)} fps  |  a=${math::round(world.a, 2)}  b=${math::round(world.b, 2)}   "
+    console::reset()
+
+    task::sleep(30)
+  end
+
+  console::cursor_visible(true)
+  console::reset()
+  println ""
+  console::fg("GREEN")
+  println frames >= max_frames ? "  donut finished spinning. delicious." : "  interrupted - donut secured."
+  console::reset()
+  println ""
+end
+
+main()
