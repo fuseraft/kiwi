@@ -1606,7 +1606,10 @@ public sealed class KiwiVM
                             errType = KiwiError.DefaultErrorType;
                             errMsg  = Serialize(v);
                         }
-                        throw new RuntimeError(tok, errType, errMsg, [frame.FormatTrace()]);
+                        var trace = new List<string>(_frameCount);
+                        for (int ti = 0; ti < _frameCount; ti++)
+                            trace.Add(_frames[ti].FormatTrace());
+                        throw new RuntimeError(tok, errType, errMsg, trace);
                     }
 
                     // -- Try handler management ----------------------------
@@ -3164,10 +3167,16 @@ internal static class VMFrameExt
         // actually caused the error, not the call site.
         int instrIdx = Math.Max(0, frame.IP - 1);
         int line     = frame.Chunk.GetLine(instrIdx);
+        int column   = frame.Chunk.GetColumn(instrIdx);
         int fileId   = frame.Chunk.GetFileId(instrIdx);
 
         if (line > 0)
-            return new Token(TokenType.Eof, TokenName.Default, new TokenSpan(fileId, line, 0), string.Empty, Value.Default);
+            return new Token(
+                TokenType.Eof,
+                TokenName.Default,
+                new TokenSpan(fileId, line, column),
+                string.Empty,
+                Value.Default);
 
         // No debug info (e.g. synthesised chunk) — fall back to the call-site token.
         if (frame.CallSiteToken is { } cst)

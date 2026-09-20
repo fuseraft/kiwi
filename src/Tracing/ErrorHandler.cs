@@ -28,9 +28,15 @@ public static class ErrorHandler
             $"[{type}]: {message}"
         ];
 
-        if (token.Type != TokenType.Default/* && token.Name != TokenName.Default*/)
+        // Synthetic tokens from the VM use Type=Eof; still print a location when
+        // the span carries a real line number from chunk debug info.
+        if (span.Line > 0 || (token.Type != TokenType.Default && token.Type != TokenType.Eof))
         {
             lines.Add($"File: {filePath}:{span.Line}:{span.Pos}");
+        }
+        else if (!string.IsNullOrEmpty(filePath))
+        {
+            lines.Add($"File: {filePath}");
         }
 
         foreach (var line in lines.Skip(1))

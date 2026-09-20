@@ -221,7 +221,12 @@ public partial class Parser
 
         if (node != null)
         {
-            node.Token = nodeToken;
+            // Keep a more specific location already set by the expression parser
+            // (e.g. the operator token on a binary/unary node). Overwriting with the
+            // statement-start token would point every nested error at the leftmost
+            // subexpression and, when the node token was unset, at line 0 / file 0.
+            if (node.Token.Span.Line == 0)
+                node.Token = nodeToken;
             return node;
         }
 
@@ -2673,6 +2678,7 @@ public partial class Parser
 
         if (GetTokenType() == TokenType.Question)
         {
+            var opToken = token.Clone();
             Next();  // Consume '?'
 
             var trueBranch = ParseExpression();
@@ -2684,7 +2690,7 @@ public partial class Parser
 
             var falseBranch = ParseExpression();  // Parse the false branch
 
-            return new TernaryOperationNode(node, trueBranch, falseBranch);
+            return new TernaryOperationNode(node, trueBranch, falseBranch) { Token = opToken };
         }
 
         if (node?.Type == ASTNodeType.Lambda && GetTokenType() == TokenType.LParen)
@@ -2701,11 +2707,12 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
         {
+            var opToken = token.Clone();
             var op = GetTokenName();
             Next();  // Consume '||' or '??'
 
             var right = ParseLogicalAnd();
-            left = new BinaryOperationNode(left, op, right);
+            left = new BinaryOperationNode(left, op, right) { Token = opToken };
         }
 
         return left;
@@ -2717,10 +2724,11 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_And)
         {
+            var opToken = token.Clone();
             Next();  // Consume '&&'
 
             var right = ParseBitwiseOr();
-            left = new BinaryOperationNode(left, TokenName.Ops_And, right);
+            left = new BinaryOperationNode(left, TokenName.Ops_And, right) { Token = opToken };
         }
 
         return left;
@@ -2732,10 +2740,11 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseOr)
         {
+            var opToken = token.Clone();
             Next();  // Consume '|'
 
             var right = ParseBitwiseXor();
-            left = new BinaryOperationNode(left, TokenName.Ops_BitwiseOr, right);
+            left = new BinaryOperationNode(left, TokenName.Ops_BitwiseOr, right) { Token = opToken };
         }
 
         return left;
@@ -2747,10 +2756,11 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseXor)
         {
+            var opToken = token.Clone();
             Next();  // Consume '^'
 
             var right = ParseBitwiseAnd();
-            left = new BinaryOperationNode(left, TokenName.Ops_BitwiseXor, right);
+            left = new BinaryOperationNode(left, TokenName.Ops_BitwiseXor, right) { Token = opToken };
         }
 
         return left;
@@ -2762,10 +2772,11 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseAnd)
         {
+            var opToken = token.Clone();
             Next();  // Consume '&'
 
             var right = ParseEquality();
-            left = new BinaryOperationNode(left, TokenName.Ops_BitwiseAnd, right);
+            left = new BinaryOperationNode(left, TokenName.Ops_BitwiseAnd, right) { Token = opToken };
         }
 
         return left;
@@ -2777,12 +2788,13 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsEqualityOperator())
         {
+            var opToken = token.Clone();
             var op = GetTokenName();
 
             Next();  // Skip operator
 
             var right = ParseComparison();
-            left = new BinaryOperationNode(left, op, right);
+            left = new BinaryOperationNode(left, op, right) { Token = opToken };
         }
 
         return left;
@@ -2794,12 +2806,13 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsComparisonOperator())
         {
+            var opToken = token.Clone();
             var op = GetTokenName();
 
             Next();  // Skip operator
 
             var right = ParseBitshift();
-            left = new BinaryOperationNode(left, op, right);
+            left = new BinaryOperationNode(left, op, right) { Token = opToken };
         }
 
         return left;
@@ -2811,12 +2824,13 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsBitwiseOperator())
         {
+            var opToken = token.Clone();
             var op = GetTokenName();
 
             Next();  // Skip operator
 
             var right = ParseAdditive();
-            left = new BinaryOperationNode(left, op, right);
+            left = new BinaryOperationNode(left, op, right) { Token = opToken };
         }
 
         return left;
@@ -2827,10 +2841,11 @@ public partial class Parser
         var left = ParseMultiplicative();
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsAdditiveOperator())
         {
+            var opToken = token.Clone();
             var op = GetTokenName();
             Next();  // Skip operator
             var right = ParseMultiplicative();
-            left = new BinaryOperationNode(left, op, right);
+            left = new BinaryOperationNode(left, op, right) { Token = opToken };
         }
         return left;
     }
@@ -2841,12 +2856,13 @@ public partial class Parser
 
         while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsMultiplicativeOperator())
         {
+            var opToken = token.Clone();
             var op = GetTokenName();
 
             Next();  // Skip operator
 
             var right = ParseUnary();
-            left = new BinaryOperationNode(left, op, right);
+            left = new BinaryOperationNode(left, op, right) { Token = opToken };
         }
 
         return left;
@@ -2856,12 +2872,13 @@ public partial class Parser
     {
         while (stream.CanRead && IsUnaryOperator())
         {
+            var opToken = token.Clone();
             var op = GetTokenName();
 
             Next();  // Skip operator
 
             var right = ParseUnary();
-            return new UnaryOperationNode(op, right);
+            return new UnaryOperationNode(op, right) { Token = opToken };
         }
 
         return ParsePrimary();

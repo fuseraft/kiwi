@@ -107,11 +107,25 @@ public sealed class VMFrame(string name, Chunk chunk, int stackBase, Upvalue[] u
 
     public string FormatTrace()
     {
-        if (CallSiteToken == null)
-            return $"at {Name}";
+        // Prefer the instruction currently/just executed in this frame so nested
+        // call stacks point at the call site and the faulting expression, not only
+        // the outermost call-site token.
+        int instrIdx = Math.Max(0, IP - 1);
+        int line = Chunk.GetLine(instrIdx);
+        if (line > 0)
+        {
+            int column = Chunk.GetColumn(instrIdx);
+            int fileId = Chunk.GetFileId(instrIdx);
+            var path = Tracing.FileRegistry.Instance.GetFilePath(fileId);
+            return $"at {Name} in {path}:{line}:{column}";
+        }
 
-        var tok = CallSiteToken!.Value;
-        var path = Tracing.FileRegistry.Instance.GetFilePath(tok.Span.File);
-        return $"at {Name} in {path}:{tok.Span.Line}:{tok.Span.Pos}";
+        if (CallSiteToken is { } tok)
+        {
+            var path = Tracing.FileRegistry.Instance.GetFilePath(tok.Span.File);
+            return $"at {Name} in {path}:{tok.Span.Line}:{tok.Span.Pos}";
+        }
+
+        return $"at {Name}";
     }
 }

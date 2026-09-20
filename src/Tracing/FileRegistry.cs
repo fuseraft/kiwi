@@ -32,14 +32,24 @@ public sealed class FileRegistry
 
     public int GetFileId(string filePath)
     {
+        string fullPath;
+        try
+        {
+            fullPath = Path.GetFullPath(filePath);
+        }
+        catch
+        {
+            fullPath = filePath;
+        }
+
         foreach (var pair in _registry)
         {
-            if (pair.Value == filePath)
+            if (pair.Value == fullPath || pair.Value == filePath)
             {
                 return pair.Key;
             }
         }
-        
+
         return -1;
     }
 

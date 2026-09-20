@@ -58,6 +58,7 @@ public sealed class Compiler
 
     private int _slotCount;
     private int _currentFileId; // updated per node; stored in every instruction for error reporting
+    private int _currentColumn; // 1-based column from the node's token span
 
     // -- Construction ----------------------------------------------------------
 
@@ -390,7 +391,7 @@ public sealed class Compiler
     // -- Emit wrapper (automatically carries current file ID) ------------------
 
     private int Emit(Opcode op, int a = 0, int b = 0, int line = 0) =>
-        _chunk.Emit(op, a, b, line, _currentFileId);
+        _chunk.Emit(op, a, b, line, _currentFileId, _currentColumn);
 
     // -- Jump helpers ----------------------------------------------------------
 
@@ -440,72 +441,86 @@ public sealed class Compiler
     /// </summary>
     private bool CompileNode(ASTNode node)
     {
+        // Nested compilation of child expressions temporarily changes the current
+        // source location. Save/restore so sibling and parent opcodes keep the
+        // outer node's location (e.g. binary operator after compiling operands).
+        int savedFileId = _currentFileId;
+        int savedColumn = _currentColumn;
         int ln = node.Token.Span.Line;
         _currentFileId = node.Token.Span.File;
-        switch (node.Type)
+        _currentColumn = node.Token.Span.Pos;
+        try
         {
-            case ASTNodeType.NoOp:             return false;
-            case ASTNodeType.Literal:          CompileLiteral        ((LiteralNode)node,          ln); return true;
-            case ASTNodeType.Identifier:       EmitLoad              (((IdentifierNode)node).Name, ln); return true;
-            case ASTNodeType.Variable:         CompileVariable       ((VariableNode)node,          ln); return false;
-            case ASTNodeType.Assignment:       return CompileAssignment((AssignmentNode)node,        ln);
-            case ASTNodeType.ConstAssignment:  CompileConstAssign    ((ConstAssignmentNode)node,   ln); return false;
-            case ASTNodeType.PackAssignment:   CompilePackAssign     ((PackAssignmentNode)node,    ln); return false;
-            case ASTNodeType.BinaryOperation:  CompileBinary         ((BinaryOperationNode)node,   ln); return true;
-            case ASTNodeType.UnaryOperation:   CompileUnary          ((UnaryOperationNode)node,    ln); return true;
-            case ASTNodeType.TernaryOperation: CompileTernary        ((TernaryOperationNode)node,  ln); return true;
-            case ASTNodeType.Interpolation:    CompileInterp         ((InterpolationNode)node,     ln); return true;
-            case ASTNodeType.ListLiteral:      CompileList           ((ListLiteralNode)node,       ln); return true;
-            case ASTNodeType.HashLiteral:      CompileHash           ((HashLiteralNode)node,       ln); return true;
-            case ASTNodeType.RangeLiteral:     CompileRange          ((RangeLiteralNode)node,      ln); return true;
-            case ASTNodeType.Index:            CompileIndex          ((IndexingNode)node,          ln); return true;
-            case ASTNodeType.IndexAssignment:  CompileIndexAssign    ((IndexAssignmentNode)node,   ln); return false;
-            case ASTNodeType.Slice:            CompileSlice          ((SliceNode)node,             ln); return true;
-            case ASTNodeType.MemberAccess:     CompileMemberAccess   ((MemberAccessNode)node,      ln); return true;
-            case ASTNodeType.MemberAssignment: CompileMemberAssign   ((MemberAssignmentNode)node,  ln); return true;
-            case ASTNodeType.Self:             CompileSelf           ((SelfNode)node,              ln); return true;
-            case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
-            case ASTNodeType.SuperCall:        CompileSuperCall      ((SuperCallNode)node,         ln); return true;
-            case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
-            case ASTNodeType.PrintXy:          CompilePrintXy        ((PrintXyNode)node,           ln); return false;
-            case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return true;
-            case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return true;
-            case ASTNodeType.CaseWhen:         return false; // handled inside CompileCase
-            case ASTNodeType.WhileLoop:        CompileWhile          ((WhileLoopNode)node,         ln); return false;
-            case ASTNodeType.RepeatLoop:       CompileRepeat         ((RepeatLoopNode)node,        ln); return false;
-            case ASTNodeType.ForLoop:          CompileForLoop        ((ForLoopNode)node,           ln); return false;
-            case ASTNodeType.Break:            CompileBreak          ((BreakNode)node,             ln); return false;
-            case ASTNodeType.Next:             CompileNext           ((NextNode)node,              ln); return false;
-            case ASTNodeType.Return:           CompileReturn         ((ReturnNode)node,            ln); return false;
-            case ASTNodeType.Yield:            CompileYield          ((YieldNode)node,             ln); return false;
-            case ASTNodeType.Exit:             CompileExit           ((ExitNode)node,              ln); return false;
-            case ASTNodeType.Throw:            CompileThrow          ((ThrowNode)node,             ln); return false;
-            case ASTNodeType.Try:              CompileTry            ((TryNode)node,               ln); return false;
-            case ASTNodeType.Function:         CompileFunction       ((FunctionNode)node,          ln); return false;
-            case ASTNodeType.Do:               CompileDo            ((DoNode)node,               ln); return false;
-            case ASTNodeType.Struct:           CompileStruct         ((StructNode)node,            ln); return false;
-            case ASTNodeType.Package:          CompilePackage        ((PackageNode)node,           ln); return false;
-            case ASTNodeType.Export:           CompileExport         ((ExportNode)node,            ln); return false;
-            case ASTNodeType.Import:           CompileImport         ((ImportNode)node,            ln); return true;
-            case ASTNodeType.Require:          CompileRequire        ((RequireNode)node,           ln); return false;
-            case ASTNodeType.Eval:             CompileEval           ((EvalNode)node,              ln); return true;
-            case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return true;
-            case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
-            case ASTNodeType.DecoratedFunction: CompileDecoratedFunction((DecoratedFunctionNode)node, ln); return false;
-            case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
-            case ASTNodeType.LambdaCall:       CompileLambdaCall     ((LambdaCallNode)node,        ln); return true;
-            case ASTNodeType.FunctionCall:     CompileFuncCall       ((FunctionCallNode)node,      ln); return true;
-            case ASTNodeType.MethodCall:       CompileMethodCall     ((MethodCallNode)node,        ln); return true;
-            case ASTNodeType.On:               CompileEventOn        ((OnNode)node,                ln); return false;
-            case ASTNodeType.Once:             CompileEventOnce      ((OnceNode)node,              ln); return false;
-            case ASTNodeType.Off:              CompileEventOff       ((OffNode)node,               ln); return false;
-            case ASTNodeType.Emit:             CompileEventEmit      ((EmitNode)node,              ln); return true;
-            case ASTNodeType.Program:
-                foreach (var s in ((ProgramNode)node).Statements)
-                    if (s != null) CompileStatement(s);
-                return false;
-            default:
-                throw new SyntaxError(node.Token, $"Unsupported AST node type in VM compiler: {node.Type}");
+            switch (node.Type)
+            {
+                case ASTNodeType.NoOp:             return false;
+                case ASTNodeType.Literal:          CompileLiteral        ((LiteralNode)node,          ln); return true;
+                case ASTNodeType.Identifier:       EmitLoad              (((IdentifierNode)node).Name, ln); return true;
+                case ASTNodeType.Variable:         CompileVariable       ((VariableNode)node,          ln); return false;
+                case ASTNodeType.Assignment:       return CompileAssignment((AssignmentNode)node,        ln);
+                case ASTNodeType.ConstAssignment:  CompileConstAssign    ((ConstAssignmentNode)node,   ln); return false;
+                case ASTNodeType.PackAssignment:   CompilePackAssign     ((PackAssignmentNode)node,    ln); return false;
+                case ASTNodeType.BinaryOperation:  CompileBinary         ((BinaryOperationNode)node,   ln); return true;
+                case ASTNodeType.UnaryOperation:   CompileUnary          ((UnaryOperationNode)node,    ln); return true;
+                case ASTNodeType.TernaryOperation: CompileTernary        ((TernaryOperationNode)node,  ln); return true;
+                case ASTNodeType.Interpolation:    CompileInterp         ((InterpolationNode)node,     ln); return true;
+                case ASTNodeType.ListLiteral:      CompileList           ((ListLiteralNode)node,       ln); return true;
+                case ASTNodeType.HashLiteral:      CompileHash           ((HashLiteralNode)node,       ln); return true;
+                case ASTNodeType.RangeLiteral:     CompileRange          ((RangeLiteralNode)node,      ln); return true;
+                case ASTNodeType.Index:            CompileIndex          ((IndexingNode)node,          ln); return true;
+                case ASTNodeType.IndexAssignment:  CompileIndexAssign    ((IndexAssignmentNode)node,   ln); return false;
+                case ASTNodeType.Slice:            CompileSlice          ((SliceNode)node,             ln); return true;
+                case ASTNodeType.MemberAccess:     CompileMemberAccess   ((MemberAccessNode)node,      ln); return true;
+                case ASTNodeType.MemberAssignment: CompileMemberAssign   ((MemberAssignmentNode)node,  ln); return true;
+                case ASTNodeType.Self:             CompileSelf           ((SelfNode)node,              ln); return true;
+                case ASTNodeType.StaticSelf:       CompileStaticSelf     ((StaticSelfNode)node,        ln); return true;
+                case ASTNodeType.SuperCall:        CompileSuperCall      ((SuperCallNode)node,         ln); return true;
+                case ASTNodeType.Print:            CompilePrint          ((PrintNode)node,             ln); return false;
+                case ASTNodeType.PrintXy:          CompilePrintXy        ((PrintXyNode)node,           ln); return false;
+                case ASTNodeType.If:               CompileIf             ((IfNode)node,                ln); return true;
+                case ASTNodeType.Case:             CompileCase           ((CaseNode)node,              ln); return true;
+                case ASTNodeType.CaseWhen:         return false; // handled inside CompileCase
+                case ASTNodeType.WhileLoop:        CompileWhile          ((WhileLoopNode)node,         ln); return false;
+                case ASTNodeType.RepeatLoop:       CompileRepeat         ((RepeatLoopNode)node,        ln); return false;
+                case ASTNodeType.ForLoop:          CompileForLoop        ((ForLoopNode)node,           ln); return false;
+                case ASTNodeType.Break:            CompileBreak          ((BreakNode)node,             ln); return false;
+                case ASTNodeType.Next:             CompileNext           ((NextNode)node,              ln); return false;
+                case ASTNodeType.Return:           CompileReturn         ((ReturnNode)node,            ln); return false;
+                case ASTNodeType.Yield:            CompileYield          ((YieldNode)node,             ln); return false;
+                case ASTNodeType.Exit:             CompileExit           ((ExitNode)node,              ln); return false;
+                case ASTNodeType.Throw:            CompileThrow          ((ThrowNode)node,             ln); return false;
+                case ASTNodeType.Try:              CompileTry            ((TryNode)node,               ln); return false;
+                case ASTNodeType.Function:         CompileFunction       ((FunctionNode)node,          ln); return false;
+                case ASTNodeType.Do:               CompileDo            ((DoNode)node,               ln); return false;
+                case ASTNodeType.Struct:           CompileStruct         ((StructNode)node,            ln); return false;
+                case ASTNodeType.Package:          CompilePackage        ((PackageNode)node,           ln); return false;
+                case ASTNodeType.Export:           CompileExport         ((ExportNode)node,            ln); return false;
+                case ASTNodeType.Import:           CompileImport         ((ImportNode)node,            ln); return true;
+                case ASTNodeType.Require:          CompileRequire        ((RequireNode)node,           ln); return false;
+                case ASTNodeType.Eval:             CompileEval           ((EvalNode)node,              ln); return true;
+                case ASTNodeType.Include:          CompileInclude        ((IncludeNode)node,           ln); return true;
+                case ASTNodeType.Enum:             CompileEnum           ((EnumNode)node,              ln); return false;
+                case ASTNodeType.DecoratedFunction: CompileDecoratedFunction((DecoratedFunctionNode)node, ln); return false;
+                case ASTNodeType.Lambda:           CompileLambdaDef      ((LambdaNode)node,            ln); return true;
+                case ASTNodeType.LambdaCall:       CompileLambdaCall     ((LambdaCallNode)node,        ln); return true;
+                case ASTNodeType.FunctionCall:     CompileFuncCall       ((FunctionCallNode)node,      ln); return true;
+                case ASTNodeType.MethodCall:       CompileMethodCall     ((MethodCallNode)node,        ln); return true;
+                case ASTNodeType.On:               CompileEventOn        ((OnNode)node,                ln); return false;
+                case ASTNodeType.Once:             CompileEventOnce      ((OnceNode)node,              ln); return false;
+                case ASTNodeType.Off:              CompileEventOff       ((OffNode)node,               ln); return false;
+                case ASTNodeType.Emit:             CompileEventEmit      ((EmitNode)node,              ln); return true;
+                case ASTNodeType.Program:
+                    foreach (var s in ((ProgramNode)node).Statements)
+                        if (s != null) CompileStatement(s);
+                    return false;
+                default:
+                    throw new SyntaxError(node.Token, $"Unsupported AST node type in VM compiler: {node.Type}");
+            }
+        }
+        finally
+        {
+            _currentFileId = savedFileId;
+            _currentColumn = savedColumn;
         }
     }
 
