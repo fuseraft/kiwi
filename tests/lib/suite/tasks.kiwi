@@ -78,3 +78,28 @@ fn test_tasks_struct()
   msg = ch.recv()
   tester::assert(msg == "3 items, total=20, mean=6.666666666666667", "A7: channel msg: ${msg}")
 end
+
+@tester::test("tasks: concurrent list lambdas don't share a call stack")
+fn test_tasks_concurrent_list_lambdas()
+  # Each task has its own call stack; before this, concurrent .map() calls
+  # pushed/popped a shared stack and failed with "Stack empty."
+  ids = []
+  for k in [1 to 16] do
+    ids.push(task::spawn(with (n) do
+      t = 0
+      for i in [1 to 500] do
+        t += [1, 2, 3].map(with (y) do y + i end).sum()
+      end
+      t
+    end, [k]))
+  end
+
+  ok = true
+  for tid in ids do
+    if await(tid) != 378750
+      ok = false
+    end
+  end
+
+  tester::assert(ok, "B1: every concurrent task computes its own map/sum")
+end
