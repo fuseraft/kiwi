@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using kiwi.Runtime;
 using kiwi.VM;
 
 namespace kiwi.Typing;
@@ -28,6 +29,13 @@ public class LambdaRef
     /// Captured upvalue cells (set when MakeClosure creates the closure).
     /// </summary>
     public Upvalue[]? VMUpvalues { get; set; }
+
+    /// <summary>
+    /// The lambda this ref points at, for closures created at runtime. Holding it here
+    /// (rather than registering it in <c>KContext.Lambdas</c> by identifier) lets an
+    /// unreachable closure be collected. Null for named lambdas, which resolve by identifier.
+    /// </summary>
+    public KLambda?  Target     { get; set; }
 
     /// <summary>
     /// When non-null, this lambda ref represents a bare method call on self

@@ -176,6 +176,16 @@ public sealed class KiwiVM
         _pathCache.Remove(name);
     }
 
+    /// <summary>
+    /// Resolves a lambda value to its <see cref="KLambda"/>. Runtime closures carry it
+    /// directly; named lambdas (globals, decorated functions) are looked up by identifier.
+    /// </summary>
+    internal bool TryGetLambda(LambdaRef lr, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out KLambda? kl)
+    {
+        kl = lr.Target;
+        return kl != null || _context.Lambdas.TryGetValue(lr.Identifier, out kl);
+    }
+
     // -- Public entry points ---------------------------------------------------
 
     /// <summary>
@@ -587,8 +597,8 @@ public sealed class KiwiVM
                         if (v.IsLambda())
                         {
                             var lr = v.GetLambda();
-                            if (!string.IsNullOrEmpty(lr.Identifier) && _context.HasLambda(lr.Identifier))
-                                _context.Lambdas[name] = _context.Lambdas[lr.Identifier];
+                            if (TryGetLambda(lr, out var named))
+                                _context.Lambdas[name] = named;
                         }
                         _globals.Assign(name, v);
                         InvalidateName(name); // invalidate both resolution caches
@@ -1116,9 +1126,8 @@ public sealed class KiwiVM
                             klambda.VariadicParamName = sub.VariadicParamName;
 
                         var internalId = $"__deco_{Interlocked.Increment(ref _globalClosureIdCounter)}__";
-                        var lref       = new LambdaRef { Identifier = internalId, VMChunk = sub, VMUpvalues = upvalues };
+                        var lref       = new LambdaRef { Identifier = internalId, VMChunk = sub, VMUpvalues = upvalues, Target = klambda };
                         klambda.Ref    = lref;
-                        _context.Lambdas[internalId] = klambda;
                         Push(Value.CreateLambda(lref));
                         break;
                     }
@@ -1139,16 +1148,18 @@ public sealed class KiwiVM
                             var lambdaId = string.IsNullOrEmpty(lr.Identifier) ? funcName : lr.Identifier;
                             // Map funcName → the lambda identifier (like Context.AddMappedLambda).
                             _context.LambdaTable[funcName] = lambdaId;
-                            // If the lambda has a VMChunk but no entry in Lambdas yet, register it.
-                            if (!_context.Lambdas.ContainsKey(lambdaId) && lr.VMChunk != null)
+                            // Register the lambda under its identifier so the mapping resolves.
+                            if (!_context.Lambdas.ContainsKey(lambdaId))
                             {
-                                var kl = new KLambda(BuildLambdaNode(lr.VMChunk))
-                                {
-                                    VMChunk    = lr.VMChunk,
-                                    VMUpvalues = lr.VMUpvalues,
-                                    Ref        = lr,
-                                };
-                                _context.Lambdas[lambdaId] = kl;
+                                var kl = lr.Target ?? (lr.VMChunk != null
+                                    ? new KLambda(BuildLambdaNode(lr.VMChunk))
+                                    {
+                                        VMChunk    = lr.VMChunk,
+                                        VMUpvalues = lr.VMUpvalues,
+                                        Ref        = lr,
+                                    }
+                                    : null);
+                                if (kl != null) _context.Lambdas[lambdaId] = kl;
                             }
                         }
                         else
@@ -1192,9 +1203,8 @@ public sealed class KiwiVM
                             klambda.VariadicParamName = sub.VariadicParamName;
 
                         var id   = $"__lam_{Interlocked.Increment(ref _globalClosureIdCounter)}";
-                        var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues };
+                        var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues, Target = klambda };
                         klambda.Ref = lref;
-                        _context.Lambdas[id] = klambda;
                         Push(Value.CreateLambda(lref));
                         break;
                     }
@@ -2125,9 +2135,8 @@ public sealed class KiwiVM
             return true;
         }
 
-        if (_context.HasLambda(lr.Identifier))
+        if (TryGetLambda(lr, out var kl))
         {
-            var kl   = _context.Lambdas[lr.Identifier];
             chunk    = kl.VMChunk;
             upvalues = kl.VMUpvalues ?? [];
             parms    = kl.Parameters;
@@ -2182,9 +2191,11 @@ public sealed class KiwiVM
             Value namedCallableResult;
             try
             {
-                var callable2 = _context.HasFunction(lr2.Identifier)
-                    ? (Callable)_context.Functions[lr2.Identifier]
-                    : _context.Lambdas[lr2.Identifier];
+                Callable callable2 = _context.Functions.TryGetValue(lr2.Identifier, out var kf2)
+                    ? kf2
+                    : TryGetLambda(lr2, out var kl2)
+                        ? kl2
+                        : throw new FunctionUndefinedError(token, lr2.Identifier);
                 namedCallableResult = InvokeCallable(callable2, argsL, token, lr2.Identifier);
             }
             finally { ReturnArgs(argsL); }
@@ -2286,9 +2297,8 @@ public sealed class KiwiVM
             }
 
             // Check if this is actually a named lambda alias
-            if (_context.HasLambda(lr.Identifier))
+            if (TryGetLambda(lr, out var kl))
             {
-                var kl = _context.Lambdas[lr.Identifier];
                 if (kl.VMChunk != null)
                 {
                     SetupCalleeLocals(kl.VMChunk, calleeBase, argc);
@@ -2333,8 +2343,8 @@ public sealed class KiwiVM
                 if (funcVal.IsLambda())
                 {
                     var lr = funcVal.GetLambda();
-                    if (_context.HasLambda(lr.Identifier))
-                        callResult = InvokeCallable(_context.Lambdas[lr.Identifier], args, token, lr.Identifier);
+                    if (TryGetLambda(lr, out var fallbackLambda))
+                        callResult = InvokeCallable(fallbackLambda, args, token, lr.Identifier);
                     else
                         callResult = Value.Default;
                 }
@@ -2535,17 +2545,13 @@ public sealed class KiwiVM
 
     public Value InvokeEvent(Token token, LambdaRef lambda, List<Value> args)
     {
-        var lambdaName   = lambda.Identifier;
-        var targetLambda = lambdaName;
-
-        if (!_context.HasLambda(targetLambda))
+        if (!TryGetLambda(lambda, out var func))
         {
-            if (!_context.HasMappedLambda(targetLambda))
-                throw new CallableError(token, $"Could not find target lambda `{targetLambda}`");
-            targetLambda = _context.LambdaTable[targetLambda];
+            if (!_context.LambdaTable.TryGetValue(lambda.Identifier, out var mapped)
+                || !_context.Lambdas.TryGetValue(mapped, out func))
+                throw new CallableError(token, $"Could not find target lambda `{lambda.Identifier}`");
         }
 
-        var func  = _context.Lambdas[targetLambda];
         var subVm = new KiwiVM(this, func.CapturedScope ?? GetGlobalScope());
         return subVm.InvokeVMCallable(func, args, token, null);
     }
@@ -2957,8 +2963,9 @@ public sealed class KiwiVM
 
         if (obj.IsLambda())
         {
-            callableName = obj.GetLambda().Identifier;
-            if (_context.HasLambda(callableName))       callable = _context.Lambdas[callableName];
+            var lr = obj.GetLambda();
+            callableName = lr.Identifier;
+            if (TryGetLambda(lr, out var kl))            callable = kl;
             else if (_context.HasMappedLambda(callableName)) callable = _context.Lambdas[_context.LambdaTable[callableName]];
             else if (_context.HasFunction(callableName)) callable = _context.Functions[callableName];
         }

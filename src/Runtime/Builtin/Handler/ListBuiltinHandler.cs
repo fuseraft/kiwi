@@ -63,7 +63,7 @@ public class ListBuiltinHandler
             var lambdaRef = arg.GetLambda();
 
             Callable? lambda = null;
-            vm.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var kl);
+            vm.TryGetLambda(lambdaRef, out var kl);
             if (kl != null) lambda = kl;
             else if (vm.Context.Functions.TryGetValue(lambdaRef.Identifier, out var kf)) lambda = kf;
 
@@ -129,7 +129,7 @@ public class ListBuiltinHandler
             var lambdaRef = arg.GetLambda();
 
             Callable? lambda2 = null;
-            vm.Context.Lambdas.TryGetValue(lambdaRef.Identifier, out var kl2);
+            vm.TryGetLambda(lambdaRef, out var kl2);
             if (kl2 != null) lambda2 = kl2;
             else if (vm.Context.Functions.TryGetValue(lambdaRef.Identifier, out var kf2)) lambda2 = kf2;
 
