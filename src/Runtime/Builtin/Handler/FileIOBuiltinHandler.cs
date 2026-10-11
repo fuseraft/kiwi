@@ -178,7 +178,7 @@ public static class FileIOBuiltinHandler
         if (args[1].IsList())
         {
             ParameterTypeMismatchError.ExpectList(token, FileIOBuiltin.WriteBytes, 1, args[1]);
-            var bytes = args[1].GetList();
+            var bytes = args[1].GetList().ToList();
             return Value.CreateInteger(FileUtil.WriteBytes(token, path, bytes));
         }
         else if (args[1].IsBytes())

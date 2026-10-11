@@ -15,6 +15,12 @@ public class Scope(Scope? parent = null)
     private readonly Dictionary<string, Value> _locals = [];
 
     /// <summary>
+    /// Guards <see cref="_locals"/>. The global scope (and any scope a closure captured) is
+    /// shared by every task thread.
+    /// </summary>
+    private readonly Lock _sync = new();
+
+    /// <summary>
     /// Gets the parent scope.
     /// </summary>
     public Scope? Parent { get; private set; } = parent;
@@ -39,7 +45,7 @@ public class Scope(Scope? parent = null)
         Parent = newParent;
         IsBlockScope = true;
         _captured = false;
-        _locals.Clear();
+        lock (_sync) _locals.Clear();
     }
 
     /// <summary>
@@ -72,10 +78,13 @@ public class Scope(Scope? parent = null)
         var cur = this;
         while (cur != null)
         {
-            if (cur._locals.TryGetValue(name, out Value? val))
+            lock (cur._sync)
             {
-                value = val;
-                return true;
+                if (cur._locals.TryGetValue(name, out Value? val))
+                {
+                    value = val;
+                    return true;
+                }
             }
             cur = cur.Parent;
         }
@@ -103,17 +112,20 @@ public class Scope(Scope? parent = null)
         var cur = this;
         while (cur != null)
         {
-            ref Value slot = ref CollectionsMarshal.GetValueRefOrNullRef(cur._locals, name);
-            if (!System.Runtime.CompilerServices.Unsafe.IsNullRef(ref slot))
+            lock (cur._sync)
             {
-                slot = value;
-                return;
+                ref Value slot = ref CollectionsMarshal.GetValueRefOrNullRef(cur._locals, name);
+                if (!System.Runtime.CompilerServices.Unsafe.IsNullRef(ref slot))
+                {
+                    slot = value;
+                    return;
+                }
             }
             cur = cur.Parent;
         }
 
         // not found, create in the current scope
-        _locals[name] = value;
+        lock (_sync) _locals[name] = value;
     }
 
     /// <summary>
@@ -123,18 +135,18 @@ public class Scope(Scope? parent = null)
     /// <param name="value">Its value.</param>
     public void Declare(string name, Value value)
     {
-        _locals[name] = value ?? Value.Default;
+        lock (_sync) _locals[name] = value ?? Value.Default;
     }
 
     /// <summary>
     /// Directly updates a binding in the current scope's locals, bypassing the chain walk.
     /// Only call when the binding is guaranteed to be in this scope (e.g., loop iterators).
     /// </summary>
-    public void SetLocal(string name, Value value) => _locals[name] = value;
+    public void SetLocal(string name, Value value) { lock (_sync) _locals[name] = value; }
 
     public void Remove(string name)
     {
-        _locals.Remove(name);
+        lock (_sync) _locals.Remove(name);
     }
 
     /// <summary>
@@ -144,7 +156,11 @@ public class Scope(Scope? parent = null)
     public IEnumerable<KeyValuePair<string, Value>> GetAllBindings()
     {
         for (var current = this; current != null; current = current.Parent)
-            foreach (var kv in current._locals)
+        {
+            KeyValuePair<string, Value>[] snapshot;
+            lock (current._sync) snapshot = [.. current._locals];
+            foreach (var kv in snapshot)
                 yield return kv;
+        }
     }
 }

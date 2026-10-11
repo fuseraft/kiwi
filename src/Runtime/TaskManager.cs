@@ -117,6 +117,10 @@ public sealed class TaskManager
                 var callerVM = state.CallerVM;
                 var taskVM   = callerVM != null ? new KiwiVM(callerVM) : new KiwiVM();
                 taskVM.CurrentTaskId = state.Id;
+                // The sub-VM constructor shares the caller's CallStack, which is only safe
+                // on the caller's thread. Concurrent tasks pushing/popping the same
+                // Stack<StackFrame> corrupt it ("Stack empty." from list lambdas).
+                taskVM.CallStack = new();
                 KiwiVM.Current = taskVM;
 
                 state.Result = taskVM.InvokeEvent(token, state.Lambda, state.Args);

@@ -21,13 +21,17 @@ namespace kiwi.VM;
 /// </summary>
 internal sealed class ForIterState
 {
-    public List<Value>? List;
-    public Dictionary<Value, Value>? Hashmap;
+    public SyncList? List;
+    public SyncDictionary<Value, Value>? Hashmap;
     public byte[]? Bytes;
     public string? StringData; // lazy string iteration: avoids upfront char-Value allocation
     public int     Index;
     public List<Value>? HashmapKeys; // pre-enumerated keys for hashmap iteration
     public GeneratorRef? Generator;  // VM-native generator iteration
+    public bool  IsRange;            // counting iteration over [RangeNext to RangeStop]
+    public long  RangeNext;
+    public long  RangeStop;
+    public long  RangeStep;          // +1 or -1
 }
 
 /// <summary>
@@ -58,9 +62,10 @@ public sealed class KiwiVM
     // -- Open upvalue linked list ----------------------------------------------
     private Upvalue? _openUpvalues;
 
-    // -- Native object store (for ForIterState etc.) ---------------------------
-    private int _nextNativeId;
-    private readonly Dictionary<int, object> _nativeObjects = [];
+    // A for-loop's ForIterState lives in its stack slot, tagged with this internal type
+    // (never visible to Kiwi code). Keeping it on the stack rather than in a side table
+    // means break, return and throw free it along with the slot.
+    private const Typing.ValueType IterStateType = Typing.ValueType.Unset;
 
     // -- Caught error (for LoadCatchError inside catch bodies) ------------------
     private KiwiError? _caughtError;
@@ -83,6 +88,9 @@ public sealed class KiwiVM
     private readonly Dictionary<string, Value>      _nameCache = new(StringComparer.Ordinal);
     private readonly Dictionary<string, GlobalKind> _pathCache = new(StringComparer.Ordinal);
     private enum GlobalKind : byte { Lambda = 1, PackageVar, UserGlobal }
+    // KContext.DefinitionsVersion when the caches were last known valid. Other VMs (tasks,
+    // eval, includes) define into the shared context, so a mismatch clears both caches.
+    private int _cacheVersion = -1;
 
     // -- Package prefix cache (avoids PackageStack.Reverse() + Join on every StoreGlobal/DefFunc) --
     private string _pkgPrefix = string.Empty;
@@ -174,6 +182,26 @@ public sealed class KiwiVM
     {
         _nameCache.Remove(name);
         _pathCache.Remove(name);
+    }
+
+    /// <summary>
+    /// Invalidates <paramref name="name"/> here and in every other VM's caches. Use when a
+    /// function, constant, struct, enum or package is (re)defined.
+    /// </summary>
+    private void InvalidateDefinition(string name)
+    {
+        InvalidateName(name);
+        _context.BumpDefinitionsVersion();
+    }
+
+    /// <summary>
+    /// Resolves a lambda value to its <see cref="KLambda"/>. Runtime closures carry it
+    /// directly; named lambdas (globals, decorated functions) are looked up by identifier.
+    /// </summary>
+    internal bool TryGetLambda(LambdaRef lr, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out KLambda? kl)
+    {
+        kl = lr.Target;
+        return kl != null || _context.Lambdas.TryGetValue(lr.Identifier, out kl);
     }
 
     // -- Public entry points ---------------------------------------------------
@@ -434,6 +462,14 @@ public sealed class KiwiVM
                     {
                         var name = frame.Chunk.Names[A];
 
+                        var defsVersion = _context.DefinitionsVersion;
+                        if (defsVersion != _cacheVersion)
+                        {
+                            _nameCache.Clear();
+                            _pathCache.Clear();
+                            _cacheVersion = defsVersion;
+                        }
+
                         // Fast path 1: cached Value for stable bindings (functions, constants, structs, packages, mapped-lambdas)
                         if (_nameCache.TryGetValue(name, out var cachedVal))
                         {
@@ -587,11 +623,17 @@ public sealed class KiwiVM
                         if (v.IsLambda())
                         {
                             var lr = v.GetLambda();
-                            if (!string.IsNullOrEmpty(lr.Identifier) && _context.HasLambda(lr.Identifier))
-                                _context.Lambdas[name] = _context.Lambdas[lr.Identifier];
+                            if (TryGetLambda(lr, out var named))
+                                _context.Lambdas[name] = named;
                         }
                         _globals.Assign(name, v);
-                        InvalidateName(name); // invalidate both resolution caches
+                        // A global that shadows a function/struct/package changes what other
+                        // VMs may have cached for this name; plain variables are never cached by value.
+                        if (_context.HasFunction(name) || _context.HasMappedLambda(name)
+                            || _context.HasStruct(name) || _context.HasPackage(name))
+                            InvalidateDefinition(name);
+                        else
+                            InvalidateName(name);
                         // Mirror package-level variable into PackageVariables for pkg::name access.
                         if (_pkgPrefix.Length > 0)
                         {
@@ -606,7 +648,7 @@ public sealed class KiwiVM
                         var v    = Pop();
                         _context.Constants[name] = v;
                         _globals.Assign(name, v);
-                        InvalidateName(name);
+                        InvalidateDefinition(name);
                         if (_pkgPrefix.Length > 0)
                         {
                             var qualName = _pkgPrefix + name;
@@ -1008,7 +1050,7 @@ public sealed class KiwiVM
                         CloseUpvalues(frame.StackBase);
                         if (frame.LocalFunctions != null)
                             foreach (var fn in frame.LocalFunctions)
-                                _context.Functions.Remove(fn);
+                                _context.Functions.TryRemove(fn, out _);
                         _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
                         _frameCount--;
                         if (_frameCount > 0) Push(result);
@@ -1020,7 +1062,7 @@ public sealed class KiwiVM
                         CloseUpvalues(frame.StackBase);
                         if (frame.LocalFunctions != null)
                             foreach (var fn in frame.LocalFunctions)
-                                _context.Functions.Remove(fn);
+                                _context.Functions.TryRemove(fn, out _);
                         _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
                         _frameCount--;
                         if (_frameCount > 0) Push(result);
@@ -1056,7 +1098,7 @@ public sealed class KiwiVM
                         if (_pkgPrefix.Length > 0) sub.PackagePrefix = _pkgPrefix;
 
                         _context.Functions[funcName] = kfunc;
-                        InvalidateName(funcName); // invalidate both resolution caches
+                        InvalidateDefinition(funcName); // invalidate both resolution caches
 
                         // If defined inside another function frame (but not a global-scope
                         // include frame), track for cleanup on return.
@@ -1092,7 +1134,7 @@ public sealed class KiwiVM
                         if (_pkgPrefix.Length > 0) sub.PackagePrefix = _pkgPrefix;
 
                         _context.Functions[funcName] = kfunc;
-                        InvalidateName(funcName);
+                        InvalidateDefinition(funcName);
 
                         if (_frameCount > 1)
                             _frames[_frameCount - 1].TrackLocalFunction(funcName);
@@ -1116,9 +1158,8 @@ public sealed class KiwiVM
                             klambda.VariadicParamName = sub.VariadicParamName;
 
                         var internalId = $"__deco_{Interlocked.Increment(ref _globalClosureIdCounter)}__";
-                        var lref       = new LambdaRef { Identifier = internalId, VMChunk = sub, VMUpvalues = upvalues };
+                        var lref       = new LambdaRef { Identifier = internalId, VMChunk = sub, VMUpvalues = upvalues, Target = klambda };
                         klambda.Ref    = lref;
-                        _context.Lambdas[internalId] = klambda;
                         Push(Value.CreateLambda(lref));
                         break;
                     }
@@ -1130,8 +1171,8 @@ public sealed class KiwiVM
                         var funcName = _pkgPrefix.Length > 0 ? _pkgPrefix + rawName : rawName;
 
                         var value = Pop();
-                        _context.Functions.Remove(funcName);
-                        InvalidateName(funcName);
+                        _context.Functions.TryRemove(funcName, out _);
+                        InvalidateDefinition(funcName);
 
                         if (value.IsLambda())
                         {
@@ -1139,22 +1180,24 @@ public sealed class KiwiVM
                             var lambdaId = string.IsNullOrEmpty(lr.Identifier) ? funcName : lr.Identifier;
                             // Map funcName → the lambda identifier (like Context.AddMappedLambda).
                             _context.LambdaTable[funcName] = lambdaId;
-                            // If the lambda has a VMChunk but no entry in Lambdas yet, register it.
-                            if (!_context.Lambdas.ContainsKey(lambdaId) && lr.VMChunk != null)
+                            // Register the lambda under its identifier so the mapping resolves.
+                            if (!_context.Lambdas.ContainsKey(lambdaId))
                             {
-                                var kl = new KLambda(BuildLambdaNode(lr.VMChunk))
-                                {
-                                    VMChunk    = lr.VMChunk,
-                                    VMUpvalues = lr.VMUpvalues,
-                                    Ref        = lr,
-                                };
-                                _context.Lambdas[lambdaId] = kl;
+                                var kl = lr.Target ?? (lr.VMChunk != null
+                                    ? new KLambda(BuildLambdaNode(lr.VMChunk))
+                                    {
+                                        VMChunk    = lr.VMChunk,
+                                        VMUpvalues = lr.VMUpvalues,
+                                        Ref        = lr,
+                                    }
+                                    : null);
+                                if (kl != null) _context.Lambdas[lambdaId] = kl;
                             }
                         }
                         else
                         {
                             _globals.Assign(funcName, value);
-                            InvalidateName(funcName);
+                            InvalidateDefinition(funcName);
                             if (_pkgPrefix.Length > 0)
                             {
                                 _context.PackageVariables[_pkgPrefix + rawName] = value;
@@ -1192,9 +1235,8 @@ public sealed class KiwiVM
                             klambda.VariadicParamName = sub.VariadicParamName;
 
                         var id   = $"__lam_{Interlocked.Increment(ref _globalClosureIdCounter)}";
-                        var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues };
+                        var lref = new LambdaRef { Identifier = id, VMChunk = sub, VMUpvalues = upvalues, Target = klambda };
                         klambda.Ref = lref;
-                        _context.Lambdas[id] = klambda;
                         Push(Value.CreateLambda(lref));
                         break;
                     }
@@ -1447,7 +1489,7 @@ public sealed class KiwiVM
                         else if (coll.IsHashmap())
                         {
                             state.Hashmap     = coll.GetHashmap();
-                            state.HashmapKeys = [..coll.GetHashmap().Keys];
+                            state.HashmapKeys = state.Hashmap.Keys;
                             state.Index       = 0;
                         }
                         else if (coll.IsBytes())
@@ -1471,26 +1513,57 @@ public sealed class KiwiVM
                             state.List  = [];
                             state.Index = 0;
                         }
-                        var stateId = _nextNativeId++;
-                        _nativeObjects[stateId] = state;
-                        Push(Value.CreateInteger(stateId));
+                        Push(new Value(state, IterStateType));
+                        break;
+                    }
+                    case Opcode.ForIterInitRange:
+                    {
+                        var stop  = Pop();
+                        var start = Pop();
+                        if (!start.IsInteger() || !stop.IsInteger())
+                            throw new RangeError(frame.GetToken(), "Range values must be integers.");
+                        long s = start.GetInteger(), e = stop.GetInteger();
+                        var state = new ForIterState
+                        {
+                            IsRange   = true,
+                            RangeNext = s,
+                            RangeStop = e,
+                            RangeStep = e < s ? -1 : 1,
+                        };
+                        Push(new Value(state, IterStateType));
                         break;
                     }
                     case Opcode.ForIterNext:
                     {
-                        // Peek at ForIterState id on top of stack
-                        var stateVal = Peek();
-                        var stateId  = (int)stateVal.GetInteger();
-                        var state    = (ForIterState)_nativeObjects[stateId];
+                        // Peek at the ForIterState on top of stack
+                        var state    = (ForIterState)Peek().Value_;
                         int numVars  = B;
 
                         bool done;
-                        if (state.List != null)
+                        if (state.IsRange)
                         {
-                            done = state.Index >= state.List.Count;
+                            // Same values as BuildRange: inclusive, never empty.
+                            done = state.Index > 0 && state.RangeNext - state.RangeStep == state.RangeStop;
                             if (!done)
                             {
-                                var item = state.List[state.Index++];
+                                var item = Value.CreateInteger(state.RangeNext);
+                                if (numVars == 2)
+                                {
+                                    Push(Value.CreateInteger(state.Index)); // key = index
+                                    Push(item);                              // val
+                                }
+                                else Push(item);
+                                state.Index++;
+                                state.RangeNext += state.RangeStep;
+                            }
+                        }
+                        else if (state.List != null)
+                        {
+                            // One locked read: another task may shrink the list mid-loop.
+                            done = !state.List.TryGet(state.Index, out var item);
+                            if (!done)
+                            {
+                                state.Index++;
                                 if (numVars == 2)
                                 {
                                     Push(Value.CreateInteger(state.Index - 1)); // key = index
@@ -1566,8 +1639,7 @@ public sealed class KiwiVM
 
                         if (done)
                         {
-                            _nativeObjects.Remove(stateId);
-                            _sp--; // pop ForIterState id
+                            _sp--; // pop ForIterState
                             frame.IP = A; // jump to after loop
                         }
                         break;
@@ -1687,7 +1759,7 @@ public sealed class KiwiVM
                         if (!pkgName.IsString())
                             throw new Tracing.Error.InvalidOperationError(frame.GetToken(), "require expects a string package name.");
                         var name = pkgName.GetString();
-                        if (!_context.HasPackage(name) && !_context.ImportedPackages.Contains(name))
+                        if (!_context.HasPackage(name) && !_context.ImportedPackages.ContainsKey(name))
                             throw new Tracing.Error.PackageUndefinedError(frame.GetToken(), name);
                         break;
                     }
@@ -1826,14 +1898,14 @@ public sealed class KiwiVM
                                     throw new AbstractMethodError(frame.GetToken(), struc.Name, am);
                         }
                         _context.Structs[struc.Name] = struc;
-                        InvalidateName(struc.Name);
+                        InvalidateDefinition(struc.Name);
                         // Also register under the fully-qualified name (e.g. "httpserver::Response")
                         // so that pkg::Struct.new() calls work from any context.
                         if (!string.IsNullOrEmpty(_pkgPrefix))
                         {
                             var qualifiedStructName = _pkgPrefix + struc.Name;
                             _context.Structs[qualifiedStructName] = struc;
-                            InvalidateName(qualifiedStructName);
+                            InvalidateDefinition(qualifiedStructName);
                         }
                         break;
                     }
@@ -1865,8 +1937,8 @@ public sealed class KiwiVM
                         var qualifiedName = _pkgPrefix.Length >= 2 ? _pkgPrefix[..^2] : _pkgPrefix;
                         _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         RegisterTypeBuiltins(qualifiedName);
-                        _context.ImportedPackages.Add(qualifiedName);
-                        InvalidateName(qualifiedName);
+                        _context.ImportedPackages.TryAdd(qualifiedName, 0);
+                        InvalidateDefinition(qualifiedName);
                         break;
                     }
                     case Opcode.PackageAbort:
@@ -1894,7 +1966,7 @@ public sealed class KiwiVM
                     {
                         var kenum = _pendingStructs.Pop();
                         _context.Structs[kenum.Name] = kenum;
-                        InvalidateName(kenum.Name);
+                        InvalidateDefinition(kenum.Name);
                         // register enum builtins for this concrete type name
                         TypeBuiltins.RegisterEnumBuiltinsForName(kenum.Name);
                         break;
@@ -2125,9 +2197,8 @@ public sealed class KiwiVM
             return true;
         }
 
-        if (_context.HasLambda(lr.Identifier))
+        if (TryGetLambda(lr, out var kl))
         {
-            var kl   = _context.Lambdas[lr.Identifier];
             chunk    = kl.VMChunk;
             upvalues = kl.VMUpvalues ?? [];
             parms    = kl.Parameters;
@@ -2182,9 +2253,11 @@ public sealed class KiwiVM
             Value namedCallableResult;
             try
             {
-                var callable2 = _context.HasFunction(lr2.Identifier)
-                    ? (Callable)_context.Functions[lr2.Identifier]
-                    : _context.Lambdas[lr2.Identifier];
+                Callable callable2 = _context.Functions.TryGetValue(lr2.Identifier, out var kf2)
+                    ? kf2
+                    : TryGetLambda(lr2, out var kl2)
+                        ? kl2
+                        : throw new FunctionUndefinedError(token, lr2.Identifier);
                 namedCallableResult = InvokeCallable(callable2, argsL, token, lr2.Identifier);
             }
             finally { ReturnArgs(argsL); }
@@ -2286,9 +2359,8 @@ public sealed class KiwiVM
             }
 
             // Check if this is actually a named lambda alias
-            if (_context.HasLambda(lr.Identifier))
+            if (TryGetLambda(lr, out var kl))
             {
-                var kl = _context.Lambdas[lr.Identifier];
                 if (kl.VMChunk != null)
                 {
                     SetupCalleeLocals(kl.VMChunk, calleeBase, argc);
@@ -2333,8 +2405,8 @@ public sealed class KiwiVM
                 if (funcVal.IsLambda())
                 {
                     var lr = funcVal.GetLambda();
-                    if (_context.HasLambda(lr.Identifier))
-                        callResult = InvokeCallable(_context.Lambdas[lr.Identifier], args, token, lr.Identifier);
+                    if (TryGetLambda(lr, out var fallbackLambda))
+                        callResult = InvokeCallable(fallbackLambda, args, token, lr.Identifier);
                     else
                         callResult = Value.Default;
                 }
@@ -2535,29 +2607,28 @@ public sealed class KiwiVM
 
     public Value InvokeEvent(Token token, LambdaRef lambda, List<Value> args)
     {
-        var lambdaName   = lambda.Identifier;
-        var targetLambda = lambdaName;
-
-        if (!_context.HasLambda(targetLambda))
+        if (!TryGetLambda(lambda, out var func))
         {
-            if (!_context.HasMappedLambda(targetLambda))
-                throw new CallableError(token, $"Could not find target lambda `{targetLambda}`");
-            targetLambda = _context.LambdaTable[targetLambda];
+            if (!_context.LambdaTable.TryGetValue(lambda.Identifier, out var mapped)
+                || !_context.Lambdas.TryGetValue(mapped, out func))
+                throw new CallableError(token, $"Could not find target lambda `{lambda.Identifier}`");
         }
 
-        var func  = _context.Lambdas[targetLambda];
         var subVm = new KiwiVM(this, func.CapturedScope ?? GetGlobalScope());
         return subVm.InvokeVMCallable(func, args, token, null);
     }
 
     public Value IncludeFile(Token token, string filePath)
     {
+        lock (_context.ImportLock) return IncludeFileLocked(token, filePath);
+    }
+
+    private Value IncludeFileLocked(Token token, string filePath)
+    {
         var fullPath = ResolveIncludePath(token, filePath);
 
-        if (_context.Includes.Contains(fullPath))
+        if (!_context.Includes.TryAdd(fullPath, 0))
             return Value.Default;
-
-        _context.Includes.Add(fullPath);
 
         if (!FileUtil.FileExists(token, fullPath))
             throw new InvalidOperationError(token, $"File not found: {filePath}");
@@ -2718,12 +2789,17 @@ public sealed class KiwiVM
 
     public void ImportPackage(Token token, Value packageName)
     {
+        lock (_context.ImportLock) ImportPackageLocked(token, packageName);
+    }
+
+    private void ImportPackageLocked(Token token, Value packageName)
+    {
         if (!packageName.IsString())
             throw new InvalidOperationError(token, "Expected the name of a package to import.");
 
         var packageNameValue = packageName.GetString();
 
-        if (_context.ImportedPackages.Contains(packageNameValue))
+        if (_context.ImportedPackages.ContainsKey(packageNameValue))
             return;
 
         if (!_context.HasPackage(packageNameValue))
@@ -2740,7 +2816,7 @@ public sealed class KiwiVM
         if (packageNameValue == "enum")
         {
             EnumPackage.RegisterBuiltins();
-            _context.ImportedPackages.Add(packageNameValue);
+            _context.ImportedPackages.TryAdd(packageNameValue, 0);
             return;
         }
         // dispatch for .size etc on IsEnum KStruct handled in CallInstruction via TypeBuiltins
@@ -2761,7 +2837,7 @@ public sealed class KiwiVM
             PackageStack.Pop();
 
         RegisterTypeBuiltins(packageNameValue);
-        _context.ImportedPackages.Add(packageNameValue);
+        _context.ImportedPackages.TryAdd(packageNameValue, 0);
     }
 
     private void ImportExternal(Token token, string packageName)
@@ -2772,8 +2848,7 @@ public sealed class KiwiVM
 
         var path = FileUtil.GetAbsolutePath(token, packagePath);
 
-        if (_context.Includes.Contains(path)) return;
-        _context.Includes.Add(path);
+        if (!_context.Includes.TryAdd(path, 0)) return;
 
         using Lexer lexer = new(path);
         var tokenStream = lexer.GetTokenStream();
@@ -2957,8 +3032,9 @@ public sealed class KiwiVM
 
         if (obj.IsLambda())
         {
-            callableName = obj.GetLambda().Identifier;
-            if (_context.HasLambda(callableName))       callable = _context.Lambdas[callableName];
+            var lr = obj.GetLambda();
+            callableName = lr.Identifier;
+            if (TryGetLambda(lr, out var kl))            callable = kl;
             else if (_context.HasMappedLambda(callableName)) callable = _context.Lambdas[_context.LambdaTable[callableName]];
             else if (_context.HasFunction(callableName)) callable = _context.Functions[callableName];
         }
@@ -3037,7 +3113,7 @@ public sealed class KiwiVM
         var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
 
         if (obj.IsString()) return kiwi.Runtime.Builtin.Util.SliceUtil.StringSlice(token, slice, obj.GetString());
-        if (obj.IsList())   return kiwi.Runtime.Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList());
+        if (obj.IsList())   return kiwi.Runtime.Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList().ToList());
         if (obj.IsBytes())  return kiwi.Runtime.Builtin.Util.SliceUtil.BytesSlice(token, slice, obj.GetBytes());
         throw new InvalidOperationError(token, "Cannot slice this type.");
     }
@@ -3053,9 +3129,9 @@ public sealed class KiwiVM
 
         if (obj.IsList() && rhs.IsList())
         {
-            var targetList = obj.GetList();
-            var rhsValues  = rhs.GetList();
-            kiwi.Runtime.Builtin.Util.SliceUtil.UpdateListSlice(token, false, ref targetList, slice, rhsValues);
+            var rhsValues = rhs.GetList().ToList();
+            obj.GetList().Mutate(target =>
+                kiwi.Runtime.Builtin.Util.SliceUtil.UpdateListSlice(token, false, target, slice, rhsValues));
         }
     }
 

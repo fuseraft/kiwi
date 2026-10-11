@@ -300,9 +300,15 @@ public enum Opcode : byte
 
     // -- Loop Iteration --------------------------------------------------------
     /// <summary>
-    /// Pop the collection and push a ForIterState (as a Pointer value).
+    /// Pop the collection and push a ForIterState (held directly in the stack slot).
     /// </summary>
     ForIterInit,
+    /// <summary>
+    /// Pop stop, pop start → push a ForIterState that counts from start to stop inclusive
+    /// (downward when stop &lt; start). Used for <c>for x in [a to b]</c> so the range is never
+    /// materialized as a list.
+    /// </summary>
+    ForIterInitRange,
     /// <summary>
     /// A = jump-if-done target IP, B = number of loop vars to push (1 or 2).
     /// Peek at the ForIterState on top of stack:

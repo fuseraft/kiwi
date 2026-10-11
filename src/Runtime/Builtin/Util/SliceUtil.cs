@@ -175,7 +175,7 @@ public struct SliceUtil
         return Value.CreateList(slicedList);
     }
 
-    public static void UpdateListSlice(Token token, bool insertOp, ref List<Value> targetList, SliceIndex slice, List<Value> rhsValues)
+    public static void UpdateListSlice(Token token, bool insertOp, List<Value> targetList, SliceIndex slice, List<Value> rhsValues)
     {
         if (!slice.IndexOrStart.IsInteger())
         {

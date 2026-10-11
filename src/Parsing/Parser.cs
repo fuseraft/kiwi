@@ -274,7 +274,7 @@ public partial class Parser
         var packageName = GetTokenText();
         Next();
 
-        return new RequireNode(packageName, PackagesDefined.Contains(packageName));
+        return new RequireNode(packageName, PackagesDefined.ContainsKey(packageName));
     }
 
     /// <summary>
@@ -562,7 +562,7 @@ public partial class Parser
         structStack.Push(structName);
 
         // Eagerly mark as defined so that the type can be used in typehints within the struct definition
-        StructsDefined.Add(structName);
+        StructsDefined.TryAdd(structName, 0);
 
         List<ASTNode?> methods = [];
         List<(string Name, ASTNode? Initializer)> staticVars = [];
@@ -1239,7 +1239,7 @@ public partial class Parser
 
         if (packageName != null && packageName is IdentifierNode idNode)
         {
-            PackagesDefined.Add(idNode.Name);
+            PackagesDefined.TryAdd(idNode.Name, 0);
         }
 
         return new PackageNode(packageName)

@@ -3,22 +3,43 @@ using kiwi.Typing;
 
 namespace kiwi.Runtime;
 
+/// <summary>
+/// Runtime state shared by every VM in the process, including task VMs on other threads.
+/// The registries are concurrent dictionaries: reads (every global lookup, every method
+/// call) take no lock, and tasks may define functions, structs and packages at any time.
+/// </summary>
 public class KContext
 {
-    public HashSet<string> Includes { get; set; } = [];
-    public HashSet<string> ImportedPackages { get; set; } = [];
-    public Dictionary<string, KPackage> Packages { get; set; } = [];
-    public Dictionary<string, KFunction> Functions { get; set; } = [];
-    public Dictionary<string, KFunction> Methods { get; set; } = [];
-    // ConcurrentDictionary: task threads concurrently register lambdas (with do...end),
-    // so this must be thread-safe.
+    // Sets of file paths / package names; the byte value is unused.
+    public ConcurrentDictionary<string, byte> Includes { get; set; } = new();
+    public ConcurrentDictionary<string, byte> ImportedPackages { get; set; } = new();
+    public ConcurrentDictionary<string, KPackage> Packages { get; set; } = new();
+    public ConcurrentDictionary<string, KFunction> Functions { get; set; } = new();
+    public ConcurrentDictionary<string, KFunction> Methods { get; set; } = new();
     public ConcurrentDictionary<string, KLambda> Lambdas { get; set; } = new();
-    public Dictionary<string, KStruct> Structs { get; set; } = [];
-    // ConcurrentDictionary: task threads may map lambda names concurrently.
+    public ConcurrentDictionary<string, KStruct> Structs { get; set; } = new();
     public ConcurrentDictionary<string, string> LambdaTable { get; set; } = new();
-    public Dictionary<string, Value> Constants { get; set; } = [];
-    public Dictionary<string, Value> PackageVariables { get; set; } = [];
+    public ConcurrentDictionary<string, Value> Constants { get; set; } = new();
+    public ConcurrentDictionary<string, Value> PackageVariables { get; set; } = new();
     public EventBus Events { get; } = new();
+
+    /// <summary>
+    /// Held while a package is imported or a file included, so a second task importing the
+    /// same package waits for the first to finish instead of seeing it half-defined.
+    /// Reentrant: an import may import other packages.
+    /// </summary>
+    public object ImportLock { get; } = new();
+
+    private int _definitionsVersion;
+
+    /// <summary>
+    /// Bumped whenever a function, constant, struct, enum or package is (re)defined. Each VM
+    /// caches name resolutions and clears its caches when this changes, so a definition made
+    /// by one VM (a task, eval, an include) is seen by all of them.
+    /// </summary>
+    public int DefinitionsVersion => Volatile.Read(ref _definitionsVersion);
+
+    public void BumpDefinitionsVersion() => Interlocked.Increment(ref _definitionsVersion);
 
     public KContext Clone()
     {
@@ -26,17 +47,17 @@ public class KContext
 
         foreach (var kvp in Packages)
         {
-            cloned.Packages.Add(kvp.Key, kvp.Value.Clone());
+            cloned.Packages[kvp.Key] = kvp.Value.Clone();
         }
 
         foreach (var kvp in Functions)
         {
-            cloned.Functions.Add(kvp.Key, kvp.Value.Clone());
+            cloned.Functions[kvp.Key] = kvp.Value.Clone();
         }
 
         foreach (var kvp in Methods)
         {
-            cloned.Methods.Add(kvp.Key, kvp.Value.Clone());
+            cloned.Methods[kvp.Key] = kvp.Value.Clone();
         }
 
         foreach (var kvp in Lambdas)
@@ -46,23 +67,23 @@ public class KContext
 
         foreach (var kvp in Structs)
         {
-            cloned.Structs.Add(kvp.Key, kvp.Value.Clone());
+            cloned.Structs[kvp.Key] = kvp.Value.Clone();
         }
 
         foreach (var kvp in Constants)
         {
-            cloned.Constants.Add(kvp.Key, kvp.Value);
+            cloned.Constants[kvp.Key] = kvp.Value;
         }
 
         foreach (var kvp in PackageVariables)
         {
-            cloned.PackageVariables.Add(kvp.Key, kvp.Value);
+            cloned.PackageVariables[kvp.Key] = kvp.Value;
         }
 
         // Share the same LambdaTable reference — task threads write to it with GUID keys
         // so sharing is safe and avoids stale lookups across interpreter instances.
         cloned.LambdaTable = LambdaTable;
-        cloned.ImportedPackages = [.. ImportedPackages];
+        cloned.ImportedPackages = new(ImportedPackages);
 
         return cloned;
     }

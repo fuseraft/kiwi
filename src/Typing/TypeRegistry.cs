@@ -6,8 +6,10 @@ namespace kiwi.Typing;
 public static class TypeRegistry
 {
     private static Dictionary<int, Typing.ValueType> registeredPrimitives = []; 
-    private static Dictionary<string, int> registeredTypes = [];
-    private static Dictionary<int, string> registeredTypeNames = [];
+    // Concurrent: struct and enum types can be registered from task threads.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, int> registeredTypes = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, string> registeredTypeNames = new();
+    private static readonly Lock registerLock = new();
     private static bool defaultsRegistered = false;
 
     static TypeRegistry()
@@ -126,8 +128,14 @@ public static class TypeRegistry
 
     public static void RegisterType(string typeName)
     {
-        var type = registeredTypes.Count;
-        registeredTypes.Add(typeName, type);
-        registeredTypeNames.Add(type, typeName);
+        // Ids come from the count, so check-and-assign must be one step.
+        lock (registerLock)
+        {
+            if (registeredTypes.ContainsKey(typeName))
+                return;
+            var type = registeredTypes.Count;
+            registeredTypeNames[type] = typeName;
+            registeredTypes[typeName] = type;
+        }
     }
 }

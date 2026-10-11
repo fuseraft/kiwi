@@ -87,7 +87,7 @@ public static class JsonBuiltinHandler
         ParameterCountMismatchError.CheckRange(token, JsonBuiltin.ParseMaps, 1, 2, args.Count);
         ParameterTypeMismatchError.ExpectString(token, JsonBuiltin.ParseMaps, 0, args[0]);
 
-        var schema = args.Count > 1 && args[1].IsHashmap() ? args[1].GetHashmap() : null;
+        var schema = args.Count > 1 && args[1].IsHashmap() ? args[1].GetHashmap().ToDictionary() : null;
         var cache  = schema != null ? BuildJsonSchemaCache(schema) : null;
 
         try
@@ -112,7 +112,7 @@ public static class JsonBuiltinHandler
                 for (var i = 0; i < rows.Count; i++)
                 {
                     if (rows[i].IsHashmap())
-                        rows[i] = ApplyJsonSchema(rows[i].GetHashmap(), cache);
+                        rows[i] = ApplyJsonSchema(rows[i].GetHashmap().ToDictionary(), cache);
                 }
             }
 

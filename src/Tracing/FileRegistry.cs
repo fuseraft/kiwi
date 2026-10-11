@@ -8,6 +8,8 @@ public sealed class FileRegistry
 
     private int _nextId;
     private readonly Dictionary<int, string> _registry;
+    // Files are registered by every Lexer, including ones created on task threads.
+    private readonly Lock _sync = new();
 
     private FileRegistry()
     {
@@ -16,6 +18,11 @@ public sealed class FileRegistry
     }
 
     public int RegisterFile(string filePath)
+    {
+        lock (_sync) return RegisterFileLocked(filePath);
+    }
+
+    private int RegisterFileLocked(string filePath)
     {
         // Check if file is already registered
         int fileId = GetFileId(filePath);
@@ -42,11 +49,14 @@ public sealed class FileRegistry
             fullPath = filePath;
         }
 
-        foreach (var pair in _registry)
+        lock (_sync)
         {
-            if (pair.Value == fullPath || pair.Value == filePath)
+            foreach (var pair in _registry)
             {
-                return pair.Key;
+                if (pair.Value == fullPath || pair.Value == filePath)
+                {
+                    return pair.Key;
+                }
             }
         }
 
@@ -55,9 +65,12 @@ public sealed class FileRegistry
 
     public string GetFilePath(int id)
     {
-        if (_registry.TryGetValue(id, out var path))
+        lock (_sync)
         {
-            return path;
+            if (_registry.TryGetValue(id, out var path))
+            {
+                return path;
+            }
         }
 
         return string.Empty;

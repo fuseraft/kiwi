@@ -100,3 +100,58 @@ fn test_loops()
 
   tester::assert(x == 65536, "A11")
 end
+
+@tester::test("loops: for over a range literal")
+fn test_for_range()
+  # `for x in [a to b]` counts instead of building the list; it must yield
+  # exactly what the list would.
+  out = []
+  for i in [1 to 5] do out.push(i) end
+  tester::assert(out == [1, 2, 3, 4, 5], "R1: ascending")
+
+  out = []
+  for i in [5 to 1] do out.push(i) end
+  tester::assert(out == [5, 4, 3, 2, 1], "R2: descending")
+
+  out = []
+  for i in [3 .. 3] do out.push(i) end
+  tester::assert(out == [3], "R3: single element")
+
+  out = []
+  for v, i in [10 to 8] do out.push("${i}:${v}") end
+  tester::assert(out == ["0:10", "1:9", "2:8"], "R4: value and index")
+
+  out = []
+  for i in [1 to 10] do
+    next when i % 2 == 0
+    break when i > 7
+    out.push(i)
+  end
+  tester::assert(out == [1, 3, 5, 7], "R5: next and break")
+
+  # Bounds are evaluated once, before the loop starts.
+  n = 2
+  out = []
+  for i in [0 to n] do
+    n = 100
+    out.push(i)
+  end
+  tester::assert(out == [0, 1, 2], "R6: bounds evaluated once")
+
+  # A huge bound costs nothing when the loop exits early (the list
+  # version allocated every element first).
+  hit = 0
+  for i in [1 to 10000000] do
+    hit = i
+    break when i * i > 50
+  end
+  tester::assert(hit == 8, "R7: early exit from a huge range")
+
+  caught = false
+  try
+    for i in [1 to 2.5] do end
+  catch (err)
+    caught = true
+  end
+  tester::assert(caught, "R8: non-integer bounds throw")
+end

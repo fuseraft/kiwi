@@ -102,7 +102,7 @@ public static class XmlBuiltinHandler
     private static Value ExtractRecords(Token token, XElement root, List<Value> args)
     {
         var tag    = args.Count > 1 && args[1].IsString()  ? args[1].GetString()    : null;
-        var schema = args.Count > 2 && args[2].IsHashmap() ? args[2].GetHashmap()   : null;
+        var schema = args.Count > 2 && args[2].IsHashmap() ? args[2].GetHashmap().ToDictionary() : null;
         var cache  = schema != null ? BuildXmlSchemaCache(schema) : null;
 
         var elements = tag != null

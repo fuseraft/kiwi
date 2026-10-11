@@ -45,19 +45,6 @@ public struct ConversionOp
         return v.GetString();
     }
 
-    public static List<Value> GetList(Value v)
-    {
-        if (!v.IsList())
-        {
-            List<Value> newList = [v];
-            return newList;
-        }
-        else
-        {
-            return v.GetList();
-        }
-    }
-
     public static string ToString(Value v)
     {
         return Serializer.Serialize(v);

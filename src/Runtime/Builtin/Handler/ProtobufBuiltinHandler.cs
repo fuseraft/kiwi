@@ -43,7 +43,7 @@ public static class ProtobufBuiltinHandler
         ParameterTypeMismatchError.ExpectHashmap(token, ProtobufBuiltin.Encode, 1, args[1]);
 
         using var ms = new System.IO.MemoryStream();
-        EncodeMessage(ms, args[0].GetHashmap(), args[1].GetHashmap());
+        EncodeMessage(ms, args[0].GetHashmap().ToDictionary(), args[1].GetHashmap().ToDictionary());
         return Value.CreateBytes(ms.ToArray());
     }
 
@@ -67,7 +67,7 @@ public static class ProtobufBuiltinHandler
             }
 
             var fieldNum = (int)entry.Key.GetInteger();
-            var fieldDef = entry.Value.GetHashmap();
+            var fieldDef = entry.Value.GetHashmap().ToDictionary();
             var fieldName = GetStringField(fieldDef, "name");
             var fieldType = GetStringField(fieldDef, "type");
             var repeated  = GetBoolField(fieldDef, "repeated");
@@ -188,7 +188,7 @@ public static class ProtobufBuiltinHandler
                 }
 
                 using var nested = new System.IO.MemoryStream();
-                EncodeMessage(nested, nestedSchema, value.GetHashmap());
+                EncodeMessage(nested, nestedSchema, value.GetHashmap().ToDictionary());
                 var encoded = nested.ToArray();
                 WriteVarint(ms, (ulong)encoded.Length);
                 ms.Write(encoded);
@@ -218,7 +218,7 @@ public static class ProtobufBuiltinHandler
             throw new ParameterTypeMismatchError(token, ProtobufBuiltin.Decode, 1, ValueType.Bytes, args[1].Type);
         }
 
-        return Value.CreateHashmap(DecodeMessage(data, 0, data.Length, args[0].GetHashmap()));
+        return Value.CreateHashmap(DecodeMessage(data, 0, data.Length, args[0].GetHashmap().ToDictionary()));
     }
 
     private static Dictionary<Value, Value> DecodeMessage(
@@ -233,7 +233,7 @@ public static class ProtobufBuiltinHandler
         {
             if (kvp.Key.IsInteger() && kvp.Value.IsHashmap())
             {
-                byNum[(int)kvp.Key.GetInteger()] = kvp.Value.GetHashmap();
+                byNum[(int)kvp.Key.GetInteger()] = kvp.Value.GetHashmap().ToDictionary();
             }
         }
 
@@ -470,5 +470,5 @@ public static class ProtobufBuiltinHandler
         => map.TryGetValue(Value.CreateString(key), out var v) && v.IsBoolean() && v.GetBoolean();
 
     private static Dictionary<Value, Value>? GetHashmapField(Dictionary<Value, Value> map, string key)
-        => map.TryGetValue(Value.CreateString(key), out var v) && v.IsHashmap() ? v.GetHashmap() : null;
+        => map.TryGetValue(Value.CreateString(key), out var v) && v.IsHashmap() ? v.GetHashmap().ToDictionary() : null;
 }

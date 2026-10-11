@@ -8,6 +8,10 @@ Ranges in Kiwi can be used to define a range of integers. Use the `to` keyword o
 
 When used inside `[` `]`, a range is immediately evaluated as a [List](./lists.md).
 
+The exception is a `for` loop over a range literal: `for i in [1 to n] do ... end` counts from
+start to end without building the list, so it runs in constant memory however large `n` is. It
+yields exactly the values the list would hold, including counting down when *end* < *start*.
+
 ### Syntax
 
 **`[`** *start* **`to`** *end* **`]`**

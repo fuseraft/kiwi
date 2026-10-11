@@ -150,6 +150,10 @@ end
 # 10 9 8 7 6 5 4 3 2 1
 ```
 
+Looping over a range literal never builds the list: the loop counts from start to end, so
+`for i in [1 to 100000000]` uses constant memory and is faster than the equivalent `while` or
+`repeat` loop. The bounds are evaluated once, before the first iteration.
+
 #### Hashmaps
 
 ```kiwi

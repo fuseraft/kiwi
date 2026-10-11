@@ -234,6 +234,10 @@ The write-back rule applies to lists-of-hashmaps, nested lists, or any other ext
 
 - Chain `.filter()`, `.map()`, `.take()`, etc. for clean data pipelines
 - Avoid modifying a list while iterating over it with `for` — use indices or `.clone()`
+- Lambda methods (`.each()`, `.map()`, `.filter()`, `.sort()`, `.reduce()`, ...) iterate over a
+  snapshot taken when the call starts, so items the lambda adds or removes don't change that
+  iteration
+- Lists and hashmaps are safe to share between tasks; see [Sharing state between tasks](lib/task.md#sharing-state-between-tasks)
 - For very large lists, prefer iterators [`ListIterator`](lib/iter.md) when you only need sequential access
 
 See also:

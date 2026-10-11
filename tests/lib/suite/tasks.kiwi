@@ -78,3 +78,83 @@ fn test_tasks_struct()
   msg = ch.recv()
   tester::assert(msg == "3 items, total=20, mean=6.666666666666667", "A7: channel msg: ${msg}")
 end
+
+@tester::test("tasks: concurrent list lambdas don't share a call stack")
+fn test_tasks_concurrent_list_lambdas()
+  # Each task has its own call stack; before this, concurrent .map() calls
+  # pushed/popped a shared stack and failed with "Stack empty."
+  ids = []
+  for k in [1 to 16] do
+    ids.push(task::spawn(with (n) do
+      t = 0
+      for i in [1 to 500] do
+        t += [1, 2, 3].map(with (y) do y + i end).sum()
+      end
+      t
+    end, [k]))
+  end
+
+  ok = true
+  for tid in ids do
+    if await(tid) != 378750
+      ok = false
+    end
+  end
+
+  tester::assert(ok, "B1: every concurrent task computes its own map/sum")
+end
+
+@tester::test("tasks: shared collections and objects stay consistent")
+fn test_tasks_shared_state()
+  struct SharedBag
+    fn new()
+      @items  = []
+      @fields = {}
+    end
+
+    fn put(k, v)
+      @items.push(v)
+      @fields[k] = v
+    end
+
+    fn count() @items.size() end
+    fn field_count() @fields.keys().size() end
+  end
+
+  # Unsynchronized writes from many tasks used to corrupt these collections.
+  shared = []
+  bag    = SharedBag.new()
+  m      = {}
+
+  ids = []
+  for k in [1 to 8] do
+    ids.push(task::spawn(with (n) do
+      for i in [1 to 500] do
+        shared.push(i)
+        bag.put("f_${n}_${i % 20}", i)
+        m["${n}:${i}"] = i
+      end
+      n
+    end, [k]))
+  end
+  for tid in ids do await(tid) end
+
+  tester::assert(shared.size() == 4000,        "C1: list pushes: ${shared.size()}")
+  tester::assert(bag.count() == 4000,          "C2: object list pushes: ${bag.count()}")
+  tester::assert(bag.field_count() == 160,     "C3: object hashmap keys: ${bag.field_count()}")
+  tester::assert(m.keys().size() == 4000,      "C4: hashmap keys: ${m.keys().size()}")
+end
+
+@tester::test("tasks: definitions made in a task are visible to the caller")
+fn test_tasks_redefinition_visible()
+  fn task_defined_fn() return 1 end
+  before = task_defined_fn()
+
+  # The caller cached the old function; a redefinition from another VM must invalidate it.
+  await(task::spawn(with () do
+    eval "fn task_defined_fn() return 2 end"
+  end, []))
+
+  tester::assert(before == 1,            "D1")
+  tester::assert(task_defined_fn() == 2, "D2")
+end

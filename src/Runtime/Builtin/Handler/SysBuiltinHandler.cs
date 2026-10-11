@@ -39,7 +39,7 @@ public static class SysBuiltinHandler
         ParameterTypeMismatchError.ExpectList(token, SysBuiltin.Exec, 1, args[1]);
 
         var program = args[0].GetString();
-        var argValues = args[1].GetList();
+        var argValues = args[1].GetList().ToList();
 
         try
         {
@@ -65,7 +65,7 @@ public static class SysBuiltinHandler
         ParameterTypeMismatchError.ExpectList(token, SysBuiltin.ExecOut, 1, args[1]);
 
         var program = args[0].GetString();
-        var argValues = args[1].GetList();
+        var argValues = args[1].GetList().ToList();
 
         try
         {
@@ -102,7 +102,7 @@ public static class SysBuiltinHandler
         ParameterTypeMismatchError.ExpectList(token, SysBuiltin.Open, 1, args[1]);
 
         var program = args[0].GetString();
-        var argValues = args[1].GetList();
+        var argValues = args[1].GetList().ToList();
 
         try
         {
@@ -190,7 +190,7 @@ public static class SysBuiltinHandler
         ParameterTypeMismatchError.ExpectList(token, SysBuiltin.Spawn, 1, args[1]);
 
         var program   = args[0].GetString();
-        var argValues = args[1].GetList();
+        var argValues = args[1].GetList().ToList();
 
         try
         {
