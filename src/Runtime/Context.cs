@@ -30,6 +30,17 @@ public class KContext
     /// </summary>
     public object ImportLock { get; } = new();
 
+    private int _definitionsVersion;
+
+    /// <summary>
+    /// Bumped whenever a function, constant, struct, enum or package is (re)defined. Each VM
+    /// caches name resolutions and clears its caches when this changes, so a definition made
+    /// by one VM (a task, eval, an include) is seen by all of them.
+    /// </summary>
+    public int DefinitionsVersion => Volatile.Read(ref _definitionsVersion);
+
+    public void BumpDefinitionsVersion() => Interlocked.Increment(ref _definitionsVersion);
+
     public KContext Clone()
     {
         KContext cloned = new ();

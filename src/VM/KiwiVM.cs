@@ -83,6 +83,9 @@ public sealed class KiwiVM
     private readonly Dictionary<string, Value>      _nameCache = new(StringComparer.Ordinal);
     private readonly Dictionary<string, GlobalKind> _pathCache = new(StringComparer.Ordinal);
     private enum GlobalKind : byte { Lambda = 1, PackageVar, UserGlobal }
+    // KContext.DefinitionsVersion when the caches were last known valid. Other VMs (tasks,
+    // eval, includes) define into the shared context, so a mismatch clears both caches.
+    private int _cacheVersion = -1;
 
     // -- Package prefix cache (avoids PackageStack.Reverse() + Join on every StoreGlobal/DefFunc) --
     private string _pkgPrefix = string.Empty;
@@ -174,6 +177,16 @@ public sealed class KiwiVM
     {
         _nameCache.Remove(name);
         _pathCache.Remove(name);
+    }
+
+    /// <summary>
+    /// Invalidates <paramref name="name"/> here and in every other VM's caches. Use when a
+    /// function, constant, struct, enum or package is (re)defined.
+    /// </summary>
+    private void InvalidateDefinition(string name)
+    {
+        InvalidateName(name);
+        _context.BumpDefinitionsVersion();
     }
 
     /// <summary>
@@ -444,6 +457,14 @@ public sealed class KiwiVM
                     {
                         var name = frame.Chunk.Names[A];
 
+                        var defsVersion = _context.DefinitionsVersion;
+                        if (defsVersion != _cacheVersion)
+                        {
+                            _nameCache.Clear();
+                            _pathCache.Clear();
+                            _cacheVersion = defsVersion;
+                        }
+
                         // Fast path 1: cached Value for stable bindings (functions, constants, structs, packages, mapped-lambdas)
                         if (_nameCache.TryGetValue(name, out var cachedVal))
                         {
@@ -601,7 +622,13 @@ public sealed class KiwiVM
                                 _context.Lambdas[name] = named;
                         }
                         _globals.Assign(name, v);
-                        InvalidateName(name); // invalidate both resolution caches
+                        // A global that shadows a function/struct/package changes what other
+                        // VMs may have cached for this name; plain variables are never cached by value.
+                        if (_context.HasFunction(name) || _context.HasMappedLambda(name)
+                            || _context.HasStruct(name) || _context.HasPackage(name))
+                            InvalidateDefinition(name);
+                        else
+                            InvalidateName(name);
                         // Mirror package-level variable into PackageVariables for pkg::name access.
                         if (_pkgPrefix.Length > 0)
                         {
@@ -616,7 +643,7 @@ public sealed class KiwiVM
                         var v    = Pop();
                         _context.Constants[name] = v;
                         _globals.Assign(name, v);
-                        InvalidateName(name);
+                        InvalidateDefinition(name);
                         if (_pkgPrefix.Length > 0)
                         {
                             var qualName = _pkgPrefix + name;
@@ -1066,7 +1093,7 @@ public sealed class KiwiVM
                         if (_pkgPrefix.Length > 0) sub.PackagePrefix = _pkgPrefix;
 
                         _context.Functions[funcName] = kfunc;
-                        InvalidateName(funcName); // invalidate both resolution caches
+                        InvalidateDefinition(funcName); // invalidate both resolution caches
 
                         // If defined inside another function frame (but not a global-scope
                         // include frame), track for cleanup on return.
@@ -1102,7 +1129,7 @@ public sealed class KiwiVM
                         if (_pkgPrefix.Length > 0) sub.PackagePrefix = _pkgPrefix;
 
                         _context.Functions[funcName] = kfunc;
-                        InvalidateName(funcName);
+                        InvalidateDefinition(funcName);
 
                         if (_frameCount > 1)
                             _frames[_frameCount - 1].TrackLocalFunction(funcName);
@@ -1140,7 +1167,7 @@ public sealed class KiwiVM
 
                         var value = Pop();
                         _context.Functions.TryRemove(funcName, out _);
-                        InvalidateName(funcName);
+                        InvalidateDefinition(funcName);
 
                         if (value.IsLambda())
                         {
@@ -1165,7 +1192,7 @@ public sealed class KiwiVM
                         else
                         {
                             _globals.Assign(funcName, value);
-                            InvalidateName(funcName);
+                            InvalidateDefinition(funcName);
                             if (_pkgPrefix.Length > 0)
                             {
                                 _context.PackageVariables[_pkgPrefix + rawName] = value;
@@ -1837,14 +1864,14 @@ public sealed class KiwiVM
                                     throw new AbstractMethodError(frame.GetToken(), struc.Name, am);
                         }
                         _context.Structs[struc.Name] = struc;
-                        InvalidateName(struc.Name);
+                        InvalidateDefinition(struc.Name);
                         // Also register under the fully-qualified name (e.g. "httpserver::Response")
                         // so that pkg::Struct.new() calls work from any context.
                         if (!string.IsNullOrEmpty(_pkgPrefix))
                         {
                             var qualifiedStructName = _pkgPrefix + struc.Name;
                             _context.Structs[qualifiedStructName] = struc;
-                            InvalidateName(qualifiedStructName);
+                            InvalidateDefinition(qualifiedStructName);
                         }
                         break;
                     }
@@ -1877,7 +1904,7 @@ public sealed class KiwiVM
                         _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         RegisterTypeBuiltins(qualifiedName);
                         _context.ImportedPackages.TryAdd(qualifiedName, 0);
-                        InvalidateName(qualifiedName);
+                        InvalidateDefinition(qualifiedName);
                         break;
                     }
                     case Opcode.PackageAbort:
@@ -1905,7 +1932,7 @@ public sealed class KiwiVM
                     {
                         var kenum = _pendingStructs.Pop();
                         _context.Structs[kenum.Name] = kenum;
-                        InvalidateName(kenum.Name);
+                        InvalidateDefinition(kenum.Name);
                         // register enum builtins for this concrete type name
                         TypeBuiltins.RegisterEnumBuiltinsForName(kenum.Name);
                         break;

@@ -144,3 +144,17 @@ fn test_tasks_shared_state()
   tester::assert(bag.field_count() == 160,     "C3: object hashmap keys: ${bag.field_count()}")
   tester::assert(m.keys().size() == 4000,      "C4: hashmap keys: ${m.keys().size()}")
 end
+
+@tester::test("tasks: definitions made in a task are visible to the caller")
+fn test_tasks_redefinition_visible()
+  fn task_defined_fn() return 1 end
+  before = task_defined_fn()
+
+  # The caller cached the old function; a redefinition from another VM must invalidate it.
+  await(task::spawn(with () do
+    eval "fn task_defined_fn() return 2 end"
+  end, []))
+
+  tester::assert(before == 1,            "D1")
+  tester::assert(task_defined_fn() == 2, "D2")
+end
