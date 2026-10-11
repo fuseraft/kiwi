@@ -4,6 +4,76 @@ The `task` package contains functionality for concurrency in Kiwi.
 
 ---
 
+## Sharing state between tasks
+
+Tasks run on separate threads and can share variables, lists, hashmaps and objects with the
+code that spawned them. Every single operation on a shared value is atomic, so concurrent tasks
+can never corrupt it:
+
+- a list operation (`push`, `pop`, `xs[i] = v`, `remove`, `sort`, ...)
+- a hashmap operation (`m[k] = v`, `remove`, `keys()`, ...)
+- reading or writing an object field (`@name = v`) or a struct static (`@@count = v`)
+- assigning a global variable, or defining a function, struct or package (for example with `eval`)
+
+```kiwi
+import "task"
+
+results = []
+seen    = {}
+
+ids = []
+for n in [1 to 4] do
+  ids.push(task::spawn(with (k) do
+    for i in [1 to 1000] do
+      results.push(i)        # safe: each push is atomic
+      seen["${k}:${i}"] = i  # safe: each assignment is atomic
+    end
+  end, [n]))
+end
+for id in ids do task::await(id) end
+
+println results.size()      # => 4000
+println seen.keys().size()  # => 4000
+```
+
+An update that **reads and then writes**, such as `x += 1`, `xs[i] += 1` or
+`m[k] = m[k] + 1`, is two operations. Two tasks can read the same old value and one update is
+lost. Guard these with a [mutex](#mutex):
+
+```kiwi
+import "task"
+
+counter = [0]
+lock    = task::mutex()
+
+ids = []
+for n in [1 to 4] do
+  ids.push(task::spawn(with (c, m) do
+    for i in [1 to 1000] do
+      m.synchronize(with do
+        c[0] += 1            # read-modify-write: needs the mutex
+      end)
+    end
+  end, [counter, lock]))
+end
+for id in ids do task::await(id) end
+
+println counter[0]  # => 4000
+```
+
+Without the mutex, the same loop finishes with a smaller, different number on each run.
+
+Other things to know:
+
+- List methods that take a lambda (`each`, `map`, `filter`, `sort`, `reduce`, ...) work on a
+  snapshot of the list, so another task's changes don't affect an iteration already in progress.
+- `import` is serialized: if two tasks import the same package, the second waits until the
+  first has finished defining it. Avoid having a package's top-level code wait on a task that
+  itself imports a package, since the two will block each other.
+- For passing work between tasks, a [`Channel`](#channel) is usually simpler than sharing state.
+
+---
+
 ## Package Functions
 
 ### `await(task_id)`
@@ -266,6 +336,46 @@ println "Active task ids: ${task::list()}"
 task::wait()
 println "Active task ids after wait: ${task::list()}"
 # => Active task ids after wait: []
+```
+
+---
+
+### `mutex()`
+Creates a mutual exclusion lock. Only one task at a time can hold it. See
+[Sharing state between tasks](#sharing-state-between-tasks).
+
+**Parameters**
+_None_
+
+**Returns**
+
+| Type | Description |
+| :--- | :--- |
+| `Mutex` | A new mutex. |
+
+**Mutex methods**
+
+| Method | Description |
+| :--- | :--- |
+| `synchronize(callback)` | Acquires the mutex, runs `callback`, then releases it, even if `callback` throws. |
+| `acquire()` | Blocks until the mutex is available, then holds it. |
+| `try_acquire(timeout_ms = 0)` | Tries to acquire the mutex, waiting up to `timeout_ms`; returns `true` if acquired. |
+| `release()` | Releases the mutex. |
+| `destroy()` | Frees the mutex. |
+
+**Example**
+
+```kiwi
+import "task"
+
+lock  = task::mutex()
+total = [0]
+
+lock.synchronize(with do
+  total[0] += 1
+end)
+
+println total[0]  # => 1
 ```
 
 ---
