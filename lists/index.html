@@ -4240,6 +4240,10 @@ Writing past the end throws an error (use <code>.push()</code> to grow).</p>
 <ul>
 <li>Chain <code>.filter()</code>, <code>.map()</code>, <code>.take()</code>, etc. for clean data pipelines</li>
 <li>Avoid modifying a list while iterating over it with <code>for</code> — use indices or <code>.clone()</code></li>
+<li>Lambda methods (<code>.each()</code>, <code>.map()</code>, <code>.filter()</code>, <code>.sort()</code>, <code>.reduce()</code>, ...) iterate over a
+  snapshot taken when the call starts, so items the lambda adds or removes don't change that
+  iteration</li>
+<li>Lists and hashmaps are safe to share between tasks; see <a href="../lib/task/#sharing-state-between-tasks">Sharing state between tasks</a></li>
 <li>For very large lists, prefer iterators <a href="../lib/iter/"><code>ListIterator</code></a> when you only need sequential access</li>
 </ul>
 <p>See also:

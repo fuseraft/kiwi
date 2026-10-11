@@ -4681,7 +4681,13 @@
 <td><code>ForIterInit</code></td>
 <td>—</td>
 <td>—</td>
-<td>Pop collection; push <code>ForIterState</code> pointer</td>
+<td>Pop collection; push <code>ForIterState</code> (held in the stack slot)</td>
+</tr>
+<tr>
+<td><code>ForIterInitRange</code></td>
+<td>—</td>
+<td>—</td>
+<td>Pop stop, pop start; push a counting <code>ForIterState</code> (used for <code>for x in [a to b]</code>; no list is built)</td>
 </tr>
 <tr>
 <td><code>ForIterNext</code></td>

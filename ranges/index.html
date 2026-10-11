@@ -3549,6 +3549,9 @@
 <hr />
 <h2 id="as-a-list">As a List<a class="headerlink" href="#as-a-list" title="Permanent link">&para;</a></h2>
 <p>When used inside <code>[</code> <code>]</code>, a range is immediately evaluated as a <a href="../lists/">List</a>.</p>
+<p>The exception is a <code>for</code> loop over a range literal: <code>for i in [1 to n] do ... end</code> counts from
+start to end without building the list, so it runs in constant memory however large <code>n</code> is. It
+yields exactly the values the list would hold, including counting down when <em>end</em> &lt; <em>start</em>.</p>
 <h3 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">&para;</a></h3>
 <p><strong><code>[</code></strong> <em>start</em> <strong><code>to</code></strong> <em>end</em> <strong><code>]</code></strong>
 <strong><code>[</code></strong> <em>start</em> <strong><code>..</code></strong> <em>end</em> <strong><code>]</code></strong></p>

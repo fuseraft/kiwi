@@ -4007,6 +4007,9 @@ All loops support <code>break</code> (exit early) and <code>next</code> (skip to
 </span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>end
 </span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a># 10 9 8 7 6 5 4 3 2 1
 </span></code></pre></div>
+<p>Looping over a range literal never builds the list: the loop counts from start to end, so
+<code>for i in [1 to 100000000]</code> uses constant memory and is faster than the equivalent <code>while</code> or
+<code>repeat</code> loop. The bounds are evaluated once, before the first iteration.</p>
 <h4 id="hashmaps">Hashmaps<a class="headerlink" href="#hashmaps" title="Permanent link">&para;</a></h4>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>scores = { alice: 95, bob: 82, carol: 100 }
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
