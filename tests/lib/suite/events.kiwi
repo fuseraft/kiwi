@@ -161,3 +161,19 @@ fn test_once_cleanup_on_error()
 
   tester::assert(count == 1, "I1")
 end
+
+@tester::test("events: handler can subscribe during emit")
+fn test_subscribe_during_emit()
+  # Registering a handler for a new event inside a handler used to modify the
+  # handler table mid-dispatch ("Collection was modified").
+  on "outer.evt" do
+    on "inner.evt" do "inner" end
+    "outer"
+  end
+
+  first  = emit "outer.evt"
+  second = emit "inner.evt"
+
+  tester::assert(first == ["outer"],  "J1: ${first}")
+  tester::assert(second == ["inner"], "J2: ${second}")
+end

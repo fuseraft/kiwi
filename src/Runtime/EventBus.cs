@@ -11,9 +11,18 @@ public sealed class EventBus
     // Each entry is kept sorted descending by priority so high-priority handlers fire first.
     private readonly Dictionary<string, List<Handler>> _handlers = [];
 
+    // Tasks emit and subscribe from their own threads. Handlers run outside the lock, so a
+    // handler may itself subscribe, unsubscribe or emit.
+    private readonly Lock _sync = new();
+
     private readonly record struct Handler(Value Callback, bool Once, int Priority);
 
     public void On(string pattern, Value callback, bool once = false, int priority = 0)
+    {
+        lock (_sync) AddHandler(pattern, callback, once, priority);
+    }
+
+    private void AddHandler(string pattern, Value callback, bool once, int priority)
     {
         if (!_handlers.TryGetValue(pattern, out var list))
         {
@@ -30,6 +39,11 @@ public sealed class EventBus
         On(pattern, callback, once: true, priority);
 
     public void Off(string pattern, Value? callback = null)
+    {
+        lock (_sync) RemoveHandlers(pattern, callback);
+    }
+
+    private void RemoveHandlers(string pattern, Value? callback)
     {
         if (!_handlers.TryGetValue(pattern, out var list))
             return;
@@ -62,29 +76,33 @@ public sealed class EventBus
         var results = new List<Value>();
         List<string>? errors = null;
 
-        foreach (var (pattern, list) in _handlers)
+        // Snapshot handlers that should fire, then purge 'once' entries up-front
+        // so they are guaranteed gone even when a handler throws.
+        var toFire = new List<Handler>();
+        lock (_sync)
         {
-            if (!Matches(pattern, eventName))
-                continue;
-
-            // Snapshot handlers that should fire, then purge 'once' entries up-front
-            // so they are guaranteed gone even when a handler throws.
-            var snapshot = list.ToList();
-            list.RemoveAll(h => h.Once);
-
-            foreach (var handler in snapshot)
+            foreach (var (pattern, list) in _handlers)
             {
-                if (!handler.Callback.IsLambda())
+                if (!Matches(pattern, eventName))
                     continue;
 
-                try
-                {
-                    results.Add(vm.InvokeEvent(token, handler.Callback.GetLambda(), data));
-                }
-                catch (Exception ex)
-                {
-                    (errors ??= []).Add(ex.Message);
-                }
+                toFire.AddRange(list);
+                list.RemoveAll(h => h.Once);
+            }
+        }
+
+        foreach (var handler in toFire)
+        {
+            if (!handler.Callback.IsLambda())
+                continue;
+
+            try
+            {
+                results.Add(vm.InvokeEvent(token, handler.Callback.GetLambda(), data));
+            }
+            catch (Exception ex)
+            {
+                (errors ??= []).Add(ex.Message);
             }
         }
 
