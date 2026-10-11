@@ -300,7 +300,7 @@ public enum Opcode : byte
 
     // -- Loop Iteration --------------------------------------------------------
     /// <summary>
-    /// Pop the collection and push a ForIterState (as a Pointer value).
+    /// Pop the collection and push a ForIterState (held directly in the stack slot).
     /// </summary>
     ForIterInit,
     /// <summary>

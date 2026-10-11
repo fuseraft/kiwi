@@ -296,7 +296,7 @@ When `DoCall` pushes a new frame it returns `true` and the outer loop starts dis
 
 | Opcode | A | B | Effect |
 |--------|---|---|--------|
-| `ForIterInit` | — | — | Pop collection; push `ForIterState` pointer |
+| `ForIterInit` | — | — | Pop collection; push `ForIterState` (held in the stack slot) |
 | `ForIterNext` | done-target IP | var count | Advance iterator; if exhausted pop state and jump to A; else push 1 or 2 values |
 
 ### Loop Control

@@ -58,9 +58,10 @@ public sealed class KiwiVM
     // -- Open upvalue linked list ----------------------------------------------
     private Upvalue? _openUpvalues;
 
-    // -- Native object store (for ForIterState etc.) ---------------------------
-    private int _nextNativeId;
-    private readonly Dictionary<int, object> _nativeObjects = [];
+    // A for-loop's ForIterState lives in its stack slot, tagged with this internal type
+    // (never visible to Kiwi code). Keeping it on the stack rather than in a side table
+    // means break, return and throw free it along with the slot.
+    private const Typing.ValueType IterStateType = Typing.ValueType.Unset;
 
     // -- Caught error (for LoadCatchError inside catch bodies) ------------------
     private KiwiError? _caughtError;
@@ -1508,17 +1509,13 @@ public sealed class KiwiVM
                             state.List  = [];
                             state.Index = 0;
                         }
-                        var stateId = _nextNativeId++;
-                        _nativeObjects[stateId] = state;
-                        Push(Value.CreateInteger(stateId));
+                        Push(new Value(state, IterStateType));
                         break;
                     }
                     case Opcode.ForIterNext:
                     {
-                        // Peek at ForIterState id on top of stack
-                        var stateVal = Peek();
-                        var stateId  = (int)stateVal.GetInteger();
-                        var state    = (ForIterState)_nativeObjects[stateId];
+                        // Peek at the ForIterState on top of stack
+                        var state    = (ForIterState)Peek().Value_;
                         int numVars  = B;
 
                         bool done;
@@ -1604,8 +1601,7 @@ public sealed class KiwiVM
 
                         if (done)
                         {
-                            _nativeObjects.Remove(stateId);
-                            _sp--; // pop ForIterState id
+                            _sp--; // pop ForIterState
                             frame.IP = A; // jump to after loop
                         }
                         break;
