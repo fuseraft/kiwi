@@ -95,7 +95,7 @@ public partial class Serializer
         return sv.ToString();
     }
 
-    public static string SerializeList(List<Value> list)
+    public static string SerializeList(IEnumerable<Value> list)
     {
         System.Text.StringBuilder sv = new();
         bool first = true;
@@ -126,7 +126,7 @@ public partial class Serializer
         return sv.ToString();
     }
 
-    public static string SerializeHashmap(Dictionary<Value, Value> hash)
+    public static string SerializeHashmap(IEnumerable<KeyValuePair<Value, Value>> hash)
     {
         System.Text.StringBuilder sv = new();
         sv.Append('{');
@@ -253,7 +253,7 @@ public partial class Serializer
         return sv.ToString();
     }
 
-    public static string PrettySerializeList(List<Value> list, int indent = 0)
+    public static string PrettySerializeList(IEnumerable<Value> list, int indent = 0)
     {
         System.Text.StringBuilder sv = new();
         sv.AppendLine("[");
@@ -296,7 +296,7 @@ public partial class Serializer
         return sv.ToString();
     }
 
-    public static string PrettySerializeHashmap(Dictionary<Value, Value> hash, int indent = 0)
+    public static string PrettySerializeHashmap(IEnumerable<KeyValuePair<Value, Value>> hash, int indent = 0)
     {
         System.Text.StringBuilder sv = new();
         sv.AppendLine("{");
@@ -340,13 +340,13 @@ public partial class Serializer
         return sv.ToString();
     }
 
-    public static List<Value> GetHashKeysList(Dictionary<Value, Value> hash)
+    public static List<Value> GetHashKeysList(SyncDictionary<Value, Value> hash)
     {
         List<Value> keys = [.. hash.Keys];
         return keys;
     }
 
-    public static List<Value> GetHashValuesList(Dictionary<Value, Value> hash)
+    public static List<Value> GetHashValuesList(SyncDictionary<Value, Value> hash)
     {
         List<Value> values = [.. hash.Values];
         return values;

@@ -8,7 +8,7 @@ public class InstanceRef
 {
     public string Identifier { get; set; } = string.Empty;
     public string StructName { get; set; } = string.Empty;
-    public Dictionary<string, Value> InstanceVariables { get; set; } = [];
+    public SyncDictionary<string, Value> InstanceVariables { get; set; } = new();
 
     public bool HasVariable(string name)
     {
@@ -189,8 +189,20 @@ public class SliceIndex(Value indexOrStart, Value stopIndex, Value stepValue)
 
 public class Value(object value, ValueType type = ValueType.None) : IComparable<Value>, IComparable
 {
-    public object Value_ { get; set; } = value;
+    public object Value_ { get; set; } = WrapCollection(value, type);
     public ValueType Type { get; set; } = type;
+
+    /// <summary>
+    /// Lists and hashmaps are stored as <see cref="SyncList"/> / <see cref="SyncDictionary{TKey, TValue}"/>
+    /// so tasks can share them. Operators build plain collections and hand them over as
+    /// <c>object</c>; wrap those here so no raw collection is ever stored.
+    /// </summary>
+    private static object WrapCollection(object value, ValueType type) => type switch
+    {
+        ValueType.List when value is List<Value> l => SyncList.Adopt(l),
+        ValueType.Hashmap when value is Dictionary<Value, Value> d => SyncDictionary<Value, Value>.Adopt(d),
+        _ => value,
+    };
 
     // Cache single-char ASCII string objects to avoid ToString() allocations in tight loops
     private static readonly string[] _charStrings;
@@ -237,8 +249,10 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             bool => CreateBoolean(value),
             string => CreateString(value),
             DateTime => CreateDate(value),
-            List<Value> => CreateList(value),
-            Dictionary<Value, Value> => CreateHashmap(value),
+            List<Value> l => CreateList(l),
+            SyncList l => CreateList(l),
+            Dictionary<Value, Value> d => CreateHashmap(d),
+            SyncDictionary<Value, Value> d => CreateHashmap(d),
             InstanceRef => CreateObject(value),
             LambdaRef => CreateLambda(value),
             StructRef => CreateStruct(value),
@@ -268,12 +282,16 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public static Value CreateString(string value) => new(value, ValueType.String);
     public static Value CreateString(object value) => new(value, ValueType.String);
     public static Value CreateString(char value) => CreateChar(value);
-    public static Value CreateList(List<Value> value) => new(value, ValueType.List);
-    public static Value CreateList(object value) => new(value, ValueType.List);
-    public static Value CreateList() => new(new List<Value>(), ValueType.List);
-    public static Value CreateHashmap(Dictionary<Value, Value> value) => new(value, ValueType.Hashmap);
-    public static Value CreateHashmap(object value) => new(value, ValueType.Hashmap);
-    public static Value CreateHashmap() => new(new Dictionary<Value, Value>(), ValueType.Hashmap);
+    /// <summary>Wraps <paramref name="value"/> without copying; the caller must not use it afterwards.</summary>
+    [OverloadResolutionPriority(1)] // `CreateList([..])` builds a List<Value>
+    public static Value CreateList(List<Value> value) => new(SyncList.Adopt(value), ValueType.List);
+    public static Value CreateList(SyncList value) => new(value, ValueType.List);
+    public static Value CreateList() => new(new SyncList(), ValueType.List);
+    /// <summary>Wraps <paramref name="value"/> without copying; the caller must not use it afterwards.</summary>
+    [OverloadResolutionPriority(1)]
+    public static Value CreateHashmap(Dictionary<Value, Value> value) => new(SyncDictionary<Value, Value>.Adopt(value), ValueType.Hashmap);
+    public static Value CreateHashmap(SyncDictionary<Value, Value> value) => new(value, ValueType.Hashmap);
+    public static Value CreateHashmap() => new(new SyncDictionary<Value, Value>(), ValueType.Hashmap);
     public static Value CreateNull(NullRef value) => new(value, ValueType.None);
     public static Value CreateNull(object value) => new(value, ValueType.None);
     public static Value CreateNull() => new(_sharedNull, ValueType.None);
@@ -307,8 +325,8 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool GetBoolean() => (bool)Value_;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetString() => (string)Value_;
     public DateTime GetDate() => (DateTime)Value_;
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public List<Value> GetList() => (List<Value>)Value_;
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] public Dictionary<Value, Value> GetHashmap() => (Dictionary<Value, Value>)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public SyncList GetList() => (SyncList)Value_;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public SyncDictionary<Value, Value> GetHashmap() => (SyncDictionary<Value, Value>)Value_;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public InstanceRef GetObject() => (InstanceRef)Value_;
     [MethodImpl(MethodImplOptions.AggressiveInlining)] public LambdaRef GetLambda() => (LambdaRef)Value_;
     public StructRef GetStruct() => (StructRef)Value_;
@@ -356,7 +374,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
     public PackageRef GetPackage() => (PackageRef)Value_;
     public static Value CreatePackage(string name) => new(new PackageRef { Identifier = name }, ValueType.Package);
 
-    public static List<Value> Clone(List<Value> list)
+    public static List<Value> Clone(IEnumerable<Value> list)
     {
         List<Value> clone = [];
 
@@ -368,13 +386,13 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
         return clone;
     }
 
-    public static Dictionary<Value, Value> Clone(Dictionary<Value, Value> hash)
+    public static Dictionary<Value, Value> Clone(IEnumerable<KeyValuePair<Value, Value>> hash)
     {
         Dictionary<Value, Value> clone = [];
 
-        foreach (var key in hash.Keys)
+        foreach (var (key, value) in hash)
         {
-            clone.Add(key, hash[key].Clone());
+            clone.Add(key, value.Clone());
         }
 
         return clone;
@@ -391,7 +409,7 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
 
     public void Set(object? value, ValueType type)
     {
-        Value_ = value ?? new NullRef();
+        Value_ = value == null ? new NullRef() : WrapCollection(value, type);
         Type = type;
     }
 
@@ -506,14 +524,14 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
 
             case ValueType.List:
                 {
-                    var thisList = GetList();
-                    var otherList = other.GetList();
-                    if (thisList.Count != otherList.Count)
+                    var thisList = GetList().ToArray();
+                    var otherList = other.GetList().ToArray();
+                    if (thisList.Length != otherList.Length)
                     {
                         return false;
                     }
 
-                    for (int i = 0; i < thisList.Count; i++)
+                    for (int i = 0; i < thisList.Length; i++)
                     {
                         if (!thisList[i].StructuralEquals(otherList[i], visitedPairs))
                         {
@@ -883,8 +901,8 @@ public class Value(object value, ValueType type = ValueType.None) : IComparable<
             ValueType.Bytes => CompareBytes(GetBytes(), other.GetBytes()), // This should work for now.
             ValueType.String => string.Compare(GetString(), other.GetString(), StringComparison.Ordinal),// Lexical (ordinal) comparison for strings
             ValueType.Date => GetDate().CompareTo(other.GetDate()),// Chronological comparison
-            ValueType.List => CompareLists(GetList(), other.GetList()),// Lexicographical comparison of list items
-            ValueType.Hashmap => CompareHashmaps(GetHashmap(), other.GetHashmap()),// A simple approach: compare number of entries, then do a structural comparison for tie-breakers
+            ValueType.List => CompareLists(GetList().ToList(), other.GetList().ToList()),// Lexicographical comparison of list items
+            ValueType.Hashmap => CompareHashmaps(GetHashmap().ToDictionary(), other.GetHashmap().ToDictionary()),// A simple approach: compare number of entries, then do a structural comparison for tie-breakers
             ValueType.Object => CompareObjects(GetObject(), other.GetObject()),// Compare by StructName, then Identifier, then instance variables for a deeper structural comparison
             ValueType.Lambda => string.Compare(GetLambda().Identifier, other.GetLambda().Identifier, StringComparison.Ordinal),// Compare by the Identifier of the lambda
             ValueType.Struct => string.Compare(GetStruct().Identifier, other.GetStruct().Identifier, StringComparison.Ordinal),// Compare by the Identifier of the struct

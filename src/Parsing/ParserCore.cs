@@ -16,8 +16,10 @@ public partial class Parser(bool rethrowErrors = false)
     private TokenStream stream = new([]);
     private Stack<string> structStack = new();
     private readonly List<bool> _generatorMarks = [];
-    private static HashSet<string> StructsDefined = [];
-    private static HashSet<string> PackagesDefined = [];
+    // Shared by every parse in the process (tasks parse on their own threads via eval);
+    // used as sets, the byte value is unused.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> StructsDefined = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> PackagesDefined = new();
     
     public bool HasError { get; set; } = false;
 
@@ -49,7 +51,7 @@ public partial class Parser(bool rethrowErrors = false)
                 List<string> packagesDefined = [];
                 foreach (var (key, waitingStreams) in revisitStreams)
                 {
-                    if (!PackagesDefined.Contains(key))
+                    if (!PackagesDefined.ContainsKey(key))
                     {
                         continue;
                     }
@@ -388,7 +390,7 @@ public partial class Parser(bool rethrowErrors = false)
 
     private TokenName GetTokenName() => token.Name;
 
-    private bool IsValidTypeName() => GetTokenType() == TokenType.Typename || StructsDefined.Contains(GetTokenText());
+    private bool IsValidTypeName() => GetTokenType() == TokenType.Typename || StructsDefined.ContainsKey(GetTokenText());
 
     private int GetTypeName()
     {
@@ -440,7 +442,7 @@ public partial class Parser(bool rethrowErrors = false)
     private bool IsValidTypeNameAhead()
     {
         var next = Peek();
-        return next.Type == TokenType.Typename || StructsDefined.Contains(next.Text);
+        return next.Type == TokenType.Typename || StructsDefined.ContainsKey(next.Text);
     }
 
     private bool IsUnaryOperator() => token.Name switch

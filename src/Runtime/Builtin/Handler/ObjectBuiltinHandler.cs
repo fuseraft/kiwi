@@ -18,7 +18,7 @@ public class ObjectBuiltinHandler
                 return Value.CreateObject(new InstanceRef
                 {
                     StructName = obj.StructName,
-                    InstanceVariables = obj.InstanceVariables.ToDictionary()
+                    InstanceVariables = new(obj.InstanceVariables)
                 });
 
             case TokenName.Builtin_Core_HasKey:

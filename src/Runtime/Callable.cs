@@ -148,8 +148,8 @@ public class KStruct
     // Avoids allocating a new StructRef+Value on every lookup.
     private Value? _cachedValue;
     public Value AsValue => _cachedValue ??= Value.CreateStruct(new StructRef { Identifier = Name });
-    public Dictionary<string, KFunction> Methods { get; set; } = [];
-    public Dictionary<string, Value> StaticVariables { get; set; } = [];
+    public System.Collections.Concurrent.ConcurrentDictionary<string, KFunction> Methods { get; set; } = new();
+    public SyncDictionary<string, Value> StaticVariables { get; set; } = new();
     public bool IsAbstract { get; set; }
     public bool IsEnum { get; set; }
     public HashSet<string> AbstractMethods { get; set; } = [];
@@ -167,7 +167,7 @@ public class KStruct
 
         foreach (var kvp in Methods)
         {
-            cloned.Methods.Add(kvp.Key, kvp.Value.Clone());
+            cloned.Methods[kvp.Key] = kvp.Value.Clone();
         }
 
         foreach (var kvp in StaticVariables)
@@ -192,24 +192,12 @@ public class KPackage(ASTNode node)
 
 public static class TypeBuiltins
 {
-    private static Dictionary<int, Dictionary<string, KFunction>> builtins = [];
-
-
+    // Concurrent: packages (and so their type builtins) can be imported from task threads.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, System.Collections.Concurrent.ConcurrentDictionary<string, KFunction>> builtins = new();
 
     public static void Register(int type, string name, KFunction func)
     {
-        if (!builtins.TryGetValue(type, out Dictionary<string, KFunction>? map))
-        {
-            map = [];
-            builtins[type] = map;
-        }
-
-        if (map.ContainsKey(name))
-        {
-            return;
-        }
-
-        map.Add(name, func);
+        builtins.GetOrAdd(type, _ => new()).TryAdd(name, func);
     }
 
     public static void RegisterEnumBuiltins()
@@ -245,7 +233,7 @@ public static class TypeBuiltins
 
     public static bool TryGetBuiltin(int type, string name, out KFunction? func)
     {
-        if (builtins.TryGetValue(type, out Dictionary<string, KFunction>? map))
+        if (builtins.TryGetValue(type, out var map))
         {
             if (map.TryGetValue(name, out KFunction? mappedFunc))
             {

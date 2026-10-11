@@ -57,8 +57,8 @@ public static class CsvBuiltinHandler
         var input     = args[0].GetString();
         var delimiter = args.Count > 1 ? args[1].GetString() : ",";
         var delim     = delimiter.Length > 0 ? delimiter[0] : ',';
-        var headers   = args.Count > 2 && args[2].IsList() ? args[2].GetList() : null;
-        var schema    = args.Count > 3 && args[3].IsList() ? args[3].GetList() : null;
+        var headers   = args.Count > 2 && args[2].IsList() ? args[2].GetList().ToList() : null;
+        var schema    = args.Count > 3 && args[3].IsList() ? args[3].GetList().ToList() : null;
 
         return Value.CreateList(BuildMapsFromStrings(ParseCsvToStringArrays(input, delim), headers, schema));
     }
@@ -72,8 +72,8 @@ public static class CsvBuiltinHandler
         var path      = args[0].GetString();
         var delimiter = args.Count > 1 ? args[1].GetString() : ",";
         var delim     = delimiter.Length > 0 ? delimiter[0] : ',';
-        var headers   = args.Count > 2 && args[2].IsList() ? args[2].GetList() : null;
-        var schema    = args.Count > 3 && args[3].IsList() ? args[3].GetList() : null;
+        var headers   = args.Count > 2 && args[2].IsList() ? args[2].GetList().ToList() : null;
+        var schema    = args.Count > 3 && args[3].IsList() ? args[3].GetList().ToList() : null;
 
         var content = FileUtil.ReadFile(token, path);
         return Value.CreateList(BuildMapsFromStrings(ParseCsvToStringArrays(content, delim), headers, schema));

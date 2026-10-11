@@ -1146,7 +1146,7 @@ public static class CoreBuiltinHandler
         TypeError.ExpectList(token, value);
 
         var originalList = value.GetList();
-        var flattened = FlattenListRecursive(originalList);
+        var flattened = FlattenListRecursive(originalList.ToList());
 
         return Value.CreateList(flattened);
     }
@@ -1160,7 +1160,7 @@ public static class CoreBuiltinHandler
             if (item.IsList())
             {
                 var subList = item.GetList();
-                var flattenedSubList = FlattenListRecursive(subList);
+                var flattenedSubList = FlattenListRecursive(subList.ToList());
                 result.AddRange(flattenedSubList);
             }
             else

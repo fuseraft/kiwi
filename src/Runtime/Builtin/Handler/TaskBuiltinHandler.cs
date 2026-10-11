@@ -25,7 +25,7 @@ public static class TaskBuiltinHandler
         ParameterCountMismatchError.Check(token, TaskBuiltin.TaskSpawn, 2, args.Count);
         TypeError.ExpectLambda(token, args[0]);
         TypeError.ExpectList(token, args[1]);
-        return Value.CreateInteger(TaskManager.Instance.Spawn(context, args[0].GetLambda(), args[1].GetList(), token));
+        return Value.CreateInteger(TaskManager.Instance.Spawn(context, args[0].GetLambda(), args[1].GetList().ToList(), token));
     }
 
     private static Value Await(Token token, List<Value> args)

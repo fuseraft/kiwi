@@ -20,10 +20,10 @@ public class ListBuiltinHandler
         switch (op)
         {
             case TokenName.Builtin_List_Max:
-                return ListMax(token, list);
+                return ListMax(token, list.ToList());
 
             case TokenName.Builtin_List_Min:
-                return ListMin(token, list);
+                return ListMin(token, list.ToList());
 
             case TokenName.Builtin_List_Sort:
                 // perform a simple sort, otherwise expect a lambda.
@@ -34,7 +34,7 @@ public class ListBuiltinHandler
                 break;
 
             case TokenName.Builtin_List_Sum:
-                return ListSum(list);
+                return ListSum(list.ToList());
 
             default:
                 break;
@@ -53,7 +53,7 @@ public class ListBuiltinHandler
 
         if (args.Count == 1 && args[0].IsString() && op == TokenName.Builtin_List_GroupByField)
         {
-            return ListGroupByField(token, list, args[0].GetString());
+            return ListGroupByField(token, list.ToList(), args[0].GetString());
         }
 
         if (args.Count == 1 && args[0].IsLambda())
@@ -82,23 +82,23 @@ public class ListBuiltinHandler
                     break;
 
                 case TokenName.Builtin_List_Each:
-                    result = LambdaEach(vm, lambda, list, token);
+                    result = LambdaEach(vm, lambda, list.ToList(), token);
                     break;
 
                 case TokenName.Builtin_List_Map:
-                    result = LambdaMap(vm, lambda, list, token);
+                    result = LambdaMap(vm, lambda, list.ToList(), token);
                     break;
 
                 case TokenName.Builtin_List_None:
-                    result = LambdaNone(vm, lambda, list, token);
+                    result = LambdaNone(vm, lambda, list.ToList(), token);
                     break;
 
                 case TokenName.Builtin_List_Filter:
-                    result = LambdaFilter(vm, lambda, list, token);
+                    result = LambdaFilter(vm, lambda, list.ToList(), token);
                     break;
 
                 case TokenName.Builtin_List_All:
-                    result = LambdaAll(vm, lambda, list, token);
+                    result = LambdaAll(vm, lambda, list.ToList(), token);
 
                     break;
 
@@ -138,14 +138,14 @@ public class ListBuiltinHandler
                 throw new InvalidOperationError(token, $"Unrecognized lambda '{lambdaRef.Identifier}'.");
             }
 
-            return LambdaReduce(vm, lambda2, args[0], list, token);
+            return LambdaReduce(vm, lambda2, args[0], list.ToList(), token);
         }
 
         throw new InvalidOperationError(token, "Invalid specialized list builtin invocation.");
     }
 
 
-    private static Value LambdaSort(KiwiVM vm, Callable lambda, List<Value> list, Token token)
+    private static Value LambdaSort(KiwiVM vm, Callable lambda, SyncList list, Token token)
     {
         list.Sort((a, b) =>
         {
@@ -156,6 +156,8 @@ public class ListBuiltinHandler
         return Value.CreateList(list);
     }
 
+    // The lambda helpers below take a snapshot of the list (see HandleListBuiltin) so user
+    // code never runs while the list's lock is held.
     private static Value LambdaEach(KiwiVM vm, Callable lambda, List<Value> list, Token token)
     {
         bool twoArgs = lambda.Parameters.Count > 1;
@@ -348,9 +350,9 @@ public class ListBuiltinHandler
         return maxValue;
     }
 
-    private static Value ListSort(List<Value> list)
+    private static Value ListSort(SyncList list)
     {
-        list.Sort();
+        list.Sort(Comparer<Value>.Default);
         return Value.CreateList(list);
     }
 }

@@ -70,7 +70,7 @@ public static class HttpBuiltinHandler
         {
             if (args[1].IsHashmap())
             {
-                headers = args[1].GetHashmap();
+                headers = args[1].GetHashmap().ToDictionary();
             }
             else if (method != HttpMethod.Get && method != HttpMethod.Head && method != HttpMethod.Options)
             {
@@ -81,7 +81,7 @@ public static class HttpBuiltinHandler
         if (args.Count == 3)
         {
             ParameterTypeMismatchError.ExpectHashmap(token, "headers", 2, args[2]);
-            headers = args[2].GetHashmap();
+            headers = args[2].GetHashmap().ToDictionary();
         }
 
         long taskId = TaskManager.Instance.AllocateAndRegisterAsyncTask();
@@ -194,7 +194,7 @@ public static class HttpBuiltinHandler
             return null;
         }
         ParameterTypeMismatchError.ExpectHashmap(token, "headers", -1, arg);
-        return arg.GetHashmap();
+        return arg.GetHashmap().ToDictionary();
     }
 
     private static void AddHeaders(HttpRequestMessage req, Dictionary<Value, Value>? headers)

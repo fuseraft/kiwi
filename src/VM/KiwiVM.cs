@@ -21,8 +21,8 @@ namespace kiwi.VM;
 /// </summary>
 internal sealed class ForIterState
 {
-    public List<Value>? List;
-    public Dictionary<Value, Value>? Hashmap;
+    public SyncList? List;
+    public SyncDictionary<Value, Value>? Hashmap;
     public byte[]? Bytes;
     public string? StringData; // lazy string iteration: avoids upfront char-Value allocation
     public int     Index;
@@ -1018,7 +1018,7 @@ public sealed class KiwiVM
                         CloseUpvalues(frame.StackBase);
                         if (frame.LocalFunctions != null)
                             foreach (var fn in frame.LocalFunctions)
-                                _context.Functions.Remove(fn);
+                                _context.Functions.TryRemove(fn, out _);
                         _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
                         _frameCount--;
                         if (_frameCount > 0) Push(result);
@@ -1030,7 +1030,7 @@ public sealed class KiwiVM
                         CloseUpvalues(frame.StackBase);
                         if (frame.LocalFunctions != null)
                             foreach (var fn in frame.LocalFunctions)
-                                _context.Functions.Remove(fn);
+                                _context.Functions.TryRemove(fn, out _);
                         _sp = frame.StackBase > 0 ? frame.StackBase - 1 : 0;
                         _frameCount--;
                         if (_frameCount > 0) Push(result);
@@ -1139,7 +1139,7 @@ public sealed class KiwiVM
                         var funcName = _pkgPrefix.Length > 0 ? _pkgPrefix + rawName : rawName;
 
                         var value = Pop();
-                        _context.Functions.Remove(funcName);
+                        _context.Functions.TryRemove(funcName, out _);
                         InvalidateName(funcName);
 
                         if (value.IsLambda())
@@ -1457,7 +1457,7 @@ public sealed class KiwiVM
                         else if (coll.IsHashmap())
                         {
                             state.Hashmap     = coll.GetHashmap();
-                            state.HashmapKeys = [..coll.GetHashmap().Keys];
+                            state.HashmapKeys = state.Hashmap.Keys;
                             state.Index       = 0;
                         }
                         else if (coll.IsBytes())
@@ -1497,10 +1497,11 @@ public sealed class KiwiVM
                         bool done;
                         if (state.List != null)
                         {
-                            done = state.Index >= state.List.Count;
+                            // One locked read: another task may shrink the list mid-loop.
+                            done = !state.List.TryGet(state.Index, out var item);
                             if (!done)
                             {
-                                var item = state.List[state.Index++];
+                                state.Index++;
                                 if (numVars == 2)
                                 {
                                     Push(Value.CreateInteger(state.Index - 1)); // key = index
@@ -1697,7 +1698,7 @@ public sealed class KiwiVM
                         if (!pkgName.IsString())
                             throw new Tracing.Error.InvalidOperationError(frame.GetToken(), "require expects a string package name.");
                         var name = pkgName.GetString();
-                        if (!_context.HasPackage(name) && !_context.ImportedPackages.Contains(name))
+                        if (!_context.HasPackage(name) && !_context.ImportedPackages.ContainsKey(name))
                             throw new Tracing.Error.PackageUndefinedError(frame.GetToken(), name);
                         break;
                     }
@@ -1875,7 +1876,7 @@ public sealed class KiwiVM
                         var qualifiedName = _pkgPrefix.Length >= 2 ? _pkgPrefix[..^2] : _pkgPrefix;
                         _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         RegisterTypeBuiltins(qualifiedName);
-                        _context.ImportedPackages.Add(qualifiedName);
+                        _context.ImportedPackages.TryAdd(qualifiedName, 0);
                         InvalidateName(qualifiedName);
                         break;
                     }
@@ -2558,12 +2559,15 @@ public sealed class KiwiVM
 
     public Value IncludeFile(Token token, string filePath)
     {
+        lock (_context.ImportLock) return IncludeFileLocked(token, filePath);
+    }
+
+    private Value IncludeFileLocked(Token token, string filePath)
+    {
         var fullPath = ResolveIncludePath(token, filePath);
 
-        if (_context.Includes.Contains(fullPath))
+        if (!_context.Includes.TryAdd(fullPath, 0))
             return Value.Default;
-
-        _context.Includes.Add(fullPath);
 
         if (!FileUtil.FileExists(token, fullPath))
             throw new InvalidOperationError(token, $"File not found: {filePath}");
@@ -2724,12 +2728,17 @@ public sealed class KiwiVM
 
     public void ImportPackage(Token token, Value packageName)
     {
+        lock (_context.ImportLock) ImportPackageLocked(token, packageName);
+    }
+
+    private void ImportPackageLocked(Token token, Value packageName)
+    {
         if (!packageName.IsString())
             throw new InvalidOperationError(token, "Expected the name of a package to import.");
 
         var packageNameValue = packageName.GetString();
 
-        if (_context.ImportedPackages.Contains(packageNameValue))
+        if (_context.ImportedPackages.ContainsKey(packageNameValue))
             return;
 
         if (!_context.HasPackage(packageNameValue))
@@ -2746,7 +2755,7 @@ public sealed class KiwiVM
         if (packageNameValue == "enum")
         {
             EnumPackage.RegisterBuiltins();
-            _context.ImportedPackages.Add(packageNameValue);
+            _context.ImportedPackages.TryAdd(packageNameValue, 0);
             return;
         }
         // dispatch for .size etc on IsEnum KStruct handled in CallInstruction via TypeBuiltins
@@ -2767,7 +2776,7 @@ public sealed class KiwiVM
             PackageStack.Pop();
 
         RegisterTypeBuiltins(packageNameValue);
-        _context.ImportedPackages.Add(packageNameValue);
+        _context.ImportedPackages.TryAdd(packageNameValue, 0);
     }
 
     private void ImportExternal(Token token, string packageName)
@@ -2778,8 +2787,7 @@ public sealed class KiwiVM
 
         var path = FileUtil.GetAbsolutePath(token, packagePath);
 
-        if (_context.Includes.Contains(path)) return;
-        _context.Includes.Add(path);
+        if (!_context.Includes.TryAdd(path, 0)) return;
 
         using Lexer lexer = new(path);
         var tokenStream = lexer.GetTokenStream();
@@ -3044,7 +3052,7 @@ public sealed class KiwiVM
         var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
 
         if (obj.IsString()) return kiwi.Runtime.Builtin.Util.SliceUtil.StringSlice(token, slice, obj.GetString());
-        if (obj.IsList())   return kiwi.Runtime.Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList());
+        if (obj.IsList())   return kiwi.Runtime.Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList().ToList());
         if (obj.IsBytes())  return kiwi.Runtime.Builtin.Util.SliceUtil.BytesSlice(token, slice, obj.GetBytes());
         throw new InvalidOperationError(token, "Cannot slice this type.");
     }
@@ -3060,9 +3068,9 @@ public sealed class KiwiVM
 
         if (obj.IsList() && rhs.IsList())
         {
-            var targetList = obj.GetList();
-            var rhsValues  = rhs.GetList();
-            kiwi.Runtime.Builtin.Util.SliceUtil.UpdateListSlice(token, false, ref targetList, slice, rhsValues);
+            var rhsValues = rhs.GetList().ToList();
+            obj.GetList().Mutate(target =>
+                kiwi.Runtime.Builtin.Util.SliceUtil.UpdateListSlice(token, false, target, slice, rhsValues));
         }
     }
 
