@@ -28,17 +28,6 @@ public sealed class StackFrame(string name, Scope scope, Token? callSiteToken = 
     public Token? CallSiteToken { get; set; } = callSiteToken;
     public bool IsFunction { get; set; } = false;
 
-    // Allocated on demand — most lambda frames never register local functions or lambdas.
-    private HashSet<string>? _localFunctions;
-    private HashSet<string>? _localLambdas;
-    public HashSet<string> LocalFunctions => _localFunctions ??= [];
-    public HashSet<string> LocalLambdas   => _localLambdas   ??= [];
-
-    /// <summary>True only when at least one local function name has been registered.</summary>
-    internal bool HasLocalFunctions => _localFunctions is { Count: > 0 };
-    /// <summary>True only when at least one local lambda name has been registered.</summary>
-    internal bool HasLocalLambdas   => _localLambdas   is { Count: > 0 };
-
     public string StructName { get; set; } = string.Empty;
 
     public void SetObjectContext(InstanceRef? obj)
