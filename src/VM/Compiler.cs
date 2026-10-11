@@ -1240,9 +1240,19 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         string idxName = (node.IndexIterator is IdentifierNode ii) ? ii.Name : "";
         bool   hasDual = !string.IsNullOrEmpty(idxName);
 
-        // Evaluate collection, push ForIterState
-        CompileNode(node.DataSet!);
-        Emit(Opcode.ForIterInit, 0, 0, ln);
+        // Evaluate collection, push ForIterState. A range literal is iterated by counting
+        // rather than building the list, so `for i in [1 to n]` runs in constant memory.
+        if (node.DataSet is RangeLiteralNode range)
+        {
+            CompileNode(range.RangeStart!);
+            CompileNode(range.RangeEnd!);
+            Emit(Opcode.ForIterInitRange, 0, 0, ln);
+        }
+        else
+        {
+            CompileNode(node.DataSet!);
+            Emit(Opcode.ForIterInit, 0, 0, ln);
+        }
 
         // LOOP_TOP
         int loopTop  = _chunk.Code.Count;

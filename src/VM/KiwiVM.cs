@@ -28,6 +28,10 @@ internal sealed class ForIterState
     public int     Index;
     public List<Value>? HashmapKeys; // pre-enumerated keys for hashmap iteration
     public GeneratorRef? Generator;  // VM-native generator iteration
+    public bool  IsRange;            // counting iteration over [RangeNext to RangeStop]
+    public long  RangeNext;
+    public long  RangeStop;
+    public long  RangeStep;          // +1 or -1
 }
 
 /// <summary>
@@ -1512,6 +1516,23 @@ public sealed class KiwiVM
                         Push(new Value(state, IterStateType));
                         break;
                     }
+                    case Opcode.ForIterInitRange:
+                    {
+                        var stop  = Pop();
+                        var start = Pop();
+                        if (!start.IsInteger() || !stop.IsInteger())
+                            throw new RangeError(frame.GetToken(), "Range values must be integers.");
+                        long s = start.GetInteger(), e = stop.GetInteger();
+                        var state = new ForIterState
+                        {
+                            IsRange   = true,
+                            RangeNext = s,
+                            RangeStop = e,
+                            RangeStep = e < s ? -1 : 1,
+                        };
+                        Push(new Value(state, IterStateType));
+                        break;
+                    }
                     case Opcode.ForIterNext:
                     {
                         // Peek at the ForIterState on top of stack
@@ -1519,7 +1540,24 @@ public sealed class KiwiVM
                         int numVars  = B;
 
                         bool done;
-                        if (state.List != null)
+                        if (state.IsRange)
+                        {
+                            // Same values as BuildRange: inclusive, never empty.
+                            done = state.Index > 0 && state.RangeNext - state.RangeStep == state.RangeStop;
+                            if (!done)
+                            {
+                                var item = Value.CreateInteger(state.RangeNext);
+                                if (numVars == 2)
+                                {
+                                    Push(Value.CreateInteger(state.Index)); // key = index
+                                    Push(item);                              // val
+                                }
+                                else Push(item);
+                                state.Index++;
+                                state.RangeNext += state.RangeStep;
+                            }
+                        }
+                        else if (state.List != null)
                         {
                             // One locked read: another task may shrink the list mid-loop.
                             done = !state.List.TryGet(state.Index, out var item);

@@ -304,6 +304,12 @@ public enum Opcode : byte
     /// </summary>
     ForIterInit,
     /// <summary>
+    /// Pop stop, pop start → push a ForIterState that counts from start to stop inclusive
+    /// (downward when stop &lt; start). Used for <c>for x in [a to b]</c> so the range is never
+    /// materialized as a list.
+    /// </summary>
+    ForIterInitRange,
+    /// <summary>
     /// A = jump-if-done target IP, B = number of loop vars to push (1 or 2).
     /// Peek at the ForIterState on top of stack:
     ///   - If done: pop state, jump to A.
