@@ -263,8 +263,8 @@ public partial class Parser(bool rethrowErrors = false)
         // failing at `bytes`, then once more treating `bytes` as a statement). Because the
         // lexer doesn't always emit Newline tokens, we use the token's Span.Line to find the
         // line boundary.
-        var errorLine = token.Span.Line;
-        while (GetTokenType() != TokenType.Eof && token.Span.Line == errorLine)
+        var errorLine = token.Span.EndLine;
+        while (GetTokenType() != TokenType.Eof && token.Span.Line <= errorLine)
         {
             Next();
         }

@@ -1478,7 +1478,7 @@ public partial class Parser
             }
 
             List<ASTNode?> extraArgs = [];
-            if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.Line)
+            if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.EndLine)
             {
                 extraArgs = CollectCallArguments();
             }
@@ -1629,7 +1629,7 @@ public partial class Parser
                 {
                     Next();  // Consume 'catch'
                     bool hasCatchParen = MatchType(TokenType.LParen);
-                    if (hasCatchParen || (GetTokenType() == TokenType.Identifier && token.Span.Line == Previous().Span.Line))
+                    if (hasCatchParen || (GetTokenType() == TokenType.Identifier && token.Span.Line == Previous().Span.EndLine))
                     {
                         if (GetTokenType() != TokenType.Identifier)
                         {
@@ -2588,7 +2588,7 @@ public partial class Parser
         {
             qualifiedNode = ParseFunctionCall(qualifiedName, GetTokenName());
         }
-        else if (GetTokenType() == TokenType.LBracket && token.Span.Line == Previous().Span.Line)
+        else if (GetTokenType() == TokenType.LBracket && token.Span.Line == Previous().Span.EndLine)
         {
             qualifiedNode = ParseIndexing(qualifiedName);
         }
@@ -2671,14 +2671,14 @@ public partial class Parser
             case TokenType.Dot:
                 node = ParseMemberAccess(node);
                 break;
-            case TokenType.LParen when token.Span.Line == Previous().Span.Line:
+            case TokenType.LParen when token.Span.Line == Previous().Span.EndLine:
                 // @instanceVar(args) — treat as a lambda call on the stored value,
                 // not as a named function call (which would look for a struct method).
                 node = isInstance
                     ? ParseLambdaCall(node)
                     : ParseFunctionCall(identifierName, type);
                 break;
-            case TokenType.LBracket when token.Span.Line == Previous().Span.Line:
+            case TokenType.LBracket when token.Span.Line == Previous().Span.EndLine:
                 node = ParseIndexing(node);
                 break;
             case TokenType.Operator when IsAssignmentOperator():
@@ -2746,7 +2746,7 @@ public partial class Parser
     {
         var left = ParseLogicalAnd();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2763,7 +2763,7 @@ public partial class Parser
     {
         var left = ParseBitwiseOr();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_And)
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_And)
         {
             var opToken = token.Clone();
             Next();  // Consume '&&'
@@ -2779,7 +2779,7 @@ public partial class Parser
     {
         var left = ParseBitwiseXor();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseOr)
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseOr)
         {
             var opToken = token.Clone();
             Next();  // Consume '|'
@@ -2795,7 +2795,7 @@ public partial class Parser
     {
         var left = ParseBitwiseAnd();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseXor)
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseXor)
         {
             var opToken = token.Clone();
             Next();  // Consume '^'
@@ -2811,7 +2811,7 @@ public partial class Parser
     {
         var left = ParseEquality();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseAnd)
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseAnd)
         {
             var opToken = token.Clone();
             Next();  // Consume '&'
@@ -2827,7 +2827,7 @@ public partial class Parser
     {
         var left = ParseComparison();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsEqualityOperator())
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsEqualityOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2845,7 +2845,7 @@ public partial class Parser
     {
         var left = ParseBitshift();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsComparisonOperator())
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsComparisonOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2863,7 +2863,7 @@ public partial class Parser
     {
         var left = ParseAdditive();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsBitwiseOperator())
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsBitwiseOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2880,7 +2880,7 @@ public partial class Parser
     private ASTNode? ParseAdditive()
     {
         var left = ParseMultiplicative();
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsAdditiveOperator())
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsAdditiveOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2895,7 +2895,7 @@ public partial class Parser
     {
         var left = ParseUnary();
 
-        while (stream.CanRead && Previous().Span.Line == token.Span.Line && IsMultiplicativeOperator())
+        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsMultiplicativeOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2998,11 +2998,11 @@ public partial class Parser
             {
                 node = ParseMemberAccess(node);
             }
-            else if (GetTokenType() == TokenType.LBracket && token.Span.Line == Previous().Span.Line)
+            else if (GetTokenType() == TokenType.LBracket && token.Span.Line == Previous().Span.EndLine)
             {
                 node = ParseIndexing(node);
             }
-            else if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.Line)
+            else if (GetTokenType() == TokenType.LParen && token.Span.Line == Previous().Span.EndLine)
             {
                 node = ParseLambdaCall(node);
             }

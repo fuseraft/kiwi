@@ -62,3 +62,15 @@ fn test_strings()
   end
   tester::assert(wrap_string("div", "<", ">") == "<div>", "A24: lambda building string")
 end
+
+@tester::test("multi-line string literal followed by an operator")
+fn test_multiline_string_operator()
+  s = 'a
+b' + "c"
+  tester::assert_eq(s, "a\nbc")
+
+  t = ("<p>
+</p>" + "!").size()
+  tester::assert_eq(t, 9)
+end
+
