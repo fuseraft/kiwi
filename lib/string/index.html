@@ -5080,7 +5080,7 @@
 </span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a># prints: The Lord of the Rings
 </span></code></pre></div></p>
 <h3 id="dedenttext"><code>dedent(text)</code><a class="headerlink" href="#dedenttext" title="Permanent link">&para;</a></h3>
-<p>Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings.</p>
+<p>Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings. A blank first line is dropped, and blank lines don't count toward the common indent; a non-blank line with no indentation means nothing is common, so nothing is removed.</p>
 <p><strong>Parameters</strong></p>
 <table>
 <thead>
