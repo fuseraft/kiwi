@@ -108,7 +108,9 @@ public class Program
             {
                 argWithoutPrefix = arg[2..];
             }
-            else if (arg.StartsWith('-') || arg.StartsWith('/'))
+            // '/key' is a Windows-style switch; everywhere else a leading '/' is an absolute path
+            // (`script.kiwi /tmp`) and stays positional.
+            else if (arg.StartsWith('-') || (arg.StartsWith('/') && OperatingSystem.IsWindows()))
             {
                 argWithoutPrefix = arg[1..];
             }
