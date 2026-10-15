@@ -458,11 +458,12 @@ package string
       lines = lines[1:]
     end
 
-    # Find minimum indentation (ignore blank lines)
+    # Find minimum indentation (ignore blank lines). A line with no indentation makes it 0:
+    # nothing is common to every line, so nothing is removed.
     min_indent = 999999
     for line in lines do
       trimmed = line.ltrim()
-      if !trimmed.empty() && line.size() > trimmed.size()
+      if !trimmed.empty()
         indent = line.size() - trimmed.size()
         min_indent = [indent, min_indent].min()
       end
@@ -483,9 +484,10 @@ package string
       end
     end
 
-    # Join and restore final newline if original had one
+    # Join and restore final newline if original had one (lines() may already have kept it
+    # as a trailing empty line)
     output = result.join("\n")
-    text.ends_with("\n") ? output + "\n" : output
+    text.ends_with("\n") && !output.ends_with("\n") ? output + "\n" : output
   end
 
   /#

@@ -1,0 +1,35 @@
+/# ==============================================================================
+   Type names (`bytes`, `list`, `string`, ...) are reserved, so using one as a
+   name is a syntax error. The error should name the problem and the fix.
+  ============================================================================== #/
+fn typename_parse_error(code: string): string
+  try
+    eval code
+  catch (e)
+    return e["message"]
+  end
+  ""
+end
+
+@tester::test("type names as identifiers: variables and parameters")
+fn test_typename_as_variable()
+  tester::assert_eq(typename_parse_error("bytes = 0"),
+    "`bytes` is a type name and can't be used as a variable name. Rename it, e.g. `byte_count`.")
+  tester::assert_eq(typename_parse_error("var (list: integer = 0)"),
+    "`list` is a type name and can't be used as a variable name. Rename it, e.g. `items`.")
+  tester::assert_eq(typename_parse_error("for string in [1] do\nend"),
+    "`string` is a type name and can't be used as a variable name. Rename it, e.g. `text`.")
+  tester::assert_eq(typename_parse_error("fn f(integer)\nend"),
+    "`integer` is a type name and can't be used as a parameter name. Rename it, e.g. `count`.")
+end
+
+@tester::test("type names as identifiers: hashmap keys and members")
+fn test_typename_as_key()
+  tester::assert_eq(typename_parse_error("h = { bytes: 1 }"),
+    "`bytes` is a type name and can't be used as a bare hashmap key. Quote it: `{ \"bytes\": ... }`.")
+  tester::assert_eq(typename_parse_error("h = {}\nprintln h.bytes"),
+    "`bytes` is a type name and can't be used as a member name after '.'. For a hashmap key, index it instead: `[\"bytes\"]`.")
+
+  h = { "bytes": 1 }
+  tester::assert_eq(h["bytes"], 1)
+end

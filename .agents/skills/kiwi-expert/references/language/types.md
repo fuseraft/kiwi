@@ -4,7 +4,7 @@ Kiwi supports the following builtin types. To build your own type, see [Structs]
 
 ---
 
-> **Reserved as identifiers:** `boolean`, `bytes`, `date`, `float`, `generator`, `hashmap`, `integer`, `lambda`, `list`, `object`, `pointer`, and `string` are all tokenized as type keywords, not plain names. None of them can be used as a variable name, function/method name, or parameter name — `fn foo(list)` and `list = [1, 2, 3]` both fail to parse with `Expected parameter name.` / `Unexpected token in statement: Typename`. Pick a different identifier (e.g. `items`, `data`, `values`) instead. `any` and `null`/`none` are reserved too, for the same reason.
+> **Reserved as identifiers:** `boolean`, `bytes`, `date`, `float`, `generator`, `hashmap`, `integer`, `lambda`, `list`, `object`, `pointer`, and `string` are all tokenized as type keywords, not plain names. None of them can be used as a variable name, function/method name, or parameter name — `fn foo(list)` and `list = [1, 2, 3]` both fail to parse, with an error naming the type and suggesting a rename (``` `list` is a type name and can't be used as a variable name. Rename it, e.g. `items`. ```). Pick a different identifier (e.g. `items`, `data`, `values`) instead. The same goes for bare hashmap keys and member access: `{ bytes: 1 }` and `h.bytes` fail, while the quoted forms `{ "bytes": 1 }` and `h["bytes"]` work. `any` and `null`/`none` are reserved too, for the same reason.
 
 ---
 

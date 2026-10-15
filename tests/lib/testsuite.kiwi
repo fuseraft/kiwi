@@ -18,6 +18,7 @@ var (unit_tests: list = [
   # Type system
   "nulls",
   "type_checking",
+  "typename_identifiers",
   "bytestrings",
 
   # Collections & data types

@@ -118,13 +118,16 @@ public struct Token(TokenType type, TokenName name, TokenSpan span, string text,
     public static Token Eof => new(TokenType.Eof, TokenName.Default, new TokenSpan(), string.Empty, Value.Default);
 }
 
-public readonly struct TokenSpan(int file, int line, int pos)
+public readonly struct TokenSpan(int file, int line, int pos, int endLine = 0)
 {
     private readonly int pos = pos;
 
     public readonly int File { get; } = file;
     public readonly int Line { get; } = line;
     public readonly int Pos => pos;
+    /// <summary>The line the token ends on — later than <see cref="Line"/> only for a string
+    /// literal that spans lines.</summary>
+    public readonly int EndLine { get; } = endLine > line ? endLine : line;
 }
 
 public enum TokenType

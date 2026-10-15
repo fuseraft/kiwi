@@ -19,8 +19,7 @@ def main(argv: list)
     "
      ${topbar}
     < ${phrase} >
-     ${bottombar}"
-    +
+     ${bottombar}" +
     '
             \   ^__^
              \  (oo)\_______
@@ -33,4 +32,4 @@ def main(argv: list)
   print output
 end
 
-main(env::argv().keys())
+main(env::args())

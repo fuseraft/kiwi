@@ -62,3 +62,20 @@ fn test_strings()
   end
   tester::assert(wrap_string("div", "<", ">") == "<div>", "A24: lambda building string")
 end
+
+@tester::test("multi-line string literal followed by an operator")
+fn test_multiline_string_operator()
+  s = 'a
+b' + "c"
+  tester::assert_eq(s, "a\nbc")
+
+  t = ("<p>
+</p>" + "!").size()
+  tester::assert_eq(t, 9)
+end
+
+@tester::test("dedent keeps lines with no indentation intact")
+fn test_dedent_zero_indent()
+  tester::assert_eq(string::dedent("first\n    second"), "first\n    second")
+  tester::assert_eq(string::dedent("\n    a\n      b\n"), "a\n  b\n")
+end

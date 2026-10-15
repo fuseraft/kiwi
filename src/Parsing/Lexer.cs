@@ -74,6 +74,13 @@ public class Lexer : IDisposable
         {
             var token = GetToken();
 
+            // A string can span lines; record where it ends so an operator after its closing
+            // quote counts as being on the same line (see the parser's same-line checks).
+            if (token.Type is TokenType.String or TokenType.Bytes && LineNumber > token.Span.Line)
+            {
+                token.SetSpan(new TokenSpan(token.Span.File, token.Span.Line, token.Span.Pos, LineNumber));
+            }
+
             if(token.Type == TokenType.String && token.Text.Contains("${"))
             {
                 tokens.Add(new Token(TokenType.Interpolation, TokenName.Default, token.Span, token.Text, token.Value));

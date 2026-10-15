@@ -11,10 +11,10 @@ greet("world") # prints: Hello, world!
 greet()        # prints: Hello, Kiwi!
 ```
 
-A parameter name can't be one of Kiwi's built-in type names (`list`, `hashmap`, `string`, `integer`, `float`, `boolean`, `date`, `any`, `generator`, `lambda`, `object`, `pointer`, `bytes`, `none`) — these are reserved as type keywords, and using one produces a parse error (`Expected parameter name.`). This applies to variable names generally, not just parameters. See [Types](types.md).
+A parameter name can't be one of Kiwi's built-in type names (`list`, `hashmap`, `string`, `integer`, `float`, `boolean`, `date`, `any`, `generator`, `lambda`, `object`, `pointer`, `bytes`, `none`) — these are reserved as type keywords, and using one produces a parse error (``` `list` is a type name and can't be used as a parameter name. ```). This applies to variable names generally, not just parameters. See [Types](types.md).
 
 ```kiwi
-fn foo(list)     # error: Expected parameter name.
+fn foo(list)     # error: `list` is a type name and can't be used as a parameter name.
   ...
 end
 
