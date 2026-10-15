@@ -61,7 +61,7 @@ or
 #/
 
 fn main()
-  args = env::parse_args([], ["c", "x", "o"])
+  args = env::parse_args([], ["-c", "-x", "-o"])
   cfg = build_config(args)
   
   if cfg.create
@@ -92,16 +92,18 @@ end
 
 fn zip_file(input_path: string): bytes
   file_bytes = fio::readbytes(input_path)
-  compress::zip_create([{ name: input_path, content: file_bytes }])
+  compress::zip_create([{ name: fio::filename(input_path), content: file_bytes }])
 end
 
 fn zip_dir(input_path: string): bytes
   entries = []
+  # entry names are relative to the directory's parent, so they keep its name (like `zip -r`)
+  base = fio::parentdir(input_path)
 
   for path in fio::glob(input_path, ["./**/*"]) do
     file_bytes = fio::readbytes(path)
     entries.push({
-      name: path,
+      name: path.substring(base.size() + 1).replace("\\", "/"),
       content: file_bytes
     })
   end
@@ -115,15 +117,23 @@ fn unzip(cfg: hashmap)
   total_bytes = 0
   
   for item in compress::zip_extract(file_bytes) do
-    dir_name = fio::parentdir(item.name)
+    # extract under the current directory only: never to an absolute path or above it
+    name = item.name.replace("\\", "/")
+    if name.begins_with("/") || name.contains(":") || name.split("/").contains("..")
+      log(cfg, "Skipped ${item.name}: path is outside the current directory")
+      next
+    end
+
+    target = fio::combine([fio::cwd(), name])
+    dir_name = fio::parentdir(target)
 
     # create the parent directory if it doesn't exist
     if !fio::isdir(dir_name)
       fio::mkdirp(dir_name)
     end
 
-    fio::writebytes(item.name, item.content)
-    log(cfg, "Extracted ${item.name}: ${item.content.size()}")
+    fio::writebytes(target, item.content)
+    log(cfg, "Extracted ${name}: ${item.content.size()}")
 
     total_files += 1
     total_bytes += item.content.size()
@@ -144,9 +154,9 @@ end
 Prints help screen.
 #/
 fn help()
-  banner = "=============================\n"
-         + "=== ziputil.kiwi - v0.0.1 ===\n"
-         + "=============================\n"
+  banner = "=============================\n" +
+           "=== ziputil.kiwi - v0.0.1 ===\n" +
+           "=============================\n"
   padlen = "         ".size()
   padstart = "  "
   opts = {
@@ -170,12 +180,12 @@ Builds config from args and validates it.
 #/
 fn build_config(args: hashmap): hashmap
   validate_config({
-    create: args["c"].truthy(),
-    extract: args["x"].truthy(),
-    output_path_specified: args["o"].truthy(),
-    input_path: args["c"] ?? args["x"],
-    output_path: args["o"] ?? "",
-    silence: args["s"].truthy()
+    create: args["-c"].truthy(),
+    extract: args["-x"].truthy(),
+    output_path_specified: args["-o"].truthy(),
+    input_path: args["-c"] ?? args["-x"],
+    output_path: args["-o"] ?? "",
+    silence: args["-s"].truthy()
   })
 end
 
