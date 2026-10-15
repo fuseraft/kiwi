@@ -74,3 +74,8 @@ b' + "c"
   tester::assert_eq(t, 9)
 end
 
+@tester::test("dedent keeps lines with no indentation intact")
+fn test_dedent_zero_indent()
+  tester::assert_eq(string::dedent("first\n    second"), "first\n    second")
+  tester::assert_eq(string::dedent("\n    a\n      b\n"), "a\n  b\n")
+end

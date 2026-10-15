@@ -606,7 +606,7 @@ println string::smart_titleize("the lord of the rings")
 
 ### `dedent(text)`
 
-Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings.
+Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings. A blank first line is dropped, and blank lines don't count toward the common indent; a non-blank line with no indentation means nothing is common, so nothing is removed.
 
 **Parameters**
 
