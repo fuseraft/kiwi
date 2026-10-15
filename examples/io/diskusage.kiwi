@@ -1,78 +1,252 @@
+#!/usr/bin/env kiwi
 /#
-Computes disk usage for each subdirectory under a given path,
-sorted from largest to smallest (like a simplified `du -sh *`).
+Computes disk usage for each entry under a path, sorted largest-first
+(like a simplified `du -sh *`).
 
-Usage: kiwi diskusage [path]
+Usage:
+  kiwi diskusage.kiwi [path] [--depth=N] [--limit=N] [--all] [--help]
+
+Options:
+  path          Directory to scan (default: current working directory)
+  --depth=N     How deep to recurse when summing sizes (default: unlimited)
+  --limit=N     Show only the N largest entries (default: all)
+  --all         Include files in the listing (default: directories only)
+  --help, -h    Show this help text
 #/
 
-fn dir_size(path: string): integer
-  total = 0
-  for entry in fio::listdir(path, true) do
-    total += fio::filesize(entry) when fio::isfile(entry)
-  end
-  total
-end
+UNITS = [
+  { name: "B",  factor: 1 },
+  { name: "KB", factor: 1024 },
+  { name: "MB", factor: 1048576 },
+  { name: "GB", factor: 1073741824 },
+  { name: "TB", factor: 1099511627776 }
+]
 
+/#
+@summary Format a byte count as a human-readable size string.
+@param integer n : Byte count (negative means unknown / inaccessible).
+@return string : Formatted size, e.g. "1.25 MB".
+#/
 fn format_size(n: integer): string
-  case
-  when n >= 1073741824:  "${math::round(n / 1073741824.0, 2)} GB"
-  when n >= 1048576:     "${math::round(n / 1048576.0, 2)} MB"
-  when n >= 1024:        "${math::round(n / 1024.0, 2)} KB"
-  else:                  "${n} B"
+  return "?" when n < 0
+  return "0 B" when n == 0
+
+  unit = UNITS[0]
+  for u in UNITS do
+    break when n < u.factor
+    unit = u
+  end
+
+  if unit.name == "B"
+    "${n} B"
+  else
+    value = math::round(n.to_float() / unit.factor.to_float(), 2)
+    "${value} ${unit.name}"
   end
 end
 
-if __main__()
-  argv = env::argv().keys()
-  target = argv.size() >= 1 ? argv[0] : fio::cwd()
+/#
+@summary Recursively sum file sizes under path, honouring max_depth.
+@param string path : Directory or file path.
+@param integer max_depth : Remaining depth budget (-1 = unlimited).
+@return integer : Total byte count, or -1 if the path could not be read.
+#/
+fn dir_size(path: string, max_depth: integer = -1): integer
+  if fio::isfile(path)
+    try
+      return fio::filesize(path)
+    catch
+      return -1
+    end
+  end
 
-  if not fio::isdir(target)
-    println "Error: '${target}' is not a directory."
+  return 0 when not fio::isdir(path)
+
+  # depth 0 = files in this directory only; do not descend further.
+  can_recurse = max_depth != 0
+  next_depth = max_depth < 0 ? -1 : max_depth - 1
+  acc = 0
+
+  try
+    for entry in fio::listdir(path, false) do
+      if fio::isfile(entry)
+        try
+          acc = acc + fio::filesize(entry)
+        catch
+          # skip unreadable files; keep scanning siblings
+        end
+      elsif fio::isdir(entry) and can_recurse
+        child = dir_size(entry, next_depth)
+        acc = acc + child when child >= 0
+      end
+    end
+  catch
+    return -1
+  end
+
+  acc
+end
+
+/#
+@summary Build a sorted usage report for the immediate children of target.
+@param string target : Directory to inspect.
+@param integer max_depth : Depth budget passed through to dir_size.
+@param boolean include_files : When true, list files alongside directories.
+@return hashmap : { rows: list, total_size: integer, denied: integer }
+#/
+fn collect_usage(target: string, max_depth: integer, include_files: boolean): hashmap
+  rows = []
+  denied = 0
+  hidden_file_size = 0
+
+  try
+    entries = fio::listdir(target, false)
+  catch e
+    cli::error("Cannot list '${target}': ${e.message}")
     exit(1)
   end
 
-  println "Disk usage: ${target}"
-  println "-" * 60
+  for entry in entries do
+    is_dir = fio::isdir(entry)
+    is_file = fio::isfile(entry)
+    next when not is_dir and not is_file
 
-  entries = fio::listdir(target, false)
-
-  dirs = entries.filter(do (e) => fio::isdir(e) end)
-  root_files = entries.filter(do (e) => fio::isfile(e) end)
-
-  results = []
-  for d in dirs do
+    entry_size = -1
     try
-      results.push({ path: d, size: dir_size(d) })
+      if is_file
+        entry_size = fio::filesize(entry)
+      else
+        entry_size = dir_size(entry, max_depth)
+      end
     catch
-      results.push({ path: d, size: -1 })
+      entry_size = -1
     end
-  end
 
-  results = results.sort(with (a, b) do a.size > b.size end)
-
-  total = 0
-  for r in results do
-    name = fio::filename(r.path)
-    if r.size >= 0
-      label = format_size(r.size)
-      println "${label.padstart(12)}  ${name}"
-      total += r.size
-    else
-      label = "?".padstart(12)
-      println "${label}  ${name}  (permission denied)"
+    if entry_size < 0
+      denied = denied + 1 when include_files or is_dir
+    elsif is_file and not include_files
+      # Keep loose files out of the table, but still count them.
+      hidden_file_size = hidden_file_size + entry_size
+      next
     end
+
+    rows.push({
+      path: entry,
+      name: fio::filename(entry),
+      size: entry_size,
+      kind: is_dir ? "dir" : "file"
+    })
   end
 
-  root_size = 0
-  for f in root_files do
-    root_size += fio::filesize(f)
+  # Largest first; unknown (-1) sinks to the bottom.
+  rows = rows.sort(with (a, b) do
+    a_key = a.size < 0 ? -1 : a.size
+    b_key = b.size < 0 ? -1 : b.size
+    a_key > b_key
+  end)
+
+  # Sum from the finished rows so we never rely on a running total
+  # mutated inside nested control-flow / recursive calls.
+  total_size = hidden_file_size
+  for r in rows do
+    total_size = total_size + r.size when r.size >= 0
   end
 
-  if root_size > 0
-    println "${format_size(root_size).padstart(12)}  (files in root)"
-    total += root_size
+  if hidden_file_size > 0 and not include_files
+    rows.push({
+      path: target,
+      name: "(files in root)",
+      size: hidden_file_size,
+      kind: "file"
+    })
+    # Re-sort so the synthetic root-files row lands in size order.
+    rows = rows.sort(with (a, b) do
+      a_key = a.size < 0 ? -1 : a.size
+      b_key = b.size < 0 ? -1 : b.size
+      a_key > b_key
+    end)
   end
 
-  println "-" * 60
-  println "${format_size(total).padstart(12)}  total"
+  { rows: rows, total_size: total_size, denied: denied }
 end
+
+/#
+@summary Print the usage table (and optional total / denial summary).
+#/
+fn print_report(target: string, report: hashmap, limit: integer)
+  rows = report["rows"]
+  shown = limit > 0 ? rows.take(limit) : rows
+
+  cli::header("Disk usage: ${target}")
+
+  if shown.empty()
+    cli::info("No entries to display.")
+    return
+  end
+
+  table_rows = []
+  for r in shown do
+    label = format_size(r.size)
+    note = r.size < 0 ? "permission denied" : ""
+    suffix = r.kind == "dir" ? "/" : ""
+    table_rows.push([label, "${r.name}${suffix}", note])
+  end
+
+  cli::table(["Size", "Name", "Note"], table_rows)
+
+  println ""
+  cli::kv("entries", shown.size(), 12)
+  cli::kv("total", format_size(report["total_size"]), 12)
+
+  if report["denied"] > 0
+    n = report["denied"]
+    cli::warn("${n} entr${n == 1 ? "y" : "ies"} inaccessible")
+  end
+
+  if limit > 0 && rows.size() > limit
+    cli::info("Showing top ${limit} of ${rows.size()} (use --limit=0 for all)")
+  end
+end
+
+/#
+@summary Parse CLI flags/positionals and run the report.
+#/
+fn main()
+  parser = CliParser.new(
+    "diskusage",
+    "Summarise disk usage for each entry under a directory."
+  )
+  parser.flag("help", "h", "Show this help text")
+  parser.flag("all", "a", "Include files in the listing (default: directories only)")
+  parser.option("depth", "d", "Recursion depth when summing sizes (-1 = unlimited)", -1)
+  parser.option("limit", "l", "Show only the N largest entries (0 = all)", 0)
+
+  args = parser.parse()
+
+  if args["help"]
+    parser.help()
+    exit(0)
+  end
+
+  positional = args["_args"]
+  target = fio::abspath(positional.empty() ? fio::cwd() : positional[0])
+
+  max_depth = args["depth"].to_integer()
+  limit = args["limit"].to_integer()
+  include_files = args["all"]
+
+  if not fio::exists(target)
+    cli::error("'${target}' does not exist.")
+    exit(1)
+  end
+
+  if not fio::isdir(target)
+    cli::error("'${target}' is not a directory.")
+    exit(1)
+  end
+
+  report = collect_usage(target, max_depth, include_files)
+  print_report(target, report, limit)
+end
+
+main() when __main__()
