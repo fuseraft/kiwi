@@ -233,8 +233,8 @@ Prints formatted help text listing all registered flags and options with their d
 
 ---
 
-### `@.parse()`
-Parses `env::argv()` against the registered flags and options.
+### `@.parse(args = null)`
+Parses the command line against the registered flags and options. Pass `args` (a list of strings) to parse those tokens instead of `env::args()`.
 
 **Returns** `hashmap` with one key per flag/option (using the long name), plus `"_args"` for any positional arguments.
 
@@ -242,11 +242,9 @@ Parses `env::argv()` against the registered flags and options.
 |------------|-------|
 | `"<flag>"` | `boolean` — `true` if flag was passed |
 | `"<option>"` | `any` — parsed value, or the registered default |
-| `"_args"`  | `list` — positional arguments (not prefixed with `-`) |
+| `"_args"`  | `list` — positional arguments, in command-line order with duplicates kept |
 
-Flags and options are accepted in both long form (`--name`) and short form (`-n`).
-
-> **Caveat:** `"_args"` is currently derived from `env::argv()`'s keys internally, so duplicate positional values collapse into one entry (see [`env::argv()`](env.md#argv)) — if your positional arguments might repeat (e.g. a list of words that could contain the same word twice), read `env::args()` directly instead of relying on `"_args"`.
+Flags and options are accepted in both long form (`--name`) and short form (`-n`). An option takes its value as `--name value`, `--name=value`, or `-n=value`; a flag never consumes the token after it. Absolute paths (`/tmp`), a lone `-`, and negative numbers are values, not flags, and everything after `--` is positional. Unrecognized flags are ignored.
 
 ---
 

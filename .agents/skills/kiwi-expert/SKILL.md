@@ -200,7 +200,7 @@ for x in countdown(5) do ... end   # lazy — pulls one value per iteration
 Two builtins, two different jobs — **use the right one, they're not interchangeable:**
 
 - `env::args()` — raw, ordered `list` of arguments exactly as passed, duplicates and all. **Use this for `script.kiwi item1 item2 ...` style positional-list programs.**
-- `env::argv()` — `hashmap` of key-value args. `-key=value`/`--key=value` → `argv["key"]=="value"`; a bare positional (no `=`) is self-mapped, `argv["5"]=="5"`. Since it's a hashmap, **duplicate positional values silently collapse to one entry** — `kiwi script.kiwi 5 3 8 3 1` → only 4 keys, the repeated `3` is gone. Use `argv()` for actual key-value options, not for a plain arg list.
+- `env::argv()` — `hashmap` of key-value args. `-key=value`/`--key=value` → `argv["key"]=="value"`; a bare positional (no `=`) is self-mapped, `argv["5"]=="5"`. On Linux/macOS an absolute path like `/tmp` is a positional too (`/` is a switch prefix only on Windows). Since it's a hashmap, **duplicate positional values silently collapse to one entry** — `kiwi script.kiwi 5 3 8 3 1` → only 4 keys, the repeated `3` is gone. Use `argv()` for actual key-value options, not for a plain arg list.
 
 ```kiwi
 # kiwi script.kiwi apple banana apple -name=world
@@ -208,7 +208,7 @@ env::args()    # ["apple", "banana", "apple", "-name=world"]  (raw, nothing drop
 env::argv()    # {"apple": "apple", "banana": "banana", "name": "world"}  (deduped, parsed)
 ```
 
-If you need real flags/options *and* positionals together, use `CliParser` (`import "cli"`) — it gives you a `"_args"` list of positionals separated from parsed flags/options. Caveat: `CliParser`'s `"_args"` is built from `argv()` internally, so it inherits the same duplicate-collapsing limitation — don't rely on it if positionals might repeat. See `references/lib/cli.md`.
+If you need real flags/options *and* positionals together, use `CliParser` (`import "cli"`) — it gives you a `"_args"` list of positionals separated from parsed flags/options. It reads `env::args()`, so `"_args"` keeps order, duplicates and absolute paths. See `references/lib/cli.md`.
 
 ### Comments & Docstrings — pitfall
 
