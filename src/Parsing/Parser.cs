@@ -186,6 +186,11 @@ public partial class Parser
                     throw new UnexpectedEndOfFileError(GetErrorToken());
                 }
 
+                if (nodeToken.Type == TokenType.Typename)
+                {
+                    throw TypenameAsNameError("a variable name");
+                }
+
                 throw new TokenStreamError(GetErrorToken(), $"Unexpected token in statement: {Enum.GetName(nodeToken.Type)}: `{nodeToken.Text}`");
         }
 
@@ -728,6 +733,11 @@ public partial class Parser
         // support single-variable syntax: var name, var name: type, var name: type = value
         if (GetTokenType() != TokenType.LParen)
         {
+            if (GetTokenType() == TokenType.Typename)
+            {
+                throw TypenameAsNameError("a variable name");
+            }
+
             if (GetTokenType() != TokenType.Identifier)
             {
                 throw new SyntaxError(GetErrorToken(), "Expected variable name or '(' after 'var'.");
@@ -759,6 +769,11 @@ public partial class Parser
         while (GetTokenType() != TokenType.RParen)
         {
             // expect an identifier
+            if (GetTokenType() == TokenType.Typename)
+            {
+                throw TypenameAsNameError("a variable name");
+            }
+
             if (GetTokenType() != TokenType.Identifier)
             {
                 throw new SyntaxError(GetErrorToken(), "Expected variable name.");
@@ -872,6 +887,8 @@ public partial class Parser
                 if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Multiply)
                 {
                     Next();  // consume '*'
+                    if (GetTokenType() == TokenType.Typename)
+                        throw TypenameAsNameError("a parameter name");
                     if (GetTokenType() != TokenType.Identifier)
                         throw new SyntaxError(GetErrorToken(), "Expected parameter name after '*'.");
                     var varParamName = token.Text;
@@ -880,6 +897,11 @@ public partial class Parser
                     if (GetTokenType() != TokenType.RParen)
                         throw new SyntaxError(GetErrorToken(), "Variadic parameter '*' must be the last parameter.");
                     break;
+                }
+
+                if (GetTokenType() == TokenType.Typename)
+                {
+                    throw TypenameAsNameError("a parameter name");
                 }
 
                 if (GetTokenType() != TokenType.Identifier)
@@ -1776,6 +1798,8 @@ public partial class Parser
                 if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Multiply)
                 {
                     Next();  // consume '*'
+                    if (GetTokenType() == TokenType.Typename)
+                        throw TypenameAsNameError("a parameter name");
                     if (GetTokenType() != TokenType.Identifier)
                         throw new SyntaxError(GetErrorToken(), "Expected parameter name after '*'.");
                     var varParamName = token.Text;
@@ -1784,6 +1808,11 @@ public partial class Parser
                     if (GetTokenType() != TokenType.RParen)
                         throw new SyntaxError(GetErrorToken(), "Variadic parameter '*' must be the last parameter.");
                     break;
+                }
+
+                if (GetTokenType() == TokenType.Typename)
+                {
+                    throw TypenameAsNameError("a parameter name");
                 }
 
                 if (GetTokenType() != TokenType.Identifier)
@@ -2130,6 +2159,11 @@ public partial class Parser
                 not TokenType.Literal and
                 not TokenType.Operator)
             {
+                if (GetTokenType() == TokenType.Typename)
+                {
+                    throw TypenameAsNameError("a bare hashmap key", $"Quote it: `{{ \"{token.Text}\": ... }}`.");
+                }
+
                 throw new SyntaxError(GetErrorToken(), "Invalid expression for hashmap key.");
             }
 
@@ -2338,6 +2372,11 @@ public partial class Parser
         while (GetTokenType() == TokenType.Dot)
         {
             Next();  // Consume '.'
+
+            if (GetTokenType() == TokenType.Typename)
+            {
+                throw TypenameAsNameError("a member name after '.'", $"For a hashmap key, index it instead: `[\"{token.Text}\"]`.");
+            }
 
             if (GetTokenType() != TokenType.Identifier)
             {
@@ -2654,7 +2693,9 @@ public partial class Parser
             default:
                 if (isTypeName && !lenient)
                 {
-                    throw new SyntaxError(GetErrorToken(), $"Expected '(' or '::' after the identifier `{identifierName}`.");
+                    // A type name is only valid here as a conversion call (`string(x)`) or a
+                    // qualifier; anything else is it being used as a variable.
+                    throw TypenameAsNameError(Previous(), "a variable name");
                 }
                 else if (!isInstance)
                 {

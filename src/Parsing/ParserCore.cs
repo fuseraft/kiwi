@@ -23,6 +23,10 @@ public partial class Parser(bool rethrowErrors = false)
     
     public bool HasError { get; set; } = false;
 
+    // Blocks opened by statements that failed to parse. Their `end` (and any else/elsif/
+    // catch/finally) is still ahead and would be reported as a second, unrelated error.
+    private int orphanedBlocks = 0;
+
     public ASTNode ParseTokenStreamCollection(List<TokenStream> streams)
     {
         ProgramNode root = new();
@@ -89,9 +93,15 @@ public partial class Parser(bool rethrowErrors = false)
     private (ASTNode?, string) ParseNode(ProgramNode root, ASTNode? lastNode)
     {
         var requires = string.Empty;
+        orphanedBlocks = 0;  // per token stream: a block can't close in another file
         while (GetTokenType() != TokenType.Eof)
         {
             var positionBefore = stream.Position;
+            if (SkipOrphanedBlockToken())
+            {
+                continue;
+            }
+
             try
             {
                 lastNode = ParseStatement();
@@ -142,10 +152,16 @@ public partial class Parser(bool rethrowErrors = false)
         {
             IsEntryPoint = isEntryPoint
         };
+        orphanedBlocks = 0;
 
         while (GetTokenType() != TokenType.Eof)
         {
             var positionBefore = stream.Position;
+            if (SkipOrphanedBlockToken())
+            {
+                continue;
+            }
+
             try
             {
                 var statement = ParseStatement();
@@ -204,40 +220,115 @@ public partial class Parser(bool rethrowErrors = false)
         }
     }
 
+    // Type names (`bytes`, `list`, `string`, ...) are keywords, so using one as a name fails
+    // wherever the parser wanted an identifier. These errors say so and suggest a fix, rather
+    // than "Expected parameter name." or "Unexpected token in statement: Typename".
+    private SyntaxError TypenameAsNameError(string use) =>
+        TypenameAsNameError(GetErrorToken(), use);
+
+    private SyntaxError TypenameAsNameError(string use, string fix) =>
+        TypenameAsNameError(GetErrorToken(), use, fix);
+
+    private static SyntaxError TypenameAsNameError(Token typeName, string use, string? fix = null) =>
+        new(typeName, $"`{typeName.Text}` is a type name and can't be used as {use}. " +
+                      (fix ?? $"Rename it, e.g. `{SuggestedRename(typeName.Text)}`."));
+
+    private static string SuggestedRename(string typeName) => typeName switch
+    {
+        "bytes"     => "byte_count",
+        "list"      => "items",
+        "string"    => "text",
+        "integer"   => "count",
+        "float"     => "amount",
+        "boolean"   => "flag",
+        "hashmap"   => "entries",
+        "date"      => "timestamp",
+        "lambda"    => "callback",
+        "generator" => "gen",
+        "object"    => "obj",
+        "pointer"   => "ptr",
+        "any"       => "value",
+        _           => $"{typeName}_value",
+    };
+
     /// <summary>
-    /// Recovers after a syntax error. If the current token cannot start a new
-    /// statement (e.g. we are mid-expression), skip to the next newline so the
-    /// next parse iteration begins on a fresh statement. Also handles the case
-    /// where the parser has not advanced at all (preventing an infinite loop).
+    /// Recovers after a syntax error: skips to the next line so the next parse iteration
+    /// begins on a fresh statement (always advancing, so it can't loop), and records any
+    /// blocks the failed statement opened so their `end` isn't reported as a second error.
     /// </summary>
     private void RecoverAfterError(int positionBefore)
     {
-        if (stream.Position <= positionBefore || !IsStatementStartToken())
+        // Skip the rest of the line the error happened on. Resuming anywhere on it re-parses
+        // the token that just failed and reports the same mistake again (`x = { bytes: 1 }`
+        // failing at `bytes`, then once more treating `bytes` as a statement). Because the
+        // lexer doesn't always emit Newline tokens, we use the token's Span.Line to find the
+        // line boundary.
+        var errorLine = token.Span.Line;
+        while (GetTokenType() != TokenType.Eof && token.Span.Line == errorLine)
         {
-            // Advance past all tokens that belong to the same source line as the
-            // statement that failed. Because the lexer doesn't always emit Newline
-            // tokens, we use the token's Span.Line to find the line boundary.
-            var statementLine = stream.At(positionBefore).Span.Line;
-            while (GetTokenType() != TokenType.Eof && token.Span.Line == statementLine)
-            {
-                Next();
-            }
+            Next();
         }
-        // Current token is either on a new line or a valid statement-start token;
-        // the outer loop will continue from here.
+
+        orphanedBlocks += OpenedBlocks(positionBefore, stream.Position);
     }
 
     /// <summary>
-    /// Returns true when the current token can legally begin a new statement,
-    /// meaning we can safely resume parsing from this position after an error.
+    /// Net blocks (openers minus `end`s) among the tokens a failed statement consumed. Loops,
+    /// lambdas and `on ... do` handlers are counted by their `do`; `abstract fn` has no body.
     /// </summary>
-    private bool IsStatementStartToken() => GetTokenType() switch
+    private int OpenedBlocks(int from, int to)
     {
-        TokenType.Operator or TokenType.Comma or TokenType.Colon
-            or TokenType.RParen or TokenType.RBracket or TokenType.RBrace
-            or TokenType.Dot or TokenType.Range or TokenType.Arrow => false,
-        _ => true
-    };
+        int opened = 0;
+        for (int i = from; i < to; i++)
+        {
+            switch (stream.At(i).Name)
+            {
+                case TokenName.KW_Method when i == from || stream.At(i - 1).Name != TokenName.KW_Abstract:
+                case TokenName.KW_Do:
+                case TokenName.KW_If:
+                case TokenName.KW_Case:
+                case TokenName.KW_Try:
+                case TokenName.KW_Struct:
+                case TokenName.KW_Package:
+                case TokenName.KW_Interface:
+                case TokenName.KW_Enum:
+                    opened++;
+                    break;
+                case TokenName.KW_End:
+                    opened--;
+                    break;
+            }
+        }
+        return Math.Max(0, opened);
+    }
+
+    /// <summary>
+    /// Consumes the `end` of a block whose opening statement failed to parse, or skips the line
+    /// of one of its else/elsif/catch/finally clauses; the statements between them still parse.
+    /// </summary>
+    private bool SkipOrphanedBlockToken()
+    {
+        if (orphanedBlocks == 0) return false;
+
+        switch (GetTokenName())
+        {
+            case TokenName.KW_End:
+                orphanedBlocks--;
+                Next();
+                return true;
+            case TokenName.KW_Else:
+            case TokenName.KW_ElseIf:
+            case TokenName.KW_Catch:
+            case TokenName.KW_Finally:
+                var line = token.Span.Line;
+                while (GetTokenType() != TokenType.Eof && token.Span.Line == line)
+                {
+                    Next();
+                }
+                return true;
+        }
+        return false;
+    }
 
     private bool HasValue()
     {
