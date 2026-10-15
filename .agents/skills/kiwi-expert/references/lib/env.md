@@ -37,7 +37,7 @@ Get the command-line arguments supplied to the program, as a hashmap.
 
 Every argument becomes one key. How the *value* is derived depends on the argument's form:
 
-- `-key=value`, `--key=value`, `/key=value` → `argv["key"] == "value"` (see [KVP Command-Line Options](#kvp-command-line-options) below).
+- `-key=value`, `--key=value`, and on Windows `/key=value` → `argv["key"] == "value"`. On Linux and macOS a leading `/` is an absolute path, not a switch: `/tmp` is a positional, `argv["/tmp"] == "/tmp"`. (see [KVP Command-Line Options](#kvp-command-line-options) below).
 - A bare argument with no `=` (e.g. a plain positional value like `foo` or `42`) → self-mapped, `argv["foo"] == "foo"`. This is also true of bare flags like `-v` (no `=`) → `argv["v"] == "v"`, **not** `true`.
 
 **Example**
@@ -72,7 +72,7 @@ println data   # ["apple", "banana", "apple", "cherry", "banana", "apple"]
 
 > **Why not `argv().keys()`:** `argv()` is a *hashmap* — dictionary keys must be unique, so if the same positional value appears more than once on the command line, the duplicates silently collapse into a single entry before your script ever sees them. `kiwi script.kiwi 5 3 8 3 1` → `argv()` has only 4 keys (`"5"`,`"3"`,`"8"`,`"1"`); `.keys()` from that gives `["5","3","8","1"]`, **not** `["5","3","8","3","1"]`. This breaks anything that depends on the count or position of a repeated value — a word-frequency counter, a sort with duplicate values, a duplicate-finder. `env::args()` has no such limitation because it isn't backed by a hashmap. Only reach for `argv()`/`.keys()` if you specifically want the deduplication (or need the `-key=value` parsing).
 
-Note: `env::args()` returns the *fully raw* tokens, including anything that looks like a flag/option (e.g. `-v`, `--name=world`) — it does no parsing at all. If you need to mix flags/options with positional arguments, use `CliParser` instead — `CliParser.parse()` separates them into named flags/options plus an `"_args"` list of positionals. **Caveat:** `CliParser.parse()`'s `"_args"` is currently derived from `env::argv()`'s keys internally, so it inherits the same duplicate-collapsing behavior described above — don't rely on it if your positional arguments might repeat. See [`cli` package — `CliParser.parse()`](cli.md#parse).
+Note: `env::args()` returns the *fully raw* tokens, including anything that looks like a flag/option (e.g. `-v`, `--name=world`) — it does no parsing at all. If you need to mix flags/options with positional arguments, use `CliParser` instead — `CliParser.parse()` separates them into named flags/options plus an `"_args"` list of positionals. `CliParser.parse()` walks `env::args()` itself, so its `"_args"` keeps order and duplicates. See [`cli` package — `CliParser.parse()`](cli.md#parse).
 
 ### `opt(_key)`
 Get a KVP command-line option value by key.

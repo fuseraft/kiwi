@@ -1,0 +1,49 @@
+fn cli_test_parser(): CliParser
+  p = CliParser.new("t")
+  p.flag("all", "a")
+  p.option("limit", "l", "", 10)
+  p
+end
+
+@tester::test("cli: CliParser keeps absolute paths, order and duplicates in _args")
+fn test_cli_parse_positionals()
+  r = cli_test_parser().parse(["/tmp", "b", "/tmp", "x"])
+  tester::assert_eq(r["_args"], ["/tmp", "b", "/tmp", "x"])
+  tester::assert_eq(r["all"], false)
+  tester::assert_eq(r["limit"], 10)
+end
+
+@tester::test("cli: CliParser flags and options by long and short name")
+fn test_cli_parse_flags_options()
+  r = cli_test_parser().parse(["--all", "--limit", "5", "dir"])
+  tester::assert_eq(r["all"], true)
+  tester::assert_eq(r["limit"], "5")
+  tester::assert_eq(r["_args"], ["dir"])
+
+  r = cli_test_parser().parse(["-a", "-l=3", "dir"])
+  tester::assert_eq(r["all"], true)
+  tester::assert_eq(r["limit"], "3")
+  tester::assert_eq(r["_args"], ["dir"])
+end
+
+@tester::test("cli: CliParser flag does not swallow the next positional")
+fn test_cli_parse_flag_no_value()
+  r = cli_test_parser().parse(["-a", "docs"])
+  tester::assert_eq(r["all"], true)
+  tester::assert_eq(r["_args"], ["docs"])
+end
+
+@tester::test("cli: CliParser values: negative numbers, lone dash, and --")
+fn test_cli_parse_values()
+  r = cli_test_parser().parse(["--limit", "-7", "-", "--", "--all", "-5"])
+  tester::assert_eq(r["limit"], "-7")
+  tester::assert_eq(r["all"], false)
+  tester::assert_eq(r["_args"], ["-", "--all", "-5"])
+end
+
+@tester::test("cli: CliParser option without a value keeps its default")
+fn test_cli_parse_option_missing_value()
+  r = cli_test_parser().parse(["--limit", "--all"])
+  tester::assert_eq(r["limit"], 10)
+  tester::assert_eq(r["all"], true)
+end

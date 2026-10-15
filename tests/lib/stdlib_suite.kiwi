@@ -5,6 +5,9 @@ package stdlib_suite
 end
 
 var (stdlib_tests: list = [
+  # Command-line parsing
+  "cli",
+
   # Encoding utilities
   "encode",
 

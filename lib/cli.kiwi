@@ -242,9 +242,13 @@ struct CliParser
 
   /#
   @summary Parses command-line arguments.
+  @param list args : The tokens to parse, in order (default: `env::args()`, the raw command line).
   @return hashmap : A hashmap of parsed values, plus `_args` for positional arguments.
   #/
-  fn parse(): hashmap
+  fn parse(args = null): hashmap
+    # Walks the raw, ordered tokens rather than env::argv()'s hashmap, which loses order,
+    # collapses duplicate positionals, and can swallow a positional as a flag's value.
+    tokens = args ?? env::args()
     result = { "_args": [] }
 
     for name in @flags.keys() do
@@ -255,74 +259,73 @@ struct CliParser
       result[name] = @options[name]["default"]
     end
 
-    # env::argv() returns a pre-parsed hashmap: { "key" => "value", "flag" => "true" }
-    argv = env::argv()
-
-    # Build short-name -> long-name maps
-    flag_short = {}
+    # Every accepted spelling (long and short) -> long name
+    flag_names = {}
     for name in @flags.keys() do
+      flag_names[name] = name
       s = @flags[name]["short"]
-      flag_short[s] = name when s != ""
+      flag_names[s] = name when s != ""
     end
 
-    opt_short = {}
+    opt_names = {}
     for name in @options.keys() do
+      opt_names[name] = name
       s = @options[name]["short"]
-      opt_short[s] = name when s != ""
+      opt_names[s] = name when s != ""
     end
 
-    # Match flags (boolean) by long name or short name
-    for name in @flags.keys() do
-      if argv.has_key(name)
-        result[name] = true
+    positional = []
+    only_positional = false
+    i = 0
+    while i < tokens.size() do
+      tok = "${tokens[i]}"
+      i += 1
+
+      # A lone "-" (stdin) and negative numbers are values, not flags.
+      if only_positional || !CliParser.is_flag_token(tok)
+        positional.push(tok)
+        next
       end
 
-      s = @flags[name]["short"]
-      
-      if s != "" && argv.has_key(s)
-        result[name] = true
-      end
-    end
-
-    # Match options (value) by long name or short name
-    for name in @options.keys() do
-      if argv.has_key(name)
-        v = argv.get(name, @options[name]["default"])
-        result[name] = v when v != "true"
-        result[name] = @options[name]["default"] when v == "true"
+      # "--" ends flag parsing; everything after it is positional.
+      if tok == "--"
+        only_positional = true
+        next
       end
 
-      s = @options[name]["short"]
-      
-      if s != "" && argv.has_key(s)
-        v = argv.get(s, @options[name]["default"])
-        result[name] = v when v != "true"
-        result[name] = @options[name]["default"] when v == "true"
+      body  = tok.begins_with("--") ? tok.substring(2) : tok.substring(1)
+      name  = body
+      value = null
+      eq    = body.index("=")
+      if eq > 0
+        name  = body.substring(0, eq)
+        value = body.substring(eq + 1)
       end
-    end
 
-    # Positional args: keys not matching any flag/option name, with value equal to key
-    all_names = @flags.keys() + @options.keys()
-    all_short = []
-    for name in @flags.keys() do
-      s = @flags[name]["short"]
-      all_short.push(s) when s != ""
-    end
-
-    for name in @options.keys() do
-      s = @options[name]["short"]
-      all_short.push(s) when s != ""
-    end
-
-    for k in argv.keys() do
-      if !all_names.contains(k) && !all_short.contains(k)
-        v = argv.get(k, k)
-        positional = result["_args"]
-        positional.push(k) when v == k
-        result["_args"] = positional
+      if flag_names.has_key(name)
+        result[flag_names[name]] = true
+      elsif opt_names.has_key(name)
+        long = opt_names[name]
+        if value != null
+          result[long] = value
+        elsif i < tokens.size() && !CliParser.is_flag_token("${tokens[i]}")
+          result[long] = "${tokens[i]}"
+          i += 1
+        end
       end
+      # Unrecognized flags are ignored.
     end
 
+    result["_args"] = positional
     result
+  end
+
+  /#
+  @summary Whether a token is a flag (`-x`, `--name`, `--`) rather than a value.
+  @param string tok : The token.
+  @return boolean : `false` for values, including `-` and negative numbers.
+  #/
+  static fn is_flag_token(tok: string): boolean
+    tok.begins_with("-") && tok != "-" && !tok.matches('^-[0-9][0-9.]*$')
   end
 end
