@@ -2228,10 +2228,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse" class="md-nav__link">
+  <a href="#parseargs-null" class="md-nav__link">
     <span class="md-ellipsis">
       
-        @.parse()
+        @.parse(args = null)
       
     </span>
   </a>
@@ -3835,10 +3835,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse" class="md-nav__link">
+  <a href="#parseargs-null" class="md-nav__link">
     <span class="md-ellipsis">
       
-        @.parse()
+        @.parse(args = null)
       
     </span>
   </a>
@@ -4304,8 +4304,8 @@
 <p>Prints formatted help text listing all registered flags and options with their defaults.</p>
 <p><strong>Returns</strong> <code>null</code></p>
 <hr />
-<h3 id="parse"><code>@.parse()</code><a class="headerlink" href="#parse" title="Permanent link">&para;</a></h3>
-<p>Parses <code>env::argv()</code> against the registered flags and options.</p>
+<h3 id="parseargs-null"><code>@.parse(args = null)</code><a class="headerlink" href="#parseargs-null" title="Permanent link">&para;</a></h3>
+<p>Parses the command line against the registered flags and options. Pass <code>args</code> (a list of strings) to parse those tokens instead of <code>env::args()</code>.</p>
 <p><strong>Returns</strong> <code>hashmap</code> with one key per flag/option (using the long name), plus <code>"_args"</code> for any positional arguments.</p>
 <table>
 <thead>
@@ -4325,14 +4325,11 @@
 </tr>
 <tr>
 <td><code>"_args"</code></td>
-<td><code>list</code> — positional arguments (not prefixed with <code>-</code>)</td>
+<td><code>list</code> — positional arguments, in command-line order with duplicates kept</td>
 </tr>
 </tbody>
 </table>
-<p>Flags and options are accepted in both long form (<code>--name</code>) and short form (<code>-n</code>).</p>
-<blockquote>
-<p><strong>Caveat:</strong> <code>"_args"</code> is currently derived from <code>env::argv()</code>'s keys internally, so duplicate positional values collapse into one entry (see <a href="../env/#argv"><code>env::argv()</code></a>) — if your positional arguments might repeat (e.g. a list of words that could contain the same word twice), read <code>env::args()</code> directly instead of relying on <code>"_args"</code>.</p>
-</blockquote>
+<p>Flags and options are accepted in both long form (<code>--name</code>) and short form (<code>-n</code>). An option takes its value as <code>--name value</code>, <code>--name=value</code>, or <code>-n=value</code>; a flag never consumes the token after it. Absolute paths (<code>/tmp</code>), a lone <code>-</code>, and negative numbers are values, not flags, and everything after <code>--</code> is positional. Unrecognized flags are ignored.</p>
 <hr />
 <h2 id="usage-example">Usage Example<a class="headerlink" href="#usage-example" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>p = CliParser.new("myapp", "A sample CLI application")
