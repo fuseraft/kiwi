@@ -143,3 +143,34 @@ fn test_struct_methods_decorators()
   end
   tester::assert_eq(got, [1, 4, 9], "a generator lambda")
 end
+
+struct SMFields
+  @value
+  @count
+  static @made = 0
+
+  fn new(v)
+    @value = v
+    @count = 0
+  end
+
+  @_sm_logged
+  fn get()
+    @value
+  end
+
+  fn serialize(n)
+    "own:${n}"
+  end
+
+  fn describe()
+    serialize(1)
+  end
+end
+
+@tester::test("struct methods: field lines and builtin-named methods")
+fn test_struct_methods_fields()
+  f = SMFields.new(7)
+  tester::assert_eq(f.get(), "logged:7", "a bare @field line is not a decorator")
+  tester::assert_eq(f.describe(), "own:1", "a bare call reaches the struct's own method")
+end

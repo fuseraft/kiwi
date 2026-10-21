@@ -68,3 +68,18 @@ fn test_type_hints_returns()
   tester::assert_eq(typed(4), "4")
   tester::assert_eq(_th_error_type(do () => typed("4")), "TypeError")
 end
+
+enum THColor
+  Red
+  Green
+end
+
+fn _th_paint(c: THColor)
+  c
+end
+
+@tester::test("type hints: enums")
+fn test_type_hints_enums()
+  tester::assert_eq(_th_paint(THColor.Green), 1)
+  tester::assert_eq(_th_error_type(do () => _th_paint(99)), "TypeError")
+end

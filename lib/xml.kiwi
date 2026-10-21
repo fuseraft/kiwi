@@ -221,8 +221,7 @@ package xml
     end
 
     fn to_string()
-      # `serialize` alone would be the global serialize builtin, not this method.
-      @.serialize(0)
+      serialize(0)
     end
 
     private fn _xml_escape(s)

@@ -150,7 +150,7 @@ Because the decorated function replaces the original name, the recursive calls i
 
 ## Decorating methods
 
-Decorators work on struct methods too. The decorated method still runs with `@` as the instance it was called on. Modifiers such as `static` and `private` go between the decorators and `fn`.
+Decorators work on struct methods too. The decorated method still runs with `@` as the instance it was called on. Modifiers such as `static` and `private` go between the decorators and `fn`. A bare `@name` line whose name the struct assigns as an instance variable (`@name = ...`) is not a decorator.
 
 ```kiwi
 fn logged(f)

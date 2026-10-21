@@ -57,6 +57,7 @@ var label: string
 | `generator` | Generator objects |
 | `object` | Any struct instance |
 | A struct name | Instances of that struct or of a struct that inherits from it (the struct must be defined above the hint) |
+| An enum name | That enum's member values (the enum must be defined above the hint) |
 | `any` | Anything |
 | `none` | `null` |
 

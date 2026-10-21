@@ -18,3 +18,15 @@ fn test_runtime_package_names()
   tester::assert_eq(faker::people(2).size(), 2)
   tester::assert_eq(xml::create("host", {}, "localhost").to_string(), "<host>localhost</host>")
 end
+
+@tester::test("runtime: a failed package reports its error")
+fn test_runtime_failed_package()
+  message = ""
+  try
+    eval("package rt_broken\n  x = rt_missing_thing\n  fn hi() 1 end\nend\nrt_broken::hi()")
+  catch (e)
+    message = e.message
+  end
+  tester::assert(message.contains("Package `rt_broken` failed to load"), message)
+  tester::assert(message.contains("rt_missing_thing"), message)
+end

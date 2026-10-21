@@ -584,6 +584,7 @@ public partial class Parser
         // Eagerly mark as defined so that the type can be used in typehints within the struct definition
         StructsDefined.TryAdd(structName, 0);
 
+        int bodyStart = stream.Position;
         List<ASTNode?> methods = [];
         List<(string Name, ASTNode? Initializer)> staticVars = [];
         bool isStatic = false, isPrivate = false, isAbstractMethod = false, isOverride = false;
@@ -671,12 +672,38 @@ public partial class Parser
             isOverride = false;
         }
 
+        DropFieldDeclarations(methods, bodyStart, stream.Position);
+
         Next();  // Consume 'end'
 
         // Outside the struct definition
         structStack.Pop();
 
         return new StructNode(structName, baseStruct, interfaces, methods, staticVars, isAbstract);
+    }
+
+    /// <summary>
+    /// A bare `@name` line above a method reads as a decorator, but some code uses it to declare
+    /// an instance variable. When the struct assigns `@name` somewhere, it is a variable (a
+    /// decorator is a function), so it is dropped from the method's decorators.
+    /// </summary>
+    private void DropFieldDeclarations(List<ASTNode?> methods, int from, int to)
+    {
+        HashSet<string> fields = [];
+        for (int i = from; i + 2 < to; i++)
+        {
+            if (stream.At(i).Name == TokenName.KW_This && stream.At(i + 1).Type == TokenType.Identifier
+                && IsAssignmentOperator(stream.At(i + 2).Name))
+                fields.Add(stream.At(i + 1).Text);
+        }
+
+        for (int i = 0; i < methods.Count; i++)
+        {
+            if (methods[i] is not DecoratedFunctionNode deco) continue;
+            deco.Decorators.RemoveAll(d => d.Expr is IdentifierNode id && d.ExtraArgs.Count == 0 && fields.Contains(id.Name));
+            if (deco.Decorators.Count == 0)
+                methods[i] = deco.Function;
+        }
     }
 
     private EnumNode ParseEnum()
@@ -691,6 +718,9 @@ public partial class Parser
 
         var enumName = token.Text;
         Next();
+
+        // An enum name can be used as a type hint, like a struct name.
+        StructsDefined.TryAdd(enumName, 0);
 
         List<(string Name, ASTNode? Value)> members = [];
 
@@ -1389,32 +1419,34 @@ public partial class Parser
         return node;
     }
 
-    private bool IsDecoratorPattern(bool inStructBody = false)
+    private bool IsDecoratorPattern(bool inStructBody = false) => IsDecoratorPatternAt(stream.Position, inStructBody);
+
+    private bool IsDecoratorPatternAt(int at, bool inStructBody)
     {
         // Inside a struct, decorators are recognized by ParseStruct (for methods);
         // elsewhere in the struct `@` starts an instance-variable expression.
         if (structStack.Count > 0 && !inStructBody) return false;
 
         // Must be @ followed by an identifier.
-        var afterAt = Peek();  // position +1
+        var afterAt = stream.At(at + 1);
         if (afterAt.Type != TokenType.Identifier) return false;
 
         // Determine the offset after the decorator name, accounting for pkg::name.
         int nameEnd = 2;
-        if (PeekAt(2).Type == TokenType.Qualifier && PeekAt(3).Type == TokenType.Identifier)
+        if (stream.At(at + 2).Type == TokenType.Qualifier && stream.At(at + 3).Type == TokenType.Identifier)
             nameEnd = 4;  // @pkg::name
 
-        var afterIdent = PeekAt(nameEnd);
+        var afterIdent = stream.At(at + nameEnd);
 
         // @name fn ... or @name @... (in a struct, also @name static fn ... and the like)
-        if (StartsDecoratedTarget(afterIdent, inStructBody))
+        if (StartsDecoratedTarget(at + nameEnd, inStructBody))
             return true;
 
         // @name(args...) fn ... or @name(args...) @...
         if (afterIdent.Type == TokenType.LParen)
         {
             int depth = 1;
-            int pos = stream.Position + nameEnd + 1;
+            int pos = at + nameEnd + 1;
             while (pos < stream.Size && depth > 0)
             {
                 var t = stream.At(pos++);
@@ -1423,23 +1455,23 @@ public partial class Parser
             }
             if (pos < stream.Size)
             {
-                return StartsDecoratedTarget(stream.At(pos), inStructBody);
+                return StartsDecoratedTarget(pos, inStructBody);
             }
         }
 
         // @name.member fn ... or @name.member(args...) fn ...
-        if (afterIdent.Type == TokenType.Dot && PeekAt(nameEnd + 1).Type == TokenType.Identifier)
+        if (afterIdent.Type == TokenType.Dot && stream.At(at + nameEnd + 1).Type == TokenType.Identifier)
         {
             int memberEnd = nameEnd + 2;
-            var afterMember = PeekAt(memberEnd);
+            var afterMember = stream.At(at + memberEnd);
 
-            if (StartsDecoratedTarget(afterMember, inStructBody))
+            if (StartsDecoratedTarget(at + memberEnd, inStructBody))
                 return true;
 
             if (afterMember.Type == TokenType.LParen)
             {
                 int depth = 1;
-                int pos = stream.Position + memberEnd + 1;
+                int pos = at + memberEnd + 1;
                 while (pos < stream.Size && depth > 0)
                 {
                     var t = stream.At(pos++);
@@ -1448,7 +1480,7 @@ public partial class Parser
                 }
                 if (pos < stream.Size)
                 {
-                    return StartsDecoratedTarget(stream.At(pos), inStructBody);
+                    return StartsDecoratedTarget(pos, inStructBody);
                 }
             }
         }
@@ -1457,12 +1489,19 @@ public partial class Parser
     }
 
     /// <summary>
-    /// Whether <paramref name="t"/> can follow a decorator: `fn`, another decorator, or in a
-    /// struct body a method modifier.
+    /// Whether the token at <paramref name="pos"/> can follow a decorator: `fn` or another
+    /// decorator, or in a struct body method modifiers followed by `fn`.
     /// </summary>
-    private static bool StartsDecoratedTarget(Token t, bool inStructBody) =>
-        t.Name is TokenName.KW_Method or TokenName.KW_This
-        || (inStructBody && t.Name is TokenName.KW_Static or TokenName.KW_Private or TokenName.KW_Override);
+    private bool StartsDecoratedTarget(int pos, bool inStructBody)
+    {
+        int start = pos;
+        while (inStructBody && stream.At(pos).Name is TokenName.KW_Static or TokenName.KW_Private or TokenName.KW_Override)
+            pos++;
+        // Another decorator must itself lead to `fn`; after a modifier, `@` starts a static
+        // variable (`static @count = 0`), not a decorator.
+        return stream.At(pos).Name is TokenName.KW_Method
+            || (pos == start && stream.At(pos).Name == TokenName.KW_This && IsDecoratorPatternAt(pos, inStructBody));
+    }
 
     private DecoratedFunctionNode? ParseDecoratedFunction()
     {

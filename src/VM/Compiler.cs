@@ -62,6 +62,10 @@ public sealed class Compiler
     /// </summary>
     private HashSet<string> _globalNames;
 
+    // Methods declared by the struct whose method (or a lambda in it) is being compiled, so a
+    // bare call to one of them reaches the method even when a builtin has the same name.
+    private HashSet<string>? _structMethodNames;
+
     // Top-level assigned names per source file (see _globalNames); root compiler only.
     private Dictionary<int, HashSet<string>>? _fileGlobalNames;
 
@@ -88,6 +92,7 @@ public sealed class Compiler
         _enclosing   = enclosing;
         _isGlobal    = isGlobal;
         _globalNames = globalNames ?? enclosing?._globalNames ?? [];
+        _structMethodNames = enclosing?._structMethodNames;
     }
 
     // -- Public entry points ---------------------------------------------------
@@ -1145,6 +1150,30 @@ public sealed class Compiler
             Emit(Opcode.IndexSet, 0, 0, ln);
             Emit(Opcode.Pop, 0, 0, ln);
         }
+        else if (node.Op is TokenName.Ops_AndAssign or TokenName.Ops_OrAssign)
+        {
+            // lst[i] &&= v / lst[i] ||= v: evaluate the target once, then assign only when
+            // && / || would evaluate the right side, so it short-circuits like the operators.
+            int objSlot = _slotCount++;
+            int keySlot = _slotCount++;
+            _chunk.LocalCount = _slotCount;
+            if (idx.IndexedObject != null) CompileNode(idx.IndexedObject);
+            else                           EmitLoad(idx.Name ?? "", ln);
+            Emit(Opcode.StoreLocal, objSlot, 0, ln);
+            CompileNode(idx.IndexExpression);
+            Emit(Opcode.StoreLocal, keySlot, 0, ln);
+
+            Emit(Opcode.LoadLocal, objSlot, 0, ln);
+            Emit(Opcode.LoadLocal, keySlot, 0, ln);
+            Emit(Opcode.IndexGet,  0,       0, ln);
+            int skip = EmitJump(node.Op == TokenName.Ops_AndAssign ? Opcode.JumpF : Opcode.JumpT, ln);
+            Emit(Opcode.LoadLocal, objSlot, 0, ln);
+            Emit(Opcode.LoadLocal, keySlot, 0, ln);
+            if (node.Initializer == null || !CompileNode(node.Initializer)) Emit(Opcode.Null, 0, 0, ln);
+            Emit(Opcode.IndexSet, 0, 0, ln);
+            Emit(Opcode.Pop, 0, 0, ln);
+            PatchJump(skip);
+        }
         else
         {
             // Compound assignment (lst[i] += v): push obj, key, rhs → IndexOpAssign(inner_op)
@@ -1163,10 +1192,7 @@ public sealed class Compiler
                 TokenName.Ops_BitwiseLeftShiftAssign => Opcode.BLSh,
                 TokenName.Ops_BitwiseRightShiftAssign=> Opcode.BRSh,
                 TokenName.Ops_BitwiseUnsignedRightShiftAssign => Opcode.BURSh,
-                // The VM combines these itself; the right side is always evaluated here.
-                TokenName.Ops_AndAssign              => Opcode.JumpAnd,
-                TokenName.Ops_OrAssign               => Opcode.JumpOr,
-                TokenName.Ops_BitwiseNotAssign       => Opcode.BNot,
+                TokenName.Ops_BitwiseNotAssign       => Opcode.BNot, // a[i] = ~rhs
                 _ => (Opcode)255
             };
 
@@ -1849,6 +1875,13 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // Emit LoadGlobal + Call so the BoundSelf mechanism routes them correctly.
         // Other non-Default ops (Kiwi builtins like __exec_path, tokenize, etc.) are
         // not yet natively compiled and still need the interpreter fallback.
+        if (node.Op != TokenName.Default && !CoreBuiltin.IsBuiltin(node.Op)
+            && _structMethodNames?.Contains(node.FunctionName) == true)
+        {
+            // A bare call to the struct's own method that shares a builtin's name: `@.name(...)`.
+            CompileMethodCall(new MethodCallNode(new SelfNode() { Token = node.Token }, node.FunctionName, TokenName.Default, node.Arguments) { Token = node.Token }, ln);
+            return;
+        }
         if (node.Op != TokenName.Default && !CoreBuiltin.IsBuiltin(node.Op))
         {
             bool hasNamedB = HasNamedArg(node.Arguments);
@@ -1972,6 +2005,8 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         int B = (node.IsAbstract ? 1 : 0) | (baseIdx << 1);
         Emit(Opcode.StructBegin, nameIdx, B, ln);
 
+        var outerMethodNames = _structMethodNames;
+        _structMethodNames = [.. node.Methods.Select(m => m is DecoratedFunctionNode d ? d.Function.Name : ((FunctionNode)m!).Name)];
         foreach (var methodNode in node.Methods)
         {
             if (methodNode == null) continue;
@@ -1993,6 +2028,8 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
                 Emit(Opcode.StoreDecoratedMethod, ni, 0, ln);
             }
         }
+
+        _structMethodNames = outerMethodNames;
 
         foreach (var (varName, initializer) in node.StaticVars)
         {

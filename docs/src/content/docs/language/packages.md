@@ -24,7 +24,7 @@ println greeter::excited("World")   # Hello, World!
 
 Call package functions from outside with `package::name`. Inside the package, functions call each other by their plain names, as `excited` calls `hello` above. A plain name inside a package finds the package's own functions and constants first, so a global variable that happens to share the name doesn't get in the way.
 
-A package is ready to use as soon as its declaration has run.
+A package is ready to use as soon as its declaration has run. If its body throws, the package isn't defined, and using it raises an error that says the package failed to load and points at the line that threw.
 
 ## Package variables
 

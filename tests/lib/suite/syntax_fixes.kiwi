@@ -74,3 +74,20 @@ fn test_syntax_list_predicates()
   tester::assert_eq(xs.count(3), 1)
   tester::assert_eq(xs.find(do (n) => n == 2), 2)
 end
+
+@tester::test("syntax: indexed &&= and ||= short-circuit")
+fn test_syntax_index_short_circuit()
+  calls = [0]
+  bump = do ()
+    calls[0] += 1
+    "new"
+  end
+  h = {"a": "set", "b": null}
+  h["a"] ||= bump()
+  h["b"] &&= bump()
+  tester::assert_eq(h, {"a": "set", "b": null})
+  tester::assert_eq(calls[0], 0, "the right side was not evaluated")
+  h["b"] ||= bump()
+  tester::assert_eq(h["b"], "new")
+  tester::assert_eq(calls[0], 1)
+end

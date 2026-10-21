@@ -442,7 +442,7 @@ public sealed class KiwiVM
     /// <summary>
     /// Whether <paramref name="v"/> satisfies a type hint naming <paramref name="types"/>.
     /// A float hint also takes integers; a struct name takes instances of it or of a struct
-    /// that inherits from it.
+    /// that inherits from it; an enum name takes that enum's member values.
     /// </summary>
     private bool MatchesType(Value v, int[] types)
     {
@@ -474,10 +474,16 @@ public sealed class KiwiVM
 
     private bool MatchesStructType(Value v, string typeName)
     {
-        if (!v.IsObject()) return false;
-        for (var s = FindStruct(v.GetObject().StructName); s != null; s = FindStruct(s.BaseStruct))
-            if (s.Name == typeName) return true;
-        return false;
+        if (v.IsObject())
+        {
+            for (var s = FindStruct(v.GetObject().StructName); s != null; s = FindStruct(s.BaseStruct))
+                if (s.Name == typeName) return true;
+            return false;
+        }
+
+        // An enum name accepts the enum's member values.
+        var hinted = FindStruct(typeName);
+        return hinted is { IsEnum: true } && hinted.StaticVariables.Values.Any(m => m.Equals(v));
     }
 
     private KStruct? FindStruct(string name) =>
@@ -526,6 +532,21 @@ public sealed class KiwiVM
         _nameCache[qualName] = v; // stable: invalidated when the definition changes
         Push(v);
         return true;
+    }
+
+    /// <summary>
+    /// When <paramref name="qualifiedName"/> (e.g. "geo::area") belongs to a package whose body
+    /// failed to run, throws the error that stopped it, located where it happened.
+    /// </summary>
+    private void ThrowIfPackageFailed(string qualifiedName)
+    {
+        for (int end = qualifiedName.LastIndexOf("::", StringComparison.Ordinal); end > 0;
+             end = qualifiedName.LastIndexOf("::", end - 1, StringComparison.Ordinal))
+        {
+            var package = qualifiedName[..end];
+            if (_context.PackageErrors.TryGetValue(package, out var cause))
+                throw new KiwiError(cause.Token, cause.Type, $"Package `{package}` failed to load: {cause.Message}");
+        }
     }
 
     /// <summary>
@@ -770,7 +791,10 @@ public sealed class KiwiVM
                             else if (frame.Self != null)
                                 Push(Value.CreateLambda(new LambdaRef { Identifier = name, BoundSelf = frame.Self }));
                             else
+                            {
+                                ThrowIfPackageFailed(name);
                                 throw new VariableUndefinedError(frame.GetToken(), name);
+                            }
                         }
                         break;
                     }
@@ -1481,8 +1505,6 @@ public sealed class KiwiVM
                             Opcode.BRSh => BitwiseOp.Rightshift(tok, ref old, ref rhs),
                             Opcode.BURSh=> BitwiseOp.UnsignedRightshift(tok, ref old, ref rhs),
                             Opcode.IntDiv => MathOp.IntDiv(tok, ref old, ref rhs),
-                            Opcode.JumpAnd => BooleanOp.IsTruthy(old) ? rhs : old,
-                            Opcode.JumpOr  => BooleanOp.IsTruthy(old) ? old : rhs,
                             Opcode.BNot    => BitwiseOp.Not(tok, ref rhs),
                             _           => rhs
                         };
@@ -2180,14 +2202,20 @@ public sealed class KiwiVM
                         _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         RegisterTypeBuiltins(qualifiedName);
                         _context.ImportedPackages.TryAdd(qualifiedName, 0);
+                        _context.PackageErrors.TryRemove(qualifiedName, out _);
                         InvalidateDefinition(qualifiedName);
                         break;
                     }
                     case Opcode.PackageAbort:
                     {
                         // Package activation failed: pop the stack but don't mark as imported.
-                        // The stored PackageNode AST allows ImportPackage to retry later.
+                        // The stored PackageNode AST allows ImportPackage to retry later; the
+                        // error is kept to report if the retry fails or the package is used.
                         PackageStack.Pop();
+                        var qualifiedName = _pkgPrefix.Length >= 2 ? _pkgPrefix[..^2] : _pkgPrefix;
+                        if (_caughtError != null)
+                            _context.PackageErrors[qualifiedName] = _caughtError;
+                        _caughtError = null;
                         _pkgPrefix = _pkgPrefixStack.Count > 0 ? _pkgPrefixStack.Pop() : string.Empty;
                         break;
                     }
@@ -3123,6 +3151,10 @@ public sealed class KiwiVM
 
         if (PackageStack.Count > 0)
             PackageStack.Pop();
+
+        // The retry failed too: report why.
+        if (!_context.ImportedPackages.ContainsKey(packageNameValue))
+            ThrowIfPackageFailed(packageNameValue + "::");
 
         RegisterTypeBuiltins(packageNameValue);
         _context.ImportedPackages.TryAdd(packageNameValue, 0);

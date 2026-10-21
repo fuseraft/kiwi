@@ -163,8 +163,6 @@ totals["apples"] *= 2
 println totals   # {"apples": 6}
 ```
 
-On a list element or hashmap key, `&&=` and `||=` always evaluate the right-hand side; elsewhere they short-circuit like `&&` and `||`.
-
 Assigning to several names at once is covered in [Variables](/kiwi/language/variables/#multiple-assignment).
 
 ## Precedence
