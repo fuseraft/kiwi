@@ -4,7 +4,8 @@ fn main(args)
   grid_size = get_grid_size(args)
 
   if grid_size == null
-    exit print_help()
+    print_help()
+    exit 1
   end
 
   rows = grid_size

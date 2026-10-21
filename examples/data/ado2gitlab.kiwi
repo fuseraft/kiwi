@@ -21,16 +21,19 @@ for repo in repos do
   println "Migrating ${repo}..."
 
   # clone the repo and all refs
-  sys::exec("git clone --mirror \"https://${PAT}@dev.azure.com/${AZURE_ORG}/${AZURE_PROJECT}/_git/${repo}\"")
+  if sys::exec("git", ["clone", "--mirror", "https://${PAT}@dev.azure.com/${AZURE_ORG}/${AZURE_PROJECT}/_git/${repo}"]) != 0
+    println "Could not clone ${repo}, skipping."
+    next
+  end
 
   # go into the repo directory
   fio::chdir("${repo}.git")
 
   # add GitLab as the new origin
-  sys::exec("git remote add origin \"git@gitlab.com:${GITLAB_GROUP}/${repo}.git\"")
+  sys::exec("git", ["remote", "add", "origin", "git@gitlab.com:${GITLAB_GROUP}/${repo}.git"])
 
   # push all refs to GitLab
-  sys::exec("git push --mirror origin")
+  sys::exec("git", ["push", "--mirror", "origin"])
 
   # clean up
   fio::chdir("..")

@@ -6,7 +6,7 @@ fn count_divisors(n: integer): integer
   count = 0
   # Only check up to sqrt(n), symmetry does the rest
   for i in [1..math::sqrt(n.to_float()).to_integer()] do
-    if n % i == 0 then
+    if n % i == 0
       count = count + (i * i == n ? 1 : 2)  # perfect square has one middle divisor
     end
   end
@@ -22,7 +22,7 @@ fn solve(min_divisors: integer): integer
     triangle = triangle + n
     divisors = count_divisors(triangle)
 
-    if divisors > min_divisors then
+    if divisors > min_divisors
       return triangle
     end
 

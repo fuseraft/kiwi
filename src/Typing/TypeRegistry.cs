@@ -12,6 +12,22 @@ public static class TypeRegistry
     private static readonly Lock registerLock = new();
     private static bool defaultsRegistered = false;
 
+    // Ids of the built-in types, in the order RegisterDefaults registers them.
+    public const int AnyType       = 0;
+    public const int IntegerType   = 1;
+    public const int FloatType     = 2;
+    public const int BooleanType   = 3;
+    public const int DateType      = 4;
+    public const int HashmapType   = 5;
+    public const int GeneratorType = 6;
+    public const int LambdaType    = 7;
+    public const int StringType    = 8;
+    public const int ListType      = 9;
+    public const int BytesType     = 10;
+    public const int ObjectType    = 11;
+    public const int PointerType   = 12;
+    public const int NullType      = 13;
+
     static TypeRegistry()
     {
         RegisterDefaults();

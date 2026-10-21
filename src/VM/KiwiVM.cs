@@ -448,24 +448,23 @@ public sealed class KiwiVM
     {
         foreach (var type in types)
         {
-            var name = TypeRegistry.GetTypeName(type);
-            bool match = name switch
+            bool match = type switch
             {
-                "any"       => true,
-                "null"      => v.IsNull(),
-                "integer"   => v.IsInteger(),
-                "float"     => v.IsFloat() || v.IsInteger(),
-                "boolean"   => v.IsBoolean(),
-                "string"    => v.IsString(),
-                "list"      => v.IsList(),
-                "hashmap"   => v.IsHashmap(),
-                "bytes"     => v.IsBytes(),
-                "date"      => v.IsDate(),
-                "lambda"    => v.IsLambda(),
-                "generator" => v.IsGenerator(),
-                "pointer"   => v.IsPointer(),
-                "object"    => v.IsObject(),
-                _           => MatchesStructType(v, name),
+                TypeRegistry.AnyType       => true,
+                TypeRegistry.NullType      => v.IsNull(),
+                TypeRegistry.IntegerType   => v.IsInteger(),
+                TypeRegistry.FloatType     => v.IsFloat() || v.IsInteger(),
+                TypeRegistry.BooleanType   => v.IsBoolean(),
+                TypeRegistry.StringType    => v.IsString(),
+                TypeRegistry.ListType      => v.IsList(),
+                TypeRegistry.HashmapType   => v.IsHashmap(),
+                TypeRegistry.BytesType     => v.IsBytes(),
+                TypeRegistry.DateType      => v.IsDate(),
+                TypeRegistry.LambdaType    => v.IsLambda(),
+                TypeRegistry.GeneratorType => v.IsGenerator(),
+                TypeRegistry.PointerType   => v.IsPointer(),
+                TypeRegistry.ObjectType    => v.IsObject(),
+                _                          => MatchesStructType(v, TypeRegistry.GetTypeName(type)),
             };
             if (match) return true;
         }
@@ -3487,7 +3486,8 @@ public sealed class KiwiVM
         var slice    = new SliceIndex(startVal, stopVal, stepVal) { IsSlice = true };
 
         if (obj.IsString()) return kiwi.Runtime.Builtin.Util.SliceUtil.StringSlice(token, slice, obj.GetString());
-        if (obj.IsList())   return kiwi.Runtime.Builtin.Util.SliceUtil.ListSlice(token, slice, obj.GetList().ToList());
+        // Read the slice under the list's lock rather than copying the whole list first.
+        if (obj.IsList())   return obj.GetList().Mutate(items => kiwi.Runtime.Builtin.Util.SliceUtil.ListSlice(token, slice, items));
         if (obj.IsBytes())  return kiwi.Runtime.Builtin.Util.SliceUtil.BytesSlice(token, slice, obj.GetBytes());
         throw new InvalidOperationError(token, "Cannot slice this type.");
     }

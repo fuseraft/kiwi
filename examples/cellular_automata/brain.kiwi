@@ -3,7 +3,10 @@ global.min_grid_size = 20
 fn main(args: list)
   grid_size = get_grid_size(args)
 
-  exit print_help() when grid_size == null
+  if grid_size == null
+    print_help()
+    exit 1
+  end
 
   rows = grid_size
   cols = grid_size

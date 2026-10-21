@@ -31,6 +31,10 @@ fn _th_union(v: integer|string)
   v
 end
 
+fn _th_maybe_list(empty: boolean): list|none
+  empty ? null : [1]
+end
+
 struct THShape end
 struct THSquare < THShape end
 
@@ -49,6 +53,8 @@ fn test_type_hints_parameters()
   tester::assert_eq(_th_union(1), 1)
   tester::assert_eq(_th_union("x"), "x")
   tester::assert_eq(_th_error_type(do () => _th_union(1.5)), "TypeError")
+  tester::assert_eq(_th_maybe_list(true), null, "`none` is the type of null")
+  tester::assert_eq(_th_maybe_list(false), [1])
   tester::assert_eq(_th_shape(THSquare.new()), "shape", "a struct hint accepts subclasses")
   tester::assert_eq(_th_error_type(do () => _th_shape(1)), "TypeError")
 end

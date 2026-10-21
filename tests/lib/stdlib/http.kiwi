@@ -1,0 +1,10 @@
+@tester::test("http: HttpResponse body helpers")
+fn test_http_response_body()
+  res = HttpResponse.new({
+    "status": 200, "ok": true, "headers": {}, "url": "http://localhost/",
+    "body": "{\"a\": [1, 2]}"
+  })
+  tester::assert_eq(res.json(), {"a": [1, 2]})
+  tester::assert_eq(res.text(), "{\"a\": [1, 2]}")
+  tester::assert_eq(res.pretty(), {"a": [1, 2]}.pretty(), "pretty() uses the response's own json()")
+end
