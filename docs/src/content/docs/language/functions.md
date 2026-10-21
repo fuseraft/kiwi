@@ -79,9 +79,17 @@ println connect(port = 8080, host = "localhost")       # http://localhost:8080
 
 Passing a name that isn't a parameter is an error.
 
-:::caution
-Kiwi doesn't check the number of arguments. A missing argument without a default is `null`, and extra positional arguments are ignored. Give optional parameters explicit defaults so the intent is clear.
-:::
+Kiwi checks the arguments a call passes. Leaving out a parameter that has no default, passing more positional arguments than there are parameters, or passing a parameter both by position and by name is an error:
+
+```kiwi fails
+fn connect(host, port = 80)
+  "${host}:${port}"
+end
+
+connect("example.com", 80, true)   # ParameterCountMismatchError: Expected 1 to 2 but received 3.
+```
+
+[Lambdas](/kiwi/language/lambdas/) are more forgiving, so they work as callbacks: a missing argument is `null` and extra arguments are ignored.
 
 ## Variadic parameters
 
@@ -172,7 +180,7 @@ println handlers["loud"]("hey")        # HEY!
 
 ## Nested functions
 
-A `fn` inside another function is a helper for that function:
+A `fn` inside another function is a helper for that function. It exists only while the outer call runs:
 
 ```kiwi
 fn summarize(values)

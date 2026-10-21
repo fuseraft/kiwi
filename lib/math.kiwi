@@ -3,6 +3,21 @@
 #/
 package math
   /#
+  @summary The ratio of a circle's circumference to its diameter, `3.141592653589793`.
+  #/
+  const PI = 3.141592653589793
+
+  /#
+  @summary Euler's number, the base of the natural logarithm, `2.718281828459045`.
+  #/
+  const E = 2.718281828459045
+
+  /#
+  @summary The ratio of a circle's circumference to its radius (`2 * PI`), `6.283185307179586`.
+  #/
+  const TAU = 6.283185307179586
+
+  /#
   @summary Gets the smallest difference from 1.0 that a floating-point type can accurately represent.
   @return float : The machine epsilon value.
   #/
@@ -53,7 +68,20 @@ package math
   @return list : A list of prime numbers up to `_limit`.
   #/
   fn listprimes(_limit)
-    return __listprimes__(_limit)
+    return [] when _limit < 2
+    # Sieve of Eratosthenes.
+    composite = [false] * (_limit + 1)
+    primes = []
+    for n in [2 to _limit] do
+      next when composite[n]
+      primes.push(n)
+      m = n * n
+      while m <= _limit do
+        composite[m] = true
+        m += n
+      end
+    end
+    return primes
   end
 
   /#
@@ -62,7 +90,14 @@ package math
   @return integer : The n-th prime number.
   #/
   fn nthprime(_n)
-    return __nthprime__(_n)
+    throw error::new("InvalidOperationError", "nthprime expects a positive integer.") when _n < 1
+    # The n-th prime is below n * (ln n + ln ln n) for n >= 6.
+    limit = 15
+    if _n >= 6
+      ln = __log__(_n.to_float())
+      limit = (_n * (ln + __log__(ln))).to_integer() + 1
+    end
+    return listprimes(limit)[_n - 1]
   end
 
   /#

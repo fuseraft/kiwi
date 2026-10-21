@@ -113,9 +113,20 @@ println global.request_count   # 1
 | Function | Returns |
 | :-- | :-- |
 | `__entrypath__()` | The path of the script that was run. |
-| `__execpath__()` | The path of the script being executed. |
+| `__execpath__()` | The path of the file that contains the call, so an included file or package gets its own path. |
+| `__main__()` | Whether the file that contains the call is the script that was run, as opposed to a file it included. |
 | `__memusage__()` | A hashmap of memory statistics: `working_set`, `gc_heap`, `gc_total_allocated`, and `gen0_collections` through `gen2_collections`. |
 | `__tokenize__(code)` | A hashmap with a `tokens` list, each token a hashmap with `token`, `text`, `type` and `span`; or an `error` key if lexing failed. |
+
+`__main__()` lets a file act both as a library and as a script:
+
+```kiwi
+fn main()
+  println "running as a script"
+end
+
+main() when __main__()
+```
 
 ```kiwi
 for t in __tokenize__("x = 1")["tokens"] do

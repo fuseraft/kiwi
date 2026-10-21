@@ -90,7 +90,7 @@ Other points:
 
 ## Timers
 
-`task::sleep(ms)` pauses the current task. `task::timer(ms, lambda)` runs a lambda once after a delay, and `task::interval(ms, lambda)` runs it repeatedly:
+`task::sleep(ms)` pauses the current task. `task::timer(ms, lambda)` runs a lambda once after a delay and waits for it, and `task::interval(ms, lambda)` runs it repeatedly in the background:
 
 ```kiwi
 fired = [0]
@@ -99,9 +99,23 @@ task::sleep(100)
 println fired[0]   # 1
 ```
 
-:::caution
-An interval runs forever and can't be cancelled, so a program that starts one never exits on its own. Prefer a loop in a spawned task that checks a flag.
-:::
+`interval` returns an `Interval`. Call `stop()` on it to end it, or return `false` from the lambda. A program waits for its running intervals before it exits, so stop one when it is no longer needed:
+
+```kiwi
+ticks = [0]
+heartbeat = task::interval(10, do () => ticks[0] += 1)
+task::sleep(55)
+heartbeat.stop()
+task::await(heartbeat.id())
+println ticks[0] > 0   # true
+
+countdown = [3]
+task::await(task::interval(5, do ()
+  countdown[0] -= 1
+  countdown[0] > 0
+end).id())
+println countdown[0]   # 0
+```
 
 ## Inspecting tasks
 

@@ -6,15 +6,13 @@
 
 Strings are written in double or single quotes. They are different:
 
-- **Double quotes** process backslash escapes such as `\n` and `\t`.
-- **Single quotes** are raw: backslashes are kept as written, which makes them the natural choice for regular expressions and Windows paths.
-
-Both kinds interpolate `${...}`.
+- **Double quotes** process backslash escapes such as `\n` and `\t`, and interpolate `${...}`.
+- **Single quotes** are raw: backslashes and `${...}` are kept as written, which makes them the natural choice for regular expressions, Windows paths and templates.
 
 ```kiwi
 name = "Kiwi"
 println "Hello, ${name}!\tTabbed"   # Hello, Kiwi!	Tabbed
-println 'Hello, ${name}!\tRaw'      # Hello, Kiwi!\tRaw
+println 'Hello, ${name}!\tRaw'      # Hello, ${name}!\tRaw
 println 'C:\Users\kiwi'             # C:\Users\kiwi
 ```
 
@@ -32,7 +30,7 @@ To strip the indentation of a multi-line string, use `.dedent()` from the [`stri
 
 ## Interpolation
 
-Inside a string, `${expression}` is replaced by the value of the expression. Any expression works, including method calls, arithmetic and nested strings.
+Inside a double-quoted string, `${expression}` is replaced by the value of the expression. Any expression works, including method calls, arithmetic and nested strings.
 
 ```kiwi
 x = 50
@@ -59,11 +57,13 @@ These escapes work in double-quoted strings:
 | `\\` | Backslash |
 | `\"` | Double quote |
 | `\$` | Dollar sign (prevents interpolation) |
+| `\xHH` | Character with code 0x00 to 0xFF, 2 hex digits |
 | `\uXXXX` | Unicode code point, 4 hex digits |
 | `\UXXXXXXXX` | Unicode code point, 8 hex digits |
 
 ```kiwi
 println "Quote: \"hi\""     # Quote: "hi"
+println "\x4B\x69\x77\x69"  # Kiwi
 println "café"         # café
 println "\U0001F95D"        # 🥝
 ```

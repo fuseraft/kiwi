@@ -352,14 +352,25 @@ public partial class Serializer
         return values;
     }
 
+    /// <summary>
+    /// Formats a struct instance with its own <c>to_string()</c>, or returns null when the
+    /// struct doesn't define one. Installed by the VM.
+    /// </summary>
+    public static Func<InstanceRef, string?>? ObjectFormatter { get; set; }
+
     public static string BasicSerializeObject(InstanceRef obj)
     {
+        if (ObjectFormatter?.Invoke(obj) is { } formatted)
+        {
+            return formatted;
+        }
+
         if (string.IsNullOrEmpty(obj.Identifier))
         {
             return $"<struct(name={obj.StructName})>";
         }
 
-        return $"<struct(name={obj.StructName}, identifier={obj.Identifier}>";
+        return $"<struct(name={obj.StructName}, identifier={obj.Identifier})>";
     }
 
     public static string BasicSerializeLambda(LambdaRef lambda)

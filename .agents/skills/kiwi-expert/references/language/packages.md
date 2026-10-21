@@ -21,7 +21,7 @@ println greeter::hello("World")     # Hello, World.
 println greeter::excited("World")   # Hello, World!
 ```
 
-Call package functions from outside with `package::name`. Inside the package, functions call each other by their plain names, as `excited` calls `hello` above.
+Call package functions from outside with `package::name`. Inside the package, functions call each other by their plain names, as `excited` calls `hello` above. A plain name inside a package finds the package's own functions and constants first, so a global variable that happens to share the name doesn't get in the way.
 
 A package is ready to use as soon as its declaration has run.
 
@@ -43,6 +43,8 @@ end
 println config::VERSION   # 2.1.0
 println config::url()     # http://localhost:8080
 ```
+
+A `const` belongs to its package: outside the package it is only reachable as `package::NAME`, so it never collides with a constant or variable of the same name elsewhere. Inside the package the plain name works too.
 
 Variables assigned inside a package *function* are local to that call, like in any function.
 
@@ -148,9 +150,9 @@ The standard library uses this for [`string`](../lib/string.md), [`list`](../lib
 Keep in mind:
 
 - Hinting the first parameter (`text: string`) isn't required, but it documents the intent.
-- [Built-in methods](../reference/builtin-methods.md) take precedence. An extension named `count` or `second` is shadowed by the built-in of the same name when called as a method; call it as `package::name(...)` instead, or pick another name.
+- [Built-in methods](../reference/builtin-methods.md) take precedence. An extension named `count` or `second` is shadowed by the built-in of the same name when called as a method, unless its last argument is a lambda; call it as `package::name(...)` instead, or pick another name.
 - If two loaded packages add the same method name to a type, the last one loaded wins.
 
 ## Names that are type keywords
 
-Function names that are also [type keywords](syntax.md#reserved-words), such as `any` or `none`, can be declared in a package but must always be called with the package prefix, even from inside the package. Choosing a different name avoids the problem.
+Function names that are also [type keywords](syntax.md#reserved-words), such as `any` or `none`, can be declared in a package. Call them with the package prefix (even from inside the package) or as a method (`xs.none(fn)`); a bare `none(...)` doesn't parse. Choosing a different name avoids the problem.

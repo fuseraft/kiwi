@@ -134,6 +134,7 @@ println -16 >> 2          # -4
 | `a <<= b`, `a >>= b`, `a >>>= b` | Shifts |
 | `a &&= b` | Assign `b` only if `a` is truthy |
 | `a \|\|= b` | Assign `b` only if `a` is falsy |
+| `a ~= b` | `a = ~b` (bitwise NOT of `b`) |
 
 ```kiwi
 n = 20
@@ -160,6 +161,8 @@ totals = {apples: 3}
 totals["apples"] *= 2
 println totals   # {"apples": 6}
 ```
+
+On a list element or hashmap key, `&&=` and `||=` always evaluate the right-hand side; elsewhere they short-circuit like `&&` and `||`.
 
 Assigning to several names at once is covered in [Variables](variables.md#multiple-assignment).
 

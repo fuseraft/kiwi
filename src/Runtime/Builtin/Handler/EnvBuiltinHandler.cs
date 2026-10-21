@@ -19,6 +19,7 @@ public static class EnvBuiltinHandler
             TokenName.Builtin_Env_GetEnvironmentVariable => GetEnvironmentVariable(token, args),
             TokenName.Builtin_Env_SetEnvironmentVariable => SetEnvironmentVariable(token, args),
             TokenName.Builtin_Env_Kiwi => GetBinPath(token, args),
+            TokenName.Builtin_Env_Lib => GetLibPath(token, args),
             TokenName.Builtin_Env_OS => OS(token, args),
             TokenName.Builtin_Env_User => User(token, args),
             TokenName.Builtin_Env_UserDomain => UserDomain(token, args),
@@ -106,6 +107,23 @@ public static class EnvBuiltinHandler
 
         var exePath = Environment.ProcessPath ?? throw new FileSystemError(token, "Could not get executable path.");
         return Value.CreateString(exePath);
+    }
+
+    private static Value GetLibPath(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, EnvBuiltin.Lib, 0, args.Count);
+
+        // The first standard library location that is a directory.
+        foreach (var library in Kiwi.Settings.StandardLibrary)
+        {
+            var path = library.ResolvePath();
+            if (Directory.Exists(path))
+            {
+                return Value.CreateString(path);
+            }
+        }
+
+        return Value.EmptyString;
     }
 
     private static Value GetEnvironmentVariable(Token token, List<Value> args)

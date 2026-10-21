@@ -53,6 +53,6 @@ public static class EnumPackage
             return v;
         if (def != null)
             return def;
-        throw new Exception($"Enum member '{k}' not found");
+        throw new ValueError(Token.Eof, $"Enum member '{k}' not found.");
     }
 }

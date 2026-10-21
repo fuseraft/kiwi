@@ -94,3 +94,20 @@ hm = Status.to_hashmap()
 tester::assert(hm.size() == 3)
 tester::assert(Status.get("Pending") == 0)
 tester::assert(Status.get("Missing", -1) == -1)
+
+@tester::test("enums: get without a default")
+fn test_enums_get_missing()
+  enum EnumGetColor
+    Red
+    Green
+  end
+
+  tester::assert_eq(EnumGetColor.get("Green"), 1)
+  error_type = null
+  try
+    EnumGetColor.get("Blue")
+  catch (e)
+    error_type = e.error
+  end
+  tester::assert_eq(error_type, "ValueError")
+end

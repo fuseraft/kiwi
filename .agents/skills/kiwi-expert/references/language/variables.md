@@ -89,9 +89,12 @@ names.push("kiwi")
 println [total, names]   # [5, ["kiwi"]]
 ```
 
-:::caution
-`var name` with neither an initializer nor one of the hints above does not create the variable; reading it later raises `VariableUndefinedError`. Initialize it instead: `var name = null`.
-:::
+`var name` with neither an initializer nor one of the hints above starts as `null`:
+
+```kiwi
+var result
+println result   # null
+```
 
 Group several declarations in parentheses:
 

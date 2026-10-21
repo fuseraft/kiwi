@@ -4,117 +4,152 @@ require "path"
 A package with interesting string operations.
 #/
 package string
+  /#
+  @summary Reads a string one character at a time, for hand-written tokenizers and parsers.
+  #/
   struct StringIterator
-    fn new(s)
+    /#
+    @summary Creates an iterator positioned at the first character.
+    @param string s : The string to read.
+    #/
+    fn new(s: string)
       @chars = s.chars()
       @len = @chars.size()
       @pos = 0
     end
 
-    fn consume()
-      @pos += 1
+    /#
+    @summary Advances past the current character.
+    @return string : The character consumed, or `""` at the end.
+    #/
+    fn consume(): string
+      c = current()
+      @pos += 1 when @pos < @len
+      c
     end
 
-    fn skip(n)
-      if @pos + n < @len
-        @pos = @len
-      else
-        @pos += n
-      end
+    /#
+    @summary Advances `n` characters, stopping at the end.
+    @param integer n : The number of characters to skip.
+    #/
+    fn skip(n: integer)
+      @pos = [@pos + n, @len].min()
     end
 
-    fn can_read()
-      (@pos + 1 < @len)
+    /#
+    @summary Checks whether a character is left to read.
+    @return boolean : `true` while the position is before the end.
+    #/
+    fn can_read(): boolean
+      @pos < @len
     end
 
+    /#
+    @summary Checks whether the whole string has been read.
+    @return boolean : `true` at the end.
+    #/
     fn eof(): boolean
       !can_read()
     end
 
-    fn current()
-      if @pos < @len
-        return @chars.get(@pos)
-      end
-      
+    /#
+    @summary Gets the character at the current position.
+    @return string : The current character, or `""` at the end.
+    #/
+    fn current(): string
+      return @chars[@pos] when @pos < @len
       ""
     end
 
-    fn peek()
-      if @pos + 1 < @len
-        return @chars.get(@pos + 1)
-      end
-
+    /#
+    @summary Gets the character after the current one without consuming anything.
+    @return string : The next character, or `""` if there is none.
+    #/
+    fn peek(): string
+      return @chars[@pos + 1] when @pos + 1 < @len
       ""
     end
 
-    fn position()
+    /#
+    @summary Gets the current position.
+    @return integer : The index of the current character.
+    #/
+    fn position(): integer
       @pos
     end
 
-    fn length()
+    /#
+    @summary Gets the length of the string.
+    @return integer : The number of characters.
+    #/
+    fn length(): integer
       @len
     end
 
-    fn rewind(n)
-      @pos -= n
+    /#
+    @summary Moves back `n` characters, stopping at the start.
+    @param integer n : The number of characters to move back (default `1`).
+    #/
+    fn rewind(n: integer = 1)
+      @pos = [@pos - n, 0].max()
     end
 
-    fn grab(n)
-      if n < @len && n >= 0
-        return @chars.get(n)
-      end
+    /#
+    @summary Gets the character at an absolute index.
+    @param integer n : The index.
+    @return string : The character, or `""` if `n` is out of range.
+    #/
+    fn grab(n: integer): string
+      return @chars[n] when n >= 0 && n < @len
       ""
     end
 
-    fn reach(n)
-      if @len + n < @len && @len + n >= 0
-        return @chars.get(@len + n)
-      end
+    /#
+    @summary Gets a character counted from the end of the string.
+    @param integer n : A negative offset from the end (`-1` is the last character).
+    @return string : The character, or `""` if the offset is out of range.
+    #/
+    fn reach(n: integer): string
+      return @chars[@len + n] when n < 0 && @len + n >= 0
       ""
     end
 
-    fn look_ahead()
-      return "" when !can_read()
-      tmp_chars = []
-
-      try
-        tmp_chars = (@chars)[@pos: :]
-      end
-
-      c = tmp_chars.get(i)
-      i = 0
-
-      while c == " " && i + 1 < tmp_chars.size() do
-        c = tmp_chars.get(i)
+    /#
+    @summary Gets the next character that isn't whitespace, from the current position on, without consuming anything.
+    @return string : The character, or `""` if only whitespace remains.
+    #/
+    fn look_ahead(): string
+      i = @pos
+      while i < @len && _is_space(@chars[i]) do
         i += 1
       end
-
-      c
+      return @chars[i] when i < @len
+      ""
     end
 
-    fn count_ahead()
-      return 0 when !can_read()
-      tmp_chars = []
-
-      try
-        tmp_chars = (@chars)[@pos: :]
-      end
-
-      c = tmp_chars.get(i)
-      i = 0
-
-      while c == " " && i + 1 < tmp_chars.size() do
-        c = tmp_chars.get(i)
+    /#
+    @summary Counts the whitespace characters from the current position to the next non-whitespace character.
+    @return integer : The number of whitespace characters ahead.
+    #/
+    fn count_ahead(): integer
+      i = @pos
+      while i < @len && _is_space(@chars[i]) do
         i += 1
       end
-
-      i - 1
+      i - @pos
     end
 
+    /#
+    @summary Advances past any whitespace (spaces, tabs and line breaks).
+    #/
     fn skip_whitespace()
-      while can_read() && current() == " " do
-        consume()
+      while can_read() && _is_space(current()) do
+        @pos += 1
       end
+    end
+
+    private fn _is_space(c: string): boolean
+      c == " " || c == "\t" || c == "\n" || c == "\r"
     end
   end
 
@@ -335,7 +370,7 @@ package string
     
     result = []
     
-    for i, word in words do
+    for word, i in words do
       lowered = word.lowercase()
       
       # First word always capitalized or small words that are NOT in the exception list

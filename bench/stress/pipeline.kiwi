@@ -15,8 +15,6 @@
 package pipeline
 
   struct FilterStage
-    @name
-    @pred
     fn new(name, pred)
       @name = name
       @pred = pred
@@ -30,8 +28,6 @@ package pipeline
   end
 
   struct MapStage
-    @name
-    @mapper
     fn new(name, fn_ref)
       @name   = name
       @mapper = fn_ref
@@ -45,8 +41,6 @@ package pipeline
   end
 
   struct SortStage
-    @name
-    @cmp
     fn new(name, cmp)
       @name = name
       @cmp  = cmp
@@ -60,7 +54,6 @@ package pipeline
   end
 
   struct TakeStage
-    @n
     fn new(n)
       @n = n
     end
@@ -73,7 +66,6 @@ package pipeline
   end
 
   struct DropStage
-    @n
     fn new(n)
       @n = n
     end
@@ -86,9 +78,6 @@ package pipeline
   end
 
   struct ReduceStage
-    @name
-    @init
-    @reducer
     fn new(name, init, fn_ref)
       @name    = name
       @init    = init
@@ -103,9 +92,6 @@ package pipeline
   end
 
   struct ZipWithStage
-    @name
-    @other
-    @zipper
     fn new(name, other, fn_ref)
       @name   = name
       @other  = other
@@ -130,7 +116,6 @@ package pipeline
   end
 
   struct UniqueStage
-    @key_fn
     fn new(key_fn)
       @key_fn = key_fn
     end
@@ -153,8 +138,6 @@ package pipeline
   end
 
   struct FlatMapStage
-    @name
-    @mapper
     fn new(name, fn_ref)
       @name   = name
       @mapper = fn_ref
@@ -176,8 +159,6 @@ package pipeline
   end
 
   struct Pipeline
-    @name
-    @stages
     fn new(name)
       @name   = name
       @stages = []

@@ -30,10 +30,6 @@ while !stdin::empty() do
 end
 ```
 
-:::caution
-`stdin::lines()` currently never returns. Use `stdin::read().rtrim().lines()` or the loop above instead.
-:::
-
 To prompt the user interactively, use [`input`](../reference/global-functions.md#input) or [`console::read`](console.md).
 
 ## Functions

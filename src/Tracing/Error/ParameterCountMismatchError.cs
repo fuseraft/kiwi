@@ -24,6 +24,23 @@ public class ParameterCountMismatchError : KiwiError
     {
     }
 
+    private ParameterCountMismatchError(Token t, string name, string expected, int actualCount)
+        : base(t, "ParameterCountMismatchError", $"The parameter count for function `{name}` does not match parameters passed. Expected {expected} but received {actualCount}.")
+    {
+    }
+
+    /// <summary>
+    /// A call to a function taking <paramref name="min"/> to <paramref name="max"/> arguments
+    /// (no upper bound when <paramref name="variadic"/>).
+    /// </summary>
+    public static ParameterCountMismatchError ForArity(Token t, string name, int min, int max, bool variadic, int actualCount)
+    {
+        var expected = variadic ? $"at least {min}"
+                     : min == max ? $"{min}"
+                     : $"{min} to {max}";
+        return new ParameterCountMismatchError(t, name, expected, actualCount);
+    }
+
     public static void Check(Token token, string name, int expectedCount, int actualCount)
     {
         if (expectedCount != actualCount)

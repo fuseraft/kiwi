@@ -37,6 +37,15 @@ public sealed class Compiler
         public List<int> NextPatches  = [];
     }
 
+    // -- Try context (return / break / next leaving a try block) ---------------
+
+    private sealed class TryCtx
+    {
+        public required List<ASTNode?> FinallyBody;  // empty when there is no finally
+        public required int  LoopDepth;              // _loops.Count when the try began
+        public bool HandlerActive = true;            // a try handler is pushed for this block
+    }
+
     // -- Fields ----------------------------------------------------------------
 
     private readonly Chunk     _chunk;
@@ -44,19 +53,30 @@ public sealed class Compiler
     private readonly bool      _isGlobal;
 
     /// <summary>
-    /// Names known to be top-level globals, shared by reference across the root compiler
-    /// and every nested function/lambda compiler beneath it. Populated once, up front, from
-    /// a full scan of the top-level program (see the entry points below). Used by
+    /// Names known to be top-level globals of the code being compiled. A nested function or
+    /// lambda compiler takes the set of its enclosing compiler when it is created. Used by
     /// <see cref="SetupLocals"/> so a plain `name = ...` assignment inside a function updates
     /// an existing global of the same name instead of silently shadowing it with a new local.
+    /// The set covers only the source file the code is in, and is empty inside a package body,
+    /// so a library function's locals never write to a script's globals that share their names.
     /// </summary>
-    private readonly HashSet<string> _globalNames;
+    private HashSet<string> _globalNames;
+
+    // Top-level assigned names per source file (see _globalNames); root compiler only.
+    private Dictionary<int, HashSet<string>>? _fileGlobalNames;
 
     private readonly List<LocalVar>          _locals   = [];
     private readonly List<UpvalueDescriptor> _upvalues = [];
     private readonly List<LoopCtx>           _loops    = []; // last = innermost
+    private readonly List<TryCtx>            _trys     = []; // last = innermost
+
+    // At top level a for-loop variable is a global, which closures look up by name. While
+    // the loop is compiled it is mirrored into a hidden local slot that closures in the body
+    // capture instead, so each iteration's closures keep that iteration's value.
+    private readonly Dictionary<string, int> _globalLoopSlots = new(StringComparer.Ordinal);
 
     private int _slotCount;
+    private int _returnCheck = -1; // TypeChecks index for the return type hint, -1 = none
     private int _currentFileId; // updated per node; stored in every instruction for error reporting
     private int _currentColumn; // 1-based column from the node's token span
 
@@ -75,16 +95,39 @@ public sealed class Compiler
     public static Chunk CompileProgram(ProgramNode program)
     {
         var c = new Compiler("<main>", null, isGlobal: true, globalNames: []);
-        c._globalNames.UnionWith(c.CollectAssigned(program.Statements));
+        c.CollectFileGlobals(program.Statements);
         // Pass 1: hoist top-level function definitions so they are available
         // before any code that precedes them in source order.
         foreach (var s in program.Statements)
-            if (s is FunctionNode) c.CompileStatement(s);
+            if (s is FunctionNode) c.CompileTopLevel(s);
         // Pass 2: compile all remaining (non-function) statements in order.
         foreach (var s in program.Statements)
-            if (s != null && s is not FunctionNode) c.CompileStatement(s);
+            if (s != null && s is not FunctionNode) c.CompileTopLevel(s);
         c.Emit(Opcode.Halt);
         return c._chunk;
+    }
+
+    /// <summary>
+    /// Records the names assigned at the top level of each source file in a program (the
+    /// standard library and the script are parsed into one program).
+    /// </summary>
+    private void CollectFileGlobals(IEnumerable<ASTNode?> statements)
+    {
+        _fileGlobalNames = [];
+        foreach (var group in statements.Where(s => s != null).GroupBy(s => s!.Token.Span.File))
+        {
+            _globalNames = [];
+            _fileGlobalNames[group.Key] = CollectAssigned(group);
+        }
+        _globalNames = [];
+    }
+
+    /// <summary>Compiles a top-level statement with the global names of its source file.</summary>
+    private void CompileTopLevel(ASTNode node)
+    {
+        if (_fileGlobalNames != null)
+            _globalNames = _fileGlobalNames.GetValueOrDefault(node.Token.Span.File) ?? [];
+        CompileStatement(node);
     }
 
     /// <summary>
@@ -131,6 +174,7 @@ public sealed class Compiler
         var c = new Compiler(fn.Name, enclosing, isGlobal: false);
         c.SetupLocals(fn.Parameters, fn.VariadicParamName, fn.Body);
         c.EmitDefaultInits(fn.Parameters);
+        c.EmitTypeHintChecks(fn.Parameters, fn.TypeHints, fn.ReturnTypeHint, $"`{fn.Name}`");
         if (!c.CompileFunctionBody(fn.Body))
             c.EmitFinalReturn();
         foreach (var uv in c._upvalues) c._chunk.Upvalues.Add(uv);
@@ -140,12 +184,57 @@ public sealed class Compiler
     public static Chunk CompileLambda(LambdaNode fn, Compiler? enclosing)
     {
         var c = new Compiler("<lambda>", enclosing, isGlobal: false);
+        c._chunk.IsLambda = true;
         c.SetupLocals(fn.Parameters, fn.VariadicParamName, fn.Body);
         c.EmitDefaultInits(fn.Parameters);
+        c.EmitTypeHintChecks(fn.Parameters, fn.TypeHints, fn.ReturnTypeHint, "the lambda");
         if (!c.CompileFunctionBody(fn.Body))
             c.EmitFinalReturn();
         foreach (var uv in c._upvalues) c._chunk.Upvalues.Add(uv);
         return c._chunk;
+    }
+
+    // -- Type hints ------------------------------------------------------------
+
+    /// <summary>
+    /// Registers a check for <paramref name="hints"/> and returns its index, or -1 when the
+    /// hints accept anything.
+    /// </summary>
+    private int AddTypeCheck(List<int>? hints, string subject, bool isReturn = false, bool isParameter = false)
+    {
+        if (hints == null || hints.Count == 0 || hints.Contains(TypeRegistry.GetType("any"))) return -1;
+        _chunk.TypeChecks.Add(new TypeCheck([.. hints], subject, isReturn, isParameter));
+        return _chunk.TypeChecks.Count - 1;
+    }
+
+    /// <summary>
+    /// At function entry (after defaults are filled in), checks each hinted parameter, and
+    /// records the return hint that every return path checks.
+    /// </summary>
+    private void EmitTypeHintChecks(
+        List<KeyValuePair<string, ASTNode?>> parameters,
+        Dictionary<string, List<int>> typeHints,
+        List<int> returnHint,
+        string owner)
+    {
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            var name = parameters[i].Key;
+            if (!typeHints.TryGetValue(name, out var hints)) continue;
+            int check = AddTypeCheck(hints, $"parameter {i + 1} (`{name}`) of {owner}", isParameter: true);
+            if (check < 0) continue;
+            Emit(Opcode.LoadLocal, ResolveLocal(name));
+            Emit(Opcode.CheckType, check);
+            Emit(Opcode.Pop);
+        }
+
+        _returnCheck = AddTypeCheck(returnHint, $"the return value of {owner}", isReturn: true);
+    }
+
+    /// <summary>Checks the value about to be returned against the return type hint, if any.</summary>
+    private void EmitReturnCheck(int ln = 0)
+    {
+        if (_returnCheck >= 0) Emit(Opcode.CheckType, _returnCheck, 0, ln);
     }
 
     // -- Default parameter initialization --------------------------------------
@@ -189,6 +278,7 @@ public sealed class Compiler
     {
         _chunk.Arity             = parameters.Count;
         _chunk.VariadicParamName = variadicParam;
+        _chunk.MinArity          = parameters.FindLastIndex(p => p.Value == null) + 1;
 
         foreach (var (name, _) in parameters)
         {
@@ -385,6 +475,11 @@ public sealed class Compiler
             int u = ResolveUpvalue(name);
             if (u >= 0) { Emit(Opcode.StoreUpvalue, u,                   0, line); return; }
         }
+        else if (_globalLoopSlots.TryGetValue(name, out int loopSlot))
+        {
+            Emit(Opcode.Dup,        0,        0, line);
+            Emit(Opcode.StoreLocal, loopSlot, 0, line);
+        }
         Emit(Opcode.StoreGlobal, _chunk.AddName(name), 0, line);
     }
 
@@ -407,6 +502,13 @@ public sealed class Compiler
     {
         if (!_isGlobal && _locals.Any(l => l.Captured))
             Emit(Opcode.CloseUpvalue, 0);
+        if (_returnCheck >= 0)
+        {
+            Emit(Opcode.Null);
+            EmitReturnCheck();
+            Emit(Opcode.Return);
+            return;
+        }
         Emit(Opcode.ReturnNull);
     }
 
@@ -430,6 +532,36 @@ public sealed class Compiler
             case TokenName.Ops_BitwiseRightShiftAssign: Emit(Opcode.BRSh,  0, 0, line); break;
             case TokenName.Ops_BitwiseUnsignedRightShiftAssign: Emit(Opcode.BURSh, 0, 0, line); break;
             default: /* leave as-is - callers handle && / || */ break;
+        }
+    }
+
+    /// <summary>
+    /// Leaves the new value of a compound assignment (`target op= rhs`) on the stack.
+    /// <paramref name="loadOld"/> pushes the target's current value. `&&=` and `||=`
+    /// short-circuit like `&&` and `||`; `~=` assigns the bitwise NOT of the right side.
+    /// </summary>
+    private void EmitCompoundValue(Action loadOld, ASTNode? rhs, TokenName op, int ln)
+    {
+        switch (op)
+        {
+            case TokenName.Ops_AndAssign:
+            case TokenName.Ops_OrAssign:
+            {
+                loadOld();
+                int skip = EmitJump(op == TokenName.Ops_AndAssign ? Opcode.JumpAnd : Opcode.JumpOr, ln);
+                if (rhs == null || !CompileNode(rhs)) Emit(Opcode.Null, 0, 0, ln);
+                PatchJump(skip);
+                return;
+            }
+            case TokenName.Ops_BitwiseNotAssign:
+                if (rhs == null || !CompileNode(rhs)) Emit(Opcode.Null, 0, 0, ln);
+                Emit(Opcode.BNot, 0, 0, ln);
+                return;
+            default:
+                loadOld();
+                if (rhs != null) CompileNode(rhs);
+                EmitCompoundOp(op, ln);
+                return;
         }
     }
 
@@ -552,6 +684,9 @@ public sealed class Compiler
             if (init != null)
             {
                 CompileNode(init);
+                if (node.TypeHints.TryGetValue(name, out var initHints)
+                    && AddTypeCheck(initHints, $"variable `{name}`") is var check and >= 0)
+                    Emit(Opcode.CheckType, check, 0, ln);
                 EmitStore(name, ln);
             }
             else if (node.TypeHints.TryGetValue(name, out var hints) && hints.Count > 0
@@ -566,7 +701,14 @@ public sealed class Compiler
                     case Typing.ValueType.String:  Emit(Opcode.Const,  _chunk.AddConstant(Value.CreateString("")), 0, ln); EmitStore(name, ln); break;
                     case Typing.ValueType.List:    Emit(Opcode.BuildList, 0, 0, ln); EmitStore(name, ln); break;
                     case Typing.ValueType.Hashmap: Emit(Opcode.BuildHashmap, 0, 0, ln); EmitStore(name, ln); break;
+                    default:                       Emit(Opcode.Null,   0, 0, ln); EmitStore(name, ln); break;
                 }
+            }
+            else
+            {
+                // No initializer and no primitive hint: the variable starts as null.
+                Emit(Opcode.Null, 0, 0, ln);
+                EmitStore(name, ln);
             }
         }
     }
@@ -623,9 +765,7 @@ public sealed class Compiler
                 int ni = _chunk.AddName(node.Name);
                 if (node.Op != TokenName.Ops_Assign)
                 {
-                    Emit(Opcode.LoadSelfAttr, ni, 0, ln);
-                    if (node.Initializer != null) CompileNode(node.Initializer);
-                    EmitCompoundOp(node.Op, ln);
+                    EmitCompoundValue(() => Emit(Opcode.LoadSelfAttr, ni, 0, ln), node.Initializer, node.Op, ln);
                 }
                 else
                 {
@@ -642,9 +782,7 @@ public sealed class Compiler
                 int ni = _chunk.AddName(node.Name);
                 if (node.Op != TokenName.Ops_Assign)
                 {
-                    Emit(Opcode.LoadStaticAttr, ni, 0, ln);
-                    if (node.Initializer != null) CompileNode(node.Initializer);
-                    EmitCompoundOp(node.Op, ln);
+                    EmitCompoundValue(() => Emit(Opcode.LoadStaticAttr, ni, 0, ln), node.Initializer, node.Op, ln);
                 }
                 else
                 {
@@ -662,9 +800,7 @@ public sealed class Compiler
         bool compound = node.Op != TokenName.Ops_Assign;
         if (compound)
         {
-            EmitLoad(node.Name, ln);
-            if (node.Initializer != null) CompileNode(node.Initializer);
-            EmitCompoundOp(node.Op, ln);
+            EmitCompoundValue(() => EmitLoad(node.Name, ln), node.Initializer, node.Op, ln);
         }
         else
         {
@@ -1027,6 +1163,10 @@ public sealed class Compiler
                 TokenName.Ops_BitwiseLeftShiftAssign => Opcode.BLSh,
                 TokenName.Ops_BitwiseRightShiftAssign=> Opcode.BRSh,
                 TokenName.Ops_BitwiseUnsignedRightShiftAssign => Opcode.BURSh,
+                // The VM combines these itself; the right side is always evaluated here.
+                TokenName.Ops_AndAssign              => Opcode.JumpAnd,
+                TokenName.Ops_OrAssign               => Opcode.JumpOr,
+                TokenName.Ops_BitwiseNotAssign       => Opcode.BNot,
                 _ => (Opcode)255
             };
 
@@ -1065,10 +1205,11 @@ public sealed class Compiler
         bool compound = node.Op != TokenName.Ops_Assign;
         if (compound)
         {
-            CompileNode(node.Object!);
-            Emit(Opcode.GetMember, _chunk.AddName(node.MemberName), 0, ln);
-            if (node.Initializer != null) CompileNode(node.Initializer);
-            EmitCompoundOp(node.Op, ln);
+            EmitCompoundValue(() =>
+            {
+                CompileNode(node.Object!);
+                Emit(Opcode.GetMember, _chunk.AddName(node.MemberName), 0, ln);
+            }, node.Initializer, node.Op, ln);
         }
         else
         {
@@ -1239,6 +1380,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         string valName = (node.ValueIterator is IdentifierNode vi) ? vi.Name : "";
         string idxName = (node.IndexIterator is IdentifierNode ii) ? ii.Name : "";
         bool   hasDual = !string.IsNullOrEmpty(idxName);
+        string[] loopVars = hasDual ? [valName, idxName] : [valName];
 
         // Evaluate collection, push ForIterState. A range literal is iterated by counting
         // rather than building the list, so `for i in [1 to n]` runs in constant memory.
@@ -1254,10 +1396,32 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             Emit(Opcode.ForIterInit, 0, 0, ln);
         }
 
+        // Top level: give each loop variable a hidden slot for closures to capture.
+        var savedLoopSlots = new List<(string Name, int Slot, bool Had)>();
+        if (_isGlobal)
+        {
+            foreach (var name in loopVars)
+            {
+                if (string.IsNullOrEmpty(name)) continue;
+                savedLoopSlots.Add((name, _globalLoopSlots.GetValueOrDefault(name), _globalLoopSlots.ContainsKey(name)));
+                int slot = _slotCount++;
+                _locals.Add(new LocalVar { Name = name, Slot = slot });
+                _globalLoopSlots[name] = slot;
+            }
+            _chunk.LocalCount = _slotCount;
+        }
+
         // LOOP_TOP
         int loopTop  = _chunk.Code.Count;
         int numVars  = hasDual ? 2 : 1;
         int doneJump = Emit(Opcode.ForIterNext, 0 /*patched*/, numVars, ln);
+
+        // Placeholders: become CloseUpvalueAt for each loop variable a closure captures,
+        // detaching the previous iteration's closures before the variable is reassigned.
+        var closePatches = new List<(int Instr, string Name)>();
+        foreach (var name in loopVars)
+            if (!string.IsNullOrEmpty(name))
+                closePatches.Add((Emit(Opcode.Nop, 0, 0, ln), name));
 
         // Store iterator values into variables
         if (hasDual)
@@ -1287,6 +1451,22 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // Next jumps back to loopTop (ForIterNext)
         foreach (var j in ctx.NextPatches)  PatchJumpTo(j, loopTop);
         _loops.RemoveAt(_loops.Count - 1);
+
+        foreach (var (instr, name) in closePatches)
+        {
+            int idx = _locals.FindLastIndex(l => l.Name == name);
+            if (idx >= 0 && _locals[idx].Captured)
+                _chunk.Code[instr] = new Instruction(Opcode.CloseUpvalueAt, _locals[idx].Slot);
+        }
+
+        // Top level: after the loop, closures see the global again.
+        for (int i = savedLoopSlots.Count - 1; i >= 0; i--)
+        {
+            var (name, slot, had) = savedLoopSlots[i];
+            _locals.RemoveAt(_locals.FindLastIndex(l => l.Name == name));
+            if (had) _globalLoopSlots[name] = slot;
+            else     _globalLoopSlots.Remove(name);
+        }
     }
 
     // -- Break / Next ----------------------------------------------------------
@@ -1306,6 +1486,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void EmitBreak(int ln)
     {
         if (_loops.Count == 0) return;
+        EmitLeaveTrys(_loops.Count, ln);
         var ctx = _loops[^1];
         if (ctx.ForIterSlot >= 0) Emit(Opcode.Pop, 0, 0, ln); // pop ForIterState
         ctx.BreakPatches.Add(EmitJump(Opcode.Jump, ln));
@@ -1326,6 +1507,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     private void EmitNext(int ln)
     {
         if (_loops.Count == 0) return;
+        EmitLeaveTrys(_loops.Count, ln);
         _loops[^1].NextPatches.Add(EmitJump(Opcode.Jump, ln));
     }
 
@@ -1345,15 +1527,45 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
     private void DoReturn(ReturnNode node, int ln)
     {
+        // Evaluate the value first (it may throw into an enclosing catch), then run any
+        // finally blocks being left, then close upvalues so they see what finally wrote.
+        // A bare `return` still pushes null when there is a return type hint to check.
+        bool hasValue = node.ReturnValue != null || _returnCheck >= 0;
+        bool pushed   = node.ReturnValue != null && CompileNode(node.ReturnValue);
+        if (hasValue && !pushed) Emit(Opcode.Null, 0, 0, ln);
+        EmitReturnCheck(ln);
+        EmitLeaveTrys(0, ln);
+
         if (!_isGlobal && _locals.Any(l => l.Captured))
             Emit(Opcode.CloseUpvalue, 0, 0, ln);
 
-        if (node.ReturnValue != null)
+        Emit(hasValue ? Opcode.Return : Opcode.ReturnNull, 0, 0, ln);
+    }
+
+    /// <summary>
+    /// Emits what leaving the try blocks entered at loop depth <paramref name="loopDepth"/> or
+    /// deeper needs, innermost first: disarm each one's handler and run its finally block.
+    /// Used by return (every try in the function) and break/next (trys inside the loop).
+    /// </summary>
+    private void EmitLeaveTrys(int loopDepth, int ln)
+    {
+        var saved = _trys.ToList();
+        try
         {
-            CompileNode(node.ReturnValue);
-            Emit(Opcode.Return, 0, 0, ln);
+            for (int i = saved.Count - 1; i >= 0 && saved[i].LoopDepth >= loopDepth; i--)
+            {
+                var ctx = saved[i];
+                if (ctx.HandlerActive) Emit(Opcode.PopTryHandler, 0, 0, ln);
+                // While a finally block runs, only the trys around it are still open.
+                _trys.RemoveRange(i, _trys.Count - i);
+                CompileBody(ctx.FinallyBody);
+            }
         }
-        else Emit(Opcode.ReturnNull, 0, 0, ln);
+        finally
+        {
+            _trys.Clear();
+            _trys.AddRange(saved);
+        }
     }
 
     // -- Yield -----------------------------------------------------------------
@@ -1414,32 +1626,35 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
     {
         bool hasCatch   = node.CatchBody.Count  > 0;
         bool hasFinally = node.FinallyBody.Count > 0;
+        var  ctx        = new TryCtx { FinallyBody = node.FinallyBody, LoopDepth = _loops.Count };
 
         // Emit PushTryHandler with placeholder catchIP (A); finallyIP unused (B=0).
         int handlerInstr = EmitJump(Opcode.PushTryHandler, ln); // A=0 placeholder
 
         // --- Try body ---
+        _trys.Add(ctx);
         foreach (var s in node.TryBody)
             if (s != null) CompileStatement(s);
+        _trys.Remove(ctx);
 
         // Try body completed normally: disarm the handler.
         Emit(Opcode.PopTryHandler, 0, 0, ln);
 
         // Inline finally for the success path.
-        if (hasFinally)
-            foreach (var s in node.FinallyBody)
-                if (s != null) CompileStatement(s);
+        CompileBody(node.FinallyBody);
 
-        // Jump past the catch section (patched after catch is emitted).
-        int jumpPastCatch = EmitJump(Opcode.Jump, ln);
+        var endJumps = new List<int> { EmitJump(Opcode.Jump, ln) };
 
         // --- Catch section ---
-        int catchStart = _chunk.Code.Count;
         // Patch PushTryHandler.A to point here.
-        _chunk.PatchJump(handlerInstr, catchStart);
+        _chunk.PatchJump(handlerInstr, _chunk.Code.Count);
 
         if (hasCatch)
         {
+            // With a finally block, guard the catch body too: an error thrown from it must
+            // still run the finally block on its way out.
+            int catchGuard = hasFinally ? EmitJump(Opcode.PushTryHandler, ln) : -1;
+
             // Load error variable(s) from _caughtError.
             if (node.ErrorType != null)
             {
@@ -1459,17 +1674,43 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             }
 
             // Catch body.
+            ctx.HandlerActive = hasFinally;
+            if (hasFinally) _trys.Add(ctx);
             foreach (var s in node.CatchBody)
                 if (s != null) CompileStatement(s);
+            _trys.Remove(ctx);
+
+            if (hasFinally)
+            {
+                Emit(Opcode.PopTryHandler, 0, 0, ln);
+                CompileBody(node.FinallyBody);
+                endJumps.Add(EmitJump(Opcode.Jump, ln));
+                _chunk.PatchJump(catchGuard, _chunk.Code.Count);
+                EmitFinallyThenRethrow(node.FinallyBody, ln);
+            }
+        }
+        else if (hasFinally)
+        {
+            // try/finally without catch: run the finally block, then let the error continue.
+            EmitFinallyThenRethrow(node.FinallyBody, ln);
         }
 
-        // Inline finally for the catch/error path.
-        if (hasFinally)
-            foreach (var s in node.FinallyBody)
-                if (s != null) CompileStatement(s);
+        foreach (var j in endJumps) PatchJump(j);
+    }
 
-        // Patch the jump that skips the catch section.
-        PatchJump(jumpPastCatch);
+    /// <summary>
+    /// Error path of a finally block: keep the pending error in a hidden local while the
+    /// block runs, then throw it again.
+    /// </summary>
+    private void EmitFinallyThenRethrow(List<ASTNode?> finallyBody, int ln)
+    {
+        int errSlot = _slotCount++;
+        _chunk.LocalCount = _slotCount;
+        Emit(Opcode.LoadCatchError, 3, 0, ln);
+        Emit(Opcode.StoreLocal, errSlot, 0, ln);
+        CompileBody(finallyBody);
+        Emit(Opcode.LoadLocal, errSlot, 0, ln);
+        Emit(Opcode.Rethrow, 0, 0, ln);
     }
 
     // -- Function definition ---------------------------------------------------
@@ -1495,9 +1736,21 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         // Stack: [internal_fn_lambda]
 
         // 2. Apply decorators from bottom to top (innermost first).
-        for (int i = node.Decorators.Count - 1; i >= 0; i--)
+        EmitApplyDecorators(node.Decorators, ln);
+
+        // 3. Store the final decorated value back, replacing the original function entry.
+        Emit(Opcode.StoreDecoratedFunc, ni, 0, ln);
+    }
+
+    /// <summary>
+    /// With the function to decorate on the stack, calls each decorator on it from the
+    /// bottom up (innermost first), leaving the final decorated value on the stack.
+    /// </summary>
+    private void EmitApplyDecorators(List<(ASTNode? Expr, List<ASTNode?> ExtraArgs)> decorators, int ln)
+    {
+        for (int i = decorators.Count - 1; i >= 0; i--)
         {
-            var (decoExpr, extraArgs) = node.Decorators[i];
+            var (decoExpr, extraArgs) = decorators[i];
 
             // Push the decorator callable.
             // Stack: [current_fn, decorator]
@@ -1544,9 +1797,6 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
             }
             // Stack: [new_current_fn]
         }
-
-        // 3. Store the final decorated value back, replacing the original function entry.
-        Emit(Opcode.StoreDecoratedFunc, ni, 0, ln);
     }
 
     // -- Lambda ----------------------------------------------------------------
@@ -1725,13 +1975,23 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         foreach (var methodNode in node.Methods)
         {
             if (methodNode == null) continue;
-            var fn  = (FunctionNode)methodNode;
-            var sub = CompileFunction(fn, enclosing: this);
-            int si  = _chunk.AddSubChunk(sub);
-            int ni  = _chunk.AddName(fn.Name);
+            var deco = methodNode as DecoratedFunctionNode;
+            var fn   = deco?.Function ?? (FunctionNode)methodNode;
+            var sub  = CompileFunction(fn, enclosing: this);
+            int si   = _chunk.AddSubChunk(sub);
+            int ni   = _chunk.AddName(fn.Name);
             int defB = ni | (fn.IsAbstract ? unchecked((int)0x80000000) : 0)
-                         | (fn.IsStatic   ? 0x40000000 : 0);
+                          | (fn.IsStatic   ? 0x40000000 : 0)
+                          | (fn.IsPrivate  ? 0x20000000 : 0)
+                          | (deco != null  ? 0x10000000 : 0);
             Emit(Opcode.DefMethod, si, defB, ln);
+
+            if (deco != null)
+            {
+                // DefMethod pushed the method as a value; decorate it and install the result.
+                EmitApplyDecorators(deco.Decorators, ln);
+                Emit(Opcode.StoreDecoratedMethod, ni, 0, ln);
+            }
         }
 
         foreach (var (varName, initializer) in node.StaticVars)
@@ -1754,9 +2014,15 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         int nodePoolIdx = _chunk.AddNodeFallback(node);    // preserve AST for ImportPackage retry
         Emit(Opcode.PackageBegin, nameIdx, nodePoolIdx, ln);
 
+        // A variable assigned inside a package function is local to the call (see packages.md),
+        // even when the file around the package has a global of the same name.
+        var outerGlobals = _globalNames;
+        _globalNames = [];
+
         // Wrap body in try/catch: on error emit PackageAbort instead of PackageEnd.
         int handlerInstr = EmitJump(Opcode.PushTryHandler, ln);
         CompileBody(node.Body);
+        _globalNames = outerGlobals;
         Emit(Opcode.PopTryHandler, 0, 0, ln);
         Emit(Opcode.PackageEnd,    0, 0, ln);
         int skipAbort = EmitJump(Opcode.Jump, ln);
@@ -1883,6 +2149,7 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         var last = body[^1]!;
         if (CompileNode(last))
         {
+            EmitReturnCheck();
             if (!_isGlobal && _locals.Any(l => l.Captured))
                 Emit(Opcode.CloseUpvalue, 0);
             Emit(Opcode.Return);

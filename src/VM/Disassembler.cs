@@ -1,4 +1,5 @@
 using System.Text;
+using kiwi.Typing;
 
 namespace kiwi.VM;
 
@@ -28,7 +29,7 @@ public static class Disassembler
             {
                 case Opcode.Const:
                     var cv = chunk.Constants.Count > instr.A ? chunk.Constants[instr.A] : null;
-                    sb.Append($" {instr.A,4}   ({cv})");
+                    sb.Append($" {instr.A,4}   ({(cv == null ? "?" : Serializer.Serialize(cv, wrapStrings: true))})");
                     break;
 
                 case Opcode.LoadLocal:
@@ -173,11 +174,15 @@ public static class Disassembler
                 {
                     bool abs    = (instr.B & unchecked((int)0x80000000)) != 0;
                     bool stat   = (instr.B & 0x40000000) != 0;
-                    int  ni     = instr.B & 0x3FFFFFFF;
+                    bool priv   = (instr.B & 0x20000000) != 0;
+                    bool deco   = (instr.B & 0x10000000) != 0;
+                    int  ni     = instr.B & 0x0FFFFFFF;
                     var  mn     = chunk.Names.Count > ni ? chunk.Names[ni] : "?";
                     sb.Append($" sub[{instr.A}]  name=\"{mn}\"");
                     if (abs)  sb.Append("  abstract");
                     if (stat) sb.Append("  static");
+                    if (priv) sb.Append("  private");
+                    if (deco) sb.Append("  decorated");
                     break;
                 }
 
@@ -228,6 +233,7 @@ public static class Disassembler
                     break;
                 }
 
+                case Opcode.CloseUpvalueAt:
                 case Opcode.CloseUpvalue:
                     sb.Append($" from_slot={instr.A}");
                     break;

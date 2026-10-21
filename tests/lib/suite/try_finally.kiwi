@@ -3,16 +3,84 @@
   ============================================================================== #/
 @tester::test("try-finally")
 fn test_try_finally()
-  a = 0, b = 0
+  a = 0, b = 0, caught = false
 
+  # Without a catch, finally runs and the error keeps propagating.
   try
-    a += 1
-    println "${1 / 0}" # throws DivideByZeroError
-    a += 1
-  finally
-    b += 1
+    try
+      a += 1
+      println "${1 / 0}" # throws DivideByZeroError
+      a += 1
+    finally
+      b += 1
+    end
+  catch
+    caught = true
   end
 
   tester::assert(a == 1)
   tester::assert(b == 1)
+  tester::assert(caught)
+end
+
+fn _tf_return_from_try(log)
+  try
+    return "returned"
+  finally
+    log.push("finally")
+  end
+end
+
+fn _tf_rethrow_from_catch(log)
+  try
+    throw "first"
+  catch (e)
+    throw "second"
+  finally
+    log.push("finally")
+  end
+end
+
+@tester::test("try-finally: leaving early")
+fn test_try_finally_leaving_early()
+  log = []
+  tester::assert_eq(_tf_return_from_try(log), "returned")
+  tester::assert_eq(log, ["finally"], "finally runs on return")
+
+  log = []
+  for i in [1 to 3] do
+    try
+      next when i == 1
+      break when i == 2
+    finally
+      log.push(i)
+    end
+  end
+  tester::assert_eq(log, [1, 2], "finally runs on next and break")
+
+  # break out of a try without finally must not leave its handler armed
+  for i in [1 to 2] do
+    try
+      break
+    catch (e)
+      log.push("wrong handler")
+    end
+  end
+  caught = null
+  try
+    throw "after loop"
+  catch (e)
+    caught = e.message
+  end
+  tester::assert_eq(caught, "after loop")
+
+  log = []
+  message = null
+  try
+    _tf_rethrow_from_catch(log)
+  catch (e)
+    message = e.message
+  end
+  tester::assert_eq(log, ["finally"], "finally runs when catch throws")
+  tester::assert_eq(message, "second")
 end

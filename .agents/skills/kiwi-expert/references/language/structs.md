@@ -56,7 +56,7 @@ Prefer methods for anything with rules attached, so callers don't need to know t
 
 ### Instance variables in lambdas
 
-Inside a lambda, `@` does not currently refer to the instance, so `@name` reads as `null`. Copy what the lambda needs into a local variable first:
+A lambda created in a method keeps that method's `@`, so it can read and update the instance:
 
 ```kiwi
 struct Pricing
@@ -65,8 +65,7 @@ struct Pricing
   end
 
   fn apply(prices)
-    rate = @rate
-    prices.map(do (p) => p * rate)
+    prices.map(do (p) => p * @rate)
   end
 end
 
@@ -108,7 +107,7 @@ println b.twice()   # 6
 
 ## Converting to a string
 
-Define `to_string()` to give a struct a readable form, and call it explicitly. `println` and string interpolation don't call it automatically; they print the generic `<struct(...)>` form.
+Define `to_string()` to give a struct a readable form. `println`, string interpolation and printing a list or hashmap that holds the instance all use it. Without one, an instance prints in the generic `<struct(name=Money, identifier=Money)>` form.
 
 ```kiwi
 struct Money
@@ -122,8 +121,9 @@ struct Money
 end
 
 price = Money.new(1999)
-println price.to_string()          # $19.99
-println "Total: ${price.to_string()}"
+println price                      # $19.99
+println "Total: ${price}"          # Total: $19.99
+println [price, Money.new(5)]      # [$19.99, $0.05]
 ```
 
 ## Static members
@@ -156,9 +156,7 @@ Ticket.issued = 0
 println Ticket.count()   # 0
 ```
 
-:::caution
-Static variables are not currently inherited. A parent method that uses `@@name` fails when it runs on an instance of a child struct, because `@@name` is looked up on the child.
-:::
+A child struct shares its parent's static variables: `@@name` in a parent method, and `Child.name` from outside, refer to the variable the parent declared. A child that declares its own `static @name` gets a separate one.
 
 ## Inheritance
 
@@ -271,7 +269,7 @@ end
 
 ## Private methods
 
-`private fn` marks a method as an internal helper. By convention, call private methods only from inside the struct.
+`private fn` marks a method as an internal helper that only the struct itself uses.
 
 ```kiwi
 struct Password
@@ -292,9 +290,21 @@ p = Password.new("hunter2")
 println p.matches("hunter2")   # true
 ```
 
-:::note
-Kiwi does not currently enforce `private`; a call from outside the struct still succeeds.
-:::
+Calling a private method from outside the struct raises an `InvalidContextError`. Methods of the struct, of structs that inherit from it, and lambdas created in those methods can call it:
+
+```kiwi
+struct Password
+  fn new(text)
+    @hash = digest(text)
+  end
+
+  private fn digest(text)
+    crypto::sha256_hash(text)
+  end
+end
+
+Password.new("hunter2").digest("x")   # InvalidContextError
+```
 
 ## Working with instances
 

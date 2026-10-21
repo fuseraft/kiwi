@@ -25,6 +25,7 @@ fmt::printlnf("User: %s, score: %d", ["Alice", 99])      # User: Alice, score: 9
 | `%s` | A string, or any value converted to a string |
 | `%d`, `%i` | An integer |
 | `%f` | A float, with 6 decimal places unless a precision is given |
+| `%e` | A float in scientific notation, with 6 decimal places unless a precision is given |
 | `%x`, `%X` | Hexadecimal, lower or upper case |
 | `%o` | Octal |
 | `%b` | Binary |
@@ -39,11 +40,12 @@ Between the `%` and the letter you can add:
 | `-` | Left-align within the width | `%-10s` |
 | `0` | Pad numbers with zeros | `%08d` |
 | `+` | Always show the sign | `%+d` |
-| `.N` | Decimal places for `%f`, or maximum length for `%s` | `%.2f`, `%.3s` |
+| `.N` | Decimal places for `%f` and `%e`, or maximum length for `%s` | `%.2f`, `%.3s` |
 
-:::caution
-`%e` (scientific notation) currently fails with an error.
-:::
+```kiwi
+println fmt::sprintf("%e", [12345.678])   # 1.234568e+04
+println fmt::sprintf("%.2e", [0.00012])   # 1.20e-04
+```
 
 For most formatting, string interpolation and [`.to_string(format)`](/kiwi/language/types/#number-formats) are simpler. For templates with named placeholders, see [`template`](/kiwi/stdlib/template/).
 

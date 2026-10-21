@@ -20,7 +20,7 @@ Kiwi is a dynamically-typed scripting language (interpreter in C#/.NET 10, stack
 
 ### Step 1: Orient with the cheat sheet below
 
-The [Core Cheat Sheet](#core-cheat-sheet) covers the syntax you need for almost any task, and [Known Interpreter Issues](#known-interpreter-issues) lists the places where Kiwi currently behaves differently from what you'd expect. Most one-off questions are answered here directly; don't load a reference file unless you need more.
+The [Core Cheat Sheet](#core-cheat-sheet) covers the syntax you need for almost any task, and [Behaviors to Keep in Mind](#behaviors-to-keep-in-mind) lists the places where Kiwi behaves differently from what you might expect. Most one-off questions are answered here directly; don't load a reference file unless you need more.
 
 ### Step 2: Load the specific reference for depth
 
@@ -38,7 +38,7 @@ Load only what the task needs: these are full pages, not summaries. Each `refere
 The reference files are generated from the documentation site (`docs/src/content/docs/` in the kiwi repo) by `cd docs && npm run sync:skill`. Every Kiwi example in those pages is executed against the interpreter in CI, and each package's API section is generated from the docstrings in `lib/*.kiwi`, so they are reliable as of the last sync. Still, before asserting a behavioral claim that a change depends on, check it against the real thing:
 
 - **Fastest**: grep the interpreter source (`src/Parsing/Lexer.cs`, `src/Parsing/Parser.cs`, `src/Runtime/Builtin/Handler/`, `lib/*.kiwi`) for the construct in question.
-- **Most conclusive**: write a throwaway script and run it with `./bin/kiwi` (rebuild with `./build.sh` if the source changed). A script that runs without error is *not* proof a construct does what you think: check its actual output, not just its exit code. Some uncaught errors currently end the program silently with exit code 0 (for example `require "missing"`).
+- **Most conclusive**: write a throwaway script and run it with `./bin/kiwi` (rebuild with `./build.sh` if the source changed). A script that runs without error is *not* proof a construct does what you think: check its actual output, not just its exit code.
 
 ### Step 4: Apply project conventions
 
@@ -71,7 +71,7 @@ Lists and hashmaps are **shared by reference**: `b = a` or `row = grid[0]` alias
 
 ```kiwi
 "Hello, ${name}!\n"   # double-quoted: escapes and ${} interpolation
-'\b[A-Z][a-z]+\b'     # single-quoted: raw (backslashes kept); still interpolates ${}
+'\b[A-Z][a-z]+\b'     # single-quoted: raw (backslashes and ${} kept as written)
 ```
 
 `.replace` and `.split` are literal; `.rreplace`, `.rsplit`, `.scan`, `.find`, `.match`, `.matches` take regexes. Slicing: `s[1:3]`, `s[::-1]`; no negative indexes.
@@ -97,12 +97,12 @@ repeat 5 as i do ... end             # i = 1..5
 
 break when guard    # break/next/return/throw/exit and assignments take a `when` guard
 next when guard     # `next`, not `continue`
-exit 1 when failed  # always pass a code: bare `exit` exits with 1
+exit 1 when failed  # bare `exit` exits with 0
 ```
 
 Falsy: `false`, `null`, `0`, `0.0`, `""`, `[]`, `{}`. Everything else is truthy, including `"0"` and `[0]`.
 
-A binary operator must end a line to continue an expression onto the next line; a line *starting* with `&&` or `+` is a syntax error. Method chains may start a line with `.`.
+An expression continues onto the next line when a binary operator ends the line or starts the next one (except `-`, which starts a new statement). Method chains may start a line with `.`.
 
 ### Functions & Lambdas
 
@@ -123,11 +123,11 @@ end
 [1, 2, 3].map(do (n) => n * 2)
 
 fn make_adder(n)
-  do (x) => x + n end      # an arrow lambda ending a block needs its own `end`
+  do (x) => x + n          # returning a lambda; closures capture locals (and `@` in methods)
 end
 ```
 
-Top-level functions are hoisted. Argument counts are not checked: missing arguments are `null`, extras are dropped.
+Top-level functions are hoisted. A `fn` checks its arguments: a missing required argument, too many positional arguments, or the same parameter by position and by name raise errors. Lambdas are lenient (missing arguments are `null`, extras are ignored) so they work as callbacks. Type hints are enforced at runtime (`TypeError`); a `float` hint also accepts integers.
 
 ### Structs
 
@@ -138,7 +138,8 @@ struct Animal
   end
   fn speak() "..." end
   static fn kind() "animal" end
-  fn to_string() "Animal(${@name})" end   # call explicitly; println does not use it
+  fn to_string() "Animal(${@name})" end   # used by println and "${obj}"
+  private fn secret() 42 end  # callable only from the struct (and children)
 end
 
 struct Dog < Animal          # single inheritance
@@ -155,11 +156,11 @@ end
 ```kiwi
 struct Counter
   static @count = 0          # static variable: @@count inside, Counter.count outside
-  fn new() @@count += 1 end  # (not inherited by child structs, see Known Issues)
+  fn new() @@count += 1 end  # child structs share the parent's static variables
 end
 ```
 
-Operators `+ - * / // % ** == != < <= > >=` can be overloaded with `fn +(other) ... end`.
+Operators `+ - * / // % ** == != < <= > >= & | ^ << >> >>>` can be overloaded with `fn +(other) ... end`. Decorators work on methods too.
 
 ### Error Handling
 
@@ -169,8 +170,8 @@ try
 catch e                  # e = {"error": "TypeName", "message": "..."}; parens optional
   println e["message"]
 finally
-  cleanup()              # NOTE: skipped if the try body returns or breaks
-end
+  cleanup()              # always runs, including after return/break/next
+end                      # without a catch, the error propagates after finally
 
 try
   risky()
@@ -185,7 +186,7 @@ throw "plain string"     # becomes {"error": "KiwiError", "message": "plain stri
 
 ```kiwi
 package geometry
-  const PI = 3.14159
+  const PI = 3.14159            # package-scoped: geometry::PI outside
   fn area(r) PI * r * r end     # siblings call each other unqualified
 end
 geometry::area(2.0)             # usable as soon as declared; `export` is not needed
@@ -207,6 +208,8 @@ fn countdown(n)
 end
 for x in countdown(5) do ... end   # lazy; a generator is exhausted after one pass
 ```
+
+Struct methods and lambdas can `yield` too.
 
 ### CLI Arguments
 
@@ -236,28 +239,17 @@ fn add(a, b) a + b end
 - No `?`-suffixed predicates (`.empty?()`); a stray `?` parses as a ternary and produces confusing errors on later lines.
 - No `nil`; the absence value is `null`. `x ?? default` only falls back on `null`.
 - `/` always returns a float; use `//` for floor division. `**` is left-associative at the same precedence as `*`. Comparisons bind tighter than `&`, `|` and `^`.
-- Reading a variable that was never assigned raises `VariableUndefinedError` (it is not `null`).
+- Reading a variable that was never assigned raises `VariableUndefinedError` (it is not `null`). `var name` without a value declares it as `null`.
 - Inside a function, assigning to a name that exists as a global updates the global; use `var name = ...` to declare a local instead.
 
-### Known Interpreter Issues
+### Behaviors to Keep in Mind
 
-Current behavior that is easy to trip over (documented on the relevant pages; may be fixed later):
-
-- **Type hints are not enforced** at runtime, for parameters, returns or `var`.
-- **Blocks don't create scope**: variables assigned in `if`/`for`/`while` stay visible afterwards.
-- **`@` is not visible inside lambdas** created in struct methods (`@x` reads `null`); copy to a local first. This also breaks `Hashable.to_hash()`.
-- **`finally` doesn't run** when the `try` body leaves via `return` or `break`.
-- **`println obj` doesn't call `to_string()`**; call it explicitly.
-- Static variables aren't inherited: a parent method using `@@count` fails when called through a child struct.
-- `private fn` is not enforced; decorators on struct methods are ignored; `yield` only works in plain `fn` functions (not methods or lambdas).
-- Lambdas passed to `.each()` inside a function can't update that function's locals.
-- Slice assignment `xs[a:b] = ys` overwrites element by element instead of splicing; keep lengths equal.
-- `list.none(...)` is a syntax error (`none` is a type keyword); use `list::none(xs, fn)`.
-- Most `math` functions require float arguments (`math::sqrt(16.0)`, not `16`); there is no `math::pi`.
-- `Enum.get("missing")` without a default crashes the interpreter; always pass a default.
-- `stdin::lines()` never returns; use `stdin::read().rtrim().lines()`.
-- `tls::tcpconnect` returns a task id; `task::await` it to get the socket.
-- `fmt::sprintf("%e", ...)` fails; `string::smart_titleize` fails.
+- **Blocks don't create scope**: variables assigned in `if`/`for`/`while` stay visible afterwards, and loop variables keep their last value. Each `for` iteration still gives closures created in it their own copy of the loop variable.
+- Instance variables are readable and writable from outside (`obj.name = 1`); use methods for anything with rules.
+- `.rreplace` and `.rsplit` are regex replace-all and regex split (the `r` is regex, not right-to-left).
+- `.map()` and `.filter()` pass only the element to the lambda; `.each()` also passes the index.
+- `tls::tcpconnect` and `tls::accept` return a task id; `task::await` it to get the socket.
+- `task::interval(ms, fn)` returns an `Interval`; call `.stop()` (or return `false` from `fn`), or the program won't exit.
 
 ---
 

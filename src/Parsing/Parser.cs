@@ -124,6 +124,21 @@ public partial class Parser
 
     private ASTNode? ParseStatement(bool applyWhenGuard = true)
     {
+        // A statement inside a lambda body that is itself a call argument can pack-assign again.
+        var savedCallArgDepth = callArgDepth;
+        callArgDepth = 0;
+        try
+        {
+            return ParseStatementInner(applyWhenGuard);
+        }
+        finally
+        {
+            callArgDepth = savedCallArgDepth;
+        }
+    }
+
+    private ASTNode? ParseStatementInner(bool applyWhenGuard)
+    {
         var nodeToken = token.Clone();
         ASTNode? node;
 
@@ -630,16 +645,24 @@ public partial class Parser
                 continue;
             }
 
-            var statement = ParseStatement() ?? throw new SyntaxError(GetErrorToken(), "Expected a function.");
-            if (statement.Type == ASTNodeType.Function)
+            var statement = GetTokenName() == TokenName.KW_This && IsDecoratorPattern(inStructBody: true)
+                ? ParseDecoratedFunction()
+                : ParseStatement();
+            statement = statement ?? throw new SyntaxError(GetErrorToken(), "Expected a function.");
+            var method = statement switch
             {
-                var func = (FunctionNode)statement;
-                func.IsPrivate = isPrivate;
-                func.IsStatic = isStatic;
-                func.IsAbstract = isAbstractMethod;
-                func.IsOverride = isOverride;
+                FunctionNode f          => f,
+                DecoratedFunctionNode d => d.Function,
+                _                       => null,
+            };
+            if (method != null)
+            {
+                method.IsPrivate |= isPrivate;
+                method.IsStatic |= isStatic;
+                method.IsAbstract = isAbstractMethod;
+                method.IsOverride |= isOverride;
 
-                methods.Add(func);
+                methods.Add(statement);
             }
 
             isStatic = false;
@@ -1366,10 +1389,11 @@ public partial class Parser
         return node;
     }
 
-    private bool IsDecoratorPattern()
+    private bool IsDecoratorPattern(bool inStructBody = false)
     {
-        // Decorators are only valid outside struct definitions.
-        if (structStack.Count > 0) return false;
+        // Inside a struct, decorators are recognized by ParseStruct (for methods);
+        // elsewhere in the struct `@` starts an instance-variable expression.
+        if (structStack.Count > 0 && !inStructBody) return false;
 
         // Must be @ followed by an identifier.
         var afterAt = Peek();  // position +1
@@ -1382,8 +1406,8 @@ public partial class Parser
 
         var afterIdent = PeekAt(nameEnd);
 
-        // @name fn ... or @name @...
-        if (afterIdent.Name == TokenName.KW_Method || afterIdent.Name == TokenName.KW_This)
+        // @name fn ... or @name @... (in a struct, also @name static fn ... and the like)
+        if (StartsDecoratedTarget(afterIdent, inStructBody))
             return true;
 
         // @name(args...) fn ... or @name(args...) @...
@@ -1399,8 +1423,7 @@ public partial class Parser
             }
             if (pos < stream.Size)
             {
-                var afterArgs = stream.At(pos);
-                return afterArgs.Name == TokenName.KW_Method || afterArgs.Name == TokenName.KW_This;
+                return StartsDecoratedTarget(stream.At(pos), inStructBody);
             }
         }
 
@@ -1410,7 +1433,7 @@ public partial class Parser
             int memberEnd = nameEnd + 2;
             var afterMember = PeekAt(memberEnd);
 
-            if (afterMember.Name == TokenName.KW_Method || afterMember.Name == TokenName.KW_This)
+            if (StartsDecoratedTarget(afterMember, inStructBody))
                 return true;
 
             if (afterMember.Type == TokenType.LParen)
@@ -1425,14 +1448,21 @@ public partial class Parser
                 }
                 if (pos < stream.Size)
                 {
-                    var afterArgs = stream.At(pos);
-                    return afterArgs.Name == TokenName.KW_Method || afterArgs.Name == TokenName.KW_This;
+                    return StartsDecoratedTarget(stream.At(pos), inStructBody);
                 }
             }
         }
 
         return false;
     }
+
+    /// <summary>
+    /// Whether <paramref name="t"/> can follow a decorator: `fn`, another decorator, or in a
+    /// struct body a method modifier.
+    /// </summary>
+    private static bool StartsDecoratedTarget(Token t, bool inStructBody) =>
+        t.Name is TokenName.KW_Method or TokenName.KW_This
+        || (inStructBody && t.Name is TokenName.KW_Static or TokenName.KW_Private or TokenName.KW_Override);
 
     private DecoratedFunctionNode? ParseDecoratedFunction()
     {
@@ -1486,10 +1516,23 @@ public partial class Parser
             decorators.Add((decoratorExpr, extraArgs));
         }
 
+        // Method modifiers may sit between the decorators and `fn` in a struct body.
+        bool isStatic = false, isPrivate = false, isOverride = false;
+        while (structStack.Count > 0)
+        {
+            if (MatchName(TokenName.KW_Static)) isStatic = true;
+            else if (MatchName(TokenName.KW_Private)) isPrivate = true;
+            else if (MatchName(TokenName.KW_Override)) isOverride = true;
+            else break;
+        }
+
         if (GetTokenName() != TokenName.KW_Method)
             throw new SyntaxError(GetErrorToken(), "Expected 'fn' after decorator(s).");
 
         var funcNode = ParseFunction() ?? throw new SyntaxError(GetErrorToken(), "Expected function definition.");
+        funcNode.IsStatic   |= isStatic;
+        funcNode.IsPrivate  |= isPrivate;
+        funcNode.IsOverride |= isOverride;
 
         return new DecoratedFunctionNode
         {
@@ -1712,36 +1755,45 @@ public partial class Parser
         Next();  // Consume the '('
 
         List<ASTNode?> arguments = [];
-        while (GetTokenType() != TokenType.RParen)
+        // `f(a, b = 1)` passes `a` and the named argument `b`; it is not `a, b = 1`.
+        callArgDepth++;
+        try
         {
-            if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Multiply)
+            while (GetTokenType() != TokenType.RParen)
             {
-                var splatToken = token;
-                Next();  // consume '*'
-                arguments.Add(new SplatNode(ParseExpression()) { Token = splatToken });
-            }
-            else if (GetTokenType() == TokenType.Identifier && (Peek().Name == TokenName.Ops_Assign || Peek().Type == TokenType.Colon))
-            {
-                var argToken = token;
-                var name = GetTokenText();
-                Next();  // consume identifier
-                Next();  // consume '=' or ':'
-                var namedArg = new NamedArgumentNode(name, ParseExpression()) { Token = argToken };
-                arguments.Add(namedArg);
-            }
-            else
-            {
-                arguments.Add(ParseExpression());
-            }
+                if (GetTokenType() == TokenType.Operator && GetTokenName() == TokenName.Ops_Multiply)
+                {
+                    var splatToken = token;
+                    Next();  // consume '*'
+                    arguments.Add(new SplatNode(ParseExpression()) { Token = splatToken });
+                }
+                else if (GetTokenType() == TokenType.Identifier && (Peek().Name == TokenName.Ops_Assign || Peek().Type == TokenType.Colon))
+                {
+                    var argToken = token;
+                    var name = GetTokenText();
+                    Next();  // consume identifier
+                    Next();  // consume '=' or ':'
+                    var namedArg = new NamedArgumentNode(name, ParseExpression()) { Token = argToken };
+                    arguments.Add(namedArg);
+                }
+                else
+                {
+                    arguments.Add(ParseExpression());
+                }
 
-            if (GetTokenType() == TokenType.Comma)
-            {
-                Next();
+                if (GetTokenType() == TokenType.Comma)
+                {
+                    Next();
+                }
+                else if (GetTokenType() != TokenType.RParen)
+                {
+                    throw new SyntaxError(GetErrorToken(), "Expected ')' or ',' in lambda call.");
+                }
             }
-            else if (GetTokenType() != TokenType.RParen)
-            {
-                throw new SyntaxError(GetErrorToken(), "Expected ')' or ',' in lambda call.");
-            }
+        }
+        finally
+        {
+            callArgDepth--;
         }
 
         Next();
@@ -1890,8 +1942,15 @@ public partial class Parser
             // Optionally consume 'end' as arrow lambdas don't require it, but
             // users may write `do (x) => expr end` (symmetric with multi-line form).
             // Without this, a trailing 'end' would be left in the stream and cause
-            // a parse error in the surrounding call argument list.
-            MatchName(TokenName.KW_End);
+            // a parse error in the surrounding call argument list. An `end` on a later
+            // line closes the enclosing block instead (a lambda returned from a function),
+            // unless it is directly followed by `)`, `,`, `]` or `}`.
+            if (GetTokenName() == TokenName.KW_End
+                && (token.Span.Line == Previous().Span.EndLine
+                    || Peek().Type is TokenType.RParen or TokenType.Comma or TokenType.RBracket or TokenType.RBrace))
+            {
+                Next();
+            }
         }
         else
         {
@@ -2373,6 +2432,15 @@ public partial class Parser
         {
             Next();  // Consume '.'
 
+            // A method may share its name with a type (`list.none(fn)`).
+            if (GetTokenType() == TokenType.Typename && Peek().Type == TokenType.LParen)
+            {
+                var typedMethodName = token.Text;
+                Next();
+                left = ParseMethodCall(left, typedMethodName, TokenName.Default);
+                continue;
+            }
+
             if (GetTokenType() == TokenType.Typename)
             {
                 throw TypenameAsNameError("a member name after '.'", $"For a hashmap key, index it instead: `[\"{token.Text}\"]`.");
@@ -2687,7 +2755,7 @@ public partial class Parser
             case TokenType.Qualifier when Peek().Type is TokenType.Identifier or TokenType.Typename:
                 node = ParseQualifiedIdentifier(identifierName);
                 break;
-            case TokenType.Comma when !packed && IsPackAssignAhead():
+            case TokenType.Comma when !packed && callArgDepth == 0 && IsPackAssignAhead():
                 node = ParsePackAssignment(node);
                 break;
             default:
@@ -2746,7 +2814,7 @@ public partial class Parser
     {
         var left = ParseLogicalAnd();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
+        while (stream.CanRead && ContinuesExpression() && (GetTokenName() == TokenName.Ops_Or || GetTokenName() == TokenName.Ops_NullCoalesce))
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2763,7 +2831,7 @@ public partial class Parser
     {
         var left = ParseBitwiseOr();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_And)
+        while (stream.CanRead && ContinuesExpression() && GetTokenName() == TokenName.Ops_And)
         {
             var opToken = token.Clone();
             Next();  // Consume '&&'
@@ -2779,7 +2847,7 @@ public partial class Parser
     {
         var left = ParseBitwiseXor();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseOr)
+        while (stream.CanRead && ContinuesExpression() && GetTokenName() == TokenName.Ops_BitwiseOr)
         {
             var opToken = token.Clone();
             Next();  // Consume '|'
@@ -2795,7 +2863,7 @@ public partial class Parser
     {
         var left = ParseBitwiseAnd();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseXor)
+        while (stream.CanRead && ContinuesExpression() && GetTokenName() == TokenName.Ops_BitwiseXor)
         {
             var opToken = token.Clone();
             Next();  // Consume '^'
@@ -2811,7 +2879,7 @@ public partial class Parser
     {
         var left = ParseEquality();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && GetTokenName() == TokenName.Ops_BitwiseAnd)
+        while (stream.CanRead && ContinuesExpression() && GetTokenName() == TokenName.Ops_BitwiseAnd)
         {
             var opToken = token.Clone();
             Next();  // Consume '&'
@@ -2827,7 +2895,7 @@ public partial class Parser
     {
         var left = ParseComparison();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsEqualityOperator())
+        while (stream.CanRead && ContinuesExpression() && IsEqualityOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2845,7 +2913,7 @@ public partial class Parser
     {
         var left = ParseBitshift();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsComparisonOperator())
+        while (stream.CanRead && ContinuesExpression() && IsComparisonOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2863,7 +2931,7 @@ public partial class Parser
     {
         var left = ParseAdditive();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsBitwiseOperator())
+        while (stream.CanRead && ContinuesExpression() && IsBitwiseOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2880,7 +2948,7 @@ public partial class Parser
     private ASTNode? ParseAdditive()
     {
         var left = ParseMultiplicative();
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsAdditiveOperator())
+        while (stream.CanRead && ContinuesExpression() && IsAdditiveOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();
@@ -2895,7 +2963,7 @@ public partial class Parser
     {
         var left = ParseUnary();
 
-        while (stream.CanRead && Previous().Span.EndLine == token.Span.Line && IsMultiplicativeOperator())
+        while (stream.CanRead && ContinuesExpression() && IsMultiplicativeOperator())
         {
             var opToken = token.Clone();
             var op = GetTokenName();

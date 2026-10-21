@@ -116,7 +116,7 @@ Creates a new element node.
 | :-- | :-- | :-- | :-- |
 | `tag` | `string` |  | The element tag name. |
 | `attrs` | `hashmap` | `{}` | Attribute map (default `{}`). |
-| `content` | `string` | `""` | Text content (default `""`). |
+| `content` | `string` | `""` | Text content (default `""`), added as a `#text` child. |
 
 **Returns** `any` — XmlNode
 

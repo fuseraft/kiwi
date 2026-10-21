@@ -16,6 +16,12 @@ public partial class Parser(bool rethrowErrors = false)
     private TokenStream stream = new([]);
     private Stack<string> structStack = new();
     private readonly List<bool> _generatorMarks = [];
+    // The unsatisfied `require` each deferred token stream stopped at, and whether such a
+    // require is kept as a statement rather than deferring its stream (see ParseTokenStreamCollection).
+    private readonly Dictionary<TokenStream, RequireNode> lastRequire = [];
+    private bool keepUnsatisfiedRequires = false;
+    // > 0 while parsing call arguments, where `a, b = 1` is not a pack assignment.
+    private int callArgDepth = 0;
     // Shared by every parse in the process (tasks parse on their own threads via eval);
     // used as sets, the byte value is unused.
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> StructsDefined = new();
@@ -87,6 +93,29 @@ public partial class Parser(bool rethrowErrors = false)
             value.Add(stream);
         }
 
+        // Streams still waiting require a package that was never defined. Parse the rest of
+        // them anyway, keeping the `require`, so it fails at runtime with PackageUndefinedError
+        // instead of the code silently never running.
+        foreach (var waitingStreams in revisitStreams.Values)
+        {
+            foreach (var waitingStream in waitingStreams)
+            {
+                this.stream = waitingStream;
+                token = waitingStream.Current();
+                keepUnsatisfiedRequires = true;
+                try
+                {
+                    // The unsatisfied require was consumed before the stream was set aside.
+                    root.Statements.Add(new RequireNode(lastRequire[waitingStream].PackageName, false) { Token = lastRequire[waitingStream].Token });
+                    (lastNode, _) = ParseNode(root, lastNode);
+                }
+                finally
+                {
+                    keepUnsatisfiedRequires = false;
+                }
+            }
+        }
+
         return root;
     }
 
@@ -107,9 +136,10 @@ public partial class Parser(bool rethrowErrors = false)
                 lastNode = ParseStatement();
                 if (lastNode != null)
                 {
-                    if (lastNode is RequireNode requirement && !requirement.Satisfied)
+                    if (lastNode is RequireNode requirement && !requirement.Satisfied && !keepUnsatisfiedRequires)
                     {
                         requires = requirement.PackageName;
+                        lastRequire[stream] = requirement;
                         break;
                     }
 
@@ -535,6 +565,15 @@ public partial class Parser(bool rethrowErrors = false)
         var next = Peek();
         return next.Type == TokenType.Typename || StructsDefined.ContainsKey(next.Text);
     }
+
+    /// <summary>
+    /// Whether the binary operator at the current token continues the expression before it.
+    /// An operator on the same line always does. One that starts a new line does too, so long
+    /// expressions can break before `&&`, `+` and the like, except `-`, which at the start of
+    /// a line begins a new statement (a negative number).
+    /// </summary>
+    private bool ContinuesExpression() =>
+        Previous().Span.EndLine == token.Span.Line || token.Name != TokenName.Ops_Subtract;
 
     private bool IsUnaryOperator() => token.Name switch
     {

@@ -93,7 +93,7 @@ public static class TlsSocketBuiltinHandler
         ParameterCountMismatchError.Check(token, TlsSocketBuiltin.Accept, 1, args.Count);
         ParameterTypeMismatchError.ExpectInteger(token, TlsSocketBuiltin.Accept, 0, args[0]);
         long serverId = args[0].GetInteger();
-        long taskId = Mgr.EnqueueAccept(serverId);
+        long taskId = Guard(token, () => Mgr.EnqueueAccept(serverId));
         return Value.CreateInteger(taskId);
     }
 
@@ -106,7 +106,7 @@ public static class TlsSocketBuiltinHandler
         long sockId = args[0].GetInteger();
         byte[] data = args[1].GetBytes();
 
-        long taskId = Mgr.EnqueueSend(sockId, data);
+        long taskId = Guard(token, () => Mgr.EnqueueSend(sockId, data));
         return Value.CreateInteger(taskId);
     }
 
@@ -117,8 +117,25 @@ public static class TlsSocketBuiltinHandler
         ParameterTypeMismatchError.ExpectInteger(token, TlsSocketBuiltin.Receive, 0, args[0]);
         long sockId = args[0].GetInteger();
         int max = args.Count > 1 ? (int)args[1].GetInteger() : 4096;
-        long taskId = Mgr.EnqueueRecv(sockId, max);
+        long taskId = Guard(token, () => Mgr.EnqueueRecv(sockId, max));
         return Value.CreateInteger(taskId);
+    }
+
+    /// <summary>
+    /// Reports a socket in the wrong state as a Kiwi error. The usual cause is passing the task
+    /// id from `tls::tcpconnect` or `tls::accept` instead of awaiting it for the socket id.
+    /// </summary>
+    private static long Guard(Token token, Func<long> op)
+    {
+        try
+        {
+            return op();
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            throw new InvalidOperationError(token,
+                $"{ex.Message}. tls::tcpconnect and tls::accept return a task id; await it to get the socket id.");
+        }
     }
 
     private static Value Close(Token token, List<Value> args)

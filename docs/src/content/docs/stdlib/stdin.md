@@ -31,10 +31,6 @@ while !stdin::empty() do
 end
 ```
 
-:::caution
-`stdin::lines()` currently never returns. Use `stdin::read().rtrim().lines()` or the loop above instead.
-:::
-
 To prompt the user interactively, use [`input`](/kiwi/reference/global-functions/#input) or [`console::read`](/kiwi/stdlib/console/).
 
 <!-- api: stdin -->

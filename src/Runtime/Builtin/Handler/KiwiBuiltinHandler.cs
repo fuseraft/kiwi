@@ -13,6 +13,7 @@ public static class KiwiBuiltinHandler
         {
             TokenName.Builtin_Kiwi_ExecPath  => ExecPath(token, args, executionPath),
             TokenName.Builtin_Kiwi_Main      => Main_(token, args, entryPath),
+            TokenName.Builtin_Kiwi_IsMain    => IsMain(token, args, executionPath, entryPath),
             TokenName.Builtin_Kiwi_MemUsage  => MemUsage(token, args),
             TokenName.Builtin_Kiwi_Tokenize  => Tokenize(token, args),
             TokenName.Builtin_Kiwi_TypeOf    => TypeOf(token, args),
@@ -23,12 +24,30 @@ public static class KiwiBuiltinHandler
     private static Value ExecPath(Token token, List<Value> args, string executionPath)
     {
         ParameterCountMismatchError.Check(token, KiwiBuiltin.ExecPath, 0, args.Count);
-        if (string.IsNullOrEmpty(executionPath))
+        var path = CallerPath(token, executionPath);
+        return string.IsNullOrEmpty(path) ? Value.EmptyString : Value.CreateString(path);
+    }
+
+    private static Value IsMain(Token token, List<Value> args, string executionPath, string entryPath)
+    {
+        ParameterCountMismatchError.Check(token, KiwiBuiltin.IsMain, 0, args.Count);
+        var path = CallerPath(token, executionPath);
+        return Value.CreateBoolean(!string.IsNullOrEmpty(path) && path == entryPath);
+    }
+
+    /// <summary>
+    /// The absolute path of the file that contains the call, falling back to the file
+    /// being run when the call has no source file (e.g. code passed to eval).
+    /// </summary>
+    private static string CallerPath(Token token, string executionPath)
+    {
+        var path = Tracing.FileRegistry.Instance.GetFilePath(token.Span.File);
+        if (string.IsNullOrEmpty(path) || !File.Exists(path))
         {
-            return Value.EmptyString;
+            path = executionPath;
         }
 
-        return Value.CreateString(FileUtil.GetAbsolutePath(token, executionPath));
+        return string.IsNullOrEmpty(path) ? string.Empty : FileUtil.GetAbsolutePath(token, path);
     }
 
     private static Value Main_(Token token, List<Value> args, string entryPath)

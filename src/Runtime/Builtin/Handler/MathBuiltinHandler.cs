@@ -63,26 +63,29 @@ public static class MathBuiltinHandler
 
     // --- dispatch helpers ---
 
+    // Every float function also accepts an integer.
+    private static double ToDouble(Value v) => v.IsInteger() ? v.GetInteger() : v.GetFloat();
+
     private static Value FloatUnary(Token token, string name, List<Value> args, Func<double, double> fn)
     {
         ParameterCountMismatchError.Check(token, name, 1, args.Count);
-        ParameterTypeMismatchError.ExpectFloat(token, name, 0, args[0]);
-        return Value.CreateFloat(fn(args[0].GetFloat()));
+        ParameterTypeMismatchError.ExpectNumber(token, name, 0, args[0]);
+        return Value.CreateFloat(fn(ToDouble(args[0])));
     }
 
     private static Value FloatBinary(Token token, string name, List<Value> args, Func<double, double, double> fn)
     {
         ParameterCountMismatchError.Check(token, name, 2, args.Count);
-        ParameterTypeMismatchError.ExpectFloat(token, name, 0, args[0]);
-        ParameterTypeMismatchError.ExpectFloat(token, name, 1, args[1]);
-        return Value.CreateFloat(fn(args[0].GetFloat(), args[1].GetFloat()));
+        ParameterTypeMismatchError.ExpectNumber(token, name, 0, args[0]);
+        ParameterTypeMismatchError.ExpectNumber(token, name, 1, args[1]);
+        return Value.CreateFloat(fn(ToDouble(args[0]), ToDouble(args[1])));
     }
 
     private static Value FloatToBool(Token token, string name, List<Value> args, Func<double, bool> fn)
     {
         ParameterCountMismatchError.Check(token, name, 1, args.Count);
-        ParameterTypeMismatchError.ExpectFloat(token, name, 0, args[0]);
-        return Value.CreateBoolean(fn(args[0].GetFloat()));
+        ParameterTypeMismatchError.ExpectNumber(token, name, 0, args[0]);
+        return Value.CreateBoolean(fn(ToDouble(args[0])));
     }
 
     // --- builtins ---
@@ -95,7 +98,7 @@ public static class MathBuiltinHandler
         if (args[0].IsInteger())
             return Value.CreateInteger(Math.Abs(args[0].GetInteger()));
 
-        return Value.CreateFloat(Math.Abs(args[0].GetFloat()));
+        return Value.CreateFloat(Math.Abs(ToDouble(args[0])));
     }
 
     private static Value Divisors(Token token, List<Value> args)
@@ -129,25 +132,25 @@ public static class MathBuiltinHandler
     private static Value Log(Token token, List<Value> args)
     {
         ParameterCountMismatchError.CheckRange(token, MathBuiltin.Log, 1, 2, args.Count);
-        ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.Log, 0, args[0]);
+        ParameterTypeMismatchError.ExpectNumber(token, MathBuiltin.Log, 0, args[0]);
 
         if (args.Count == 2)
         {
-            ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.Log, 1, args[1]);
-            return Value.CreateFloat(Math.Log(args[0].GetFloat(), args[1].GetFloat()));
+            ParameterTypeMismatchError.ExpectNumber(token, MathBuiltin.Log, 1, args[1]);
+            return Value.CreateFloat(Math.Log(ToDouble(args[0]), ToDouble(args[1])));
         }
 
-        return Value.CreateFloat(Math.Log(args[0].GetFloat()));
+        return Value.CreateFloat(Math.Log(ToDouble(args[0])));
     }
 
     private static Value NextAfter(Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, MathBuiltin.NextAfter, 2, args.Count);
-        ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.NextAfter, 0, args[0]);
-        ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.NextAfter, 1, args[1]);
+        ParameterTypeMismatchError.ExpectNumber(token, MathBuiltin.NextAfter, 0, args[0]);
+        ParameterTypeMismatchError.ExpectNumber(token, MathBuiltin.NextAfter, 1, args[1]);
 
-        double x = args[0].GetFloat();
-        double y = args[1].GetFloat();
+        double x = ToDouble(args[0]);
+        double y = ToDouble(args[1]);
 
         if (double.IsNaN(x) || double.IsNaN(y)) return Value.CreateFloat(double.NaN);
         if (x == y) return Value.CreateFloat(x);
@@ -170,8 +173,8 @@ public static class MathBuiltinHandler
             else if ((args[0].IsFloat() || args[0].IsInteger()) && (args[1].IsFloat() || args[1].IsInteger())
                      && (args[0].IsFloat() || args[1].IsFloat()))
             {
-                double minVal = args[0].IsFloat() ? args[0].GetFloat() : (double)args[0].GetInteger();
-                double maxVal = args[1].IsFloat() ? args[1].GetFloat() : (double)args[1].GetInteger();
+                double minVal = args[0].IsFloat() ? ToDouble(args[0]) : (double)args[0].GetInteger();
+                double maxVal = args[1].IsFloat() ? ToDouble(args[1]) : (double)args[1].GetInteger();
                 if (minVal > maxVal) (minVal, maxVal) = (maxVal, minVal);
                 return Value.CreateFloat(minVal + (maxVal - minVal) * System.Random.Shared.NextDouble());
             }
@@ -267,15 +270,15 @@ public static class MathBuiltinHandler
     private static Value Round(Token token, List<Value> args)
     {
         ParameterCountMismatchError.CheckRange(token, MathBuiltin.Round, 1, 2, args.Count);
-        ParameterTypeMismatchError.ExpectFloat(token, MathBuiltin.Round, 0, args[0]);
+        ParameterTypeMismatchError.ExpectNumber(token, MathBuiltin.Round, 0, args[0]);
 
         if (args.Count == 2)
         {
             ParameterTypeMismatchError.ExpectInteger(token, MathBuiltin.Round, 1, args[1]);
-            return Value.CreateFloat(Math.Round(args[0].GetFloat(), (int)args[1].GetInteger()));
+            return Value.CreateFloat(Math.Round(ToDouble(args[0]), (int)args[1].GetInteger()));
         }
 
-        return Value.CreateFloat(Math.Round(args[0].GetFloat()));
+        return Value.CreateFloat(Math.Round(ToDouble(args[0])));
     }
 
     // --- numeric helpers ---

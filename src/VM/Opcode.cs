@@ -67,6 +67,11 @@ public enum Opcode : byte
     /// Close all open upvalues whose absolute slot >= base + A
     /// </summary>
     CloseUpvalue,
+    /// <summary>
+    /// Close the open upvalue for slot base + A only, if there is one. Emitted at the top of
+    /// each `for` iteration so closures created in the body keep that iteration's value.
+    /// </summary>
+    CloseUpvalueAt,
 
     // -- Stack Manipulation ----------------------------------------------------
     Pop,
@@ -388,9 +393,20 @@ public enum Opcode : byte
     /// A = 0 → push error hashmap {error, message}  (single-param catch)
     /// A = 1 → push error type string               (first of two-param catch)
     /// A = 2 → push error message string             (second of two-param catch)
+    /// A = 3 → push the error itself, to rethrow after a `finally` block
     /// Reads from the VM's _caughtError field set when a handler fires.
     /// </summary>
     LoadCatchError,
+    /// <summary>
+    /// A = type-check index. Throw a TypeError unless the value on top of the stack (left in
+    /// place) matches the type hint chunk.TypeChecks[A]: a parameter, return value or `var`.
+    /// </summary>
+    CheckType,
+    /// <summary>
+    /// Pop an error pushed by LoadCatchError (A = 3) and throw it again, so an error
+    /// leaving a `try` with a `finally` block keeps propagating once the block has run.
+    /// </summary>
+    Rethrow,
 
     // -- Type Introspection ----------------------------------------------------
     /// <summary>
@@ -426,10 +442,18 @@ public enum Opcode : byte
     /// </summary>
     StructBegin,
     /// <summary>
-    /// A = sub-chunk index, B = nameIdx | (isAbstract ? 0x80000000 : 0).
+    /// A = sub-chunk index, B = nameIdx | (isAbstract ? 0x80000000 : 0)
+    /// | (isStatic ? 0x40000000 : 0) | (isPrivate ? 0x20000000 : 0)
+    /// | (isDecorated ? 0x10000000 : 0).
     /// Like DefFunc but registers the method into the current pending struct.
+    /// A decorated method is also pushed as a value for its decorators.
     /// </summary>
     DefMethod,
+    /// <summary>
+    /// A = name index. Pop the decorated value of a method and install it in the pending
+    /// struct: calling the method calls that value, with <c>@</c> still the instance.
+    /// </summary>
+    StoreDecoratedMethod,
     /// <summary>
     /// A = name index. Pop value → store in pending struct's StaticVariables[names[A]].
     /// </summary>

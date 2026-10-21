@@ -538,9 +538,7 @@ public static class CoreBuiltinHandler
                 }
             }
 
-            var number = value.GetInteger();
-            var b = (byte)(number & 0xFF);
-            var hexString = b.ToString("x").PadLeft(width, '0');
+            var hexString = value.GetInteger().ToString("x").PadLeft(width, '0');
             return Value.CreateString(hexString);
         }
 

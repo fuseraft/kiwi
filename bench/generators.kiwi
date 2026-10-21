@@ -1,5 +1,5 @@
 /#
-  Generator benchmarks — tree-walker only (not compatible with --vm).
+  Generator benchmarks.
   Run: kiwi bench/generators
 #/
 

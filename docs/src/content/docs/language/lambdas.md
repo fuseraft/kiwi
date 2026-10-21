@@ -146,34 +146,36 @@ total = 0
 println total   # 6
 ```
 
-:::caution[Closures in loops]
-Lambdas created in a `for` loop share the loop variable. They all see its final value:
+### Closures in loops
+
+Each iteration of a `for` loop gives its closures their own copy of the loop variable, so a lambda created in the loop keeps the value from its iteration:
 
 ```kiwi
 callbacks = []
 for i in [1 to 3] do
   callbacks.push(do () => i)
 end
-println callbacks.map(do (f) => f())   # [3, 3, 3]
+println callbacks.map(do (f) => f())   # [1, 2, 3]
 ```
 
-To capture each value, create the lambda in a function that takes the value as a parameter.
-:::
+Other variables assigned in the loop body are shared, as usual: a lambda sees their latest value.
 
 ## Returning a lambda
 
-To return an arrow lambda from a function or block, close the arrow lambda with its own `end`. Otherwise it takes the enclosing block's `end` as its own and the block is reported as unclosed.
+A function can return a lambda as its last expression, in either form:
 
 ```kiwi
 fn make_adder(n)
-  do (x) => x + n end
+  do (x) => x + n
 end
 
 add5 = make_adder(5)
 println add5(10)   # 15
 ```
 
-The block form doesn't have this problem:
+An arrow lambda may also be closed with its own `end` on the same line (`do (x) => x + n end`); an `end` on a later line closes the enclosing block.
+
+The block form:
 
 ```kiwi
 fn make_multiplier(n)

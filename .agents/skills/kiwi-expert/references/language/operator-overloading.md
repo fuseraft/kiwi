@@ -43,10 +43,11 @@ println a != b                # true
 | :-- | :-- |
 | Arithmetic | `+`, `-`, `*`, `/`, `//`, `%`, `**` |
 | Comparison | `==`, `!=`, `<`, `<=`, `>`, `>=` |
+| Bitwise | `&`, `\|`, `^`, `<<`, `>>`, `>>>` |
 
 If you define `==` but not `!=`, `!=` returns the opposite of your `==`.
 
-Bitwise and logical operators, unary operators, indexing and assignment can't be overloaded.
+Logical operators (`&&`, `||`, which short-circuit), unary operators, indexing and assignment can't be overloaded.
 
 ## Rules
 

@@ -74,3 +74,11 @@ fn test_fmt_sprintf_string_precision()
   tester::assert_eq(fmt::sprintf("%.3s", ["hello"]), "hel")
   tester::assert_eq(fmt::sprintf("%.5s", ["hi"]), "hi")
 end
+
+@tester::test("fmt: sprintf %e scientific")
+fn test_fmt_sprintf_scientific()
+  tester::assert_eq(fmt::sprintf("%e", [12345.678]), "1.234568e+04")
+  tester::assert_eq(fmt::sprintf("%.2e", [0.00012]), "1.20e-04")
+  tester::assert_eq(fmt::sprintf("%.1e", [-9.99]), "-1.0e+01")
+  tester::assert_eq(fmt::sprintf("%x", [4096]), "1000")
+end

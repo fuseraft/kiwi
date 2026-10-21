@@ -1,0 +1,29 @@
+@tester::test("string: smart_titleize")
+fn test_string_smart_titleize()
+  tester::assert_eq(string::smart_titleize("the lord of the rings"), "The Lord of the Rings")
+end
+
+@tester::test("string: StringIterator")
+fn test_string_iterator()
+  it = string::StringIterator.new("ab c")
+  out = []
+  while it.can_read() do
+    out.push(it.consume())
+  end
+  tester::assert_eq(out, ["a", "b", " ", "c"], "reads every character")
+  tester::assert(it.eof())
+
+  it = string::StringIterator.new("x   y")
+  it.consume()
+  tester::assert_eq(it.count_ahead(), 3)
+  tester::assert_eq(it.look_ahead(), "y")
+  it.skip_whitespace()
+  tester::assert_eq(it.current(), "y")
+  it.rewind(10)
+  tester::assert_eq(it.position(), 0)
+  it.skip(2)
+  tester::assert_eq(it.position(), 2)
+  it.skip(100)
+  tester::assert(it.eof())
+  tester::assert_eq(it.reach(-1), "y")
+end

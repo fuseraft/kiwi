@@ -251,15 +251,15 @@ package time
   end
 
   /#
-  @summary Get ticks since January 1st, 1970.
-  @return float : Ticks.
+  @summary Gets a high-resolution timestamp in nanoseconds, for measuring elapsed time. It counts from an arbitrary point, not a calendar date; subtract two readings and convert the difference with `ticksms`.
+  @return float : The timestamp in nanoseconds.
   #/
   fn ticks(): float
     __time_ticks__()
   end
 
   /#
-  @summary Converts ticks to milliseconds.
+  @summary Converts a difference of `ticks()` readings (nanoseconds) to milliseconds.
   @param float _ticks : The ticks.
   @return float : Ticks in milliseconds.
   #/

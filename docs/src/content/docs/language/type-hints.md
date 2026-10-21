@@ -13,11 +13,27 @@ end
 println area(2.5, 4.0)   # 10
 ```
 
-:::caution[Hints are not enforced]
-Kiwi does not currently check type hints at runtime. A call like `area("a", "b")` is not rejected because of the hints; it fails (or not) based on what the body does with the values. Treat hints as documentation, and validate input explicitly where it matters, for example with [`error::expect_type`](/kiwi/stdlib/error/).
-:::
+Kiwi checks hints at runtime. A call whose argument doesn't match a parameter's hint, a function that returns a value of the wrong type, and a `var` initialized with the wrong type all raise a `TypeError`:
 
-The one place a hint changes behavior is a `var` declaration without a value, which starts at the hinted type's zero value. See [`var` declarations](/kiwi/language/variables/#var-declarations).
+```kiwi
+fn area(width: float, height: float): float
+  width * height
+end
+
+try
+  area("a", "b")
+catch e
+  println e["message"]
+end
+```
+
+```
+Expected `float` for parameter 1 (`width`) of `area` but got `string`.
+```
+
+Parameters are checked after defaults are filled in, so a default must match its hint too. A parameter or return value without a hint accepts anything.
+
+A `var` declaration without a value starts at the hinted type's zero value. See [`var` declarations](/kiwi/language/variables/#var-declarations).
 
 ## Syntax
 
@@ -36,12 +52,12 @@ var label: string
 
 | Hint | Accepts |
 | :-- | :-- |
-| `integer`, `float`, `boolean`, `string` | Scalars |
+| `integer`, `float`, `boolean`, `string` | Scalars. `float` also accepts integers. |
 | `list`, `hashmap`, `bytes`, `date` | Collections and other built-ins |
 | `lambda` | Lambdas and named functions |
 | `generator` | Generator objects |
 | `object` | Any struct instance |
-| A struct name | Instances of that struct (the struct must be defined above the hint) |
+| A struct name | Instances of that struct or of a struct that inherits from it (the struct must be defined above the hint) |
 | `any` | Anything |
 | `none` | `null` |
 

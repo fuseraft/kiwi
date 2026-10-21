@@ -32,7 +32,8 @@ A `Chunk` (`src/VM/Chunk.cs`) is the compiled form of one unit of code: the prog
 | `Upvalues` | Descriptors for variables captured from enclosing functions. |
 | `Lines`, `Columns`, `FileIds` | Source positions for each instruction, used in error messages. |
 | `LocalNames`, `LocalCount` | Local variable slots, assigned at compile time. |
-| `ParamNames`, `Arity`, `VariadicParamName`, `DefaultParamNames` | Parameter metadata. |
+| `ParamNames`, `Arity`, `MinArity`, `VariadicParamName`, `DefaultParamNames` | Parameter metadata, used to check a call's argument count (lambdas, marked `IsLambda`, are exempt). |
+| `TypeChecks` | The type hints that `CheckType` instructions check: parameters, the return value and `var` initializers. |
 | `ArgNameSets` | Argument names for calls that use named arguments. |
 | `NodePool` | AST nodes kept for instructions that need them at runtime, such as `CallBuiltin`. |
 | `IsGenerator` | Whether the function contains `yield`. |
@@ -70,11 +71,13 @@ StackBase + LocalCount    temporaries (grow upward)
 
 ### Closures
 
-A closure captures variables through upvalues. An upvalue starts *open*, pointing at the variable's stack slot so that the function and the closure share it. When the enclosing frame returns, its open upvalues are *closed*: the value moves into the upvalue itself, so the closure keeps working after the frame is gone. Two closures that capture the same variable share one upvalue.
+A closure captures variables through upvalues. An upvalue starts *open*, pointing at the variable's stack slot so that the function and the closure share it. When the enclosing frame returns, its open upvalues are *closed*: the value moves into the upvalue itself, so the closure keeps working after the frame is gone. Two closures that capture the same variable share one upvalue. A `for` loop closes the loop variable's upvalue (`CloseUpvalueAt`) at the start of each iteration, so the closures created in one iteration keep that iteration's value.
 
 ### Errors
 
 `try` blocks push a handler (`PushTryHandler`) recording the catch and finally targets and the stack height. When an error is thrown, the VM unwinds frames to the nearest handler, restores the stack height and jumps to the catch target, where `LoadCatchError` loads the error in the form the `catch` clause asks for.
+
+A `finally` block is compiled inline on every path out of the `try` statement: after the `try` block, after the `catch` block, before a `return`, `break` or `next` that leaves it, and on an error path that keeps the error in a hidden local, runs the block and then throws the error again (`Rethrow`).
 
 ## Disassembly
 
@@ -137,6 +140,7 @@ The tables below are generated from the doc comments in `src/VM/Opcode.cs`. `A` 
 | `LoadUpvalue` | push upvalues[A].Get() |
 | `StoreUpvalue` | upvalues[A].Set(pop()) |
 | `CloseUpvalue` | Close all open upvalues whose absolute slot >= base + A |
+| `CloseUpvalueAt` | Close the open upvalue for slot base + A only, if there is one. Emitted at the top of each `for` iteration so closures created in the body keep that iteration's value. |
 
 ### Stack Manipulation
 
@@ -324,7 +328,9 @@ The tables below are generated from the doc comments in `src/VM/Opcode.cs`. `A` 
 | `Throw` | Pop value and throw it as a Kiwi runtime error. |
 | `PushTryHandler` | A = catch IP, B = finally IP (0 = none). Pushes a try-handler frame: on KiwiError, restore _sp to current value, jump to catch IP, and store the caught error in _caughtError. |
 | `PopTryHandler` | Pop the top try-handler frame (try body completed normally). |
-| `LoadCatchError` | A = 0 → push error hashmap {error, message} (single-param catch) A = 1 → push error type string (first of two-param catch) A = 2 → push error message string (second of two-param catch) Reads from the VM's _caughtError field set when a handler fires. |
+| `LoadCatchError` | A = 0 → push error hashmap {error, message} (single-param catch) A = 1 → push error type string (first of two-param catch) A = 2 → push error message string (second of two-param catch) A = 3 → push the error itself, to rethrow after a `finally` block Reads from the VM's _caughtError field set when a handler fires. |
+| `CheckType` | A = type-check index. Throw a TypeError unless the value on top of the stack (left in place) matches the type hint chunk.TypeChecks[A]: a parameter, return value or `var`. |
+| `Rethrow` | Pop an error pushed by LoadCatchError (A = 3) and throw it again, so an error leaving a `try` with a `finally` block keeps propagating once the block has run. |
 
 ### Type Introspection
 
@@ -346,7 +352,8 @@ The tables below are generated from the doc comments in `src/VM/Opcode.cs`. `A` 
 | Opcode | Behavior |
 | :-- | :-- |
 | `StructBegin` | A = name index. B = packed: bit 0 = isAbstract, bits 1+ = baseNameIdx+1 (0 = no base). Create KStruct and push onto the pending-struct stack. |
-| `DefMethod` | A = sub-chunk index, B = nameIdx \| (isAbstract ? 0x80000000 : 0). Like DefFunc but registers the method into the current pending struct. |
+| `DefMethod` | A = sub-chunk index, B = nameIdx \| (isAbstract ? 0x80000000 : 0) \| (isStatic ? 0x40000000 : 0) \| (isPrivate ? 0x20000000 : 0) \| (isDecorated ? 0x10000000 : 0). Like DefFunc but registers the method into the current pending struct. A decorated method is also pushed as a value for its decorators. |
+| `StoreDecoratedMethod` | A = name index. Pop the decorated value of a method and install it in the pending struct: calling the method calls that value, with `@` still the instance. |
 | `InitStructStatic` | A = name index. Pop value → store in pending struct's StaticVariables[names[A]]. |
 | `StructEnd` | Validate abstract compliance, register pending struct in Context.Structs. |
 
