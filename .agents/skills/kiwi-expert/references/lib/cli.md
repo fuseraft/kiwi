@@ -1,275 +1,340 @@
-# `cli`
+# cli
 
-The `cli` package provides tools for building command-line interface (CLI) applications. It includes colored output helpers, formatted tables, a progress bar, interactive prompts, and the `CliParser` struct for declarative flag/option parsing.
+> Building command-line tools: labeled messages, tables, progress bars, prompts and argument parsing.
 
----
+The `cli` package has the pieces most command-line tools need: labeled status messages, aligned output, tables, a progress bar, prompts, and `CliParser` for flags and options.
 
-## Package Functions
+## Output
 
-### `info(msg)`
-Prints an informational message with a cyan `info` label.
-
-**Parameters**
-
-| Type     | Name  | Description         | Default |
-|----------|-------|---------------------|---------|
-| `string` | `msg` | The message to print | —      |
-
-**Returns** `null`
-
----
-
-### `warn(msg)`
-Prints a warning message with a yellow `warn` label.
-
-**Parameters**
-
-| Type     | Name  | Description         | Default |
-|----------|-------|---------------------|---------|
-| `string` | `msg` | The message to print | —      |
-
-**Returns** `null`
-
----
-
-### `error(msg)`
-Prints an error message with a red `error` label.
-
-**Parameters**
-
-| Type     | Name  | Description         | Default |
-|----------|-------|---------------------|---------|
-| `string` | `msg` | The message to print | —      |
-
-**Returns** `null`
-
----
-
-### `success(msg)`
-Prints a success message with a green `ok` label.
-
-**Parameters**
-
-| Type     | Name  | Description         | Default |
-|----------|-------|---------------------|---------|
-| `string` | `msg` | The message to print | —      |
-
-**Returns** `null`
-
----
-
-### `header(title)`
-Prints a section header with the title underlined by `=` characters.
-
-**Parameters**
-
-| Type     | Name    | Description        | Default |
-|----------|---------|--------------------|---------|
-| `string` | `title` | The section title  | —       |
-
-**Returns** `null`
-
----
-
-### `hr(width = 40)`
-Prints a horizontal rule made of `-` characters.
-
-**Parameters**
-
-| Type      | Name    | Description         | Default |
-|-----------|---------|---------------------|---------|
-| `integer` | `width` | Width of the rule   | `40`    |
-
-**Returns** `null`
-
----
-
-### `kv(key, val, width = 16)`
-Prints a key-value pair with the key padded to a fixed column width.
-
-**Parameters**
-
-| Type      | Name    | Description                        | Default |
-|-----------|---------|------------------------------------|---------|
-| `string`  | `key`   | The label                          | —       |
-| `any`     | `val`   | The value                          | —       |
-| `integer` | `width` | Column width for the key           | `16`    |
-
-**Returns** `null`
-
----
-
-### `table(headers, rows)`
-Prints a formatted table with auto-sized columns and box-drawing borders.
-
-**Parameters**
-
-| Type   | Name      | Description                              | Default |
-|--------|-----------|------------------------------------------|---------|
-| `list` | `headers` | Column header strings                    | —       |
-| `list` | `rows`    | List of row lists (each row is a `list`) | —       |
-
-**Returns** `null`
-
-**Example**
 ```kiwi
-cli::table(
-  ["Name", "Age", "City"],
-  [
-    ["Alice", 30, "London"],
-    ["Bob",   25, "Paris"]
-  ]
-)
+cli::header("Deploy")
+cli::info("Connecting to server")
+cli::warn("Disk usage at 85%")
+cli::success("Deployed v1.2.0")
+cli::error("Health check failed")
+cli::hr(20)
+cli::kv("version", "1.2.0")
 ```
 
-Output:
+```text
+Deploy
+======
+  info   Connecting to server
+  warn   Disk usage at 85%
+    ok   Deployed v1.2.0
+ error   Health check failed
+--------------------
+version          1.2.0
 ```
-+---------+-----+--------+
-| Name    | Age | City   |
-+---------+-----+--------+
-| Alice   | 30  | London |
-| Bob     | 25  | Paris  |
-+---------+-----+--------+
-```
 
----
+On a color terminal the labels are colored. `cli::table` draws a bordered table, sizing each column to fit:
 
-### `progress_bar(current, total, width = 30)`
-Returns a progress bar string suitable for printing in-place with `\r`.
-
-**Parameters**
-
-| Type      | Name      | Description                     | Default |
-|-----------|-----------|---------------------------------|---------|
-| `integer` | `current` | Current progress value          | —       |
-| `integer` | `total`   | Total (100%) value              | —       |
-| `integer` | `width`   | Bar width in characters         | `30`    |
-
-**Returns** `string` — e.g. `[########......................] 27%`
-
-**Example**
 ```kiwi
-for i in [0 to 10] do
-  print "\r" + cli::progress_bar(i, 10)
+cli::table(["Service", "Status"], [["web", "up"], ["db", "down"]])
+```
+
+```text
++---------+--------+
+| Service | Status |
++---------+--------+
+| web     | up     |
+| db      | down   |
++---------+--------+
+```
+
+`cli::progress_bar(current, total, width)` returns a progress bar as a string. Print it with a carriage return to redraw it in place:
+
+```kiwi
+repeat 10 as i do
+  print "\r" + cli::progress_bar(i, 10, 20)
 end
 println ""
 ```
 
----
+## Prompts
 
-### `prompt(msg = "")`
-Prints a prompt and reads a line of input from the user.
-
-**Parameters**
-
-| Type     | Name  | Description           | Default |
-|----------|-------|-----------------------|---------|
-| `string` | `msg` | Prompt text to display | `""`   |
-
-**Returns** `string`
-
----
-
-### `confirm(msg = "")`
-Prints a `[y/N]` prompt and returns `true` if the user types `y` or `Y`.
-
-**Parameters**
-
-| Type     | Name  | Description           | Default |
-|----------|-------|-----------------------|---------|
-| `string` | `msg` | Prompt text to display | `""`   |
-
-**Returns** `boolean`
-
----
-
-## `CliParser`
-
-A struct for declaratively defining and parsing command-line flags and options.
-
-### `CliParser.new(name, desc = "")`
-Creates a new parser instance.
-
-**Parameters**
-
-| Type     | Name   | Description                    | Default |
-|----------|--------|--------------------------------|---------|
-| `string` | `name` | Program name (shown in help)   | —       |
-| `string` | `desc` | Short program description      | `""`    |
-
----
-
-### `@.flag(name, short = "", desc = "")`
-Registers a boolean flag. When present on the command line, it is `true`; otherwise `false`.
-
-**Parameters**
-
-| Type     | Name    | Description                          | Default |
-|----------|---------|--------------------------------------|---------|
-| `string` | `name`  | Long flag name (e.g. `"verbose"`)    | —       |
-| `string` | `short` | Single-character alias (e.g. `"v"`)  | `""`    |
-| `string` | `desc`  | Description shown in help output     | `""`    |
-
----
-
-### `@.option(name, short = "", desc = "", dval = null)`
-Registers an option that takes a value argument.
-
-**Parameters**
-
-| Type     | Name    | Description                             | Default  |
-|----------|---------|-----------------------------------------|----------|
-| `string` | `name`  | Long option name (e.g. `"output"`)      | —        |
-| `string` | `short` | Single-character alias (e.g. `"o"`)     | `""`     |
-| `string` | `desc`  | Description shown in help output        | `""`     |
-| `any`    | `dval`  | Default value when option is not given  | `null`   |
-
----
-
-### `@.help()`
-Prints formatted help text listing all registered flags and options with their defaults.
-
-**Returns** `null`
-
----
-
-### `@.parse(args = null)`
-Parses the command line against the registered flags and options. Pass `args` (a list of strings) to parse those tokens instead of `env::args()`.
-
-**Returns** `hashmap` with one key per flag/option (using the long name), plus `"_args"` for any positional arguments.
-
-| Key        | Value |
-|------------|-------|
-| `"<flag>"` | `boolean` — `true` if flag was passed |
-| `"<option>"` | `any` — parsed value, or the registered default |
-| `"_args"`  | `list` — positional arguments, in command-line order with duplicates kept |
-
-Flags and options are accepted in both long form (`--name`) and short form (`-n`). An option takes its value as `--name value`, `--name=value`, or `-n=value`; a flag never consumes the token after it. Absolute paths (`/tmp`), a lone `-`, and negative numbers are values, not flags, and everything after `--` is positional. Unrecognized flags are ignored.
-
----
-
-## Usage Example
+`cli::prompt(message)` asks for a line of input, and `cli::confirm(message)` asks a yes/no question:
 
 ```kiwi
-p = CliParser.new("myapp", "A sample CLI application")
-p.flag("verbose", "v", "Enable verbose output")
-p.flag("dry-run", "n", "Simulate without writing files")
-p.option("output", "o", "Output file path", "stdout")
-p.option("format", "f", "Output format (text, json, csv)", "text")
-
-p.help()
-
-args = p.parse()
-
-cli::kv("verbose", args["verbose"])
-cli::kv("output",  args["output"])
-cli::kv("_args",   args["_args"])
+name = cli::prompt("Project name: ")
+exit 0 when !cli::confirm("Create ${name}?")
 ```
 
-Running `kiwi myapp.kiwi --verbose -o result.txt data.csv` would produce:
+## Parsing arguments
 
+`CliParser` turns command-line arguments into a hashmap. Register boolean flags with `flag(name, short, description)` and options that take a value with `option(name, short, description, default)`, then call `parse()`:
+
+```kiwi
+parser = CliParser.new("report", "Summarize a CSV file")
+parser.flag("verbose", "v", "Print progress")
+parser.option("format", "f", "Output format", "text")
+parser.option("limit", "n", "Rows to show", "10")
+
+# parse() reads the script's arguments; a list can be passed for testing.
+args = parser.parse(["--verbose", "-f", "json", "data.csv"])
+
+println args["verbose"]   # true
+println args["format"]    # json
+println args["limit"]     # 10
+println args["_args"]     # ["data.csv"]
 ```
-verbose          true
-output           result.txt
-_args            [data.csv]
+
+- Flags are `true` when given and `false` otherwise.
+- Options take the next argument as their value, or their default when absent. Values are strings.
+- Everything that isn't a flag or option is collected, in order, under `_args`.
+- Both `--name` and the short `-n` form work.
+
+`parser.help()` prints usage generated from the registered flags and options:
+
+```text
+Usage: report
+Summarize a CSV file
+
+Flags:
+  -v, --verbose  Print progress
+
+Options:
+  -f, --format  Output format (default: text)
+  -n, --limit  Rows to show (default: 10)
 ```
+
+A typical script prints help and exits when asked:
+
+```kiwi
+parser.flag("help", "h", "Show this help")
+args = parser.parse()
+
+if args["help"]
+  parser.help()
+  exit 0
+end
+```
+
+For raw access to arguments, see [`env::args()` and `env::argv()`](../tools/cli.md#passing-arguments-to-scripts).
+
+## Functions
+
+### `cli::info`
+
+```kiwi
+cli::info(msg: string)
+```
+
+Prints an info message.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` |  | The message to display. |
+
+### `cli::warn`
+
+```kiwi
+cli::warn(msg: string)
+```
+
+Prints a warning message.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` |  | The message to display. |
+
+### `cli::error`
+
+```kiwi
+cli::error(msg: string)
+```
+
+Prints an error message.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` |  | The message to display. |
+
+### `cli::success`
+
+```kiwi
+cli::success(msg: string)
+```
+
+Prints a success message.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` |  | The message to display. |
+
+### `cli::header`
+
+```kiwi
+cli::header(title: string)
+```
+
+Prints a section header.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `title` | `string` |  | The header text. |
+
+### `cli::hr`
+
+```kiwi
+cli::hr(width: integer = 40)
+```
+
+Prints a horizontal rule.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `width` | `integer` | `40` | The width (default: 40). |
+
+### `cli::kv`
+
+```kiwi
+cli::kv(key: string, val, width: integer = 16)
+```
+
+Prints a key-value pair with alignment.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `key` | `string` |  | The label. |
+| `val` | `any` |  | The value. |
+| `width` | `integer` | `16` | The column width for the key (default: 16). |
+
+### `cli::table`
+
+```kiwi
+cli::table(headers: list, rows: list)
+```
+
+Prints a formatted table.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `headers` | `list` |  | Column header strings. |
+| `rows` | `list` |  | List of row lists. |
+
+### `cli::progress_bar`
+
+```kiwi
+cli::progress_bar(current: integer, total: integer, width: integer = 30): string
+```
+
+Returns a progress bar string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `current` | `integer` |  | Current progress value. |
+| `total` | `integer` |  | Total value. |
+| `width` | `integer` | `30` | Bar width in characters (default: 30). |
+
+**Returns** `string` — The progress bar string.
+
+### `cli::prompt`
+
+```kiwi
+cli::prompt(msg: string = ""): string
+```
+
+Prompts the user for input.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | The prompt message. |
+
+**Returns** `string` — The user's input.
+
+### `cli::confirm`
+
+```kiwi
+cli::confirm(msg: string = ""): boolean
+```
+
+Prompts the user for a yes/no confirmation.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | The prompt message. |
+
+**Returns** `boolean` — `true` if the user answered yes.
+
+## `CliParser` struct
+
+A struct for defining and parsing command-line arguments.
+
+### `CliParser.new`
+
+```kiwi
+CliParser.new(name: string, desc: string = "")
+```
+
+Creates a new CliParser.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The program name. |
+| `desc` | `string` | `""` | A short description (optional). |
+
+### `CliParser.is_flag_token`
+
+```kiwi
+static CliParser.is_flag_token(tok: string): boolean
+```
+
+Whether a token is a flag (`-x`, `--name`, `--`) rather than a value.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tok` | `string` |  | The token. |
+
+**Returns** `boolean` — `false` for values, including `-` and negative numbers.
+
+### `.flag`
+
+```kiwi
+flag(name: string, short: string = "", desc: string = "")
+```
+
+Registers a boolean flag.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The long flag name (e.g., `"verbose"`). |
+| `short` | `string` | `""` | The short flag character (e.g., `"v"`). |
+| `desc` | `string` | `""` | A description of the flag. |
+
+### `.option`
+
+```kiwi
+option(name: string, short: string = "", desc: string = "", dval = null)
+```
+
+Registers an option that takes a value.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The long option name (e.g., `"output"`). |
+| `short` | `string` | `""` | The short option character (e.g., `"o"`). |
+| `desc` | `string` | `""` | A description of the option. |
+| `dval` | `any` | `null` | The default value (default: `null`). |
+
+### `.help`
+
+```kiwi
+help()
+```
+
+Prints the help text for this parser.
+
+### `.parse`
+
+```kiwi
+parse(args = null): hashmap
+```
+
+Parses command-line arguments.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `args` | `list` | `null` | The tokens to parse, in order (default: `env::args()`, the raw command line). |
+
+**Returns** `hashmap` — A hashmap of parsed values, plus `_args` for positional arguments.

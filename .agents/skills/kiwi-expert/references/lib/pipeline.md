@@ -1,112 +1,196 @@
-# `pipeline`
+# pipeline
 
-The `pipeline` package provides a DSL for building named, step-based data pipelines. Each pipeline passes a shared context hashmap through a sequence of named steps. Optional hooks let you observe or time each step, and an error handler lets you recover from failures without crashing the pipeline.
+> Named, step-by-step data pipelines with hooks and error recovery.
 
----
-
-## Structs
-
-### `Pipeline`
-
-Returned by `pipeline::build()`. Holds the step list and optional hooks.
-
-| Method | Description |
-| :--- | :--- |
-| `step(name, action)` | Appends a named step. `action` is a lambda accepting the context hashmap. |
-| `before_each(hook)` | Registers a hook called before every step: `hook(name, ctx)`. |
-| `after_each(hook)` | Registers a hook called after every successful step: `hook(name, ctx)`. |
-| `on_error(handler)` | Registers an error recovery handler: `handler(name, err, ctx)`. If absent, errors re-throw and halt the pipeline. |
-| `run(ctx)` | Executes all steps in order and returns the final context. `ctx` defaults to `{}`. |
-
----
-
-## Package Functions
-
-### `build(name)`
-
-Creates and returns a new empty `Pipeline`.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `name` | A label for the pipeline, used in logs and error messages. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `Pipeline` | A new empty pipeline. |
-
----
-
-## Examples
-
-### Basic ETL pipeline
+The `pipeline` package runs a sequence of named steps over a shared context hashmap. Each step reads from and writes to the context, which keeps multi-stage scripts (load, clean, transform, report) easy to follow and to instrument.
 
 ```kiwi
-p = pipeline::build("etl")
+etl = pipeline::build("people")
 
-p.step("load", do (ctx)
+etl.step("load", do (ctx)
   ctx["rows"] = [
     {name: "Alice", age: 32, active: true},
-    {name: "Bob",   age: 17, active: true},
+    {name: "Bob", age: 17, active: true},
     {name: "Carol", age: 25, active: false}
   ]
 end)
 
-p.step("filter", do (ctx)
-  rows = ctx["rows"]
-  ctx["rows"] = rows.filter(do (r) => r["active"] && r["age"] >= 18 end)
+etl.step("filter", do (ctx)
+  ctx["rows"] = ctx["rows"].filter(do (r) => r["active"] && r["age"] >= 18 end)
 end)
 
-p.step("names", do (ctx)
-  rows = ctx["rows"]
-  ctx["names"] = rows.map(do (r) => r["name"] end)
+etl.step("names", do (ctx)
+  ctx["names"] = ctx["rows"].map(do (r) => r["name"] end)
 end)
 
-result = p.run({})
-names = result["names"]
-println names  # ["Alice"]
+result = etl.run({})
+println result["names"]   # ["Alice"]
 ```
 
-### Before/after hooks
+`run(ctx)` executes the steps in the order they were added and returns the context.
+
+## Hooks
+
+`before_each` and `after_each` run around every step and receive the step name and the context:
 
 ```kiwi
-p = pipeline::build("timed")
+timed = pipeline::build("timed")
 
-p.before_each(do (name, ctx)
-  ctx["__t"] = time::ticks()
+timed.before_each(do (name, ctx)
+  ctx["_started"] = time::ticks()
 end)
 
-p.after_each(do (name, ctx)
-  t0 = ctx["__t"]
-  elapsed = time::ticksms(time::ticks() - t0)
-  println("${name}: ${elapsed}ms")
+timed.after_each(do (name, ctx)
+  elapsed = time::ticksms(time::ticks() - ctx["_started"])
+  println "${name} finished"
 end)
 
-p.step("work", do (ctx)
-  ctx["result"] = [1 to 10000].sum()
+timed.step("sum", do (ctx)
+  ctx["total"] = [1 to 10000].sum()
 end)
 
-p.run({})
+println timed.run({})["total"]   # 50005000
 ```
 
-### Error recovery with `on_error`
+## Errors
+
+Without an error handler, a step that throws stops the pipeline and the error propagates out of `run`. With `on_error`, the handler receives the step name, the error and the context, and the pipeline continues with the next step:
 
 ```kiwi
-p = pipeline::build("resilient")
+resilient = pipeline::build("resilient")
 
-p.on_error(do (name, err, ctx)
-  msg = error::message_of(err)
-  println("step '${name}' failed: ${msg} — skipping")
+resilient.on_error(do (name, err, ctx)
+  println "step '${name}' failed: ${error::message_of(err)}"
 end)
 
-p.step("ok",   do (ctx) => ctx["a"] = 1 end)
-p.step("boom", do (ctx) => throw error::ValueError("bad input") end)
-p.step("also_ok", do (ctx) => ctx["b"] = 2 end)
+resilient.step("first", do (ctx) => ctx["a"] = 1 end)
+resilient.step("broken", do (ctx) => throw error::ValueError("bad input") end)
+resilient.step("last", do (ctx) => ctx["b"] = 2 end)
 
-result = p.run({})
-# step 'boom' failed: bad input — skipping
-# result["a"] == 1, result["b"] == 2
+result = resilient.run({})
+println [result["a"], result["b"]]   # [1, 2]
 ```
+
+## Functions
+
+### `pipeline::build`
+
+```kiwi
+pipeline::build(name: string): Pipeline
+```
+
+Creates and returns a new Pipeline.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | A label for the pipeline. |
+
+**Returns** `Pipeline` — A new empty pipeline.
+
+## `Step` struct
+
+Represents a single named step in a pipeline.
+
+### `Step.new`
+
+```kiwi
+Step.new(name: string, action: lambda)
+```
+
+Creates a new step.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The display name of the step. |
+| `action` | `lambda` |  | A lambda accepting the context hashmap. |
+
+### `.run`
+
+```kiwi
+run(ctx: hashmap)
+```
+
+Executes the step action with the given context.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `ctx` | `hashmap` |  | The shared pipeline context. |
+
+## `Pipeline` struct
+
+A named sequence of steps that share a context hashmap.
+
+### `Pipeline.new`
+
+```kiwi
+Pipeline.new(name: string)
+```
+
+Creates a new pipeline.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | A label for this pipeline (used in output and errors). |
+
+### `.step`
+
+```kiwi
+step(name: string, action: lambda)
+```
+
+Appends a named step to the pipeline.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The display name of the step. |
+| `action` | `lambda` |  | A lambda accepting the context hashmap. |
+
+### `.before_each`
+
+```kiwi
+before_each(hook: lambda)
+```
+
+Registers a hook called before each step.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `hook` | `lambda` |  | A lambda accepting (step_name: string, ctx: hashmap). |
+
+### `.after_each`
+
+```kiwi
+after_each(hook: lambda)
+```
+
+Registers a hook called after each successful step.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `hook` | `lambda` |  | A lambda accepting (step_name: string, ctx: hashmap). |
+
+### `.on_error`
+
+```kiwi
+on_error(handler: lambda)
+```
+
+Registers an error handler called when a step throws.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `handler` | `lambda` |  | A lambda accepting (step_name, err, ctx). |
+
+### `.run`
+
+```kiwi
+run(ctx: hashmap = {})
+```
+
+Runs all steps in order, passing the context through each.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `ctx` | `hashmap` | `{}` | The initial context. Defaults to an empty hashmap. |
+
+**Returns** `hashmap` — The context after all steps have run.

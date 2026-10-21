@@ -1,141 +1,106 @@
-# `encode`
+# encode
 
-The `encode` package provides encoding and decoding utilities for Base64, hexadecimal, and URL formats.
+> Base64, hexadecimal and URL encoding.
 
----
+The `encode` package converts data to and from text encodings.
 
-## Package Functions
+```kiwi
+println encode::base64_encode("kiwi")                    # a2l3aQ==
+println encode::base64_decode("a2l3aQ==").to_string()    # kiwi
 
-### `base64_encode(data)`
+println encode::hex_encode("kiwi")                       # 6b697769
+println encode::hex_decode("6b697769").to_string()       # kiwi
 
-Encodes a string, bytes, or list to a Base64 string.
+println encode::url_encode("a b&c")                      # a+b%26c
+println encode::url_decode("a+b%26c")                    # a b&c
+```
 
-**Parameters**
+The encoders accept a string or bytes. `base64_decode` and `hex_decode` return bytes, since the decoded data may not be text; call `.to_string()` to decode it as UTF-8.
 
-| Type                    | Name   | Description          |
-|-------------------------|--------|----------------------|
-| `string\|bytes\|list`   | `data` | The data to encode   |
+Strings also have `.base64encode()`, `.base64decode()`, `.urlencode()` and `.urldecode()` methods from the [`string`](string.md) package. For hashing, see [`crypto`](crypto.md).
 
-**Returns**
+## Functions
 
-| Type     | Description             |
-|----------|-------------------------|
-| `string` | Base64-encoded string   |
+### `encode::base64_encode`
 
----
+```kiwi
+encode::base64_encode(data)
+```
 
-### `base64_decode(data)`
+Encodes a string or bytes to Base64.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `data` | `string\|bytes\|list` |  | The data to encode. |
+
+**Returns** `string` — Base64-encoded string.
+
+### `encode::base64_decode`
+
+```kiwi
+encode::base64_decode(data)
+```
 
 Decodes a Base64 string to bytes.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `data` | `string` |  | Base64-encoded string. |
 
-| Type     | Name   | Description              |
-|----------|--------|--------------------------|
-| `string` | `data` | Base64-encoded string    |
+**Returns** `bytes` — Decoded bytes.
 
-**Returns**
-
-| Type    | Description     |
-|---------|-----------------|
-| `bytes` | Decoded bytes   |
-
----
-
-### `hex_encode(data)`
-
-Encodes a string, bytes, or list to a lowercase hexadecimal string.
-
-**Parameters**
-
-| Type                  | Name   | Description        |
-|-----------------------|--------|--------------------|
-| `string\|bytes\|list` | `data` | The data to encode |
-
-**Returns**
-
-| Type     | Description              |
-|----------|--------------------------|
-| `string` | Lowercase hex string     |
-
----
-
-### `hex_decode(hex_str)`
-
-Decodes a hexadecimal string to bytes. Spaces and dashes in the input are ignored.
-
-**Parameters**
-
-| Type     | Name      | Description                                  |
-|----------|-----------|----------------------------------------------|
-| `string` | `hex_str` | Hex-encoded string (spaces/dashes ignored)   |
-
-**Returns**
-
-| Type    | Description   |
-|---------|---------------|
-| `bytes` | Decoded bytes |
-
----
-
-### `url_encode(str)`
-
-Percent-encodes a string for use in a URL.
-
-**Parameters**
-
-| Type     | Name  | Description          |
-|----------|-------|----------------------|
-| `string` | `str` | String to encode     |
-
-**Returns**
-
-| Type     | Description          |
-|----------|----------------------|
-| `string` | URL-encoded string   |
-
----
-
-### `url_decode(str)`
-
-Decodes a percent-encoded URL string.
-
-**Parameters**
-
-| Type     | Name  | Description              |
-|----------|-------|--------------------------|
-| `string` | `str` | URL-encoded string       |
-
-**Returns**
-
-| Type     | Description        |
-|----------|--------------------|
-| `string` | Decoded string     |
-
----
-
-## Examples
+### `encode::hex_encode`
 
 ```kiwi
-import "encode"
-
-# Base64
-encoded = encode::base64_encode("Hello, Kiwi!")
-println encoded                          # SGVsbG8sIEtpd2kh
-
-decoded_bytes = encode::base64_decode(encoded)
-println decoded_bytes.to_string()        # Hello, Kiwi!
-
-# Hex
-hex = encode::hex_encode("abc")
-println hex                              # 616263
-
-raw = encode::hex_decode("61 62 63")     # spaces ignored
-println raw.to_string()                  # abc
-
-# URL
-query = encode::url_encode("hello world & more")
-println query                            # hello+world+%26+more
-
-println encode::url_decode(query)        # hello world & more
+encode::hex_encode(data)
 ```
+
+Encodes a string or bytes to lowercase hex.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `data` | `string\|bytes\|list` |  | The data to encode. |
+
+**Returns** `string` — Hex-encoded string.
+
+### `encode::hex_decode`
+
+```kiwi
+encode::hex_decode(hex_str)
+```
+
+Decodes a hex string to bytes.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `hex_str` | `string` |  | Hex-encoded string (spaces and dashes ignored). |
+
+**Returns** `bytes` — Decoded bytes.
+
+### `encode::url_encode`
+
+```kiwi
+encode::url_encode(str)
+```
+
+URL-encodes a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `str` | `string` |  | String to encode. |
+
+**Returns** `string` — URL-encoded string.
+
+### `encode::url_decode`
+
+```kiwi
+encode::url_decode(str)
+```
+
+URL-decodes a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `str` | `string` |  | URL-encoded string. |
+
+**Returns** `string` — Decoded string.

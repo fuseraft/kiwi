@@ -1,99 +1,98 @@
-# `fmt`
+# fmt
 
-The `fmt` package provides `sprintf`-style string formatting with `%` format specifiers, along with `printf` and `printlnf` convenience functions.
+> printf-style string formatting with % specifiers.
 
----
-
-## Format Specifiers
-
-| Specifier | Description                           |
-|-----------|---------------------------------------|
-| `%s`      | String                                |
-| `%d`, `%i`| Signed decimal integer                |
-| `%f`      | Floating-point (default 6 decimal places) |
-| `%e`      | Scientific notation                   |
-| `%x`      | Lowercase hexadecimal integer         |
-| `%X`      | Uppercase hexadecimal integer         |
-| `%o`      | Octal integer                         |
-| `%b`      | Binary integer                        |
-| `%c`      | Character from codepoint              |
-| `%%`      | Literal `%`                           |
-
-### Flags and Width
-
-Flags appear between `%` and the specifier:
-
-| Flag    | Description                                          |
-|---------|------------------------------------------------------|
-| `N`     | Minimum field width (e.g. `%10s` right-aligns in 10 chars) |
-| `-`     | Left-align within the field width                    |
-| `0`     | Zero-pad numbers to the field width                  |
-| `+`     | Always show sign for numeric values                  |
-| `.N`    | Precision: decimal places for `%f`/`%e`, max chars for `%s` |
-
----
-
-## Package Functions
-
-### `sprintf(format_str, args?)`
-
-Formats a string using `%` specifiers.
-
-**Parameters**
-
-| Type     | Name         | Description                              | Default |
-|----------|--------------|------------------------------------------|---------|
-| `string` | `format_str` | Format string with `%` specifiers        | —       |
-| `list`   | `args`       | Values to substitute, in order           | `[]`    |
-
-**Returns**
-
-| Type     | Description         |
-|----------|---------------------|
-| `string` | Formatted string    |
-
----
-
-### `printf(format_str, args?)`
-
-Formats and prints to stdout without a trailing newline.
-
-**Parameters**
-Same as `sprintf`.
-
----
-
-### `printlnf(format_str, args?)`
-
-Formats and prints to stdout with a trailing newline.
-
-**Parameters**
-Same as `sprintf`.
-
----
-
-## Examples
+The `fmt` package formats strings with `%` specifiers, like `printf` in C. Pass the values as a list.
 
 ```kiwi
-import "fmt"
+println fmt::sprintf("Hello, %s!", ["World"])            # Hello, World!
+println fmt::sprintf("%d + %d = %d", [1, 2, 3])          # 1 + 2 = 3
+println fmt::sprintf("Pi: %.4f", [3.14159265])           # Pi: 3.1416
+println fmt::sprintf("|%-10s|%10s|", ["left", "right"])  # |left      |     right|
+println fmt::sprintf("%08d", [42])                       # 00000042
+println fmt::sprintf("0x%x 0%o %b", [255, 255, 255])     # 0xff 0377 11111111
 
-# Basic substitution
-println fmt::sprintf("Hello, %s!", ["World"])          # Hello, World!
-
-# Integers and floats
-println fmt::sprintf("%d + %d = %d", [1, 2, 3])        # 1 + 2 = 3
-println fmt::sprintf("Pi: %.4f", [3.14159265])          # Pi: 3.1416
-
-# Width and alignment
-println fmt::sprintf("|%-10s|%10s|", ["left", "right"]) # |left      |     right|
-println fmt::sprintf("%08d", [42])                      # 00000042
-
-# Number bases
-println fmt::sprintf("0x%x  0%o  %b", [255, 255, 255]) # 0xff  0377  11111111
-
-# Scientific notation
-println fmt::sprintf("%.2e", [123456.789])              # 1.23e+05
-
-# printf convenience
-fmt::printlnf("User: %s, Score: %d", ["Alice", 99])     # User: Alice, Score: 99
+fmt::printlnf("User: %s, score: %d", ["Alice", 99])      # User: Alice, score: 99
 ```
+
+`printf` prints without a trailing newline and `printlnf` with one.
+
+## Specifiers
+
+| Specifier | Formats |
+| :-- | :-- |
+| `%s` | A string, or any value converted to a string |
+| `%d`, `%i` | An integer |
+| `%f` | A float, with 6 decimal places unless a precision is given |
+| `%x`, `%X` | Hexadecimal, lower or upper case |
+| `%o` | Octal |
+| `%b` | Binary |
+| `%c` | The character for a code point |
+| `%%` | A literal `%` |
+
+Between the `%` and the letter you can add:
+
+| Flag | Meaning | Example |
+| :-- | :-- | :-- |
+| A number | Minimum width, right-aligned | `%10s` |
+| `-` | Left-align within the width | `%-10s` |
+| `0` | Pad numbers with zeros | `%08d` |
+| `+` | Always show the sign | `%+d` |
+| `.N` | Decimal places for `%f`, or maximum length for `%s` | `%.2f`, `%.3s` |
+
+:::caution
+`%e` (scientific notation) currently fails with an error.
+:::
+
+For most formatting, string interpolation and [`.to_string(format)`](../language/types.md#number-formats) are simpler. For templates with named placeholders, see [`template`](template.md).
+
+## Functions
+
+### `fmt::sprintf`
+
+```kiwi
+fmt::sprintf(format_str, args = [])
+```
+
+Formats a string using printf-style format specifiers.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `format_str` | `string` |  | Format string with % specifiers. |
+| `args` | `list` | `[]` | List of values to format. |
+
+**Returns** `string` — The formatted string.
+
+```kiwi
+import fmt
+println fmt::sprintf("Hello, %s! You are %d years old.", ["Alice", 30])
+println fmt::sprintf("Pi is approximately %.4f", [3.14159265])
+println fmt::sprintf("Hex: %x  Oct: %o  Bin: %b", [255, 255, 255])
+println fmt::sprintf("%-10s|%10s", ["left", "right"])
+```
+
+### `fmt::printf`
+
+```kiwi
+fmt::printf(format_str, args = [])
+```
+
+Formats and prints to stdout (no newline).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `format_str` | `string` |  | Format string. |
+| `args` | `list` | `[]` | Arguments list. |
+
+### `fmt::printlnf`
+
+```kiwi
+fmt::printlnf(format_str, args = [])
+```
+
+Formats and prints to stdout with a newline.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `format_str` | `string` |  | Format string. |
+| `args` | `list` | `[]` | Arguments list. |

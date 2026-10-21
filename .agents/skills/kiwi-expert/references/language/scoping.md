@@ -1,12 +1,12 @@
 # Scoping
 
-Kiwi uses **lexical scoping** — each name is resolved in the scope where it was written, not where it was called. There are four scope levels: global, function, block, and instance/struct.
+> How Kiwi resolves names in scripts, functions, blocks, closures, structs and packages.
 
----
+Kiwi has two main levels of scope: the **global** scope of the script, and the **local** scope of each function call. Blocks such as `if` and `for` don't introduce a scope of their own.
 
-## Global Scope
+## Global variables
 
-Variables declared at the top level of a script are globally visible and can be read or updated from inside any function.
+Variables assigned at the top level of a script are global. Functions can read them, and assigning to a global's name inside a function updates the global.
 
 ```kiwi
 count = 0
@@ -17,237 +17,139 @@ end
 
 increment()
 increment()
-println count  # 2
+println count   # 2
 ```
 
----
+## Local variables
 
-## Function Scope
-
-Each function call gets its own scope, parented to the scope where the function was **defined** (not where it was called). A new variable created inside a function is local to that call and disappears when the function returns.
+A variable first assigned inside a function, when no global of that name exists, is local to that call. It disappears when the function returns, and each call gets a fresh one.
 
 ```kiwi
-fn make_counter(start)
-  n = start
-  fn step()
+fn make_greeting(name)
+  message = "Hello, ${name}"
+  message
+end
+
+println make_greeting("Kiwi")   # Hello, Kiwi
+```
+
+```kiwi
+fn setup()
+  temp = 1
+end
+
+setup()
+println temp   # VariableUndefinedError: temp only existed inside setup()
+```
+
+Parameters are always local, even when a global has the same name.
+
+### Shadowing a global with `var`
+
+Because plain assignment updates a global of the same name, use `var` inside a function to declare a local variable that shadows it:
+
+```kiwi
+name = "global"
+
+fn rename()
+  var name = "local"
+  name
+end
+
+println rename()   # local
+println name       # global
+```
+
+This matters most in long scripts where a helper function might reuse a common name such as `result` or `i` that also exists at the top level.
+
+## Blocks don't create scope
+
+`if`, `case`, `for`, `while`, `repeat` and `try` blocks share the scope around them. A variable assigned inside a block is still visible after it, and loop variables keep their last value.
+
+```kiwi
+if true
+  status = "ready"
+end
+println status   # ready
+
+for n in [1, 2, 3] do
+  last_seen = n
+end
+println last_seen   # 3
+println n           # 3
+```
+
+A variable assigned only in a branch that didn't run doesn't exist. When a value is computed in different branches, initialize it first so that it is always defined:
+
+```kiwi
+score = 72
+grade = "F"
+
+if score >= 90
+  grade = "A"
+elsif score >= 70
+  grade = "C"
+end
+
+println grade   # C
+```
+
+## Closures
+
+A [lambda](lambdas.md) or nested function can use the local variables of the function it was created in, and those variables live as long as the lambda does:
+
+```kiwi
+fn make_counter()
+  n = 0
+  do ()
     n += 1
     n
   end
-  step
 end
 
-c = make_counter(0)
-println c()  # 1
-println c()  # 2
+tick = make_counter()
+tick()
+println tick()   # 2
 ```
 
-Reading an outer variable works because scope lookup walks up the chain. Writing to an outer name updates the existing binding; writing a **new** name creates a local variable.
+## Struct instances
 
-### Nested Functions
-
-A `fn` declaration inside another function is local to that function. It is callable anywhere within the enclosing function body — including after `try`/`catch` blocks — but ceases to exist when the function returns.
-
-```kiwi
-fn outer()
-  fn helper()
-    return 42
-  end
-  return helper()  # ok
-end
-
-outer()
-helper()  # error — helper is not defined here
-```
-
-Lambda aliases assigned inside a function follow the same rule:
-
-```kiwi
-fn run()
-  double = with (x) do x * 2 end
-  return double(5)  # 10
-end
-
-run()
-double(3)  # error — double is not defined here
-```
-
-```kiwi
-x = 10
-
-fn double_x()
-  x = x * 2  # updates outer x because x exists there
-end
-
-double_x()
-println x  # 20
-```
-
-```kiwi
-x = 10
-
-fn shadow()
-  y = 99  # y does not exist outside — stays local
-end
-
-shadow()
-println y  # null
-```
-
----
-
-## Block Scope
-
-`if`, `elsif`, `else`, `while`, `for`, `repeat`, and `do` blocks each introduce their own scope. A variable first assigned **inside** a block is local to that block and is not visible after it ends.
-
-```kiwi
-if true
-  msg = "hello"
-end
-
-println msg  # null — msg was block-local
-```
-
-Assigning to a variable that already exists **outside** the block still updates the outer binding normally.
-
-```kiwi
-result = null
-
-if true
-  result = "computed"  # updates outer result
-end
-
-println result  # computed
-```
-
-### Declare before the block
-
-The common pattern for "compute a value in one branch, use it after" is to declare the variable before the block:
-
-```kiwi
-label = ""
-
-if score >= 90
-  label = "A"
-elsif score >= 80
-  label = "B"
-else
-  label = "C"
-end
-
-println "Grade: ${label}"
-```
-
-### Loop variables are block-scoped
-
-Iterator variables (`v`, `i` in a `for` loop, the alias in `repeat`) and any variables declared in a loop body are local to that loop. They are not visible after the loop ends.
-
-```kiwi
-for x in [1, 2, 3] do
-  last = x
-end
-
-println x     # null
-println last  # null
-```
-
-To retain a value across the loop boundary, declare it before the loop:
-
-```kiwi
-last = null
-
-for x in [1, 2, 3] do
-  last = x
-end
-
-println last  # 3
-```
-
----
-
-## Instance Scope
-
-Inside a struct method, instance variables are accessed with `@`. They live on the object, not in any lexical scope, and persist for the lifetime of the instance.
+Inside a struct method, `@name` refers to an instance variable. Instance variables belong to the object, not to any lexical scope, and each instance has its own. `@@name` refers to a static variable shared by every instance of the struct. See [Structs](structs.md).
 
 ```kiwi
 struct Counter
-  fn new(start: integer = 0)
-    @n = start
+  static @created = 0
+
+  fn new()
+    @value = 0
+    @@created += 1
   end
 
   fn tick()
-    @n += 1
-  end
-
-  fn value(): integer
-    @n
+    @value += 1
   end
 end
 
-c = Counter.new()
-c.tick()
-c.tick()
-println c.value()  # 2
+a = Counter.new()
+b = Counter.new()
+a.tick()
+println [a.value, b.value]   # [1, 0]
+println Counter.created      # 2
 ```
 
-Each instance has its own copy of `@n`. Two `Counter` objects do not share state.
+## Packages
 
-### Static Variables
-
-Static variables are declared with `static @name` in the struct body and accessed inside methods with `@@name`. They are shared across all instances.
+Variables assigned at the top of a `package` body are package variables, reached from outside as `package::NAME`. Functions in the same package call each other without the prefix. See [Packages](packages.md#package-variables).
 
 ```kiwi
-struct IdGen
-  static @next = 1
+package settings
+  LEVEL = "debug"
 
-  fn new()
-    @id = @@next
-    @@next += 1
+  fn describe()
+    "level=${settings::LEVEL}"
   end
 end
 
-a = IdGen.new()
-b = IdGen.new()
-println a.id  # 1
-println b.id  # 2
+println settings::LEVEL        # debug
+println settings::describe()   # level=debug
 ```
-
-See [Structs](structs.md) for full details on instance and static variables.
-
----
-
-## Package Scope
-
-Functions defined inside a `package` block are accessed with `::` after the package is exported. They run in their own function scope and cannot see variables from the call site.
-
-```kiwi
-package math_utils
-  fn square(n: integer): integer
-    n * n
-  end
-end
-
-export "math_utils"
-
-println math_utils::square(5)  # 25
-```
-
-See [Packages](packages.md) for details.
-
----
-
-## Lambda and Closure Scope
-
-A lambda defined with `do` or `with` captures the **caller's scope** at the point of invocation. This lets it read and update local variables.
-
-```kiwi
-total = 0
-items = [1, 2, 3, 4, 5]
-
-items.each(do (n) => total += n)
-
-println total  # 15
-```
-
-A lambda converted from a named function with `.to_lambda()` runs in its own isolated function scope (same rules as a regular function call).
-
-See [Lambdas](lambdas.md) for full details.

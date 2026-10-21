@@ -1,168 +1,138 @@
-# `smtp`
+# smtp
 
-The `smtp` package provides functions for sending email via SMTP, including a fluent `Message` builder.
+> Send email through an SMTP server.
 
----
-
-## Package Functions
-
-### `send(host, port, from_addr, recipients, subject, body, username?, password?, use_tls?)`
-
-Sends an email in a single call.
-
-**Parameters**
-
-| Type              | Name         | Description                                      | Default  |
-|-------------------|--------------|--------------------------------------------------|----------|
-| `string`          | `host`       | SMTP server hostname                             | —        |
-| `integer`         | `port`       | SMTP server port                                 | —        |
-| `string`          | `from_addr`  | Sender email address                             | —        |
-| `string\|list`    | `recipients` | Recipient address or list of addresses           | —        |
-| `string`          | `subject`    | Email subject line                               | —        |
-| `string`          | `body`       | Email body text                                  | —        |
-| `string`          | `username`   | SMTP authentication username                     | `""`     |
-| `string`          | `password`   | SMTP authentication password                     | `""`     |
-| `boolean`         | `use_tls`    | Use TLS/STARTTLS                                 | `true`   |
-
-**Returns**
-
-| Type      | Description            |
-|-----------|------------------------|
-| `boolean` | `true` on success      |
-
----
-
-### `message(from_addr, subject, body)`
-
-Creates a fluent `Message` builder.
-
-**Parameters**
-
-| Type     | Name        | Description            |
-|----------|-------------|------------------------|
-| `string` | `from_addr` | Sender email address   |
-| `string` | `subject`   | Email subject          |
-| `string` | `body`      | Email body             |
-
-**Returns** `Message`
-
----
-
-## `Message`
-
-A fluent email builder returned by `smtp::message()`.
-
-### `Message.new(from_addr, subject, body)`
-
-Direct constructor (prefer `smtp::message()` factory function).
-
----
-
-### `.add_to(addr)`
-
-Adds a recipient (`To:`).
-
-**Parameters**
-
-| Type     | Name   | Description       |
-|----------|--------|-------------------|
-| `string` | `addr` | Email address     |
-
-**Returns** `Message` (self)
-
----
-
-### `.add_cc(addr)`
-
-Adds a CC recipient.
-
-**Parameters**
-
-| Type     | Name   | Description       |
-|----------|--------|-------------------|
-| `string` | `addr` | Email address     |
-
-**Returns** `Message` (self)
-
----
-
-### `.send(host, port?, username?, password?, use_tls?)`
-
-Sends the message.
-
-**Parameters**
-
-| Type      | Name       | Description                      | Default  |
-|-----------|------------|----------------------------------|----------|
-| `string`  | `host`     | SMTP server hostname              | —        |
-| `integer` | `port`     | SMTP server port                  | `587`    |
-| `string`  | `username` | SMTP username                     | `""`     |
-| `string`  | `password` | SMTP password                     | `""`     |
-| `boolean` | `use_tls`  | Use TLS/STARTTLS                  | `true`   |
-
-**Returns**
-
-| Type      | Description       |
-|-----------|-------------------|
-| `boolean` | `true` on success |
-
----
-
-## Examples
-
-### Quick send
+The `smtp` package sends email through an SMTP server, either in one call or with a fluent `Message` builder.
 
 ```kiwi
-import "smtp"
-
 smtp::send(
   "smtp.example.com", 587,
-  "sender@example.com",
-  "recipient@example.com",
-  "Hello from Kiwi",
-  "This is the message body.",
-  "sender@example.com", "p@ssw0rd"
+  "sender@example.com",             # from
+  "recipient@example.com",          # to: an address or a list of addresses
+  "Hello from Kiwi",                # subject
+  "This is the message body.",      # body
+  "sender@example.com", "p@ssw0rd"  # username and password
 )
 ```
 
-### Fluent builder
+The builder suits messages with several recipients:
 
 ```kiwi
-import "smtp"
-
-smtp::message("alerts@example.com", "Build Failed", "The CI pipeline failed on main.")
+smtp::message("alerts@example.com", "Build failed", "The CI pipeline failed on main.")
   .add_to("dev@example.com")
   .add_to("ops@example.com")
   .add_cc("manager@example.com")
   .send("smtp.example.com", 587, "alerts@example.com", "p@ssw0rd")
 ```
 
-### Multiple recipients via list
+TLS is on by default and is negotiated with STARTTLS, as on port 587; pass `use_tls: false` for servers without TLS. Servers that only accept implicit TLS (typically port 465) are not supported.
+
+Keep credentials out of source code: read them with [`env::get`](env.md) or load them with [`dotenv`](dotenv.md). `smtp` is unavailable in [safe mode](../tools/cli.md#safe-mode).
+
+## Functions
+
+### `smtp::send`
 
 ```kiwi
-import "smtp"
-
-recipients = ["alice@example.com", "bob@example.com", "carol@example.com"]
-
-smtp::send(
-  "smtp.example.com", 587,
-  "newsletter@example.com",
-  recipients,
-  "Weekly Update",
-  "Here is this week's update...",
-  "newsletter@example.com", "secret"
-)
+smtp::send(host, port, from_addr, recipients, subject, body, username = "", password = "", use_tls = true)
 ```
 
-### Using port 465 (SSL)
+Sends an email in one call.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `host` | `string` |  | SMTP server hostname. |
+| `port` | `integer` |  | SMTP server port. |
+| `from_addr` | `string` |  | Sender email address. |
+| `recipients` | `string\|list` |  | Recipient address or list of addresses. |
+| `subject` | `string` |  | Email subject. |
+| `body` | `string` |  | Email body. |
+| `username` | `string` | `""` | SMTP username (default ""). |
+| `password` | `string` | `""` | SMTP password (default ""). |
+| `use_tls` | `boolean` | `true` | Whether to use TLS (default true). |
+
+**Returns** `boolean` — true on success.
 
 ```kiwi
-import "smtp"
-
-smtp::send(
-  "smtp.gmail.com", 465,
-  "me@gmail.com", "you@example.com",
-  "Test", "Sent from Kiwi.",
-  "me@gmail.com", "app-password"
-)
+import smtp
+smtp::send("smtp.example.com", 587, "me@example.com", "you@example.com",
+  "Hello", "This is the body.", "me@example.com", "s3cr3t")
 ```
+
+### `smtp::message`
+
+```kiwi
+smtp::message(from_addr, subject, body)
+```
+
+Creates a fluent Message builder.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `from_addr` | `string` |  | Sender email address. |
+| `subject` | `string` |  | Email subject. |
+| `body` | `string` |  | Email body. |
+
+**Returns** Message
+
+## `Message` struct
+
+A fluent email message builder.
+
+### `Message.new`
+
+```kiwi
+Message.new(from_addr, subject, body)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `from_addr` | `any` |  |  |
+| `subject` | `any` |  |  |
+| `body` | `any` |  |  |
+
+### `.add_to`
+
+```kiwi
+add_to(addr)
+```
+
+Adds a recipient.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `addr` | `string` |  | Email address. |
+
+**Returns** `Message` — self
+
+### `.add_cc`
+
+```kiwi
+add_cc(addr)
+```
+
+Adds a CC recipient.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `addr` | `string` |  | Email address. |
+
+**Returns** `Message` — self
+
+### `.send`
+
+```kiwi
+send(host, port = 587, username = "", password = "", use_tls = true)
+```
+
+Sends the message via SMTP.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `host` | `string` |  | SMTP server hostname. |
+| `port` | `integer` | `587` | SMTP server port (default 587). |
+| `username` | `string` | `""` | SMTP username (default ""). |
+| `password` | `string` | `""` | SMTP password (default ""). |
+| `use_tls` | `boolean` | `true` | Whether to use TLS/STARTTLS (default true). |
+
+**Returns** `boolean` — true on success.

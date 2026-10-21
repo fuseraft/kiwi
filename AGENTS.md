@@ -17,7 +17,7 @@ src/          C# interpreter (.NET 10)
 lib/          Standard library (~50 Kiwi modules)
 tests/        Test suite (written in Kiwi)
 examples/     Example Kiwi scripts
-docs/         MkDocs documentation
+docs/         Documentation site (Astro Starlight)
 bench/        Benchmarks and stress tests
 build.sh      Linux/macOS build script
 build.ps1     Windows build script
@@ -52,6 +52,17 @@ Exit code `0` means all tests passed; `1` means one or more failed.
 Test files live under `tests/lib/suite/` (language features) and `tests/lib/stdlib/` (standard library). The runner at `tests/test.kiwi` auto-discovers them.
 
 **Run the full test suite after any change to C# source, `lib/`, or `tests/`.**
+
+---
+
+## Documentation
+
+The docs site lives in `docs/` (Astro Starlight; see `docs/README.md`). Pages are Markdown under `docs/src/content/docs/`.
+
+- Every ```kiwi block in the docs is executed by `cd docs && npm run check:examples`, so examples must run cleanly against `./bin/kiwi`. Fence modifiers: `fails`, `stderr`, `nocheck` (syntax-check only), `noparse`.
+- Each standard library page's API reference is generated from the `/# ... #/` docstrings in `lib/*.kiwi`. **When you add or change a public stdlib function, update its docstring**; that is the documentation.
+- The VM page's opcode tables are generated from the `<summary>` comments in `src/VM/Opcode.cs`.
+- When a change alters documented behavior, update the relevant page and run `npm run check:examples` and `npm run build` in `docs/`.
 
 ---
 
@@ -146,7 +157,7 @@ end
 GitHub Actions runs on push to `main` and on pull requests:
 - **dotnet.yml**: `./build.sh` → `./bin/kiwi tests/test`
 - **benchmarks.yml**: build → tests → benchmarks
-- **docs.yml**: MkDocs deployment on merge to main
+- **docs.yml**: builds `bin/kiwi`, runs every docs example (`npm run check:examples`), builds the docs site (validating links), and deploys it to GitHub Pages on merge to main
 
 Pull requests must pass all CI checks before merging.
 

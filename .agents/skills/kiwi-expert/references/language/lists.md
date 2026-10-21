@@ -1,247 +1,232 @@
-# Lists in Kiwi
+# Lists and Ranges
 
-Lists are dynamic, ordered, mutable sequences that can hold values of any type (including other lists, hashmaps, etc.).
-They grow automatically as needed and support slicing, and many useful built-in methods.
+> Creating, indexing, slicing, transforming and iterating lists, and building ranges.
 
----
-
-## Quick Reference – Common Operations
-
-| Operation                  | Syntax / Method                          | Returns          | Mutates? |
-|----------------------------|------------------------------------------|------------------|----------|
-| Create                     | `[]`, `[1, 2, 3]`, `[1 to 10]`           | `list`           | —        |
-| Get element                | `lst[3]`, `lst[0]`                       | value            | No       |
-| Set element                | `lst[2] = "new"`                         | —                | Yes      |
-| Append                     | `lst.push(value)`, `lst.concat(values)`  | —                | Yes      |
-| Remove by index            | `lst.remove_at(idx)`                     | removed value    | Yes      |
-| Remove by value            | `lst.remove(value)`                      | —                | Yes      |
-| Filter                     | `lst.filter(λ)`                          | new list         | No       |
-| Map                        | `lst.map(λ)`                             | new list         | No       |
-| Length                     | `lst.size()` or `lst.length()`           | integer          | No       |
-| Iterate                    | `for item in lst do …`                   | —                | —        |
-| Iterate with index         | `for item, idx in lst do …`              | —                | —        |
-
-For the full list of built-in methods, see [List Builtins](builtins.md#list-builtins).
-
-## Creating Lists
-
-### Literal syntax
+A list is an ordered, mutable sequence. It can hold values of any type, including other lists and hashmaps, and it grows as needed.
 
 ```kiwi
-empty   = []
-fruits  = ["kiwi", "mango", "lime"]
-mixed   = [1, "hello", true, [2, 3], {a: 42}]
+empty  = []
+fruits = ["kiwi", "mango", "lime"]
+mixed  = [1, "two", 3.0, [4], {five: 5}]
+
+println fruits.size()   # 3
 ```
 
-### From a range (very common idiom)
+## Ranges
+
+`[start to end]` builds a list of consecutive integers. `..` is a synonym for `to`. Both ends are included, and if `end` is smaller than `start` the range counts down.
 
 ```kiwi
-digits  = [0 to 9]           # [0,1,2,3,4,5,6,7,8,9]
-reverse = [10 to 1]          # [10,9,8,...,1]
+println [1 to 5]     # [1, 2, 3, 4, 5]
+println [1..5]       # [1, 2, 3, 4, 5]
+println [5 to 1]     # [5, 4, 3, 2, 1]
 ```
 
-See [Ranges](ranges.md).
+A `for` loop over a range literal counts without building the list, so `for i in [1 to 100000000] do` uses constant memory.
 
-## Accessing & Modifying Elements
-
-Indices start at **0**..
-
-```kiwi
-colors = ["red", "green", "blue", "yellow"]
-
-println colors[0]    # "red"
-println colors[2]    # "blue"
-println colors[3]    # "yellow" (last)
-
-# Modify in place
-colors[1] = "emerald"
-println colors        # ["red", "emerald", "blue", "yellow"]
-```
-
-**Out-of-bounds behavior**  
-Reading past the end throws `IndexError`.  
-Writing past the end throws an error (use `.push()` to grow).
-
-## Adding Elements
-
-### Append (most common)
+:::caution
+A range never comes out empty. `[0 to n - 1]` is `[0, -1]` when `n` is `0`, because the range counts down. Guard loops whose bounds can cross:
 
 ```kiwi
-tasks = ["write docs", "refactor"]
-tasks.push("add tests")
-tasks.push(42)                # lists can be heterogeneous
-
-println tasks.size()          # 4
-```
-
-### Append multiple
-
-```kiwi
-more = ["deploy", "celebrate"]
-tasks.push(more)              # adds the whole list as one element
-# ["write docs", "refactor", "add tests", 42, ["deploy", "celebrate"]]
-
-tasks.concat(more)            # use concat to combine two lists
-# ["write docs", "refactor", "add tests", 42, "deploy", "celebrate"]
-```
-
-## Removing Elements
-
-### By index
-
-```kiwi
-letters = "abcdef".chars()     # ["a","b","c","d","e","f"]
-letters.remove_at(3)           # removes "d"
-println letters                # ["a","b","c","e","f"]
-```
-
-### By value (removes first occurrence)
-
-```kiwi
-numbers = [1, 2, 3, 2, 4]
-numbers.remove(2)
-println numbers                # [1, 3, 2, 4]  (only first 2 removed)
-```
-
-### Remove all occurrences
-
-```kiwi
-while numbers.contains(2) do
-  numbers.remove(2)
+n = 0
+for i in [0 to n - 1] do
+  break when n == 0
+  println i
 end
 ```
+:::
 
-## Transforming Lists (non-destructive)
+Ranges also work in `case` without brackets; see [Control Flow](control-flow.md#ranges).
 
-### Filter
+## Indexing
 
-```kiwi
-words = ["kiwi", "apple", "banana", "mango", "lime"]
-short = words.filter(do (w) => w.size() <= 4)
-println short          # ["kiwi", "lime"]
-```
-
-### Map
+Indexes start at 0. Reading or writing past the end throws an `IndexError`; use `.push()` to grow a list.
 
 ```kiwi
-nums = [1, 2, 3, 4]
-squares = nums.map(do (n) => n * n)
-println squares        # [1, 4, 9, 16]
+colors = ["red", "green", "blue"]
+println colors[0]           # red
+println colors[2]           # blue
+
+colors[1] = "emerald"
+println colors              # ["red", "emerald", "blue"]
 ```
 
-### Chaining
+Negative indexes are not supported. Use `.last()`, or `xs[xs.size() - 1]`.
+
+## Slicing
+
+`xs[start:end]` returns a new list from `start` up to, but not including, `end`. Leave out either bound to slice from the beginning or to the end. A third value is the step.
+
+```kiwi
+nums = [0, 1, 2, 3, 4, 5]
+println nums[1:4]    # [1, 2, 3]
+println nums[:2]     # [0, 1]
+println nums[3:]     # [3, 4, 5]
+println nums[::2]    # [0, 2, 4]
+println nums[::-1]   # [5, 4, 3, 2, 1, 0]
+```
+
+Assigning a list to a slice overwrites those positions in place:
+
+```kiwi
+letters = ["a", "b", "c", "d"]
+letters[1:3] = ["X", "Y"]
+println letters   # ["a", "X", "Y", "d"]
+```
+
+Keep the replacement the same length as the slice. Kiwi writes the new elements one by one from `start` rather than splicing, so a longer list overwrites elements past the slice and a shorter one leaves the rest of the slice unchanged.
+
+## Adding and removing
+
+```kiwi
+stack = [1, 2]
+stack.push(3)            # add to the end
+stack.unshift(0)         # add to the front
+println stack            # [0, 1, 2, 3]
+
+println stack.pop()      # 3  (remove from the end)
+println stack.shift()    # 0  (remove from the front)
+println stack            # [1, 2]
+
+stack.insert(1, "x")     # insert at an index
+println stack            # [1, "x", 2]
+
+stack.remove("x")        # remove the first matching value
+stack.remove_at(0)       # remove by index
+println stack            # [2]
+
+stack.concat([3, 4])     # append every element of another list
+println stack            # [2, 3, 4]
+```
+
+`.push(list)` adds the list as one element; `.concat(list)` adds its elements. `.enqueue()` and `.dequeue()` are synonyms for `push` and `shift`, for queue-style code.
+
+## Transforming
+
+`.map`, `.filter` and `.reduce` take a [lambda](lambdas.md) and return new values without changing the original list:
+
+```kiwi
+nums = [1, 2, 3, 4, 5]
+
+println nums.map(do (n) => n * n)              # [1, 4, 9, 16, 25]
+println nums.filter(do (n) => n % 2 == 1)      # [1, 3, 5]
+println nums.reduce(0, do (acc, n) => acc + n) # 15
+println nums.all(do (n) => n > 0)              # true
+println nums                                   # [1, 2, 3, 4, 5]
+```
+
+Chain them to build pipelines. Start each continued line with `.`:
 
 ```kiwi
 result = [1 to 10]
-  .filter(do (n) => n % 2 == 1)     # odds
-  .map(do (n) => n * 10)            # ×10
-println result                      # [10, 30, 50, 70, 90]
+  .filter(do (n) => n % 2 == 1)
+  .map(do (n) => n * 10)
+  .take(3)
+
+println result   # [10, 30, 50]
 ```
 
-A list literal can also be used directly as a statement — calling a method on it without assigning the result, or combined with a `when` guard:
+Named functions work anywhere a lambda does:
 
 ```kiwi
-[].size()                           # valid statement (result discarded)
-["a", "b"].size() when some_flag    # guarded call
-```
-
-> **Note on line breaks and `[`:** A `[` at the start of a new line is always parsed as a new list literal, never as an index operator on the expression above it. Same-line indexing (`lst[i]`) is unaffected.
->
-> ```kiwi
-> x = my_list      # x gets the list
-> [0].size()        # separate statement — NOT my_list[0].size()
-> ```
-
-## Iterating Lists
-
-### Basic iteration
-
-```kiwi
-planets = ["Mercury", "Venus", "Earth", "Mars"]
-
-for p in planets do
-  println p
+fn double(n)
+  n * 2
 end
+
+println [1, 2, 3].map(double)   # [2, 4, 6]
 ```
 
-### With index
+`.each` runs a lambda for every element and passes the index as an optional second parameter:
 
 ```kiwi
+["a", "b"].each(do (value, i)
+  println "${i}: ${value}"
+end)
+```
+
+## Sorting and searching
+
+```kiwi
+words = ["kiwi", "fig", "banana"]
+
+println words.contains("fig")    # true
+println words.index("banana")    # 2
+println words.first()            # kiwi
+println words.last()             # banana
+
+words.sort()
+println words                    # ["banana", "fig", "kiwi"]
+
+words.sort(do (a, b) => a.size() < b.size())
+println words                    # ["fig", "kiwi", "banana"]
+
+println [3, 9, 4].max()          # 9
+println [3, 9, 4].sum()          # 16
+println [1, 1, 2].unique()       # [1, 2]
+```
+
+`.sort()`, `.reverse()`, `.rotate()` and `.swap()` change the list in place (and also return it). Sort a `.clone()` if you need to keep the original order. A comparator lambda receives two elements and returns `true` when the first should come first.
+
+The [`list`](../lib/list.md) package adds more helpers, several of them callable as methods:
+
+```kiwi
+nums = [1, 2, 3, 4]
+println nums.reject(do (n) => n % 2 == 0)       # [1, 3]
+println nums.first_where(do (n) => n > 2)       # 3
+println list::count(nums, do (n) => n > 1)      # 3
+```
+
+The [Built-in Methods](../reference/builtin-methods.md#lists) reference lists every list method.
+
+## Iterating
+
+```kiwi
+planets = ["Mercury", "Venus", "Earth"]
+
+for planet in planets do
+  println planet
+end
+
 for planet, i in planets do
   println "${i + 1}. ${planet}"
 end
-# 1. Mercury
-# 2. Venus
-# ...
 ```
 
-### With guard clauses (idiomatic)
+Loop guards keep filtering logic flat:
 
 ```kiwi
-for n in [1 to 20] do
-  next when n % 3 == 0     # skip multiples of 3
-  println n
+for n in [1 to 10] do
+  next when n % 3 != 0
+  println n   # 3, 6, 9
 end
 ```
 
-## Full Example – Word frequency
+Don't add or remove elements of a list while a `for` loop walks it. Iterate over a `.clone()`, or build a new list instead.
+
+## Lists are shared
+
+Assigning a list to another variable, passing it to a function, or reading it out of another collection does not copy it. Every name refers to the same list, so a change through one is visible through all of them.
 
 ```kiwi
-text = "kiwi is fun kiwi is awesome kiwi wins"
-words = text.split(" ")
+original = [1, 2]
+alias = original
+alias.push(3)
+println original   # [1, 2, 3]
 
-counts = {}
-
-for word in words do
-  word = word.lowercase()
-  next when word.empty()
-
-  counts[word] = counts.get(word, 0) + 1
-end
-
-println counts
-# { "kiwi": 3, "is": 2, "fun": 1, "awesome": 1, "wins": 1 }
-```
-
-## Mutating Nested Collections
-
-**Direct chained mutation** on an indexed element works correctly — the change is reflected in the original container:
-
-```kiwi
-matrix = [[1, 2, 3], [4, 5, 6]]
-matrix[0].push(99)
-println matrix    # [[1, 2, 3, 99], [4, 5, 6]]
-```
-
-However, **extracting a collection to a variable** gives you a copy. Mutations to that copy are not reflected in the original — you must write it back.
-
-```kiwi
-matrix = [[1, 2, 3], [4, 5, 6]]
-
-row = matrix[0]   # row is a copy
-row.push(99)      # modifies only the copy
-println matrix    # [[1, 2, 3], [4, 5, 6]] — unchanged!
-
-row = matrix[0]
+grid = [[1, 2], [3, 4]]
+row = grid[0]
 row.push(99)
-matrix[0] = row   # write back — required
-println matrix    # [[1, 2, 3, 99], [4, 5, 6]]
+println grid       # [[1, 2, 99], [3, 4]]
 ```
 
-The write-back rule applies to lists-of-hashmaps, nested lists, or any other extracted collection. When in doubt, prefer direct chained operations, or extract-mutate-reassign explicitly.
+Use `.clone()` for an independent copy. It copies nested lists and hashmaps too.
 
-## Best Practices & Tips
+```kiwi
+original = [[1], [2]]
+copy = original.clone()
+copy[0].push(100)
+println original   # [[1], [2]]
+println copy       # [[1, 100], [2]]
+```
 
-- Chain `.filter()`, `.map()`, `.take()`, etc. for clean data pipelines
-- Avoid modifying a list while iterating over it with `for` — use indices or `.clone()`
-- Lambda methods (`.each()`, `.map()`, `.filter()`, `.sort()`, `.reduce()`, ...) iterate over a
-  snapshot taken when the call starts, so items the lambda adds or removes don't change that
-  iteration
-- Lists and hashmaps are safe to share between tasks; see [Sharing state between tasks](lib/task.md#sharing-state-between-tasks)
-- For very large lists, prefer iterators [`ListIterator`](lib/iter.md) when you only need sequential access
-
-See also:
-- [List Builtins](builtins.md#list-builtins)
-- [Ranges](ranges.md)
-- [Hashmaps](hashmaps.md)
-- [Loops – `for`](loops.md#3-for--iteration-over-collections--ranges)
+Lists and hashmaps are safe to share between [tasks](../lib/task.md).

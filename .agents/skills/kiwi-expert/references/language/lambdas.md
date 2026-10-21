@@ -1,173 +1,185 @@
-# Lambdas
+# Lambdas and Closures
 
-Lambdas are used to treat callables (i.e. functions) as first-class citizens. You can pass lambdas as method parameters.
+> Anonymous functions, the arrow and block forms, closures, and passing functions around.
 
----
+A lambda is a function without a name. Lambdas are values: store them in variables, pass them to functions, and return them.
 
-## Defining and calling lambdas
+## Writing a lambda
 
-There are many ways to define a lambda.
-
-### Passing a function as a lambda
-
-Named functions can be passed anywhere a lambda is expected — no conversion needed.
+The **arrow form** holds a single expression:
 
 ```kiwi
-fn double(x)
-  x * 2
-end
+square = do (n) => n * n
+add = do (a, b) => a + b
+answer = do () => 42
 
-println [1, 2, 3].map(double)   # [2, 4, 6]
-println [1, 2, 3].filter(double) # [2, 4, 6]  (truthy values kept)
+println square(5)    # 25
+println add(2, 3)    # 5
+println answer()     # 42
 ```
 
-This works with all higher-order list methods: `map`, `filter`, `each`, `sort`, `reduce`, `all`, `none`.
-
-You can also pass a function as a parameter and call it directly:
+The **block form** holds any number of statements and returns the value of the last one. Leave out the arrow and close with `end`:
 
 ```kiwi
-fn say_hello(name: string)
-  println "Hello, ${name}!"
-end
-
-fn say_bye(name: string)
-  println "Bye, ${name}!"
-end
-
-fn get_strategy(strategy: string)
-  if strategy == "hello"
-    return say_hello
-  elsif strategy == "bye"
-    return say_bye
+classify = do (n)
+  if n > 0
+    "positive"
+  elsif n < 0
+    "negative"
   else
-    throw "Unknown strategy"
+    "zero"
   end
 end
 
-fn use_strategy(strategy: string, name: string)
-  get_strategy(strategy).call([name])
+println classify(-3)   # negative
+```
+
+`with (params) do ... end` is an alternative spelling of the block form:
+
+```kiwi
+multiply = with (a, b) do
+  a * b
 end
 
-use_strategy("hello", "World")
-use_strategy("bye", "World")
+println multiply(6, 7)   # 42
 ```
 
-*Note: Remember you can invoke any callable directly or by calling `.call([parameters])` on it.*
+Lambda parameters support everything function parameters do: defaults, type hints, and a variadic `*` parameter.
 
-> **Note:** `.to_lambda()` still works but is no longer required when passing a function as a callable.
-
-### Using `do` (lambda block and arrow functions)
-
-For simple one liners, you might use an arrow function.
 ```kiwi
-println [1 to 10].filter(do (n) => n % 2 == 0)
-# [2, 4, 6, 8, 10]
+greet = do (name = "you") => "Hi, ${name}"
+total = with (*nums) do nums.sum() end
+
+println greet()           # Hi, you
+println total(1, 2, 3)    # 6
+println total(*[4, 5])    # 9
 ```
 
-Arrow lambdas passed as call arguments may optionally include a closing `end`, which is useful for visual symmetry with multi-line blocks.
+A lambda can be called right where it's written:
+
 ```kiwi
-println [1 to 10].filter(do (n) => n % 2 == 0 end)
-# [2, 4, 6, 8, 10]
+println (do (x, y) => x * y)(6, 7)   # 42
 ```
 
-Package calls (`::`) and other complex expressions work in arrow lambdas too:
+`typeof` reports both lambdas and named functions as `lambda`.
+
+## Passing lambdas
+
+Higher-order list methods take a lambda:
+
 ```kiwi
-files = fio::listdir("/tmp", false).filter(do (e) => fio::isfile(e) end)
+words = ["kiwi", "banana", "fig"]
+
+println words.filter(do (w) => w.size() > 3)            # ["kiwi", "banana"]
+println words.map(do (w) => w.uppercase())              # ["KIWI", "BANANA", "FIG"]
+println words.sort(do (a, b) => a.size() < b.size())    # ["fig", "kiwi", "banana"]
 ```
 
-Or for more complex requirements, you can implement within a block.
+When an arrow lambda is an argument, it may end with an optional `end`, which some people find easier to scan:
 
-*Note: Remember, the last evaluation of the callable is its return value!*
 ```kiwi
-println [1 to 10].filter(do (n)
-    n % 2 != 0
-end)
-# [1, 3, 5, 7, 9]
+println [1 to 6].filter(do (n) => n % 2 == 0 end)   # [2, 4, 6]
 ```
 
-Some more examples:
-```kiwi
-# An assigned lambda
-say_hello = do (name: string) => println "Hello, ${name}!"
-
-# Direct invocation of closure
-(do (name: string) => println "Hello, ${name}!")("World!")
-```
-
-### Using the `with` keyword
-
-For demonstration, we will define a list of hashmaps called `id_list` to be used in the examples below.
+Named functions can be passed the same way, with no conversion:
 
 ```kiwi
-# Define a list of hashmaps to work with in our example.
-id_list = [
-  {"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4},
-  {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}
-]
-```
-
-## Inline lambdas
-
-Lambdas can be used inline (without assignment).
-
-```kiwi
-println(id_list.filter(do (item) => item["id"] % 2 == 0))
-# prints: [{"id": 0}, {"id": 2}, {"id": 4}, {"id": 6}, {"id": 8}]
-```
-
-## Assigned lambdas
-
-You can assign a reference to a lambda for reuse.
-
-```kiwi
-odd_item_id = do (item) => item["id"] % 2 != 0
-
-println(id_list.filter(odd_item_id))
-# prints: [{"id": 1}, {"id": 3}, {"id": 5}, {"id": 7}, {"id": 9}]
-```
-
-## Passing lambdas as parameters
-
-You can pass lambdas as parameters to methods.
-
-```kiwi
-puts = do (s) => println(s)
-
-puts("Hello, World!") # prints: Hello, World!
-
-fn use_lambda(print_func, message)
-  print_func(message)
+fn is_even(n)
+  n % 2 == 0
 end
 
-use_lambda(puts, "Hello, Kiwi!") # prints: Hello, Kiwi!
+println [1 to 6].filter(is_even)   # [2, 4, 6]
 ```
 
-Named parameters work with lambdas too.
+Your own functions can accept and call lambdas:
 
 ```kiwi
-fn apply(f: lambda, x: integer, y: integer): integer
-  f(x, y)
-end
-
-add = with (a, b) do a + b end
-
-println apply(f=add, x=3, y=4) # 7
-println apply(add, y: 10, x: 2)  # 12
-```
-
-## Variadic lambdas
-
-Lambdas support variadic parameters with `*` the same way functions do.
-
-```kiwi
-sum = with (*args) do
-  total = 0
-  for x in args do
-    total += x
+fn retry(times, action)
+  result = null
+  repeat times as attempt do
+    result = action(attempt)
+    break when result
   end
-  return total
+  result
 end
 
-println sum(1, 2, 3)     # 6
-println sum(*[10, 20])   # 30 (splat)
+println retry(5, do (n) => n >= 3)   # true
+```
+
+Every callable also has a `.call(arguments)` method that takes the arguments as a list:
+
+```kiwi
+double = do (x) => x * 2
+println double.call([21])   # 42
+```
+
+## Closures
+
+A lambda can use variables from the place where it was created, and it keeps them alive after that function returns. Changes go both ways: the lambda sees later updates, and its own updates are visible outside.
+
+```kiwi
+fn make_counter()
+  count = 0
+  do ()
+    count += 1
+    count
+  end
+end
+
+counter = make_counter()
+counter()
+counter()
+println counter()       # 3
+
+other = make_counter()
+println other()         # 1
+```
+
+Each call to `make_counter` creates a separate `count`, so the two counters are independent.
+
+Lambdas that update top-level variables work the same way:
+
+```kiwi
+total = 0
+[1, 2, 3].each(do (n) => total += n)
+println total   # 6
+```
+
+:::caution[Closures in loops]
+Lambdas created in a `for` loop share the loop variable. They all see its final value:
+
+```kiwi
+callbacks = []
+for i in [1 to 3] do
+  callbacks.push(do () => i)
+end
+println callbacks.map(do (f) => f())   # [3, 3, 3]
+```
+
+To capture each value, create the lambda in a function that takes the value as a parameter.
+:::
+
+## Returning a lambda
+
+To return an arrow lambda from a function or block, close the arrow lambda with its own `end`. Otherwise it takes the enclosing block's `end` as its own and the block is reported as unclosed.
+
+```kiwi
+fn make_adder(n)
+  do (x) => x + n end
+end
+
+add5 = make_adder(5)
+println add5(10)   # 15
+```
+
+The block form doesn't have this problem:
+
+```kiwi
+fn make_multiplier(n)
+  do (x)
+    x * n
+  end
+end
+
+println make_multiplier(3)(4)   # 12
 ```

@@ -1,0 +1,163 @@
+{
+  "name": "kiwi",
+  "scopeName": "source.kiwi",
+  "fileTypes": ["kiwi"],
+  "patterns": [{ "include": "#code" }],
+  "repository": {
+    "code": {
+      "patterns": [
+        { "include": "#block-comment" },
+        { "include": "#line-comment" },
+        { "include": "#byte-string" },
+        { "include": "#double-string" },
+        { "include": "#raw-string" },
+        { "include": "#numbers" },
+        { "include": "#function-declaration" },
+        { "include": "#struct-declaration" },
+        { "include": "#package-declaration" },
+        { "include": "#decorator" },
+        { "include": "#keywords" },
+        { "include": "#types" },
+        { "include": "#constants" },
+        { "include": "#instance-variables" },
+        { "include": "#package-access" },
+        { "include": "#function-call" },
+        { "include": "#operators" },
+        { "include": "#punctuation" }
+      ]
+    },
+    "block-comment": {
+      "name": "comment.block.kiwi",
+      "begin": "/#",
+      "end": "#/",
+      "patterns": [
+        { "name": "keyword.other.documentation.kiwi", "match": "@(summary|param|return|throws|example|see|deprecated|author|version)\\b" }
+      ]
+    },
+    "line-comment": {
+      "name": "comment.line.number-sign.kiwi",
+      "match": "#(?!/).*$"
+    },
+    "escapes": {
+      "name": "constant.character.escape.kiwi",
+      "match": "\\\\(?:[nrtbf\\\\\"'$]|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})"
+    },
+    "interpolation": {
+      "name": "meta.interpolation.kiwi",
+      "begin": "\\$\\{",
+      "beginCaptures": { "0": { "name": "punctuation.section.interpolation.begin.kiwi" } },
+      "end": "\\}",
+      "endCaptures": { "0": { "name": "punctuation.section.interpolation.end.kiwi" } },
+      "contentName": "source.kiwi.embedded",
+      "patterns": [{ "include": "#interpolation-braces" }, { "include": "#code" }]
+    },
+    "interpolation-braces": {
+      "begin": "\\{",
+      "end": "\\}",
+      "patterns": [{ "include": "#interpolation-braces" }, { "include": "#code" }]
+    },
+    "double-string": {
+      "name": "string.quoted.double.kiwi",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [{ "include": "#escapes" }, { "include": "#interpolation" }]
+    },
+    "raw-string": {
+      "name": "string.quoted.single.kiwi",
+      "begin": "'",
+      "end": "'"
+    },
+    "byte-string": {
+      "name": "string.quoted.other.bytes.kiwi",
+      "begin": "\\bb([\"'])",
+      "end": "\\1",
+      "patterns": [{ "include": "#escapes" }]
+    },
+    "numbers": {
+      "patterns": [
+        { "name": "constant.numeric.hex.kiwi", "match": "\\b0[xX][0-9A-Fa-f]+\\b" },
+        { "name": "constant.numeric.binary.kiwi", "match": "\\b0[bB][01]+\\b" },
+        { "name": "constant.numeric.octal.kiwi", "match": "\\b0[oO][0-7]+\\b" },
+        { "name": "constant.numeric.float.kiwi", "match": "\\b\\d+\\.\\d+(?:[eE][+-]?\\d+)?\\b" },
+        { "name": "constant.numeric.integer.kiwi", "match": "\\b\\d+\\b" }
+      ]
+    },
+    "function-declaration": {
+      "match": "\\b(fn|def)\\s+([A-Za-z_][A-Za-z0-9_]*|[-+*/%<>=!&|^~]+)",
+      "captures": {
+        "1": { "name": "keyword.declaration.function.kiwi" },
+        "2": { "name": "entity.name.function.kiwi" }
+      }
+    },
+    "struct-declaration": {
+      "match": "\\b(struct|enum)\\s+([A-Za-z_][A-Za-z0-9_]*)(?:\\s*(<)\\s*([A-Za-z_][A-Za-z0-9_:]*))?",
+      "captures": {
+        "1": { "name": "keyword.declaration.struct.kiwi" },
+        "2": { "name": "entity.name.type.kiwi" },
+        "3": { "name": "keyword.operator.inherit.kiwi" },
+        "4": { "name": "entity.other.inherited-class.kiwi" }
+      }
+    },
+    "package-declaration": {
+      "match": "\\b(package)\\s+([A-Za-z_][A-Za-z0-9_:]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.package.kiwi" },
+        "2": { "name": "entity.name.namespace.kiwi" }
+      }
+    },
+    "decorator": {
+      "match": "^\\s*(@)([A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)*)",
+      "captures": {
+        "1": { "name": "punctuation.definition.decorator.kiwi" },
+        "2": { "name": "entity.name.function.decorator.kiwi" }
+      }
+    },
+    "keywords": {
+      "patterns": [
+        { "name": "keyword.control.kiwi", "match": "\\b(if|elsif|else|end|case|when|while|for|in|do|repeat|as|to|break|next|return|yield|try|catch|finally|throw|exit)\\b" },
+        { "name": "keyword.other.kiwi", "match": "\\b(fn|def|with|struct|enum|abstract|static|private|override|interface|package|import|export|include|require|var|const|super|on|once|off|emit|eval)\\b" },
+        { "name": "keyword.operator.word.kiwi", "match": "\\b(and|or|not)\\b" },
+        { "name": "support.function.builtin.kiwi", "match": "\\b(println|print|eprintln|eprint|printxy|input|typeof|serialize|deserialize)\\b" }
+      ]
+    },
+    "types": {
+      "name": "support.type.kiwi",
+      "match": "\\b(integer|float|boolean|string|list|hashmap|lambda|object|date|bytes|pointer|generator|any|none)\\b"
+    },
+    "constants": {
+      "name": "constant.language.kiwi",
+      "match": "\\b(true|false|null)\\b"
+    },
+    "instance-variables": {
+      "patterns": [
+        { "name": "variable.other.static.kiwi", "match": "@@[A-Za-z_][A-Za-z0-9_]*" },
+        { "name": "variable.other.instance.kiwi", "match": "@[A-Za-z_][A-Za-z0-9_]*" },
+        { "name": "variable.language.self.kiwi", "match": "@" }
+      ]
+    },
+    "package-access": {
+      "match": "\\b([A-Za-z_][A-Za-z0-9_]*)(::)",
+      "captures": {
+        "1": { "name": "entity.name.namespace.kiwi" },
+        "2": { "name": "punctuation.separator.namespace.kiwi" }
+      }
+    },
+    "function-call": {
+      "match": "\\b([A-Za-z_][A-Za-z0-9_]*)(?=\\s*\\()",
+      "captures": { "1": { "name": "entity.name.function.call.kiwi" } }
+    },
+    "operators": {
+      "patterns": [
+        { "name": "keyword.operator.arrow.kiwi", "match": "=>" },
+        { "name": "keyword.operator.range.kiwi", "match": "\\.\\.(?!\\.)" },
+        { "name": "keyword.operator.kiwi", "match": "\\?\\?|&&=|\\|\\|=|\\*\\*=?|//=?|<<=?|>>>|>>=?|[-+*/%&|^~!=<>]=?|\\?|:(?!:)" }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        { "name": "punctuation.separator.comma.kiwi", "match": "," },
+        { "name": "punctuation.accessor.kiwi", "match": "\\.(?!\\.)" }
+      ]
+    }
+  }
+}

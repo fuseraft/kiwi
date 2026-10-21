@@ -1,0 +1,22 @@
+/* Kiwi green accents. */
+:root {
+  --sl-color-accent-low: #0f2a0a;
+  --sl-color-accent: #3fae1d;
+  --sl-color-accent-high: #c3f0b1;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #d3f3c6;
+  --sl-color-accent: #2a8a10;
+  --sl-color-accent-high: #143f08;
+}
+
+/* Generated API signatures sit tight under their heading. */
+.sl-markdown-content h3 + .expressive-code,
+.sl-markdown-content h4 + .expressive-code {
+  margin-top: 0.5rem;
+}
+
+.sl-markdown-content table code {
+  white-space: nowrap;
+}

@@ -1,427 +1,172 @@
-# `reflector`
+# reflector
 
-The `reflector` package contains functionality for reflection in Kiwi.
+> Inspect functions and program state at runtime.
 
----
-
-## Package Functions
-
-### `callstack()`
-Returns a list of frame names.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list containing the names of each stack frame in the callstack. |
-
-**Example**
+The `reflector` package offers runtime introspection: looking up functions by name, examining the program's state, and wrapping callables.
 
 ```kiwi
-import "reflector"
-
-fn inner()
-  println reflector::callstack()
-end
-
-fn middle()
-  inner()
-end
-
-fn outer()
-  middle()
-end
-
-outer()
-# => ["inner", "middle", "outer", "__global__"]
-# Frames are listed innermost-first (top of stack first).
-```
-
----
-
-### `fflags(frame_index)`
-Returns a list of frame flags at a specified index.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `frame_index` | The frame index. Defaults to 0 (top of the stack). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | The frame flags at specific frame index. |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-fn check_flags()
-  # Frame 0 is the current frame (check_flags itself)
-  flags = reflector::fflags(0)
-  println "Flags at frame 0: ${flags}"
-
-  # Frame 1 is the caller
-  caller_flags = reflector::fflags(1)
-  println "Flags at frame 1: ${caller_flags}"
-end
-
-check_flags()
-```
-
----
-
-### `getfunc(func_name)`
-Returns a specified function as a lambda.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `func_name` | The name of the function. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | The function as a lambda. Returns `null` when not found. |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-fn greet(name: string): string
-  "Hello, ${name}!"
-end
-
-# Retrieve the function by name and call it dynamically
-fn_ref = reflector::getfunc("greet")
-
-if fn_ref != null
-  result = fn_ref.call(["Kiwi"])
-  println result
-  # => Hello, Kiwi!
-end
-
-# Returns null for unknown names
-missing = reflector::getfunc("no_such_function")
-println "Missing: ${missing}"
-# => Missing: null
-```
-
----
-
-### `objcontext()`
-Returns a hashmap representing the state of the program.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | Returns the current object reference. Returns `null` when not in an object context. |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-struct Counter
-  fn new(start: integer)
-    @value = start
-  end
-
-  fn increment()
-    @value += 1
-    # Inside a method, objcontext() returns the current instance
-    ctx = reflector::objcontext()
-    println "Object context value: ${ctx.value}"
-  end
-end
-
-c = Counter.new(10)
-c.increment()
-# => Object context value: 11
-
-# Outside of a struct method, objcontext() returns null
-println "Global context: ${reflector::objcontext()}"
-# => Global context: null
-```
-
----
-
-### `retval()`
-Returns the current stack frame return value.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | The return value at the top of the stack. |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-fn compute(): integer
-  return 42
-  # After return is set, retval() would reflect it if called here
-end
-
-fn inspect_return(): string
-  return "hello"
-end
-
-result = compute()
-println "Returned: ${result}"
-# => Returned: 42
-
-# retval() is most useful inside a function body before the call exits,
-# or in debug/trace hooks that inspect the active frame.
-fn traced_add(a: integer, b: integer): integer
-  sum = a + b
-  return sum
-end
-
-println traced_add(3, 4)
-# => 7
-```
-
----
-
-### `state()`
-Returns a hashmap representing the state of the program.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `hashmap` | A hashmap containing four keys: `packages` (a list containing names of packages imported), `structs` (a list containing names of structs defined), `functions` (a list containing names of functions defined), `stack` (a list of hashmaps containing frame variables, each with `variables` as a hashmap of variable names to values). |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-fn helper(x: integer)
-  x * 2
-end
-
-struct Point
-  fn new(x, y)
-    @x = x
-    @y = y
-  end
-end
-
-s = reflector::state()
-
-println "Packages:  ${s.packages}"
-println "Structs:   ${s.structs}"
-println "Functions: ${s.functions}"
-
-# Inspect variables in the current frame
-frame_vars = s.stack[0].variables
-println "Frame variables: ${frame_vars}"
-```
-
----
-
-## `Callable`
-
-A struct representing a callable function or lambda, providing reflection capabilities such as invoking it and inspecting its parameters and return type.
-
-### Constructor
-
-Creates a new Callable instance.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `name` | The name of the callable. |
-| `lambda` | `func` | The lambda representing the callable. |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-# Wrap a lambda directly in a Callable
-adder = do (a: integer, b: integer): integer
-  a + b
-end
-
-c = Callable.new("adder", adder)
-println c.call([3, 7])
-# => 10
-```
-
----
-
-### `from_function(func_name)`
-
-Static method to create a Callable from a function name.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `func_name` | The name of the function. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `Callable` | A new Callable instance wrapping the function. |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-fn square(n: integer): integer
+fn square(n)
   n * n
 end
 
-c = Callable.from_function("square")
-println c.call([9])
-# => 81
+f = reflector::getfunc("square")   # look a function up by name
+println f(4)                        # 16
 
-# from_function returns a Callable wrapping a no-op lambda when the function is not found
-missing = Callable.from_function("undefined_fn")
-println missing.call([])
-# => null
+println reflector::state().keys()   # ["packages", "structs", "functions", "stack"]
 ```
 
----
+`state()` returns the names of the loaded packages, structs and functions, and the variables in each stack frame, which is useful for debugging tools and REPL-style helpers.
 
-### `call(params)`
+## Callable
+
+`Callable` wraps a function together with a name, and exposes its parameters:
+
+```kiwi
+adder = Callable.new("adder", do (a, b) => a + b)
+
+println adder.call([3, 7])                           # 10
+println adder.parameters().map(do (p) => p["name"])  # ["a", "b"]
+```
+
+Every function value also has `.call(arguments)` and `.parameters()` directly; see [Built-in Methods](../reference/builtin-methods.md#functions-and-lambdas).
+
+:::note
+`reflector::callstack()` currently returns an empty list.
+:::
+
+## Functions
+
+### `reflector::callstack`
+
+```kiwi
+reflector::callstack(): list
+```
+
+Returns a list of frame names.
+
+**Returns** `list` — A list containing the names of each stack frame in the callstack.
+
+### `reflector::fflags`
+
+```kiwi
+reflector::fflags(frame_index: integer = 0): list
+```
+
+Returns a list of frame flags at a specified index.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `frame_index` | `integer` | `0` | The frame index. Defaults to 0 (top of the stack). |
+
+**Returns** `list` — The frame flags at specific frame index.
+
+### `reflector::getfunc`
+
+```kiwi
+reflector::getfunc(func_name: string): any
+```
+
+Returns a specified function as a lambda.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `func_name` | `string` |  | The name of the function. |
+
+**Returns** `any` — The function as a lambda. Returns `null` when not found.
+
+### `reflector::objcontext`
+
+```kiwi
+reflector::objcontext(): any
+```
+
+Returns a hashmap representing the state of the program.
+
+**Returns** `any` — Returns the current object reference. Returns `null` when not in an object context.
+
+### `reflector::retval`
+
+```kiwi
+reflector::retval(): any
+```
+
+Returns the current stack frame return value.
+
+**Returns** `any` — The return value at the top of the stack.
+
+### `reflector::state`
+
+```kiwi
+reflector::state(): hashmap
+```
+
+Returns a hashmap representing the state of the program.
+
+**Returns** `hashmap` —  A hashmap containing four keys: - `packages`: A list containing names of packages imported. - `structs`: The list containing names of structs defined. - `functions`: The list containing names of functions defined. - `stack`: The list of hashmaps containing frame variables. - Each hashmap contains `variables` containing a hashmap of variable names to values.
+
+## `Callable` struct
+
+Inherits from `Hashable`.
+
+A struct representing a callable function or lambda.
+
+### `Callable.new`
+
+```kiwi
+Callable.new(name: string, func: lambda)
+```
+
+Creates a new Callable instance.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The name of the callable. |
+| `func` | `lambda` |  | The lambda representing the callable. |
+
+### `Callable.from_function`
+
+```kiwi
+static Callable.from_function(func_name: string): Callable
+```
+
+Static method to create a Callable from a function name.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `func_name` | `string` |  | The name of the function. |
+
+**Returns** `Callable` — Returns a new Callable instance wrapping the function.
+
+### `.call`
+
+```kiwi
+call(params: list = []): any
+```
 
 Invokes the callable with a set of parameters and returns its value.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `params` | `list` | `[]` | A list of parameters to pass to the callable. |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `params` | A list of parameters to pass to the callable. |
+**Returns** `any` — The return value of the callable after invocation.
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | The return value of the callable after invocation. |
-
-**Example**
+### `.parameters`
 
 ```kiwi
-import "reflector"
-
-fn repeat_str(s: string, n: integer): string
-  result = ""
-  repeat n do
-    result += s
-  end
-  result
-end
-
-c = Callable.from_function("repeat_str")
-println c.call(["kiwi-", 3])
-# => kiwi-kiwi-kiwi-
-
-# Works equally well with an inline lambda
-doubler = Callable.new("doubler", do (x: integer) => x * 2)
-println doubler.call([21])
-# => 42
+parameters(): list
 ```
-
----
-
-### `parameters()`
 
 Returns a list of hashmaps containing parameter information.
 
-**Parameters**
-_None_
+**Returns** `list` —  A list of hashmaps, each containing: - `name`: A string representing the name of the parameter. - `default_value`: The default value. - `type`: If a type annotation was used, then the type name as a string. - `position`: The integer position of the parameter.
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of hashmaps, each containing: `name` (a string representing the name of the parameter), `default_value` (the default value), `type` (if a type annotation was used, the type name as a string), `position` (the integer position of the parameter). |
-
-**Example**
+### `.returns`
 
 ```kiwi
-import "reflector"
-
-fn compute(x: integer, y: float, label: string = "result"): string
-  "${label}: ${x + y}"
-end
-
-c = Callable.from_function("compute")
-
-for p in c.parameters() do
-  println "param[${p.position}] ${p.name}: ${p.type} (default: ${p.default_value})"
-end
-# => param[0] x: integer (default: null)
-# => param[1] y: float (default: null)
-# => param[2] label: string (default: result)
+returns(): any
 ```
-
----
-
-### `returns()`
 
 Returns the type name of the return type of the callable.
 
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A string containing the type name of the return type. |
-
-**Example**
-
-```kiwi
-import "reflector"
-
-fn greet(name: string): string
-  "Hello, ${name}!"
-end
-
-fn add(a: integer, b: integer): integer
-  a + b
-end
-
-fn untyped(x)
-  x
-end
-
-c1 = Callable.from_function("greet")
-c2 = Callable.from_function("add")
-c3 = Callable.from_function("untyped")
-
-println "greet returns:   ${c1.returns()}"    # => string
-println "add returns:     ${c2.returns()}"    # => integer
-println "untyped returns: ${c3.returns()}"    # => (empty or null — no annotation)
-```
+**Returns** `string` — A string containing the type name of the return type.

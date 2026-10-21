@@ -1,208 +1,122 @@
-# `std`
+# std
 
-The `std` package provides general-purpose utility functions for introspection and common operations. It is automatically loaded by the Kiwi runtime — no explicit import is needed.
+> Small general-purpose helpers for type checks and ranges.
 
-```kiwi
-# std is pre-loaded; no import required.
-# To import explicitly:
-import "std"
-```
-
----
-
-## `std` Package Functions
-
-### `std::len(n)`
-
-Returns the number of elements or characters in a value. Delegates to the built-in `.size()` method.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `n` | A string, list, hashmap, or any value with a `size()` method. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `integer` | The size of the value. |
-
-**Example**
+The `std` package holds a few general helpers, mostly function-style versions of built-in methods.
 
 ```kiwi
-println std::len("hello")       # prints: 5
-println std::len([1, 2, 3])     # prints: 3
-println std::len({a: 1, b: 2})  # prints: 2
+println std::len("kiwi")        # 4
+println std::type([1, 2])       # list
+println std::is_int(3)          # true
+println std::is_float(3)        # false
+println std::is_string("x")     # true
+println std::is_hashmap({})     # true
+println std::range(1, 5)        # [1, 2, 3, 4]
 ```
 
----
+`std::range(x, y)` is end-exclusive, unlike the `[x to y]` [range literal](../language/lists.md#ranges), which includes `y`.
 
-### `std::type(n)`
+Most code uses the built-in equivalents directly: `.size()`, `typeof`, and `.is_a(type)`.
 
-Returns the type name of a value as a string.
+## Functions
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `n` | Any value. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The type name (e.g., `"integer"`, `"float"`, `"string"`, `"list"`, `"hashmap"`, `"boolean"`). |
-
-**Example**
+### `std::len`
 
 ```kiwi
-println std::type(42)        # prints: integer
-println std::type(3.14)      # prints: float
-println std::type("hello")   # prints: string
-println std::type([1, 2])    # prints: list
-println std::type({a: 1})    # prints: hashmap
-println std::type(true)      # prints: boolean
+std::len(n)
 ```
 
----
+Returns the number of elements or characters in a value.
 
-### `std::is_int(n)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  | A string, list, hashmap, or any value with a `size()` method. |
 
-Returns `true` if the value is an `integer`.
+**Returns** `integer` — The size of the value.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `n` | Any value. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if `n` is an integer. |
-
-**Example**
+### `std::type`
 
 ```kiwi
-println std::is_int(10)    # prints: true
-println std::is_int(10.0)  # prints: false
-println std::is_int("10")  # prints: false
+std::type(n)
 ```
 
----
+Returns the type name of a value.
 
-### `std::is_float(n)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  | Any value. |
 
-Returns `true` if the value is a `float`.
+**Returns** `string` — The type name (e.g., `"integer"`, `"string"`, `"list"`).
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `n` | Any value. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if `n` is a float. |
-
-**Example**
+### `std::is_int`
 
 ```kiwi
-println std::is_float(3.14)  # prints: true
-println std::is_float(3)     # prints: false
+std::is_int(n)
 ```
 
----
+Returns true if the value is an integer.
 
-### `std::is_string(n)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  | Any value. |
 
-Returns `true` if the value is a `string`.
+**Returns** `boolean` — `true` if `n` is an integer.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `n` | Any value. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if `n` is a string. |
-
-**Example**
+### `std::is_float`
 
 ```kiwi
-println std::is_string("hello")  # prints: true
-println std::is_string(42)       # prints: false
+std::is_float(n)
 ```
 
----
+Returns true if the value is a float.
 
-### `std::is_hashmap(n)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  | Any value. |
 
-Returns `true` if the value is a `hashmap`.
+**Returns** `boolean` — `true` if `n` is a float.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `n` | Any value. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if `n` is a hashmap. |
-
-**Example**
+### `std::is_string`
 
 ```kiwi
-println std::is_hashmap({a: 1})  # prints: true
-println std::is_hashmap([1, 2])  # prints: false
+std::is_string(s)
 ```
 
----
+Returns true if the value is a string.
 
-### `std::range(x, y)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `any` |  | Any value. |
 
-Returns a list of consecutive integers from `x` up to and including `y - 1` (exclusive end). Throws an `InvalidRange` error if either argument is not an integer.
+**Returns** `boolean` — `true` if `s` is a string.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `x` | The inclusive start of the range. |
-| `integer` | `y` | The exclusive end of the range. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of integers `[x, x+1, ..., y-1]`. |
-
-**Throws**
-
-`InvalidRange` if either `x` or `y` is not an integer.
-
-**Example**
+### `std::is_hashmap`
 
 ```kiwi
-println std::range(0, 5)   # prints: [0, 1, 2, 3, 4]
-println std::range(3, 7)   # prints: [3, 4, 5, 6]
-
-for i in std::range(1, 4) do
-  println i
-end
-# prints: 1, 2, 3
+std::is_hashmap(s)
 ```
 
----
+Returns true if the value is a hashmap.
 
-## See Also
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `any` |  | Any value. |
 
-- [`error`](error.md) — helpers for constructing, throwing, and inspecting structured errors.
+**Returns** `boolean` — `true` if `s` is a hashmap.
+
+### `std::range`
+
+```kiwi
+std::range(x, y)
+```
+
+Returns an integer range `[x, y)` as a list.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `integer` |  | The inclusive start of the range. |
+| `y` | `integer` |  | The exclusive end of the range. |
+
+**Returns** `list` — A list of integers from `x` to `y - 1`.
+
+**Throws** `InvalidRange` — If either argument is not an integer.

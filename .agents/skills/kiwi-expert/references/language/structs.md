@@ -1,52 +1,198 @@
 # Structs
 
-Structs in Kiwi provide a way to bundle data and functionality together.
+> Defining types with structs: constructors, instance and static members, inheritance, abstract structs and private methods.
 
----
+A struct defines a type that bundles data with the methods that work on it.
 
-## Defining Structs
-
-To define a struct in Kiwi, use the `struct` keyword followed by the struct name and a block of code defining its properties and methods.
-
-Each concrete struct should define a constructor method, called `new`.
+## Defining a struct
 
 ```kiwi
-struct MyStruct
-  fn new(name)
-    # Use the `@` symbol to declare an instance variable.
-    @name = name
+struct Point
+  fn new(x, y)
+    @x = x
+    @y = y
   end
 
-  fn say_hello()
-    println("Hello, ${@name}!")
+  fn distance_to(other)
+    dx = other.x - @x
+    dy = other.y - @y
+    math::sqrt((dx * dx + dy * dy).to_float())
+  end
+
+  fn describe()
+    "(${@x}, ${@y})"
   end
 end
+
+a = Point.new(0, 0)
+b = Point.new(3, 4)
+println a.distance_to(b)   # 5
+println b.describe()       # (3, 4)
 ```
 
-## Creating Instances
+- `new` is the constructor. `StructName.new(...)` creates an instance and calls it. A struct without a `new` method can still be instantiated with `StructName.new()`.
+- `@name` reads or writes an instance variable of the current object. Instance variables are created by assignment, usually in `new`.
+- Methods call each other directly, as in `twice()` below, or through `@`, the current instance.
 
-To create an instance of a struct, use the `.new()` method followed by any arguments the constructor accepts.
+## Instance variables
+
+Instance variables are visible from outside as properties, and can be assigned there too:
 
 ```kiwi
-my_object = MyStruct.new("Kiwi")
-my_object.say_hello()  # prints: Hello, Kiwi!
+struct Account
+  fn new(owner)
+    @owner = owner
+    @balance = 0
+  end
+end
+
+acct = Account.new("Ada")
+println acct.owner     # Ada
+acct.balance = 50
+println acct.balance   # 50
 ```
+
+Prefer methods for anything with rules attached, so callers don't need to know the internals.
+
+### Instance variables in lambdas
+
+Inside a lambda, `@` does not currently refer to the instance, so `@name` reads as `null`. Copy what the lambda needs into a local variable first:
+
+```kiwi
+struct Pricing
+  fn new(rate)
+    @rate = rate
+  end
+
+  fn apply(prices)
+    rate = @rate
+    prices.map(do (p) => p * rate)
+  end
+end
+
+println Pricing.new(2).apply([1, 5])   # [2, 10]
+```
+
+## Methods that return `@`
+
+Returning `@` from a method allows chained calls:
+
+```kiwi
+struct Builder
+  fn new()
+    @parts = []
+  end
+
+  fn add(part)
+    @parts.push(part)
+    @
+  end
+
+  fn count()
+    @parts.size()
+  end
+
+  fn twice()
+    count() * 2
+  end
+
+  fn build()
+    @parts.join(" ")
+  end
+end
+
+b = Builder.new().add("kiwi").add("is").add("tasty")
+println b.build()   # kiwi is tasty
+println b.twice()   # 6
+```
+
+## Converting to a string
+
+Define `to_string()` to give a struct a readable form, and call it explicitly. `println` and string interpolation don't call it automatically; they print the generic `<struct(...)>` form.
+
+```kiwi
+struct Money
+  fn new(cents)
+    @cents = cents
+  end
+
+  fn to_string()
+    "$" + (@cents / 100.0).to_string("f2")
+  end
+end
+
+price = Money.new(1999)
+println price.to_string()          # $19.99
+println "Total: ${price.to_string()}"
+```
+
+## Static members
+
+`static fn` defines a method called on the struct itself. `static @name = value` defines a variable shared by every instance; methods reach it with `@@name`, and outside code with `StructName.name`.
+
+```kiwi
+struct Ticket
+  static @issued = 0
+
+  fn new(holder)
+    @@issued += 1
+    @number = @@issued
+    @holder = holder
+  end
+
+  static fn count()
+    @@issued
+  end
+end
+
+Ticket.new("Ada")
+t = Ticket.new("Grace")
+
+println t.number         # 2
+println Ticket.count()   # 2
+println Ticket.issued    # 2
+
+Ticket.issued = 0
+println Ticket.count()   # 0
+```
+
+:::caution
+Static variables are not currently inherited. A parent method that uses `@@name` fails when it runs on an instance of a child struct, because `@@name` is looked up on the child.
+:::
 
 ## Inheritance
 
-Kiwi supports single inheritance. Use the `<` symbol to specify the parent struct.
+`struct Child < Parent` inherits every method of `Parent`. A child can override a method by defining one with the same name. Kiwi has single inheritance.
 
 ```kiwi
-struct MySubStruct < MyStruct
-  fn say_goodbye()
-    println("Goodbye, ${@name}!")
+struct Animal
+  fn new(name)
+    @name = name
+  end
+
+  fn speak()
+    "..."
+  end
+
+  fn introduce()
+    "${@name} says ${speak()}"
   end
 end
+
+struct Dog < Animal
+  fn speak()
+    "Woof"
+  end
+end
+
+println Dog.new("Rex").introduce()   # Rex says Woof
 ```
 
-## Calling Base Struct Methods (`super`)
+`override` before `fn` marks a method as an intentional override. It is optional and currently informational.
 
-Use `super.method_name(args)` inside a method body to invoke the base struct's version of a method on the current instance. This works for constructors and any other method.
+### Calling the parent with `super`
+
+`super.method(...)` calls the parent struct's version of a method on the current instance. It works for constructors and for any other method, and resolves relative to the struct that defined the method being run, so chains of several levels work as expected.
 
 ```kiwi
 struct Animal
@@ -60,10 +206,6 @@ struct Animal
 end
 
 struct Dog < Animal
-  fn new(name)
-    super.new(name)   # calls Animal.new — sets @name
-  end
-
   fn speak()
     "Woof"
   end
@@ -71,195 +213,125 @@ end
 
 struct PoliceDog < Dog
   fn new(name, badge)
-    super.new(name)   # calls Dog.new → Animal.new chain
+    super.new(name)
     @badge = badge
   end
 
   fn speak()
-    super.speak() + "! (badge #${@badge})"  # calls Dog.speak
+    super.speak() + "! (badge #${@badge})"
   end
 end
 
-k9 = PoliceDog.new("Rex", 7)
-println k9.speak()   # Woof! (badge #7)
+println PoliceDog.new("Rex", 7).speak()   # Woof! (badge #7)
 ```
 
-`super` always resolves relative to the struct that **defined** the currently-executing method — not the concrete runtime type. This means multi-level chains work correctly: when `PoliceDog.speak()` calls `super.speak()`, it resolves to `Dog.speak()`, and if `Dog.speak()` in turn called `super.speak()`, that would resolve to `Animal.speak()`.
+## Abstract structs
 
-## Method Definition
-
-Methods are defined using the `fn` keyword, followed by the method name and any parameters. Use `@` to access the current instance.
+An `abstract struct` can't be instantiated; it exists to be inherited. Inside it, `abstract fn name(params) end` declares a method that every concrete child must implement. A child that misses one is rejected as soon as it is defined.
 
 ```kiwi
-struct MyStruct
-  fn my_method(param)
-    # Method code here
-  end
-end
-```
+abstract struct Shape
+  abstract fn area() end
 
-## Overriding `to_string()`
-
-The `override` keyword is not required to override `to_string()`.
-
-```kiwi
-struct KiwiStruct
-  fn to_string()
-    return "I am a Kiwi struct"
+  fn describe()
+    "${typeof(@)} with area ${area()}"
   end
 end
 
-instance = KiwiStruct.new()
-string_repr = instance.to_string()
-println(instance)    # prints: I am a Kiwi struct
-println(string_repr) # prints: I am a Kiwi struct
-```
+struct Square < Shape
+  fn new(side)
+    @side = side
+  end
 
-## Static Method Definition
-
-Methods declared as static can be invoked directly through the struct and cannot be invoked through an instance.
-
-```kiwi
-struct MyStruct
-  static fn static_method()
-    println("I can be invoked without an instance!")
+  fn area()
+    @side * @side
   end
 end
 
-MyStruct.static_method() # prints: I can be invoked without an instance!
+println Square.new(3).describe()   # Square with area 9
 ```
 
-## Static Variables
+```kiwi
+abstract struct Shape
+  abstract fn area() end
+end
 
-Static variables are shared across all instances of a struct. They belong to the struct itself, not to any individual instance.
-
-Declare a static variable with `static @name = value` inside the struct body. It is initialized once when the struct is defined.
+Shape.new()   # AbstractInstantiationError: Cannot instantiate abstract struct `Shape`.
+```
 
 ```kiwi
-struct Counter
-  static @count = 0
+abstract struct Shape
+  abstract fn area() end
+end
 
-  fn new()
-    @@count += 1
+struct Blob < Shape
+end
+# AbstractMethodError: Struct `Blob` must implement abstract method `area`.
+```
+
+## Private methods
+
+`private fn` marks a method as an internal helper. By convention, call private methods only from inside the struct.
+
+```kiwi
+struct Password
+  fn new(text)
+    @hash = digest(text)
   end
 
-  static fn get(): integer
-    @@count
+  fn matches(text)
+    digest(text) == @hash
+  end
+
+  private fn digest(text)
+    crypto::sha256_hash(text)
   end
 end
 
-Counter.new()
-Counter.new()
-Counter.new()
-println(Counter.get())  # 3
+p = Password.new("hunter2")
+println p.matches("hunter2")   # true
 ```
 
-Inside any method — static or instance — use `@@name` to read or write a static variable.
+:::note
+Kiwi does not currently enforce `private`; a call from outside the struct still succeeds.
+:::
+
+## Working with instances
+
+| Method | Returns |
+| :-- | :-- |
+| `.is_a(Struct)` | Whether the instance is that struct or inherits from it |
+| `.type()`, `typeof(obj)` | The struct's name |
+| `.keys()` | The instance variable names |
+| `.values()` | The instance variable values |
+| `.set(name, value)` | Sets an instance variable by name |
+| `.clone()` | A new instance with the same instance variables |
 
 ```kiwi
-struct Logger
-  static @entries = []
-
-  fn new(msg: string)
-    @@entries = @@entries + [msg]
-  end
-
-  static fn all(): list
-    @@entries
-  end
-end
-
-Logger.new("started")
-Logger.new("finished")
-println(Logger.all())  # ["started", "finished"]
-```
-
-Read a static variable from outside the struct with `StructName.varname`. Write to it with `StructName.varname = value`.
-
-```kiwi
-struct Config
-  static @debug = false
-end
-
-Config.debug = true
-println(Config.debug)  # true
-```
-
-## Access Control
-
-Kiwi supports `private` methods that cannot be called outside the struct definition.
-
-```kiwi
-struct MyStruct
-  private fn my_private_method()
-    # Private method code here
-  end
-end
-```
-
-All instance variables are public but readonly. You can explicitly implement accessors and modifiers to control access to them outside of struct scope.
-
-```kiwi
-struct MyStruct
-  fn new(name)
+struct User
+  fn new(name, role)
     @name = name
+    @role = role
   end
 end
 
-inst = MyStruct.new("kiwi")
-println inst.name # kiwi
+u = User.new("Ada", "admin")
+println u.is_a(User)    # true
+println typeof(u)       # User
+println u.keys()        # ["name", "role"]
+println u.values()      # ["Ada", "admin"]
+
+u.set("role", "owner")
+println u.role          # owner
 ```
 
-## Type-checking, member queries
+`.clone()` copies the instance variables but not the lists or hashmaps they point to: a cloned instance shares those with the original.
 
-```kiwi
-struct Hashable
-  fn to_hash()
-    {}
-  end
-end
+Two instances are `==` when they are the same struct and their instance variables are equal.
 
-struct A < Hashable
-  fn new(name)
-    @name = name
-  end
+## Related pages
 
-  fn to_hash()
-    { name: @name }
-  end
-
-  fn say_hello()
-    println("Hello, ${@name}!")
-  end
-end
-
-struct B < A
-  fn say_goodbye()
-    println("Goodbye, ${@name}!")
-    foobar()
-  end
-
-  private fn foobar()
-    println "foobar is private"
-  end
-end
-
-my_obj = B.new("Kiwi")
-println my_obj.to_hash()      # { "name": "Kiwi" }
-
-# type checking
-println my_obj.is_a(Hashable) # true
-
-# set a member
-my_obj.set("name", "foobar")
-
-# query members
-println my_obj.keys()         # ["name"]
-println my_obj.values()       # ["foobar"]
-
-# clone an object
-x = my_obj.clone()
-println x                     # <struct(name=B, identifier=x>
-
-x.say_goodbye()               # Goodbye, foobar!\nfoobar is private
-```
+- [Operator Overloading](operator-overloading.md) to give structs `+`, `==` and other operators.
+- [Decorators](decorators.md) work on methods too.
+- [`hashable`](../lib/hashable.md) adds `to_hash()` for converting instances to hashmaps.
+- [Enums](enums.md) for named sets of constants.

@@ -1,471 +1,406 @@
-# `path`
+# path
 
-The `path` package provides a clean, object-oriented way to work with filesystem paths in Kiwi, inspired by Python's `pathlib`.  
-It defines a single main struct `Path` that wraps a path string and offers convenient methods for path manipulation, filesystem queries, and file/directory operations.
+> The Path struct, an object-oriented interface to filesystem paths.
 
----
+The `path` package defines `Path`, an object wrapping a filesystem path, in the spirit of Python's `pathlib`. Create one with `Path.new(text)` or `text.to_path()`, and join paths with `/`.
+
+```kiwi
+report = Path.new("/home/user/docs/report.txt")
+
+println report.name()                           # report.txt
+println report.ext()                            # .txt
+println report.parent().to_string()             # /home/user/docs
+println (report.parent() / "notes.txt").to_string()   # /home/user/docs/notes.txt
+println report.parts()                          # ["home", "user", "docs", "report.txt"]
+println report.contains("docs")                 # true
+
+println "/tmp".to_path().joinpath(["a", "b.txt"]).to_string()   # /tmp/a/b.txt
+```
+
+`/` and `joinpath` accept strings or other `Path` values. Methods that return a path return a new `Path`; call `to_string()` to get the text.
+
+## Filesystem operations
+
+```kiwi
+scratch = Path.temp_dir() / "path-demo.txt"
+scratch.touch()
+println scratch.exists()      # true
+println scratch.is_file()     # true
+
+fio::write(scratch.to_string(), "hello\nworld")
+println scratch.readlines()   # ["hello", "world"]
+
+scratch.remove()
+println scratch.exists()      # false
+```
+
+| Method | Does |
+| :-- | :-- |
+| `exists()`, `is_file()`, `is_dir()` | Test the path. |
+| `read()`, `readlines()`, `readbytes()` | Read the file. |
+| `touch()`, `mkdir()` | Create a file, or a directory with its parents. |
+| `copy(dest)` | Copy the file. |
+| `remove()`, `rmdir()` | Delete a file or directory. |
+| `abspath()` | The absolute path as a string. |
+| `parents()` | Every ancestor directory, nearest first. |
+| `find(part)` | The nearest ancestor (or self) whose name is `part`. |
+| `root()` | The root of the path. |
+| `Path.cwd()`, `Path.temp_dir()`, `Path.temp_file()` | The working directory, temp directory, or a new temp file. |
+
+For writing files, use [`fio`](fio.md) with `path.to_string()`.
 
 ## `Path` struct
 
-Represents a filesystem path. Inherits from `Hashable`, so it has a `.to_hash()` method that returns `{ path: string }`.
+Inherits from `Hashable`.
 
-### Constructor
+A struct representing a filesystem path.
 
-Creates a new `Path` instance from a string.
+### `Path.new`
 
-**Parameters**
-
-| Type     | Name  | Description                      |
-|----------|-------|----------------------------------|
-| `string` | `path`| The filesystem path as a string  |
-
-**Example**
 ```kiwi
-p = Path.new("/home/user/documents/report.txt")
+Path.new(path: string)
 ```
 
-### Static Methods
+Creates a new Path instance.
 
-#### `cwd()`
-Returns a `Path` representing the current working directory.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path` | `string` |  | The path as a string. |
 
-**Parameters**  
-_None_
+### `Path.cwd`
 
-**Returns**  
-
-| Type  | Description                              |
-|-------|------------------------------------------|
-| `Path`| Absolute path to the current directory   |
-
-#### `path_string(new_path)`
-Helper that converts any path-like value (string or `Path`) to a plain string.
-
-**Parameters**
-
-| Type     | Name       | Description                          |
-|----------|------------|--------------------------------------|
-| `any`    | `new_path` | String or `Path` object              |
-
-**Returns**  
-
-| Type     | Description      |
-|----------|------------------|
-| `string` | Path as string   |
-
-**Throws**  
-`TypeError` if `new_path` is neither string nor `Path`
-
-#### `temp_dir()`
-Returns a `Path` pointing to the system temporary directory.
-
-**Returns**  
-
-| Type  | Description                  |
-|-------|------------------------------|
-| `Path`| Path to temporary directory  |
-
-#### `temp_file()`
-Creates a new temporary file (0 bytes) and returns its `Path`.
-
-**Returns**  
-
-| Type  | Description                  |
-|-------|------------------------------|
-| `Path`| Path to the new temp file    |
-
-### Instance Methods
-
-#### `to_string()`
-Returns the path as a plain string (used when printing or interpolating).
-
-**Returns**  
-
-| Type     | Description      |
-|----------|------------------|
-| `string` | The path string  |
-
-#### `/(new_path)`
-Convenience operator for joining paths.
-
-**Parameters**
-
-| Type  | Name       | Description                  |
-|-------|------------|------------------------------|
-| `any` | `new_path` | String or `Path` to append   |
-
-**Returns**  
-
-| Type  | Description                  |
-|-------|------------------------------|
-| `Path`| New combined path            |
-
-**Example**
 ```kiwi
-base = Path.new("/etc")
-conf = base / "nginx" / "nginx.conf"
+static Path.cwd(): Path
 ```
 
-#### `abspath()`
-Returns the absolute version of the path as a string.
+Returns the absolute path to the current working directory.
 
-**Returns**  
+**Returns** `Path` — Returns a path representing the absolute path of the current working directory.
 
-| Type     | Description              |
-|----------|--------------------------|
-| `string` | Absolute path string     |
+### `Path.path_string`
 
-#### `combine(new_path)`
-Joins this path with another path or path component.
+```kiwi
+static Path.path_string(new_path): string
+```
 
-**Parameters**
+Coerces a path into a string.
 
-| Type  | Name       | Description                  |
-|-------|------------|------------------------------|
-| `any` | `new_path` | String or `Path`             |
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `new_path` | `any` |  | A new path (or path part) either as a string or a Path. |
 
-**Returns**  
+**Returns** `string` — Returns a string representing a path.
 
-| Type  | Description                  |
-|-------|------------------------------|
-| `Path`| Combined path                |
+**Throws** `TypeError` — Expects new_path to be a string or a Path.
 
-#### `contains(path_part)`
-Checks whether the given path component appears in this path's parts.
+### `Path.temp_dir`
 
-**Parameters**
+```kiwi
+static Path.temp_dir(): Path
+```
 
-| Type     | Name        | Description           |
-|----------|-------------|-----------------------|
-| `string` | `path_part` | Part to search for    |
+Returns a path to the temp directory.
 
-**Returns**  
+**Returns** `Path` — Returns a path to the temp directory.
 
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if the part is present        |
+### `Path.temp_file`
 
-#### `copy(new_path)`
-Copies the file or directory (recursively) to the destination.
+```kiwi
+static Path.temp_file(): Path
+```
 
-**Parameters**
+Creates a 0 byte file and returns its path.
 
-| Type  | Name       | Description                  |
-|-------|------------|------------------------------|
-| `any` | `new_path` | Destination (string or Path) |
+**Returns** `Path` — Returns a path to the file.
 
-**Returns**  
+### `.to_string`
 
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if copy succeeded             |
+```kiwi
+to_string(): string
+```
 
-**Behavior**
-- Directories -> recursive copy (`fio::copyr`)
-- Files -> single file copy (`fio::copy`)
-- When copying file to directory, preserves filename
+Overrides the `to_string()` method to return the path as a string.
 
-#### `exists()`
-Checks if the path exists on the filesystem.
+**Returns** `string` — Returns a string representing the path.
 
-**Returns**  
+### `operator /`
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | `true` if path exists        |
+```kiwi
+fn /(new_path): Path
+```
 
-#### `ext()`
-Returns the file extension (including the dot) or empty string.
+Operator overload to combine (join) paths.
 
-**Returns**  
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `new_path` | `any` |  | A new path (or path part) either as a string or a Path. |
 
-| Type     | Description              |
-|----------|--------------------------|
-| `string` | Extension (e.g. ".txt")  |
+**Returns** `Path` — Returns a path containing this path and the new path.
 
-#### `find(path_part)`
-Walks upward from this path until it finds a directory/file with the given name.
+**Throws** `TypeError` — Expects new_path to be a string or a Path.
 
-**Parameters**
+### `.abspath`
 
-| Type     | Name        | Description           |
-|----------|-------------|-----------------------|
-| `string` | `path_part` | Name to search for    |
+```kiwi
+abspath(): string
+```
 
-**Returns**  
+Returns the absolute path as a string.
 
-| Type  | Description                              |
-|-------|------------------------------------------|
-| `Path`| Path where the part was found            |
+**Returns** `string` — A string containing the absolute path.
 
-#### `is_dir()`
-Checks if the path points to a directory.
+### `.combine`
 
-**Returns**  
+```kiwi
+combine(new_path): Path
+```
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | `true` if it is a directory  |
+Combines (joins) this path with another.
 
-#### `is_file()`
-Checks if the path points to a regular file.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `new_path` | `any` |  | A new path (or path part) either as a string or a Path. |
 
-**Returns**  
+**Returns** `Path` — Returns a path containing this path and the new path.
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | `true` if it is a file       |
+**Throws** `TypeError` — Expects new_path to be a string or a Path.
 
-#### `joinpath(path_parts)`
-Joins multiple path components to the current path.
+### `.contains`
 
-**Parameters**
+```kiwi
+contains(path_part: string): boolean
+```
 
-| Type  | Name         | Description                      |
-|-------|--------------|----------------------------------|
-| `list`| `path_parts` | List of strings or `Path`s       |
+Checks if the parts contains a given part.
 
-**Returns**  
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path_part` | `string` |  | The path part as a string. |
 
-| Type  | Description                  |
-|-------|------------------------------|
-| `Path`| Combined path                |
+**Returns** `boolean` — Returns `true` when the path contains the given path part.
 
-#### `mkdir()`
+### `.mkdir`
+
+```kiwi
+mkdir(): boolean
+```
+
 Creates a directory from the path.
 
-**Returns**  
+**Returns** `boolean` — Returns `true` when the directory is created successfully.
 
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if creation succeeded          |
+### `.copy`
 
-#### `name()`
-Returns the final component of the path (filename or last directory).
+```kiwi
+copy(new_path): boolean
+```
 
-**Returns**  
+Copies data from one path to another. If the path is a directory, all subdirectory contents are copied as well.
 
-| Type     | Description              |
-|----------|--------------------------|
-| `string` | Last path component      |
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `new_path` | `any` |  | A new path either as a string or a Path. |
 
-#### `parent()`
-Returns the parent directory of this path.
+**Returns** `boolean` — Returns `true` when the data was copied.
 
-**Returns**  
+**Throws** `TypeError` — Expects new_path to be a string or a Path.
 
-| Type  | Description                  |
-|-------|------------------------------|
-| `Path`| Parent path                  |
+### `.exists`
 
-#### `parents()`
-Returns a list of all ancestor directories, from closest to root.
+```kiwi
+exists(): boolean
+```
 
-**Returns**  
+Checks if the path exists.
 
-| Type  | Description                              |
-|-------|------------------------------------------|
-| `list`| List of `Path` objects (parent -> root)   |
+**Returns** `boolean` — Returns `true` when the path exists on the filesystem.
 
-#### `parts()`
-Splits the path into its components.
+### `.ext`
 
-**Returns**  
+```kiwi
+ext(): string
+```
 
-| Type  | Description                      |
-|-------|----------------------------------|
-| `list`| List of path parts (strings)     |
+Gets the file extension of the path.
 
-#### `remove()`
-Deletes the file or **empty** directory.
+**Returns** `string` — Returns a string containing the file extension of the path.
 
-**Returns**  
+### `.find`
 
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if removal succeeded          |
+```kiwi
+find(path_part: string): Path
+```
 
-**Throws**  
-Error if trying to remove non-empty directory (use `rmdir()` instead)
+Gets a new path from a path part.
 
-#### `rmdir()`
-Recursively deletes a directory and all its contents.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path_part` | `string` |  | A part of a path as a string. |
 
-**Returns**  
+**Returns** `Path` — Returns the path at the given path part.
 
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if removal succeeded          |
+### `.is_dir`
 
-#### `root()`
-Returns the root directory of the filesystem this path belongs to.
+```kiwi
+is_dir(): boolean
+```
 
-**Returns**  
+Checks if the path is a directory.
 
-| Type  | Description          |
-|-------|----------------------|
-| `Path`| Root path (e.g. `/`) |
+**Returns** `boolean` — Returns `true` when the path is a directory.
 
-#### `read()`
-Reads the entire file content as a string (empty string if not a file).
+### `.is_file`
 
-**Returns**  
+```kiwi
+is_file(): boolean
+```
 
-| Type     | Description              |
-|----------|--------------------------|
-| `string` | File content             |
+Checks if the path is a file.
 
-#### `readbytes()` / `read_bytes()`
-Reads the entire file as bytes.
+**Returns** `boolean` — Returns `true` when the path is a file.
 
-**Returns**  
+### `.joinpath`
 
-| Type   | Description              |
-|--------|--------------------------|
-| `bytes`| File content as bytes    |
+```kiwi
+joinpath(path_parts: list): Path
+```
 
-#### `readlines()` / `read_lines()`
-Reads the file and returns its lines as a list of strings.
+Combines (joins) multiple path parts to this path.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path_parts` | `list` |  | A list of path parts. |
 
-| Type  | Description                  |
-|-------|------------------------------|
-| `list`| List of lines (strings)      |
+**Returns** `Path` — Returns a new path by combining this path with a list of path parts.
 
-#### `touch()`
+### `.name`
+
+```kiwi
+name(): string
+```
+
+Gets the last part of the path as a string.
+
+**Returns** `string` — Returns a string containing the last part of the path.
+
+### `.parent`
+
+```kiwi
+parent(): Path
+```
+
+Gets the parent path.
+
+**Returns** `Path` — Returns a Path containing the parent of this path.
+
+### `.parents`
+
+```kiwi
+parents(): list
+```
+
+Gets a list of paths containing all parents of this path.
+
+**Returns** `list` — Returns a list of paths containing all parents of this path.
+
+### `.parts`
+
+```kiwi
+parts(): list
+```
+
+Gets the list of path parts in this path.
+
+**Returns** `list` — Returns a list of path parts in this path.
+
+### `.remove`
+
+```kiwi
+remove(): boolean
+```
+
+Removes this path from the file system.
+
+**Returns** `boolean` — Returns `true` when the path was successfully removed from the file system.
+
+**Throws** `FileSystemError` — Throws when the path is a non-empty directory. Use `rmdir()` instead.
+
+### `.rmdir`
+
+```kiwi
+rmdir(): boolean
+```
+
+Removes the path from the file system, and all of its subpaths.
+
+**Returns** `boolean` — Returns `true` when the path was successfully removed from the file system.
+
+### `.root`
+
+```kiwi
+root(): Path
+```
+
+Gets the path root.
+
+**Returns** `Path` — Returns a Path representing the root of this path.
+
+### `.readbytes`
+
+```kiwi
+readbytes(): bytes
+```
+
+Gets all content from the path as bytes.
+
+**Returns** `bytes` — Returns bytes containing the content of the file this path points to.
+
+### `.readlines`
+
+```kiwi
+readlines(): list
+```
+
+Gets all content from the path as a list of strings representing the lines in the file.
+
+**Returns** `list` — Returns a list of stirngs containing the line content of the file this path points to.
+
+### `.read`
+
+```kiwi
+read(): string
+```
+
+Gets all content from the path as a string.
+
+**Returns** `bytes` — Returns bytes containing the content of the file this path points to.
+
+### `.read_bytes`
+
+```kiwi
+read_bytes(): bytes
+```
+
+Gets all content from the path as bytes.
+
+**Returns** `bytes` — Returns bytes containing the content of the file this path points to.
+
+### `.read_lines`
+
+```kiwi
+read_lines(): list
+```
+
+Gets all content from the path as a list of strings representing the lines in the file.
+
+**Returns** `list` — Returns a list of stirngs containing the line content of the file this path points to.
+
+### `.touch`
+
+```kiwi
+touch(): boolean
+```
+
 Creates a file from the path.
 
-**Returns**  
-
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if creation succeeded          |
-
----
-
-## Examples
-
-### Basic path construction and joining
-
-```kiwi
-import "path"
-
-p = Path.new("/home/user/projects")
-report = p / "2024" / "report.txt"
-
-println report.to_string()   # /home/user/projects/2024/report.txt
-println report.name()        # report.txt
-println report.ext()         # .txt
-println report.parent()      # /home/user/projects/2024
-```
-
-### Working directory and parts
-
-```kiwi
-import "path"
-
-cwd = Path.cwd()
-println cwd.to_string()   # /home/user/projects
-
-println cwd.parts()       # ["home", "user", "projects"]
-println cwd.root()        # /
-```
-
-### Filesystem queries
-
-```kiwi
-import "path"
-
-p = Path.new("/etc/hosts")
-println p.exists()    # true
-println p.is_file()   # true
-println p.is_dir()    # false
-
-d = Path.new("/etc")
-println d.is_dir()    # true
-```
-
-### Reading files
-
-```kiwi
-import "path"
-
-p = Path.new("/etc/hostname")
-
-println p.read()           # "mymachine\n"
-println p.readlines()      # ["mymachine"]
-bytes = p.readbytes()
-println bytes.size()       # byte count
-```
-
-### Ancestor traversal
-
-```kiwi
-import "path"
-
-p = Path.new("/home/user/projects/app/src")
-println p.parent()         # /home/user/projects/app
-
-all_parents = p.parents()
-for ancestor in all_parents do
-  println ancestor
-end
-# /home/user/projects/app
-# /home/user/projects
-# /home/user
-# /home
-# /
-```
-
-### joinpath with multiple components
-
-```kiwi
-import "path"
-
-base = Path.new("/var/log")
-full = base.joinpath(["nginx", "access.log"])
-println full.to_string()   # /var/log/nginx/access.log
-```
-
-### Absolute path resolution
-
-```kiwi
-import "path"
-
-p = Path.new("../config")
-println p.abspath()   # resolved absolute path
-```
-
-### Temporary files and directories
-
-```kiwi
-import "path"
-
-tmp = Path.temp_dir()
-println tmp.to_string()   # /tmp  (or system temp dir)
-
-f = Path.temp_file()
-println f.exists()   # true
-f.remove()
-```
-
-### Find an ancestor by name
-
-```kiwi
-import "path"
-
-p = Path.new("/home/user/projects/myapp/src/main.kiwi")
-found = p.find("myapp")
-println found.to_string()   # /home/user/projects/myapp
-```
-
-### Check if path contains a component
-
-```kiwi
-import "path"
-
-p = Path.new("/home/user/projects")
-println p.contains("user")      # true
-println p.contains("admin")     # false
-```
+**Returns** `boolean` — Returns `true` when the file is created successfully.

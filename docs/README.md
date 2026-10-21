@@ -1,86 +1,60 @@
-# Kiwi 🥝
+# Kiwi documentation
 
-Kiwi is a modern, lightweight scripting language built for expressiveness and utility.
+The source of [fuseraft.ai/kiwi](https://fuseraft.ai/kiwi/), built with [Astro Starlight](https://starlight.astro.build/).
 
-## **Getting Started**
+## Working on the docs
 
-- **[Introduction to Kiwi](introduction.md)**
-    - [Building Kiwi](building_kiwi.md)
-    - [Using the Kiwi CLI](cli.md)
-    - [REPL](repl.md)
-    - [Running Scripts & Execution Modes](runners.md)
-    - [kdb — Kiwi Debugger](kdb.md)
-    - [Bytecode VM Internals](vm.md)
+Requires Node.js 22 or later. Build Kiwi first (`./build.sh` in the repository root), because the example checker runs `../bin/kiwi`.
 
-## **Language Reference**
+```sh
+cd docs
+npm install
+npm run dev              # live preview at http://localhost:4321/kiwi/
+npm run check:examples   # run every Kiwi example in the docs
+npm run build            # build the site into dist/ and validate links
+```
 
-- [Variables](variables.md)
-- [Types](types.md)
-- [Type Hints](type_hints.md)
-- [Scoping](scoping.md)
-- [Operators](operators.md)
-- [Keywords](keywords.md)
-- [Comments](comments.md)
-- [Docstrings](docstrings.md)
+CI (`.github/workflows/docs.yml`) runs the example check and the build on every pull request, and deploys to GitHub Pages from `main`.
 
-## **Functions**
+## Layout
 
-- [Functions](functions.md)
-- [Lambdas](lambdas.md)
-- [Decorators](decorators.md)
+| Path | Contents |
+| :-- | :-- |
+| `src/content/docs/` | The pages, one Markdown file each. The directory structure is the URL structure. |
+| `src/content/docs/stdlib/` | One page per standard library package. |
+| `astro.config.mjs` | Site configuration and the sidebar. |
+| `src/grammars/kiwi.tmLanguage.json` | Kiwi syntax highlighting. |
+| `src/plugins/` | Generators for reference material (see below). |
+| `scripts/check-examples.mjs` | The example checker. |
 
-## **Control Flow**
+New pages in `language/`, `tools/`, `reference/` and `getting-started/` must be added to the sidebar in `astro.config.mjs`. Standard library pages are picked up automatically.
 
-- [Control Structures](control_structures.md) — `if`, `case`, `when`, ternary, truthiness
-- [Loops](loops.md) — `for`, `while`, `repeat`, `break`, `next`
-- [Generators](generators.md)
-- [Error Handling](error_handling.md)
+## Examples are tested
 
-## **Collections & Data Types**
+Every ` ```kiwi ` block is run by `npm run check:examples`. It must exit with code 0 and write nothing to stderr. Write the expected output as a trailing comment (`println x   # 42`) and check it against the output shown by `node scripts/check-examples.mjs --verbose <page>`.
 
-- [Lists](lists.md)
-- [Ranges](ranges.md)
-- [Hashmaps](hashmaps.md)
-- [Strings](strings.md)
-- [Dates](dates.md)
+Add a word after `kiwi` on the fence line to change how a block is checked:
 
-## **Object-Oriented Programming**
+| Fence | Checked by |
+| :-- | :-- |
+| ` ```kiwi ` | Running it; it must succeed. |
+| ` ```kiwi fails ` | Running it; it must fail. Use for examples of errors. |
+| ` ```kiwi stderr ` | Running it; it must succeed but may write to stderr. |
+| ` ```kiwi nocheck ` | `kiwi --check` only. Use for examples that need the network, files, input or a long-running process. |
+| ` ```kiwi noparse ` | Nothing. Use only for deliberately incomplete fragments. |
 
-- [Structs](structs.md)
-- [Abstract Structs](abstract_structs.md)
-- [Enums](enums.md)
-- [Operator Overloading](operator_overloading.md)
+Use ` ```text ` for program output and terminal sessions, and ` ```sh ` for shell commands.
 
-## **Modules & I/O**
+## Generated reference material
 
-- [Packages](packages.md)
-- [Events](events.md)
-- [Builtins](builtins.md)
-- [Console I/O](console_io.md)
+Some content is generated from the interpreter sources at build time, so it can't drift from the code:
 
-## **Standard Library**
+- `<!-- api: NAME -->` expands to the API reference for `lib/NAME.kiwi`, built from its `/# ... #/` docstrings (`@summary`, `@param type name : description`, `@return type : description`, `@throws`, `@example` between `---` lines). Every standard library page ends with one. To improve a package's reference, edit the docstrings in `lib/`.
+- `<!-- opcodes -->` expands to the VM instruction set from the `<summary>` comments in `src/VM/Opcode.cs`.
 
-- [`cli`](lib/cli.md) — Output helpers, tables, progress bars, prompts, and argument parsing for CLI apps.
-- [`collections`](lib/collections.md) — Specialized collection types, including `Heap` and `Set`.
-- [`compress`](lib/compress.md) — Functions for compression and decompression.
-- [`console`](lib/console.md) — An interface that wraps core I/O operations.
-- [`crypto`](lib/crypto.md) — Cryptographic functions like MD5 and SHA-2.
-- [`csv`](lib/csv.md) — Functions for parsing CSV data.
-- [`env`](lib/env.md) — For interacting with environment variables.
-- [`fio`](lib/fio.md) — Functions for file system operations.
-- [`http`](lib/http.md) — Functions for HTTP/HTTPS requests.
-- [`iter`](lib/iter.md) — An explicit iterator pattern for safely traversing lists.
-- [`math`](lib/math.md) — Common mathematical functions and utilities.
-- [`path`](lib/path.md) — Contains the definition for the `Path` struct.
-- [`pipeline`](lib/pipeline.md) — A DSL for building named, step-based data pipelines with hooks and error recovery.
-- [`reflector`](lib/reflector.md) — Reflection tools, including `Callable`.
-- [`socket` / `tls`](lib/socket.md) — Low-level asynchronous TCP and TLS networking.
-- [`stdin`](lib/stdin.md) — Functions for reading from standard input.
-- [`string`](lib/string.md) — String manipulation and transformation utilities.
-- [`protobuf`](lib/protobuf.md) — Protocol Buffer (proto3) binary encoding and decoding.
-- [`sqlite`](lib/sqlite.md) — SQLite database access via the `SqliteDb` struct.
-- [`sys`](lib/sys.md) — For executing shell commands.
-- [`task`](lib/task.md) — Asynchronous task management, including `Channel`.
-- [`tester`](lib/tester.md) — A simple unit testing framework.
-- [`time`](lib/time.md) — Time and date utilities.
-- [`yaml`](lib/yaml.md) — YAML 1.2 parser and serializer.
+## Style
+
+- Write for someone who knows how to program but not Kiwi. Lead with what something does, then show it.
+- Prefer short, runnable examples to long explanations.
+- Describe what Kiwi actually does today. If behavior looks like a bug, document it plainly (a `:::caution` aside works well) and report it, rather than describing what it ought to do.
+- Link to other pages with absolute paths that include the base: `/kiwi/language/functions/`.

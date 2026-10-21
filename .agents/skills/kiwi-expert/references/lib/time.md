@@ -1,467 +1,427 @@
-# `time`
+# time
 
-The `time` package provides comprehensive support for working with dates, times, durations, and calendar calculations in Kiwi.
+> The current time, timestamps, elapsed-time measurement and calendar helpers.
 
-It includes:
-- A `date` type (built-in) with parsing, formatting, and arithmetic
-- Functions for adding/subtracting time units
-- Component extraction (year, month, day, hour, etc.)
-- Calendar utilities (leap years, month lengths, day of week/year)
-- Current time / timestamp helpers
-- Low-level tick-based timing
-
-## Date arithmetic
-
-All `add_*` functions return a **new** `date` object — they do **not** mutate the input.
-
-### `add_days(dt, n)`
-Adds/subtracts whole days (handles month/year rollover).
-
-**Parameters**
-
-| Type    | Name | Description          |
-|---------|------|----------------------|
-| `date`  | `dt` | Base date            |
-| `integer`| `n`  | Days (±)             |
-
-**Returns** `date`
-
-**Example**
+The `time` package reads the clock and answers calendar questions.
 
 ```kiwi
-import "time"
+now = time::now()                         # the current local date and time
+println now.to_string("yyyy-MM-dd HH:mm") >= "2024"   # true
 
-today    = time::now()
-next_week = time::add_days(today, 7)
-last_week = time::add_days(today, -7)
-
-println "Today:     ${today.to_string("yyyy-MM-dd")}"
-println "Next week: ${next_week.to_string("yyyy-MM-dd")}"
-println "Last week: ${last_week.to_string("yyyy-MM-dd")}"
+println time::timestamp()                 # e.g. 2026-10-19 22:54:13Z (UTC)
+println time::timestamp("yyyy-MM-dd")     # e.g. 2026-10-19
 ```
 
----
+`timestamp(format)` formats the current UTC time with the [date patterns](../reference/builtin-methods.md#date-formats); the default, `"u"`, is the sortable `yyyy-MM-dd HH:mm:ssZ` form.
 
-### `add_months(dt, n)`
-Adds/subtracts months (preserves day-of-month when possible).
+## Measuring elapsed time
 
-**Parameters**
-
-| Type    | Name | Description          |
-|---------|------|----------------------|
-| `date`  | `dt` | Base date            |
-| `integer`| `n`  | Months (±)           |
-
-**Returns** `date`
-
-**Example**
+`ticks()` reads a high-resolution clock. Subtract two readings and convert the difference to milliseconds with `ticksms`:
 
 ```kiwi
-import "time"
-
-today       = time::now()
-in_3_months = time::add_months(today, 3)
-last_quarter = time::add_months(today, -3)
-
-println "Today:        ${today.to_string("yyyy-MM-dd")}"
-println "In 3 months:  ${in_3_months.to_string("yyyy-MM-dd")}"
-println "Last quarter: ${last_quarter.to_string("yyyy-MM-dd")}"
+started = time::ticks()
+task::sleep(15)
+elapsed = time::ticksms(time::ticks() - started)
+println elapsed >= 15   # true
 ```
 
----
+For anything more than a quick measurement, [`stopwatch`](stopwatch.md) and [`bench`](bench.md) are more convenient.
 
-### `add_years(dt, n)`
-Adds/subtracts whole years.
-
-**Parameters**
-
-| Type    | Name | Description          |
-|---------|------|----------------------|
-| `date`  | `dt` | Base date            |
-| `integer`| `n`  | Years (±)            |
-
-**Returns** `date`
-
-**Example**
+## Calendar helpers
 
 ```kiwi
-import "time"
-
-today     = time::now()
-next_year = time::add_years(today, 1)
-decade    = time::add_years(today, 10)
-
-println "Today:     ${today.to_string("yyyy-MM-dd")}"
-println "Next year: ${next_year.to_string("yyyy-MM-dd")}"
-println "A decade:  ${decade.to_string("yyyy-MM-dd")}"
+println time::leapyear(2024)            # true
+println time::monthdays(2024, 2)        # 29
+println time::valid_day(2023, 2, 29)    # false
+println time::first_day().day()         # 1: the first day of the current month
 ```
 
----
+`last_day()` returns the last day of the current month.
 
-### `add_hours(dt, n)`, `add_minutes(dt, n)`, `add_seconds(dt, n)`, `add_milliseconds(dt, n)`
-Add/subtract smaller time units (may cross day boundaries).
+## Date parts and arithmetic
 
-**Returns** `date`
+`time::year()`, `month()`, `day()`, `hour()`, `minute()`, `second()`, `millisecond()`, `weekday()`, `yearday()`, `ampm()` and `isdst()` read a part of a date, or of the current time when called without one. `add_days`, `add_months` and the other `add_*` functions do date arithmetic.
 
-**Example**
+The same operations are available as methods on any date, which usually reads better:
 
 ```kiwi
-import "time"
-
-now = time::now()
-
-println "Now:           ${now.to_string("yyyy-MM-dd HH:mm:ss")}"
-println "+3 hours:      ${time::add_hours(now, 3).to_string("yyyy-MM-dd HH:mm:ss")}"
-println "+90 minutes:   ${time::add_minutes(now, 90).to_string("yyyy-MM-dd HH:mm:ss")}"
-println "+45 seconds:   ${time::add_seconds(now, 45).to_string("yyyy-MM-dd HH:mm:ss")}"
-println "+500ms:        ${time::add_milliseconds(now, 500).to_string("yyyy-MM-dd HH:mm:ss")}"
-println "-6 hours:      ${time::add_hours(now, -6).to_string("yyyy-MM-dd HH:mm:ss")}"
+release = d(2024, 6, 15)
+println time::add_days(release, 10).to_string("yyyy-MM-dd")   # 2024-06-25
+println release.add_days(10).to_string("yyyy-MM-dd")          # 2024-06-25
 ```
 
----
+See [`date`](date.md) and [Types: Dates](../language/types.md#dates).
 
-## Current time & components
+## Functions
 
-Most component functions accept an optional `date` argument.
-If omitted (`dt = null`), they return the value for **now**.
-
-### `now()`
-Returns the current date and time as a `date` object.
-
-**Returns** `date`
-
-**Example**
+### `time::add_days`
 
 ```kiwi
-import "time"
-
-dt = time::now()
-println "Full timestamp: ${dt.to_string("yyyy-MM-dd HH:mm:ss")}"
-println "Year:  ${time::year(dt)}"
-println "Month: ${time::month(dt)}"
-println "Day:   ${time::day(dt)}"
+time::add_days(dt: date, n: integer): date
 ```
 
----
+Adds a number of days to a date.
 
-### `hour(dt?)`, `minute(dt?)`, `second(dt?)`, `millisecond(dt?)`
-Extract time-of-day components.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` |  | The date. |
+| `n` | `integer` |  | The number of days. |
 
-**Returns** `integer`
+**Returns** `date` — The modified date.
 
-- `hour`: 0–23
-- `minute`: 0–59
-- `second`: 0–60 (leap seconds possible)
-- `millisecond`: 0–999
-
-**Example**
+### `time::add_months`
 
 ```kiwi
-import "time"
-
-# Called without argument — operates on the current time
-println "Hour:        ${time::hour()}"
-println "Minute:      ${time::minute()}"
-println "Second:      ${time::second()}"
-println "Millisecond: ${time::millisecond()}"
-
-# Can also pass an explicit date
-dt = time::now()
-println "Hour from dt: ${time::hour(dt)}"
+time::add_months(dt: date, n: integer): date
 ```
 
----
+Adds a number of months to a date.
 
-### `ampm(dt?)`
-Returns `"AM"` or `"PM"` (12-hour clock indicator).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` |  | The date. |
+| `n` | `integer` |  | The number of months. |
 
-**Returns** `string`
+**Returns** `date` — The modified date.
 
-**Example**
+### `time::add_years`
 
 ```kiwi
-import "time"
-
-period = time::ampm()
-println "It is currently ${time::hour() % 12}:${time::minute()} ${period}"
-# => It is currently 2:34 PM
+time::add_years(dt: date, n: integer): date
 ```
 
----
+Adds a number of years to a date.
 
-### `day(dt?)`, `month(dt?)`, `year(dt?)`
-Calendar date components.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` |  | The date. |
+| `n` | `integer` |  | The number of years. |
 
-**Returns** `integer`
+**Returns** `date` — The modified date.
 
-- `day`: 1–31
-- `month`: 1–12
-- `year`: full year (e.g. 2026)
-
-**Example**
+### `time::add_hours`
 
 ```kiwi
-import "time"
-
-println "Year:  ${time::year()}"
-println "Month: ${time::month()}"
-println "Day:   ${time::day()}"
-
-# Or pass a specific date
-dt = time::add_days(time::now(), 30)
-println "30 days from now: ${time::year(dt)}-${time::month(dt)}-${time::day(dt)}"
+time::add_hours(dt: date, n: integer): date
 ```
 
----
+Adds a number of hours to a date.
 
-### `weekday(dt?)`
-Returns the day of the week (0 = Sunday, 1 = Monday, …, 6 = Saturday).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` |  | The date. |
+| `n` | `integer` |  | The number of hours. |
 
-**Returns** `integer`
+**Returns** `date` — The modified date.
 
-**Example**
+### `time::add_minutes`
 
 ```kiwi
-import "time"
-
-names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-idx   = time::weekday()
-println "Today is ${names[idx]} (index ${idx})"
-
-# Check if today is a weekend
-is_weekend = idx == 0 || idx == 6
-println "Weekend: ${is_weekend}"
+time::add_minutes(dt: date, n: integer): date
 ```
 
----
+Adds a number of minutes to a date.
 
-### `yearday(dt?)`
-Day of year (1 = Jan 1, up to 365 or 366).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` |  | The date. |
+| `n` | `integer` |  | The number of minutes. |
 
-**Returns** `integer`
+**Returns** `date` — The modified date.
 
-**Example**
+### `time::add_seconds`
 
 ```kiwi
-import "time"
-
-yd = time::yearday()
-println "Day of year: ${yd}"
-
-# Days remaining in the year
-yr   = time::year()
-days = time::leapyear(yr) ? 366 : 365
-println "Days remaining: ${days - yd}"
+time::add_seconds(dt: date, n: integer): date
 ```
 
----
+Adds a number of seconds to a date.
 
-## Calendar utilities
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` |  |  |
+| `n` | `integer` |  |  |
 
-### `leapyear(_year)`
-Checks whether a year is a leap year (Gregorian rules).
+**Returns** `date` — The modified date.
 
-**Parameters**
-
-| Type     | Name     |
-|----------|----------|
-| `integer`| `_year`  |
-
-**Returns** `boolean`
-
-**Example**
+### `time::add_milliseconds`
 
 ```kiwi
-import "time"
-
-println "2024 leap year: ${time::leapyear(2024)}"  # => true
-println "2023 leap year: ${time::leapyear(2023)}"  # => false
-println "2000 leap year: ${time::leapyear(2000)}"  # => true
-println "1900 leap year: ${time::leapyear(1900)}"  # => false
+time::add_milliseconds(dt: date, n: integer): date
 ```
 
----
+Adds a number of milliseconds to a date.
 
-### `monthdays(_year, _month)`
-Returns number of days in the specified month/year.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` |  |  |
+| `n` | `integer` |  |  |
 
-**Parameters**
+**Returns** `date` — The modified date.
 
-| Type     | Name      |
-|----------|-----------|
-| `integer`| `_year`   |
-| `integer`| `_month`  |
-
-**Returns** `integer` (28–31)
-
-**Example**
+### `time::now`
 
 ```kiwi
-import "time"
-
-# February in a leap year vs. a regular year
-println "Feb 2024: ${time::monthdays(2024, 2)} days"  # => 29
-println "Feb 2023: ${time::monthdays(2023, 2)} days"  # => 28
-println "Jan 2026: ${time::monthdays(2026, 1)} days"  # => 31
-println "Apr 2026: ${time::monthdays(2026, 4)} days"  # => 30
+time::now(): date
 ```
 
----
+Returns the current time as a date value.
 
-### `valid_day(_year, _month, _day)`
-Checks if the day is valid in the given month/year.
+**Returns** `date` — The current time as a date value.
 
-**Parameters**
-
-| Type     | Name      |
-|----------|-----------|
-| `integer`| `_year`   |
-| `integer`| `_month`  |
-| `integer`| `_day`    |
-
-**Returns** `boolean`
-
-**Example**
+### `time::first_day`
 
 ```kiwi
-import "time"
-
-println "2026-03-15 valid: ${time::valid_day(2026, 3, 15)}"  # => true
-println "2026-02-29 valid: ${time::valid_day(2026, 2, 29)}"  # => false (2026 not a leap year)
-println "2024-02-29 valid: ${time::valid_day(2024, 2, 29)}"  # => true  (2024 is a leap year)
-println "2026-13-01 valid: ${time::valid_day(2026, 13, 1)}"  # => false (no 13th month)
+time::first_day(): date
 ```
 
----
+Returns the first day of the year
 
-### `first_day()`
-Returns January 1st of the current year.
+**Returns** `date` — The first day of the year
 
-**Returns** `date`
-
-### `last_day()`
-Returns December 31st of the current year.
-
-**Returns** `date`
-
-**Example**
+### `time::last_day`
 
 ```kiwi
-import "time"
-
-first = time::first_day()
-last  = time::last_day()
-
-println "First day of year: ${first.to_string("yyyy-MM-dd")}"
-println "Last day of year:  ${last.to_string("yyyy-MM-dd")}"
-
-# Iterate every day of the year
-dt = time::add_days(first, -1)
-repeat 365 do
-  dt = time::add_days(dt, 1)
-  # process dt ...
-end
+time::last_day(): date
 ```
 
----
+Returns the end of the year
 
-## Other helpers
+**Returns** `date` — The last day of the year
 
-### `isdst(dt?)`
-Checks whether the time is in Daylight Saving Time.
-
-**Returns** `boolean`
-
-**Example**
+### `time::hour`
 
 ```kiwi
-import "time"
-
-in_dst = time::isdst()
-println "Currently in DST: ${in_dst}"
-
-# Check a specific date
-summer = time::add_months(time::now(), 3)
-println "DST in 3 months: ${time::isdst(summer)}"
+time::hour(dt = null): integer
 ```
 
----
+Get hours since midnight (0 to 23).
 
-### `timestamp(format?)`
-Formats the current time using the `date` type's `to_string()` rules.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
 
-**Parameters**
+**Returns** `integer` — The hours since midnight.
 
-| Type    | Name     | Default |
-|---------|----------|---------|
-| `string`| `format` | `'u'`   |
-
-**Returns** `string`
-
-Common formats include `'u'` (ISO-like), `'yyyy-MM-dd'`, `'HH:mm:ss'`, etc.
-
-**Example**
+### `time::minute`
 
 ```kiwi
-import "time"
-
-println time::timestamp()               # ISO-like default
-println time::timestamp("yyyy-MM-dd")   # date only
-println time::timestamp("HH:mm:ss")     # time only
-println time::timestamp("yyyy-MM-dd HH:mm:ss")  # datetime
-
-# Useful for log prefixes
-fn log(msg: string)
-  println "[${time::timestamp("HH:mm:ss")}] ${msg}"
-end
-
-log("Starting process")
-log("Process complete")
+time::minute(dt = null): integer
 ```
 
----
+Get minutes after the hour (0 to 59).
 
-### `ticks()`
-Nanoseconds since Unix epoch (1970-01-01 00:00:00 UTC).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
 
-**Returns** `float`
+**Returns** `integer` — The minutes after the hour.
 
-### `ticksms(_ticks)`
-Converts ticks (nanoseconds) to milliseconds.
-
-**Parameters**
-
-| Type   | Name      |
-|--------|-----------|
-| `float`| `_ticks`  |
-
-**Returns** `float`
-
-**Example**
+### `time::second`
 
 ```kiwi
-import "time"
-
-# Time a block of code using ticks
-fn expensive_work()
-  total = 0
-  for i in [1 to 100000] do
-    total += i
-  end
-  total
-end
-
-t0     = time::ticks()
-result = expensive_work()
-t1     = time::ticks()
-
-elapsed_ms = time::ticksms(t1 - t0)
-println "Result:  ${result}"
-println "Elapsed: ${elapsed_ms}ms"
-
-# Ticks are also useful for simple wall-clock comparisons
-start = time::ticks()
-# ... do work ...
-end_t  = time::ticks()
-println "Wall time: ${time::ticksms(end_t - start)}ms"
+time::second(dt = null): integer
 ```
+
+Get seconds after the minute (0 to 60).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
+
+**Returns** `integer` — The seconds after the minute.
+
+### `time::millisecond`
+
+```kiwi
+time::millisecond(dt = null): integer
+```
+
+Get milliseconds after the second (0 to 1000).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
+
+**Returns** `integer` — The milliseconds after the second.
+
+### `time::ampm`
+
+```kiwi
+time::ampm(dt = null): string
+```
+
+Get time of day designation for 12 hour clocks as "AM" or "PM".
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
+
+**Returns** `string` — "AM" or "PM".
+
+### `time::day`
+
+```kiwi
+time::day(dt = null): integer
+```
+
+Get the day of the month (1 to 31).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
+
+**Returns** `integer` — The day of the month.
+
+### `time::month`
+
+```kiwi
+time::month(dt = null): integer
+```
+
+Get current calendar month (1 to 12).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
+
+**Returns** `integer` — The current month, or the month of dt.
+
+### `time::year`
+
+```kiwi
+time::year(dt = null): integer
+```
+
+Get the current year.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to extract from. Defaults to null. |
+
+**Returns** `integer` — The current year.
+
+### `time::leapyear`
+
+```kiwi
+time::leapyear(_year: integer): boolean
+```
+
+Check if a given year is a leap year.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_year` | `integer` |  | The year to check. |
+
+**Returns** `boolean` — Returns `true` when _year is a leap year.
+
+### `time::monthdays`
+
+```kiwi
+time::monthdays(_year: integer, _month: integer): integer
+```
+
+Get how many days are in a given month.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_year` | `integer` |  | The year to check. |
+| `_month` | `integer` |  | The month to check. |
+
+**Returns** `integer` — The number of days in a given month.
+
+### `time::weekday`
+
+```kiwi
+time::weekday(dt = null): integer
+```
+
+Get the day of the week (0 to 6).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to check. Defaults to null. |
+
+**Returns** `integer` — The day of the week starting from Sunday = 0.
+
+### `time::yearday`
+
+```kiwi
+time::yearday(dt = null): integer
+```
+
+Get the day of the year (1 to 366).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to check. Defaults to null. |
+
+**Returns** `integer` — The day of the year starting from Sunday = 0.
+
+### `time::isdst`
+
+```kiwi
+time::isdst(dt = null): boolean
+```
+
+Checks if currently in Daylight Savings Time (DST).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `dt` | `date` | `null` | The date to check. Defaults to null. |
+
+**Returns** `boolean` — Returns `true` when in DST.
+
+### `time::valid_day`
+
+```kiwi
+time::valid_day(_year: integer, _month: integer, _day: integer): boolean
+```
+
+Check if a day is valid within the given month.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_year` | `integer` |  | The year to check. |
+| `_month` | `integer` |  | The month to check. |
+| `_day` | `integer` |  | The day to check. |
+
+**Returns** `boolean` — The number of days in a given month.
+
+### `time::timestamp`
+
+```kiwi
+time::timestamp(format: string = 'u'): string
+```
+
+Get current timestamp in a specified format.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `format` | `string` | `'u'` |  |
+
+**Returns** `string` — The current timestamp as a string.
+
+### `time::ticks`
+
+```kiwi
+time::ticks(): float
+```
+
+Get ticks since January 1st, 1970.
+
+**Returns** `float` — Ticks.
+
+### `time::ticksms`
+
+```kiwi
+time::ticksms(_ticks: float): float
+```
+
+Converts ticks to milliseconds.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_ticks` | `float` |  | The ticks. |
+
+**Returns** `float` — Ticks in milliseconds.

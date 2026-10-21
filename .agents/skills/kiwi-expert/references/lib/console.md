@@ -1,200 +1,264 @@
-# `console`
+# console
 
-The `console` package provides idiomatic access to terminal/console manipulation features: colored output, screen clearing, cursor control, window properties, single-key input, and secure (masked) line input.
+> Terminal colors, clearing, cursor control, window size and keyboard input.
 
-It wraps low-level console builtins with friendly names and sensible defaults, making interactive CLI scripts and tools easier to write in Kiwi.
+The `console` package controls the terminal: text and background colors, clearing the screen, showing or hiding the cursor, reading single keys, and reading passwords without echoing them.
 
----
+## Colors
 
-## Package Functions
+`fg(color)` sets the text color and `bg(color)` the background; `reset()` restores the defaults. Color names are case-insensitive:
 
-### `fg(color)`
-Sets the **foreground** (text) color.
-
-**Parameters**
-
-| Type     | Name    | Description                                      | Default |
-|----------|---------|--------------------------------------------------|---------|
-| `string` | `color` | Case-insensitive color name (see [Color Names](#color-names)) | —       |
-
-**Returns** `null`
-
----
-
-### `bg(color)`
-Sets the **background** color.
-
-**Parameters**  
-Same as `fg()`.
-
-**Returns** `null`
-
----
-
-### `reset()`
-Resets foreground and background colors to their default values.
-
-**Parameters** None  
-**Returns** `null`
-
----
-
-### `clear()`
-Clears the entire console screen.
-
-**Parameters** None  
-**Returns** `null`
-
----
-
-### `cursor_visible(is_visible)`
-Shows or hides the text cursor.
-
-**Parameters**
-
-| Type      | Name         | Description                 | Default |
-|-----------|--------------|-----------------------------|---------|
-| `boolean` | `is_visible` | `true` = show, `false` = hide | —       |
-
-**Returns** `null`
-
----
-
-### `size()`
-Returns the current console window dimensions.
-
-**Parameters** None
-
-**Returns**  
-`hashmap` with keys:
-
-| Key | Value |
-| --- | ----- |
-| `width`  | `integer` (columns) |
-| `height` | `integer` (rows) |
-
----
-
-### `title(new_title)`
-Sets the title of the terminal window (supported on Windows and many Unix terminals).
-
-**Parameters**
-
-| Type     | Name        | Description          | Default |
-|----------|-------------|----------------------|---------|
-| `string` | `new_title` | Window title text    | —       |
-
-**Returns** `null`
-
----
-
-### `read(msg = "")` / `readline(msg = "")`
-Prints an optional prompt and reads a line of input (echoed normally).
-
-**Parameters**
-
-| Type     | Name   | Description               | Default |
-|----------|--------|---------------------------|---------|
-| `string` | `msg`  | Prompt to display         | `""`    |
-
-**Returns** `string` (input without the trailing newline)
-
-**Aliases**: `readline`
-
----
-
-### `read_secret(msg = "", mask = "")`
-Reads a line of input without echoing characters (ideal for passwords).
-
-**Parameters**
-
-| Type     | Name   | Description                                    | Default |
-|----------|--------|------------------------------------------------|---------|
-| `string` | `msg`  | Prompt to display                              | `""`    |
-| `string` | `mask` | Single character to show instead of input (e.g. "*") | `""` (nothing shown) |
-
-**Returns** `string` (input without trailing newline)
-
-**Note**: Works cross-platform (uses termios on Unix-like systems).
-
----
-
-### `readkey(intercept = true)` / `read_key(intercept = true)`
-Reads a single key press and returns detailed information.
-
-**Parameters**
-
-| Type      | Name        | Description                                            | Default |
-|-----------|-------------|--------------------------------------------------------|---------|
-| `boolean` | `intercept` | `true` = key is not echoed/displayed                   | `true`  |
-
-**Returns** `hashmap` with keys:
-| Key | Value |
-| --- | ----- |
-| `key`          | `string` (e.g. "A", "Enter", "F1", "LeftArrow") |
-| `char`         | `string` (printable character or empty string) |
-| `modifiers`    | `list` (e.g. `["Shift", "Control"]`) |
-| `is_shift`     | `boolean` |
-| `is_control`   | `boolean` |
-| `is_alt`       | `boolean` |
-| `is_printable` | `boolean` |
-
-**Aliases**: `read_key`
-
----
-
-### `write(msg = "")`
-Writes text without adding a newline.
-
-**Parameters**
-
-| Type     | Name   | Description     | Default |
-|----------|--------|-----------------|---------|
-| `string` | `msg`  | Text to output  | `""`    |
-
-**Returns** `null`
-
----
-
-### `writeln(msg = "")` / `writeline(msg = "")`
-Writes text followed by a newline.
-
-**Parameters** Same as `write()`  
-**Returns** `null`
-
-**Aliases**: `writeline`
-
-## Color Names
-
-These strings (case-insensitive) are accepted by [`fg()`](#fgcolor) and [`bg()`](#bgcolor):
-
-- `black`, `dark_blue`, `dark_green`, `dark_cyan`, `dark_red`, `dark_magenta`, `dark_yellow`, `gray`
-- `dark_gray`, `blue`, `green`, `cyan`, `red`, `magenta`, `yellow`, `white`
-
-Internally mapped to 0–15 (standard ANSI console colors).
-
-## Usage Examples
+`black`, `dark_blue`, `dark_green`, `dark_cyan`, `dark_red`, `dark_magenta`, `dark_yellow`, `gray`, `dark_gray`, `blue`, `green`, `cyan`, `red`, `magenta`, `yellow`, `white`
 
 ```kiwi
-# Colored output
-console::fg("cyan")
-console::bg("black")
-console::writeln("Welcome to Kiwi CLI!")
+console::fg("green")
+println "Build passed"
 console::reset()
-console::writeln()
 
-# Progress indicator simulation
-console::cursor_visible(false)
-repeat 5 as i do
-  console::write("\rWorking... ${i*20}%")
-  task::sleep(400)
-end
-console::writeln("\nDone!")
-console::cursor_visible(true)
-
-# Secure password input
-password = console::read_secret("Enter passphrase: ", "*")
-console::writeln("Length: ${password.size()} characters")
-
-console::writeln("\nGoodbye.")
+console::fg("white")
+console::bg("dark_red")
+println " FAILED "
+console::reset()
 ```
+
+For labeled status messages, [`cli::success`](cli.md) and friends handle the colors for you.
+
+## Screen and cursor
+
+```kiwi
+console::clear()
+console::title("Kiwi monitor")
+console::cursor_visible(false)
+
+size = console::size()
+println "Terminal is ${size["width"]}x${size["height"]}"
+
+repeat 5 as i do
+  print "\rWorking... ${i * 20}%"
+  task::sleep(200)
+end
+println ""
+console::cursor_visible(true)
+```
+
+To print at a specific position, use the [`printxy`](../reference/global-functions.md#output) statement.
+
+## Input
+
+```kiwi
+name = console::read("Name: ")
+password = console::read_secret("Password: ", "*")   # echoes * for each key
+key = console::readkey()                             # one key press, no Enter needed
+```
+
+## Functions
+
+### `console::bg`
+
+```kiwi
+console::bg(color: string)
+```
+
+Sets the terminal background color.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `color` | `string` |  | The color name (e.g., `"RED"`, `"BLUE"`). See `console::get_colors()`. |
+
+### `console::fg`
+
+```kiwi
+console::fg(color: string)
+```
+
+Sets the terminal foreground (text) color.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `color` | `string` |  | The color name (e.g., `"GREEN"`, `"WHITE"`). See `console::get_colors()`. |
+
+### `console::map_color`
+
+```kiwi
+console::map_color(name: string): integer
+```
+
+Maps a color name to its integer code.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The color name (case-insensitive). |
+
+**Returns** `integer` — The color code, or `0` (black) if the name is not recognized.
+
+### `console::get_colors`
+
+```kiwi
+console::get_colors(): hashmap
+```
+
+Returns a hashmap of supported color names to their integer codes.
+
+**Returns** `hashmap` — A map of color name strings to integer codes.
+
+```kiwi
+colors = console::get_colors()
+println(colors["RED"])  # 12
+```
+
+### `console::reset`
+
+```kiwi
+console::reset()
+```
+
+Resets the terminal foreground and background colors to their defaults.
+
+### `console::clear`
+
+```kiwi
+console::clear()
+```
+
+Clears the terminal screen.
+
+### `console::cursor_visible`
+
+```kiwi
+console::cursor_visible(is_visible: boolean)
+```
+
+Shows or hides the terminal cursor.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `is_visible` | `boolean` |  | Pass `true` to show the cursor, `false` to hide it. |
+
+### `console::size`
+
+```kiwi
+console::size()
+```
+
+Returns the current terminal window size.
+
+**Returns** `hashmap` — A hashmap with `width` and `height` keys.
+
+### `console::title`
+
+```kiwi
+console::title(new_title: string)
+```
+
+Sets the terminal window title.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `new_title` | `string` |  | The title to display in the terminal window. |
+
+### `console::read`
+
+```kiwi
+console::read(msg: string = "")
+```
+
+Reads a line of input from the console with an optional prompt.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | An optional prompt to display before reading input. |
+
+**Returns** `string` — The input entered by the user.
+
+### `console::readline`
+
+```kiwi
+console::readline(msg: string = "")
+```
+
+Reads a line of input from the console with an optional prompt.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | An optional prompt to display before reading input. |
+
+**Returns** `string` — The input entered by the user.
+
+### `console::read_secret`
+
+```kiwi
+console::read_secret(msg: string = "", mask: string = "")
+```
+
+Reads a line of secret input (e.g., a password) without echoing characters.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | An optional prompt to display. |
+| `mask` | `string` | `""` | An optional mask character to display in place of input (default none). |
+
+**Returns** `string` — The secret input entered by the user.
+
+### `console::readkey`
+
+```kiwi
+console::readkey(intercept: boolean = true)
+```
+
+Reads a single keypress from the console.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `intercept` | `boolean` | `true` | If `true`, the key is not echoed to the console (default `true`). |
+
+**Returns** `hashmap` — A hashmap with key info (e.g., `key`, `modifiers`).
+
+### `console::read_key`
+
+```kiwi
+console::read_key(intercept: boolean = true)
+```
+
+Reads a single keypress from the console.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `intercept` | `boolean` | `true` | If `true`, the key is not echoed to the console (default `true`). |
+
+**Returns** `hashmap` — A hashmap with key info (e.g., `key`, `modifiers`).
+
+### `console::write`
+
+```kiwi
+console::write(msg: string = "")
+```
+
+Writes a message to the console without a trailing newline.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | The message to write. |
+
+### `console::writeln`
+
+```kiwi
+console::writeln(msg: string = "")
+```
+
+Writes a message to the console followed by a newline.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | The message to write. |
+
+### `console::writeline`
+
+```kiwi
+console::writeline(msg: string = "")
+```
+
+Writes a message to the console followed by a newline.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `""` | The message to write. |

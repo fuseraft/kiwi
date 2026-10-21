@@ -1,191 +1,137 @@
-# `stopwatch`
+# stopwatch
 
-The `stopwatch` package provides a simple, ergonomic `Stopwatch` struct for measuring elapsed time. It wraps `time::ticks()` and `time::ticksms()` so you never have to capture a start tick manually.
+> Measure elapsed time with start, stop, reset and laps.
 
----
-
-## Quick Start
+The `stopwatch` package provides `Stopwatch`, a timer you can start, stop, reset and lap.
 
 ```kiwi
-import "stopwatch"
+watch = stopwatch::start()      # create and start in one step
 
+task::sleep(20)
+first = watch.lap()             # milliseconds since the start
+task::sleep(10)
+watch.lap()
+watch.stop()
+
+println watch.laps().size()     # 2
+println watch.elapsed_ms() >= 30   # true
+println watch.to_string()       # e.g. 30.61ms
+```
+
+| Method | Does |
+| :-- | :-- |
+| `Stopwatch.new()` | Creates a stopped stopwatch. `stopwatch::start()` creates a running one. |
+| `start()`, `stop()` | Starts timing from zero, or freezes the elapsed time. |
+| `reset()` | Clears the elapsed time and laps. |
+| `elapsed_ms()` | The elapsed time in milliseconds. |
+| `lap()` | Records and returns the time of the current lap. |
+| `laps()` | The recorded lap times. |
+| `to_string()` | The elapsed time formatted for display. |
+
+For timing code over many runs with statistics, use [`bench`](bench.md). For raw timestamps, see [`time::ticks`](time.md).
+
+## Functions
+
+### `stopwatch::new`
+
+```kiwi
+stopwatch::new(): Stopwatch
+```
+
+Creates a new, unstarted Stopwatch.
+
+**Returns** `Stopwatch` — A new Stopwatch instance.
+
+### `stopwatch::start`
+
+```kiwi
+stopwatch::start(): Stopwatch
+```
+
+Creates a new Stopwatch and immediately starts it.
+
+**Returns** `Stopwatch` — A running Stopwatch instance.
+
+## `Stopwatch` struct
+
+A stopwatch struct for measuring elapsed time.
+
+```kiwi
 sw = stopwatch::start()
-
-# ... code to measure ...
-
-println sw.elapsed_ms()   # e.g. 42.317ms (live, while running)
+# ... code to time ...
+println sw.elapsed_ms()   # e.g. 42.3
 
 sw.stop()
 println sw.elapsed_ms()   # frozen at stop time
-```
-
----
-
-## Package Functions
-
-### `stopwatch::new()`
-Creates a new, unstarted `Stopwatch`.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `Stopwatch` | An idle stopwatch. Call `.start()` when ready. |
-
----
-
-### `stopwatch::start()`
-Creates a new `Stopwatch` and immediately starts it.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `Stopwatch` | A running stopwatch. |
-
----
-
-## `Stopwatch` Methods
-
-### `.start()`
-Starts (or restarts) the stopwatch. Clears any recorded laps.
-
-**Returns** _None_
-
----
-
-### `.stop()`
-Stops the stopwatch, freezing the elapsed time. Has no effect if already stopped.
-
-**Returns** _None_
-
----
-
-### `.reset()`
-Resets the stopwatch to its initial idle state (clears elapsed time and laps).
-
-**Returns** _None_
-
----
-
-### `.elapsed_ms()`
-Returns the elapsed time in milliseconds.
-
-- While **running**: returns live time since `.start()`.
-- While **stopped**: returns the frozen elapsed time at the moment `.stop()` was called.
-- Before `.start()` is called: returns `0.0`.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `float` | Elapsed milliseconds. |
-
----
-
-### `.lap()`
-Records a lap and returns the duration of that lap in milliseconds. Each lap is measured from the end of the previous lap (or from `.start()` for the first lap). Has no effect and returns `0.0` if the stopwatch is not running.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `float` | Duration of the lap in milliseconds. |
-
----
-
-### `.laps()`
-Returns a list of all recorded lap durations in milliseconds.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | List of `float` lap durations, in order. |
-
----
-
-### `.to_string()`
-Returns the current elapsed time as a formatted string (e.g. `"42.317ms"`), rounded to 3 decimal places.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | Formatted elapsed time. |
-
----
-
-## Examples
-
-### Basic elapsed time
-
-```kiwi
-import "stopwatch"
-
-sw = stopwatch::start()
-
-total = 0
-for i in [1 to 100000] do
-  total += i
-end
-
-println "Sum: ${total}"
-println "Elapsed: ${sw.elapsed_ms()}ms"
-```
-
----
-
-### Start / stop / reset
-
-```kiwi
-import "stopwatch"
-
-sw = stopwatch::new()
-sw.start()
-
-# ... phase one ...
-
-sw.stop()
-println "Phase one: ${sw.elapsed_ms()}ms"
 
 sw.reset()
 sw.start()
-
-# ... phase two ...
-
-sw.stop()
-println "Phase two: ${sw.elapsed_ms()}ms"
+lap1 = sw.lap()
+# ... more code ...
+lap2 = sw.lap()
+println sw.laps()         # [lap1_ms, lap2_ms]
 ```
 
----
-
-### Lap timing
+### `.start`
 
 ```kiwi
-import "stopwatch"
-
-sw = stopwatch::start()
-
-repeat 3 do
-  # ... work ...
-  println "Lap: ${sw.lap()}ms"
-end
-
-sw.stop()
-println "Total: ${sw.elapsed_ms()}ms"
-println "All laps: ${sw.laps()}"
+start()
 ```
 
----
+Starts (or restarts) the stopwatch, clearing any previous laps.
 
-### Using `to_string()`
+### `.stop`
 
 ```kiwi
-import "stopwatch"
-
-sw = stopwatch::start()
-# ... work ...
-println "Done in ${sw.to_string()}"
-# => Done in 7.412ms
+stop()
 ```
+
+Stops the stopwatch, freezing the elapsed time.
+
+### `.reset`
+
+```kiwi
+reset()
+```
+
+Resets the stopwatch to its initial state.
+
+### `.elapsed_ms`
+
+```kiwi
+elapsed_ms(): float
+```
+
+Returns elapsed time in milliseconds. If running, returns time since start. If stopped, returns frozen elapsed time.
+
+**Returns** `float` — Elapsed milliseconds.
+
+### `.lap`
+
+```kiwi
+lap(): float
+```
+
+Records a lap and returns the duration of that lap in milliseconds. Each lap is measured from the previous lap (or from start for the first lap).
+
+**Returns** `float` — Lap duration in milliseconds.
+
+### `.laps`
+
+```kiwi
+laps(): list
+```
+
+Returns a list of all recorded lap durations in milliseconds.
+
+**Returns** `list` — List of float lap durations.
+
+### `.to_string`
+
+```kiwi
+to_string(): string
+```
+
+Returns a string representation of the current elapsed time.
+
+**Returns** `string` — e.g. "42.3ms"

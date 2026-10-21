@@ -1,1113 +1,789 @@
-# `faker`
+# faker
 
-The `faker` package generates realistic fake data for testing, development, and demos. Data is sourced from the [Faker Ruby gem](https://github.com/faker-ruby/faker) locale files.
+> Generate realistic fake data for tests, demos and seed files.
 
----
-
-## Quick Start
+The `faker` package generates random but realistic-looking data: names, emails, addresses, companies, text, numbers and more. Every call returns a new random value.
 
 ```kiwi
-println faker::name()         # "Delbert Feeney"
-println faker::email()        # "chet_nikolaus39@veum.net"
-println faker::address()      # "5953 Bartoletti Camp, North Desmond, PA 08818"
-println faker::company()      # "Persistent Krajcik Partners"
-println faker::sentence()     # "Alias consequatur aut perferendis sit voluptatem."
+println faker::name()       # Delbert Feeney
+println faker::email()      # chet_nikolaus39@veum.net
+println faker::address()    # 5953 Bartoletti Camp, North Desmond, PA 08818
+println faker::company()    # Persistent Krajcik Partners
+println faker::sentence()   # Alias consequatur aut perferendis sit voluptatem.
 ```
 
----
+`person()` returns a whole record, and `people(n)` a list of them, which makes seeding test data quick:
 
-## Package Functions
+```kiwi
+someone = faker::person()
+println someone.keys()   # ["name", "email", "phone", "address", "company", "job", "profession"]
 
-### Name
+for p in faker::people(3) do
+  println "${p["name"]} <${p["email"]}>"
+end
+```
 
----
+## What it generates
 
-#### `first_name()`
+| Category | Functions |
+| :-- | :-- |
+| Names | `first_name`, `last_name`, `name`, `name_with_middle`, `full_name`, `prefix`, `suffix`, `gender` |
+| Internet | `email`, `username`, `password`, `domain`, `url`, `ip`, `ipv6`, `mac_address`, `slug`, `user_agent`, `http_method`, `http_status`, `mime_type` |
+| Phone | `phone`, `phone_e164` |
+| Address | `street_number`, `street_name`, `street_address`, `secondary_address`, `city`, `state`, `state_abbr`, `zip`, `country`, `address`, `full_address`, `latitude`, `longitude` |
+| Company | `company`, `company_suffix`, `department`, `job`, `profession` |
+| Text | `word`, `words`, `sentence`, `sentences`, `paragraph`, `paragraphs`, `hashtag` |
+| Numbers | `digit`, `number`, `between`, `float_between`, `positive`, `negative`, `percentage`, `rand_bool` |
+| Color | `color`, `hex_color`, `rgb_color` |
+| Files | `filename`, `file_extension` |
+| Finance | `currency`, `currency_symbol`, `price`, `credit_card` |
+| Other | `uuid`, `language`, `person`, `people` |
+
+Word lists come from the locale files of the [Faker Ruby gem](https://github.com/faker-ruby/faker).
+
+## Functions
+
+### `faker::first_name`
+
+```kiwi
+faker::first_name()
+```
 
 Returns a random first name.
 
-**Returns**
+**Returns** `string` — A first name.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A first name. |
+### `faker::last_name`
 
----
-
-#### `last_name()`
+```kiwi
+faker::last_name()
+```
 
 Returns a random last name.
 
-**Returns**
+**Returns** `string` — A last name.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A last name. |
+### `faker::name`
 
----
-
-#### `name()`
+```kiwi
+faker::name()
+```
 
 Returns a random full name.
 
-**Returns**
+**Returns** `string` — A full name (`"First Last"`).
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A full name (`"First Last"`). |
+### `faker::name_with_middle`
 
----
-
-#### `name_with_middle()`
+```kiwi
+faker::name_with_middle()
+```
 
 Returns a random full name with a middle name.
 
-**Returns**
+**Returns** `string` — A full name with middle name (`"First Middle Last"`).
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A full name with middle name (`"First Middle Last"`). |
+### `faker::prefix`
 
----
-
-#### `prefix()`
+```kiwi
+faker::prefix()
+```
 
 Returns a random name prefix.
 
-**Returns**
+**Returns** `string` — A prefix such as `"Mr."`, `"Dr."`, etc.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A prefix such as `"Mr."`, `"Dr."`, `"Prof."`, etc. |
+### `faker::suffix`
 
----
-
-#### `suffix()`
+```kiwi
+faker::suffix()
+```
 
 Returns a random name suffix.
 
-**Returns**
+**Returns** `string` — A suffix such as `"Jr."`, `"PhD"`, etc.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A suffix such as `"Jr."`, `"PhD"`, `"Esq."`, etc. |
+### `faker::full_name`
 
----
-
-#### `full_name()`
+```kiwi
+faker::full_name()
+```
 
 Returns a random full name with prefix.
 
-**Returns**
+**Returns** `string` — A prefixed full name (`"Dr. First Last"`).
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A prefixed full name (`"Dr. First Last"`). |
+### `faker::gender`
 
----
-
-#### `gender()`
+```kiwi
+faker::gender()
+```
 
 Returns a random gender label.
 
-**Returns**
+**Returns** `string` — One of `"Male"`, `"Female"`, `"Non-binary"`, `"Prefer not to say"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | One of `"Male"`, `"Female"`, `"Non-binary"`, `"Prefer not to say"`. |
-
-**Example**
+### `faker::domain`
 
 ```kiwi
-println faker::first_name()      # "Delbert"
-println faker::last_name()       # "Feeney"
-println faker::name()            # "Delbert Feeney"
-println faker::name_with_middle() # "Delbert Chet Feeney"
-println faker::prefix()          # "Dr."
-println faker::suffix()          # "PhD"
-println faker::full_name()       # "Dr. Delbert Feeney"
-println faker::gender()          # "Male"
+faker::domain()
 ```
 
----
+Returns a random domain name.
 
-### Internet
+**Returns** `string` — A domain name such as `"larkin.io"`.
 
----
+### `faker::email`
 
-#### `domain()`
-
-Returns a random domain name built from a last name and TLD.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A domain name such as `"larkin.io"`. |
-
----
-
-#### `email()`
+```kiwi
+faker::email()
+```
 
 Returns a random email address.
 
-**Returns**
+**Returns** `string` — An email address such as `"emily.torres42@larkin.io"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | An email address such as `"chet_nikolaus39@veum.net"`. |
+### `faker::username`
 
----
-
-#### `username()`
+```kiwi
+faker::username()
+```
 
 Returns a random username.
 
-**Returns**
+**Returns** `string` — A username such as `"emily_torres234"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A username such as `"emily_torres234"`. |
+### `faker::password`
 
----
+```kiwi
+faker::password(length = 16)
+```
 
-#### `password(length = 16)`
+Returns a random password.
 
-Returns a random password string.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `length` | `integer` | `16` | The password length (default `16`). |
 
-**Parameters**
+**Returns** `string` — A random password string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `length` | The password length (default `16`). |
+### `faker::url`
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A random password. |
-
----
-
-#### `url()`
+```kiwi
+faker::url()
+```
 
 Returns a random URL.
 
-**Returns**
+**Returns** `string` — A URL such as `"https://www.larkin.io"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A URL such as `"https://www.larkin.io"`. |
+### `faker::ip`
 
----
-
-#### `ip()`
+```kiwi
+faker::ip()
+```
 
 Returns a random IPv4 address.
 
-**Returns**
+**Returns** `string` — An IPv4 address such as `"192.168.1.42"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | An IPv4 address such as `"192.168.1.42"`. |
+### `faker::ipv6`
 
----
-
-#### `ipv6()`
+```kiwi
+faker::ipv6()
+```
 
 Returns a random IPv6 address.
 
-**Returns**
+**Returns** `string` — An IPv6 address such as `"2001:0db8:85a3:0000:0000:8a2e:0370:7334"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | An IPv6 address such as `"2001:0db8:85a3:0000:0000:8a2e:0370:7334"`. |
+### `faker::mac_address`
 
----
-
-#### `mac_address()`
+```kiwi
+faker::mac_address()
+```
 
 Returns a random MAC address.
 
-**Returns**
+**Returns** `string` — A MAC address such as `"a1:b2:c3:d4:e5:f6"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A MAC address such as `"a1:b2:c3:d4:e5:f6"`. |
+### `faker::slug`
 
----
+```kiwi
+faker::slug()
+```
 
-#### `slug()`
+Returns a random URL slug.
 
-Returns a random URL slug built from three lorem words.
+**Returns** `string` — A URL slug such as `"lorem-ipsum-dolor"`.
 
-**Returns**
+### `faker::http_method`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A URL slug such as `"alias-consequatur-aut"`. |
-
----
-
-#### `http_method()`
+```kiwi
+faker::http_method()
+```
 
 Returns a random HTTP method.
 
-**Returns**
+**Returns** `string` — An HTTP method such as `"GET"` or `"POST"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | One of `"GET"`, `"POST"`, `"PUT"`, `"PATCH"`, `"DELETE"`, `"HEAD"`, `"OPTIONS"`. |
+### `faker::http_status`
 
----
-
-#### `http_status()`
+```kiwi
+faker::http_status()
+```
 
 Returns a random HTTP status code.
 
-**Returns**
+**Returns** `integer` — An HTTP status code such as `200` or `404`.
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | A status code such as `200`, `404`, or `500`. |
+### `faker::mime_type`
 
----
-
-#### `mime_type()`
+```kiwi
+faker::mime_type()
+```
 
 Returns a random MIME type.
 
-**Returns**
+**Returns** `string` — A MIME type such as `"application/json"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A MIME type such as `"application/json"`. |
-
----
-
-#### `user_agent()`
-
-Returns a random browser user agent string.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A user agent string. |
-
-**Example**
+### `faker::user_agent`
 
 ```kiwi
-println faker::email()       # "chet_nikolaus39@veum.net"
-println faker::username()    # "chet_nikolaus234"
-println faker::password()    # "xK3$mNpQ8!vLrZwA"
-println faker::password(8)   # "xK3$mNpQ"
-println faker::domain()      # "larkin.io"
-println faker::url()         # "https://www.larkin.io"
-println faker::ip()          # "192.168.1.42"
-println faker::ipv6()        # "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
-println faker::mac_address() # "a1:b2:c3:d4:e5:f6"
-println faker::slug()        # "alias-consequatur-aut"
-println faker::http_method() # "GET"
-println faker::http_status() # 200
-println faker::mime_type()   # "application/json"
+faker::user_agent()
 ```
 
----
+Returns a random user agent string.
 
-### Phone
+**Returns** `string` — A browser user agent string.
 
----
+### `faker::phone`
 
-#### `phone()`
+```kiwi
+faker::phone()
+```
 
 Returns a random US phone number in `(NXX) NXX-XXXX` format.
 
-**Returns**
+**Returns** `string` — A formatted phone number such as `"(415) 555-0123"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A formatted phone number such as `"(415) 555-0123"`. |
+### `faker::phone_e164`
 
----
-
-#### `phone_e164()`
+```kiwi
+faker::phone_e164()
+```
 
 Returns a random US phone number in E.164 format.
 
-**Returns**
+**Returns** `string` — A phone number such as `"+14155550123"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A phone number such as `"+14155550123"`. |
-
-**Example**
+### `faker::street_number`
 
 ```kiwi
-println faker::phone()       # "(914) 201-4866"
-println faker::phone_e164()  # "+19142014866"
+faker::street_number()
 ```
-
----
-
-### Address
-
----
-
-#### `street_number()`
 
 Returns a random street number.
 
-**Returns**
+**Returns** `integer` — A street number between 1 and 9999.
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | A street number between 1 and 9999. |
+### `faker::street_name`
 
----
+```kiwi
+faker::street_name()
+```
 
-#### `street_name()`
+Returns a random street name.
 
-Returns a random street name built from a last name and a USPS street suffix.
+**Returns** `string` — A street name such as `"Larkin Avenue"`.
 
-**Returns**
+### `faker::street_address`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A street name such as `"Larkin Avenue"`. |
-
----
-
-#### `street_address()`
+```kiwi
+faker::street_address()
+```
 
 Returns a random street address.
 
-**Returns**
+**Returns** `string` — A street address such as `"817 Larkin Avenue"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A street address such as `"817 Larkin Avenue"`. |
+### `faker::secondary_address`
 
----
-
-#### `secondary_address()`
+```kiwi
+faker::secondary_address()
+```
 
 Returns a random secondary address (apartment, suite, etc.).
 
-**Returns**
+**Returns** `string` — A secondary address such as `"Apt 42"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A secondary address such as `"Apt 42"`. |
+### `faker::city`
 
----
+```kiwi
+faker::city()
+```
 
-#### `city()`
+Returns a random city name.
 
-Returns a random city name, generated by combining city prefixes, first/last names, and city suffixes (matching the Ruby Faker pattern).
+**Returns** `string` — A city name such as `"North Kimberlyville"`.
 
-**Returns**
+### `faker::state`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A city name such as `"North Kimberlyville"` or `"Feeneyport"`. |
-
----
-
-#### `state()`
+```kiwi
+faker::state()
+```
 
 Returns a random US state name.
 
-**Returns**
+**Returns** `string` — A state name such as `"Colorado"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A state name such as `"Colorado"`. |
+### `faker::state_abbr`
 
----
-
-#### `state_abbr()`
+```kiwi
+faker::state_abbr()
+```
 
 Returns a random US state abbreviation.
 
-**Returns**
+**Returns** `string` — A state abbreviation such as `"CO"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A state abbreviation such as `"CO"`. |
+### `faker::zip`
 
----
+```kiwi
+faker::zip()
+```
 
-#### `zip()`
+Returns a random US ZIP code.
 
-Returns a random 5-digit US ZIP code.
+**Returns** `string` — A 5-digit ZIP code such as `"80201"`.
 
-**Returns**
+### `faker::country`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A ZIP code such as `"80201"`. |
-
----
-
-#### `country()`
+```kiwi
+faker::country()
+```
 
 Returns a random country name.
 
-**Returns**
+**Returns** `string` — A country name such as `"Germany"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A country name such as `"Germany"`. |
+### `faker::address`
 
----
+```kiwi
+faker::address()
+```
 
-#### `address()`
+Returns a random US street address with city, state, and ZIP.
 
-Returns a random US-style address with street, city, state, and ZIP.
+**Returns** `string` — An address such as `"817 Larkin Avenue, North Kimberlyville, CO 80201"`.
 
-**Returns**
+### `faker::full_address`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | An address such as `"817 Larkin Avenue, North Kimberlyville, CO 80201"`. |
-
----
-
-#### `full_address()`
+```kiwi
+faker::full_address()
+```
 
 Returns a random full address including country.
 
-**Returns**
+**Returns** `string` — A full address including country.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A full address such as `"817 Larkin Avenue, North Kimberlyville, CO 80201, Germany"`. |
+### `faker::latitude`
 
----
-
-#### `latitude()`
+```kiwi
+faker::latitude()
+```
 
 Returns a random latitude value.
 
-**Returns**
+**Returns** `float` — A latitude between -90.0 and 90.0.
 
-| Type | Description |
-| :--- | :--- |
-| `float` | A latitude between `-90.0` and `90.0`. |
+### `faker::longitude`
 
----
-
-#### `longitude()`
+```kiwi
+faker::longitude()
+```
 
 Returns a random longitude value.
 
-**Returns**
+**Returns** `float` — A longitude between -180.0 and 180.0.
 
-| Type | Description |
-| :--- | :--- |
-| `float` | A longitude between `-180.0` and `180.0`. |
-
-**Example**
+### `faker::company`
 
 ```kiwi
-println faker::street_address()   # "817 Larkin Avenue"
-println faker::secondary_address() # "Apt 42"
-println faker::city()             # "North Kimberlyville"
-println faker::state()            # "Colorado"
-println faker::state_abbr()       # "CO"
-println faker::zip()              # "80201"
-println faker::country()          # "Germany"
-println faker::address()          # "817 Larkin Avenue, North Kimberlyville, CO 80201"
-println faker::full_address()     # "817 Larkin Avenue, North Kimberlyville, CO 80201, Germany"
-println faker::latitude()         # 39.74
-println faker::longitude()        # -104.98
+faker::company()
 ```
 
----
+Returns a random company name.
 
-### Company
+**Returns** `string` — A company name such as `"Adaptive Lueilwitz Inc"`.
 
----
+### `faker::company_suffix`
 
-#### `company()`
-
-Returns a random company name built from a buzzword adjective, a last name, and a suffix.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A company name such as `"Adaptive Larkin Inc"`. |
-
----
-
-#### `company_suffix()`
+```kiwi
+faker::company_suffix()
+```
 
 Returns a random company name suffix.
 
-**Returns**
+**Returns** `string` — A suffix such as `"Inc"` or `"LLC"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A suffix such as `"Inc"`, `"LLC"`, `"Corp"`, etc. |
+### `faker::department`
 
----
-
-#### `department()`
+```kiwi
+faker::department()
+```
 
 Returns a random department name.
 
-**Returns**
+**Returns** `string` — A department such as `"Engineering"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A department such as `"Engineering"` or `"Human Resources"`. |
+### `faker::job`
 
----
+```kiwi
+faker::job()
+```
 
-#### `job()`
+Returns a random job title.
 
-Returns a random job title composed of a seniority level and a position.
+**Returns** `string` — A job title such as `"Senior Engineer"`.
 
-**Returns**
+### `faker::profession`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A job title such as `"Senior Engineer"` or `"Principal Analyst"`. |
-
----
-
-#### `profession()`
+```kiwi
+faker::profession()
+```
 
 Returns a random profession.
 
-**Returns**
+**Returns** `string` — A profession such as `"architect"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A profession such as `"architect"` or `"pharmacist"`. |
-
-**Example**
+### `faker::word`
 
 ```kiwi
-println faker::company()        # "Adaptive Larkin Inc"
-println faker::company_suffix() # "LLC"
-println faker::department()     # "Engineering"
-println faker::job()            # "Senior Engineer"
-println faker::profession()     # "architect"
+faker::word()
 ```
-
----
-
-### Lorem
-
----
-
-#### `word()`
 
 Returns a random lorem ipsum word.
 
-**Returns**
+**Returns** `string` — A word such as `"consequatur"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A word such as `"consequatur"`. |
+### `faker::words`
 
----
-
-#### `words(n = 3)`
+```kiwi
+faker::words(n = 3)
+```
 
 Returns a list of random lorem ipsum words.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `integer` | `3` | The number of words (default `3`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `n` | The number of words (default `3`). |
+**Returns** `list` — A list of word strings.
 
-**Returns**
+### `faker::sentence`
 
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of word strings. |
-
----
-
-#### `sentence(word_count = 7)`
+```kiwi
+faker::sentence(word_count = 7)
+```
 
 Returns a random lorem ipsum sentence.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `word_count` | `integer` | `7` | The number of words (default `7`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `word_count` | The number of words (default `7`). |
+**Returns** `string` — A sentence ending with `"."`.
 
-**Returns**
+### `faker::sentences`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A capitalized sentence ending with `"."`. |
-
----
-
-#### `sentences(count = 3)`
+```kiwi
+faker::sentences(count = 3)
+```
 
 Returns a list of random lorem ipsum sentences.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `count` | `integer` | `3` | The number of sentences (default `3`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `count` | The number of sentences (default `3`). |
+**Returns** `list` — A list of sentence strings.
 
-**Returns**
+### `faker::paragraph`
 
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of sentence strings. |
-
----
-
-#### `paragraph(sentence_count = 4)`
+```kiwi
+faker::paragraph(sentence_count = 4)
+```
 
 Returns a random lorem ipsum paragraph.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sentence_count` | `integer` | `4` | The number of sentences (default `4`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `sentence_count` | The number of sentences (default `4`). |
+**Returns** `string` — A paragraph of lorem ipsum text.
 
-**Returns**
+### `faker::paragraphs`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A paragraph of lorem ipsum text. |
-
----
-
-#### `paragraphs(count = 3)`
+```kiwi
+faker::paragraphs(count = 3)
+```
 
 Returns a list of random lorem ipsum paragraphs.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `count` | `integer` | `3` | The number of paragraphs (default `3`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `count` | The number of paragraphs (default `3`). |
+**Returns** `list` — A list of paragraph strings.
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of paragraph strings. |
-
-**Example**
+### `faker::digit`
 
 ```kiwi
-println faker::word()          # "consequatur"
-println faker::words(5)        # ["alias", "aut", "dolorem", "sit", "velit"]
-println faker::sentence()      # "Alias consequatur aut perferendis sit voluptatem accusantium."
-println faker::sentence(4)     # "Alias consequatur aut perferendis."
-println faker::paragraph()     # "Alias consequatur aut... Doloremque aperiam eaque..."
-println faker::paragraph(2)    # Two-sentence paragraph.
+faker::digit()
 ```
-
----
-
-### Number
-
----
-
-#### `digit()`
 
 Returns a random single digit.
 
-**Returns**
+**Returns** `integer` — An integer from 0 to 9.
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | An integer from `0` to `9`. |
+### `faker::number`
 
----
-
-#### `number(digits = 10)`
+```kiwi
+faker::number(digits = 10)
+```
 
 Returns a random integer with a given number of digits.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `digits` | `integer` | `10` | The number of digits (default `10`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `digits` | The number of digits (default `10`). |
+**Returns** `integer` — A random integer.
 
-**Returns**
+### `faker::between`
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | A random integer. |
+```kiwi
+faker::between(min, max)
+```
 
----
+Returns a random integer between min and max (inclusive).
 
-#### `between(min, max)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `min` | `integer` |  | The lower bound. |
+| `max` | `integer` |  | The upper bound. |
 
-Returns a random integer between `min` and `max` (inclusive).
+**Returns** `integer` — A random integer in `[min, max]`.
 
-**Parameters**
+### `faker::float_between`
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `min` | The lower bound. |
-| `integer` | `max` | The upper bound. |
+```kiwi
+faker::float_between(min = 0.0, max = 1.0)
+```
 
-**Returns**
+Returns a random float between min and max.
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | A random integer in `[min, max]`. |
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `min` | `float` | `0.0` | The lower bound (default `0.0`). |
+| `max` | `float` | `1.0` | The upper bound (default `1.0`). |
 
----
+**Returns** `float` — A random float in `[min, max]`.
 
-#### `float_between(min = 0.0, max = 1.0)`
+### `faker::positive`
 
-Returns a random float between `min` and `max`.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `float` | `min` | The lower bound (default `0.0`). |
-| `float` | `max` | The upper bound (default `1.0`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `float` | A random float in `[min, max]`. |
-
----
-
-#### `positive(max = 1000)`
+```kiwi
+faker::positive(max = 1000)
+```
 
 Returns a random positive integer.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `max` | `integer` | `1000` | The upper bound (default `1000`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `max` | The upper bound (default `1000`). |
+**Returns** `integer` — A positive integer in `[1, max]`.
 
-**Returns**
+### `faker::negative`
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | A positive integer in `[1, max]`. |
-
----
-
-#### `negative(min = -1000)`
+```kiwi
+faker::negative(min = -1000)
+```
 
 Returns a random negative integer.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `min` | `integer` | `-1000` | The lower bound (default `-1000`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `min` | The lower bound (default `-1000`). |
+**Returns** `integer` — A negative integer in `[min, -1]`.
 
-**Returns**
+### `faker::percentage`
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | A negative integer in `[min, -1]`. |
-
----
-
-#### `percentage()`
+```kiwi
+faker::percentage()
+```
 
 Returns a random percentage value.
 
-**Returns**
+**Returns** `integer` — An integer from 0 to 100.
 
-| Type | Description |
-| :--- | :--- |
-| `integer` | An integer from `0` to `100`. |
+### `faker::rand_bool`
 
----
-
-#### `rand_bool()`
+```kiwi
+faker::rand_bool()
+```
 
 Returns a random boolean value.
 
-**Returns**
+**Returns** `boolean` — `true` or `false`.
 
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` or `false`. |
-
-**Example**
+### `faker::color`
 
 ```kiwi
-println faker::digit()            # 7
-println faker::number()           # 4823901654
-println faker::number(4)          # 3821
-println faker::between(1, 100)    # 42
-println faker::float_between()    # 0.7312...
-println faker::float_between(1.0, 9.99) # 5.32
-println faker::positive()         # 662
-println faker::positive(50)       # 37
-println faker::negative()         # -340
-println faker::negative(-10)      # -7
-println faker::percentage()       # 83
-println faker::rand_bool()        # true
+faker::color()
 ```
-
----
-
-### Color
-
----
-
-#### `color()`
 
 Returns a random color name.
 
-**Returns**
+**Returns** `string` — A color name such as `"crimson"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A color name such as `"crimson"` or `"cerulean"`. |
+### `faker::hex_color`
 
----
-
-#### `hex_color()`
+```kiwi
+faker::hex_color()
+```
 
 Returns a random hex color code.
 
-**Returns**
+**Returns** `string` — A hex color such as `"#a1b2c3"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A hex color such as `"#a1b2c3"`. |
+### `faker::rgb_color`
 
----
-
-#### `rgb_color()`
+```kiwi
+faker::rgb_color()
+```
 
 Returns a random RGB color string.
 
-**Returns**
+**Returns** `string` — An RGB color such as `"rgb(100, 200, 50)"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | An RGB color such as `"rgb(100, 200, 50)"`. |
-
-**Example**
+### `faker::file_extension`
 
 ```kiwi
-println faker::color()      # "cerulean"
-println faker::hex_color()  # "#5a8f14"
-println faker::rgb_color()  # "rgb(197, 74, 56)"
+faker::file_extension()
 ```
-
----
-
-### File
-
----
-
-#### `file_extension()`
 
 Returns a random file extension.
 
-**Returns**
+**Returns** `string` — A file extension such as `"pdf"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A file extension such as `"pdf"` or `"kiwi"`. |
-
----
-
-#### `filename()`
-
-Returns a random filename composed of a lorem word, 4 random digits, and an extension.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A filename such as `"alias_4821.pdf"`. |
-
-**Example**
+### `faker::filename`
 
 ```kiwi
-println faker::file_extension() # "pdf"
-println faker::filename()       # "alias_4821.pdf"
+faker::filename()
 ```
 
----
+Returns a random filename.
 
-### Finance
+**Returns** `string` — A filename such as `"alias_4821.pdf"`.
 
----
+### `faker::currency`
 
-#### `currency()`
+```kiwi
+faker::currency()
+```
 
 Returns a random currency code.
 
-**Returns**
+**Returns** `string` — A currency code such as `"USD"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A currency code such as `"USD"`. |
+### `faker::currency_symbol`
 
----
-
-#### `currency_symbol()`
+```kiwi
+faker::currency_symbol()
+```
 
 Returns a random currency symbol.
 
-**Returns**
+**Returns** `string` — A currency symbol such as `"$"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A currency symbol such as `"$"`. |
-
----
-
-#### `price(min = 1.0, max = 999.99)`
-
-Returns a random price rounded to 2 decimal places.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `float` | `min` | The minimum price (default `1.0`). |
-| `float` | `max` | The maximum price (default `999.99`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `float` | A price such as `42.95`. |
-
----
-
-#### `credit_card()`
-
-Returns a random 16-digit credit card number formatted in groups of 4.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A card number such as `"4532 1234 5678 9012"`. |
-
-**Example**
+### `faker::price`
 
 ```kiwi
-println faker::currency()        # "USD"
-println faker::currency_symbol() # "$"
-println faker::price()           # 707.44
-println faker::price(5.0, 50.0)  # 23.17
-println faker::credit_card()     # "4267 4412 9674 8241"
+faker::price(min = 1.0, max = 999.99)
 ```
 
----
+Returns a random price value rounded to 2 decimal places.
 
-### Miscellaneous
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `min` | `float` | `1.0` | The minimum price (default `1.0`). |
+| `max` | `float` | `999.99` | The maximum price (default `999.99`). |
 
----
+**Returns** `float` — A price such as `42.95`.
 
-#### `uuid()`
+### `faker::credit_card`
+
+```kiwi
+faker::credit_card()
+```
+
+Returns a random credit card number (16 digits, formatted in groups of 4).
+
+**Returns** `string` — A formatted card number such as `"4532 1234 5678 9012"`.
+
+### `faker::uuid`
+
+```kiwi
+faker::uuid()
+```
 
 Returns a random UUID (version 4).
 
-**Returns**
+**Returns** `string` — A UUID such as `"550e8400-e29b-41d4-a716-446655440000"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A UUID such as `"0f07115e-7633-48c2-8a0c-a24a8e816df2"`. |
+### `faker::language`
 
----
-
-#### `language()`
+```kiwi
+faker::language()
+```
 
 Returns a random programming language name.
 
-**Returns**
+**Returns** `string` — A language name such as `"Rust"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A language name such as `"Rust"` or `"Kiwi"`. |
+### `faker::hashtag`
 
----
-
-#### `hashtag()`
+```kiwi
+faker::hashtag()
+```
 
 Returns a random lorem ipsum hashtag.
 
-**Returns**
+**Returns** `string` — A hashtag such as `"#alias"`.
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A hashtag such as `"#alias"`. |
+### `faker::person`
 
----
-
-#### `person()`
+```kiwi
+faker::person()
+```
 
 Generates a hashmap of fake person data.
 
-**Returns**
+**Returns** `hashmap` — A hashmap with `name`, `email`, `phone`, `address`, `company`, `job`, and `profession` keys.
 
-| Type | Description |
-| :--- | :--- |
-| `hashmap` | A hashmap with `name`, `email`, `phone`, `address`, `company`, `job`, and `profession` keys. |
+### `faker::people`
 
----
-
-#### `people(count = 10)`
+```kiwi
+faker::people(count = 10)
+```
 
 Generates a list of fake person hashmaps.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `count` | `integer` | `10` | The number of people to generate (default `10`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `count` | The number of people to generate (default `10`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of person hashmaps. |
-
-**Example**
-
-```kiwi
-println faker::uuid()     # "0f07115e-7633-48c2-8a0c-a24a8e816df2"
-println faker::language() # "Kiwi"
-println faker::hashtag()  # "#alias"
-
-p = faker::person()
-println p["name"]    # "Delbert Feeney"
-println p["email"]   # "chet_nikolaus39@veum.net"
-println p["phone"]   # "(914) 201-4866"
-println p["address"] # "5953 Bartoletti Camp, North Desmond, PA 08818"
-println p["company"] # "Persistent Krajcik Partners"
-println p["job"]     # "Future Specialist"
-
-ppl = faker::people(3)
-for person in ppl do
-  n = person["name"]
-  e = person["email"]
-  println "${n} <${e}>"
-end
-# Antwan Boyle <craig_goldner70@mclaughlin.org>
-# Aubrey Nolan <blair.heller11@hartmann.net>
-# Cornell Howe <beau_dooley96@reichert.org>
-```
+**Returns** `list` — A list of person hashmaps.

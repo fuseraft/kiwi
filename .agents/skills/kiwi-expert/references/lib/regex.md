@@ -1,325 +1,194 @@
-# `regex`
+# regex
 
-The `regex` package provides functions for working with regular expressions. All functions follow a **pattern-first** convention.
+> Regular expression matching, searching, splitting and replacing.
 
-The underlying engine is .NET's `System.Text.RegularExpressions`, which uses the [.NET regex syntax](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference).
+The `regex` package wraps the .NET regular expression engine. Every function takes the **pattern first**, then the text. Write patterns as single-quoted raw strings so backslashes reach the engine unchanged.
 
-The package also exposes three new string methods that can be called directly on any string value:
-[`named_captures`](#named_captures), [`scan_groups`](#scan_groups), [`regex_escape`](#regex_escape).
+```kiwi
+println regex::test('^\d{3}-\d{4}$', "555-1234")                # true
+println regex::find('\d+', "order 66 of 99")                     # 66
+println regex::scan('\d+', "1 22 333")                           # ["1", "22", "333"]
+println regex::match('(\w+)@(\w+)\.com', "mail ada@example.com") # ["ada", "example"]
+println regex::replace('\s+', "too   many    spaces", " ")       # too many spaces
+println regex::split('[,;]\s*', "a, b;c")                        # ["a", "b", "c"]
+```
 
----
+## Groups
 
-## Package Functions
+`match` returns the capture groups of the first match. `scan_groups` returns them for every match, and `named_captures` returns named groups as a hashmap:
 
-### `test(pattern, str)`
+```kiwi
+println regex::scan_groups('(\w)=(\d)', "a=1 b=2")
+# [["a", "1"], ["b", "2"]]
+
+println regex::named_captures('(?<user>\w+)@(?<host>[\w.]+)', "ada@example.com")
+# {"user": "ada", "host": "example.com"}
+```
+
+In a replacement, `$1`, `$2` and so on refer to groups:
+
+```kiwi
+println regex::replace('(\d{4})-(\d{2})-(\d{2})', "2024-06-15", "$3/$2/$1")   # 15/06/2024
+```
+
+## Patterns
+
+Patterns use [.NET regular expression syntax](https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference). Inline options such as `(?i)` for case-insensitive matching work:
+
+```kiwi
+println regex::test('(?i)^kiwi$', "KIWI")   # true
+```
+
+To match text literally, escape it first:
+
+```kiwi
+println regex::escape("1+1=2?")   # 1\+1=2\?
+```
+
+## As string methods
+
+Strings have the same operations as [built-in methods](../reference/builtin-methods.md#regular-expressions), with the text first: `text.matches(pattern)`, `text.find(pattern)`, `text.scan(pattern)`, `text.rreplace(pattern, replacement)`, `text.rsplit(pattern)` and so on.
+
+## Functions
+
+### `regex::test`
+
+```kiwi
+regex::test(pattern: string, str: string): boolean
+```
 
 Returns `true` if the pattern matches anywhere in the string.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern. |
+| `str` | `string` |  | The string to test. |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern. |
-| `string` | `str` | The string to test. |
+**Returns** `boolean` — `true` if a match is found, `false` otherwise.
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if a match is found. |
-
-**Example**
+### `regex::find`
 
 ```kiwi
-import "regex"
-
-println regex::test('\d+', "order 42")     # true
-println regex::test('\d+', "no numbers")   # false
-println regex::test('^hello', "hello!")    # true
+regex::find(pattern: string, str: string): string
 ```
 
----
+Returns the first substring matching the pattern, or `""` if there is no match.
 
-### `find(pattern, str)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern. |
+| `str` | `string` |  | The string to search. |
 
-Returns the first matching substring, or `""` if there is no match.
+**Returns** `string` — The first matching substring, or an empty string.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern. |
-| `string` | `str` | The string to search. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The first match, or an empty string. |
-
-**Example**
+### `regex::match`
 
 ```kiwi
-import "regex"
-
-println regex::find('\d+', "price: 42 usd")   # 42
-println regex::find('\d+', "no numbers")      # (empty string)
+regex::match(pattern: string, str: string): list
 ```
 
----
+Returns the capture groups from the first match as a list. Group 0 (the full match) is excluded — only named or positional capture groups are returned. Returns an empty list if there is no match or no capture groups.
 
-### `match(pattern, str)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern. |
+| `str` | `string` |  | The string to search. |
 
-Returns the positional capture groups from the first match as a list of strings. The full match (group 0) is excluded — only capture groups `(...)` are returned. Returns an empty list if there is no match or no groups.
+**Returns** `list` — A list of capture group strings from the first match.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern. |
-| `string` | `str` | The string to search. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | Capture group strings from the first match. |
-
-**Example**
+### `regex::named_captures`
 
 ```kiwi
-import "regex"
-
-groups = regex::match('(\d{4})-(\d{2})-(\d{2})', "date: 2025-03-15")
-println groups[0]   # 2025
-println groups[1]   # 03
-println groups[2]   # 15
+regex::named_captures(pattern: string, str: string): hashmap
 ```
 
----
+Returns a hashmap of named capture groups from the first match. Returns an empty hashmap if there is no match or the pattern has no named groups.
 
-### `named_captures(pattern, str)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern (use `(?<name>...)` for named groups). |
+| `str` | `string` |  | The string to search. |
 
-Returns a hashmap of named capture groups from the first match. Use `(?<name>...)` syntax in the pattern to create named groups. Returns an empty hashmap if there is no match or the pattern has no named groups.
+**Returns** `hashmap` — A hashmap mapping group names to their matched values.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern with named groups. |
-| `string` | `str` | The string to search. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `hashmap` | A hashmap mapping group names to matched values. |
-
-**Example**
+### `regex::scan`
 
 ```kiwi
-import "regex"
-
-m = regex::named_captures('(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})', "2025-03-15")
-println m["year"]    # 2025
-println m["month"]   # 03
-println m["day"]     # 15
+regex::scan(pattern: string, str: string): list
 ```
 
-Also callable as a string method:
+Returns all non-overlapping matches as a list of strings.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern. |
+| `str` | `string` |  | The string to search. |
+
+**Returns** `list` — A list of matched substrings.
+
+### `regex::scan_groups`
 
 ```kiwi
-m = "2025-03-15".named_captures('(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})')
+regex::scan_groups(pattern: string, str: string): list
 ```
-
----
-
-### `scan(pattern, str)`
-
-Returns all non-overlapping full matches as a list of strings.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern. |
-| `string` | `str` | The string to search. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | All matching substrings in order. |
-
-**Example**
-
-```kiwi
-import "regex"
-
-nums = regex::scan('\d+', "a1 b22 c333")
-println nums   # ["1", "22", "333"]
-
-words = regex::scan('[A-Z][a-z]+', "Hello World Foo")
-println words  # ["Hello", "World", "Foo"]
-```
-
----
-
-### `scan_groups(pattern, str)`
 
 Returns the capture groups for every match in the string. Each item in the returned list is itself a list of capture group strings for one match (group 0 excluded, consistent with `regex::match`).
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern. |
+| `str` | `string` |  | The string to search. |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern. |
-| `string` | `str` | The string to search. |
+**Returns** `list` — A list of lists of capture group strings, one inner list per match.
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of lists, one inner list of capture groups per match. |
-
-**Example**
+### `regex::replace`
 
 ```kiwi
-import "regex"
-
-pairs = regex::scan_groups('(\w+)=(\w+)', "x=1 y=2 z=3")
-
-for p in pairs do
-  println p[0] + " -> " + p[1]
-end
-# x -> 1
-# y -> 2
-# z -> 3
+regex::replace(pattern: string, str: string, replacement: string): string
 ```
 
-Also callable as a string method:
+Replaces every match of the pattern with the replacement string. Supports backreferences in the replacement (e.g. `$1`, `${name}`).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern. |
+| `str` | `string` |  | The string to modify. |
+| `replacement` | `string` |  | The replacement text. |
+
+**Returns** `string` — A new string with all matches replaced.
+
+### `regex::split`
 
 ```kiwi
-pairs = "x=1 y=2".scan_groups('(\w+)=(\w+)')
+regex::split(pattern: string, str: string, limit: integer = -1): list
 ```
 
----
+Splits the string around matches of the pattern.
 
-### `replace(pattern, str, replacement)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `pattern` | `string` |  | The regular expression pattern. |
+| `str` | `string` |  | The string to split. |
+| `limit` | `integer` | `-1` | Maximum number of substrings to return. Use `-1` for no limit (default). |
 
-Replaces every match of the pattern with the replacement string. Supports .NET backreferences in the replacement (`$1`, `$2`, `${name}`).
+**Returns** `list` — A list of substrings.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern. |
-| `string` | `str` | The string to modify. |
-| `string` | `replacement` | The replacement text. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A new string with all matches replaced. |
-
-**Example**
+### `regex::escape`
 
 ```kiwi
-import "regex"
-
-println regex::replace('\d+', "a1 b2 c3", "N")          # a_N_ b_N_ c_N_
-println regex::replace('\s+', "too  many   spaces", " ") # too many spaces
-
-# backreference: swap first and last name
-println regex::replace('(\w+)\s(\w+)', "John Smith", '$2, $1')
-# Smith, John
+regex::escape(str: string): string
 ```
 
----
+Escapes all regex special characters in a string so it can be used as a literal pattern.
 
-### `split(pattern, str, limit)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `str` | `string` |  | The string to escape. |
 
-Splits the string around matches of the pattern. Empty strings at the ends of the result are removed when no limit is given.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `pattern` | The regular expression pattern. |
-| `string` | `str` | The string to split. |
-| `integer` | `limit` | Maximum number of substrings to return. Defaults to `-1` (no limit). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of substrings. |
-
-**Example**
+**Returns** `string` — The escaped string.
 
 ```kiwi
-import "regex"
-
-parts = regex::split('\s+', "one  two   three")
-println parts   # ["one", "two", "three"]
-
-# limit the number of splits
-head = regex::split(',\s*', "a, b, c, d", 2)
-println head   # ["a", "b, c, d"]
+pattern = regex::escape("hello.world")
+println regex::test(pattern, "hello.world")   # true
+println regex::test(pattern, "helloxworld")   # false
 ```
-
----
-
-### `escape(str)`
-
-Escapes all regex special characters in a string so it can be used as a literal match pattern.
-
-Special characters escaped: `\ . ^ $ * + ? ( ) [ ] { } |`
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `str` | The string to escape. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The escaped string, safe to use as a literal regex pattern. |
-
-**Example**
-
-```kiwi
-import "regex"
-
-pattern = regex::escape("hello.world+foo?")
-println regex::test(pattern, "hello.world+foo?")   # true
-println regex::test(pattern, "helloxworldyfooZ")   # false
-```
-
-Also callable as a string method:
-
-```kiwi
-pattern = "3.14".regex_escape()   # "3\.14"
-```
-
----
-
-## String Methods
-
-The following methods are available on any `string` value directly:
-
-| Method | Equivalent package call |
-| :--- | :--- |
-| `str.find(pattern)` | `regex::find(pattern, str)` |
-| `str.match(pattern)` | `regex::match(pattern, str)` |
-| `str.matches(pattern)` | full-string match test |
-| `str.matches_all(pattern)` | test entire string is covered by matches |
-| `str.scan(pattern)` | `regex::scan(pattern, str)` |
-| `str.scan_groups(pattern)` | `regex::scan_groups(pattern, str)` |
-| `str.named_captures(pattern)` | `regex::named_captures(pattern, str)` |
-| `str.rreplace(pattern, repl)` | `regex::replace(pattern, str, repl)` |
-| `str.rsplit(pattern, limit?)` | `regex::split(pattern, str, limit?)` |
-| `str.regex_escape()` | `regex::escape(str)` |

@@ -73,7 +73,7 @@ zest install owner/repo
 
 ## Documentation
 
-The [docs](docs/README.md) provide comprehensive information on language features, usage, and the [standard library](docs/lib/README.md).
+The [documentation site](https://fuseraft.ai/kiwi/) covers the language, the tools, and the [standard library](https://fuseraft.ai/kiwi/stdlib/). Its source lives in [`docs/`](docs/); see [`docs/README.md`](docs/README.md) to build it locally.
 
 There are also some [examples](/examples/) you can run!
 
