@@ -1,0 +1,1051 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-g5ptsecz"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Bytecode VM | Kiwi</title><link rel="canonical" href="https://fuseraft.ai/kiwi/internals/vm/"/><link rel="sitemap" href="/kiwi/sitemap-index.xml"/><link rel="shortcut icon" href="/kiwi/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.4.1"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="Bytecode VM"/><meta property="og:type" content="article"/><meta property="og:url" content="https://fuseraft.ai/kiwi/internals/vm/"/><meta property="og:locale" content="en"/><meta property="og:description" content="How the Kiwi interpreter compiles and runs code, and the VM instruction set."/><meta property="og:site_name" content="Kiwi"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="How the Kiwi interpreter compiles and runs code, and the VM instruction set."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/kiwi/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/kiwi/_astro/common.Dzj9lC13.css"><style>@layer starlight.components{svg:where(.astro-hkc32dio){color:var(--sl-icon-color);font-size:var(--sl-icon-size,1em);width:1em;height:1em;overflow:visible}}
+</style><script type="module" src="/kiwi/_astro/page.cNngjUgL.js"></script></head><body class="astro-g5ptsecz"><a class="sl-skip-link astro-qb7clj6f" href="#_top">Skip to content</a><div class="page sl-flex astro-yntsjkba"><header class="header astro-yntsjkba"><div class="header astro-by6fddyj"><div class="title-wrapper sl-flex astro-by6fddyj"><a href="/kiwi/" class="site-title sl-flex astro-6rvad3va"><img class="astro-6rvad3va" alt src="/kiwi/_astro/logo.DJfiJ099.svg" width="400" height="400"><span class="astro-6rvad3va" translate="no">Kiwi</span></a></div><div class="sl-flex print:hidden astro-by6fddyj"><site-search class="astro-by6fddyj astro-b5kgnn7o" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-b5kgnn7o"><svg aria-hidden="true" class="astro-b5kgnn7o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-b5kgnn7o" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-b5kgnn7o" style="display: none;"><kbd class="astro-b5kgnn7o">Ctrl</kbd><kbd class="astro-b5kgnn7o">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-b5kgnn7o"><div class="dialog-frame sl-flex astro-b5kgnn7o"><button data-close-modal class="sl-flex md:sl-hidden astro-b5kgnn7o">Cancel</button><div class="search-container astro-b5kgnn7o"><div id="starlight__search" class="astro-b5kgnn7o"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/kiwi/_astro/Search.astro_astro_type_script_index_0_lang.Dpg5QQYx.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-by6fddyj"><div class="sl-flex social-icons astro-by6fddyj"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-yntsjkba" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-r2osgdlg"><svg aria-hidden="true" class="open-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-r2osgdlg">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-yntsjkba"><div class="sidebar-content sl-flex astro-yntsjkba"><sl-sidebar-state-persist data-hash="02fcnv0" class="astro-ipdry5cl"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-rmhv4bp6"><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Getting Started</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/introduction/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Introduction</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/installation/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Installation</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/tour/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">A Tour of Kiwi</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Language</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/language/syntax/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Syntax Basics</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/variables/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Variables</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/types/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Types</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/strings/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Strings</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lists/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lists and Ranges</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/hashmaps/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Hashmaps</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/control-flow/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Control Flow</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/loops/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Loops</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Functions</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lambdas/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lambdas and Closures</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/scoping/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Scoping</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/type-hints/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Type Hints</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/errors/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Error Handling</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/structs/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Structs</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operator-overloading/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operator Overloading</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/enums/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Enums</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/packages/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Packages and Modules</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/generators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Generators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/decorators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Decorators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/events/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Events</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Tools</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/tools/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">The kiwi Command</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/repl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">REPL</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/debugger/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Debugger (kdb)</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/testing/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Testing</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Reference</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/reference/keywords/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Keywords</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/builtin-methods/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Built-in Methods</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/global-functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Global Functions</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Standard Library</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="4"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Overview</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/bench/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">bench</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">cli</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/collections/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">collections</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/compress/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">compress</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/console/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">console</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/crypto/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">crypto</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/csv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">csv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/curl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">curl</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/date/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">date</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/dotenv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">dotenv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/encode/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">encode</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/env/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">env</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/error/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">error</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/faker/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">faker</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fio/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fio</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fmt/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fmt</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/hashable/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">hashable</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/http/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">http</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/httpserver/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">httpserver</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ipc/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ipc</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/iter/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">iter</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/json/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">json</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/list/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">list</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/log/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">log</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/math/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">math</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/path/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">path</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/pipeline/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">pipeline</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/protobuf/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">protobuf</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/reflector/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">reflector</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/regex/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">regex</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/signal/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">signal</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/smtp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">smtp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/socket/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">socket</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sqlite/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sqlite</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stat/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stat</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/std/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">std</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stdin/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stdin</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stopwatch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stopwatch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/string/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">string</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sys/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sys</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/table/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">table</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/task/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">task</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/template/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">template</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/tester/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">tester</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/text/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">text</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/time/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">time</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/udp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">udp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/watch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">watch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/xml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">xml</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/yaml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">yaml</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Internals</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="5"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/internals/vm/" aria-current="page" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Bytecode VM</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-p4azlveh"><div class="social-icons astro-p4azlveh"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-yntsjkba"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-lrzkfocr"><aside class="right-sidebar-container print:hidden astro-lrzkfocr"><div class="right-sidebar astro-lrzkfocr"><div class="lg:sl-hidden astro-qok35upx"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-66cqc7ze"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-66cqc7ze"><details id="starlight__mobile-toc" class="astro-66cqc7ze"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-66cqc7ze"><span class="toggle sl-flex astro-66cqc7ze">On this page<svg aria-hidden="true" class="caret astro-66cqc7ze astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-66cqc7ze"></span></summary><div class="dropdown astro-66cqc7ze"><ul class="isMobile astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#pipeline" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Pipeline</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#chunks" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Chunks</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#name-resolution" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Name resolution</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#execution" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Execution</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#closures" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Closures</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#errors" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Errors</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#disassembly" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Disassembly</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#instruction-set" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Instruction set</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#constants" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Constants</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#local-variables-indexed-slots" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Local Variables (indexed slots)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#global-variables-dictionary" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Global Variables (dictionary)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#upvalues-closures" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Upvalues (closures)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#stack-manipulation" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Stack Manipulation</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#arithmetic" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Arithmetic</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#bitwise" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Bitwise</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#comparison" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Comparison</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#logical" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Logical</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#null-coalescing" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Null Coalescing</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#string-concat" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">String Concat</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#control-flow" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Control Flow</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#function-calls" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Function Calls</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#function--closure-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Function / Closure Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#collections" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Collections</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#indexing" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Indexing</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#member-access" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Member Access</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#self--static-self" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Self / Static Self</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#struct-instantiation" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Struct Instantiation</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#string-interpolation" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">String Interpolation</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#print" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Print</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#loop-iteration" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Loop Iteration</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#loop-control" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Loop Control</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#generator" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Generator</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#splat-spread-arguments" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Splat (spread arguments)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#error-handling" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Error Handling</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#type-introspection" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Type Introspection</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#event-bus" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Event Bus</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#struct-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Struct Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#package-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Package Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#enum-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Enum Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#builtin-call" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Builtin call</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#export--import--require" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Export / Import / Require</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#eval--include" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Eval / Include</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#exit" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Exit</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#misc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Misc</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#adding-a-language-feature" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Adding a language feature</span></a></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/kiwi/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-qok35upx"><div class="sl-container astro-qok35upx"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#pipeline" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Pipeline</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#chunks" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Chunks</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#name-resolution" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Name resolution</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#execution" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Execution</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#closures" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Closures</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#errors" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Errors</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#disassembly" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Disassembly</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#instruction-set" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Instruction set</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#constants" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Constants</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#local-variables-indexed-slots" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Local Variables (indexed slots)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#global-variables-dictionary" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Global Variables (dictionary)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#upvalues-closures" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Upvalues (closures)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#stack-manipulation" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Stack Manipulation</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#arithmetic" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Arithmetic</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#bitwise" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Bitwise</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#comparison" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Comparison</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#logical" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Logical</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#null-coalescing" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Null Coalescing</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#string-concat" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">String Concat</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#control-flow" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Control Flow</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#function-calls" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Function Calls</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#function--closure-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Function / Closure Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#collections" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Collections</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#indexing" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Indexing</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#member-access" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Member Access</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#self--static-self" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Self / Static Self</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#struct-instantiation" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Struct Instantiation</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#string-interpolation" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">String Interpolation</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#print" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Print</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#loop-iteration" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Loop Iteration</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#loop-control" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Loop Control</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#generator" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Generator</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#splat-spread-arguments" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Splat (spread arguments)</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#error-handling" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Error Handling</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#type-introspection" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Type Introspection</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#event-bus" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Event Bus</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#struct-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Struct Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#package-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Package Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#enum-definition" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Enum Definition</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#builtin-call" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Builtin call</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#export--import--require" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Export / Import / Require</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#eval--include" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Eval / Include</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#exit" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Exit</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#misc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Misc</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#adding-a-language-feature" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Adding a language feature</span></a></li></ul></nav></starlight-toc><script type="module" src="/kiwi/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-lrzkfocr"><main data-pagefind-body class="astro-g5ptsecz" lang="en" dir="ltr"><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><h1 id="_top" class="astro-bebwqqxs">Bytecode VM</h1></div></div><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><div class="sl-markdown-content"><p>This page is for people working on the interpreter itself. Kiwi source is compiled to bytecode and executed by a stack-based virtual machine. The code lives in <code dir="auto">src/VM/</code>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="pipeline">Pipeline</h2><a class="sl-anchor-link" href="#pipeline"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Pipeline”</span></a></div>
+<div class="expressive-code"><link rel="stylesheet" href="/kiwi/_astro/ec.8nqtp.css"><script type="module" src="/kiwi/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#e6edf3;--1:#1f2328">source ──▶ Lexer ──▶ tokens ──▶ Parser ──▶ AST ──▶ Compiler ──▶ Chunk ──▶ KiwiVM</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="source ──▶ Lexer ──▶ tokens ──▶ Parser ──▶ AST ──▶ Compiler ──▶ Chunk ──▶ KiwiVM"><div></div></button></div></figure></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Stage</th><th align="left">Source</th><th align="left">Output</th></tr></thead><tbody><tr><td align="left">Lexing</td><td align="left"><code dir="auto">src/Parsing/Lexer.cs</code></td><td align="left">A token stream</td></tr><tr><td align="left">Parsing</td><td align="left"><code dir="auto">src/Parsing/Parser.cs</code>, <code dir="auto">ParserCore.cs</code></td><td align="left">An abstract syntax tree (<code dir="auto">src/Parsing/AST/</code>)</td></tr><tr><td align="left">Compiling</td><td align="left"><code dir="auto">src/VM/Compiler.cs</code></td><td align="left">A <code dir="auto">Chunk</code> of bytecode</td></tr><tr><td align="left">Execution</td><td align="left"><code dir="auto">src/VM/KiwiVM.cs</code></td><td align="left">Program effects</td></tr></tbody></table>
+<p>The standard library is parsed and compiled together with the script into a single top-level chunk, so it is loaded before the first line of user code runs.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="chunks">Chunks</h2><a class="sl-anchor-link" href="#chunks"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Chunks”</span></a></div>
+<p>A <code dir="auto">Chunk</code> (<code dir="auto">src/VM/Chunk.cs</code>) is the compiled form of one unit of code: the program, a function, or a lambda. Functions and lambdas get their own chunks, stored in their parent’s <code dir="auto">SubChunks</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Field</th><th align="left">Contents</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Code</code></td><td align="left">The instructions.</td></tr><tr><td align="left"><code dir="auto">Constants</code></td><td align="left">Literal values referenced by index.</td></tr><tr><td align="left"><code dir="auto">Names</code></td><td align="left">Interned identifier strings referenced by index.</td></tr><tr><td align="left"><code dir="auto">SubChunks</code></td><td align="left">Nested function and lambda chunks.</td></tr><tr><td align="left"><code dir="auto">Upvalues</code></td><td align="left">Descriptors for variables captured from enclosing functions.</td></tr><tr><td align="left"><code dir="auto">Lines</code>, <code dir="auto">Columns</code>, <code dir="auto">FileIds</code></td><td align="left">Source positions for each instruction, used in error messages.</td></tr><tr><td align="left"><code dir="auto">LocalNames</code>, <code dir="auto">LocalCount</code></td><td align="left">Local variable slots, assigned at compile time.</td></tr><tr><td align="left"><code dir="auto">ParamNames</code>, <code dir="auto">Arity</code>, <code dir="auto">VariadicParamName</code>, <code dir="auto">DefaultParamNames</code></td><td align="left">Parameter metadata.</td></tr><tr><td align="left"><code dir="auto">ArgNameSets</code></td><td align="left">Argument names for calls that use named arguments.</td></tr><tr><td align="left"><code dir="auto">NodePool</code></td><td align="left">AST nodes kept for instructions that need them at runtime, such as <code dir="auto">CallBuiltin</code>.</td></tr><tr><td align="left"><code dir="auto">IsGenerator</code></td><td align="left">Whether the function contains <code dir="auto">yield</code>.</td></tr></tbody></table>
+<p>Each instruction is a small record:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="csharp"><code><div class="ec-line"><div class="code"><span style="--0:#FF7B72;--1:#CA212D">record</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">struct</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">Instruction</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">Opcode</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">Op</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#FF7B72;--1:#CA212D">int</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">A</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#FF7B72;--1:#CA212D">int</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">B</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">);</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="record struct Instruction(Opcode Op, int A = 0, int B = 0);"><div></div></button></div></figure></div>
+<p><code dir="auto">A</code> and <code dir="auto">B</code> are operands whose meaning depends on the opcode: a constant or name index, a slot number, a jump target, an argument count, or packed flags.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="name-resolution">Name resolution</h2><a class="sl-anchor-link" href="#name-resolution"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Name resolution”</span></a></div>
+<p>Inside a function, the compiler resolves each name at compile time:</p>
+<ol>
+<li><strong>Local slot</strong>: a parameter or a variable assigned in the function body.</li>
+<li><strong>Upvalue</strong>: a local of an enclosing function, captured by a closure.</li>
+<li><strong>Global</strong>: everything else, looked up at runtime with <code dir="auto">LoadGlobal</code>.</li>
+</ol>
+<p>At the top level every name is global.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="execution">Execution</h2><a class="sl-anchor-link" href="#execution"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Execution”</span></a></div>
+<p>The VM uses one value stack of 8,192 slots shared by all frames, and a frame stack of 512 frames. Each frame (<code dir="auto">VMFrame</code>) records its chunk, instruction pointer, the stack index where its locals begin (<code dir="auto">StackBase</code>), its captured upvalues, the current instance (<code dir="auto">@</code>) and struct (<code dir="auto">@@</code>), and its active <code dir="auto">try</code> handlers.</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#e6edf3;--1:#1f2328">StackBase + 0             parameter 0</span></div></div><div class="ec-line"><div class="code"><span style="--0:#e6edf3;--1:#1f2328">StackBase + 1             parameter 1</span></div></div><div class="ec-line"><div class="code"><span style="--0:#e6edf3;--1:#1f2328">StackBase + 2 ...         other locals</span></div></div><div class="ec-line"><div class="code"><span style="--0:#e6edf3;--1:#1f2328">StackBase + LocalCount    temporaries (grow upward)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="StackBase + 0             parameter 0StackBase + 1             parameter 1StackBase + 2 ...         other localsStackBase + LocalCount    temporaries (grow upward)"><div></div></button></div></figure></div>
+<p><code dir="auto">RunLoop</code> fetches and dispatches instructions for the top frame. A call to compiled Kiwi code pushes a new frame and keeps dispatching; native builtins run in place and push their result. <code dir="auto">Return</code> pops the frame and resumes the caller.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="closures">Closures</h3><a class="sl-anchor-link" href="#closures"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Closures”</span></a></div>
+<p>A closure captures variables through upvalues. An upvalue starts <em>open</em>, pointing at the variable’s stack slot so that the function and the closure share it. When the enclosing frame returns, its open upvalues are <em>closed</em>: the value moves into the upvalue itself, so the closure keeps working after the frame is gone. Two closures that capture the same variable share one upvalue.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="errors">Errors</h3><a class="sl-anchor-link" href="#errors"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Errors”</span></a></div>
+<p><code dir="auto">try</code> blocks push a handler (<code dir="auto">PushTryHandler</code>) recording the catch and finally targets and the stack height. When an error is thrown, the VM unwinds frames to the nearest handler, restores the stack height and jumps to the catch target, where <code dir="auto">LoadCatchError</code> loads the error in the form the <code dir="auto">catch</code> clause asks for.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="disassembly">Disassembly</h2><a class="sl-anchor-link" href="#disassembly"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Disassembly”</span></a></div>
+<p>Set <code dir="auto">KIWI_DISASM=1</code> to print the compiled bytecode before running. Add <code dir="auto">-ns</code> to leave out the standard library:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#e6edf3;--1:#1f2328">$ KIWI_DISASM=1 kiwi -ns greet.kiwi</span></div></div><div class="ec-line"><div class="code"><span style="--0:#e6edf3;--1:#1f2328">=== &#x3C;main> (arity=0, locals=0, upvalues=0) ===</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">     </span></span><span style="--0:#e6edf3;--1:#1f2328">0  [   1]  DefFunc            sub[0]  name="greet"</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">     </span></span><span style="--0:#e6edf3;--1:#1f2328">1  [   4]  LoadGlobal         "greet"</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">     </span></span><span style="--0:#e6edf3;--1:#1f2328">2  [   4]  Const                 0</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">     </span></span><span style="--0:#e6edf3;--1:#1f2328">3  [   4]  Call               argc=1</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">     </span></span><span style="--0:#e6edf3;--1:#1f2328">4  [   0]  Pop</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">     </span></span><span style="--0:#e6edf3;--1:#1f2328">5  [   0]  Halt</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">  </span></span><span style="--0:#e6edf3;--1:#1f2328">=== greet (arity=1, locals=1, upvalues=0) ===</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">    </span></span><span style="--0:#e6edf3;--1:#1f2328">params: name</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">       </span></span><span style="--0:#e6edf3;--1:#1f2328">0  [   2]  Const                 0</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">       </span></span><span style="--0:#e6edf3;--1:#1f2328">1  [   2]  LoadLocal          slot=0</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">       </span></span><span style="--0:#e6edf3;--1:#1f2328">2  [   2]  Const                 1</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">       </span></span><span style="--0:#e6edf3;--1:#1f2328">3  [   2]  Interpolate        parts=3</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">       </span></span><span style="--0:#e6edf3;--1:#1f2328">4  [   2]  Print              newline=True  stderr=False</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#e6edf3;--1:#1f2328">       </span></span><span style="--0:#e6edf3;--1:#1f2328">5  [   0]  ReturnNull</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="$ KIWI_DISASM=1 kiwi -ns greet.kiwi=== <main> (arity=0, locals=0, upvalues=0) ===     0  [   1]  DefFunc            sub[0]  name=&#x22;greet&#x22;     1  [   4]  LoadGlobal         &#x22;greet&#x22;     2  [   4]  Const                 0     3  [   4]  Call               argc=1     4  [   0]  Pop     5  [   0]  Halt  === greet (arity=1, locals=1, upvalues=0) ===    params: name       0  [   2]  Const                 0       1  [   2]  LoadLocal          slot=0       2  [   2]  Const                 1       3  [   2]  Interpolate        parts=3       4  [   2]  Print              newline=True  stderr=False       5  [   0]  ReturnNull"><div></div></button></div></figure></div>
+<p>The bracketed number is the source line.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="instruction-set">Instruction set</h2><a class="sl-anchor-link" href="#instruction-set"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Instruction set”</span></a></div>
+<p>The tables below are generated from the doc comments in <code dir="auto">src/VM/Opcode.cs</code>. <code dir="auto">A</code> and <code dir="auto">B</code> are the instruction operands.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="constants">Constants</h3><a class="sl-anchor-link" href="#constants"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Constants”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Const</code></td><td align="left">push constants[A]</td></tr><tr><td align="left"><code dir="auto">Null</code></td><td align="left">push null</td></tr><tr><td align="left"><code dir="auto">True</code></td><td align="left">push true</td></tr><tr><td align="left"><code dir="auto">False</code></td><td align="left">push false</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="local-variables-indexed-slots">Local Variables (indexed slots)</h3><a class="sl-anchor-link" href="#local-variables-indexed-slots"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Local Variables (indexed slots)”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">LoadLocal</code></td><td align="left">push stack[base + A]</td></tr><tr><td align="left"><code dir="auto">StoreLocal</code></td><td align="left">stack[base + A] = pop()</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="global-variables-dictionary">Global Variables (dictionary)</h3><a class="sl-anchor-link" href="#global-variables-dictionary"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Global Variables (dictionary)”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">LoadGlobal</code></td><td align="left">push globals[names[A]]</td></tr><tr><td align="left"><code dir="auto">StoreGlobal</code></td><td align="left">globals[names[A]] = pop()</td></tr><tr><td align="left"><code dir="auto">StoreConst</code></td><td align="left">globals[names[A]] = pop(); also registers names[A] in context.Constants (immutable).</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="upvalues-closures">Upvalues (closures)</h3><a class="sl-anchor-link" href="#upvalues-closures"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Upvalues (closures)”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">LoadUpvalue</code></td><td align="left">push upvalues[A].Get()</td></tr><tr><td align="left"><code dir="auto">StoreUpvalue</code></td><td align="left">upvalues[A].Set(pop())</td></tr><tr><td align="left"><code dir="auto">CloseUpvalue</code></td><td align="left">Close all open upvalues whose absolute slot >= base + A</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="stack-manipulation">Stack Manipulation</h3><a class="sl-anchor-link" href="#stack-manipulation"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Stack Manipulation”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Pop</code></td><td align="left">Discard the top value.</td></tr><tr><td align="left"><code dir="auto">Dup</code></td><td align="left">Duplicate the top value.</td></tr><tr><td align="left"><code dir="auto">Swap</code></td><td align="left">Swap the top two stack values.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="arithmetic">Arithmetic</h3><a class="sl-anchor-link" href="#arithmetic"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Arithmetic”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Add</code></td><td align="left">pop right, pop left → push left + right</td></tr><tr><td align="left"><code dir="auto">Sub</code></td><td align="left">pop right, pop left → push left - right</td></tr><tr><td align="left"><code dir="auto">Mul</code></td><td align="left">pop right, pop left → push left * right</td></tr><tr><td align="left"><code dir="auto">Div</code></td><td align="left">pop right, pop left → push left / right (float)</td></tr><tr><td align="left"><code dir="auto">IntDiv</code></td><td align="left">pop right, pop left → push left // right (floor)</td></tr><tr><td align="left"><code dir="auto">Mod</code></td><td align="left">pop right, pop left → push left % right</td></tr><tr><td align="left"><code dir="auto">Pow</code></td><td align="left">pop right, pop left → push left ** right</td></tr><tr><td align="left"><code dir="auto">Neg</code></td><td align="left">Unary negation</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="bitwise">Bitwise</h3><a class="sl-anchor-link" href="#bitwise"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Bitwise”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">BAnd</code></td><td align="left">pop right, pop left → push left &#x26; right</td></tr><tr><td align="left"><code dir="auto">BOr</code></td><td align="left">pop right, pop left → push left | right</td></tr><tr><td align="left"><code dir="auto">BXor</code></td><td align="left">pop right, pop left → push left ^ right</td></tr><tr><td align="left"><code dir="auto">BNot</code></td><td align="left">pop value → push ~value</td></tr><tr><td align="left"><code dir="auto">BLSh</code></td><td align="left">pop right, pop left → push left &#x3C;&#x3C; right</td></tr><tr><td align="left"><code dir="auto">BRSh</code></td><td align="left">pop right, pop left → push left >> right</td></tr><tr><td align="left"><code dir="auto">BURSh</code></td><td align="left">pop right, pop left → push left >>> right</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="comparison">Comparison</h3><a class="sl-anchor-link" href="#comparison"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Comparison”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Eq</code></td><td align="left">pop right, pop left → push left == right</td></tr><tr><td align="left"><code dir="auto">NEq</code></td><td align="left">pop right, pop left → push left != right</td></tr><tr><td align="left"><code dir="auto">Lt</code></td><td align="left">pop right, pop left → push left &#x3C; right</td></tr><tr><td align="left"><code dir="auto">LtE</code></td><td align="left">pop right, pop left → push left &#x3C;= right</td></tr><tr><td align="left"><code dir="auto">Gt</code></td><td align="left">pop right, pop left → push left > right</td></tr><tr><td align="left"><code dir="auto">GtE</code></td><td align="left">pop right, pop left → push left >= right</td></tr><tr><td align="left"><code dir="auto">In</code></td><td align="left">pop right, pop left → push left in right (collection membership)</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="logical">Logical</h3><a class="sl-anchor-link" href="#logical"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Logical”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Not</code></td><td align="left">Unary not</td></tr><tr><td align="left"><code dir="auto">JumpAnd</code></td><td align="left">Short-circuit AND: peek top; if falsy → jump to A (leave value on stack); if truthy → pop and continue (right side will supply the value).</td></tr><tr><td align="left"><code dir="auto">JumpOr</code></td><td align="left">Short-circuit OR: peek top; if truthy → jump to A (leave value on stack); if falsy → pop and continue.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="null-coalescing">Null Coalescing</h3><a class="sl-anchor-link" href="#null-coalescing"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Null Coalescing”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">NullCoalesce</code></td><td align="left">pop right, pop left; push left ?? right</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="string-concat">String Concat</h3><a class="sl-anchor-link" href="#string-concat"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “String Concat”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Concat</code></td><td align="left">String ".." concat: pop right, pop left, push left..right</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="control-flow">Control Flow</h3><a class="sl-anchor-link" href="#control-flow"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Control Flow”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Jump</code></td><td align="left">IP = A (unconditional jump)</td></tr><tr><td align="left"><code dir="auto">JumpF</code></td><td align="left">pop; if falsy: IP = A</td></tr><tr><td align="left"><code dir="auto">JumpT</code></td><td align="left">pop; if truthy: IP = A</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="function-calls">Function Calls</h3><a class="sl-anchor-link" href="#function-calls"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Function Calls”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Call</code></td><td align="left">A = arg count. Stack layout before: [..., func_value, arg0, …, argN-1]. Calls the function, replaces func+args with the return value.</td></tr><tr><td align="left"><code dir="auto">CallMethod</code></td><td align="left">A = arg count, B = name index (names[B] = method name). Stack before: [..., obj, arg0, …, argN-1]. Dispatches the method call; replaces obj+args with result.</td></tr><tr><td align="left"><code dir="auto">CallSuperMethod</code></td><td align="left">A = arg count, B = name index (names[B] = method name). Stack before: [..., arg0, …, argN-1] (no obj — uses frame.Self and frame.OwnerStruct). Dispatches a <code dir="auto">super.method()</code> call starting from the base of the defining struct.</td></tr><tr><td align="left"><code dir="auto">Return</code></td><td align="left">Return top-of-stack to caller.</td></tr><tr><td align="left"><code dir="auto">ReturnNull</code></td><td align="left">Return null to caller.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="function--closure-definition">Function / Closure Definition</h3><a class="sl-anchor-link" href="#function--closure-definition"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Function / Closure Definition”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">DefFunc</code></td><td align="left">A = sub-chunk index, B = name index (names[B] = function name). Register a compiled KFunction in the context. Does not push a value.</td></tr><tr><td align="left"><code dir="auto">DefFuncAndPush</code></td><td align="left">A = sub-chunk index, B = name index (names[B] = raw function name). Like DefFunc but also wraps the function as an internal KLambda and pushes a lambda-ref onto the stack. Used by decorator compilation so the function can be passed as a value to the decorator callable without a separate LoadGlobal.</td></tr><tr><td align="left"><code dir="auto">StoreDecoratedFunc</code></td><td align="left">A = name index (raw function name). Pop the top-of-stack (the final decorated value); compute the package-qualified function name; remove the original KFunction entry from Context.Functions; then register the decorated result (lambda mapping or global assignment). Used as the last step of decorator application.</td></tr><tr><td align="left"><code dir="auto">MakeClosure</code></td><td align="left">A = sub-chunk index, B = number of upvalue descriptors that follow as inline (isLocal, index) pairs encoded in subsequent Nop-like slots. Pushes the resulting closure Value.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="collections">Collections</h3><a class="sl-anchor-link" href="#collections"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Collections”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">BuildList</code></td><td align="left">Pop A values (bottom-first) and push a List.</td></tr><tr><td align="left"><code dir="auto">BuildHashmap</code></td><td align="left">Pop 2*A values (key, value pairs bottom-first) and push a Hashmap.</td></tr><tr><td align="left"><code dir="auto">BuildRange</code></td><td align="left">Pop start then stop → push inclusive range list.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="indexing">Indexing</h3><a class="sl-anchor-link" href="#indexing"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Indexing”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">IndexGet</code></td><td align="left">pop key, pop obj → push obj[key]</td></tr><tr><td align="left"><code dir="auto">IndexSet</code></td><td align="left">pop value, pop key, pop obj → obj[key] = value (pushes value)</td></tr><tr><td align="left"><code dir="auto">IndexOpAssign</code></td><td align="left">A = inner opcode (as int). pop rhs, pop key, pop obj → old = obj[key]; new = op(old, rhs); obj[key] = new (pushes new). Handles compound index assignment: lst[i] += v.</td></tr><tr><td align="left"><code dir="auto">UnpackList</code></td><td align="left">A = count. Pop a value; if it's a list unpack A elements; else push value then A-1 nulls. Used for PackAssignment: a, b = func_returning_list().</td></tr><tr><td align="left"><code dir="auto">SliceGet</code></td><td align="left">A = flags: bit0=hasStart, bit1=hasStop, bit2=hasStep. Pops (in order): obj, start?, stop?, step? → push slice.</td></tr><tr><td align="left"><code dir="auto">SliceSet</code></td><td align="left">A = flags: bit0=hasStart, bit1=hasStop, bit2=hasStep. Pops (in order from stack top): rhs, step?, stop?, start?, obj. Applies rhs to the slice range of obj in-place; pushes rhs.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="member-access">Member Access</h3><a class="sl-anchor-link" href="#member-access"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Member Access”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">GetMember</code></td><td align="left">A = name index; pop obj → push obj.names[A]</td></tr><tr><td align="left"><code dir="auto">SetMember</code></td><td align="left">A = name index; pop value, pop obj → obj.names[A] = value (pushes value)</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="self--static-self">Self / Static Self</h3><a class="sl-anchor-link" href="#self--static-self"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Self / Static Self”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">LoadSelf</code></td><td align="left">Push @ (current object context)</td></tr><tr><td align="left"><code dir="auto">LoadSelfAttr</code></td><td align="left">A = name index → push @.names[A]</td></tr><tr><td align="left"><code dir="auto">StoreSelfAttr</code></td><td align="left">A = name index; pop → @.names[A] = value (pushes value)</td></tr><tr><td align="left"><code dir="auto">LoadStaticAttr</code></td><td align="left">A = name index → push @@.names[A] (static variable)</td></tr><tr><td align="left"><code dir="auto">StoreStaticAttr</code></td><td align="left">A = name index; pop → @@.names[A] = value (pushes value)</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="struct-instantiation">Struct Instantiation</h3><a class="sl-anchor-link" href="#struct-instantiation"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Struct Instantiation”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">NewObject</code></td><td align="left">A = arg count, B = name index; create new struct instance and push it.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="string-interpolation">String Interpolation</h3><a class="sl-anchor-link" href="#string-interpolation"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “String Interpolation”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Interpolate</code></td><td align="left">Pop A string parts (bottom-first) and push the concatenated result.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="print">Print</h3><a class="sl-anchor-link" href="#print"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Print”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Print</code></td><td align="left">A: bit0 = newline, bit1 = stderr. Pop value and print it.</td></tr><tr><td align="left"><code dir="auto">PrintXy</code></td><td align="left">Pop y, pop x, pop text → print text at terminal position (x, y) using ANSI cursor-move.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="loop-iteration">Loop Iteration</h3><a class="sl-anchor-link" href="#loop-iteration"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Loop Iteration”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">ForIterInit</code></td><td align="left">Pop the collection and push a ForIterState (held directly in the stack slot).</td></tr><tr><td align="left"><code dir="auto">ForIterInitRange</code></td><td align="left">Pop stop, pop start → push a ForIterState that counts from start to stop inclusive (downward when stop &#x3C; start). Used for <code dir="auto">for x in [a to b]</code> so the range is never materialized as a list.</td></tr><tr><td align="left"><code dir="auto">ForIterNext</code></td><td align="left">A = jump-if-done target IP, B = number of loop vars to push (1 or 2). Peek at the ForIterState on top of stack: - If done: pop state, jump to A. - Else: push next value(s) (B values) without removing state.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="loop-control">Loop Control</h3><a class="sl-anchor-link" href="#loop-control"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Loop Control”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">BreakJump</code></td><td align="left">Signal a break: VM pops loop state (A = extra items to pop) and jumps.</td></tr><tr><td align="left"><code dir="auto">NextJump</code></td><td align="left">Signal a continue/next.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="generator">Generator</h3><a class="sl-anchor-link" href="#generator"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Generator”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Yield</code></td><td align="left">Pop value and yield it to the generator consumer.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="splat-spread-arguments">Splat (spread arguments)</h3><a class="sl-anchor-link" href="#splat-spread-arguments"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Splat (spread arguments)”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">SplatReset</code></td><td align="left">Push 0 onto the splat-adjustment side-stack. Emitted before the function/object of any call that contains splat arguments, so nested splat calls each get their own adjustment slot.</td></tr><tr><td align="left"><code dir="auto">SplatPush</code></td><td align="left">Pop value. If it is a list, push each element and add (count-1) to the top of the splat-adjustment side-stack. Otherwise push the value unchanged (single-element, zero adjustment).</td></tr><tr><td align="left"><code dir="auto">CallSplat</code></td><td align="left">Like Call but argc = A + splatAdjStack.Pop(). Used for function/lambda calls that contain one or more splat arguments.</td></tr><tr><td align="left"><code dir="auto">MethodCallSplat</code></td><td align="left">Like CallMethod but argc = A + splatAdjStack.Pop(). Used for method calls that contain one or more splat arguments.</td></tr><tr><td align="left"><code dir="auto">CallNamed</code></td><td align="left">Like Call but reorders args to match the callee's declared parameter order. A = argc, B = index into chunk.ArgNameSets (parallel string[] of arg names; empty string = positional, non-empty = named arg name).</td></tr><tr><td align="left"><code dir="auto">CallMethodNamed</code></td><td align="left">Like CallMethod but reorders args before dispatch. A = argc, B = packed: lower 16 bits = method name index in chunk.Names, upper 16 bits = index into chunk.ArgNameSets.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="error-handling">Error Handling</h3><a class="sl-anchor-link" href="#error-handling"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Error Handling”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Throw</code></td><td align="left">Pop value and throw it as a Kiwi runtime error.</td></tr><tr><td align="left"><code dir="auto">PushTryHandler</code></td><td align="left">A = catch IP, B = finally IP (0 = none). Pushes a try-handler frame: on KiwiError, restore _sp to current value, jump to catch IP, and store the caught error in _caughtError.</td></tr><tr><td align="left"><code dir="auto">PopTryHandler</code></td><td align="left">Pop the top try-handler frame (try body completed normally).</td></tr><tr><td align="left"><code dir="auto">LoadCatchError</code></td><td align="left">A = 0 → push error hashmap {error, message} (single-param catch) A = 1 → push error type string (first of two-param catch) A = 2 → push error message string (second of two-param catch) Reads from the VM's _caughtError field set when a handler fires.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="type-introspection">Type Introspection</h3><a class="sl-anchor-link" href="#type-introspection"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Type Introspection”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">TypeOf</code></td><td align="left">Pop value → push typeof string (e.g. "integer", "string", "list", …).</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="event-bus">Event Bus</h3><a class="sl-anchor-link" href="#event-bus"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Event Bus”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">EventOn</code></td><td align="left">A = priority. Pop callback, pop event-name → register 'on' handler.</td></tr><tr><td align="left"><code dir="auto">EventOnce</code></td><td align="left">A = priority. Pop callback, pop event-name → register 'once' handler.</td></tr><tr><td align="left"><code dir="auto">EventOff</code></td><td align="left">A: 0 = no callback (remove all), 1 = pop callback too. Pop [callback,] event-name → unregister handler(s).</td></tr><tr><td align="left"><code dir="auto">EventEmit</code></td><td align="left">A = arg count. Pop A args (bottom-first), pop event-name → emit event, push result list.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="struct-definition">Struct Definition</h3><a class="sl-anchor-link" href="#struct-definition"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Struct Definition”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">StructBegin</code></td><td align="left">A = name index. B = packed: bit 0 = isAbstract, bits 1+ = baseNameIdx+1 (0 = no base). Create KStruct and push onto the pending-struct stack.</td></tr><tr><td align="left"><code dir="auto">DefMethod</code></td><td align="left">A = sub-chunk index, B = nameIdx | (isAbstract ? 0x80000000 : 0). Like DefFunc but registers the method into the current pending struct.</td></tr><tr><td align="left"><code dir="auto">InitStructStatic</code></td><td align="left">A = name index. Pop value → store in pending struct's StaticVariables[names[A]].</td></tr><tr><td align="left"><code dir="auto">StructEnd</code></td><td align="left">Validate abstract compliance, register pending struct in Context.Structs.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="package-definition">Package Definition</h3><a class="sl-anchor-link" href="#package-definition"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Package Definition”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">PackageBegin</code></td><td align="left">A = name index, B = node-pool index (stores PackageNode AST for retry). Build qualified name, push onto PackageStack, register KPackage.</td></tr><tr><td align="left"><code dir="auto">PackageEnd</code></td><td align="left">Pop PackageStack; register type builtins; mark package imported.</td></tr><tr><td align="left"><code dir="auto">PackageAbort</code></td><td align="left">Catch path for a failed package activation: pop PackageStack without marking as imported. Allows ImportPackage to retry after dependencies are resolved.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="enum-definition">Enum Definition</h3><a class="sl-anchor-link" href="#enum-definition"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Enum Definition”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">EnumBegin</code></td><td align="left">A = name index. Create KStruct{IsEnum=true} and push onto the pending-struct stack.</td></tr><tr><td align="left"><code dir="auto">DefEnumMember</code></td><td align="left">A = name index. Pop value → store in pending enum's StaticVariables["@@" + names[A]].</td></tr><tr><td align="left"><code dir="auto">EnumEnd</code></td><td align="left">Pop pending KStruct and register it as an enum in Context.Structs.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="builtin-call">Builtin call</h3><a class="sl-anchor-link" href="#builtin-call"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Builtin call”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">CallBuiltin</code></td><td align="left">A = node-pool index (FunctionCallNode, used for Token and Op). B = argc. Pop B args (in order), call _interp.ExecuteBuiltin, push result. Used for C# native builtin calls (KiwiBuiltin, SocketBuiltin, Math, etc.) that are not CoreBuiltin method calls.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="export--import--require">Export / Import / Require</h3><a class="sl-anchor-link" href="#export--import--require"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Export / Import / Require”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Export</code></td><td align="left">Pop top-of-stack (package name string); call _interp.ImportPackage with it.</td></tr><tr><td align="left"><code dir="auto">ImportPkg</code></td><td align="left">Pop top-of-stack (package name string); call _interp.ImportPackage with it; push Value.CreatePackage(name) as the result of the import expression.</td></tr><tr><td align="left"><code dir="auto">Require</code></td><td align="left">Pop top-of-stack (package name string); throw PackageUndefinedError if the package is not registered in the context. Used by the <code dir="auto">require</code> keyword.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="eval--include">Eval / Include</h3><a class="sl-anchor-link" href="#eval--include"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Eval / Include”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Eval</code></td><td align="left">Pop top-of-stack (Kiwi source string); lex/parse/interpret it; push the result.</td></tr><tr><td align="left"><code dir="auto">Include</code></td><td align="left">Pop top-of-stack (file path string); load and interpret the file (no push).</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="exit">Exit</h3><a class="sl-anchor-link" href="#exit"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Exit”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Exit</code></td><td align="left">Pop exit-code value; call Environment.Exit(code). Condition (if any) is handled at compile time via a JumpF guard.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="misc">Misc</h3><a class="sl-anchor-link" href="#misc"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Misc”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Opcode</th><th align="left">Behavior</th></tr></thead><tbody><tr><td align="left"><code dir="auto">Nop</code></td><td align="left">Do nothing.</td></tr><tr><td align="left"><code dir="auto">Halt</code></td><td align="left">Stop executing the chunk.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h2"><h2 id="adding-a-language-feature">Adding a language feature</h2><a class="sl-anchor-link" href="#adding-a-language-feature"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Adding a language feature”</span></a></div>
+<p>A new construct usually touches each stage in turn:</p>
+<ol>
+<li><strong>Lexer</strong>: add a token in <code dir="auto">Lexer.cs</code> if the syntax needs one.</li>
+<li><strong>Parser</strong>: add an AST node in <code dir="auto">src/Parsing/AST/</code> and parse it in <code dir="auto">Parser.cs</code>.</li>
+<li><strong>Compiler</strong>: emit instructions for the node in <code dir="auto">Compiler.cs</code>.</li>
+<li><strong>VM</strong>: if no existing opcode fits, add one to <code dir="auto">Opcode.cs</code>, with a <code dir="auto">&#x3C;summary></code> comment so it appears on this page, and handle it in <code dir="auto">KiwiVM.cs</code>.</li>
+<li><strong>Tests</strong>: add tests under <code dir="auto">tests/lib/suite/</code>, rebuild with <code dir="auto">./build.sh</code>, and run <code dir="auto">./bin/kiwi tests/test</code>.</li>
+</ol></div><footer class="sl-flex astro-ddtxxk7k"><div class="meta sl-flex astro-ddtxxk7k"><a href="https://github.com/fuseraft/kiwi/edit/main/docs/src/content/docs/internals/vm.md" class="sl-flex print:hidden astro-qlekgd3o"><svg aria-hidden="true" class="astro-qlekgd3o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a><p>Last updated: <time datetime="2026-10-21T05:12:48.000Z">Oct 21, 2026</time></p></div><div class="pagination-links print:hidden astro-b5raizh3" dir="ltr"><a href="/kiwi/stdlib/yaml/" rel="prev" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-b5raizh3">Previous<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">yaml</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-g5ptsecz"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Built-in Methods | Kiwi</title><link rel="canonical" href="https://fuseraft.ai/kiwi/reference/builtin-methods/"/><link rel="sitemap" href="/kiwi/sitemap-index.xml"/><link rel="shortcut icon" href="/kiwi/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.4.1"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="Built-in Methods"/><meta property="og:type" content="article"/><meta property="og:url" content="https://fuseraft.ai/kiwi/reference/builtin-methods/"/><meta property="og:locale" content="en"/><meta property="og:description" content="Every method available on Kiwi's built-in types, grouped by type."/><meta property="og:site_name" content="Kiwi"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="Every method available on Kiwi's built-in types, grouped by type."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/kiwi/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/kiwi/_astro/common.Dzj9lC13.css"><style>@layer starlight.components{svg:where(.astro-hkc32dio){color:var(--sl-icon-color);font-size:var(--sl-icon-size,1em);width:1em;height:1em;overflow:visible}}
+</style><script type="module" src="/kiwi/_astro/page.cNngjUgL.js"></script></head><body class="astro-g5ptsecz"><a class="sl-skip-link astro-qb7clj6f" href="#_top">Skip to content</a><div class="page sl-flex astro-yntsjkba"><header class="header astro-yntsjkba"><div class="header astro-by6fddyj"><div class="title-wrapper sl-flex astro-by6fddyj"><a href="/kiwi/" class="site-title sl-flex astro-6rvad3va"><img class="astro-6rvad3va" alt src="/kiwi/_astro/logo.DJfiJ099.svg" width="400" height="400"><span class="astro-6rvad3va" translate="no">Kiwi</span></a></div><div class="sl-flex print:hidden astro-by6fddyj"><site-search class="astro-by6fddyj astro-b5kgnn7o" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-b5kgnn7o"><svg aria-hidden="true" class="astro-b5kgnn7o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-b5kgnn7o" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-b5kgnn7o" style="display: none;"><kbd class="astro-b5kgnn7o">Ctrl</kbd><kbd class="astro-b5kgnn7o">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-b5kgnn7o"><div class="dialog-frame sl-flex astro-b5kgnn7o"><button data-close-modal class="sl-flex md:sl-hidden astro-b5kgnn7o">Cancel</button><div class="search-container astro-b5kgnn7o"><div id="starlight__search" class="astro-b5kgnn7o"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/kiwi/_astro/Search.astro_astro_type_script_index_0_lang.Dpg5QQYx.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-by6fddyj"><div class="sl-flex social-icons astro-by6fddyj"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-yntsjkba" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-r2osgdlg"><svg aria-hidden="true" class="open-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-r2osgdlg">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-yntsjkba"><div class="sidebar-content sl-flex astro-yntsjkba"><sl-sidebar-state-persist data-hash="02fcnv0" class="astro-ipdry5cl"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-rmhv4bp6"><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Getting Started</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/introduction/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Introduction</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/installation/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Installation</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/tour/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">A Tour of Kiwi</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Language</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/language/syntax/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Syntax Basics</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/variables/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Variables</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/types/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Types</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/strings/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Strings</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lists/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lists and Ranges</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/hashmaps/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Hashmaps</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/control-flow/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Control Flow</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/loops/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Loops</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Functions</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lambdas/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lambdas and Closures</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/scoping/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Scoping</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/type-hints/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Type Hints</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/errors/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Error Handling</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/structs/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Structs</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operator-overloading/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operator Overloading</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/enums/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Enums</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/packages/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Packages and Modules</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/generators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Generators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/decorators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Decorators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/events/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Events</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Tools</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/tools/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">The kiwi Command</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/repl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">REPL</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/debugger/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Debugger (kdb)</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/testing/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Testing</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Reference</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/reference/keywords/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Keywords</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/builtin-methods/" aria-current="page" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Built-in Methods</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/global-functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Global Functions</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Standard Library</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="4"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Overview</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/bench/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">bench</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">cli</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/collections/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">collections</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/compress/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">compress</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/console/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">console</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/crypto/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">crypto</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/csv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">csv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/curl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">curl</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/date/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">date</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/dotenv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">dotenv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/encode/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">encode</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/env/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">env</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/error/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">error</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/faker/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">faker</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fio/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fio</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fmt/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fmt</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/hashable/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">hashable</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/http/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">http</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/httpserver/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">httpserver</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ipc/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ipc</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/iter/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">iter</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/json/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">json</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/list/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">list</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/log/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">log</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/math/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">math</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/path/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">path</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/pipeline/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">pipeline</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/protobuf/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">protobuf</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/reflector/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">reflector</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/regex/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">regex</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/signal/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">signal</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/smtp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">smtp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/socket/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">socket</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sqlite/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sqlite</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stat/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stat</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/std/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">std</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stdin/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stdin</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stopwatch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stopwatch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/string/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">string</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sys/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sys</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/table/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">table</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/task/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">task</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/template/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">template</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/tester/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">tester</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/text/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">text</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/time/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">time</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/udp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">udp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/watch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">watch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/xml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">xml</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/yaml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">yaml</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Internals</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="5"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/internals/vm/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Bytecode VM</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-p4azlveh"><div class="social-icons astro-p4azlveh"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-yntsjkba"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-lrzkfocr"><aside class="right-sidebar-container print:hidden astro-lrzkfocr"><div class="right-sidebar astro-lrzkfocr"><div class="lg:sl-hidden astro-qok35upx"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-66cqc7ze"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-66cqc7ze"><details id="starlight__mobile-toc" class="astro-66cqc7ze"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-66cqc7ze"><span class="toggle sl-flex astro-66cqc7ze">On this page<svg aria-hidden="true" class="caret astro-66cqc7ze astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-66cqc7ze"></span></summary><div class="dropdown astro-66cqc7ze"><ul class="isMobile astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#all-values" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">All values</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#numbers" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Numbers</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#strings" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Strings</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#inspecting" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Inspecting</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#transforming" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Transforming</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#splitting-and-converting" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Splitting and converting</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#regular-expressions" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Regular expressions</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#lists" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Lists</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#reading" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Reading</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#changing" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Changing</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#transforming-1" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Transforming</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#hashmaps" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Hashmaps</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#dates" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Dates</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#date-formats" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Date formats</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#bytes" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Bytes</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions-and-lambdas" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions and lambdas</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#struct-instances" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Struct instances</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#enums" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Enums</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#methods-from-the-standard-library" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Methods from the standard library</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#from-the-string-package" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">From the string package</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#from-the-list-package" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">From the list package</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#from-the-date-package" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">From the date package</span></a></li></ul></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/kiwi/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-qok35upx"><div class="sl-container astro-qok35upx"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#all-values" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">All values</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#numbers" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Numbers</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#strings" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Strings</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#inspecting" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Inspecting</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#transforming" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Transforming</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#splitting-and-converting" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Splitting and converting</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#regular-expressions" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Regular expressions</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#lists" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Lists</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#reading" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Reading</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#changing" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Changing</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#transforming-1" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Transforming</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#hashmaps" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Hashmaps</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#dates" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Dates</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#date-formats" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Date formats</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#bytes" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Bytes</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions-and-lambdas" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions and lambdas</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#struct-instances" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Struct instances</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#enums" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Enums</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#methods-from-the-standard-library" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Methods from the standard library</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#from-the-string-package" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">From the string package</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#from-the-list-package" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">From the list package</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#from-the-date-package" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">From the date package</span></a></li></ul></li></ul></nav></starlight-toc><script type="module" src="/kiwi/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-lrzkfocr"><main data-pagefind-body class="astro-g5ptsecz" lang="en" dir="ltr"><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><h1 id="_top" class="astro-bebwqqxs">Built-in Methods</h1></div></div><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><div class="sl-markdown-content"><p>Built-in methods are called with a dot on any value: <code dir="auto">"kiwi".uppercase()</code>, <code dir="auto">[3, 1, 2].sort()</code>. They are part of the interpreter, so they are always available.</p>
+<p>To call a method on a number literal, wrap it in parentheses: <code dir="auto">(42).to_string()</code>.</p>
+<p>Packages can add more methods to built-in types; see <a href="/kiwi/language/packages/#extending-built-in-types">Extending built-in types</a>. The standard library does this for <a href="#from-the-string-package">strings</a>, <a href="#from-the-list-package">lists</a> and <a href="#from-the-date-package">dates</a>. A built-in method always wins over an extension with the same name.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="all-values">All values</h2><a class="sl-anchor-link" href="#all-values"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “All values”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.type()</code></td><td align="left">The type name, or the struct name for an instance. Same as <code dir="auto">typeof(value)</code>.</td></tr><tr><td align="left"><code dir="auto">.is_a(type)</code></td><td align="left">Whether the value has that type. Takes a type keyword, a type name string, or a struct.</td></tr><tr><td align="left"><code dir="auto">.to_string(format?)</code></td><td align="left">The value as a string. Numbers accept a <a href="/kiwi/language/types/#number-formats">format code</a>.</td></tr><tr><td align="left"><code dir="auto">.truthy()</code></td><td align="left">The value’s <a href="/kiwi/language/types/#truthiness">truthiness</a> as a boolean.</td></tr><tr><td align="left"><code dir="auto">.empty(default?)</code></td><td align="left">Whether the value is falsy (<code dir="auto">0</code>, <code dir="auto">""</code>, <code dir="auto">[]</code>, <code dir="auto">{}</code>, <code dir="auto">false</code>, <code dir="auto">null</code>). With a default, returns the default when empty and the value otherwise.</td></tr><tr><td align="left"><code dir="auto">.clone()</code></td><td align="left">A deep copy of a list or hashmap, or a copy of a struct instance.</td></tr><tr><td align="left"><code dir="auto">.pretty()</code></td><td align="left">An indented, JSON-style string.</td></tr></tbody></table>
+<div class="expressive-code"><link rel="stylesheet" href="/kiwi/_astro/ec.8nqtp.css"><script type="module" src="/kiwi/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> (</span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">empty</span><span style="--0:#E6EDF3;--1:#1F2328">()              </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">""</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">empty</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"anonymous"</span><span style="--0:#E6EDF3;--1:#1F2328">)    </span><span style="--0:#8B949E;--1:#616972"># anonymous</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"Ada"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">empty</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"anonymous"</span><span style="--0:#E6EDF3;--1:#1F2328">) </span><span style="--0:#8B949E;--1:#616972"># Ada</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">].</span><span style="--0:#D2A8FF;--1:#7A4BD1">is_a</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">list</span><span style="--0:#E6EDF3;--1:#1F2328">)        </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> (</span><span style="--0:#79C0FF;--1:#0550AE">3.14159</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"f2"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 3.14</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="println (0).empty()              # trueprintln &#x22;&#x22;.empty(&#x22;anonymous&#x22;)    # anonymousprintln &#x22;Ada&#x22;.empty(&#x22;anonymous&#x22;) # Adaprintln [1, 2].is_a(list)        # trueprintln (3.14159).to_string(&#x22;f2&#x22;)   # 3.14"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="numbers">Numbers</h2><a class="sl-anchor-link" href="#numbers"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Numbers”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.to_integer()</code></td><td align="left">The number truncated toward zero.</td></tr><tr><td align="left"><code dir="auto">.to_float()</code></td><td align="left">The number as a float.</td></tr><tr><td align="left"><code dir="auto">.to_string(format?)</code></td><td align="left">A string; see <a href="/kiwi/language/types/#number-formats">number formats</a>.</td></tr><tr><td align="left"><code dir="auto">.between(low, high)</code></td><td align="left">Whether the number is in the inclusive range.</td></tr><tr><td align="left"><code dir="auto">.clamp(low, high)</code></td><td align="left">The number limited to the range.</td></tr><tr><td align="left"><code dir="auto">.to_date()</code></td><td align="left">A date, treating the integer as a Unix timestamp in milliseconds.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> (</span><span style="--0:#79C0FF;--1:#0550AE">15</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">clamp</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">10</span><span style="--0:#E6EDF3;--1:#1F2328">)      </span><span style="--0:#8B949E;--1:#616972"># 10</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> (</span><span style="--0:#79C0FF;--1:#0550AE">5</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">between</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">10</span><span style="--0:#E6EDF3;--1:#1F2328">)     </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> (</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">3.7</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_integer</span><span style="--0:#E6EDF3;--1:#1F2328">()    </span><span style="--0:#8B949E;--1:#616972"># -3</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> (</span><span style="--0:#79C0FF;--1:#0550AE">255</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"X"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># FF</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="println (15).clamp(0, 10)      # 10println (5).between(1, 10)     # trueprintln (-3.7).to_integer()    # -3println (255).to_string(&#x22;X&#x22;)   # FF"><div></div></button></div></figure></div>
+<p>For rounding, absolute values, powers and so on, see the <a href="/kiwi/stdlib/math/"><code dir="auto">math</code></a> package.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="strings">Strings</h2><a class="sl-anchor-link" href="#strings"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Strings”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="inspecting">Inspecting</h3><a class="sl-anchor-link" href="#inspecting"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Inspecting”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.size()</code>, <code dir="auto">.length()</code></td><td align="left">The number of characters.</td></tr><tr><td align="left"><code dir="auto">.contains(text)</code></td><td align="left">Whether <code dir="auto">text</code> occurs in the string.</td></tr><tr><td align="left"><code dir="auto">.begins_with(text)</code></td><td align="left">Whether the string starts with <code dir="auto">text</code>.</td></tr><tr><td align="left"><code dir="auto">.ends_with(text)</code></td><td align="left">Whether the string ends with <code dir="auto">text</code>.</td></tr><tr><td align="left"><code dir="auto">.index(text)</code></td><td align="left">The position of the first occurrence, or <code dir="auto">-1</code>.</td></tr><tr><td align="left"><code dir="auto">.lastindex(text)</code></td><td align="left">The position of the last occurrence, or <code dir="auto">-1</code>.</td></tr><tr><td align="left"><code dir="auto">.count(text)</code></td><td align="left">How many times <code dir="auto">text</code> occurs.</td></tr><tr><td align="left"><code dir="auto">.between(low, high)</code></td><td align="left">Whether the string sorts between <code dir="auto">low</code> and <code dir="auto">high</code>, inclusive.</td></tr><tr><td align="left"><code dir="auto">.ord()</code></td><td align="left">The Unicode code point of the first character.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="transforming">Transforming</h3><a class="sl-anchor-link" href="#transforming"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Transforming”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.uppercase()</code>, <code dir="auto">.lowercase()</code></td><td align="left">The string in upper or lower case.</td></tr><tr><td align="left"><code dir="auto">.trim()</code>, <code dir="auto">.ltrim()</code>, <code dir="auto">.rtrim()</code></td><td align="left">The string without surrounding whitespace, on both, the left or the right side.</td></tr><tr><td align="left"><code dir="auto">.chomp()</code></td><td align="left">The string without one trailing line break.</td></tr><tr><td align="left"><code dir="auto">.replace(find, with)</code></td><td align="left">The string with every occurrence of the text <code dir="auto">find</code> replaced.</td></tr><tr><td align="left"><code dir="auto">.substring(start, length?)</code></td><td align="left"><code dir="auto">length</code> characters from <code dir="auto">start</code>, or the rest of the string.</td></tr><tr><td align="left"><code dir="auto">.reverse()</code></td><td align="left">The characters in reverse order.</td></tr><tr><td align="left"><code dir="auto">.concat(text)</code></td><td align="left">The two strings joined.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="splitting-and-converting">Splitting and converting</h3><a class="sl-anchor-link" href="#splitting-and-converting"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Splitting and converting”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.split(separator)</code></td><td align="left">A list of the parts between occurrences of <code dir="auto">separator</code>. An empty separator splits into characters.</td></tr><tr><td align="left"><code dir="auto">.lines()</code></td><td align="left">A list of lines.</td></tr><tr><td align="left"><code dir="auto">.chars()</code>, <code dir="auto">.to_list()</code></td><td align="left">A list of characters.</td></tr><tr><td align="left"><code dir="auto">.to_integer()</code>, <code dir="auto">.to_float()</code></td><td align="left">The parsed number. Throws <code dir="auto">ConversionError</code> if the string isn’t numeric.</td></tr><tr><td align="left"><code dir="auto">.to_date(format?)</code></td><td align="left">The parsed date, optionally with an exact <a href="#date-formats">format</a>.</td></tr><tr><td align="left"><code dir="auto">.to_bytes()</code></td><td align="left">The UTF-8 bytes.</td></tr><tr><td align="left"><code dir="auto">.hex_bytes()</code></td><td align="left">Bytes parsed from hexadecimal text; spaces and tabs are ignored.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">s </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"Hello, World"</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> s.</span><span style="--0:#D2A8FF;--1:#7A4BD1">substring</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">7</span><span style="--0:#E6EDF3;--1:#1F2328">)            </span><span style="--0:#8B949E;--1:#616972"># World</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> s.</span><span style="--0:#D2A8FF;--1:#7A4BD1">substring</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">5</span><span style="--0:#E6EDF3;--1:#1F2328">)         </span><span style="--0:#8B949E;--1:#616972"># Hello</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> s.</span><span style="--0:#D2A8FF;--1:#7A4BD1">lastindex</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"o"</span><span style="--0:#E6EDF3;--1:#1F2328">)          </span><span style="--0:#8B949E;--1:#616972"># 8</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> s.</span><span style="--0:#D2A8FF;--1:#7A4BD1">count</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"l"</span><span style="--0:#E6EDF3;--1:#1F2328">)              </span><span style="--0:#8B949E;--1:#616972"># 3</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"a,b,,c"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">split</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">","</span><span style="--0:#E6EDF3;--1:#1F2328">)       </span><span style="--0:#8B949E;--1:#616972"># ["a", "b", "", "c"]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"line 1</span><span style="--0:#FF7B72;--1:#CA212D">\n</span><span style="--0:#A5D6FF;--1:#0A3069">line 2"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">lines</span><span style="--0:#E6EDF3;--1:#1F2328">()  </span><span style="--0:#8B949E;--1:#616972"># ["line 1", "line 2"]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="s = &#x22;Hello, World&#x22;println s.substring(7)            # Worldprintln s.substring(0, 5)         # Helloprintln s.lastindex(&#x22;o&#x22;)          # 8println s.count(&#x22;l&#x22;)              # 3println &#x22;a,b,,c&#x22;.split(&#x22;,&#x22;)       # [&#x22;a&#x22;, &#x22;b&#x22;, &#x22;&#x22;, &#x22;c&#x22;]println &#x22;line 1\nline 2&#x22;.lines()  # [&#x22;line 1&#x22;, &#x22;line 2&#x22;]"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="regular-expressions">Regular expressions</h3><a class="sl-anchor-link" href="#regular-expressions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Regular expressions”</span></a></div>
+<p>Pass patterns as raw (single-quoted) strings.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.matches(pattern)</code></td><td align="left">Whether the whole string matches.</td></tr><tr><td align="left"><code dir="auto">.matches_all(pattern)</code></td><td align="left">Whether the pattern matches anywhere in the string.</td></tr><tr><td align="left"><code dir="auto">.find(pattern)</code></td><td align="left">The first match, or <code dir="auto">""</code>.</td></tr><tr><td align="left"><code dir="auto">.match(pattern)</code></td><td align="left">The capture groups of the first match.</td></tr><tr><td align="left"><code dir="auto">.scan(pattern)</code></td><td align="left">Every match.</td></tr><tr><td align="left"><code dir="auto">.scan_groups(pattern)</code></td><td align="left">The capture groups of every match, as a list of lists.</td></tr><tr><td align="left"><code dir="auto">.named_captures(pattern)</code></td><td align="left">A hashmap of named groups from the first match.</td></tr><tr><td align="left"><code dir="auto">.rreplace(pattern, replacement)</code></td><td align="left">The string with every match replaced; <code dir="auto">$1</code> refers to group 1.</td></tr><tr><td align="left"><code dir="auto">.rsplit(pattern, limit?)</code></td><td align="left">The parts between matches, at most <code dir="auto">limit</code> of them.</td></tr><tr><td align="left"><code dir="auto">.regex_escape()</code></td><td align="left">The string with regex metacharacters escaped.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">log </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"user=ada id=42 user=grace id=7"</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> log.</span><span style="--0:#D2A8FF;--1:#7A4BD1">scan</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">'id=(\d+)'</span><span style="--0:#E6EDF3;--1:#1F2328">)                          </span><span style="--0:#8B949E;--1:#616972"># ["id=42", "id=7"]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> log.</span><span style="--0:#D2A8FF;--1:#7A4BD1">scan_groups</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">'user=(\w+) id=(\d+)'</span><span style="--0:#E6EDF3;--1:#1F2328">)        </span><span style="--0:#8B949E;--1:#616972"># [["ada", "42"], ["grace", "7"]]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> log.</span><span style="--0:#D2A8FF;--1:#7A4BD1">named_captures</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">'user=(?&#x3C;name>\w+)'</span><span style="--0:#E6EDF3;--1:#1F2328">)       </span><span style="--0:#8B949E;--1:#616972"># {"name": "ada"}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> log.</span><span style="--0:#D2A8FF;--1:#7A4BD1">rreplace</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">'id=\d+'</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"id=?"</span><span style="--0:#E6EDF3;--1:#1F2328">)                </span><span style="--0:#8B949E;--1:#616972"># user=ada id=? user=grace id=?</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"2024-06-15"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">rreplace</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">'(\d+)-(\d+)-(\d+)'</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"$3/$2/$1"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 15/06/2024</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"k = v = w"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">rsplit</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">'\s*=\s*'</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">)              </span><span style="--0:#8B949E;--1:#616972"># ["k", "v = w"]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="log = &#x22;user=ada id=42 user=grace id=7&#x22;println log.scan(&#x27;id=(\d+)&#x27;)                          # [&#x22;id=42&#x22;, &#x22;id=7&#x22;]println log.scan_groups(&#x27;user=(\w+) id=(\d+)&#x27;)        # [[&#x22;ada&#x22;, &#x22;42&#x22;], [&#x22;grace&#x22;, &#x22;7&#x22;]]println log.named_captures(&#x27;user=(?<name>\w+)&#x27;)       # {&#x22;name&#x22;: &#x22;ada&#x22;}println log.rreplace(&#x27;id=\d+&#x27;, &#x22;id=?&#x22;)                # user=ada id=? user=grace id=?println &#x22;2024-06-15&#x22;.rreplace(&#x27;(\d+)-(\d+)-(\d+)&#x27;, &#x22;$3/$2/$1&#x22;)   # 15/06/2024println &#x22;k = v = w&#x22;.rsplit(&#x27;\s*=\s*&#x27;, 2)              # [&#x22;k&#x22;, &#x22;v = w&#x22;]"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="lists">Lists</h2><a class="sl-anchor-link" href="#lists"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Lists”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="reading">Reading</h3><a class="sl-anchor-link" href="#reading"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Reading”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.size()</code>, <code dir="auto">.length()</code></td><td align="left">The number of elements.</td></tr><tr><td align="left"><code dir="auto">.first()</code>, <code dir="auto">.last()</code></td><td align="left">The first or last element, or <code dir="auto">null</code> if empty.</td></tr><tr><td align="left"><code dir="auto">.get(index)</code></td><td align="left">The element at <code dir="auto">index</code>.</td></tr><tr><td align="left"><code dir="auto">.contains(value)</code></td><td align="left">Whether the list contains <code dir="auto">value</code>.</td></tr><tr><td align="left"><code dir="auto">.index(value)</code>, <code dir="auto">.lastindex(value)</code></td><td align="left">The first or last position of <code dir="auto">value</code>, or <code dir="auto">-1</code>.</td></tr><tr><td align="left"><code dir="auto">.count(value)</code></td><td align="left">How many elements equal <code dir="auto">value</code>.</td></tr><tr><td align="left"><code dir="auto">.slice(start, end)</code></td><td align="left">The elements from <code dir="auto">start</code> up to <code dir="auto">end</code>.</td></tr><tr><td align="left"><code dir="auto">.take(n)</code>, <code dir="auto">.skip(n)</code></td><td align="left">The first <code dir="auto">n</code> elements, or everything after them.</td></tr><tr><td align="left"><code dir="auto">.min()</code>, <code dir="auto">.max()</code>, <code dir="auto">.sum()</code></td><td align="left">The smallest, largest, or total of the elements.</td></tr><tr><td align="left"><code dir="auto">.join(separator?)</code></td><td align="left">The elements joined into a string.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="changing">Changing</h3><a class="sl-anchor-link" href="#changing"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Changing”</span></a></div>
+<p>These change the list in place and return it.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Effect</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.push(value)</code>, <code dir="auto">.append(value)</code>, <code dir="auto">.enqueue(value)</code></td><td align="left">Add to the end.</td></tr><tr><td align="left"><code dir="auto">.unshift(value)</code></td><td align="left">Add to the front.</td></tr><tr><td align="left"><code dir="auto">.insert(index, value)</code></td><td align="left">Insert at <code dir="auto">index</code>.</td></tr><tr><td align="left"><code dir="auto">.concat(list)</code></td><td align="left">Append every element of <code dir="auto">list</code>.</td></tr><tr><td align="left"><code dir="auto">.set(index, value)</code></td><td align="left">Replace the element at <code dir="auto">index</code>.</td></tr><tr><td align="left"><code dir="auto">.remove(value)</code></td><td align="left">Remove the first element equal to <code dir="auto">value</code>.</td></tr><tr><td align="left"><code dir="auto">.remove_at(index)</code></td><td align="left">Remove the element at <code dir="auto">index</code>.</td></tr><tr><td align="left"><code dir="auto">.clear()</code></td><td align="left">Remove everything.</td></tr><tr><td align="left"><code dir="auto">.sort()</code>, <code dir="auto">.sort(comparator)</code></td><td align="left">Sort ascending, or by a comparator that returns <code dir="auto">true</code> when its first argument comes first.</td></tr><tr><td align="left"><code dir="auto">.reverse()</code></td><td align="left">Reverse the order.</td></tr><tr><td align="left"><code dir="auto">.rotate(n)</code></td><td align="left">Rotate right by <code dir="auto">n</code> (left if negative).</td></tr><tr><td align="left"><code dir="auto">.swap(i, j)</code></td><td align="left">Swap two elements.</td></tr></tbody></table>
+<p><code dir="auto">.pop()</code> removes and returns the last element, and <code dir="auto">.shift()</code> (or <code dir="auto">.dequeue()</code>) removes and returns the first.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="transforming-1">Transforming</h3><a class="sl-anchor-link" href="#transforming-1"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Transforming”</span></a></div>
+<p>These return new values and leave the list unchanged.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.map(fn)</code></td><td align="left">The results of calling <code dir="auto">fn</code> on each element.</td></tr><tr><td align="left"><code dir="auto">.filter(fn)</code></td><td align="left">The elements for which <code dir="auto">fn</code> is truthy.</td></tr><tr><td align="left"><code dir="auto">.reduce(initial, fn)</code></td><td align="left">The result of folding <code dir="auto">fn(accumulator, element)</code> over the list.</td></tr><tr><td align="left"><code dir="auto">.each(fn)</code></td><td align="left">Calls <code dir="auto">fn(element, index)</code> for each element. Returns <code dir="auto">null</code>.</td></tr><tr><td align="left"><code dir="auto">.all(fn)</code></td><td align="left">Whether <code dir="auto">fn</code> is truthy for every element.</td></tr><tr><td align="left"><code dir="auto">.unique()</code></td><td align="left">The elements without duplicates.</td></tr><tr><td align="left"><code dir="auto">.flatten()</code></td><td align="left">Nested lists flattened into one.</td></tr><tr><td align="left"><code dir="auto">.zip(list)</code></td><td align="left">A list of <code dir="auto">[a, b]</code> pairs.</td></tr><tr><td align="left"><code dir="auto">.group_by_field(key)</code></td><td align="left">A hashmap from each distinct value of <code dir="auto">key</code> to the hashmaps with that value.</td></tr><tr><td align="left"><code dir="auto">.to_bytes()</code></td><td align="left">Bytes from a list of integers.</td></tr><tr><td align="left"><code dir="auto">.to_hex()</code></td><td align="left">A hex string from a list of byte values.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">orders </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#E6EDF3;--1:#1F2328">  </span></span><span style="--0:#E6EDF3;--1:#1F2328">{region</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"west"</span><span style="--0:#E6EDF3;--1:#1F2328">, total</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">120</span><span style="--0:#E6EDF3;--1:#1F2328">},</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#E6EDF3;--1:#1F2328">  </span></span><span style="--0:#E6EDF3;--1:#1F2328">{region</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"east"</span><span style="--0:#E6EDF3;--1:#1F2328">, total</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">80</span><span style="--0:#E6EDF3;--1:#1F2328">},</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#E6EDF3;--1:#1F2328">  </span></span><span style="--0:#E6EDF3;--1:#1F2328">{region</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"west"</span><span style="--0:#E6EDF3;--1:#1F2328">, total</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">50</span><span style="--0:#E6EDF3;--1:#1F2328">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">]</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> orders.</span><span style="--0:#D2A8FF;--1:#7A4BD1">map</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> (o) </span><span style="--0:#FF7B72;--1:#CA212D">=></span><span style="--0:#E6EDF3;--1:#1F2328"> o[</span><span style="--0:#A5D6FF;--1:#0A3069">"total"</span><span style="--0:#E6EDF3;--1:#1F2328">]).</span><span style="--0:#D2A8FF;--1:#7A4BD1">sum</span><span style="--0:#E6EDF3;--1:#1F2328">()          </span><span style="--0:#8B949E;--1:#616972"># 250</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> orders.</span><span style="--0:#D2A8FF;--1:#7A4BD1">filter</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> (o) </span><span style="--0:#FF7B72;--1:#CA212D">=></span><span style="--0:#E6EDF3;--1:#1F2328"> o[</span><span style="--0:#A5D6FF;--1:#0A3069">"total"</span><span style="--0:#E6EDF3;--1:#1F2328">] </span><span style="--0:#FF7B72;--1:#CA212D">></span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">60</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">size</span><span style="--0:#E6EDF3;--1:#1F2328">()  </span><span style="--0:#8B949E;--1:#616972"># 2</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> orders.</span><span style="--0:#D2A8FF;--1:#7A4BD1">group_by_field</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"region"</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">keys</span><span style="--0:#E6EDF3;--1:#1F2328">()           </span><span style="--0:#8B949E;--1:#616972"># ["west", "east"]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">]]].</span><span style="--0:#D2A8FF;--1:#7A4BD1">flatten</span><span style="--0:#E6EDF3;--1:#1F2328">()                          </span><span style="--0:#8B949E;--1:#616972"># [1, 2, 3]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">].</span><span style="--0:#D2A8FF;--1:#7A4BD1">zip</span><span style="--0:#E6EDF3;--1:#1F2328">([</span><span style="--0:#A5D6FF;--1:#0A3069">"a"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"b"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"c"</span><span style="--0:#E6EDF3;--1:#1F2328">])                   </span><span style="--0:#8B949E;--1:#616972"># [[1, "a"], [2, "b"], [3, "c"]]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">9</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">4</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">7</span><span style="--0:#E6EDF3;--1:#1F2328">].</span><span style="--0:#D2A8FF;--1:#7A4BD1">sort</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> (a, b) </span><span style="--0:#FF7B72;--1:#CA212D">=></span><span style="--0:#E6EDF3;--1:#1F2328"> a </span><span style="--0:#FF7B72;--1:#CA212D">></span><span style="--0:#E6EDF3;--1:#1F2328"> b)               </span><span style="--0:#8B949E;--1:#616972"># [9, 7, 4]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="orders = [  {region: &#x22;west&#x22;, total: 120},  {region: &#x22;east&#x22;, total: 80},  {region: &#x22;west&#x22;, total: 50}]println orders.map(do (o) => o[&#x22;total&#x22;]).sum()          # 250println orders.filter(do (o) => o[&#x22;total&#x22;] > 60).size()  # 2println orders.group_by_field(&#x22;region&#x22;).keys()           # [&#x22;west&#x22;, &#x22;east&#x22;]println [1, [2, [3]]].flatten()                          # [1, 2, 3]println [1, 2, 3].zip([&#x22;a&#x22;, &#x22;b&#x22;, &#x22;c&#x22;])                   # [[1, &#x22;a&#x22;], [2, &#x22;b&#x22;], [3, &#x22;c&#x22;]]println [9, 4, 7].sort(do (a, b) => a > b)               # [9, 7, 4]"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="hashmaps">Hashmaps</h2><a class="sl-anchor-link" href="#hashmaps"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Hashmaps”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.size()</code>, <code dir="auto">.length()</code></td><td align="left">The number of entries.</td></tr><tr><td align="left"><code dir="auto">.keys()</code>, <code dir="auto">.values()</code></td><td align="left">The keys or values, in insertion order.</td></tr><tr><td align="left"><code dir="auto">.has_key(key)</code></td><td align="left">Whether the key exists.</td></tr><tr><td align="left"><code dir="auto">.get(key, default?)</code></td><td align="left">The value for <code dir="auto">key</code>, or <code dir="auto">default</code> (or <code dir="auto">null</code>) if it is missing.</td></tr><tr><td align="left"><code dir="auto">.set(key, value)</code></td><td align="left">Sets a key. Changes the hashmap and returns it.</td></tr><tr><td align="left"><code dir="auto">.remove(key)</code></td><td align="left">Removes a key. Changes the hashmap and returns it.</td></tr><tr><td align="left"><code dir="auto">.merge(other)</code></td><td align="left">Copies every entry of <code dir="auto">other</code> in, overwriting existing keys. Changes the hashmap and returns it.</td></tr><tr><td align="left"><code dir="auto">.clear()</code></td><td align="left">Removes every entry.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">config </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {host</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"localhost"</span><span style="--0:#E6EDF3;--1:#1F2328">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">config.</span><span style="--0:#D2A8FF;--1:#7A4BD1">merge</span><span style="--0:#E6EDF3;--1:#1F2328">({port</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">8080</span><span style="--0:#E6EDF3;--1:#1F2328">})</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> config.</span><span style="--0:#D2A8FF;--1:#7A4BD1">get</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"port"</span><span style="--0:#E6EDF3;--1:#1F2328">)           </span><span style="--0:#8B949E;--1:#616972"># 8080</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> config.</span><span style="--0:#D2A8FF;--1:#7A4BD1">get</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"tls"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">false</span><span style="--0:#E6EDF3;--1:#1F2328">)     </span><span style="--0:#8B949E;--1:#616972"># false</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> config.</span><span style="--0:#D2A8FF;--1:#7A4BD1">has_key</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"host"</span><span style="--0:#E6EDF3;--1:#1F2328">)       </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> config.</span><span style="--0:#D2A8FF;--1:#7A4BD1">keys</span><span style="--0:#E6EDF3;--1:#1F2328">()                </span><span style="--0:#8B949E;--1:#616972"># ["host", "port"]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="config = {host: &#x22;localhost&#x22;}config.merge({port: 8080})println config.get(&#x22;port&#x22;)           # 8080println config.get(&#x22;tls&#x22;, false)     # falseprintln config.has_key(&#x22;host&#x22;)       # trueprintln config.keys()                # [&#x22;host&#x22;, &#x22;port&#x22;]"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="dates">Dates</h2><a class="sl-anchor-link" href="#dates"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Dates”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.year()</code>, <code dir="auto">.month()</code>, <code dir="auto">.day()</code></td><td align="left">The calendar date parts. Months run from 1 to 12.</td></tr><tr><td align="left"><code dir="auto">.hour()</code>, <code dir="auto">.minute()</code>, <code dir="auto">.second()</code>, <code dir="auto">.millisecond()</code></td><td align="left">The time of day parts.</td></tr><tr><td align="left"><code dir="auto">.to_string(format?)</code></td><td align="left">The date as text, optionally in a <a href="#date-formats">format</a>.</td></tr><tr><td align="left"><code dir="auto">.between(start, end)</code></td><td align="left">Whether the date falls in the inclusive range.</td></tr></tbody></table>
+<p>Dates compare with <code dir="auto">&#x3C;</code>, <code dir="auto">></code> and <code dir="auto">==</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="date-formats">Date formats</h3><a class="sl-anchor-link" href="#date-formats"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Date formats”</span></a></div>
+<p>Format strings use .NET date patterns:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Pattern</th><th align="left">Meaning</th><th align="left">Example</th></tr></thead><tbody><tr><td align="left"><code dir="auto">yyyy</code>, <code dir="auto">yy</code></td><td align="left">Year</td><td align="left"><code dir="auto">2024</code>, <code dir="auto">24</code></td></tr><tr><td align="left"><code dir="auto">MM</code>, <code dir="auto">M</code>, <code dir="auto">MMM</code>, <code dir="auto">MMMM</code></td><td align="left">Month</td><td align="left"><code dir="auto">06</code>, <code dir="auto">6</code>, <code dir="auto">Jun</code>, <code dir="auto">June</code></td></tr><tr><td align="left"><code dir="auto">dd</code>, <code dir="auto">d</code></td><td align="left">Day of the month</td><td align="left"><code dir="auto">05</code>, <code dir="auto">5</code></td></tr><tr><td align="left"><code dir="auto">ddd</code>, <code dir="auto">dddd</code></td><td align="left">Day of the week</td><td align="left"><code dir="auto">Sat</code>, <code dir="auto">Saturday</code></td></tr><tr><td align="left"><code dir="auto">HH</code>, <code dir="auto">hh</code></td><td align="left">Hour (24-hour, 12-hour)</td><td align="left"><code dir="auto">14</code>, <code dir="auto">02</code></td></tr><tr><td align="left"><code dir="auto">mm</code>, <code dir="auto">ss</code>, <code dir="auto">fff</code></td><td align="left">Minute, second, millisecond</td><td align="left"><code dir="auto">30</code>, <code dir="auto">05</code>, <code dir="auto">123</code></td></tr><tr><td align="left"><code dir="auto">tt</code></td><td align="left">AM/PM</td><td align="left"><code dir="auto">PM</code></td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">launch </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"2024-06-15T14:30:00"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_date</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> launch.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"yyyy-MM-dd HH:mm"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 2024-06-15 14:30</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> launch.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"dddd, MMMM d"</span><span style="--0:#E6EDF3;--1:#1F2328">)       </span><span style="--0:#8B949E;--1:#616972"># Saturday, June 15</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"15/06/2024"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_date</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"dd/MM/yyyy"</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">year</span><span style="--0:#E6EDF3;--1:#1F2328">()   </span><span style="--0:#8B949E;--1:#616972"># 2024</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="launch = &#x22;2024-06-15T14:30:00&#x22;.to_date()println launch.to_string(&#x22;yyyy-MM-dd HH:mm&#x22;)   # 2024-06-15 14:30println launch.to_string(&#x22;dddd, MMMM d&#x22;)       # Saturday, June 15println &#x22;15/06/2024&#x22;.to_date(&#x22;dd/MM/yyyy&#x22;).year()   # 2024"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="bytes">Bytes</h2><a class="sl-anchor-link" href="#bytes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Bytes”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.size()</code></td><td align="left">The number of bytes.</td></tr><tr><td align="left"><code dir="auto">.to_string()</code></td><td align="left">The bytes decoded as UTF-8.</td></tr><tr><td align="left"><code dir="auto">.to_list()</code></td><td align="left">A list of integers from 0 to 255.</td></tr><tr><td align="left"><code dir="auto">.to_hex()</code></td><td align="left">A lowercase hexadecimal string.</td></tr><tr><td align="left"><code dir="auto">.slice(start, end)</code>, <code dir="auto">.reverse()</code></td><td align="left">A portion of the bytes, or the bytes reversed.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">data </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"Kiwi"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_bytes</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> data.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_hex</span><span style="--0:#E6EDF3;--1:#1F2328">()                </span><span style="--0:#8B949E;--1:#616972"># 4b697769</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> data.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_list</span><span style="--0:#E6EDF3;--1:#1F2328">()               </span><span style="--0:#8B949E;--1:#616972"># [75, 105, 119, 105]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"4b 69"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">hex_bytes</span><span style="--0:#E6EDF3;--1:#1F2328">().</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">()   </span><span style="--0:#8B949E;--1:#616972"># Ki</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="data = &#x22;Kiwi&#x22;.to_bytes()println data.to_hex()                # 4b697769println data.to_list()               # [75, 105, 119, 105]println &#x22;4b 69&#x22;.hex_bytes().to_string()   # Ki"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="functions-and-lambdas">Functions and lambdas</h2><a class="sl-anchor-link" href="#functions-and-lambdas"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Functions and lambdas”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.call(arguments)</code></td><td align="left">The result of calling the function with a list of arguments.</td></tr><tr><td align="left"><code dir="auto">.parameters()</code></td><td align="left">A list describing each parameter, with <code dir="auto">name</code> and <code dir="auto">position</code>.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FF7B72;--1:#CA212D">fn</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">add</span><span style="--0:#E6EDF3;--1:#1F2328">(a, b)</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#E6EDF3;--1:#1F2328">  </span></span><span style="--0:#E6EDF3;--1:#1F2328">a </span><span style="--0:#FF7B72;--1:#CA212D">+</span><span style="--0:#E6EDF3;--1:#1F2328"> b</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FF7B72;--1:#CA212D">end</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> add.</span><span style="--0:#D2A8FF;--1:#7A4BD1">call</span><span style="--0:#E6EDF3;--1:#1F2328">([</span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">])                                  </span><span style="--0:#8B949E;--1:#616972"># 5</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> add.</span><span style="--0:#D2A8FF;--1:#7A4BD1">parameters</span><span style="--0:#E6EDF3;--1:#1F2328">().</span><span style="--0:#D2A8FF;--1:#7A4BD1">map</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> (p) </span><span style="--0:#FF7B72;--1:#CA212D">=></span><span style="--0:#E6EDF3;--1:#1F2328"> p[</span><span style="--0:#A5D6FF;--1:#0A3069">"name"</span><span style="--0:#E6EDF3;--1:#1F2328">])         </span><span style="--0:#8B949E;--1:#616972"># ["a", "b"]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fn add(a, b)  a + bendprintln add.call([2, 3])                                  # 5println add.parameters().map(do (p) => p[&#x22;name&#x22;])         # [&#x22;a&#x22;, &#x22;b&#x22;]"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="struct-instances">Struct instances</h2><a class="sl-anchor-link" href="#struct-instances"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Struct instances”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">.keys()</code></td><td align="left">The instance variable names.</td></tr><tr><td align="left"><code dir="auto">.values()</code></td><td align="left">The instance variable values.</td></tr><tr><td align="left"><code dir="auto">.set(name, value)</code></td><td align="left">Sets an instance variable by name.</td></tr><tr><td align="left"><code dir="auto">.clone()</code></td><td align="left">A copy of the instance.</td></tr><tr><td align="left"><code dir="auto">.is_a(Struct)</code></td><td align="left">Whether the instance is that struct or a descendant.</td></tr></tbody></table>
+<p>See <a href="/kiwi/language/structs/#working-with-instances">Structs</a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="enums">Enums</h2><a class="sl-anchor-link" href="#enums"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Enums”</span></a></div>
+<p><code dir="auto">.size()</code>, <code dir="auto">.keys()</code>, <code dir="auto">.values()</code>, <code dir="auto">.to_hashmap()</code> and <code dir="auto">.get(name, default)</code>. See <a href="/kiwi/language/enums/#enum-methods">Enums</a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="methods-from-the-standard-library">Methods from the standard library</h2><a class="sl-anchor-link" href="#methods-from-the-standard-library"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Methods from the standard library”</span></a></div>
+<p>Every function in the stdlib <code dir="auto">string</code>, <code dir="auto">list</code> and <code dir="auto">date</code> packages can be called as a method, because those packages <a href="/kiwi/language/packages/#extending-built-in-types">extend built-in types</a>. Each is also callable as a package function.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="from-the-string-package">From the <code dir="auto">string</code> package</h3><a class="sl-anchor-link" href="#from-the-string-package"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “From the string package”</span></a></div>
+<p>Every <code dir="auto">string::</code> function, for example <code dir="auto">.titleize()</code>, <code dir="auto">.capitalize()</code>, <code dir="auto">.squish()</code>, <code dir="auto">.dedent()</code>, <code dir="auto">.slug()</code>, <code dir="auto">.padstart(width, pad)</code>, <code dir="auto">.padend(width, pad)</code>, <code dir="auto">.center(width, pad)</code>, <code dir="auto">.base64encode()</code>, <code dir="auto">.is_numeric()</code> and <code dir="auto">.to_path()</code>. See <a href="/kiwi/stdlib/string/"><code dir="auto">string</code></a>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="from-the-list-package">From the <code dir="auto">list</code> package</h3><a class="sl-anchor-link" href="#from-the-list-package"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “From the list package”</span></a></div>
+<p>Every <code dir="auto">list::</code> function, for example <code dir="auto">.reject(fn)</code>, <code dir="auto">.first_where(fn)</code>, <code dir="auto">.last_where(fn)</code>, <code dir="auto">.one(fn)</code>, <code dir="auto">.is_unique()</code>, <code dir="auto">.index_of(value)</code>, <code dir="auto">.last_index_of(value)</code>, <code dir="auto">.sum_integer()</code>, <code dir="auto">.sum_float()</code> and <code dir="auto">.iterator()</code>. The package’s <code dir="auto">all</code>, <code dir="auto">any</code>, <code dir="auto">none</code>, <code dir="auto">count</code> and <code dir="auto">find</code> share names with built-ins or keywords, so call them as <code dir="auto">list::count(xs, fn)</code>. See <a href="/kiwi/stdlib/list/"><code dir="auto">list</code></a>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="from-the-date-package">From the <code dir="auto">date</code> package</h3><a class="sl-anchor-link" href="#from-the-date-package"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “From the date package”</span></a></div>
+<p>Every <code dir="auto">date::</code> function, for example <code dir="auto">.add_days(n)</code>, <code dir="auto">.add_months(n)</code>, <code dir="auto">.add_years(n)</code>, <code dir="auto">.add_hours(n)</code>, <code dir="auto">.add_minutes(n)</code>, <code dir="auto">.add_seconds(n)</code>, <code dir="auto">.add_milliseconds(n)</code>, <code dir="auto">.weekday()</code>, <code dir="auto">.yearday()</code>, <code dir="auto">.isdst()</code> and <code dir="auto">.ampm()</code>. See <a href="/kiwi/stdlib/date/"><code dir="auto">date</code></a>.</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">release </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"2024-06-15"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_date</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> release.</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_days</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">20</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"yyyy-MM-dd"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 2024-07-05</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> release.</span><span style="--0:#D2A8FF;--1:#7A4BD1">weekday</span><span style="--0:#E6EDF3;--1:#1F2328">()                              </span><span style="--0:#8B949E;--1:#616972"># 6</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"  messy   text "</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">squish</span><span style="--0:#E6EDF3;--1:#1F2328">()                     </span><span style="--0:#8B949E;--1:#616972"># messy text</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">4</span><span style="--0:#E6EDF3;--1:#1F2328">].</span><span style="--0:#D2A8FF;--1:#7A4BD1">reject</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> (n) </span><span style="--0:#FF7B72;--1:#CA212D">=></span><span style="--0:#E6EDF3;--1:#1F2328"> n </span><span style="--0:#FF7B72;--1:#CA212D">%</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">==</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">)      </span><span style="--0:#8B949E;--1:#616972"># [1, 3]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="release = &#x22;2024-06-15&#x22;.to_date()println release.add_days(20).to_string(&#x22;yyyy-MM-dd&#x22;)   # 2024-07-05println release.weekday()                              # 6println &#x22;  messy   text &#x22;.squish()                     # messy textprintln [1, 2, 3, 4].reject(do (n) => n % 2 == 0)      # [1, 3]"><div></div></button></div></figure></div></div><footer class="sl-flex astro-ddtxxk7k"><div class="meta sl-flex astro-ddtxxk7k"><a href="https://github.com/fuseraft/kiwi/edit/main/docs/src/content/docs/reference/builtin-methods.md" class="sl-flex print:hidden astro-qlekgd3o"><svg aria-hidden="true" class="astro-qlekgd3o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a><p>Last updated: <time datetime="2026-10-21T05:12:48.000Z">Oct 21, 2026</time></p></div><div class="pagination-links print:hidden astro-b5raizh3" dir="ltr"><a href="/kiwi/reference/keywords/" rel="prev" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-b5raizh3">Previous<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">Keywords</span></span></a><a href="/kiwi/reference/global-functions/" rel="next" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-b5raizh3">Next<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">Global Functions</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>

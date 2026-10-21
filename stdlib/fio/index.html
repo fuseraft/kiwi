@@ -1,0 +1,1091 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-g5ptsecz"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>fio | Kiwi</title><link rel="canonical" href="https://fuseraft.ai/kiwi/stdlib/fio/"/><link rel="sitemap" href="/kiwi/sitemap-index.xml"/><link rel="shortcut icon" href="/kiwi/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.4.1"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="fio"/><meta property="og:type" content="article"/><meta property="og:url" content="https://fuseraft.ai/kiwi/stdlib/fio/"/><meta property="og:locale" content="en"/><meta property="og:description" content="Read, write, copy and list files and directories."/><meta property="og:site_name" content="Kiwi"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="Read, write, copy and list files and directories."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/kiwi/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/kiwi/_astro/common.Dzj9lC13.css"><style>@layer starlight.components{svg:where(.astro-hkc32dio){color:var(--sl-icon-color);font-size:var(--sl-icon-size,1em);width:1em;height:1em;overflow:visible}}
+</style><script type="module" src="/kiwi/_astro/page.cNngjUgL.js"></script></head><body class="astro-g5ptsecz"><a class="sl-skip-link astro-qb7clj6f" href="#_top">Skip to content</a><div class="page sl-flex astro-yntsjkba"><header class="header astro-yntsjkba"><div class="header astro-by6fddyj"><div class="title-wrapper sl-flex astro-by6fddyj"><a href="/kiwi/" class="site-title sl-flex astro-6rvad3va"><img class="astro-6rvad3va" alt src="/kiwi/_astro/logo.DJfiJ099.svg" width="400" height="400"><span class="astro-6rvad3va" translate="no">Kiwi</span></a></div><div class="sl-flex print:hidden astro-by6fddyj"><site-search class="astro-by6fddyj astro-b5kgnn7o" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-b5kgnn7o"><svg aria-hidden="true" class="astro-b5kgnn7o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-b5kgnn7o" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-b5kgnn7o" style="display: none;"><kbd class="astro-b5kgnn7o">Ctrl</kbd><kbd class="astro-b5kgnn7o">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-b5kgnn7o"><div class="dialog-frame sl-flex astro-b5kgnn7o"><button data-close-modal class="sl-flex md:sl-hidden astro-b5kgnn7o">Cancel</button><div class="search-container astro-b5kgnn7o"><div id="starlight__search" class="astro-b5kgnn7o"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/kiwi/_astro/Search.astro_astro_type_script_index_0_lang.Dpg5QQYx.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-by6fddyj"><div class="sl-flex social-icons astro-by6fddyj"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-yntsjkba" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-r2osgdlg"><svg aria-hidden="true" class="open-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-r2osgdlg">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-yntsjkba"><div class="sidebar-content sl-flex astro-yntsjkba"><sl-sidebar-state-persist data-hash="02fcnv0" class="astro-ipdry5cl"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-rmhv4bp6"><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Getting Started</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/introduction/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Introduction</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/installation/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Installation</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/tour/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">A Tour of Kiwi</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Language</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/language/syntax/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Syntax Basics</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/variables/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Variables</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/types/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Types</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/strings/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Strings</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lists/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lists and Ranges</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/hashmaps/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Hashmaps</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/control-flow/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Control Flow</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/loops/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Loops</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Functions</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lambdas/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lambdas and Closures</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/scoping/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Scoping</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/type-hints/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Type Hints</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/errors/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Error Handling</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/structs/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Structs</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operator-overloading/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operator Overloading</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/enums/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Enums</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/packages/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Packages and Modules</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/generators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Generators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/decorators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Decorators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/events/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Events</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Tools</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/tools/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">The kiwi Command</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/repl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">REPL</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/debugger/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Debugger (kdb)</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/testing/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Testing</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Reference</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/reference/keywords/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Keywords</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/builtin-methods/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Built-in Methods</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/global-functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Global Functions</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Standard Library</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="4"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Overview</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/bench/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">bench</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">cli</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/collections/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">collections</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/compress/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">compress</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/console/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">console</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/crypto/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">crypto</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/csv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">csv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/curl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">curl</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/date/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">date</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/dotenv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">dotenv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/encode/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">encode</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/env/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">env</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/error/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">error</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/faker/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">faker</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fio/" aria-current="page" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fio</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fmt/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fmt</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/hashable/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">hashable</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/http/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">http</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/httpserver/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">httpserver</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ipc/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ipc</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/iter/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">iter</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/json/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">json</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/list/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">list</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/log/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">log</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/math/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">math</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/path/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">path</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/pipeline/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">pipeline</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/protobuf/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">protobuf</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/reflector/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">reflector</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/regex/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">regex</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/signal/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">signal</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/smtp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">smtp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/socket/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">socket</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sqlite/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sqlite</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stat/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stat</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/std/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">std</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stdin/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stdin</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stopwatch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stopwatch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/string/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">string</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sys/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sys</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/table/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">table</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/task/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">task</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/template/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">template</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/tester/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">tester</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/text/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">text</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/time/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">time</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/udp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">udp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/watch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">watch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/xml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">xml</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/yaml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">yaml</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Internals</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="5"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/internals/vm/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Bytecode VM</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-p4azlveh"><div class="social-icons astro-p4azlveh"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-yntsjkba"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-lrzkfocr"><aside class="right-sidebar-container print:hidden astro-lrzkfocr"><div class="right-sidebar astro-lrzkfocr"><div class="lg:sl-hidden astro-qok35upx"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-66cqc7ze"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-66cqc7ze"><details id="starlight__mobile-toc" class="astro-66cqc7ze"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-66cqc7ze"><span class="toggle sl-flex astro-66cqc7ze">On this page<svg aria-hidden="true" class="caret astro-66cqc7ze astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-66cqc7ze"></span></summary><div class="dropdown astro-66cqc7ze"><ul class="isMobile astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#reading-and-writing" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Reading and writing</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#files-and-directories" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Files and directories</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#globs" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Globs</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#paths" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Paths</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioabspath" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::abspath</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioappend" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::append</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiochdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::chdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocombine" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::combine</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocopy" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::copy</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocopyr" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::copyr</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocreate" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::create</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocwd" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::cwd</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioexists" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::exists</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioext" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::ext</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiofilename" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::filename</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiofilesize" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::filesize</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioglob" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::glob</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiofileinfo" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::fileinfo</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioisdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::isdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioisfile" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::isfile</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiolistdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::listdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiomkdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::mkdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiomkdirp" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::mkdirp</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiomove" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::move</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioparentdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::parentdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioread" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::read</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioreadlines" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::readlines</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioreadslice" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::readslice</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioreadbytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::readbytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioremove" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::remove</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiormdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::rmdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiormdirf" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::rmdirf</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiotouch" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::touch</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiotmpdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::tmpdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiotmpfile" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::tmpfile</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowrite" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::write</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowriteln" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::writeln</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowritebytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::writebytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowriteslice" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::writeslice</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiopathparts" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::pathparts</span></a></li></ul></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/kiwi/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-qok35upx"><div class="sl-container astro-qok35upx"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#reading-and-writing" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Reading and writing</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#files-and-directories" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Files and directories</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#globs" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Globs</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#paths" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Paths</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioabspath" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::abspath</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioappend" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::append</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiochdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::chdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocombine" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::combine</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocopy" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::copy</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocopyr" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::copyr</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocreate" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::create</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiocwd" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::cwd</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioexists" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::exists</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioext" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::ext</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiofilename" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::filename</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiofilesize" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::filesize</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioglob" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::glob</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiofileinfo" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::fileinfo</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioisdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::isdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioisfile" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::isfile</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiolistdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::listdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiomkdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::mkdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiomkdirp" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::mkdirp</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiomove" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::move</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioparentdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::parentdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioread" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::read</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioreadlines" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::readlines</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioreadslice" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::readslice</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioreadbytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::readbytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fioremove" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::remove</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiormdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::rmdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiormdirf" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::rmdirf</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiotouch" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::touch</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiotmpdir" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::tmpdir</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiotmpfile" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::tmpfile</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowrite" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::write</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowriteln" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::writeln</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowritebytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::writebytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiowriteslice" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::writeslice</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fiopathparts" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">fio::pathparts</span></a></li></ul></li></ul></nav></starlight-toc><script type="module" src="/kiwi/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-lrzkfocr"><main data-pagefind-body class="astro-g5ptsecz" lang="en" dir="ltr"><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><h1 id="_top" class="astro-bebwqqxs">fio</h1></div></div><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><div class="sl-markdown-content"><p>The <code dir="auto">fio</code> package (file I/O) works with the filesystem using plain string paths. For an object-oriented interface, see <a href="/kiwi/stdlib/path/"><code dir="auto">path</code></a>. All <code dir="auto">fio</code> functions are unavailable in <a href="/kiwi/tools/cli/#safe-mode">safe mode</a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="reading-and-writing">Reading and writing</h2><a class="sl-anchor-link" href="#reading-and-writing"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Reading and writing”</span></a></div>
+<div class="expressive-code"><link rel="stylesheet" href="/kiwi/_astro/ec.8nqtp.css"><script type="module" src="/kiwi/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">dir </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">tmpdir</span><span style="--0:#E6EDF3;--1:#1F2328">(), </span><span style="--0:#A5D6FF;--1:#0A3069">"fio-demo"</span><span style="--0:#E6EDF3;--1:#1F2328">])</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">mkdirp</span><span style="--0:#E6EDF3;--1:#1F2328">(dir)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">notes </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"notes.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">])</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(notes, </span><span style="--0:#A5D6FF;--1:#0A3069">"first line</span><span style="--0:#FF7B72;--1:#CA212D">\n</span><span style="--0:#A5D6FF;--1:#0A3069">"</span><span style="--0:#E6EDF3;--1:#1F2328">)        </span><span style="--0:#8B949E;--1:#616972"># create or overwrite</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">append</span><span style="--0:#E6EDF3;--1:#1F2328">(notes, </span><span style="--0:#A5D6FF;--1:#0A3069">"second line</span><span style="--0:#FF7B72;--1:#CA212D">\n</span><span style="--0:#A5D6FF;--1:#0A3069">"</span><span style="--0:#E6EDF3;--1:#1F2328">)      </span><span style="--0:#8B949E;--1:#616972"># add to the end</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">writeln</span><span style="--0:#E6EDF3;--1:#1F2328">(notes, [</span><span style="--0:#A5D6FF;--1:#0A3069">"third"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"fourth"</span><span style="--0:#E6EDF3;--1:#1F2328">]) </span><span style="--0:#8B949E;--1:#616972"># append lines</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read</span><span style="--0:#E6EDF3;--1:#1F2328">(notes)                 </span><span style="--0:#8B949E;--1:#616972"># the whole file as a string</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">readlines</span><span style="--0:#E6EDF3;--1:#1F2328">(notes)            </span><span style="--0:#8B949E;--1:#616972"># ["first line", "second line", "third", "fourth"]</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">rmdirf</span><span style="--0:#E6EDF3;--1:#1F2328">(dir)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dir = fio::combine([fio::tmpdir(), &#x22;fio-demo&#x22;])fio::mkdirp(dir)notes = fio::combine([dir, &#x22;notes.txt&#x22;])fio::write(notes, &#x22;first line\n&#x22;)        # create or overwritefio::append(notes, &#x22;second line\n&#x22;)      # add to the endfio::writeln(notes, [&#x22;third&#x22;, &#x22;fourth&#x22;]) # append linesprintln fio::read(notes)                 # the whole file as a stringprintln fio::readlines(notes)            # [&#x22;first line&#x22;, &#x22;second line&#x22;, &#x22;third&#x22;, &#x22;fourth&#x22;]fio::rmdirf(dir)"><div></div></button></div></figure></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Function</th><th align="left">Does</th></tr></thead><tbody><tr><td align="left"><code dir="auto">read(path)</code></td><td align="left">Returns the file as a string.</td></tr><tr><td align="left"><code dir="auto">readlines(path)</code></td><td align="left">Returns the lines as a list.</td></tr><tr><td align="left"><code dir="auto">readbytes(path)</code></td><td align="left">Returns the file as bytes.</td></tr><tr><td align="left"><code dir="auto">readslice(path, offset, size)</code></td><td align="left">Returns <code dir="auto">size</code> bytes starting at <code dir="auto">offset</code>.</td></tr><tr><td align="left"><code dir="auto">write(path, text)</code></td><td align="left">Replaces the file’s contents.</td></tr><tr><td align="left"><code dir="auto">append(path, text)</code></td><td align="left">Adds text to the end.</td></tr><tr><td align="left"><code dir="auto">writeln(path, text_or_list)</code></td><td align="left">Appends one line, or each element of a list as a line.</td></tr><tr><td align="left"><code dir="auto">writebytes(path, bytes)</code></td><td align="left">Replaces the file’s contents with bytes.</td></tr><tr><td align="left"><code dir="auto">writeslice(path, offset, bytes)</code></td><td align="left">Overwrites bytes at an offset.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h2"><h2 id="files-and-directories">Files and directories</h2><a class="sl-anchor-link" href="#files-and-directories"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Files and directories”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">dir </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">tmpdir</span><span style="--0:#E6EDF3;--1:#1F2328">(), </span><span style="--0:#A5D6FF;--1:#0A3069">"fio-tree"</span><span style="--0:#E6EDF3;--1:#1F2328">])</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">mkdirp</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"logs"</span><span style="--0:#E6EDF3;--1:#1F2328">]))</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"a.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">]), </span><span style="--0:#A5D6FF;--1:#0A3069">"A"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"logs"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"app.log"</span><span style="--0:#E6EDF3;--1:#1F2328">]), </span><span style="--0:#A5D6FF;--1:#0A3069">"started"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">isdir</span><span style="--0:#E6EDF3;--1:#1F2328">(dir)                                        </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">listdir</span><span style="--0:#E6EDF3;--1:#1F2328">(dir).</span><span style="--0:#D2A8FF;--1:#7A4BD1">map</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> (p) </span><span style="--0:#FF7B72;--1:#CA212D">=></span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">filename</span><span style="--0:#E6EDF3;--1:#1F2328">(p)).</span><span style="--0:#D2A8FF;--1:#7A4BD1">sort</span><span style="--0:#E6EDF3;--1:#1F2328">()  </span><span style="--0:#8B949E;--1:#616972"># ["a.txt", "logs"]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">listdir</span><span style="--0:#E6EDF3;--1:#1F2328">(dir, </span><span style="--0:#79C0FF;--1:#0550AE">true</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">size</span><span style="--0:#E6EDF3;--1:#1F2328">()                         </span><span style="--0:#8B949E;--1:#616972"># 3 (recursive)</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">copy</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"a.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">]), </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"b.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">]))</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">move</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"b.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">]), </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"c.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">]))</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">exists</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([dir, </span><span style="--0:#A5D6FF;--1:#0A3069">"c.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">]))              </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">rmdirf</span><span style="--0:#E6EDF3;--1:#1F2328">(dir)                                               </span><span style="--0:#8B949E;--1:#616972"># remove recursively</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dir = fio::combine([fio::tmpdir(), &#x22;fio-tree&#x22;])fio::mkdirp(fio::combine([dir, &#x22;logs&#x22;]))fio::write(fio::combine([dir, &#x22;a.txt&#x22;]), &#x22;A&#x22;)fio::write(fio::combine([dir, &#x22;logs&#x22;, &#x22;app.log&#x22;]), &#x22;started&#x22;)println fio::isdir(dir)                                        # trueprintln fio::listdir(dir).map(do (p) => fio::filename(p)).sort()  # [&#x22;a.txt&#x22;, &#x22;logs&#x22;]println fio::listdir(dir, true).size()                         # 3 (recursive)fio::copy(fio::combine([dir, &#x22;a.txt&#x22;]), fio::combine([dir, &#x22;b.txt&#x22;]))fio::move(fio::combine([dir, &#x22;b.txt&#x22;]), fio::combine([dir, &#x22;c.txt&#x22;]))println fio::exists(fio::combine([dir, &#x22;c.txt&#x22;]))              # truefio::rmdirf(dir)                                               # remove recursively"><div></div></button></div></figure></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Function</th><th align="left">Does</th></tr></thead><tbody><tr><td align="left"><code dir="auto">exists</code>, <code dir="auto">isfile</code>, <code dir="auto">isdir</code></td><td align="left">Test a path.</td></tr><tr><td align="left"><code dir="auto">filesize(path)</code></td><td align="left">Size in bytes.</td></tr><tr><td align="left"><code dir="auto">fileinfo(path)</code></td><td align="left">A hashmap with <code dir="auto">name</code>, <code dir="auto">full_name</code>, <code dir="auto">extension</code>, <code dir="auto">attributes</code> and creation, access and write times.</td></tr><tr><td align="left"><code dir="auto">create(path)</code>, <code dir="auto">touch(path)</code></td><td align="left">Create an empty file.</td></tr><tr><td align="left"><code dir="auto">copy(src, dest, overwrite)</code>, <code dir="auto">copyr(src, dest)</code></td><td align="left">Copy a file, or a directory recursively.</td></tr><tr><td align="left"><code dir="auto">move(src, dest, overwrite)</code></td><td align="left">Move or rename.</td></tr><tr><td align="left"><code dir="auto">remove(path)</code></td><td align="left">Delete a file.</td></tr><tr><td align="left"><code dir="auto">mkdir(path)</code>, <code dir="auto">mkdirp(path)</code></td><td align="left">Create a directory, or a directory and its parents.</td></tr><tr><td align="left"><code dir="auto">rmdir(path)</code>, <code dir="auto">rmdirf(path)</code></td><td align="left">Remove an empty directory, or a directory and everything in it.</td></tr><tr><td align="left"><code dir="auto">listdir(path, recursive)</code></td><td align="left">List entries as full paths.</td></tr><tr><td align="left"><code dir="auto">glob(dir, include, exclude)</code></td><td align="left">List files matching glob patterns.</td></tr><tr><td align="left"><code dir="auto">cwd()</code>, <code dir="auto">chdir(path)</code></td><td align="left">Get or change the working directory.</td></tr><tr><td align="left"><code dir="auto">tmpdir()</code>, <code dir="auto">tmpfile()</code></td><td align="left">The temp directory, or a new empty temp file.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="globs">Globs</h3><a class="sl-anchor-link" href="#globs"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Globs”</span></a></div>
+<p><code dir="auto">glob</code> searches a directory for files that match any of the include patterns and none of the exclude patterns. <code dir="auto">**</code> matches across directories.</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">sources </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">glob</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"./"</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#A5D6FF;--1:#0A3069">"./**/*.kiwi"</span><span style="--0:#E6EDF3;--1:#1F2328">], [</span><span style="--0:#A5D6FF;--1:#0A3069">"./tests/**"</span><span style="--0:#E6EDF3;--1:#1F2328">])</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="sources = fio::glob(&#x22;./&#x22;, [&#x22;./**/*.kiwi&#x22;], [&#x22;./tests/**&#x22;])"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="paths">Paths</h2><a class="sl-anchor-link" href="#paths"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Paths”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Function</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">combine(parts)</code></td><td align="left">The parts joined with the platform separator.</td></tr><tr><td align="left"><code dir="auto">abspath(path)</code></td><td align="left">The absolute path.</td></tr><tr><td align="left"><code dir="auto">filename(path)</code></td><td align="left">The last component: <code dir="auto">"notes.txt"</code>.</td></tr><tr><td align="left"><code dir="auto">ext(path)</code></td><td align="left">The extension with its dot: <code dir="auto">".txt"</code>, or <code dir="auto">""</code>.</td></tr><tr><td align="left"><code dir="auto">parentdir(path)</code></td><td align="left">The containing directory.</td></tr><tr><td align="left"><code dir="auto">pathparts(path)</code></td><td align="left">The components as a list.</td></tr></tbody></table>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">([</span><span style="--0:#A5D6FF;--1:#0A3069">"logs"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"2024"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"app.log"</span><span style="--0:#E6EDF3;--1:#1F2328">])   </span><span style="--0:#8B949E;--1:#616972"># logs/2024/app.log (on Linux and macOS)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">filename</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"/var/log/app.log"</span><span style="--0:#E6EDF3;--1:#1F2328">)           </span><span style="--0:#8B949E;--1:#616972"># app.log</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">ext</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"archive.tar.gz"</span><span style="--0:#E6EDF3;--1:#1F2328">)                  </span><span style="--0:#8B949E;--1:#616972"># .gz</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">pathparts</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"/a/b/c.txt"</span><span style="--0:#E6EDF3;--1:#1F2328">)                </span><span style="--0:#8B949E;--1:#616972"># ["a", "b", "c.txt"]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="println fio::combine([&#x22;logs&#x22;, &#x22;2024&#x22;, &#x22;app.log&#x22;])   # logs/2024/app.log (on Linux and macOS)println fio::filename(&#x22;/var/log/app.log&#x22;)           # app.logprintln fio::ext(&#x22;archive.tar.gz&#x22;)                  # .gzprintln fio::pathparts(&#x22;/a/b/c.txt&#x22;)                # [&#x22;a&#x22;, &#x22;b&#x22;, &#x22;c.txt&#x22;]"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="functions">Functions</h2><a class="sl-anchor-link" href="#functions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Functions”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioabspath"><code dir="auto">fio::abspath</code></h3><a class="sl-anchor-link" href="#fioabspath"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::abspath”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">abspath</span><span style="--0:#E6EDF3;--1:#1F2328">(_path)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::abspath(_path): string"><div></div></button></div></figure></div>
+<p>Get the absolute path of a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — The absolute path of a file.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When unable to determine absolute path.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioappend"><code dir="auto">fio::append</code></h3><a class="sl-anchor-link" href="#fioappend"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::append”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">append</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _text</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">""</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::append(_path: string, _text: string = &#x22;&#x22;)"><div></div></button></div></figure></div>
+<p>Appends text to a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr><tr><td align="left"><code dir="auto">_text</code></td><td align="left"><code dir="auto">string</code></td><td align="left"><code dir="auto">""</code></td><td align="left">The text to append.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file is written to.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When file writing fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiochdir"><code dir="auto">fio::chdir</code></h3><a class="sl-anchor-link" href="#fiochdir"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::chdir”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">chdir</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::chdir(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Changes the current directory.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a directory.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the directory is changed.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When changing to the directory fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiocombine"><code dir="auto">fio::combine</code></h3><a class="sl-anchor-link" href="#fiocombine"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::combine”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">combine</span><span style="--0:#E6EDF3;--1:#1F2328">(_path_parts</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> [])</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::combine(_path_parts: list = []): string"><div></div></button></div></figure></div>
+<p>Combine two paths.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path_parts</code></td><td align="left"><code dir="auto">list</code></td><td align="left"><code dir="auto">[]</code></td><td align="left">A list of path parts.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — A string from the list of parts.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiocopy"><code dir="auto">fio::copy</code></h3><a class="sl-anchor-link" href="#fiocopy"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::copy”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">copy</span><span style="--0:#E6EDF3;--1:#1F2328">(source</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, dest</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, overwrite</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">true</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::copy(source: string, dest: string, overwrite: boolean = true)"><div></div></button></div></figure></div>
+<p>Copy a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">source</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The source path.</td></tr><tr><td align="left"><code dir="auto">dest</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The destination path.</td></tr><tr><td align="left"><code dir="auto">overwrite</code></td><td align="left"><code dir="auto">boolean</code></td><td align="left"><code dir="auto">true</code></td><td align="left">A flag to indicate whether to overwrite the file (defaults to true).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when copied successfully.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When copying fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiocopyr"><code dir="auto">fio::copyr</code></h3><a class="sl-anchor-link" href="#fiocopyr"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::copyr”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">copyr</span><span style="--0:#E6EDF3;--1:#1F2328">(source</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, dest</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::copyr(source: string, dest: string)"><div></div></button></div></figure></div>
+<p>Copy a directory recursively.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">source</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The source path.</td></tr><tr><td align="left"><code dir="auto">dest</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The destination path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the copy operation succeeds.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When copying fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiocreate"><code dir="auto">fio::create</code></h3><a class="sl-anchor-link" href="#fiocreate"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::create”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">create</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::create(_path: string)"><div></div></button></div></figure></div>
+<p>Creates an empty file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to the file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file creation succeeds.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When file creation fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiocwd"><code dir="auto">fio::cwd</code></h3><a class="sl-anchor-link" href="#fiocwd"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::cwd”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">cwd</span><span style="--0:#E6EDF3;--1:#1F2328">()</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::cwd(): string"><div></div></button></div></figure></div>
+<p>Get the current working directory.</p>
+<p><strong>Returns</strong> <code dir="auto">string</code> — The current working directory as a string.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioexists"><code dir="auto">fio::exists</code></h3><a class="sl-anchor-link" href="#fioexists"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::exists”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">exists</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::exists(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Check if a path exists.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or directory.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the path exists on the filesystem.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioext"><code dir="auto">fio::ext</code></h3><a class="sl-anchor-link" href="#fioext"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::ext”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">ext</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::ext(_path: string)"><div></div></button></div></figure></div>
+<p>Gets the file extension of the path.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — Returns a string containing the file extension of the path.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiofilename"><code dir="auto">fio::filename</code></h3><a class="sl-anchor-link" href="#fiofilename"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::filename”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">filename</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::filename(_path: string): string"><div></div></button></div></figure></div>
+<p>Get the filename from a file path.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — The filename as a string.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiofilesize"><code dir="auto">fio::filesize</code></h3><a class="sl-anchor-link" href="#fiofilesize"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::filesize”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">filesize</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::filesize(_path: string): integer"><div></div></button></div></figure></div>
+<p>Get the size of a file in bytes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — Returns the number of bytes in the file as an integer.</p>
+<p><strong>Throws</strong> <code dir="auto">FileReadError</code> — When unable to determine file size.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioglob"><code dir="auto">fio::glob</code></h3><a class="sl-anchor-link" href="#fioglob"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::glob”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">glob</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _include_patterns</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span><span style="--0:#E6EDF3;--1:#1F2328">, _exclude_patterns</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> [])</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::glob(_path: string, _include_patterns: list, _exclude_patterns: list = []): list"><div></div></button></div></figure></div>
+<p>Get a list of files from glob patterns.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to search.</td></tr><tr><td align="left"><code dir="auto">_include_patterns</code></td><td align="left"><code dir="auto">list</code></td><td align="left"></td><td align="left">A list of glob patterns to match against paths.</td></tr><tr><td align="left"><code dir="auto">_exclude_patterns</code></td><td align="left"><code dir="auto">list</code></td><td align="left"><code dir="auto">[]</code></td><td align="left">A list of glob patterns for filtering matches. Defaults to no exclusions.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — Returns a list of matched file paths.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When unable to glob a path.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiofileinfo"><code dir="auto">fio::fileinfo</code></h3><a class="sl-anchor-link" href="#fiofileinfo"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::fileinfo”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">fileinfo</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::fileinfo(_path: string): hashmap"><div></div></button></div></figure></div>
+<p>Get a fileinfo hashmap for a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The file path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">hashmap</code> —  Returns a hashmap with the following keys: - <code dir="auto">creation_time</code>: The creation time as a date. - <code dir="auto">name</code>: The name as a string. - <code dir="auto">extension</code>: The file extension as a string. - <code dir="auto">full_name</code>: The full name as a string. - <code dir="auto">last_access_time</code>: The last access timestamp as a date. - <code dir="auto">last_write_time</code>: The last write timestamp as a date. - <code dir="auto">attributes</code>: A hashmap of file attributes mapped to booleans representing whether they are set.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When unable to glob a path.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioisdir"><code dir="auto">fio::isdir</code></h3><a class="sl-anchor-link" href="#fioisdir"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::isdir”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">isdir</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::isdir(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Check if a directory exists.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a directory.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the directory exists.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioisfile"><code dir="auto">fio::isfile</code></h3><a class="sl-anchor-link" href="#fioisfile"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::isfile”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">isfile</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::isfile(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Check if a file exists.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file exists.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiolistdir"><code dir="auto">fio::listdir</code></h3><a class="sl-anchor-link" href="#fiolistdir"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::listdir”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">listdir</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _recursive</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">false</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::listdir(_path: string, _recursive: boolean = false): list"><div></div></button></div></figure></div>
+<p>Retrieve a list of directory entries for a given path.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The directory path.</td></tr><tr><td align="left"><code dir="auto">_recursive</code></td><td align="left"><code dir="auto">boolean</code></td><td align="left"><code dir="auto">false</code></td><td align="left">A flag to control recursive retrieval. Defaults to false.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — Returns a list of strings containing the directory entries.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiomkdir"><code dir="auto">fio::mkdir</code></h3><a class="sl-anchor-link" href="#fiomkdir"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::mkdir”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">mkdir</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::mkdir(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Creates a directory.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The directory path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when directory creation succeeds.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When directory creation fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiomkdirp"><code dir="auto">fio::mkdirp</code></h3><a class="sl-anchor-link" href="#fiomkdirp"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::mkdirp”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">mkdirp</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::mkdirp(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Creates a directory and all subdirectories specified in the path.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The directory path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when directory creation succeeds.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When directory creation fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiomove"><code dir="auto">fio::move</code></h3><a class="sl-anchor-link" href="#fiomove"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::move”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">move</span><span style="--0:#E6EDF3;--1:#1F2328">(source</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, dest</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, overwrite</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">false</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::move(source: string, dest: string, overwrite: boolean = false)"><div></div></button></div></figure></div>
+<p>Move or rename a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">source</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The source path.</td></tr><tr><td align="left"><code dir="auto">dest</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The destination path.</td></tr><tr><td align="left"><code dir="auto">overwrite</code></td><td align="left"><code dir="auto">boolean</code></td><td align="left"><code dir="auto">false</code></td><td align="left">A flag to indicate whether to overwrite the file (defaults to false).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file move succeeds.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the file move fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioparentdir"><code dir="auto">fio::parentdir</code></h3><a class="sl-anchor-link" href="#fioparentdir"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::parentdir”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">parentdir</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::parentdir(_path: string): string"><div></div></button></div></figure></div>
+<p>Get the parent directory of an absolute path.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — Returns a string containing the parent path.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioread"><code dir="auto">fio::read</code></h3><a class="sl-anchor-link" href="#fioread"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::read”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::read(_path: string): string"><div></div></button></div></figure></div>
+<p>Get the content of a file as a string.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — Returns the contents of the file as a string.</p>
+<p><strong>Throws</strong> <code dir="auto">FileReadError</code> — When unable to read the file.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioreadlines"><code dir="auto">fio::readlines</code></h3><a class="sl-anchor-link" href="#fioreadlines"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::readlines”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">readlines</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::readlines(_path: string): list"><div></div></button></div></figure></div>
+<p>Get the content of a file as a list of strings.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — Returns the contents of the file as a list of strings.</p>
+<p><strong>Throws</strong> <code dir="auto">FileReadError</code> — When unable to read the file.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioreadslice"><code dir="auto">fio::readslice</code></h3><a class="sl-anchor-link" href="#fioreadslice"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::readslice”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">readslice</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _offset</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">, _size</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::readslice(_path: string, _offset: integer, _size: integer): bytes"><div></div></button></div></figure></div>
+<p>Get a slice of a file as bytes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr><tr><td align="left"><code dir="auto">_offset</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The position in the file to read from.</td></tr><tr><td align="left"><code dir="auto">_size</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The number of bytes to read from the file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — Returns bytes containing a slice of the file.</p>
+<p><strong>Throws</strong> <code dir="auto">IndexError</code> — When the index is invalid.</p>
+<p><strong>Throws</strong> <code dir="auto">FileReadError</code> — When the file cannot be read.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioreadbytes"><code dir="auto">fio::readbytes</code></h3><a class="sl-anchor-link" href="#fioreadbytes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::readbytes”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">readbytes</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::readbytes(_path: string): bytes"><div></div></button></div></figure></div>
+<p>Gets all content from the path as bytes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">bytes</code> — Returns bytes containing the content of the file this path points to.</p>
+<p><strong>Throws</strong> <code dir="auto">FileReadError</code> — When the file cannot be read.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fioremove"><code dir="auto">fio::remove</code></h3><a class="sl-anchor-link" href="#fioremove"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::remove”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">remove</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::remove(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Delete a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The file path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file is removed.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the file cannot be removed.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiormdir"><code dir="auto">fio::rmdir</code></h3><a class="sl-anchor-link" href="#fiormdir"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::rmdir”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">rmdir</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::rmdir(_path: string): boolean"><div></div></button></div></figure></div>
+<p>Delete a directory.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The directory path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the directory is removed.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the directory cannot be removed.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiormdirf"><code dir="auto">fio::rmdirf</code></h3><a class="sl-anchor-link" href="#fiormdirf"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::rmdirf”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">rmdirf</span><span style="--0:#E6EDF3;--1:#1F2328">(_path)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::rmdirf(_path)"><div></div></button></div></figure></div>
+<p>Delete a directory and all of its contents recursively.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The directory path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the directory is removed.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the directory cannot be removed.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiotouch"><code dir="auto">fio::touch</code></h3><a class="sl-anchor-link" href="#fiotouch"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::touch”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">touch</span><span style="--0:#E6EDF3;--1:#1F2328">(_path)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::touch(_path)"><div></div></button></div></figure></div>
+<p>Create an empty file or updates the timestamp on a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file is touched.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When file writing fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiotmpdir"><code dir="auto">fio::tmpdir</code></h3><a class="sl-anchor-link" href="#fiotmpdir"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::tmpdir”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">tmpdir</span><span style="--0:#E6EDF3;--1:#1F2328">()</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::tmpdir(): string"><div></div></button></div></figure></div>
+<p>Gets the path to the temporary directory.</p>
+<p><strong>Returns</strong> <code dir="auto">string</code> — Returns the temp directory path as a string.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiotmpfile"><code dir="auto">fio::tmpfile</code></h3><a class="sl-anchor-link" href="#fiotmpfile"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::tmpfile”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">tmpfile</span><span style="--0:#E6EDF3;--1:#1F2328">()</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::tmpfile(): string"><div></div></button></div></figure></div>
+<p>Creates and returns an empty temporary file and returns its path.</p>
+<p><strong>Returns</strong> <code dir="auto">string</code> — Returns the path to a newly created empty file.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiowrite"><code dir="auto">fio::write</code></h3><a class="sl-anchor-link" href="#fiowrite"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::write”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _text </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">""</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::write(_path: string, _text = &#x22;&#x22;): boolean"><div></div></button></div></figure></div>
+<p>Write text to a file. This overwrites the file if it exists.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr><tr><td align="left"><code dir="auto">_text</code></td><td align="left"><code dir="auto">string</code></td><td align="left"><code dir="auto">""</code></td><td align="left">The text to write.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file write succeeds.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the file write fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiowriteln"><code dir="auto">fio::writeln</code></h3><a class="sl-anchor-link" href="#fiowriteln"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::writeln”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">writeln</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _text</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#FF7B72;--1:#CA212D">|</span><span style="--0:#79C0FF;--1:#0550AE">list</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::writeln(_path: string, _text: string|list): boolean"><div></div></button></div></figure></div>
+<p>Write a line of text to a file. This always appends to a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr><tr><td align="left"><code dir="auto">_text</code></td><td align="left"><code dir="auto">string|list</code></td><td align="left"></td><td align="left">The text to append.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — Returns <code dir="auto">true</code> when the file write succeeds.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the file write fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiowritebytes"><code dir="auto">fio::writebytes</code></h3><a class="sl-anchor-link" href="#fiowritebytes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::writebytes”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">writebytes</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _data</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::writebytes(_path: string, _data: bytes): integer"><div></div></button></div></figure></div>
+<p>Write a list of bytes to a file. This overwrites the file if it exists.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr><tr><td align="left"><code dir="auto">_data</code></td><td align="left"><code dir="auto">bytes</code></td><td align="left"></td><td align="left"></td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — Returns the number of bytes written.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the file write fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiowriteslice"><code dir="auto">fio::writeslice</code></h3><a class="sl-anchor-link" href="#fiowriteslice"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::writeslice”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">writeslice</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, _offset</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">, _data</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::writeslice(_path: string, _offset: integer, _data: bytes): integer"><div></div></button></div></figure></div>
+<p>Write a list of bytes to a file at an offset.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to a file or a filename.</td></tr><tr><td align="left"><code dir="auto">_offset</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The zero based position to begin writing.</td></tr><tr><td align="left"><code dir="auto">_data</code></td><td align="left"><code dir="auto">bytes</code></td><td align="left"></td><td align="left">The list of bytes to write.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — Returns the number of bytes written.</p>
+<p><strong>Throws</strong> <code dir="auto">FileSystemError</code> — When the file write fails.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fiopathparts"><code dir="auto">fio::pathparts</code></h3><a class="sl-anchor-link" href="#fiopathparts"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “fio::pathparts”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">fio</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">pathparts</span><span style="--0:#E6EDF3;--1:#1F2328">(_path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="fio::pathparts(_path: string): list"><div></div></button></div></figure></div>
+<p>Get path parts from a path.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — Returns a list of strings containing all path parts.</p></div><footer class="sl-flex astro-ddtxxk7k"><div class="meta sl-flex astro-ddtxxk7k"><a href="https://github.com/fuseraft/kiwi/edit/main/docs/src/content/docs/stdlib/fio.md" class="sl-flex print:hidden astro-qlekgd3o"><svg aria-hidden="true" class="astro-qlekgd3o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a><p>Last updated: <time datetime="2026-10-21T05:12:48.000Z">Oct 21, 2026</time></p></div><div class="pagination-links print:hidden astro-b5raizh3" dir="ltr"><a href="/kiwi/stdlib/faker/" rel="prev" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-b5raizh3">Previous<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">faker</span></span></a><a href="/kiwi/stdlib/fmt/" rel="next" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-b5raizh3">Next<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">fmt</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>

@@ -1,0 +1,776 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-g5ptsecz"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>http | Kiwi</title><link rel="canonical" href="https://fuseraft.ai/kiwi/stdlib/http/"/><link rel="sitemap" href="/kiwi/sitemap-index.xml"/><link rel="shortcut icon" href="/kiwi/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.4.1"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="http"/><meta property="og:type" content="article"/><meta property="og:url" content="https://fuseraft.ai/kiwi/stdlib/http/"/><meta property="og:locale" content="en"/><meta property="og:description" content="An HTTP client, plus helpers for parsing requests and building responses."/><meta property="og:site_name" content="Kiwi"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="An HTTP client, plus helpers for parsing requests and building responses."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/kiwi/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/kiwi/_astro/common.Dzj9lC13.css"><style>@layer starlight.components{svg:where(.astro-hkc32dio){color:var(--sl-icon-color);font-size:var(--sl-icon-size,1em);width:1em;height:1em;overflow:visible}}
+</style><script type="module" src="/kiwi/_astro/page.cNngjUgL.js"></script></head><body class="astro-g5ptsecz"><a class="sl-skip-link astro-qb7clj6f" href="#_top">Skip to content</a><div class="page sl-flex astro-yntsjkba"><header class="header astro-yntsjkba"><div class="header astro-by6fddyj"><div class="title-wrapper sl-flex astro-by6fddyj"><a href="/kiwi/" class="site-title sl-flex astro-6rvad3va"><img class="astro-6rvad3va" alt src="/kiwi/_astro/logo.DJfiJ099.svg" width="400" height="400"><span class="astro-6rvad3va" translate="no">Kiwi</span></a></div><div class="sl-flex print:hidden astro-by6fddyj"><site-search class="astro-by6fddyj astro-b5kgnn7o" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-b5kgnn7o"><svg aria-hidden="true" class="astro-b5kgnn7o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-b5kgnn7o" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-b5kgnn7o" style="display: none;"><kbd class="astro-b5kgnn7o">Ctrl</kbd><kbd class="astro-b5kgnn7o">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-b5kgnn7o"><div class="dialog-frame sl-flex astro-b5kgnn7o"><button data-close-modal class="sl-flex md:sl-hidden astro-b5kgnn7o">Cancel</button><div class="search-container astro-b5kgnn7o"><div id="starlight__search" class="astro-b5kgnn7o"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/kiwi/_astro/Search.astro_astro_type_script_index_0_lang.Dpg5QQYx.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-by6fddyj"><div class="sl-flex social-icons astro-by6fddyj"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-yntsjkba" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-r2osgdlg"><svg aria-hidden="true" class="open-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-r2osgdlg">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-yntsjkba"><div class="sidebar-content sl-flex astro-yntsjkba"><sl-sidebar-state-persist data-hash="02fcnv0" class="astro-ipdry5cl"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-rmhv4bp6"><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Getting Started</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/introduction/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Introduction</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/installation/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Installation</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/tour/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">A Tour of Kiwi</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Language</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/language/syntax/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Syntax Basics</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/variables/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Variables</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/types/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Types</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/strings/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Strings</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lists/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lists and Ranges</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/hashmaps/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Hashmaps</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/control-flow/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Control Flow</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/loops/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Loops</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Functions</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lambdas/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lambdas and Closures</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/scoping/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Scoping</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/type-hints/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Type Hints</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/errors/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Error Handling</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/structs/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Structs</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operator-overloading/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operator Overloading</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/enums/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Enums</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/packages/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Packages and Modules</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/generators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Generators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/decorators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Decorators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/events/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Events</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Tools</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/tools/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">The kiwi Command</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/repl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">REPL</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/debugger/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Debugger (kdb)</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/testing/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Testing</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Reference</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/reference/keywords/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Keywords</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/builtin-methods/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Built-in Methods</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/global-functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Global Functions</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Standard Library</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="4"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Overview</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/bench/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">bench</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">cli</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/collections/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">collections</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/compress/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">compress</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/console/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">console</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/crypto/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">crypto</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/csv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">csv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/curl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">curl</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/date/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">date</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/dotenv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">dotenv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/encode/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">encode</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/env/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">env</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/error/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">error</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/faker/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">faker</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fio/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fio</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fmt/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fmt</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/hashable/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">hashable</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/http/" aria-current="page" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">http</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/httpserver/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">httpserver</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ipc/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ipc</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/iter/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">iter</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/json/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">json</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/list/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">list</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/log/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">log</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/math/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">math</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/path/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">path</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/pipeline/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">pipeline</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/protobuf/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">protobuf</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/reflector/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">reflector</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/regex/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">regex</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/signal/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">signal</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/smtp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">smtp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/socket/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">socket</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sqlite/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sqlite</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stat/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stat</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/std/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">std</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stdin/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stdin</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stopwatch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stopwatch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/string/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">string</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sys/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sys</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/table/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">table</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/task/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">task</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/template/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">template</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/tester/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">tester</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/text/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">text</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/time/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">time</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/udp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">udp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/watch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">watch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/xml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">xml</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/yaml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">yaml</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Internals</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="5"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/internals/vm/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Bytecode VM</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-p4azlveh"><div class="social-icons astro-p4azlveh"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-yntsjkba"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-lrzkfocr"><aside class="right-sidebar-container print:hidden astro-lrzkfocr"><div class="right-sidebar astro-lrzkfocr"><div class="lg:sl-hidden astro-qok35upx"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-66cqc7ze"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-66cqc7ze"><details id="starlight__mobile-toc" class="astro-66cqc7ze"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-66cqc7ze"><span class="toggle sl-flex astro-66cqc7ze">On this page<svg aria-hidden="true" class="caret astro-66cqc7ze astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-66cqc7ze"></span></summary><div class="dropdown astro-66cqc7ze"><ul class="isMobile astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#making-requests" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Making requests</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#responses" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Responses</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#concurrent-requests" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Concurrent requests</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#parsing-requests-and-building-responses" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Parsing requests and building responses</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpparse_hex" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::parse_hex</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpurl_decode" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::url_decode</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpread_crlf_line" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::read_crlf_line</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpdechunk" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::dechunk</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpparse" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::parse</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpresponse_bytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::response_bytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httphtml_response" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::html_response</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpjson_response" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::json_response</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpset_timeout" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::set_timeout</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#http__get__" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::__get__</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httppost" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::post</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpput" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::put</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpdelete" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::delete</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_get" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_get</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpget" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::get</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_post" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_post</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_json_get" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_json_get</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_json_post" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_json_post</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_download" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_download</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpresponse" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::response</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#httpresponse-struct" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">HttpResponse struct</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpresponsenew" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">HttpResponse.new</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#get_raw" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.get_raw</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#json" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.json</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#text" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.text</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#pretty" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.pretty</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#save" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.save</span></a></li></ul></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/kiwi/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-qok35upx"><div class="sl-container astro-qok35upx"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#making-requests" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Making requests</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#responses" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Responses</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#concurrent-requests" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Concurrent requests</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#parsing-requests-and-building-responses" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Parsing requests and building responses</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpparse_hex" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::parse_hex</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpurl_decode" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::url_decode</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpread_crlf_line" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::read_crlf_line</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpdechunk" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::dechunk</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpparse" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::parse</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpresponse_bytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::response_bytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httphtml_response" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::html_response</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpjson_response" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::json_response</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpset_timeout" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::set_timeout</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#http__get__" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::__get__</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httppost" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::post</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpput" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::put</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpdelete" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::delete</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_get" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_get</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpget" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::get</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_post" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_post</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_json_get" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_json_get</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_json_post" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_json_post</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpawait_download" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::await_download</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpresponse" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">http::response</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#httpresponse-struct" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">HttpResponse struct</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#httpresponsenew" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">HttpResponse.new</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#get_raw" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.get_raw</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#json" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.json</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#text" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.text</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#pretty" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.pretty</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#save" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">.save</span></a></li></ul></li></ul></nav></starlight-toc><script type="module" src="/kiwi/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-lrzkfocr"><main data-pagefind-body class="astro-g5ptsecz" lang="en" dir="ltr"><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><h1 id="_top" class="astro-bebwqqxs">http</h1></div></div><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><div class="sl-markdown-content"><p>The <code dir="auto">http</code> package is an HTTP client. Requests run asynchronously on background tasks; the <code dir="auto">get</code> and <code dir="auto">await_*</code> functions wait for the result and wrap it in an <code dir="auto">HttpResponse</code>. The package also parses raw HTTP requests and builds raw responses for servers written on top of <a href="/kiwi/stdlib/socket/"><code dir="auto">socket</code></a>. For a full web server, see <a href="/kiwi/stdlib/httpserver/"><code dir="auto">httpserver</code></a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="making-requests">Making requests</h2><a class="sl-anchor-link" href="#making-requests"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Making requests”</span></a></div>
+<div class="expressive-code"><link rel="stylesheet" href="/kiwi/_astro/ec.8nqtp.css"><script type="module" src="/kiwi/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">resp </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">get</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"https://httpbin.org/get"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> resp.status   </span><span style="--0:#8B949E;--1:#616972"># 200</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> resp.ok       </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> resp.</span><span style="--0:#D2A8FF;--1:#7A4BD1">text</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">data </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await_json_get</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"https://httpbin.org/json"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># parsed JSON body</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> data.</span><span style="--0:#D2A8FF;--1:#7A4BD1">pretty</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">created </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await_post</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"https://httpbin.org/post"</span><span style="--0:#E6EDF3;--1:#1F2328">, {name</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"Kiwi"</span><span style="--0:#E6EDF3;--1:#1F2328">})</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> created.</span><span style="--0:#D2A8FF;--1:#7A4BD1">json</span><span style="--0:#E6EDF3;--1:#1F2328">()[</span><span style="--0:#A5D6FF;--1:#0A3069">"json"</span><span style="--0:#E6EDF3;--1:#1F2328">] </span><span style="--0:#FF7B72;--1:#CA212D">when</span><span style="--0:#E6EDF3;--1:#1F2328"> created.ok</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="resp = http::get(&#x22;https://httpbin.org/get&#x22;)println resp.status   # 200println resp.ok       # trueprintln resp.text()data = http::await_json_get(&#x22;https://httpbin.org/json&#x22;)   # parsed JSON bodyprintln data.pretty()created = http::await_post(&#x22;https://httpbin.org/post&#x22;, {name: &#x22;Kiwi&#x22;})println created.json()[&#x22;json&#x22;] when created.ok"><div></div></button></div></figure></div>
+<p>Request bodies that are hashmaps or lists are sent as JSON. Pass headers as a hashmap:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">resp </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">get</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"https://api.github.com/repos/fuseraft/kiwi"</span><span style="--0:#E6EDF3;--1:#1F2328">, {</span><span style="--0:#A5D6FF;--1:#0A3069">"User-Agent"</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"kiwi"</span><span style="--0:#E6EDF3;--1:#1F2328">})</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> resp.</span><span style="--0:#D2A8FF;--1:#7A4BD1">json</span><span style="--0:#E6EDF3;--1:#1F2328">()[</span><span style="--0:#A5D6FF;--1:#0A3069">"stargazers_count"</span><span style="--0:#E6EDF3;--1:#1F2328">]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="resp = http::get(&#x22;https://api.github.com/repos/fuseraft/kiwi&#x22;, {&#x22;User-Agent&#x22;: &#x22;kiwi&#x22;})println resp.json()[&#x22;stargazers_count&#x22;]"><div></div></button></div></figure></div>
+<p><code dir="auto">http::set_timeout(ms)</code> sets the timeout for later requests, and <code dir="auto">await_download(url, path)</code> saves a response to a file.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="responses">Responses</h3><a class="sl-anchor-link" href="#responses"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Responses”</span></a></div>
+<p>An <code dir="auto">HttpResponse</code> has these fields and methods:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Member</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">status</code></td><td align="left">The status code.</td></tr><tr><td align="left"><code dir="auto">ok</code></td><td align="left"><code dir="auto">true</code> for a 2xx status.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left">The response headers.</td></tr><tr><td align="left"><code dir="auto">body</code></td><td align="left">The response body.</td></tr><tr><td align="left"><code dir="auto">url</code></td><td align="left">The final URL after redirects.</td></tr><tr><td align="left"><code dir="auto">text()</code></td><td align="left">The body as a string.</td></tr><tr><td align="left"><code dir="auto">json()</code></td><td align="left">The body parsed as JSON.</td></tr><tr><td align="left"><code dir="auto">pretty()</code></td><td align="left">The JSON body, indented.</td></tr><tr><td align="left"><code dir="auto">save(path)</code></td><td align="left">Writes the body to a file.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="concurrent-requests">Concurrent requests</h3><a class="sl-anchor-link" href="#concurrent-requests"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Concurrent requests”</span></a></div>
+<p><code dir="auto">__get__</code>, <code dir="auto">post</code>, <code dir="auto">put</code> and <code dir="auto">delete</code> start a request and return a task id immediately. Start several, then await them with <a href="/kiwi/stdlib/task/"><code dir="auto">task::await</code></a> and wrap each result with <code dir="auto">http::response</code>:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">first </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">__get__</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"https://httpbin.org/get"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">second </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">__get__</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"https://httpbin.org/ip"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">r1 </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">response</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">task</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await</span><span style="--0:#E6EDF3;--1:#1F2328">(first))</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">r2 </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">response</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FFA657;--1:#953800">task</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await</span><span style="--0:#E6EDF3;--1:#1F2328">(second))</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [r1.status, r2.status]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="first = http::__get__(&#x22;https://httpbin.org/get&#x22;)second = http::__get__(&#x22;https://httpbin.org/ip&#x22;)r1 = http::response(task::await(first))r2 = http::response(task::await(second))println [r1.status, r2.status]"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="parsing-requests-and-building-responses">Parsing requests and building responses</h2><a class="sl-anchor-link" href="#parsing-requests-and-building-responses"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Parsing requests and building responses”</span></a></div>
+<p>These helpers work on raw bytes, for servers that handle sockets themselves:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">raw </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"GET /api/users?page=2 HTTP/1.1</span><span style="--0:#FF7B72;--1:#CA212D">\r\n</span><span style="--0:#A5D6FF;--1:#0A3069">Host: example.com</span><span style="--0:#FF7B72;--1:#CA212D">\r\n\r\n</span><span style="--0:#A5D6FF;--1:#0A3069">"</span><span style="--0:#E6EDF3;--1:#1F2328">.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_bytes</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">req </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">parse</span><span style="--0:#E6EDF3;--1:#1F2328">(raw)</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> req[</span><span style="--0:#A5D6FF;--1:#0A3069">"method"</span><span style="--0:#E6EDF3;--1:#1F2328">]          </span><span style="--0:#8B949E;--1:#616972"># GET</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> req[</span><span style="--0:#A5D6FF;--1:#0A3069">"path"</span><span style="--0:#E6EDF3;--1:#1F2328">]            </span><span style="--0:#8B949E;--1:#616972"># /api/users</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> req[</span><span style="--0:#A5D6FF;--1:#0A3069">"query"</span><span style="--0:#E6EDF3;--1:#1F2328">][</span><span style="--0:#A5D6FF;--1:#0A3069">"page"</span><span style="--0:#E6EDF3;--1:#1F2328">]   </span><span style="--0:#8B949E;--1:#616972"># 2</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> req[</span><span style="--0:#A5D6FF;--1:#0A3069">"headers"</span><span style="--0:#E6EDF3;--1:#1F2328">][</span><span style="--0:#A5D6FF;--1:#0A3069">"host"</span><span style="--0:#E6EDF3;--1:#1F2328">] </span><span style="--0:#8B949E;--1:#616972"># example.com</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">reply </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">json_response</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">200</span><span style="--0:#E6EDF3;--1:#1F2328">, {ok</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">true</span><span style="--0:#E6EDF3;--1:#1F2328">})</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> reply.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">().</span><span style="--0:#D2A8FF;--1:#7A4BD1">lines</span><span style="--0:#E6EDF3;--1:#1F2328">()[</span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">]   </span><span style="--0:#8B949E;--1:#616972"># HTTP/1.1 200 OK</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="raw = &#x22;GET /api/users?page=2 HTTP/1.1\r\nHost: example.com\r\n\r\n&#x22;.to_bytes()req = http::parse(raw)println req[&#x22;method&#x22;]          # GETprintln req[&#x22;path&#x22;]            # /api/usersprintln req[&#x22;query&#x22;][&#x22;page&#x22;]   # 2println req[&#x22;headers&#x22;][&#x22;host&#x22;] # example.comreply = http::json_response(200, {ok: true})println reply.to_string().lines()[0]   # HTTP/1.1 200 OK"><div></div></button></div></figure></div>
+<p><code dir="auto">html_response(status, html)</code> and <code dir="auto">response_bytes(status, body, headers)</code> build other responses.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="functions">Functions</h2><a class="sl-anchor-link" href="#functions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Functions”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpparse_hex"><code dir="auto">http::parse_hex</code></h3><a class="sl-anchor-link" href="#httpparse_hex"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::parse_hex”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">parse_hex</span><span style="--0:#E6EDF3;--1:#1F2328">(s</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::parse_hex(s: string): integer"><div></div></button></div></figure></div>
+<p>Parses a hexadecimal string to an integer.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">s</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">A lowercase hexadecimal string (e.g., <code dir="auto">"1f"</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The integer value.</p>
+<p><strong>Throws</strong> <code dir="auto">string</code> — If an invalid hex character is encountered.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpurl_decode"><code dir="auto">http::url_decode</code></h3><a class="sl-anchor-link" href="#httpurl_decode"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::url_decode”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">url_decode</span><span style="--0:#E6EDF3;--1:#1F2328">(s</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, decode_plus</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">true</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::url_decode(s: string, decode_plus: boolean = true): string"><div></div></button></div></figure></div>
+<p>Decodes a percent-encoded URL string.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">s</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL-encoded string to decode.</td></tr><tr><td align="left"><code dir="auto">decode_plus</code></td><td align="left"><code dir="auto">boolean</code></td><td align="left"><code dir="auto">true</code></td><td align="left">If <code dir="auto">true</code>, decodes <code dir="auto">+</code> as a space (default <code dir="auto">true</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — The decoded string.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpread_crlf_line"><code dir="auto">http::read_crlf_line</code></h3><a class="sl-anchor-link" href="#httpread_crlf_line"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::read_crlf_line”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read_crlf_line</span><span style="--0:#E6EDF3;--1:#1F2328">(iter)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::read_crlf_line(iter): string"><div></div></button></div></figure></div>
+<p>Reads a CRLF-terminated line from a byte iterator.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">iter</code></td><td align="left"><code dir="auto">object</code></td><td align="left"></td><td align="left">A <code dir="auto">ListIterator</code> over the raw bytes.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — The line contents, without the trailing CRLF.</p>
+<p><strong>Throws</strong> <code dir="auto">string</code> — If no CRLF terminator is found before the iterator is exhausted.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpdechunk"><code dir="auto">http::dechunk</code></h3><a class="sl-anchor-link" href="#httpdechunk"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::dechunk”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">dechunk</span><span style="--0:#E6EDF3;--1:#1F2328">(data</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::dechunk(data: bytes): bytes"><div></div></button></div></figure></div>
+<p>Decodes a chunked transfer-encoded byte sequence.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">data</code></td><td align="left"><code dir="auto">bytes</code></td><td align="left"></td><td align="left">The raw chunked-encoded bytes.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">bytes</code> — The decoded body bytes.</p>
+<p><strong>Throws</strong> <code dir="auto">string</code> — If a chunk size or terminator is malformed or the data is incomplete.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpparse"><code dir="auto">http::parse</code></h3><a class="sl-anchor-link" href="#httpparse"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::parse”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">parse</span><span style="--0:#E6EDF3;--1:#1F2328">(raw</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::parse(raw: bytes)"><div></div></button></div></figure></div>
+<p>Parses raw socket bytes into a request hashmap.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">raw</code></td><td align="left"><code dir="auto">bytes</code></td><td align="left"></td><td align="left">The raw bytes received from a socket.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">hashmap|none</code> — A hashmap with <code dir="auto">method</code>, <code dir="auto">path</code>, <code dir="auto">query</code>, <code dir="auto">version</code>, <code dir="auto">headers</code>, <code dir="auto">body</code>, <code dir="auto">form</code>, and <code dir="auto">raw</code> keys, or <code dir="auto">null</code> if the request is malformed or incomplete.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpresponse_bytes"><code dir="auto">http::response_bytes</code></h3><a class="sl-anchor-link" href="#httpresponse_bytes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::response_bytes”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">response_bytes</span><span style="--0:#E6EDF3;--1:#1F2328">(status</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">, body</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">any</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">""</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::response_bytes(status: integer, body: any = &#x22;&#x22;, headers: hashmap = {}): bytes"><div></div></button></div></figure></div>
+<p>Builds a raw HTTP/1.1 response as bytes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">status</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The HTTP status code (e.g., <code dir="auto">200</code>, <code dir="auto">404</code>).</td></tr><tr><td align="left"><code dir="auto">body</code></td><td align="left"><code dir="auto">any</code></td><td align="left"><code dir="auto">""</code></td><td align="left">The response body — a string or bytes (default <code dir="auto">""</code>).</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Additional headers to include or override defaults (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">bytes</code> — The fully-formed HTTP response bytes, including headers and body.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httphtml_response"><code dir="auto">http::html_response</code></h3><a class="sl-anchor-link" href="#httphtml_response"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::html_response”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">html_response</span><span style="--0:#E6EDF3;--1:#1F2328">(status</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">200</span><span style="--0:#E6EDF3;--1:#1F2328">, body</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::html_response(status: integer = 200, body: string, headers: hashmap = {}): bytes"><div></div></button></div></figure></div>
+<p>Builds an HTTP response with <code dir="auto">Content-Type: text/html</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">status</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"><code dir="auto">200</code></td><td align="left">The HTTP status code (default <code dir="auto">200</code>).</td></tr><tr><td align="left"><code dir="auto">body</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The HTML body string.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Additional headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">bytes</code> — The fully-formed HTTP response bytes.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpjson_response"><code dir="auto">http::json_response</code></h3><a class="sl-anchor-link" href="#httpjson_response"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::json_response”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">json_response</span><span style="--0:#E6EDF3;--1:#1F2328">(status</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">200</span><span style="--0:#E6EDF3;--1:#1F2328">, data</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">any</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::json_response(status: integer = 200, data: any, headers: hashmap = {}): bytes"><div></div></button></div></figure></div>
+<p>Builds an HTTP response with <code dir="auto">Content-Type: application/json</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">status</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"><code dir="auto">200</code></td><td align="left">The HTTP status code (default <code dir="auto">200</code>).</td></tr><tr><td align="left"><code dir="auto">data</code></td><td align="left"><code dir="auto">any</code></td><td align="left"></td><td align="left">The data to serialize as JSON.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Additional headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">bytes</code> — The fully-formed HTTP response bytes.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpset_timeout"><code dir="auto">http::set_timeout</code></h3><a class="sl-anchor-link" href="#httpset_timeout"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::set_timeout”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">set_timeout</span><span style="--0:#E6EDF3;--1:#1F2328">(timeout_ms</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::set_timeout(timeout_ms: integer)"><div></div></button></div></figure></div>
+<p>Sets the global HTTP client timeout.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">timeout_ms</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The timeout in milliseconds.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="http__get__"><code dir="auto">http::__get__</code></h3><a class="sl-anchor-link" href="#http__get__"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::__get__”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">__get__</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::__get__(url: string, headers: hashmap = {})"><div></div></button></div></figure></div>
+<p>Enqueues an async GET request and returns an awaitable task ID.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — An awaitable task ID that resolves to a raw response hashmap.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httppost"><code dir="auto">http::post</code></h3><a class="sl-anchor-link" href="#httppost"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::post”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">post</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, body</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">any</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">null</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::post(url: string, body: any = null, headers: hashmap = {})"><div></div></button></div></figure></div>
+<p>Enqueues an async POST request and returns an awaitable task ID.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">body</code></td><td align="left"><code dir="auto">any</code></td><td align="left"><code dir="auto">null</code></td><td align="left">The request body — string, bytes, or hashmap (auto-serialized to JSON) (default <code dir="auto">null</code>).</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — An awaitable task ID that resolves to a raw response hashmap.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpput"><code dir="auto">http::put</code></h3><a class="sl-anchor-link" href="#httpput"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::put”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">put</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, body</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">any</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">null</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::put(url: string, body: any = null, headers: hashmap = {})"><div></div></button></div></figure></div>
+<p>Enqueues an async PUT request and returns an awaitable task ID.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">body</code></td><td align="left"><code dir="auto">any</code></td><td align="left"><code dir="auto">null</code></td><td align="left">The request body — string, bytes, or hashmap (auto-serialized to JSON) (default <code dir="auto">null</code>).</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — An awaitable task ID that resolves to a raw response hashmap.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpdelete"><code dir="auto">http::delete</code></h3><a class="sl-anchor-link" href="#httpdelete"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::delete”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">delete</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::delete(url: string, headers: hashmap = {})"><div></div></button></div></figure></div>
+<p>Enqueues an async DELETE request and returns an awaitable task ID.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — An awaitable task ID that resolves to a raw response hashmap.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpawait_get"><code dir="auto">http::await_get</code></h3><a class="sl-anchor-link" href="#httpawait_get"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::await_get”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await_get</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> HttpResponse</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::await_get(url: string, headers: hashmap = {}): HttpResponse"><div></div></button></div></figure></div>
+<p>Sends a GET request and awaits the result as an <code dir="auto">HttpResponse</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">HttpResponse</code> — The wrapped HTTP response.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpget"><code dir="auto">http::get</code></h3><a class="sl-anchor-link" href="#httpget"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::get”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">get</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> HttpResponse</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::get(url: string, headers: hashmap = {}): HttpResponse"><div></div></button></div></figure></div>
+<p>Sends a GET request and awaits the result as an <code dir="auto">HttpResponse</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">HttpResponse</code> — The wrapped HTTP response.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpawait_post"><code dir="auto">http::await_post</code></h3><a class="sl-anchor-link" href="#httpawait_post"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::await_post”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await_post</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, body</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">any</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">null</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> HttpResponse</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::await_post(url: string, body: any = null, headers: hashmap = {}): HttpResponse"><div></div></button></div></figure></div>
+<p>Sends a POST request and awaits the result as an <code dir="auto">HttpResponse</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">body</code></td><td align="left"><code dir="auto">any</code></td><td align="left"><code dir="auto">null</code></td><td align="left">The request body (default <code dir="auto">null</code>).</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">HttpResponse</code> — The wrapped HTTP response.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpawait_json_get"><code dir="auto">http::await_json_get</code></h3><a class="sl-anchor-link" href="#httpawait_json_get"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::await_json_get”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await_json_get</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::await_json_get(url: string, headers: hashmap = {}): hashmap"><div></div></button></div></figure></div>
+<p>Sends a GET request, awaits the result, and returns the JSON body.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">hashmap</code> — The parsed JSON response body.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpawait_json_post"><code dir="auto">http::await_json_post</code></h3><a class="sl-anchor-link" href="#httpawait_json_post"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::await_json_post”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await_json_post</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, data</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::await_json_post(url: string, data: hashmap, headers: hashmap = {}): hashmap"><div></div></button></div></figure></div>
+<p>Sends a POST request with JSON data, awaits the result, and returns the JSON body.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to request.</td></tr><tr><td align="left"><code dir="auto">data</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"></td><td align="left">The data to send as JSON.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">hashmap</code> — The parsed JSON response body.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpawait_download"><code dir="auto">http::await_download</code></h3><a class="sl-anchor-link" href="#httpawait_download"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::await_download”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">await_download</span><span style="--0:#E6EDF3;--1:#1F2328">(url</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, filename</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, headers</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> {})</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::await_download(url: string, filename: string, headers: hashmap = {}): boolean"><div></div></button></div></figure></div>
+<p>Downloads a URL to a file and returns whether it succeeded.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">url</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The URL to download.</td></tr><tr><td align="left"><code dir="auto">filename</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The local file path to save the download to.</td></tr><tr><td align="left"><code dir="auto">headers</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"><code dir="auto">{}</code></td><td align="left">Optional request headers (default <code dir="auto">{}</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> if the download succeeded.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpresponse"><code dir="auto">http::response</code></h3><a class="sl-anchor-link" href="#httpresponse"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “http::response”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">http</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">response</span><span style="--0:#E6EDF3;--1:#1F2328">(raw</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> HttpResponse</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http::response(raw: hashmap): HttpResponse"><div></div></button></div></figure></div>
+<p>Wraps a raw response hashmap in an <code dir="auto">HttpResponse</code> object.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">raw</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"></td><td align="left">The raw response hashmap.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">HttpResponse</code> — The wrapped response.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="httpresponse-struct"><code dir="auto">HttpResponse</code> struct</h2><a class="sl-anchor-link" href="#httpresponse-struct"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “HttpResponse struct”</span></a></div>
+<p>A structured HTTP response object wrapping the raw response hashmap.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="httpresponsenew"><code dir="auto">HttpResponse.new</code></h3><a class="sl-anchor-link" href="#httpresponsenew"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “HttpResponse.new”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">HttpResponse.</span><span style="--0:#D2A8FF;--1:#7A4BD1">new</span><span style="--0:#E6EDF3;--1:#1F2328">(raw</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="HttpResponse.new(raw: hashmap)"><div></div></button></div></figure></div>
+<p>Creates an <code dir="auto">HttpResponse</code> from a raw response hashmap.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">raw</code></td><td align="left"><code dir="auto">hashmap</code></td><td align="left"></td><td align="left">A hashmap with <code dir="auto">status</code>, <code dir="auto">ok</code>, <code dir="auto">headers</code>, <code dir="auto">body</code>, and <code dir="auto">url</code> keys.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="get_raw"><code dir="auto">.get_raw</code></h3><a class="sl-anchor-link" href="#get_raw"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “.get_raw”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#D2A8FF;--1:#7A4BD1">get_raw</span><span style="--0:#E6EDF3;--1:#1F2328">()</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">hashmap</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="get_raw(): hashmap"><div></div></button></div></figure></div>
+<p>Returns the underlying raw response hashmap.</p>
+<p><strong>Returns</strong> <code dir="auto">hashmap</code> — The raw response data.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="json"><code dir="auto">.json</code></h3><a class="sl-anchor-link" href="#json"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “.json”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#D2A8FF;--1:#7A4BD1">json</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="json()"><div></div></button></div></figure></div>
+<p>Parses and returns the response body as a hashmap (JSON).</p>
+<p><strong>Returns</strong> <code dir="auto">hashmap</code> — The parsed JSON body.</p>
+<p><strong>Throws</strong> <code dir="auto">string</code> — If the body cannot be interpreted as JSON.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="text"><code dir="auto">.text</code></h3><a class="sl-anchor-link" href="#text"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “.text”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#D2A8FF;--1:#7A4BD1">text</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="text()"><div></div></button></div></figure></div>
+<p>Returns the response body as a string.</p>
+<p><strong>Returns</strong> <code dir="auto">string</code> — The body as text.</p>
+<p><strong>Throws</strong> <code dir="auto">string</code> — If the body cannot be converted to a string.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="pretty"><code dir="auto">.pretty</code></h3><a class="sl-anchor-link" href="#pretty"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “.pretty”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#D2A8FF;--1:#7A4BD1">pretty</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="pretty()"><div></div></button></div></figure></div>
+<p>Pretty-prints the response body as formatted JSON.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="save"><code dir="auto">.save</code></h3><a class="sl-anchor-link" href="#save"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “.save”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#D2A8FF;--1:#7A4BD1">save</span><span style="--0:#E6EDF3;--1:#1F2328">(filename</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="save(filename: string)"><div></div></button></div></figure></div>
+<p>Saves the response body to a file.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">filename</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The path to write the body to.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> if the body was written successfully, <code dir="auto">false</code> otherwise.</p></div><footer class="sl-flex astro-ddtxxk7k"><div class="meta sl-flex astro-ddtxxk7k"><a href="https://github.com/fuseraft/kiwi/edit/main/docs/src/content/docs/stdlib/http.md" class="sl-flex print:hidden astro-qlekgd3o"><svg aria-hidden="true" class="astro-qlekgd3o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a><p>Last updated: <time datetime="2026-10-21T05:12:48.000Z">Oct 21, 2026</time></p></div><div class="pagination-links print:hidden astro-b5raizh3" dir="ltr"><a href="/kiwi/stdlib/hashable/" rel="prev" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-b5raizh3">Previous<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">hashable</span></span></a><a href="/kiwi/stdlib/httpserver/" rel="next" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-b5raizh3">Next<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">httpserver</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>

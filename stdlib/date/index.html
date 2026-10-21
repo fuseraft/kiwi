@@ -1,0 +1,558 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-g5ptsecz"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>date | Kiwi</title><link rel="canonical" href="https://fuseraft.ai/kiwi/stdlib/date/"/><link rel="sitemap" href="/kiwi/sitemap-index.xml"/><link rel="shortcut icon" href="/kiwi/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.4.1"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="date"/><meta property="og:type" content="article"/><meta property="og:url" content="https://fuseraft.ai/kiwi/stdlib/date/"/><meta property="og:locale" content="en"/><meta property="og:description" content="Date arithmetic and component methods for the date type."/><meta property="og:site_name" content="Kiwi"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="Date arithmetic and component methods for the date type."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/kiwi/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/kiwi/_astro/common.Dzj9lC13.css"><style>@layer starlight.components{svg:where(.astro-hkc32dio){color:var(--sl-icon-color);font-size:var(--sl-icon-size,1em);width:1em;height:1em;overflow:visible}}
+</style><script type="module" src="/kiwi/_astro/page.cNngjUgL.js"></script></head><body class="astro-g5ptsecz"><a class="sl-skip-link astro-qb7clj6f" href="#_top">Skip to content</a><div class="page sl-flex astro-yntsjkba"><header class="header astro-yntsjkba"><div class="header astro-by6fddyj"><div class="title-wrapper sl-flex astro-by6fddyj"><a href="/kiwi/" class="site-title sl-flex astro-6rvad3va"><img class="astro-6rvad3va" alt src="/kiwi/_astro/logo.DJfiJ099.svg" width="400" height="400"><span class="astro-6rvad3va" translate="no">Kiwi</span></a></div><div class="sl-flex print:hidden astro-by6fddyj"><site-search class="astro-by6fddyj astro-b5kgnn7o" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-b5kgnn7o"><svg aria-hidden="true" class="astro-b5kgnn7o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-b5kgnn7o" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-b5kgnn7o" style="display: none;"><kbd class="astro-b5kgnn7o">Ctrl</kbd><kbd class="astro-b5kgnn7o">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-b5kgnn7o"><div class="dialog-frame sl-flex astro-b5kgnn7o"><button data-close-modal class="sl-flex md:sl-hidden astro-b5kgnn7o">Cancel</button><div class="search-container astro-b5kgnn7o"><div id="starlight__search" class="astro-b5kgnn7o"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/kiwi/_astro/Search.astro_astro_type_script_index_0_lang.Dpg5QQYx.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-by6fddyj"><div class="sl-flex social-icons astro-by6fddyj"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-yntsjkba" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-r2osgdlg"><svg aria-hidden="true" class="open-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-r2osgdlg">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-yntsjkba"><div class="sidebar-content sl-flex astro-yntsjkba"><sl-sidebar-state-persist data-hash="02fcnv0" class="astro-ipdry5cl"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-rmhv4bp6"><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Getting Started</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/introduction/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Introduction</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/installation/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Installation</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/tour/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">A Tour of Kiwi</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Language</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/language/syntax/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Syntax Basics</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/variables/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Variables</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/types/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Types</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/strings/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Strings</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lists/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lists and Ranges</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/hashmaps/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Hashmaps</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/control-flow/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Control Flow</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/loops/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Loops</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Functions</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lambdas/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lambdas and Closures</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/scoping/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Scoping</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/type-hints/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Type Hints</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/errors/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Error Handling</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/structs/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Structs</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operator-overloading/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operator Overloading</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/enums/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Enums</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/packages/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Packages and Modules</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/generators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Generators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/decorators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Decorators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/events/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Events</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Tools</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/tools/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">The kiwi Command</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/repl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">REPL</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/debugger/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Debugger (kdb)</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/testing/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Testing</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Reference</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/reference/keywords/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Keywords</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/builtin-methods/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Built-in Methods</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/global-functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Global Functions</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Standard Library</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="4"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Overview</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/bench/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">bench</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">cli</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/collections/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">collections</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/compress/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">compress</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/console/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">console</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/crypto/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">crypto</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/csv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">csv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/curl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">curl</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/date/" aria-current="page" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">date</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/dotenv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">dotenv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/encode/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">encode</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/env/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">env</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/error/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">error</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/faker/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">faker</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fio/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fio</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fmt/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fmt</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/hashable/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">hashable</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/http/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">http</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/httpserver/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">httpserver</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ipc/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ipc</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/iter/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">iter</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/json/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">json</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/list/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">list</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/log/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">log</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/math/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">math</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/path/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">path</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/pipeline/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">pipeline</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/protobuf/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">protobuf</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/reflector/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">reflector</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/regex/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">regex</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/signal/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">signal</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/smtp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">smtp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/socket/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">socket</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sqlite/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sqlite</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stat/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stat</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/std/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">std</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stdin/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stdin</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stopwatch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stopwatch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/string/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">string</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sys/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sys</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/table/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">table</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/task/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">task</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/template/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">template</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/tester/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">tester</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/text/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">text</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/time/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">time</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/udp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">udp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/watch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">watch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/xml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">xml</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/yaml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">yaml</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Internals</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="5"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/internals/vm/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Bytecode VM</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-p4azlveh"><div class="social-icons astro-p4azlveh"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-yntsjkba"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-lrzkfocr"><aside class="right-sidebar-container print:hidden astro-lrzkfocr"><div class="right-sidebar astro-lrzkfocr"><div class="lg:sl-hidden astro-qok35upx"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-66cqc7ze"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-66cqc7ze"><details id="starlight__mobile-toc" class="astro-66cqc7ze"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-66cqc7ze"><span class="toggle sl-flex astro-66cqc7ze">On this page<svg aria-hidden="true" class="caret astro-66cqc7ze astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-66cqc7ze"></span></summary><div class="dropdown astro-66cqc7ze"><ul class="isMobile astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#arithmetic" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Arithmetic</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#components" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Components</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#examples" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Examples</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_days" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_days</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_months" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_months</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_years" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_years</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_hours" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_hours</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_minutes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_minutes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_seconds" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_seconds</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_milliseconds" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_milliseconds</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateyear" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::year</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datemonth" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::month</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateday" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::day</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datehour" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::hour</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateminute" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::minute</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datesecond" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::second</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datemillisecond" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::millisecond</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateweekday" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::weekday</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateyearday" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::yearday</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateisdst" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::isdst</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateampm" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::ampm</span></a></li></ul></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/kiwi/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-qok35upx"><div class="sl-container astro-qok35upx"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#arithmetic" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Arithmetic</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#components" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Components</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#examples" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Examples</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_days" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_days</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_months" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_months</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_years" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_years</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_hours" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_hours</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_minutes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_minutes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_seconds" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_seconds</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateadd_milliseconds" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::add_milliseconds</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateyear" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::year</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datemonth" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::month</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateday" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::day</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datehour" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::hour</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateminute" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::minute</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datesecond" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::second</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#datemillisecond" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::millisecond</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateweekday" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::weekday</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateyearday" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::yearday</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateisdst" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::isdst</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#dateampm" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">date::ampm</span></a></li></ul></li></ul></nav></starlight-toc><script type="module" src="/kiwi/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-lrzkfocr"><main data-pagefind-body class="astro-g5ptsecz" lang="en" dir="ltr"><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><h1 id="_top" class="astro-bebwqqxs">date</h1></div></div><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><div class="sl-markdown-content"><p>The <code dir="auto">date</code> package adds methods to every <code dir="auto">date</code> value: arithmetic such as <code dir="auto">.add_days(n)</code> and accessors such as <code dir="auto">.weekday()</code>. Because the package <a href="/kiwi/language/packages/#extending-built-in-types">extends the built-in type</a>, you call these as methods; each is also available as <code dir="auto">date::name(value, ...)</code>.</p>
+<div class="expressive-code"><link rel="stylesheet" href="/kiwi/_astro/ec.8nqtp.css"><script type="module" src="/kiwi/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">release </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">d</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">2024</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">15</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">10</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">30</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">45</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> release.</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_days</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">30</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"yyyy-MM-dd"</span><span style="--0:#E6EDF3;--1:#1F2328">)    </span><span style="--0:#8B949E;--1:#616972"># 2024-04-14</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> release.</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_months</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">6</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"yyyy-MM-dd"</span><span style="--0:#E6EDF3;--1:#1F2328">)  </span><span style="--0:#8B949E;--1:#616972"># 2023-09-15</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> release.</span><span style="--0:#D2A8FF;--1:#7A4BD1">weekday</span><span style="--0:#E6EDF3;--1:#1F2328">()                               </span><span style="--0:#8B949E;--1:#616972"># 5 (Friday)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> release.</span><span style="--0:#D2A8FF;--1:#7A4BD1">yearday</span><span style="--0:#E6EDF3;--1:#1F2328">()                               </span><span style="--0:#8B949E;--1:#616972"># 75</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> release.</span><span style="--0:#D2A8FF;--1:#7A4BD1">ampm</span><span style="--0:#E6EDF3;--1:#1F2328">()                                  </span><span style="--0:#8B949E;--1:#616972"># AM</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="release = d(2024, 3, 15, 10, 30, 45)println release.add_days(30).to_string(&#x22;yyyy-MM-dd&#x22;)    # 2024-04-14println release.add_months(-6).to_string(&#x22;yyyy-MM-dd&#x22;)  # 2023-09-15println release.weekday()                               # 5 (Friday)println release.yearday()                               # 75println release.ampm()                                  # AM"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="arithmetic">Arithmetic</h2><a class="sl-anchor-link" href="#arithmetic"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Arithmetic”</span></a></div>
+<p><code dir="auto">add_years</code>, <code dir="auto">add_months</code>, <code dir="auto">add_days</code>, <code dir="auto">add_hours</code>, <code dir="auto">add_minutes</code>, <code dir="auto">add_seconds</code> and <code dir="auto">add_milliseconds</code> each return a new date; the original is unchanged. Pass a negative number to go back in time. Calls chain:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">due </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">d</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">2024</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">31</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_months</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_days</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> due.</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"yyyy-MM-dd"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 2024-02-28</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="due = d(2024, 1, 31).add_months(1).add_days(-1)println due.to_string(&#x22;yyyy-MM-dd&#x22;)   # 2024-02-28"><div></div></button></div></figure></div>
+<p>Adding months clamps to the end of shorter months, so January 31 plus one month is February 29 in a leap year.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="components">Components</h2><a class="sl-anchor-link" href="#components"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Components”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Method</th><th align="left">Returns</th></tr></thead><tbody><tr><td align="left"><code dir="auto">year()</code>, <code dir="auto">month()</code>, <code dir="auto">day()</code></td><td align="left">Calendar parts; months run 1 to 12</td></tr><tr><td align="left"><code dir="auto">hour()</code>, <code dir="auto">minute()</code>, <code dir="auto">second()</code>, <code dir="auto">millisecond()</code></td><td align="left">Time-of-day parts</td></tr><tr><td align="left"><code dir="auto">weekday()</code></td><td align="left">Day of the week, 0 (Sunday) to 6 (Saturday)</td></tr><tr><td align="left"><code dir="auto">yearday()</code></td><td align="left">Day of the year, 1 to 366</td></tr><tr><td align="left"><code dir="auto">ampm()</code></td><td align="left"><code dir="auto">"AM"</code> or <code dir="auto">"PM"</code></td></tr><tr><td align="left"><code dir="auto">isdst()</code></td><td align="left">Whether daylight saving time is in effect</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h2"><h2 id="examples">Examples</h2><a class="sl-anchor-link" href="#examples"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Examples”</span></a></div>
+<p>A week of day names starting from a date:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">week </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">to</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">6</span><span style="--0:#E6EDF3;--1:#1F2328">].</span><span style="--0:#D2A8FF;--1:#7A4BD1">map</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> (i) </span><span style="--0:#FF7B72;--1:#CA212D">=></span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">d</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">2024</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_days</span><span style="--0:#E6EDF3;--1:#1F2328">(i).</span><span style="--0:#D2A8FF;--1:#7A4BD1">to_string</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"ddd"</span><span style="--0:#E6EDF3;--1:#1F2328">))</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> week   </span><span style="--0:#8B949E;--1:#616972"># ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="week = [0 to 6].map(do (i) => d(2024, 1, 1).add_days(i).to_string(&#x22;ddd&#x22;))println week   # [&#x22;Mon&#x22;, &#x22;Tue&#x22;, &#x22;Wed&#x22;, &#x22;Thu&#x22;, &#x22;Fri&#x22;, &#x22;Sat&#x22;, &#x22;Sun&#x22;]"><div></div></button></div></figure></div>
+<p>Formatting uses the patterns listed under <a href="/kiwi/reference/builtin-methods/#date-formats">Date formats</a>. For the current time, timestamps and calendar helpers, see <a href="/kiwi/stdlib/time/"><code dir="auto">time</code></a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="functions">Functions</h2><a class="sl-anchor-link" href="#functions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Functions”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateadd_days"><code dir="auto">date::add_days</code></h3><a class="sl-anchor-link" href="#dateadd_days"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::add_days”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_days</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">, n</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::add_days(_dt: date, n: integer): date"><div></div></button></div></figure></div>
+<p>Adds <code dir="auto">n</code> days to the date. Use a negative value to subtract.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">Number of days to add (negative to subtract).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">date</code> — The new date.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateadd_months"><code dir="auto">date::add_months</code></h3><a class="sl-anchor-link" href="#dateadd_months"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::add_months”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_months</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">, n</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::add_months(_dt: date, n: integer): date"><div></div></button></div></figure></div>
+<p>Adds <code dir="auto">n</code> months to the date. Use a negative value to subtract.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">Number of months to add (negative to subtract).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">date</code> — The new date.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateadd_years"><code dir="auto">date::add_years</code></h3><a class="sl-anchor-link" href="#dateadd_years"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::add_years”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_years</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">, n</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::add_years(_dt: date, n: integer): date"><div></div></button></div></figure></div>
+<p>Adds <code dir="auto">n</code> years to the date. Use a negative value to subtract.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">Number of years to add (negative to subtract).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">date</code> — The new date.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateadd_hours"><code dir="auto">date::add_hours</code></h3><a class="sl-anchor-link" href="#dateadd_hours"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::add_hours”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_hours</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">, n</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::add_hours(_dt: date, n: integer): date"><div></div></button></div></figure></div>
+<p>Adds <code dir="auto">n</code> hours to the date. Use a negative value to subtract.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">Number of hours to add (negative to subtract).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">date</code> — The new date.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateadd_minutes"><code dir="auto">date::add_minutes</code></h3><a class="sl-anchor-link" href="#dateadd_minutes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::add_minutes”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_minutes</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">, n</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::add_minutes(_dt: date, n: integer): date"><div></div></button></div></figure></div>
+<p>Adds <code dir="auto">n</code> minutes to the date. Use a negative value to subtract.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">Number of minutes to add (negative to subtract).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">date</code> — The new date.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateadd_seconds"><code dir="auto">date::add_seconds</code></h3><a class="sl-anchor-link" href="#dateadd_seconds"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::add_seconds”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_seconds</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">, n</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::add_seconds(_dt: date, n: integer): date"><div></div></button></div></figure></div>
+<p>Adds <code dir="auto">n</code> seconds to the date. Use a negative value to subtract.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">Number of seconds to add (negative to subtract).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">date</code> — The new date.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateadd_milliseconds"><code dir="auto">date::add_milliseconds</code></h3><a class="sl-anchor-link" href="#dateadd_milliseconds"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::add_milliseconds”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">add_milliseconds</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">, n</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::add_milliseconds(_dt: date, n: integer): date"><div></div></button></div></figure></div>
+<p>Adds <code dir="auto">n</code> milliseconds to the date. Use a negative value to subtract.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">Number of milliseconds to add (negative to subtract).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">date</code> — The new date.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateyear"><code dir="auto">date::year</code></h3><a class="sl-anchor-link" href="#dateyear"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::year”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">year</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::year(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the year component of the date.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The year.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="datemonth"><code dir="auto">date::month</code></h3><a class="sl-anchor-link" href="#datemonth"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::month”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">month</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::month(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the month component of the date (1–12).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The month.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateday"><code dir="auto">date::day</code></h3><a class="sl-anchor-link" href="#dateday"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::day”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">day</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::day(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the day-of-month component of the date (1–31).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The day.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="datehour"><code dir="auto">date::hour</code></h3><a class="sl-anchor-link" href="#datehour"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::hour”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">hour</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::hour(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the hour component of the date (0–23).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The hour.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateminute"><code dir="auto">date::minute</code></h3><a class="sl-anchor-link" href="#dateminute"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::minute”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">minute</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::minute(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the minute component of the date (0–59).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The minute.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="datesecond"><code dir="auto">date::second</code></h3><a class="sl-anchor-link" href="#datesecond"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::second”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">second</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::second(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the second component of the date (0–60).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The second.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="datemillisecond"><code dir="auto">date::millisecond</code></h3><a class="sl-anchor-link" href="#datemillisecond"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::millisecond”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">millisecond</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::millisecond(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the millisecond component of the date (0–999).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The millisecond.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateweekday"><code dir="auto">date::weekday</code></h3><a class="sl-anchor-link" href="#dateweekday"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::weekday”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">weekday</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::weekday(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the day of the week (0 = Sunday … 6 = Saturday).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The weekday index.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateyearday"><code dir="auto">date::yearday</code></h3><a class="sl-anchor-link" href="#dateyearday"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::yearday”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">yearday</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::yearday(_dt: date): integer"><div></div></button></div></figure></div>
+<p>Returns the day of the year (1–366).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The day of the year.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateisdst"><code dir="auto">date::isdst</code></h3><a class="sl-anchor-link" href="#dateisdst"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::isdst”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">isdst</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::isdst(_dt: date): boolean"><div></div></button></div></figure></div>
+<p>Returns <code dir="auto">true</code> if the date falls within Daylight Saving Time.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> if DST is in effect.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="dateampm"><code dir="auto">date::ampm</code></h3><a class="sl-anchor-link" href="#dateampm"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “date::ampm”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">:</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#D2A8FF;--1:#7A4BD1">ampm</span><span style="--0:#E6EDF3;--1:#1F2328">(_dt</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">date</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="date::ampm(_dt: date): string"><div></div></button></div></figure></div>
+<p>Returns <code dir="auto">"AM"</code> or <code dir="auto">"PM"</code> for the date's time.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dt</code></td><td align="left"><code dir="auto">date</code></td><td align="left"></td><td align="left">The date.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — <code dir="auto">"AM"</code> or <code dir="auto">"PM"</code>.</p></div><footer class="sl-flex astro-ddtxxk7k"><div class="meta sl-flex astro-ddtxxk7k"><a href="https://github.com/fuseraft/kiwi/edit/main/docs/src/content/docs/stdlib/date.md" class="sl-flex print:hidden astro-qlekgd3o"><svg aria-hidden="true" class="astro-qlekgd3o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a><p>Last updated: <time datetime="2026-10-21T05:12:48.000Z">Oct 21, 2026</time></p></div><div class="pagination-links print:hidden astro-b5raizh3" dir="ltr"><a href="/kiwi/stdlib/curl/" rel="prev" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-b5raizh3">Previous<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">curl</span></span></a><a href="/kiwi/stdlib/dotenv/" rel="next" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-b5raizh3">Next<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">dotenv</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>

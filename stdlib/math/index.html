@@ -1,0 +1,1299 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-g5ptsecz"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>math | Kiwi</title><link rel="canonical" href="https://fuseraft.ai/kiwi/stdlib/math/"/><link rel="sitemap" href="/kiwi/sitemap-index.xml"/><link rel="shortcut icon" href="/kiwi/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.4.1"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="math"/><meta property="og:type" content="article"/><meta property="og:url" content="https://fuseraft.ai/kiwi/stdlib/math/"/><meta property="og:locale" content="en"/><meta property="og:description" content="Trigonometry, logarithms, rounding, random numbers and number theory helpers."/><meta property="og:site_name" content="Kiwi"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="Trigonometry, logarithms, rounding, random numbers and number theory helpers."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/kiwi/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/kiwi/_astro/common.Dzj9lC13.css"><style>@layer starlight.components{svg:where(.astro-hkc32dio){color:var(--sl-icon-color);font-size:var(--sl-icon-size,1em);width:1em;height:1em;overflow:visible}}
+</style><script type="module" src="/kiwi/_astro/page.cNngjUgL.js"></script></head><body class="astro-g5ptsecz"><a class="sl-skip-link astro-qb7clj6f" href="#_top">Skip to content</a><div class="page sl-flex astro-yntsjkba"><header class="header astro-yntsjkba"><div class="header astro-by6fddyj"><div class="title-wrapper sl-flex astro-by6fddyj"><a href="/kiwi/" class="site-title sl-flex astro-6rvad3va"><img class="astro-6rvad3va" alt src="/kiwi/_astro/logo.DJfiJ099.svg" width="400" height="400"><span class="astro-6rvad3va" translate="no">Kiwi</span></a></div><div class="sl-flex print:hidden astro-by6fddyj"><site-search class="astro-by6fddyj astro-b5kgnn7o" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-b5kgnn7o"><svg aria-hidden="true" class="astro-b5kgnn7o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-b5kgnn7o" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-b5kgnn7o" style="display: none;"><kbd class="astro-b5kgnn7o">Ctrl</kbd><kbd class="astro-b5kgnn7o">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-b5kgnn7o"><div class="dialog-frame sl-flex astro-b5kgnn7o"><button data-close-modal class="sl-flex md:sl-hidden astro-b5kgnn7o">Cancel</button><div class="search-container astro-b5kgnn7o"><div id="starlight__search" class="astro-b5kgnn7o"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/kiwi/_astro/Search.astro_astro_type_script_index_0_lang.Dpg5QQYx.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-by6fddyj"><div class="sl-flex social-icons astro-by6fddyj"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-yntsjkba" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-r2osgdlg"><svg aria-hidden="true" class="open-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-r2osgdlg">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-yntsjkba"><div class="sidebar-content sl-flex astro-yntsjkba"><sl-sidebar-state-persist data-hash="02fcnv0" class="astro-ipdry5cl"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-rmhv4bp6"><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Getting Started</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/introduction/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Introduction</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/installation/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Installation</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/tour/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">A Tour of Kiwi</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Language</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/language/syntax/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Syntax Basics</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/variables/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Variables</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/types/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Types</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/strings/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Strings</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lists/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lists and Ranges</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/hashmaps/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Hashmaps</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/control-flow/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Control Flow</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/loops/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Loops</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Functions</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lambdas/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lambdas and Closures</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/scoping/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Scoping</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/type-hints/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Type Hints</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/errors/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Error Handling</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/structs/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Structs</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operator-overloading/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operator Overloading</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/enums/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Enums</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/packages/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Packages and Modules</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/generators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Generators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/decorators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Decorators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/events/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Events</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Tools</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/tools/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">The kiwi Command</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/repl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">REPL</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/debugger/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Debugger (kdb)</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/testing/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Testing</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Reference</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/reference/keywords/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Keywords</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/builtin-methods/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Built-in Methods</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/global-functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Global Functions</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Standard Library</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="4"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Overview</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/bench/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">bench</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">cli</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/collections/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">collections</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/compress/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">compress</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/console/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">console</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/crypto/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">crypto</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/csv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">csv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/curl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">curl</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/date/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">date</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/dotenv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">dotenv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/encode/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">encode</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/env/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">env</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/error/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">error</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/faker/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">faker</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fio/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fio</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fmt/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fmt</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/hashable/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">hashable</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/http/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">http</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/httpserver/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">httpserver</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ipc/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ipc</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/iter/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">iter</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/json/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">json</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/list/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">list</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/log/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">log</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/math/" aria-current="page" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">math</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/path/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">path</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/pipeline/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">pipeline</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/protobuf/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">protobuf</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/reflector/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">reflector</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/regex/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">regex</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/signal/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">signal</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/smtp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">smtp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/socket/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">socket</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sqlite/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sqlite</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stat/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stat</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/std/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">std</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stdin/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stdin</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stopwatch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stopwatch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/string/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">string</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sys/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sys</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/table/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">table</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/task/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">task</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/template/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">template</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/tester/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">tester</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/text/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">text</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/time/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">time</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/udp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">udp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/watch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">watch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/xml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">xml</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/yaml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">yaml</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Internals</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="5"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/internals/vm/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Bytecode VM</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-p4azlveh"><div class="social-icons astro-p4azlveh"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-yntsjkba"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-lrzkfocr"><aside class="right-sidebar-container print:hidden astro-lrzkfocr"><div class="right-sidebar astro-lrzkfocr"><div class="lg:sl-hidden astro-qok35upx"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-66cqc7ze"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-66cqc7ze"><details id="starlight__mobile-toc" class="astro-66cqc7ze"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-66cqc7ze"><span class="toggle sl-flex astro-66cqc7ze">On this page<svg aria-hidden="true" class="caret astro-66cqc7ze astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-66cqc7ze"></span></summary><div class="dropdown astro-66cqc7ze"><ul class="isMobile astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#random-numbers" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Random numbers</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#euclidean-division" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Euclidean division</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathepsilon" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::epsilon</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#matheps" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::eps</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathrandom" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::random</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathrandom_set" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::random_set</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlistprimes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::listprimes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathnthprime" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::nthprime</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathsin" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::sin</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcos" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::cos</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtan" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::tan</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathasin" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::asin</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathacos" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::acos</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathatan" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::atan</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathatan2" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::atan2</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathsinh" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::sinh</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcosh" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::cosh</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtanh" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::tanh</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog2" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log2</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog10" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log10</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog1p" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log1p</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathsqrt" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::sqrt</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcbrt" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::cbrt</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfmod" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fmod</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathhypot" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::hypot</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisfinite" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isfinite</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisinf" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isinf</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisnan" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isnan</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisnormal" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isnormal</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfloor" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::floor</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathceil" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::ceil</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathround" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::round</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtrunc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::trunc</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathremainder" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::remainder</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathexp" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::exp</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathexpm1" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::expm1</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#matherf" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::erf</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#matherfc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::erfc</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlgamma" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::lgamma</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtgamma" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::tgamma</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcopysign" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::copysign</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathnextafter" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::nextafter</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfmax" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fmax</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfmin" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fmin</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfdim" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fdim</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathpow" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::pow</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathabs" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::abs</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathediv" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::ediv</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathemod" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::emod</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathdivmod" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::divmod</span></a></li></ul></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/kiwi/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-qok35upx"><div class="sl-container astro-qok35upx"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#random-numbers" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Random numbers</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#euclidean-division" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Euclidean division</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathepsilon" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::epsilon</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#matheps" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::eps</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathrandom" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::random</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathrandom_set" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::random_set</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlistprimes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::listprimes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathnthprime" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::nthprime</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathsin" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::sin</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcos" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::cos</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtan" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::tan</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathasin" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::asin</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathacos" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::acos</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathatan" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::atan</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathatan2" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::atan2</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathsinh" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::sinh</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcosh" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::cosh</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtanh" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::tanh</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog2" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log2</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog10" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log10</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlog1p" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::log1p</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathsqrt" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::sqrt</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcbrt" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::cbrt</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfmod" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fmod</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathhypot" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::hypot</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisfinite" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isfinite</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisinf" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isinf</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisnan" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isnan</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathisnormal" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::isnormal</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfloor" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::floor</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathceil" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::ceil</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathround" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::round</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtrunc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::trunc</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathremainder" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::remainder</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathexp" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::exp</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathexpm1" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::expm1</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#matherf" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::erf</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#matherfc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::erfc</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathlgamma" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::lgamma</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathtgamma" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::tgamma</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathcopysign" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::copysign</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathnextafter" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::nextafter</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfmax" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fmax</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfmin" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fmin</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathfdim" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::fdim</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathpow" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::pow</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathabs" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::abs</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathediv" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::ediv</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathemod" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::emod</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#mathdivmod" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">math::divmod</span></a></li></ul></li></ul></nav></starlight-toc><script type="module" src="/kiwi/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-lrzkfocr"><main data-pagefind-body class="astro-g5ptsecz" lang="en" dir="ltr"><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><h1 id="_top" class="astro-bebwqqxs">math</h1></div></div><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><div class="sl-markdown-content"><p>The <code dir="auto">math</code> package has the usual mathematical functions.</p>
+<div class="expressive-code"><link rel="stylesheet" href="/kiwi/_astro/ec.8nqtp.css"><script type="module" src="/kiwi/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">sqrt</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">2.0</span><span style="--0:#E6EDF3;--1:#1F2328">)          </span><span style="--0:#8B949E;--1:#616972"># 1.4142135623730951</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">pow</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">2.0</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">10.0</span><span style="--0:#E6EDF3;--1:#1F2328">)     </span><span style="--0:#8B949E;--1:#616972"># 1024</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">hypot</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">3.0</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">4.0</span><span style="--0:#E6EDF3;--1:#1F2328">)    </span><span style="--0:#8B949E;--1:#616972"># 5</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">round</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">3.14159</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">)  </span><span style="--0:#8B949E;--1:#616972"># 3.14</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">floor</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">3.7</span><span style="--0:#E6EDF3;--1:#1F2328">)         </span><span style="--0:#8B949E;--1:#616972"># 3</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">abs</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">42</span><span style="--0:#E6EDF3;--1:#1F2328">)           </span><span style="--0:#8B949E;--1:#616972"># 42</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">log10</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">1000.0</span><span style="--0:#E6EDF3;--1:#1F2328">)      </span><span style="--0:#8B949E;--1:#616972"># 3</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="println math::sqrt(2.0)          # 1.4142135623730951println math::pow(2.0, 10.0)     # 1024println math::hypot(3.0, 4.0)    # 5println math::round(3.14159, 2)  # 3.14println math::floor(3.7)         # 3println math::abs(-42)           # 42println math::log10(1000.0)      # 3"><div></div></button></div></figure></div>
+<aside aria-label="Caution" class="starlight-aside starlight-aside--caution"><p class="starlight-aside__title" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="starlight-aside__icon"><path d="M12 16a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm10.67 1.47-8.05-14a3 3 0 0 0-5.24 0l-8 14A3 3 0 0 0 3.94 22h16.12a3 3 0 0 0 2.61-4.53Zm-1.73 2a1 1 0 0 1-.88.51H3.94a1 1 0 0 1-.88-.51 1 1 0 0 1 0-1l8-14a1 1 0 0 1 1.78 0l8.05 14a1 1 0 0 1 .05 1.02v-.02ZM12 8a1 1 0 0 0-1 1v4a1 1 0 0 0 2 0V9a1 1 0 0 0-1-1Z"></path></svg>Caution</p><div class="starlight-aside__content"><p>Most functions currently require float arguments; passing an integer raises a <code dir="auto">ParameterTypeMismatchError</code>. Write <code dir="auto">math::sqrt(16.0)</code> or convert with <code dir="auto">.to_float()</code>. <code dir="auto">abs</code>, <code dir="auto">random</code>, <code dir="auto">random_set</code>, <code dir="auto">divmod</code>, <code dir="auto">ediv</code> and <code dir="auto">emod</code> accept integers.</p></div></aside>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Group</th><th align="left">Functions</th></tr></thead><tbody><tr><td align="left">Powers and roots</td><td align="left"><code dir="auto">sqrt</code>, <code dir="auto">cbrt</code>, <code dir="auto">pow</code>, <code dir="auto">exp</code>, <code dir="auto">expm1</code>, <code dir="auto">hypot</code></td></tr><tr><td align="left">Logarithms</td><td align="left"><code dir="auto">log</code>, <code dir="auto">log2</code>, <code dir="auto">log10</code>, <code dir="auto">log1p</code></td></tr><tr><td align="left">Trigonometry</td><td align="left"><code dir="auto">sin</code>, <code dir="auto">cos</code>, <code dir="auto">tan</code>, <code dir="auto">asin</code>, <code dir="auto">acos</code>, <code dir="auto">atan</code>, <code dir="auto">atan2</code>, <code dir="auto">sinh</code>, <code dir="auto">cosh</code>, <code dir="auto">tanh</code></td></tr><tr><td align="left">Rounding</td><td align="left"><code dir="auto">floor</code>, <code dir="auto">ceil</code>, <code dir="auto">round</code>, <code dir="auto">trunc</code></td></tr><tr><td align="left">Comparison</td><td align="left"><code dir="auto">abs</code>, <code dir="auto">fmax</code>, <code dir="auto">fmin</code>, <code dir="auto">fdim</code>, <code dir="auto">copysign</code>, <code dir="auto">nextafter</code></td></tr><tr><td align="left">Division</td><td align="left"><code dir="auto">fmod</code>, <code dir="auto">remainder</code>, <code dir="auto">divmod</code>, <code dir="auto">ediv</code>, <code dir="auto">emod</code></td></tr><tr><td align="left">Classification</td><td align="left"><code dir="auto">isfinite</code>, <code dir="auto">isinf</code>, <code dir="auto">isnan</code>, <code dir="auto">isnormal</code></td></tr><tr><td align="left">Special functions</td><td align="left"><code dir="auto">erf</code>, <code dir="auto">erfc</code>, <code dir="auto">lgamma</code>, <code dir="auto">tgamma</code></td></tr><tr><td align="left">Random</td><td align="left"><code dir="auto">random</code>, <code dir="auto">random_set</code></td></tr><tr><td align="left">Precision</td><td align="left"><code dir="auto">epsilon</code>, <code dir="auto">eps</code></td></tr></tbody></table>
+<p>There are no constants for π or e; use <code dir="auto">math::acos(-1.0)</code> and <code dir="auto">math::exp(1.0)</code>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="random-numbers">Random numbers</h2><a class="sl-anchor-link" href="#random-numbers"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Random numbers”</span></a></div>
+<p><code dir="auto">random(low, high)</code> returns a random number between the bounds: an integer for integer bounds, a float for float bounds. <code dir="auto">random_set(low, high, count)</code> returns a list of random integers.</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">roll </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">random</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">6</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> roll.</span><span style="--0:#D2A8FF;--1:#7A4BD1">between</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">6</span><span style="--0:#E6EDF3;--1:#1F2328">)                    </span><span style="--0:#8B949E;--1:#616972"># true</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">random_set</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">100</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">5</span><span style="--0:#E6EDF3;--1:#1F2328">).</span><span style="--0:#D2A8FF;--1:#7A4BD1">size</span><span style="--0:#E6EDF3;--1:#1F2328">()    </span><span style="--0:#8B949E;--1:#616972"># 5</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="roll = math::random(1, 6)println roll.between(1, 6)                    # trueprintln math::random_set(1, 100, 5).size()    # 5"><div></div></button></div></figure></div>
+<p>For realistic fake data, see <a href="/kiwi/stdlib/faker/"><code dir="auto">faker</code></a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="euclidean-division">Euclidean division</h2><a class="sl-anchor-link" href="#euclidean-division"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Euclidean division”</span></a></div>
+<p><code dir="auto">ediv</code> and <code dir="auto">emod</code> perform Euclidean division, whose remainder is never negative, unlike <code dir="auto">%</code>. <code dir="auto">divmod</code> returns both as a list.</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">7</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">%</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">                </span><span style="--0:#8B949E;--1:#616972"># -1</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">emod</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">7</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">)     </span><span style="--0:#8B949E;--1:#616972"># 1</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">ediv</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">7</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">)     </span><span style="--0:#8B949E;--1:#616972"># -4</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">divmod</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">7</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># [-4, 1]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="println -7 % 2                # -1println math::emod(-7, 2)     # 1println math::ediv(-7, 2)     # -4println math::divmod(-7, 2)   # [-4, 1]"><div></div></button></div></figure></div>
+<p>They satisfy <code dir="auto">dividend == divisor * ediv(dividend, divisor) + emod(dividend, divisor)</code>.</p>
+<p>For statistics such as mean, median and standard deviation, see <a href="/kiwi/stdlib/stat/"><code dir="auto">stat</code></a>.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="functions">Functions</h2><a class="sl-anchor-link" href="#functions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Functions”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathepsilon"><code dir="auto">math::epsilon</code></h3><a class="sl-anchor-link" href="#mathepsilon"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::epsilon”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">epsilon</span><span style="--0:#E6EDF3;--1:#1F2328">()</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::epsilon()"><div></div></button></div></figure></div>
+<p>Gets the smallest difference from 1.0 that a floating-point type can accurately represent.</p>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The machine epsilon value.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="matheps"><code dir="auto">math::eps</code></h3><a class="sl-anchor-link" href="#matheps"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::eps”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">eps</span><span style="--0:#E6EDF3;--1:#1F2328">(n </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">9</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::eps(n = 9)"><div></div></button></div></figure></div>
+<p>Returns a decimal epsilon value of the form <code dir="auto">1e-n</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"><code dir="auto">9</code></td><td align="left">The exponent (must be between 1 and 15, default <code dir="auto">9</code>).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — A floating-point value of <code dir="auto">0.1 ** n</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathrandom"><code dir="auto">math::random</code></h3><a class="sl-anchor-link" href="#mathrandom"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::random”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">random</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::random(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Gets a random number between x and y.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The lower bound.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The upper bound.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer|float</code> — A random number in the range <code dir="auto">[_valueX, _valueY]</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathrandom_set"><code dir="auto">math::random_set</code></h3><a class="sl-anchor-link" href="#mathrandom_set"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::random_set”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">random_set</span><span style="--0:#E6EDF3;--1:#1F2328">(_range_start, _range_end, _size)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::random_set(_range_start, _range_end, _size)"><div></div></button></div></figure></div>
+<p>Gets a random set of unique numbers within a given range.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_range_start</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The lower bound.</td></tr><tr><td align="left"><code dir="auto">_range_end</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The upper bound.</td></tr><tr><td align="left"><code dir="auto">_size</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The number of unique values to generate.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — A list of <code dir="auto">_size</code> unique random numbers, or <code dir="auto">[]</code> if the range is invalid.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathlistprimes"><code dir="auto">math::listprimes</code></h3><a class="sl-anchor-link" href="#mathlistprimes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::listprimes”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">listprimes</span><span style="--0:#E6EDF3;--1:#1F2328">(_limit)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::listprimes(_limit)"><div></div></button></div></figure></div>
+<p>Gets a list of prime numbers up to a limit.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_limit</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The upper bound (inclusive).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — A list of prime numbers up to <code dir="auto">_limit</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathnthprime"><code dir="auto">math::nthprime</code></h3><a class="sl-anchor-link" href="#mathnthprime"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::nthprime”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">nthprime</span><span style="--0:#E6EDF3;--1:#1F2328">(_n)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::nthprime(_n)"><div></div></button></div></figure></div>
+<p>Gets the n-th prime number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_n</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The 1-based index of the prime to retrieve.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The n-th prime number.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathsin"><code dir="auto">math::sin</code></h3><a class="sl-anchor-link" href="#mathsin"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::sin”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">sin</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::sin(_value)"><div></div></button></div></figure></div>
+<p>Computes the sine of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The angle in radians.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The sine of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathcos"><code dir="auto">math::cos</code></h3><a class="sl-anchor-link" href="#mathcos"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::cos”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">cos</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::cos(_value)"><div></div></button></div></figure></div>
+<p>Computes the cosine of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The angle in radians.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The cosine of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathtan"><code dir="auto">math::tan</code></h3><a class="sl-anchor-link" href="#mathtan"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::tan”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">tan</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::tan(_value)"><div></div></button></div></figure></div>
+<p>Computes the tangent of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The angle in radians.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The tangent of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathasin"><code dir="auto">math::asin</code></h3><a class="sl-anchor-link" href="#mathasin"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::asin”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">asin</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::asin(_value)"><div></div></button></div></figure></div>
+<p>Computes the arc sine of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">A value in the range <code dir="auto">[-1, 1]</code>.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The arc sine of <code dir="auto">_value</code> in radians.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathacos"><code dir="auto">math::acos</code></h3><a class="sl-anchor-link" href="#mathacos"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::acos”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">acos</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::acos(_value)"><div></div></button></div></figure></div>
+<p>Computes the arc cosine of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">A value in the range <code dir="auto">[-1, 1]</code>.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The arc cosine of <code dir="auto">_value</code> in radians.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathatan"><code dir="auto">math::atan</code></h3><a class="sl-anchor-link" href="#mathatan"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::atan”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">atan</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::atan(_value)"><div></div></button></div></figure></div>
+<p>Computes the arc tangent of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The arc tangent of <code dir="auto">_value</code> in radians.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathatan2"><code dir="auto">math::atan2</code></h3><a class="sl-anchor-link" href="#mathatan2"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::atan2”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">atan2</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueY, _valueX)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::atan2(_valueY, _valueX)"><div></div></button></div></figure></div>
+<p>Computes the arc tangent of y / x, handling quadrants correctly.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The y coordinate.</td></tr><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The x coordinate.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The angle in radians between the positive x-axis and the point <code dir="auto">(x, y)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathsinh"><code dir="auto">math::sinh</code></h3><a class="sl-anchor-link" href="#mathsinh"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::sinh”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">sinh</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::sinh(_value)"><div></div></button></div></figure></div>
+<p>Computes the hyperbolic sine of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The hyperbolic sine of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathcosh"><code dir="auto">math::cosh</code></h3><a class="sl-anchor-link" href="#mathcosh"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::cosh”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">cosh</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::cosh(_value)"><div></div></button></div></figure></div>
+<p>Computes the hyperbolic cosine of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The hyperbolic cosine of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathtanh"><code dir="auto">math::tanh</code></h3><a class="sl-anchor-link" href="#mathtanh"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::tanh”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">tanh</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::tanh(_value)"><div></div></button></div></figure></div>
+<p>Computes the hyperbolic tangent of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The hyperbolic tangent of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathlog"><code dir="auto">math::log</code></h3><a class="sl-anchor-link" href="#mathlog"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::log”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">log</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::log(_value)"><div></div></button></div></figure></div>
+<p>Computes the natural logarithm (base e) of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The natural logarithm of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathlog2"><code dir="auto">math::log2</code></h3><a class="sl-anchor-link" href="#mathlog2"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::log2”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">log2</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::log2(_value)"><div></div></button></div></figure></div>
+<p>Computes the base-2 logarithm of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The base-2 logarithm of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathlog10"><code dir="auto">math::log10</code></h3><a class="sl-anchor-link" href="#mathlog10"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::log10”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">log10</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::log10(_value)"><div></div></button></div></figure></div>
+<p>Computes the base-10 logarithm of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The base-10 logarithm of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathlog1p"><code dir="auto">math::log1p</code></h3><a class="sl-anchor-link" href="#mathlog1p"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::log1p”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">log1p</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::log1p(_value)"><div></div></button></div></figure></div>
+<p>Computes log(1 + x) accurately for small values of x.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number x.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The value of <code dir="auto">log(1 + x)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathsqrt"><code dir="auto">math::sqrt</code></h3><a class="sl-anchor-link" href="#mathsqrt"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::sqrt”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">sqrt</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::sqrt(_value)"><div></div></button></div></figure></div>
+<p>Computes the square root of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The square root of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathcbrt"><code dir="auto">math::cbrt</code></h3><a class="sl-anchor-link" href="#mathcbrt"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::cbrt”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">cbrt</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::cbrt(_value)"><div></div></button></div></figure></div>
+<p>Computes the cube root of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The cube root of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathfmod"><code dir="auto">math::fmod</code></h3><a class="sl-anchor-link" href="#mathfmod"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::fmod”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">fmod</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::fmod(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Computes the floating-point remainder of x / y.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The dividend x.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The divisor y.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The remainder of <code dir="auto">x / y</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathhypot"><code dir="auto">math::hypot</code></h3><a class="sl-anchor-link" href="#mathhypot"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::hypot”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">hypot</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::hypot(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Computes <code dir="auto">sqrt(x**2 + y**2)</code> without undue overflow or underflow.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number x.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number y.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The Euclidean distance from the origin to <code dir="auto">(x, y)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathisfinite"><code dir="auto">math::isfinite</code></h3><a class="sl-anchor-link" href="#mathisfinite"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::isfinite”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">isfinite</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::isfinite(_value)"><div></div></button></div></figure></div>
+<p>Checks if a value is a finite floating-point number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number to test.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> if <code dir="auto">_value</code> is finite.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathisinf"><code dir="auto">math::isinf</code></h3><a class="sl-anchor-link" href="#mathisinf"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::isinf”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">isinf</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::isinf(_value)"><div></div></button></div></figure></div>
+<p>Checks if a value is positive or negative infinity.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number to test.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> if <code dir="auto">_value</code> is infinite.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathisnan"><code dir="auto">math::isnan</code></h3><a class="sl-anchor-link" href="#mathisnan"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::isnan”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">isnan</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::isnan(_value)"><div></div></button></div></figure></div>
+<p>Checks if a value is NaN (Not a Number).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number to test.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> if <code dir="auto">_value</code> is NaN.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathisnormal"><code dir="auto">math::isnormal</code></h3><a class="sl-anchor-link" href="#mathisnormal"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::isnormal”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">isnormal</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::isnormal(_value)"><div></div></button></div></figure></div>
+<p>Checks if a value is a normal floating-point number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number to test.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> if <code dir="auto">_value</code> is a normal FP number (not zero, subnormal, infinite, or NaN).</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathfloor"><code dir="auto">math::floor</code></h3><a class="sl-anchor-link" href="#mathfloor"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::floor”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">floor</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::floor(_value)"><div></div></button></div></figure></div>
+<p>Rounds x down to the largest integer not greater than x.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number x.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The floor of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathceil"><code dir="auto">math::ceil</code></h3><a class="sl-anchor-link" href="#mathceil"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::ceil”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">ceil</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::ceil(_value)"><div></div></button></div></figure></div>
+<p>Rounds x up to the smallest integer not less than x.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number x.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The ceiling of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathround"><code dir="auto">math::round</code></h3><a class="sl-anchor-link" href="#mathround"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::round”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">round</span><span style="--0:#E6EDF3;--1:#1F2328">(_value</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">float</span><span style="--0:#E6EDF3;--1:#1F2328">, _digits</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::round(_value: float, _digits: integer = 0)"><div></div></button></div></figure></div>
+<p>Rounds a double-precision floating-point value to a specified number of fractional digits, and rounds midpoint values to the nearest even number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">float</code></td><td align="left"></td><td align="left">The value.</td></tr><tr><td align="left"><code dir="auto">_digits</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"><code dir="auto">0</code></td><td align="left">The fractional digits.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The rounded value.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathtrunc"><code dir="auto">math::trunc</code></h3><a class="sl-anchor-link" href="#mathtrunc"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::trunc”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">trunc</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::trunc(_value)"><div></div></button></div></figure></div>
+<p>Truncates x to the integer part, rounding towards zero.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number x.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The truncated value.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathremainder"><code dir="auto">math::remainder</code></h3><a class="sl-anchor-link" href="#mathremainder"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::remainder”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">remainder</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::remainder(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Computes the IEEE 754 floating-point remainder of x / y.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The dividend x.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The divisor y.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The IEEE 754 remainder of <code dir="auto">x / y</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathexp"><code dir="auto">math::exp</code></h3><a class="sl-anchor-link" href="#mathexp"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::exp”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">exp</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::exp(_value)"><div></div></button></div></figure></div>
+<p>Computes e raised to the power of x.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The exponent x.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The value of <code dir="auto">e ** x</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathexpm1"><code dir="auto">math::expm1</code></h3><a class="sl-anchor-link" href="#mathexpm1"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::expm1”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">expm1</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::expm1(_value)"><div></div></button></div></figure></div>
+<p>Computes e raised to the power of x, minus 1.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The exponent x.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The value of <code dir="auto">e ** x - 1</code>, accurate for small <code dir="auto">x</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="matherf"><code dir="auto">math::erf</code></h3><a class="sl-anchor-link" href="#matherf"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::erf”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">erf</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::erf(_value)"><div></div></button></div></figure></div>
+<p>Computes the error function of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The error function value <code dir="auto">erf(_value)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="matherfc"><code dir="auto">math::erfc</code></h3><a class="sl-anchor-link" href="#matherfc"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::erfc”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">erfc</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::erfc(_value)"><div></div></button></div></figure></div>
+<p>Computes the complementary error function of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The complementary error function value <code dir="auto">1 - erf(_value)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathlgamma"><code dir="auto">math::lgamma</code></h3><a class="sl-anchor-link" href="#mathlgamma"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::lgamma”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">lgamma</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::lgamma(_value)"><div></div></button></div></figure></div>
+<p>Computes the natural logarithm of the absolute value of the gamma function.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The value of <code dir="auto">log(|gamma(_value)|)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathtgamma"><code dir="auto">math::tgamma</code></h3><a class="sl-anchor-link" href="#mathtgamma"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::tgamma”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">tgamma</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::tgamma(_value)"><div></div></button></div></figure></div>
+<p>Computes the gamma function of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The gamma function value <code dir="auto">gamma(_value)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathcopysign"><code dir="auto">math::copysign</code></h3><a class="sl-anchor-link" href="#mathcopysign"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::copysign”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">copysign</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::copysign(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Copies the sign of y to x.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The magnitude source.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The sign source.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — A value with the magnitude of <code dir="auto">x</code> and the sign of <code dir="auto">y</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathnextafter"><code dir="auto">math::nextafter</code></h3><a class="sl-anchor-link" href="#mathnextafter"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::nextafter”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">nextafter</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::nextafter(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Gets the next representable floating-point value after x towards y.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The starting value.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The direction.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The next representable FP value from <code dir="auto">x</code> towards <code dir="auto">y</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathfmax"><code dir="auto">math::fmax</code></h3><a class="sl-anchor-link" href="#mathfmax"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::fmax”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">fmax</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::fmax(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Returns the larger of two numbers.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The first number.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The second number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer|float</code> — The maximum of <code dir="auto">x</code> and <code dir="auto">y</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathfmin"><code dir="auto">math::fmin</code></h3><a class="sl-anchor-link" href="#mathfmin"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::fmin”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">fmin</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::fmin(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Returns the smaller of two numbers.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The first number.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The second number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer|float</code> — The minimum of <code dir="auto">x</code> and <code dir="auto">y</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathfdim"><code dir="auto">math::fdim</code></h3><a class="sl-anchor-link" href="#mathfdim"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::fdim”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">fdim</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::fdim(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Returns the positive difference between x and y.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The first number.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The second number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — <code dir="auto">max(x - y, 0)</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathpow"><code dir="auto">math::pow</code></h3><a class="sl-anchor-link" href="#mathpow"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::pow”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">pow</span><span style="--0:#E6EDF3;--1:#1F2328">(_valueX, _valueY)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::pow(_valueX, _valueY)"><div></div></button></div></figure></div>
+<p>Raises x to the power of y.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_valueX</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The base.</td></tr><tr><td align="left"><code dir="auto">_valueY</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The exponent.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">float</code> — The value of <code dir="auto">x ** y</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathabs"><code dir="auto">math::abs</code></h3><a class="sl-anchor-link" href="#mathabs"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::abs”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">abs</span><span style="--0:#E6EDF3;--1:#1F2328">(_value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::abs(_value)"><div></div></button></div></figure></div>
+<p>Returns the absolute value of a number.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_value</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The number.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer|float</code> — The absolute value of <code dir="auto">_value</code>.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathediv"><code dir="auto">math::ediv</code></h3><a class="sl-anchor-link" href="#mathediv"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::ediv”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">ediv</span><span style="--0:#E6EDF3;--1:#1F2328">(_dividend, _divisor)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::ediv(_dividend, _divisor)"><div></div></button></div></figure></div>
+<p>Computes the Euclidean quotient of <code dir="auto">_dividend</code> divided by <code dir="auto">_divisor</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dividend</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The dividend.</td></tr><tr><td align="left"><code dir="auto">_divisor</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The divisor (must not be zero).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The Euclidean quotient.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathemod"><code dir="auto">math::emod</code></h3><a class="sl-anchor-link" href="#mathemod"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::emod”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">emod</span><span style="--0:#E6EDF3;--1:#1F2328">(_dividend, _divisor)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::emod(_dividend, _divisor)"><div></div></button></div></figure></div>
+<p>Computes the Euclidean remainder of <code dir="auto">_dividend</code> divided by <code dir="auto">_divisor</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dividend</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The dividend.</td></tr><tr><td align="left"><code dir="auto">_divisor</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The divisor (must not be zero).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The Euclidean remainder.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="mathdivmod"><code dir="auto">math::divmod</code></h3><a class="sl-anchor-link" href="#mathdivmod"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “math::divmod”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">math</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">divmod</span><span style="--0:#E6EDF3;--1:#1F2328">(_dividend, _divisor)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="math::divmod(_dividend, _divisor)"><div></div></button></div></figure></div>
+<p>Performs Euclidean division and returns both the quotient and remainder.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">_dividend</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The dividend.</td></tr><tr><td align="left"><code dir="auto">_divisor</code></td><td align="left"><code dir="auto">integer|float</code></td><td align="left"></td><td align="left">The divisor (must not be zero).</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">list</code> — A two-element list <code dir="auto">[quotient, remainder]</code>.</p></div><footer class="sl-flex astro-ddtxxk7k"><div class="meta sl-flex astro-ddtxxk7k"><a href="https://github.com/fuseraft/kiwi/edit/main/docs/src/content/docs/stdlib/math.md" class="sl-flex print:hidden astro-qlekgd3o"><svg aria-hidden="true" class="astro-qlekgd3o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a><p>Last updated: <time datetime="2026-10-21T05:12:48.000Z">Oct 21, 2026</time></p></div><div class="pagination-links print:hidden astro-b5raizh3" dir="ltr"><a href="/kiwi/stdlib/log/" rel="prev" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-b5raizh3">Previous<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">log</span></span></a><a href="/kiwi/stdlib/path/" rel="next" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-b5raizh3">Next<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">path</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>
