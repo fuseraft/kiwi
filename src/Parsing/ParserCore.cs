@@ -521,8 +521,8 @@ public partial class Parser(bool rethrowErrors = false)
             throw new SyntaxError(GetErrorToken(), "Expected a type name in parameter type hint.");
         }
 
-        // grab the type name
-        var typeName = GetTokenText();
+        // grab the type name (`none` is the type of `null`)
+        var typeName = GetTokenName() == TokenName.Types_None ? "null" : GetTokenText();
         Next();  // next token please
 
         return TypeRegistry.GetType(typeName);

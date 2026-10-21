@@ -312,10 +312,16 @@ public sealed class Compiler
     private HashSet<string> CollectAssigned(IEnumerable<ASTNode?> stmts)
     {
         var out_ = new HashSet<string>(StringComparer.Ordinal);
+        _scanConsts = new HashSet<string>(StringComparer.Ordinal);
         foreach (var s in stmts)
             if (s != null) ScanNode(s, out_);
+        // A constant is stored as a global: an assignment to it elsewhere in the scope
+        // must reach it (and fail) instead of creating a local that hides it.
+        out_.ExceptWith(_scanConsts);
         return out_;
     }
+
+    private HashSet<string> _scanConsts = [];
 
     private void ScanNode(ASTNode node, HashSet<string> out_)
     {
@@ -336,6 +342,9 @@ public sealed class Compiler
                 if (a.Condition   != null) ScanNode(a.Condition,   out_);
                 break;
             }
+            case ASTNodeType.ConstAssignment:
+                _scanConsts.Add(((ConstAssignmentNode)node).Name);
+                break;
             case ASTNodeType.PackAssignment:
             {
                 foreach (var lhs in ((PackAssignmentNode)node).Left)
@@ -384,15 +393,25 @@ public sealed class Compiler
             case ASTNodeType.Try:
             {
                 var tn = (TryNode)node;
-                // Only the catch-clause binding names are explicit locals.
                 if (tn.ErrorType    is IdentifierNode et) out_.Add(et.Name);
                 if (tn.ErrorMessage is IdentifierNode em) out_.Add(em.Name);
+                foreach (var s in tn.TryBody)     if (s != null) ScanNode(s, out_);
+                foreach (var s in tn.CatchBody)   if (s != null) ScanNode(s, out_);
+                foreach (var s in tn.FinallyBody) if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.Case:
             {
                 var cn = (CaseNode)node;
                 if (cn.TestValueAlias is IdentifierNode tva) out_.Add(tva.Name);
+                foreach (var when in cn.WhenNodes)
+                    foreach (var s in when.Body) if (s != null) ScanNode(s, out_);
+                foreach (var s in cn.ElseBody) if (s != null) ScanNode(s, out_);
+                break;
+            }
+            case ASTNodeType.Do:
+            {
+                foreach (var s in ((DoNode)node).Body) if (s != null) ScanNode(s, out_);
                 break;
             }
             case ASTNodeType.CaseWhen:
@@ -689,7 +708,7 @@ public sealed class Compiler
             if (init != null)
             {
                 CompileNode(init);
-                if (node.TypeHints.TryGetValue(name, out var initHints)
+                if (node.TypeHints.TryGetValue(name, out var initHints) && !LiteralSatisfies(init, initHints)
                     && AddTypeCheck(initHints, $"variable `{name}`") is var check and >= 0)
                     Emit(Opcode.CheckType, check, 0, ln);
                 EmitStore(name, ln);
@@ -716,6 +735,21 @@ public sealed class Compiler
                 EmitStore(name, ln);
             }
         }
+    }
+
+    /// <summary>True when <paramref name="init"/> is a literal that already satisfies the hint.</summary>
+    private static bool LiteralSatisfies(ASTNode init, List<int> hints)
+    {
+        if (init is not LiteralNode { Value: var v }) return false;
+        foreach (var h in hints)
+        {
+            if (h == TypeRegistry.AnyType
+                || (h == TypeRegistry.NullType  && v.IsNull())
+                || (h == TypeRegistry.FloatType && v.IsInteger())
+                || (TypeRegistry.IsPrimitive(h) && TypeRegistry.GetValueType(h) == v.Type))
+                return true;
+        }
+        return false;
     }
 
     // -- Assignment ------------------------------------------------------------
@@ -1442,13 +1476,6 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         int numVars  = hasDual ? 2 : 1;
         int doneJump = Emit(Opcode.ForIterNext, 0 /*patched*/, numVars, ln);
 
-        // Placeholders: become CloseUpvalueAt for each loop variable a closure captures,
-        // detaching the previous iteration's closures before the variable is reassigned.
-        var closePatches = new List<(int Instr, string Name)>();
-        foreach (var name in loopVars)
-            if (!string.IsNullOrEmpty(name))
-                closePatches.Add((Emit(Opcode.Nop, 0, 0, ln), name));
-
         // Store iterator values into variables
         if (hasDual)
         {
@@ -1466,6 +1493,16 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
         _loops.Add(ctx);
         CompileBody(node.Body);
 
+        // End of an iteration (`next` lands here too): detach this iteration's closures from
+        // each loop variable they captured, so the next iteration's value doesn't reach them.
+        int iterEnd = _chunk.Code.Count;
+        foreach (var name in loopVars)
+        {
+            if (string.IsNullOrEmpty(name)) continue;
+            int idx = _locals.FindLastIndex(l => l.Name == name);
+            if (idx >= 0 && _locals[idx].Captured)
+                Emit(Opcode.CloseUpvalueAt, _locals[idx].Slot, 0, ln);
+        }
         Emit(Opcode.Jump, loopTop, 0, ln);
 
         // DONE (ForIterNext pops state and jumps here)
@@ -1474,16 +1511,8 @@ foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
 
         // Breaks jump here (ForIterState already cleaned up by ForIterNext or by break emit)
         foreach (var j in ctx.BreakPatches) PatchJumpTo(j, done);
-        // Next jumps back to loopTop (ForIterNext)
-        foreach (var j in ctx.NextPatches)  PatchJumpTo(j, loopTop);
+        foreach (var j in ctx.NextPatches)  PatchJumpTo(j, iterEnd);
         _loops.RemoveAt(_loops.Count - 1);
-
-        foreach (var (instr, name) in closePatches)
-        {
-            int idx = _locals.FindLastIndex(l => l.Name == name);
-            if (idx >= 0 && _locals[idx].Captured)
-                _chunk.Code[instr] = new Instruction(Opcode.CloseUpvalueAt, _locals[idx].Slot);
-        }
 
         // Top level: after the loop, closures see the global again.
         for (int i = savedLoopSlots.Count - 1; i >= 0; i--)

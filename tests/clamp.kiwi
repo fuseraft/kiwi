@@ -1,3 +1,3 @@
-print(clamp(5, 0, 10))
-print(clamp(-3, 0, 10))
-print(clamp(15, 0, 10))
+println (5).clamp(0, 10)
+println (-3).clamp(0, 10)
+println (15).clamp(0, 10)

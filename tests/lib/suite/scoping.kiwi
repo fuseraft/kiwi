@@ -96,3 +96,55 @@ fn test_scoping()
 
   tester::assert(countdown(3) == "n=3:n=2:n=1:done", "A8: top-level recursive function isolation")
 end
+
+fn _scope_try_local(n)
+  try
+    mine = n
+    _scope_try_local(n - 1) when n > 0
+  catch (e)
+  end
+  mine
+end
+
+fn _scope_case_local(n)
+  case n
+    when 1
+      picked = "one"
+    else
+      picked = "other"
+  end
+  picked
+end
+
+fn _scope_const_in_block()
+  const LIMIT = 3
+  if true
+    try
+      LIMIT = 9
+    catch (e)
+    end
+  end
+  LIMIT
+end
+
+@tester::test("scoping: assignments in try and case blocks are function locals")
+fn test_scoping_block_locals()
+  tester::assert_eq(_scope_try_local(2), 2, "a recursive call keeps its own try-block local")
+  tester::assert_eq(_scope_case_local(1), "one")
+  tester::assert_eq(_scope_case_local(2), "other")
+
+  leaked = []
+  try
+    mine
+  catch (e)
+    leaked.push("mine")
+  end
+  try
+    picked
+  catch (e)
+    leaked.push("picked")
+  end
+  tester::assert_eq(leaked, ["mine", "picked"], "block locals don't leak into the global scope")
+
+  tester::assert_eq(_scope_const_in_block(), 3, "an assignment in a block still hits the constant")
+end

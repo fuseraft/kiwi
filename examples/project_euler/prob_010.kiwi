@@ -25,7 +25,7 @@ fn sum_primes_below(limit: integer): integer
   # Sum all indices where is_prime[i] is true
   sum = 0
   for i in [2..limit - 1] do
-    if is_prime[i] then
+    if is_prime[i]
       sum = sum + i
     end
   end

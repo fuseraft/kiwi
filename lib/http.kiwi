@@ -60,7 +60,7 @@ struct HttpResponse
   @summary Pretty-prints the response body as formatted JSON.
   #/
   fn pretty()
-    json().pretty()
+    @.json().pretty()
   end
 
   /#

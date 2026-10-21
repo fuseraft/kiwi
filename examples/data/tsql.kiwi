@@ -42,9 +42,9 @@ package tsql
 
         c = @iter.current()
 
-        if c.isalpha() || c == "_"
+        if string::is_alpha(c) || c == "_"
           @tokens.push(@.read_identifier())
-        elsif c.isnumeric() || (c == "-" && @iter.peek().isnumeric())
+        elsif string::is_numeric(c) || (c == "-" && string::is_numeric(@iter.peek()))
           @tokens.push(@.read_number())
         elsif c == "'"
           @tokens.push(@.read_string())
@@ -67,7 +67,7 @@ package tsql
     #/
     fn read_identifier(): any
       id = ""
-      while !@iter.eof() && (@iter.current().isalphanumeric() || @iter.current() in ["_", "@", "#"]) do
+      while !@iter.eof() && (string::is_alphanumeric(@iter.current()) || @iter.current() in ["_", "@", "#"]) do
         id += @iter.current()
         @iter.consume()
       end
@@ -82,7 +82,7 @@ package tsql
     #/
     fn read_number(): hashmap
       num_str = ""
-      while !@iter.eof() && (@iter.current().isnumeric() || @iter.current() in [".", "-", "e", "E"]) do
+      while !@iter.eof() && (string::is_numeric(@iter.current()) || @iter.current() in [".", "-", "e", "E"]) do
         num_str += @iter.current()
         @iter.consume()
       end

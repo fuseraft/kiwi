@@ -41,6 +41,9 @@ var (stdlib_tests: list = [
   # UDP networking
   "udp",
 
+  # HTTP client responses
+  "http",
+
   # HTTP server
   "httpserver",
 
