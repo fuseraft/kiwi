@@ -1,139 +1,89 @@
-# `stdin`
+# stdin
 
-The `stdin` package provides functions for reading from standard input in Kiwi. These functions allow both blocking and non-blocking reads, as well as convenient ways to consume all available input.
+> Read piped or redirected standard input.
 
----
+The `stdin` package reads standard input, which lets a Kiwi script work as a filter in a shell pipeline:
 
-## Package Functions
-
-### `read()`
-Reads all available input from stdin as a string until EOF or no more data is immediately available.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The input data as a string. |
-
-**Example**
-
-```kiwi
-import "stdin"
-
-# Usage: echo "hello world" | kiwi script.kiwi
-var input = stdin::read()
-println "You sent: " + input
+```sh
+cat access.log | kiwi count-errors.kiwi
 ```
 
----
-
-### `readbytes()`
-Reads all available input from stdin as raw bytes until EOF or no more data is immediately available.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `bytes` | The input data as bytes. |
-
-**Example**
-
 ```kiwi
-import "stdin"
-
-# Usage: cat image.png | kiwi script.kiwi
-var raw = stdin::readbytes()
-println "Read " + raw.size().to_string() + " bytes"
+# count-errors.kiwi
+errors = stdin::read().rtrim().lines().filter(do (l) => l.contains("ERROR"))
+println "${errors.size()} errors"
 ```
 
----
+| Function | Returns |
+| :-- | :-- |
+| `read()` | Everything remaining on stdin, as a string. |
+| `readline()` | The next line, without its newline; `""` at the end of input. |
+| `readbytes()` | Everything remaining, as bytes. |
+| `empty()` | Whether the input has been fully read. |
 
-### `readline()`
-Reads a single line from stdin. The returned string does not include the trailing newline.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A single line of input. |
-
-**Example**
+To process input line by line as it arrives, loop on `readline` until `empty()`:
 
 ```kiwi
-import "stdin"
-
-# Prompt the user for their name interactively
-print "Enter your name: "
-var name = stdin::readline()
-println "Hello, " + name + "!"
-```
-
----
-
-### `lines()`
-Reads all complete lines currently available from stdin and returns them as a list of strings. Each string has its trailing newline removed.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of strings, each representing one available line. |
-
-**Example**
-
-```kiwi
-import "stdin"
-
-# Usage: printf "one\ntwo\nthree\n" | kiwi script.kiwi
-var all_lines = stdin::lines()
-
-println "Line count: " + all_lines.size().to_string()
-
-for line, i in all_lines
-  println i.to_string() + ": " + line
-end
-# 0: one
-# 1: two
-# 2: three
-```
-
----
-
-### `empty()`
-Checks whether there is any data currently available on stdin.
-
-**Parameters**
-_None_
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if no data is available, `false` otherwise. |
-
-**Example**
-
-```kiwi
-import "stdin"
-
-# Usage: echo "some data" | kiwi script.kiwi
-#   or: kiwi script.kiwi   (no piped input)
-if stdin::empty()
-  println "No input provided."
-else
-  var input = stdin::read()
-  println "Received: " + input
+while !stdin::empty() do
+  line = stdin::readline()
+  println line.uppercase()
 end
 ```
+
+:::caution
+`stdin::lines()` currently never returns. Use `stdin::read().rtrim().lines()` or the loop above instead.
+:::
+
+To prompt the user interactively, use [`input`](../reference/global-functions.md#input) or [`console::read`](console.md).
+
+## Functions
+
+### `stdin::read`
+
+```kiwi
+stdin::read(): string
+```
+
+Reads all of standard input as a string.
+
+**Returns** `string` — The full stdin contents.
+
+### `stdin::readbytes`
+
+```kiwi
+stdin::readbytes(): bytes
+```
+
+Reads all of standard input as a byte array.
+
+**Returns** `bytes` — The full stdin contents as bytes.
+
+### `stdin::readline`
+
+```kiwi
+stdin::readline(): string
+```
+
+Reads a single line from standard input.
+
+**Returns** `string` — The next line from stdin, without a trailing newline.
+
+### `stdin::lines`
+
+```kiwi
+stdin::lines(): list
+```
+
+Reads all lines from standard input into a list.
+
+**Returns** `list` — A list of strings, one per line.
+
+### `stdin::empty`
+
+```kiwi
+stdin::empty(): boolean
+```
+
+Returns true if standard input has no data available.
+
+**Returns** `boolean` — `true` if stdin is empty, `false` otherwise.

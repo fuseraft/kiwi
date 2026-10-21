@@ -1,140 +1,113 @@
-# `signal`
+# signal
 
-The `signal` package provides OS signal handling for `SIGINT`, `SIGTERM`, and `SIGHUP`. Handlers are registered with `trap()` and run asynchronously in a background task.
+> Handle SIGINT, SIGTERM and SIGHUP.
 
----
-
-## Constants
-
-| Constant          | Value       | Description                          |
-|-------------------|-------------|--------------------------------------|
-| `signal::SIGINT`  | `"SIGINT"`  | Interrupt (Ctrl+C)                   |
-| `signal::SIGTERM` | `"SIGTERM"` | Termination request                  |
-| `signal::SIGHUP`  | `"SIGHUP"`  | Hang-up / configuration reload       |
-
----
-
-## Package Functions
-
-### `trap(sig, handler)`
-
-Registers a handler for the given signal. The handler is invoked asynchronously in a background task when the signal fires.
-
-**Parameters**
-
-| Type     | Name      | Description                                        |
-|----------|-----------|----------------------------------------------------|
-| `string` | `sig`     | Signal name — use the constants or a string literal |
-| `lambda` | `handler` | Zero-argument lambda: `with () do ... end`         |
-
----
-
-### `reset(sig)`
-
-Removes the handler for the given signal.
-
-**Parameters**
-
-| Type     | Name  | Description     |
-|----------|-------|-----------------|
-| `string` | `sig` | Signal name     |
-
----
-
-### `trapped(sig)`
-
-Returns `true` if a handler is currently registered for the given signal.
-
-**Parameters**
-
-| Type     | Name  | Description  |
-|----------|-------|--------------|
-| `string` | `sig` | Signal name  |
-
-**Returns**
-
-| Type      | Description                                |
-|-----------|--------------------------------------------|
-| `boolean` | `true` if a handler is registered          |
-
----
-
-### `raise_signal(sig)`
-
-Programmatically fires a signal. Useful for testing signal handlers.
-
-**Parameters**
-
-| Type     | Name  | Description  |
-|----------|-------|--------------|
-| `string` | `sig` | Signal name  |
-
----
-
-## Examples
-
-### Graceful shutdown on Ctrl+C
+The `signal` package runs your code when the process receives `SIGINT` (<kbd>Ctrl</kbd>+<kbd>C</kbd>), `SIGTERM` or `SIGHUP`. Handlers run on a background task.
 
 ```kiwi
-import "signal"
-import "task"
-
 signal::trap(signal::SIGINT, with () do
-  println "Shutting down gracefully..."
-  exit(0)
+  println "Shutting down..."
+  exit 0
 end)
 
 println "Running. Press Ctrl+C to stop."
-
 while true do
   task::sleep(100)
 end
 ```
 
-### Reload configuration on SIGHUP
+Registering a handler replaces the default behavior for that signal: after trapping `SIGINT`, <kbd>Ctrl</kbd>+<kbd>C</kbd> no longer stops the program unless the handler calls `exit`.
+
+| Function | Does |
+| :-- | :-- |
+| `trap(signal, handler)` | Runs `handler` when the signal arrives. |
+| `reset(signal)` | Removes the handler and restores the default behavior. |
+| `trapped(signal)` | Whether a handler is registered. |
+| `raise_signal(signal)` | Runs the handler as if the signal had arrived; useful in tests. |
 
 ```kiwi
-import "signal"
-import "task"
-
 signal::trap(signal::SIGHUP, with () do
-  println "Reloading configuration..."
-  # reload_config()
+  println "reloading configuration"
 end)
 
-println "PID: ${sys::pid()}"
+signal::raise_signal(signal::SIGHUP)
+task::sleep(100)                       # give the background handler time to run
 
-while true do
-  task::sleep(500)
-end
+println signal::trapped(signal::SIGHUP)   # true
+signal::reset(signal::SIGHUP)
 ```
 
-### Cleanup on SIGTERM
+`signal` is unavailable in [safe mode](../tools/cli.md#safe-mode). On Windows only `SIGINT` is delivered.
+
+## Constants
+
+| Name | Value | Description |
+| :-- | :-- | :-- |
+| `signal::SIGINT` | `"SIGINT"` |  |
+| `signal::SIGTERM` | `"SIGTERM"` |  |
+| `signal::SIGHUP` | `"SIGHUP"` |  |
+
+## Functions
+
+### `signal::trap`
 
 ```kiwi
-import "signal"
-import "task"
+signal::trap(sig, handler)
+```
 
-signal::trap(signal::SIGTERM, with () do
-  println "SIGTERM received — cleaning up"
-  # close connections, flush buffers, etc.
+Registers a signal handler. The callback runs asynchronously in a background task.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sig` | `string` |  | Signal name (e.g., signal::SIGINT, "SIGTERM"). |
+| `handler` | `lambda` |  | Zero-argument lambda invoked when the signal fires. |
+
+```kiwi
+import signal
+signal::trap(signal::SIGINT, fn()
+  println "Shutting down..."
   exit(0)
 end)
-
+println "Running. Press Ctrl+C to stop."
 while true do
   task::sleep(100)
 end
 ```
 
-### Testing a handler
+### `signal::reset`
 
 ```kiwi
-import "signal"
-
-signal::trap(signal::SIGINT, with () do
-  println "Handler fired!"
-end)
-
-signal::raise_signal(signal::SIGINT)   # Fires the handler immediately
-task::sleep(100)                       # Give the background task time to run
+signal::reset(sig)
 ```
+
+Removes a signal handler.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sig` | `string` |  | Signal name. |
+
+### `signal::trapped`
+
+```kiwi
+signal::trapped(sig)
+```
+
+Returns true if a signal handler is registered for the given signal.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sig` | `string` |  | Signal name. |
+
+**Returns** boolean
+
+### `signal::raise_signal`
+
+```kiwi
+signal::raise_signal(sig)
+```
+
+Programmatically fires a signal (useful for testing handlers).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sig` | `string` |  | Signal name. |

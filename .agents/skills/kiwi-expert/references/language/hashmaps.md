@@ -1,230 +1,136 @@
-# Hashmaps in Kiwi
+# Hashmaps
 
-Hashmaps (also called dictionaries) are unordered, mutable collections of key-value pairs.
-Keys must be unique and are typically strings (or other hashable types). Values can be any Kiwi type.
+> Key-value maps: literals, access, updates, iteration and nesting.
 
-Hashmaps are the natural way to represent structured data and are directly serializable to/from JSON.
-
-## Quick Reference – Common Operations
-
-| Operation                  | Syntax / Method                          | Returns          | Mutates? |
-|----------------------------|------------------------------------------|------------------|----------|
-| Create                     | `{}`, `{"a": 1, "b": true}`              | `hashmap`        | —        |
-| Get value                  | `map["key"]`, `map.key`                  | value or `null`  | No       |
-| Set value                  | `map["key"] = val`, `map.key = val`      | —                | Yes      |
-| Check key exists           | `map.contains("key")`, `"key" in map`    | `boolean`        | No       |
-| Get with default           | `map.get("key", default)`                | value            | No       |
-| Remove key                 | `map.remove("key")` or `map.delete("key")`| removed value    | Yes      |
-| Size                       | `map.size()` or `map.length()`           | integer          | No       |
-| Iterate pairs              | `for k, v in map do …`                   | —                | —        |
-| Iterate keys               | `for k in map.keys() do …`               | —                | —        |
-| Iterate values             | `for v in map.values() do …`             | —                | —        |
-
-For the complete list of built-in methods, see [Hashmap Builtins](builtins.md#hashmap-builtins).
-
-## Creating Hashmaps
-
-### Literal syntax
+A hashmap maps keys to values. Keys are unique and keep their insertion order, which makes hashmaps a good fit for records, configuration, and anything you round-trip through JSON.
 
 ```kiwi
-empty   = {}
-person  = {
-  name:    "Alice",
-  age:     28,
-  active:  true,
-  hobbies: ["reading", "hiking", "coding"]
+person = {
+  name: "Alice",
+  age: 28,
+  hobbies: ["reading", "hiking"]
 }
+
+println person   # {"name": "Alice", "age": 28, "hobbies": ["reading", "hiking"]}
 ```
 
-**Note:** Duplicate keys in a literal are **not allowed** — the last one wins (but avoid this).
+A bare identifier before the colon is a string key, so `{name: "Alice"}` and `{"name": "Alice"}` are the same. Quote keys that aren't valid identifiers, or that are [reserved words](syntax.md#reserved-words) such as `list` or `string`. Integers and booleans work as keys too.
 
 ```kiwi
-# Bad (last value overwrites)
-bad = {"a": 1, "a": 2}   # -> {"a": 2}
+headers = {"Content-Type": "text/plain", "list": [1]}
+codes = {200: "OK", 404: "Not Found"}
+println codes[404]   # Not Found
 ```
 
-## Accessing Values
+If a literal repeats a key, the last value wins.
 
-### Bracket notation (always works)
+## Reading values
+
+Use brackets with any key, or a dot with a key that is a valid identifier. A missing key reads as `null`.
 
 ```kiwi
-println person["name"]     # "Alice"
-println person["age"]      # 28
+person = {name: "Alice", age: 28}
+
+println person["name"]    # Alice
+println person.age        # 28
+println person.email      # null
+
+key = "name"
+println person[key]       # Alice
 ```
 
-### Dot notation (only for valid identifier keys)
+`.get(key, default)` returns a default for missing keys, and `.has_key(key)` or `in` tests for a key:
 
 ```kiwi
-println person.name        # "Alice"
-println person.age         # 28
+settings = {theme: "dark"}
+
+println settings.get("font_size", 14)   # 14
+println settings.has_key("theme")       # true
+println "theme" in settings             # true
 ```
 
-**Dot notation limitations**
-- Cannot be used for keys with spaces, hyphens, numbers at start, or special characters.
-- Cannot be used when the key is stored in a variable.
+`.has_key` is the reliable test when a key may be present with a `null` value; `settings.key ?? fallback` can't tell the two apart.
 
-```kiwi
-key = "favorite-color"
-println person[key]        # works
-# println person.favorite-color   # syntax error
-```
-
-**Missing keys**  
-Both notations return `null` if the key doesn't exist (safe access).
-
-```kiwi
-println person["height"]   # null
-println person.height      # null
-```
-
-**Safe access with default**
-
-```kiwi
-level = person.get("level", "beginner")   # "beginner" if missing
-```
-
-## Adding / Updating Entries
+## Adding, updating and removing
 
 ```kiwi
 settings = {}
 
-# Bracket (most flexible)
 settings["theme"] = "dark"
-settings["font-size"] = 14
+settings.font_size = 14
+settings.set("autosave", true)
+println settings          # {"theme": "dark", "font_size": 14, "autosave": true}
 
-# Dot (clean for simple keys)
-settings.autoSave = true
-settings.maxRetries = 3
+settings.remove("autosave")
+println settings.keys()   # ["theme", "font_size"]
 
-println settings
-# -> {"theme": "dark", "font-size": 14, "autoSave": true, "maxRetries": 3}
+settings.merge({theme: "light", tabs: 2})
+println settings          # {"theme": "light", "font_size": 14, "tabs": 2}
 ```
 
-## Removing Entries
+`.merge(other)` copies every entry of `other` into the hashmap, overwriting keys that exist. `.clear()` removes everything.
+
+## Iterating
+
+A `for` loop with two variables walks key-value pairs in insertion order. With one variable, it walks the keys.
 
 ```kiwi
-config = {
-  apiKey:    "abc123",
-  debug:     true,
-  timeout:   30000,
-  logLevel:  "info"
-}
-
-config.remove("debug")
-# config is now {"apiKey": "abc123", "timeout": 30000, "logLevel": "info"}
-```
-
-## Checking for Keys
-
-```kiwi
-user = { name: "Bob", email: "bob@example.com" }
-
-println user.has_key("name")      # true
-println "email" in user            # true (alternative syntax)
-println user.has_key("phone")     # false
-```
-
-## Iterating Hashmaps
-
-### Key-value pairs (most common)
-
-```kiwi
-scores = { alice: 95, bob: 82, carol: 100 }
+scores = {alice: 95, bob: 82, carol: 100}
 
 for name, score in scores do
   println "${name}: ${score}"
 end
-```
 
-### Only keys
-
-```kiwi
-for name in scores.keys() do
-  println name
+for name in scores do
+  print "${name} "
 end
+println ""
+
+println scores.keys()     # ["alice", "bob", "carol"]
+println scores.values()   # [95, 82, 100]
+println scores.size()     # 3
 ```
 
-### Only values
+## Nesting
 
-```kiwi
-for score in scores.values() do
-  println score
-end
-```
-
-### With index (if order matters — insertion order is preserved)
-
-```kiwi
-for name, score, idx in scores do
-  println "${idx + 1}. ${name} -> ${score}"
-end
-```
-
-## Full Example – Simple Config Manager
+Hashmaps and lists nest freely. Chained access and assignment reach into nested values directly:
 
 ```kiwi
 config = {
-  server:   "localhost",
-  port:     8080,
-  debug:    false,
-  retries:  3
+  server: {host: "localhost", port: 8080},
+  features: ["auth", "logging"]
 }
 
-fn load_config(file)
-  # Simulate loading from file
-  return { debug: true, logLevel: "verbose" }
-end
+println config.server.port         # 8080
+println config["features"][0]      # auth
 
-# Merge defaults + overrides
-overrides = load_config("config.json")
-for k, v in overrides do
-  config[k] = v
-end
-
-println "Final config:"
-for k, v in config do
-  println "  ${k}: ${v}"
-end
+config.server.port = 9090
+config["features"].push("metrics")
+println config
 ```
 
-## Mutating Nested Collections
+## Hashmaps are shared
 
-**Extracting a collection to a variable** gives you a copy. Mutations to that copy are not reflected in the original — you must write the value back.
+Like lists, hashmaps are passed by reference. Assigning one to another variable or reading it out of another collection gives you the same hashmap, not a copy. Use `.clone()` for an independent deep copy.
 
 ```kiwi
-config = {"servers": ["a", "b"]}
+defaults = {retries: 3}
+options = defaults
+options.retries = 5
+println defaults.retries   # 5
 
-servers = config["servers"]   # copy
-servers.push("c")             # modifies only the copy
-println config                # {"servers": ["a", "b"]} — unchanged!
-
-servers = config["servers"]
-servers.push("c")
-config["servers"] = servers   # write back — required
-println config                # {"servers": ["a", "b", "c"]}
+safe = defaults.clone()
+safe.retries = 1
+println defaults.retries   # 5
 ```
 
-The same applies to hashmaps nested inside hashmaps:
+## Converting
+
+`.pretty()` returns an indented, JSON-style string, and [`serialize`](../reference/global-functions.md#serialize) returns a compact one. For JSON input and output, use the [`json`](../lib/json.md) package.
 
 ```kiwi
-data = {"user": {"name": "Kiwi", "age": 1}}
-
-user = data["user"]   # copy
-user["age"] = 2
-data["user"] = user   # write back required
-println data          # {"user": {"name": "Kiwi", "age": 2}}
+data = {name: "kiwi", tags: ["fruit"]}
+println data.pretty()
 ```
 
-## Best Practices & Tips
-
-- Use **dot notation** when keys are simple identifiers -> cleaner code
-- Use **bracket notation** when keys are dynamic/variables or contain special chars
-- Prefer `.get(key, default)` over direct access when absence is expected
-- Avoid very large keys or deeply nested structures without good reason
-- Hashmaps preserve **insertion order** (since Kiwi 1.x) — useful for config files, JSON round-tripping
-- To merge two maps: loop with `for k, v in source do target[k] = v`
-
-See also:
-- [Hashmap Builtins](builtins.md#hashmap-builtins)
-- [Loops – `for` on hashmaps](loops.md#hashmaps)
-- [Control Flow](control_structures.md#3-when--guard-clauses--conditional-modifiers) (guards with `when`)
+The [Built-in Methods](../reference/builtin-methods.md#hashmaps) reference lists every hashmap method.

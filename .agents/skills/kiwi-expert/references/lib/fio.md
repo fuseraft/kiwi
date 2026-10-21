@@ -1,794 +1,655 @@
-# `fio`
+# fio
 
-The `fio` package (short for **file I/O**) provides low-level, procedural filesystem operations in Kiwi.
-It serves as the foundation for higher-level abstractions like the `path` module. Most functions accept plain strings as paths and return simple values (usually booleans for success/failure, or the expected data type).
+> Read, write, copy and list files and directories.
 
----
+The `fio` package (file I/O) works with the filesystem using plain string paths. For an object-oriented interface, see [`path`](path.md). All `fio` functions are unavailable in [safe mode](../tools/cli.md#safe-mode).
 
-## Package Functions
-
-### Path manipulation
-
-#### `abspath(_path)`
-Returns the absolute (fully resolved) path.
-
-**Parameters**
-
-| Type     | Name     | Description                  |
-|----------|----------|------------------------------|
-| `string` | `_path`  | Relative or absolute path    |
-
-**Returns**
-
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Absolute path                |
-
-**Example**
+## Reading and writing
 
 ```kiwi
-import "fio"
+dir = fio::combine([fio::tmpdir(), "fio-demo"])
+fio::mkdirp(dir)
+notes = fio::combine([dir, "notes.txt"])
 
-abs = fio::abspath("./data")
-println "Absolute path: ${abs}"
-# e.g. /home/user/project/data
+fio::write(notes, "first line\n")        # create or overwrite
+fio::append(notes, "second line\n")      # add to the end
+fio::writeln(notes, ["third", "fourth"]) # append lines
+
+println fio::read(notes)                 # the whole file as a string
+println fio::readlines(notes)            # ["first line", "second line", "third", "fourth"]
+
+fio::rmdirf(dir)
 ```
 
-#### `combine(_path_parts)`
-Joins path components using the platform-appropriate separator.
+| Function | Does |
+| :-- | :-- |
+| `read(path)` | Returns the file as a string. |
+| `readlines(path)` | Returns the lines as a list. |
+| `readbytes(path)` | Returns the file as bytes. |
+| `readslice(path, offset, size)` | Returns `size` bytes starting at `offset`. |
+| `write(path, text)` | Replaces the file's contents. |
+| `append(path, text)` | Adds text to the end. |
+| `writeln(path, text_or_list)` | Appends one line, or each element of a list as a line. |
+| `writebytes(path, bytes)` | Replaces the file's contents with bytes. |
+| `writeslice(path, offset, bytes)` | Overwrites bytes at an offset. |
 
-**Parameters**
-
-| Type  | Name            | Description                       |
-|-------|-----------------|-----------------------------------|
-| `list`| `_path_parts`   | List of path segments (strings)   |
-
-**Returns**
-
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Combined path                |
-
-**Example**
+## Files and directories
 
 ```kiwi
-import "fio"
+dir = fio::combine([fio::tmpdir(), "fio-tree"])
+fio::mkdirp(fio::combine([dir, "logs"]))
+fio::write(fio::combine([dir, "a.txt"]), "A")
+fio::write(fio::combine([dir, "logs", "app.log"]), "started")
 
-p = fio::combine(["home", "user", "file.txt"])
-println p
-# home/user/file.txt
+println fio::isdir(dir)                                        # true
+println fio::listdir(dir).map(do (p) => fio::filename(p)).sort()  # ["a.txt", "logs"]
+println fio::listdir(dir, true).size()                         # 3 (recursive)
+
+fio::copy(fio::combine([dir, "a.txt"]), fio::combine([dir, "b.txt"]))
+fio::move(fio::combine([dir, "b.txt"]), fio::combine([dir, "c.txt"]))
+println fio::exists(fio::combine([dir, "c.txt"]))              # true
+
+fio::rmdirf(dir)                                               # remove recursively
 ```
 
-#### `ext(_path)`
-Extracts the file extension (including the dot).
+| Function | Does |
+| :-- | :-- |
+| `exists`, `isfile`, `isdir` | Test a path. |
+| `filesize(path)` | Size in bytes. |
+| `fileinfo(path)` | A hashmap with `name`, `full_name`, `extension`, `attributes` and creation, access and write times. |
+| `create(path)`, `touch(path)` | Create an empty file. |
+| `copy(src, dest, overwrite)`, `copyr(src, dest)` | Copy a file, or a directory recursively. |
+| `move(src, dest, overwrite)` | Move or rename. |
+| `remove(path)` | Delete a file. |
+| `mkdir(path)`, `mkdirp(path)` | Create a directory, or a directory and its parents. |
+| `rmdir(path)`, `rmdirf(path)` | Remove an empty directory, or a directory and everything in it. |
+| `listdir(path, recursive)` | List entries as full paths. |
+| `glob(dir, include, exclude)` | List files matching glob patterns. |
+| `cwd()`, `chdir(path)` | Get or change the working directory. |
+| `tmpdir()`, `tmpfile()` | The temp directory, or a new empty temp file. |
 
-**Returns**
+### Globs
 
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Extension or `""`            |
-
-**Example**
+`glob` searches a directory for files that match any of the include patterns and none of the exclude patterns. `**` matches across directories.
 
 ```kiwi
-import "fio"
-
-println fio::ext("report.pdf")   # .pdf
-println fio::ext("Makefile")     # (empty string)
+sources = fio::glob("./", ["./**/*.kiwi"], ["./tests/**"])
 ```
 
-#### `filename(_path)`
-Returns only the final component (filename or last directory name).
+## Paths
 
-**Returns**
-
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Basename                     |
-
-**Example**
+| Function | Returns |
+| :-- | :-- |
+| `combine(parts)` | The parts joined with the platform separator. |
+| `abspath(path)` | The absolute path. |
+| `filename(path)` | The last component: `"notes.txt"`. |
+| `ext(path)` | The extension with its dot: `".txt"`, or `""`. |
+| `parentdir(path)` | The containing directory. |
+| `pathparts(path)` | The components as a list. |
 
 ```kiwi
-import "fio"
-
-println fio::filename("/home/user/data.csv")
-# data.csv
+println fio::combine(["logs", "2024", "app.log"])   # logs/2024/app.log (on Linux and macOS)
+println fio::filename("/var/log/app.log")           # app.log
+println fio::ext("archive.tar.gz")                  # .gz
+println fio::pathparts("/a/b/c.txt")                # ["a", "b", "c.txt"]
 ```
 
-#### `parentdir(_path)`
-Returns the parent directory of the given path.
+## Functions
 
-**Returns**
-
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Parent path                  |
-
-**Example**
+### `fio::abspath`
 
 ```kiwi
-import "fio"
-
-println fio::parentdir("/home/user/data.csv")
-# /home/user
+fio::abspath(_path): string
 ```
 
-#### `pathparts(_path)`
-Splits the path into its components.
+Get the absolute path of a file.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
 
-| Type  | Description                      |
-|-------|----------------------------------|
-| `list`| List of path parts (strings)     |
+**Returns** `string` — The absolute path of a file.
 
-**Example**
+**Throws** `FileSystemError` — When unable to determine absolute path.
+
+### `fio::append`
 
 ```kiwi
-import "fio"
-
-parts = fio::pathparts("/home/user/data")
-println parts
-# ["home", "user", "data"]
+fio::append(_path: string, _text: string = "")
 ```
 
-### Directory operations
+Appends text to a file.
 
-#### `chdir(_path)`
-Changes the current working directory.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
+| `_text` | `string` | `""` | The text to append. |
 
-**Parameters**
+**Returns** `boolean` — Returns `true` when the file is written to.
 
-| Type     | Name     | Description                  |
-|----------|----------|------------------------------|
-| `string` | `_path`  | Target directory             |
+**Throws** `FileSystemError` — When file writing fails.
 
-**Returns**
-
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
-
-**Example**
+### `fio::chdir`
 
 ```kiwi
-import "fio"
-
-ok = fio::chdir("/tmp")
-println "Changed to /tmp: ${ok}"
-println fio::cwd()
-# /tmp
+fio::chdir(_path: string): boolean
 ```
 
-#### `cwd()`
-Returns the current working directory.
+Changes the current directory.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a directory. |
 
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Current directory path       |
+**Returns** `boolean` — Returns `true` when the directory is changed.
 
-**Example**
+**Throws** `FileSystemError` — When changing to the directory fails.
+
+### `fio::combine`
 
 ```kiwi
-import "fio"
-
-println fio::cwd()
-# /home/user/project
+fio::combine(_path_parts: list = []): string
 ```
 
-#### `isdir(_path)`
-Checks if the path points to an existing directory.
+Combine two paths.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path_parts` | `list` | `[]` | A list of path parts. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | `true` if it is a directory  |
+**Returns** `string` — A string from the list of parts.
 
-**Example**
+### `fio::copy`
 
 ```kiwi
-import "fio"
-
-println fio::isdir("/tmp")    # true
-println fio::isdir("/tmp/nonexistent")  # false
+fio::copy(source: string, dest: string, overwrite: boolean = true)
 ```
 
-#### `mkdir(_path)`
-Creates a single directory (fails if parent directories don't exist).
+Copy a file.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `source` | `string` |  | The source path. |
+| `dest` | `string` |  | The destination path. |
+| `overwrite` | `boolean` | `true` | A flag to indicate whether to overwrite the file (defaults to true). |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Returns** `boolean` — Returns `true` when copied successfully.
 
-**Example**
+**Throws** `FileSystemError` — When copying fails.
+
+### `fio::copyr`
 
 ```kiwi
-import "fio"
-
-ok = fio::mkdir("output")
-println "Created output/: ${ok}"
+fio::copyr(source: string, dest: string)
 ```
 
-#### `mkdirp(_path)`
-Creates a directory and all necessary parent directories (`mkdir -p` style).
+Copy a directory recursively.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `source` | `string` |  | The source path. |
+| `dest` | `string` |  | The destination path. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Returns** `boolean` — Returns `true` when the copy operation succeeds.
 
-**Example**
+**Throws** `FileSystemError` — When copying fails.
+
+### `fio::create`
 
 ```kiwi
-import "fio"
-
-# Creates a/, a/b/, and a/b/c/ as needed
-ok = fio::mkdirp("a/b/c")
-println "Deep mkdir: ${ok}"
+fio::create(_path: string)
 ```
 
-#### `listdir(_path, _recursive)`
-Lists directory contents.
+Creates an empty file.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to the file. |
 
-| Type      | Name          | Description                         | Default |
-|-----------|---------------|-------------------------------------|---------|
-| `string`  | `_path`       | Directory to list                   | —       |
-| `boolean` | `_recursive`  | Include subdirectories recursively  | `false` |
+**Returns** `boolean` — Returns `true` when the file creation succeeds.
 
-**Returns**
+**Throws** `FileSystemError` — When file creation fails.
 
-| Type  | Description                      |
-|-------|----------------------------------|
-| `list`| List of file/directory names     |
-
-**Example**
+### `fio::cwd`
 
 ```kiwi
-import "fio"
-
-# Shallow listing
-entries = fio::listdir(".", false)
-for entry in entries do
-  println entry
-end
-
-# Recursive listing — every file under the current directory
-all_files = fio::listdir(".", true)
-println "Total entries: ${all_files.size()}"
+fio::cwd(): string
 ```
 
-#### `rmdir(_path)`
-Removes an **empty** directory.
+Get the current working directory.
 
-**Returns**
+**Returns** `string` — The current working directory as a string.
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
-
-**Example**
+### `fio::exists`
 
 ```kiwi
-import "fio"
-
-fio::mkdir("empty_folder")
-ok = fio::rmdir("empty_folder")
-println "Removed: ${ok}"
+fio::exists(_path: string): boolean
 ```
 
-#### `rmdirf(_path)`
-Recursively deletes a directory and everything inside it.
+Check if a path exists.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or directory. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Returns** `boolean` — Returns `true` when the path exists on the filesystem.
 
-**Example**
+### `fio::ext`
 
 ```kiwi
-import "fio"
-
-fio::mkdirp("trash/a/b")
-fio::write("trash/a/b/file.txt", "bye")
-ok = fio::rmdirf("trash")
-println "Deleted trash/: ${ok}"
+fio::ext(_path: string)
 ```
 
-### File operations
+Gets the file extension of the path.
 
-#### `create(_path)`
-Creates an empty file (equivalent to `touch` but may behave differently on some platforms).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
 
-**Returns**
+**Returns** `string` — Returns a string containing the file extension of the path.
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
-
-**Example**
+### `fio::filename`
 
 ```kiwi
-import "fio"
-
-ok = fio::create("new.txt")
-println "Created: ${ok}"
-println "Size: ${fio::filesize("new.txt")}"  # 0
+fio::filename(_path: string): string
 ```
 
-#### `touch(_path)`
-Creates an empty file or updates the access/modification time of an existing file.
+Get the filename from a file path.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Returns** `string` — The filename as a string.
 
-**Example**
+### `fio::filesize`
 
 ```kiwi
-import "fio"
-
-fio::touch("log.txt")        # creates if absent, updates mtime if present
-println fio::exists("log.txt")  # true
+fio::filesize(_path: string): integer
 ```
 
-#### `exists(_path)`
-Checks whether a file **or** directory exists at the path.
+Get the size of a file in bytes.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | `true` if path exists        |
+**Returns** `integer` — Returns the number of bytes in the file as an integer.
 
-**Example**
+**Throws** `FileReadError` — When unable to determine file size.
+
+### `fio::glob`
 
 ```kiwi
-import "fio"
-
-if fio::exists("config.json")
-  println "Config found"
-else
-  println "No config — using defaults"
-end
+fio::glob(_path: string, _include_patterns: list, _exclude_patterns: list = []): list
 ```
 
-#### `isfile(_path)`
-Checks if the path points to a regular file.
+Get a list of files from glob patterns.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to search. |
+| `_include_patterns` | `list` |  | A list of glob patterns to match against paths. |
+| `_exclude_patterns` | `list` | `[]` | A list of glob patterns for filtering matches. Defaults to no exclusions. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | `true` if it is a file       |
+**Returns** `list` — Returns a list of matched file paths.
 
-**Example**
+**Throws** `FileSystemError` — When unable to glob a path.
+
+### `fio::fileinfo`
 
 ```kiwi
-import "fio"
-
-println fio::isfile("report.pdf")   # true (if it exists as a file)
-println fio::isfile("/tmp")         # false (directory)
+fio::fileinfo(_path: string): hashmap
 ```
 
-#### `filesize(_path)`
-Returns the size of a file in bytes.
+Get a fileinfo hashmap for a file.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The file path. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `integer` | File size in bytes           |
+**Returns** `hashmap` —  Returns a hashmap with the following keys: - `creation_time`: The creation time as a date. - `name`: The name as a string. - `extension`: The file extension as a string. - `full_name`: The full name as a string. - `last_access_time`: The last access timestamp as a date. - `last_write_time`: The last write timestamp as a date. - `attributes`: A hashmap of file attributes mapped to booleans representing whether they are set.
 
-**Example**
+**Throws** `FileSystemError` — When unable to glob a path.
+
+### `fio::isdir`
 
 ```kiwi
-import "fio"
-
-bytes = fio::filesize("data.csv")
-println "Size: ${bytes} bytes"
+fio::isdir(_path: string): boolean
 ```
 
-#### `fileinfo(_path)`
-Returns detailed metadata about a file.
+Check if a directory exists.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a directory. |
 
-| Type      | Description                                                                 |
-|-----------|-----------------------------------------------------------------------------|
-| `hashmap` | `{ creation_time, name, extension, full_name, last_access_time, last_write_time, attributes }` |
+**Returns** `boolean` — Returns `true` when the directory exists.
 
-**Example**
+### `fio::isfile`
 
 ```kiwi
-import "fio"
-
-info = fio::fileinfo("report.pdf")
-println "Name:      ${info["name"]}"
-println "Extension: ${info["extension"]}"
-println "Modified:  ${info["last_write_time"]}"
-println "Created:   ${info["creation_time"]}"
+fio::isfile(_path: string): boolean
 ```
 
-#### `copy(source, dest, overwrite)`
-Copies a single file.
+Check if a file exists.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
 
-| Type      | Name        | Description                  | Default |
-|-----------|-------------|------------------------------|---------|
-| `string`  | `source`    | Source file                  | —       |
-| `string`  | `dest`      | Destination                  | —       |
-| `boolean` | `overwrite` | Overwrite if exists          | `true`  |
+**Returns** `boolean` — Returns `true` when the file exists.
 
-**Returns**
-
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
-
-**Example**
+### `fio::listdir`
 
 ```kiwi
-import "fio"
-
-ok = fio::copy("a.txt", "b.txt")
-println "Copied: ${ok}"
-
-# Prevent overwrite
-ok = fio::copy("a.txt", "b.txt", false)
-println "Overwrite prevented: ${!ok}"
+fio::listdir(_path: string, _recursive: boolean = false): list
 ```
 
-#### `copyr(source, dest)`
-Recursively copies a directory (and all contents).
+Retrieve a list of directory entries for a given path.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The directory path. |
+| `_recursive` | `boolean` | `false` | A flag to control recursive retrieval. Defaults to false. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Returns** `list` — Returns a list of strings containing the directory entries.
 
-**Example**
+### `fio::mkdir`
 
 ```kiwi
-import "fio"
-
-ok = fio::copyr("src_dir", "backup_dir")
-println "Directory copied: ${ok}"
+fio::mkdir(_path: string): boolean
 ```
 
-#### `move(source, dest, overwrite)`
-Moves or renames a file/directory.
+Creates a directory.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The directory path. |
 
-| Type      | Name        | Description                  | Default |
-|-----------|-------------|------------------------------|---------|
-| `string`  | `source`    | Source path                  | —       |
-| `string`  | `dest`      | Destination path             | —       |
-| `boolean` | `overwrite` | Overwrite if exists          | `false` |
+**Returns** `boolean` — Returns `true` when directory creation succeeds.
 
-**Returns**
+**Throws** `FileSystemError` — When directory creation fails.
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
-
-**Example**
+### `fio::mkdirp`
 
 ```kiwi
-import "fio"
-
-# Rename a file
-fio::move("old.txt", "new.txt")
-
-# Move into a directory (overwrite allowed)
-fio::move("new.txt", "archive/new.txt", true)
+fio::mkdirp(_path: string): boolean
 ```
 
-#### `remove(_path)`
-Deletes a file (not directories).
+Creates a directory and all subdirectories specified in the path.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The directory path. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Returns** `boolean` — Returns `true` when directory creation succeeds.
 
-**Example**
+**Throws** `FileSystemError` — When directory creation fails.
+
+### `fio::move`
 
 ```kiwi
-import "fio"
-
-fio::write("temp.txt", "delete me")
-ok = fio::remove("temp.txt")
-println "Deleted: ${ok}"
-println "Still exists: ${fio::exists("temp.txt")}"  # false
+fio::move(source: string, dest: string, overwrite: boolean = false)
 ```
 
-### Reading
+Move or rename a file.
 
-#### `read(_path)`
-Reads entire file content as UTF-8 string.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `source` | `string` |  | The source path. |
+| `dest` | `string` |  | The destination path. |
+| `overwrite` | `boolean` | `false` | A flag to indicate whether to overwrite the file (defaults to false). |
 
-**Returns**
+**Returns** `boolean` — Returns `true` when the file move succeeds.
 
-| Type     | Description          |
-|----------|----------------------|
-| `string` | File content         |
+**Throws** `FileSystemError` — When the file move fails.
 
-**Example**
+### `fio::parentdir`
 
 ```kiwi
-import "fio"
-
-content = fio::read("notes.txt")
-println content
+fio::parentdir(_path: string): string
 ```
 
-#### `readbytes(_path)`
-Reads entire file as raw bytes.
+Get the parent directory of an absolute path.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
 
-| Type   | Description          |
-|--------|----------------------|
-| `bytes`| File content         |
+**Returns** `string` — Returns a string containing the parent path.
 
-**Example**
+### `fio::read`
 
 ```kiwi
-import "fio"
-
-raw = fio::readbytes("image.png")
-println "Read ${raw.size()} bytes"
+fio::read(_path: string): string
 ```
 
-#### `readlines(_path)`
-Reads file and splits it into lines.
+Get the content of a file as a string.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
 
-| Type  | Description                  |
-|-------|------------------------------|
-| `list`| List of strings (lines)      |
+**Returns** `string` — Returns the contents of the file as a string.
 
-**Example**
+**Throws** `FileReadError` — When unable to read the file.
+
+### `fio::readlines`
 
 ```kiwi
-import "fio"
-
-lines = fio::readlines("data.csv")
-for line in lines do
-  cols = line.split(",")
-  println cols[0]
-end
+fio::readlines(_path: string): list
 ```
 
-#### `readslice(_path, _offset, _size)`
-Reads a portion of the file as bytes.
+Get the content of a file as a list of strings.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
 
-| Type      | Name       | Description                  |
-|-----------|------------|------------------------------|
-| `string`  | `_path`    | File path                    |
-| `integer` | `_offset`  | Starting position            |
-| `integer` | `_size`    | Number of bytes to read      |
+**Returns** `list` — Returns the contents of the file as a list of strings.
 
-**Returns**
+**Throws** `FileReadError` — When unable to read the file.
 
-| Type   | Description          |
-|--------|----------------------|
-| `bytes`| Requested slice      |
-
-**Example**
+### `fio::readslice`
 
 ```kiwi
-import "fio"
-
-# Read the first 4 bytes (e.g. to check a file magic number)
-header = fio::readslice("archive.zip", 0, 4)
-println header.to_list()
+fio::readslice(_path: string, _offset: integer, _size: integer): bytes
 ```
 
-### Writing
+Get a slice of a file as bytes.
 
-#### `write(_path, _text)`
-Overwrites file with new text content.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
+| `_offset` | `integer` |  | The position in the file to read from. |
+| `_size` | `integer` |  | The number of bytes to read from the file. |
 
-**Returns**
+**Returns** `list` — Returns bytes containing a slice of the file.
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Throws** `IndexError` — When the index is invalid.
 
-**Example**
+**Throws** `FileReadError` — When the file cannot be read.
+
+### `fio::readbytes`
 
 ```kiwi
-import "fio"
-
-fio::write("out.txt", "Hello, world!")
-println fio::read("out.txt")
-# Hello, world!
+fio::readbytes(_path: string): bytes
 ```
 
-#### `writeln(_path, _text)`
-**Appends** one line of text (adds newline), or multiple lines when given a list of strings.
+Gets all content from the path as bytes.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
 
-| Type      | Name       | Description                  |
-|-----------|------------|------------------------------|
-| `string`|`list`  | `_path`    | File path                    |
-| `integer` | `_text`    | The text to write            |
+**Returns** `bytes` — Returns bytes containing the content of the file this path points to.
 
-**Returns**
+**Throws** `FileReadError` — When the file cannot be read.
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
-
-**Example**
+### `fio::remove`
 
 ```kiwi
-import "fio"
-
-fio::write("log.txt", "")   # start fresh
-fio::writeln("log.txt", "Line 1")
-fio::writeln("log.txt", "Line 2")
-fio::writeln("log.txt", "Line 3")
-println fio::read("log.txt")
-# Line 1
-# Line 2
-# Line 3
+fio::remove(_path: string): boolean
 ```
 
-#### `append(_path, _text)`
-Appends text without adding a newline.
+Delete a file.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The file path. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `boolean` | Success                      |
+**Returns** `boolean` — Returns `true` when the file is removed.
 
-**Example**
+**Throws** `FileSystemError` — When the file cannot be removed.
+
+### `fio::rmdir`
 
 ```kiwi
-import "fio"
-
-fio::write("out.txt", "Hello")
-fio::append("out.txt", ", world!")
-println fio::read("out.txt")
-# Hello, world!
+fio::rmdir(_path: string): boolean
 ```
 
-#### `writebytes(_path, _data)`
-Overwrites file with raw bytes.
+Delete a directory.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The directory path. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `integer` | Number of bytes written      |
+**Returns** `boolean` — Returns `true` when the directory is removed.
 
-**Example**
+**Throws** `FileSystemError` — When the directory cannot be removed.
+
+### `fio::rmdirf`
 
 ```kiwi
-import "fio"
-
-raw = fio::readbytes("original.bin")
-n = fio::writebytes("copy.bin", raw)
-println "Wrote ${n} bytes"
+fio::rmdirf(_path)
 ```
 
-#### `writeslice(_path, _offset, _data)`
-Writes bytes at a specific position (seeks + writes).
+Delete a directory and all of its contents recursively.
 
-**Returns**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The directory path. |
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `integer` | Number of bytes written      |
+**Returns** `boolean` — Returns `true` when the directory is removed.
 
-**Example**
+**Throws** `FileSystemError` — When the directory cannot be removed.
+
+### `fio::touch`
 
 ```kiwi
-import "fio"
-
-# Patch bytes starting at offset 16
-patch = "PATCHED".to_bytes()
-n = fio::writeslice("binary.dat", 16, patch)
-println "Patched ${n} bytes at offset 16"
+fio::touch(_path)
 ```
 
-### Pattern matching
+Create an empty file or updates the timestamp on a file.
 
-#### `glob(_path, _include_patterns, _exclude_patterns)`
-Finds files matching glob patterns.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file. |
 
-**Parameters**
+**Returns** `boolean` — Returns `true` when the file is touched.
 
-| Type  | Name                 | Description                              | Default |
-|-------|----------------------|------------------------------------------|---------|
-| `string` | `_path`           | Base directory                           | —       |
-| `list`   | `_include_patterns`| Glob patterns to match (e.g. `["*.txt"]`) | —       |
-| `list`   | `_exclude_patterns`| Patterns to exclude                      | `[]`    |
+**Throws** `FileSystemError` — When file writing fails.
 
-**Returns**
-
-| Type  | Description                      |
-|-------|----------------------------------|
-| `list`| Matching absolute paths          |
-
-**Example**
+### `fio::tmpdir`
 
 ```kiwi
-import "fio"
-
-# All .kiwi files under the current directory
-kiwi_files = fio::glob(".", ["**/*.kiwi"])
-for f in kiwi_files do
-  println f
-end
-
-# All .txt files, excluding anything in a temp/ folder
-txt_files = fio::glob(".", ["**/*.txt"], ["**/temp*"])
-println "Found ${txt_files.size()} non-temp text files"
+fio::tmpdir(): string
 ```
 
-### Temporary files / directories
+Gets the path to the temporary directory.
 
-#### `tmpdir()`
-Returns path to system temporary directory.
+**Returns** `string` — Returns the temp directory path as a string.
 
-**Returns**
-
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Temp directory path          |
-
-**Example**
+### `fio::tmpfile`
 
 ```kiwi
-import "fio"
-
-println fio::tmpdir()
-# /tmp  (on Linux/macOS)
+fio::tmpfile(): string
 ```
 
-#### `tmpfile()`
-Creates a new empty temporary file and returns its path.
+Creates and returns an empty temporary file and returns its path.
 
-**Returns**
+**Returns** `string` — Returns the path to a newly created empty file.
 
-| Type     | Description                  |
-|----------|------------------------------|
-| `string` | Path to new temp file        |
-
-**Example**
+### `fio::write`
 
 ```kiwi
-import "fio"
-
-tmp = fio::tmpfile()
-println "Temp file: ${tmp}"
-
-fio::write(tmp, "scratch data")
-println fio::read(tmp)
-
-fio::remove(tmp)
+fio::write(_path: string, _text = ""): boolean
 ```
+
+Write text to a file. This overwrites the file if it exists.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
+| `_text` | `string` | `""` | The text to write. |
+
+**Returns** `boolean` — Returns `true` when the file write succeeds.
+
+**Throws** `FileSystemError` — When the file write fails.
+
+### `fio::writeln`
+
+```kiwi
+fio::writeln(_path: string, _text: string|list): boolean
+```
+
+Write a line of text to a file. This always appends to a file.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
+| `_text` | `string\|list` |  | The text to append. |
+
+**Returns** `boolean` — Returns `true` when the file write succeeds.
+
+**Throws** `FileSystemError` — When the file write fails.
+
+### `fio::writebytes`
+
+```kiwi
+fio::writebytes(_path: string, _data: bytes): integer
+```
+
+Write a list of bytes to a file. This overwrites the file if it exists.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
+| `_data` | `bytes` |  |  |
+
+**Returns** `integer` — Returns the number of bytes written.
+
+**Throws** `FileSystemError` — When the file write fails.
+
+### `fio::writeslice`
+
+```kiwi
+fio::writeslice(_path: string, _offset: integer, _data: bytes): integer
+```
+
+Write a list of bytes to a file at an offset.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path to a file or a filename. |
+| `_offset` | `integer` |  | The zero based position to begin writing. |
+| `_data` | `bytes` |  | The list of bytes to write. |
+
+**Returns** `integer` — Returns the number of bytes written.
+
+**Throws** `FileSystemError` — When the file write fails.
+
+### `fio::pathparts`
+
+```kiwi
+fio::pathparts(_path: string): list
+```
+
+Get path parts from a path.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The path. |
+
+**Returns** `list` — Returns a list of strings containing all path parts.

@@ -1,16 +1,116 @@
-# `watch`
+# watch
 
-The `watch` package provides a `Watcher` struct that polls a file or directory
-on a background task and reports entries that are created, modified, or
-deleted. It's built on `fio` and `task`, so it works anywhere Kiwi runs
-without relying on OS-specific file system event APIs.
+> Watch files and directories for created, modified and deleted entries.
 
----
-
-## Quick Start
+The `watch` package watches a file or directory and calls your handlers when entries are created, modified or deleted. It polls on a background task, so it works the same on every platform.
 
 ```kiwi
-import "watch"
+watcher = watch::new("./data")
+watcher.on_create(with (path) do println "created: ${path}" end)
+watcher.on_modify(with (path) do println "modified: ${path}" end)
+watcher.on_delete(with (path) do println "deleted: ${path}" end)
+watcher.start()
+
+# ... later
+watcher.stop()
+```
+
+`on_change` registers one handler for every event, receiving the event name and the path. `watch::watch(path, handler)` creates, configures and starts a watcher in one call:
+
+```kiwi
+w = watch::watch("./src", with (event, path) do
+  println "[${event}] ${path}"
+end)
+
+while w.is_running() do
+  task::sleep(1000)
+end
+```
+
+## Options
+
+`watch::new(path, recursive, interval_ms, ignore)`:
+
+| Argument | Default | Meaning |
+| :-- | :-- | :-- |
+| `recursive` | `true` | Also watch subdirectories. |
+| `interval_ms` | `300` | How often to check for changes. |
+| `ignore` | `[]` | Path fragments to skip, such as `".git"` or `"node_modules"`. |
+
+## Polling by hand
+
+Instead of `start()`, call `poll()` yourself. The first call records the current state; each later call fires events for whatever changed since the previous one.
+
+```kiwi
+dir = fio::combine([fio::tmpdir(), "watch-demo"])
+fio::mkdirp(dir)
+file = fio::combine([dir, "a.txt"])
+
+events = []
+w = watch::new(dir)
+w.on_change(with (event, path) do
+  events.push("${event} ${fio::filename(path)}")
+end)
+
+w.poll()                       # baseline
+fio::write(file, "1")
+w.poll()
+task::sleep(20)
+fio::append(file, "22")
+w.poll()
+fio::remove(file)
+w.poll()
+
+println events   # ["create a.txt", "modify a.txt", "delete a.txt"]
+fio::rmdirf(dir)
+```
+
+## How changes are detected
+
+Each check lists the watched entries and compares every file's last-write time and size with the previous check. As a result, several writes between two checks are reported as one `modify`, a change is noticed up to `interval_ms` after it happens, and directories are reported when created or deleted but never as modified.
+
+## Functions
+
+### `watch::new`
+
+```kiwi
+watch::new(_path: string, _recursive: boolean = true, _interval_ms: integer = 300, _ignore: list = []): Watcher
+```
+
+Creates a new Watcher without starting it.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The file or directory path to watch. |
+| `_recursive` | `boolean` | `true` | Watch subdirectories recursively. Defaults to `true`. |
+| `_interval_ms` | `integer` | `300` | Poll interval in milliseconds. Defaults to `300`. |
+| `_ignore` | `list` | `[]` | Entries whose path contains any of these substrings are skipped. Defaults to `[]`. |
+
+**Returns** `Watcher` — Watcher
+
+### `watch::watch`
+
+```kiwi
+watch::watch(_path: string, callback: lambda, _recursive: boolean = true, _interval_ms: integer = 300): Watcher
+```
+
+Creates a Watcher, registers a single callback for all change events, and starts it.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The file or directory path to watch. |
+| `callback` | `lambda` |  | Invoked with `(event, path)` for every create/modify/delete. |
+| `_recursive` | `boolean` | `true` | Watch subdirectories recursively. Defaults to `true`. |
+| `_interval_ms` | `integer` | `300` | Poll interval in milliseconds. Defaults to `300`. |
+
+**Returns** `Watcher` — The running watcher. Call `.stop()` to end it.
+
+## `Watcher` struct
+
+A background poller that reports created, modified, and deleted entries under a path.
+
+```kiwi
+import watch
 
 w = watch::new("./data")
 w.on_create(with (path) do println "created: ${path}" end)
@@ -22,169 +122,123 @@ w.start()
 w.stop()
 ```
 
----
+### `Watcher.new`
 
-## Package Functions
+```kiwi
+Watcher.new(_path: string, _recursive: boolean = true, _interval_ms: integer = 300, _ignore: list = [])
+```
 
-### `watch::new(path, recursive = true, interval_ms = 300, ignore = [])`
+Creates a new Watcher. Call `.start()` to begin watching.
 
-Creates a new `Watcher` without starting it.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_path` | `string` |  | The file or directory path to watch. |
+| `_recursive` | `boolean` | `true` | Watch subdirectories recursively. Defaults to `true`. |
+| `_interval_ms` | `integer` | `300` | Poll interval in milliseconds. Defaults to `300`. |
+| `_ignore` | `list` | `[]` | Entries whose path contains any of these substrings are skipped. Defaults to `[]`. |
 
-**Parameters**
+### `.on_create`
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `path` | The file or directory path to watch. |
-| `boolean` | `recursive` | Watch subdirectories recursively. Defaults to `true`. |
-| `integer` | `interval_ms` | Poll interval in milliseconds. Defaults to `300`. |
-| `list` | `ignore` | Entries whose path contains any of these substrings are skipped. Defaults to `[]`. |
+```kiwi
+on_create(callback: lambda): Watcher
+```
 
-**Returns**
+Registers a callback fired when a new entry appears.
 
-| Type | Description |
-| :--- | :--- |
-| `Watcher` | An idle watcher. Call `.start()` to begin watching. |
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `callback` | `lambda` |  | Invoked with `(path)`. |
 
----
+**Returns** `Watcher` — self, for chaining.
 
-### `watch::watch(path, callback, recursive = true, interval_ms = 300)`
+### `.on_modify`
 
-Creates a `Watcher`, registers `callback` for every change event, and starts it immediately.
+```kiwi
+on_modify(callback: lambda): Watcher
+```
 
-**Parameters**
+Registers a callback fired when an entry's contents or size change.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `path` | The file or directory path to watch. |
-| `lambda` | `callback` | Invoked with `(event, path)` for every create/modify/delete. |
-| `boolean` | `recursive` | Watch subdirectories recursively. Defaults to `true`. |
-| `integer` | `interval_ms` | Poll interval in milliseconds. Defaults to `300`. |
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `callback` | `lambda` |  | Invoked with `(path)`. |
 
-**Returns**
+**Returns** `Watcher` — self, for chaining.
 
-| Type | Description |
-| :--- | :--- |
-| `Watcher` | The running watcher. Call `.stop()` to end it. |
+### `.on_delete`
 
----
+```kiwi
+on_delete(callback: lambda): Watcher
+```
 
-## `Watcher` Methods
+Registers a callback fired when an entry disappears.
 
-### `.on_create(callback)`
-Registers a callback fired when a new entry appears. Invoked with `(path)`.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `callback` | `lambda` |  | Invoked with `(path)`. |
 
-### `.on_modify(callback)`
-Registers a callback fired when an entry's contents or size change. Invoked with `(path)`.
+**Returns** `Watcher` — self, for chaining.
 
-### `.on_delete(callback)`
-Registers a callback fired when an entry disappears. Invoked with `(path)`.
+### `.on_change`
 
-### `.on_change(callback)`
-Registers a callback fired for every create, modify, or delete. Invoked with `(event, path)`, where `event` is `"create"`, `"modify"`, or `"delete"`.
+```kiwi
+on_change(callback: lambda): Watcher
+```
 
-Multiple callbacks can be registered per event; each one runs on every matching change.
+Registers a callback fired for every create, modify, or delete.
 
----
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `callback` | `lambda` |  | Invoked with `(event, path)`. |
 
-### `.start()`
+**Returns** `Watcher` — self, for chaining.
+
+### `.start`
+
+```kiwi
+start(): Watcher
+```
+
 Takes an initial snapshot and starts polling in a background task. Calling `.start()` while already running has no effect.
 
 **Returns** `Watcher` — self.
 
----
+### `.stop`
 
-### `.stop()`
-Stops watching. The background task exits on its next tick (within `interval_ms`).
+```kiwi
+stop(): Watcher
+```
+
+Stops watching. The background task exits on its next tick.
 
 **Returns** `Watcher` — self.
 
----
+### `.is_running`
 
-### `.is_running()`
-**Returns** `boolean` — `true` while the watcher's background task is active.
+```kiwi
+is_running(): boolean
+```
 
----
+Checks whether the watcher is currently running.
 
-### `.interval_ms()`
-**Returns** `integer` — the configured poll interval.
+**Returns** `boolean` — boolean
 
----
+### `.interval_ms`
 
-### `.poll()`
-Immediately scans and fires any pending events synchronously, without waiting for the next background tick. The **first** call (on a freshly created `Watcher`, before `.start()`) only establishes the baseline snapshot and fires no events; subsequent calls diff against the previous snapshot as usual. Useful for tests or a manual polling loop instead of `.start()`.
+```kiwi
+interval_ms(): integer
+```
+
+Gets the poll interval in milliseconds.
+
+**Returns** `integer` — integer
+
+### `.poll`
+
+```kiwi
+poll(): Watcher
+```
+
+Immediately scans and fires any pending events synchronously, without waiting for the next background tick. The first call (before `.start()`, or on a freshly created Watcher) only establishes the baseline snapshot and fires no events; later calls diff against the previous snapshot as usual. Useful for tests or manual polling loops instead of `.start()`.
 
 **Returns** `Watcher` — self.
-
----
-
-## How Change Detection Works
-
-On each tick, `watch` lists the entries under `path` (via `fio::listdir`) and
-builds a signature for each file from its last-write time and size (via
-`fio::fileinfo` / `fio::filesize`). Comparing the new signature map against
-the previous one produces the create/modify/delete events. Directories are
-tracked for creation and deletion but never reported as "modified".
-
-Because detection is signature-based polling rather than a live OS event
-feed, very fast back-to-back writes between two polls are collapsed into a
-single `modify` event, and changes are only observed after up to
-`interval_ms` has elapsed. Lower `interval_ms` for snappier detection at the
-cost of more frequent directory scans.
-
----
-
-## Examples
-
-### Watching a single file
-
-```kiwi
-import "watch"
-
-w = watch::new("./config.json")
-w.on_modify(with (path) do
-  println "config changed, reloading..."
-end)
-w.start()
-```
-
-### Ignoring noisy paths
-
-```kiwi
-import "watch"
-
-w = watch::new("./project", true, 500, [".git", "node_modules", ".log"])
-w.on_change(with (event, path) do
-  println "${event}: ${path}"
-end)
-w.start()
-```
-
-### One-liner with `watch::watch()`
-
-```kiwi
-import "watch"
-import "task"
-
-w = watch::watch("./src", with (event, path) do
-  println "[${event}] ${path}"
-end)
-
-while w.is_running() do
-  task::sleep(1000)
-end
-```
-
-### Manual polling instead of a background task
-
-```kiwi
-import "watch"
-
-w = watch::new("./data")
-w.on_create(with (path) do println "created: ${path}" end)
-
-w.poll() # establishes the baseline; no events fire yet
-
-# ... time passes, files change ...
-
-w.poll() # fires events for anything that changed since the last poll
-```

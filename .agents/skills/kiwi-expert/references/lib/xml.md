@@ -1,468 +1,201 @@
-# `xml`
+# xml
 
-The `xml` package provides an XML parser and serializer for Kiwi programs. It parses XML strings or files into a tree of `XmlNode` structs that can be queried, navigated, and serialized back to XML.
+> Parse, query, build and serialize XML.
 
-```kiwi
-import "xml"
-```
+The `xml` package parses XML into a tree of `XmlNode` values, which you can search, modify and serialize back to text.
 
----
-
-## Package Functions
-
-### `xml::parse(input)`
-
-Parses an XML-formatted string and returns the document root element as an `XmlNode`.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | A valid XML string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `XmlNode` | The root element of the parsed document. |
-
-**Example**
+## Parsing and querying
 
 ```kiwi
-import "xml"
+catalog = xml::parse('
+<catalog>
+  <item id="1"><name>Kiwi</name><price>0.5</price></item>
+  <item id="2"><name>Mango</name><price>1.25</price></item>
+</catalog>')
 
-src = "<book><title>Kiwi</title><author>Scotty</author></book>"
-root = xml::parse(src)
-println root.tag  # prints: book
+items = catalog.find_all("item")
+println items.size()                     # 2
+println items[0].attr("id")              # 1
+println items[0].find("name").text()     # Kiwi
+println catalog.find_all_deep("price").map(do (p) => p.text())   # ["0.5", "1.25"]
 ```
 
----
+`xml::parse_file(path)` parses a file.
 
-### `xml::parse_file(path)`
+| Method | Returns |
+| :-- | :-- |
+| `find(tag)` | The first child element with that tag, or `null`. |
+| `find_all(tag)` | The child elements with that tag. |
+| `find_all_deep(tag)` | Every descendant element with that tag. |
+| `elements()` | The child elements, skipping text and comments. |
+| `first_child()`, `last_child()` | The first or last child node. |
+| `text()` | The text directly inside the element. |
+| `text_content()` | All text inside the element, including descendants. |
+| `attr(name, default)` | An attribute value. |
+| `has_attr`, `set_attr`, `remove_attr` | Inspect or change attributes. |
+| `is_element()`, `is_text()` | The node kind. |
 
-Reads an XML file from disk and parses it, returning the root `XmlNode`.
+Every node has `tag`, `attrs`, `children` and `content` fields. Text, comments, CDATA sections and processing instructions are nodes with the tags `#text`, `#comment`, `#cdata` and `#pi`, and their text in `content`.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `path` | Path to the XML file. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `XmlNode` | The root element of the parsed document. |
-
-**Throws**
-
-A string error if the file does not exist.
-
-**Example**
+## Building XML
 
 ```kiwi
-import "xml"
+config = xml::create("config", {version: "2"})
 
-root = xml::parse_file("/data/config.xml")
-println root.tag
+host = xml::create("host")
+host.add_child(xml::text_node("localhost"))
+config.add_child(host)
+
+println xml::stringify(config)
+# <config version="2">
+#   <host>localhost</host>
+# </config>
 ```
 
----
+Add text with `text_node`, comments with `comment_node`, and CDATA with `cdata_node`. `stringify(node, indent)` and `node.serialize(indent)` produce indented XML; `indent` is the starting indentation level.
 
-## `XmlNode` Struct
+## Pipelines
 
-Every parsed XML element, text node, comment, CDATA section, and processing instruction is represented as an `XmlNode`.
-
-### Fields
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `tag` | The element tag name, or one of the special values `"#text"`, `"#comment"`, `"#cdata"`, `"#pi"`. |
-| `hashmap` | `attrs` | Attribute map (name -> value). Empty for non-element nodes. |
-| `list` | `children` | Child `XmlNode` instances. Empty for leaf nodes. |
-| `string` | `content` | Text payload for `#text`, `#comment`, `#cdata`, and `#pi` nodes. Empty for element nodes. |
-
-### Special Node Types
-
-| Tag | Represents |
-| :--- | :--- |
-| `"#text"` | A text node — `content` holds the text. |
-| `"#comment"` | An XML comment (`<!-- ... -->`). |
-| `"#cdata"` | A CDATA section (`<![CDATA[...]]>`). |
-| `"#pi"` | A processing instruction (`<?name ...?>`). The `attrs` hashmap holds `"name"`. |
-
----
-
-## `XmlNode` Methods
-
-### `get_attr(name, default?)`
-
-Returns the value of an attribute by name. Returns the default if the attribute is not present.
-
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `name` | The attribute name. | — |
-| `string` | `default` | Fallback value when the attribute is absent. | `""` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The attribute value, or the default. |
-
-**Example**
+`xml::pipeline()` turns repeated elements into a list of hashmaps, one per element, with attributes and child element text as fields. It works like the [`csv`](csv.md#pipelines-with-typed-columns) and [`json`](json.md#pipelines) pipelines:
 
 ```kiwi
-import "xml"
+rows = xml::pipeline()
+  .select("item")
+  .with_schema({"id": "integer", "price": "float"})
+  .from_string('<c><item id="1"><name>Kiwi</name><price>0.5</price></item></c>')
+  .parse()
 
-src = "<img src=\"photo.png\" alt=\"A photo\"/>"
-root = xml::parse(src)
-println root.get_attr("src")          # prints: photo.png
-println root.get_attr("alt")          # prints: A photo
-println root.get_attr("width", "0")   # prints: 0
+println rows   # [{"id": 1, "name": "Kiwi", "price": 0.5}]
 ```
 
----
+`select(tag)` chooses the element to extract for the sources added after it. As with the other pipelines, `as_dataset(name)` names a source, and `parse()` then returns a hashmap of datasets.
 
-### `find(tag_name)`
+## Functions
 
-Returns the first direct child element whose tag matches `tag_name`, or `null` if none is found.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `tag_name` | The tag name to search for. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `XmlNode`\|`null` | The first matching child, or `null`. |
-
-**Example**
+### `xml::parse`
 
 ```kiwi
-import "xml"
-
-src = "<root><name>Kiwi</name><version>1.0</version></root>"
-root = xml::parse(src)
-node = root.find("name")
-println node.text()  # prints: Kiwi
+xml::parse(input: string): any
 ```
 
----
+Parses an XML string and returns the root element.
 
-### `find_all(tag_name)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | The XML-formatted string to parse. |
 
-Returns a list of all direct child elements whose tag matches `tag_name`.
+**Returns** `XmlNode` — The document root element.
 
-**Parameters**
+**Throws** `string` — On malformed XML.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `tag_name` | The tag name to search for. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | All direct children with the given tag. May be empty. |
-
-**Example**
+### `xml::parse_file`
 
 ```kiwi
-import "xml"
-
-src = "<items><item>a</item><item>b</item><note>misc</note></items>"
-root = xml::parse(src)
-items = root.find_all("item")
-println items.size()   # prints: 2
-for item in items do
-  println item.text()
-end
-# prints: a, b
+xml::parse_file(file_path: string): any
 ```
 
----
+Parses an XML file and returns the root element.
 
-### `find_all_deep(tag_name)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `file_path` | `string` |  | The path to the XML file. |
 
-Recursively searches all descendants (depth-first) and returns every node whose tag matches `tag_name`.
+**Returns** `XmlNode` — The document root element.
 
-**Parameters**
+**Throws** `string` — If the file does not exist or XML is malformed.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `tag_name` | The tag name to search for. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | All matching nodes at any depth, in depth-first order. |
-
-**Example**
+### `xml::create`
 
 ```kiwi
-import "xml"
-
-src = "<a><b><c>deep</c></b><c>shallow</c></a>"
-root = xml::parse(src)
-all_c = root.find_all_deep("c")
-println all_c.size()        # prints: 2
-println all_c[0].text()     # prints: deep
-println all_c[1].text()     # prints: shallow
+xml::create(tag: string, attrs: hashmap = {}, content: string = ""): any
 ```
 
----
+Creates a new element node.
 
-### `elements()`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tag` | `string` |  | The element tag name. |
+| `attrs` | `hashmap` | `{}` | Attribute map (default `{}`). |
+| `content` | `string` | `""` | Text content (default `""`). |
 
-Returns a list of direct child nodes that are elements — that is, all children except `#text`, `#comment`, `#cdata`, and `#pi` nodes.
+**Returns** `any` — XmlNode
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | Element children only. |
-
-**Example**
+### `xml::text_node`
 
 ```kiwi
-import "xml"
-
-src = "<root>Some text<child/></root>"
-root = xml::parse(src)
-println root.children.size()   # prints: 2  (text node + child element)
-println root.elements().size() # prints: 1  (child element only)
+xml::text_node(content: string): any
 ```
 
----
+Creates a `#text` node.
 
-### `text()`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `content` | `string` |  | The text content. |
 
-Returns the concatenated text content of all direct `#text` children. Does not recurse into nested elements.
+**Returns** `any` — XmlNode
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The joined text of direct text children. |
-
-**Example**
+### `xml::comment_node`
 
 ```kiwi
-import "xml"
-
-src = "<p>Hello, <b>world</b>!</p>"
-root = xml::parse(src)
-println root.text()          # prints: Hello, !   (only direct text nodes)
-println root.find("b").text() # prints: world
+xml::comment_node(content: string): any
 ```
 
----
+Creates a `#comment` node.
 
-### `text_content()`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `content` | `string` |  | The comment text. |
 
-Returns the concatenated text of all descendant `#text` nodes, recursively. Use this when you want the full visible text under a node regardless of nesting.
+**Returns** `any` — XmlNode
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | All descendant text joined together. |
-
-**Example**
+### `xml::cdata_node`
 
 ```kiwi
-import "xml"
-
-src = "<p>Hello, <b>world</b>!</p>"
-root = xml::parse(src)
-println root.text_content()  # prints: Hello, world!
+xml::cdata_node(content: string): any
 ```
 
----
+Creates a `#cdata` node.
 
-### `serialize(indent?)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `content` | `string` |  | The CDATA content. |
 
-Serializes the node and its descendants back to an XML string. Pass an indentation level to produce pretty-printed output.
+**Returns** `any` — XmlNode
 
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `integer` | `indent` | The current indentation level (2 spaces per level). | `0` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The XML string representation of this node. |
-
-**Example**
+### `xml::stringify`
 
 ```kiwi
-import "xml"
-
-src = "<root><child>value</child></root>"
-root = xml::parse(src)
-println root.serialize()
-# prints:
-# <root>
-#   <child>value</child>
-# </root>
+xml::stringify(node: any, indent: integer = 0): string
 ```
 
----
+Serializes an XmlNode to an XML string.
 
-### `to_string()`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `node` | `any` |  | The node to serialize. |
+| `indent` | `integer` | `0` | Indentation level (default `0`). |
 
-Alias for `serialize(0)`. Returns the node serialized as a compact XML string.
+**Returns** `string` — string
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The XML string representation of this node. |
-
-**Example**
+### `xml::pipeline`
 
 ```kiwi
-import "xml"
-
-src = "<note><text>Hi</text></note>"
-root = xml::parse(src)
-println root.to_string()
-# prints: <note>\n  <text>Hi</text>\n</note>
+xml::pipeline(): XmlPipeline
 ```
 
----
+Creates a new XmlPipeline builder for fluent XML record extraction.
 
----
-
-## `xml::pipeline()`
-
-Creates an `XmlPipeline` builder for fluent, declarative XML record extraction. Chain configuration methods to describe your sources, then call `.parse()` to execute.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `XmlPipeline` | A new pipeline builder instance. |
-
-See [XmlPipeline](#xmlpipeline) below for the full builder API and examples.
-
----
-
-## `XmlPipeline`
-
-A fluent builder returned by `xml::pipeline()`. Configure one or more XML sources, then call `.parse()` to get a list of record hashmaps.
-
-**How records are built**: each selected `XmlNode`'s attributes and direct child elements with text content are merged into a flat hashmap. For example:
-
-```xml
-<item id="1" active="true">
-  <name>Widget</name>
-  <price>9.99</price>
-</item>
-```
-
-becomes:
+**Returns** `XmlPipeline` — A new pipeline builder instance.
 
 ```kiwi
-{"id": "1", "active": "true", "name": "Widget", "price": "9.99"}
-```
-
-Schema coercion is then applied by field name.
-
-All builder methods return `self` so calls can be chained.
-
-### `.select(tag)`
-
-Sets the element tag name to extract as records from the **next** registered source. Uses `find_all_deep(tag)` — all matching elements at any depth become records. If not called, the root element itself becomes the sole record.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `tag` | XML element tag name to extract. |
-
-### `.with_schema(schema)`
-
-Sets a type-coercion schema for the **next** registered source. Keys are field names (attribute names or child element tag names); values are type strings.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `hashmap` | `schema` | Map of field name → type string. |
-
-**Supported types**: `"string"`, `"integer"`, `"float"`, `"boolean"`, `"null"`. Unrecognised types leave the value as-is. Fields absent from the row are silently skipped.
-
-### `.from_file(path)`
-
-Registers an XML file as a source using any pending `.select()` and `.with_schema()` settings, then resets those settings for the next source.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `path` | Path to the XML file. |
-
-**Throws** — if the file does not exist at parse time.
-
-### `.from_string(input)`
-
-Registers an XML string as a source using any pending settings.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | A valid XML string. |
-
-### `.as_dataset(name)`
-
-Names the most recently registered source. The name becomes the key in the hashmap returned by `.parse()`. Must be called after `.from_file()` or `.from_string()`.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `name` | Dataset key name. |
-
-**Throws** — if called before any source is registered.
-
-### `.parse()`
-
-Executes the pipeline and returns the extracted records.
-
-| Condition | Return type |
-| :--- | :--- |
-| Single unnamed source | `list` of hashmaps |
-| Multiple unnamed sources | `list` of lists of hashmaps |
-| All sources named as datasets | `hashmap` keyed by dataset name |
-| Mixed named/unnamed | throws a pipeline error |
-
----
-
-## `XmlPipeline` Examples
-
-### Extract elements with schema
-
-```kiwi
-import "xml"
-
+# Extract all <item> elements with type coercion
 rows = xml::pipeline()
   .select("item")
   .with_schema({"id": "integer", "price": "float", "active": "boolean"})
   .from_file("catalog.xml")
   .parse()
 
-for r in rows do
-  println "${r["id"]}: ${r["name"]} — $${r["price"]} (active: ${r["active"]})"
-end
-```
-
-### Multiple named datasets
-
-```kiwi
-import "xml"
-
+# Multiple named datasets
 data = xml::pipeline()
   .select("user").from_file("users.xml").as_dataset("users")
   .select("role").from_file("roles.xml").as_dataset("roles")
@@ -472,87 +205,328 @@ users = data["users"]
 roles = data["roles"]
 ```
 
-### Multiple unnamed sources
+## `XmlNode` struct
+
+Represents a parsed XML node (element, text, comment, CDATA, or PI).
+
+### `XmlNode.new`
 
 ```kiwi
-import "xml"
-
-both = xml::pipeline()
-  .select("rec").from_file("jan.xml")
-  .select("rec").from_file("feb.xml")
-  .parse()
-
-# both[0] = records from jan.xml
-# both[1] = records from feb.xml
+XmlNode.new(tag, attrs, children, content)
 ```
 
-### From string
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tag` | `any` |  |  |
+| `attrs` | `any` |  |  |
+| `children` | `any` |  |  |
+| `content` | `any` |  |  |
+
+### `.get_attr`
 
 ```kiwi
-import "xml"
-
-rows = xml::pipeline()
-  .select("point")
-  .with_schema({"x": "float", "y": "float"})
-  .from_string('<points><point x="1.5" y="2.0"/><point x="3.0" y="4.5"/></points>')
-  .parse()
-
-println rows[0]["x"]  # 1.5
-println rows[1]["y"]  # 4.5
+get_attr(name, default = "")
 ```
 
-### Root element as single record
+Returns the value of an attribute, or a default if not present.
 
-When `.select()` is omitted, the root element itself becomes the sole record:
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The attribute name. |
+| `default` | `any` | `""` | The fallback value (default `""`). |
+
+**Returns** `string` — The attribute value or default.
+
+### `.attr`
 
 ```kiwi
-import "xml"
-
-rows = xml::pipeline()
-  .with_schema({"version": "integer"})
-  .from_string('<config version="3" env="prod"/>')
-  .parse()
-
-cfg = rows[0]
-println cfg["version"]  # 3
-println cfg["env"]      # prod
+attr(name, default = "")
 ```
 
----
+Alias for `get_attr`.
 
-## Complete Example
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `any` |  |  |
+| `default` | `any` | `""` |  |
+
+### `.has_attr`
 
 ```kiwi
-import "xml"
-
-src = "
-<library>
-  <book id=\"1\" genre=\"fiction\">
-    <title>The Great Kiwi</title>
-    <author>Scotty</author>
-  </book>
-  <book id=\"2\" genre=\"technical\">
-    <title>Kiwi in Practice</title>
-    <author>Fuseraft</author>
-  </book>
-</library>
-"
-
-root = xml::parse(src)
-println root.tag  # prints: library
-
-# Iterate over all book elements
-for book in root.find_all("book") do
-  id    = book.get_attr("id")
-  genre = book.get_attr("genre")
-  title = book.find("title").text()
-  auth  = book.find("author").text()
-  println id + ": " + title + " by " + auth + " (" + genre + ")"
-end
-# prints:
-# 1: The Great Kiwi by Scotty (fiction)
-# 2: Kiwi in Practice by Fuseraft (technical)
-
-# Serialize back to XML
-println root.serialize()
+has_attr(name)
 ```
+
+Returns true if the attribute exists.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The attribute name. |
+
+**Returns** boolean
+
+### `.set_attr`
+
+```kiwi
+set_attr(name, value)
+```
+
+Sets or updates an attribute.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The attribute name. |
+| `value` | `string` |  | The attribute value. |
+
+### `.remove_attr`
+
+```kiwi
+remove_attr(name)
+```
+
+Removes an attribute.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The attribute name. |
+
+### `.add_child`
+
+```kiwi
+add_child(node)
+```
+
+Appends a child node.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `node` | `XmlNode` |  | The node to append. |
+
+### `.is_element`
+
+```kiwi
+is_element()
+```
+
+Returns true if this is an element node (not #text, #comment, #cdata, or #pi).
+
+**Returns** boolean
+
+### `.is_text`
+
+```kiwi
+is_text()
+```
+
+Returns true if this is a `#text` node.
+
+**Returns** boolean
+
+### `.find`
+
+```kiwi
+find(tag_name)
+```
+
+Returns the first direct child element with the given tag name.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tag_name` | `string` |  | The tag to search for. |
+
+**Returns** `XmlNode|null` — The first matching child, or null.
+
+### `.find_all`
+
+```kiwi
+find_all(tag_name)
+```
+
+Returns all direct child elements with the given tag name.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tag_name` | `string` |  | The tag to search for. |
+
+**Returns** `list` — Matching child nodes.
+
+### `.find_all_deep`
+
+```kiwi
+find_all_deep(tag_name)
+```
+
+Recursively searches all descendants for nodes with the given tag name.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tag_name` | `string` |  | The tag to search for. |
+
+**Returns** `list` — All matching nodes in depth-first order.
+
+### `.elements`
+
+```kiwi
+elements()
+```
+
+Returns only element children (excludes `#text`, `#comment`, `#cdata`, `#pi`).
+
+**Returns** `list` — Element child nodes.
+
+### `.first_child`
+
+```kiwi
+first_child()
+```
+
+Returns the first element child, or null.
+
+**Returns** XmlNode|null
+
+### `.last_child`
+
+```kiwi
+last_child()
+```
+
+Returns the last element child, or null.
+
+**Returns** XmlNode|null
+
+### `.text`
+
+```kiwi
+text()
+```
+
+Returns the concatenated text of all direct `#text` children.
+
+**Returns** `string` — Joined text content.
+
+### `.text_content`
+
+```kiwi
+text_content()
+```
+
+Returns the concatenated text of all descendant `#text` nodes (deep).
+
+**Returns** `string` — Full recursive text content.
+
+### `.serialize`
+
+```kiwi
+serialize(indent = 0)
+```
+
+Serializes the node back to an XML string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `indent` | `integer` | `0` | The current indentation level (default `0`). |
+
+**Returns** `string` — The XML string representation.
+
+### `.to_string`
+
+```kiwi
+to_string()
+```
+
+## `XmlPipeline` struct
+
+A fluent builder for extracting structured records from one or more XML sources.
+
+### `XmlPipeline.new`
+
+```kiwi
+XmlPipeline.new()
+```
+
+Initialises an empty pipeline builder.
+
+### `.select`
+
+```kiwi
+select(tag: string): XmlPipeline
+```
+
+Sets the element tag name to extract as records from the next source.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tag` | `string` |  | The XML element tag name to select. |
+
+**Returns** `XmlPipeline` — self, for chaining.
+
+### `.with_schema`
+
+```kiwi
+with_schema(schema: hashmap): XmlPipeline
+```
+
+Sets a type-coercion schema for the next source.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `schema` | `hashmap` |  | Map of field name to type string. |
+
+**Returns** `XmlPipeline` — self, for chaining.
+
+### `.from_file`
+
+```kiwi
+from_file(path: string): XmlPipeline
+```
+
+Registers an XML file as a source using the current pending settings.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path` | `string` |  | Path to the XML file. |
+
+**Returns** `XmlPipeline` — self, for chaining.
+
+**Throws** `string` — If the file does not exist at parse time.
+
+### `.from_string`
+
+```kiwi
+from_string(input: string): XmlPipeline
+```
+
+Registers an in-memory XML string as a source using the current pending settings.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | A valid XML string. |
+
+**Returns** `XmlPipeline` — self, for chaining.
+
+### `.as_dataset`
+
+```kiwi
+as_dataset(name: string): XmlPipeline
+```
+
+Names the most recently registered source as a dataset.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The dataset key name. |
+
+**Returns** `XmlPipeline` — self, for chaining.
+
+**Throws** `string` — If called before any source is registered.
+
+### `.parse`
+
+```kiwi
+parse()
+```
+
+Executes the pipeline and returns the parsed results.
+
+**Returns** `list|hashmap` — Parsed XML data.
+
+**Throws** `string` — On missing file or mixed dataset/non-dataset sources.

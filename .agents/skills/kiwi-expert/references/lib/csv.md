@@ -1,382 +1,181 @@
-# `csv`
+# csv
 
-The `csv` package provides functions for parsing CSV (comma-separated value) data.
+> Parse CSV text and files into lists or hashmaps, with typed columns.
 
-The algorithm conforms to RFC 4180.
+The `csv` package parses comma-separated values following RFC 4180, including quoted fields that contain commas or line breaks.
 
----
+## Quick parsing
 
-## Package Functions
-
-### `parse(input, delimiter)`
-
-Parses a CSV string into a list of rows (each row is a list of string fields).
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | The CSV data. |
-| `string` | `delimiter` | The delimiter to use. (optional, defaults to `,`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of lists representing rows and columns. |
-
-**Example**
+`parse` returns a list of rows, each a list of strings. `to_maps` uses the first row as headers and returns a list of hashmaps.
 
 ```kiwi
-import "csv"
+data = "name,age\nAda,36\n\"Lovelace, A\",37"
 
-var data = "name,age\nAlice,30\nBob,25"
-var rows = csv::parse(data)
+println csv::parse(data)
+# [["name", "age"], ["Ada", "36"], ["Lovelace, A", "37"]]
 
-# rows[0] is the header row
-println rows[0]
-# ["name", "age"]
-
-# iterate over data rows, skipping the header
-for row in rows[1:]
-  println row[0] + " is " + row[1] + " years old"
-end
-# Alice is 30 years old
-# Bob is 25 years old
-```
-
----
-
-### `parse_file(file_path, delimiter)`
-
-Parses a CSV file into a list of rows.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `file_path` | The path to a file. |
-| `string` | `delimiter` | The delimiter to use. (optional, defaults to `,`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of lists representing rows and columns. |
-
-**Example**
-
-```kiwi
-import "csv"
-
-# Parse a comma-delimited file
-var rows = csv::parse_file("/data/employees.csv")
-
-var headers = rows[0]
-println "Columns: " + headers.join(", ")
-
-for row in rows[1:]
-  println row.join(" | ")
-end
-
-# Parse a tab-delimited file
-var tsv_rows = csv::parse_file("/data/report.tsv", "\t")
-println "Row count: " + (tsv_rows.size() - 1).to_string()
-```
-
----
-
-### `to_maps(input, delimiter)`
-
-Parses a CSV string into a list of hashmaps, using the first row as header keys.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | The CSV data. |
-| `string` | `delimiter` | The delimiter to use. (optional, defaults to `,`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of hashmaps mapping header names to field values. |
-
-**Example**
-
-```kiwi
-import "csv"
-
-var data = "name,age\nAlice,30\nBob,25"
-var records = csv::to_maps(data)
-
-for r in records do
-  println r["name"] + " is " + r["age"] + " years old"
-end
-# Alice is 30 years old
-# Bob is 25 years old
-```
-
----
-
-### `file_to_maps(file_path, delimiter)`
-
-Parses a CSV file into a list of hashmaps, using the first row as header keys.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `file_path` | The path to a file. |
-| `string` | `delimiter` | The delimiter to use. (optional, defaults to `,`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A list of hashmaps mapping header names to field values. |
-
-**Throws**
-
-`string` — if the file does not exist.
-
-**Example**
-
-```kiwi
-import "csv"
-
-var records = csv::file_to_maps("/data/employees.csv")
-
-for r in records do
-  println r["name"] + " earns " + r["salary"]
+for person in csv::to_maps(data) do
+  println "${person["name"]} is ${person["age"]}"
 end
 ```
 
----
-
-### `pipeline()`
-
-Creates a `CsvPipeline` builder for fluent, declarative CSV parsing. Chain configuration methods to describe your sources, then call `.parse()` to execute.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `CsvPipeline` | A new pipeline builder instance. |
-
-See [CsvPipeline](#csvpipeline) below for the full builder API and examples.
-
----
-
-## `CsvPipeline`
-
-A fluent builder returned by `csv::pipeline()`. Configure one or more CSV sources, then call `.parse()` to get structured data.
-
-All builder methods return `self` so calls can be chained.
-
-### Schema types
-
-Pass schema types as strings to `.with_schema()`:
-
-| String | Coercion |
-| :--- | :--- |
-| `"string"` | left as-is — empty fields stay `""`, never `null` |
-| `"string?"` / `"nullable_string"` | left as-is for non-empty; empty fields become `null` |
-| `"integer"` / `"int"` | parsed as integer; empty fields become `null` |
-| `"float"` / `"double"` / `"number"` | parsed as float; empty fields become `null` |
-| `"boolean"` / `"bool"` | `true` for `"true"`, `"1"`, `"yes"`; `false` otherwise |
-| `"date"` | parsed via `DateTime.TryParse`; empty fields become `null` |
-| `"null"` / `"none"` | always `null` |
-| anything else | left as-is |
-
-**`"string"` vs `"string?"`** — All non-string typed columns return `null` for empty CSV fields. String columns are the exception: `"string"` preserves empty fields as `""`, which means `r["col"] != null` is always true. Use `"string?"` when you need to distinguish a present value from a missing one and want `??` or `!= null` checks to work:
+`parse_file` and `file_to_maps` do the same for a file. All four take an optional delimiter:
 
 ```kiwi
-# "string" — empty field stays "", ?? never fires
-schema = ["string", "integer", "string"]
-# r["notes"] ?? "none"   → always returns r["notes"], even when it's ""
-
-# "string?" — empty field becomes null, ?? fires correctly
-schema = ["string?", "integer", "string?"]
-# r["notes"] ?? "none"   → returns "none" when the field was empty
+println csv::parse("a;b\n1;2", ";")   # [["a", "b"], ["1", "2"]]
 ```
 
-### `.with_headers(headers)`
+```kiwi
+rows = csv::file_to_maps("people.csv")
+tsv = csv::parse_file("report.tsv", "\t")
+```
 
-Supplies custom column headers. When set, **every row in the file is treated as a data row** (no header row is skipped).
+## Pipelines with typed columns
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `headers` | List of column name strings. |
-
-### `.with_schema(schema)`
-
-Sets per-column type coercion for the next `from_file()`. Each element maps to the column at the same index; extra or missing entries are ignored.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `schema` | List of type-name strings. |
-
-### `.with_delimiter(delimiter)`
-
-Overrides the field delimiter for the next `from_file()` (default `,`).
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `delimiter` | The delimiter character. |
-
-### `.from_file(path)`
-
-Registers a CSV file using the current pending settings, then resets them for the next file. Call `.as_dataset()` after this to name the result.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `path` | Path to the CSV file. |
-
-### `.from_string(data)`
-
-Registers an in-memory CSV string as a source using the current pending settings. Same behaviour as `.from_file()` but no file is needed — useful for tests, fixtures, or data received from an API.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `data` | The CSV-formatted string to parse. |
-
-### `.as_dataset(name)`
-
-Names the most recently registered file. The name becomes the key in the hashmap returned by `.parse()`. Must be called after `.from_file()`.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `name` | Dataset key name. |
-
-**Throws** — if called before any `.from_file()`.
-
-### `.parse()`
-
-Executes the pipeline and returns the parsed results.
-
-| Condition | Return type |
-| :--- | :--- |
-| Single unnamed file | `list` of hashmaps |
-| Multiple unnamed files | `list` of lists of hashmaps |
-| All files named as datasets | `hashmap` keyed by dataset name |
-| Mixed named/unnamed | throws a pipeline error |
-
----
-
-## Pipeline Examples
-
-### Single file with schema
+`csv::pipeline()` builds a parse step by step. Every row comes back as a hashmap, and a schema converts columns from strings to the types you need.
 
 ```kiwi
-import "csv"
+data = "name,score,passed\nAlice,95,true\nBob,,false"
 
 rows = csv::pipeline()
-  .with_schema(["string", "integer", "boolean", "float"])
-  .from_file("users.csv")
-  .parse()
-
-for r in rows do
-  name   = r["name"]
-  id     = r["id"]      # integer
-  active = r["active"]  # boolean
-  score  = r["score"]   # float
-  println "${name} (${id}): active=${active}, score=${score}"
-end
-```
-
-### Nullable string columns with `"string?"`
-
-Use `"string?"` for columns that may be empty in the CSV and where you want `null` rather than `""`:
-
-```kiwi
-import "csv"
-
-# Weapon Desc is blank when no weapon was used.
-# "string?" makes it null so != null and ?? work correctly.
-schema = ["integer", "string", "string?", "float"]
-
-rows = csv::pipeline()
-  .with_schema(schema)
-  .from_file("incidents.csv")
-  .parse()
-
-for r in rows do
-  weapon = r["weapon_desc"] ?? "none"
-  println "${r["id"]}: ${weapon}"
-end
-```
-
-### In-memory CSV with `from_string`
-
-Parse a CSV string directly — no temp file needed:
-
-```kiwi
-import "csv"
-
-data = "name,score\nAlice,95\nBob,82\nCarol,91"
-
-rows = csv::pipeline()
-  .with_schema(["string", "integer"])
+  .with_schema(["string", "integer", "boolean"])
   .from_string(data)
   .parse()
 
 for r in rows do
-  println "${r["name"]}: ${r["score"]}"
+  println "${r["name"]}: ${r["score"] ?? "no score"}"
 end
+# Alice: 95
+# Bob: no score
 ```
 
-### Custom headers (no header row in file)
+| Method | Effect |
+| :-- | :-- |
+| `.from_file(path)`, `.from_string(text)` | Add a source. |
+| `.with_schema(types)` | Convert each column to a type, by position. |
+| `.with_headers(names)` | Use these column names; the source has no header row. |
+| `.with_delimiter(text)` | Use a delimiter other than `,`. |
+| `.as_dataset(name)` | Name the most recent source. |
+| `.parse()` | Run the pipeline. |
+
+### Schema types
+
+| Type | Conversion | Empty field |
+| :-- | :-- | :-- |
+| `"string"` | Unchanged | `""` |
+| `"string?"` | Unchanged | `null` |
+| `"integer"` or `"int"` | Parsed as an integer | `null` |
+| `"float"`, `"double"` or `"number"` | Parsed as a float | `null` |
+| `"boolean"` or `"bool"` | `true` for `"true"`, `"1"` or `"yes"`; otherwise `false` | `false` |
+| `"date"` | Parsed as a date | `null` |
+
+Use `"string?"` when an empty text field should count as missing, so that `??` and `!= null` work on it.
+
+### Several sources
+
+With several unnamed sources, `parse()` returns a list with one result per source. Name every source with `.as_dataset()` to get a hashmap instead; mixing named and unnamed sources is an error.
 
 ```kiwi
-import "csv"
-
-rows = csv::pipeline()
-  .with_headers(["name", "id", "active", "score"])
-  .with_schema(["string", "integer", "boolean", "float"])
-  .from_file("users_noheader.csv")
-  .parse()
-```
-
-### Tab-delimited file
-
-```kiwi
-import "csv"
-
-rows = csv::pipeline()
-  .with_delimiter("\t")
-  .from_file("report.tsv")
-  .parse()
-```
-
-### Multiple unnamed files
-
-When no datasets are named, multiple files return a list of results — one per file.
-
-```kiwi
-import "csv"
-
-all = csv::pipeline()
-  .from_file("q1.csv")
-  .from_file("q2.csv")
-  .from_file("q3.csv")
-  .parse()
-
-q1 = all[0]
-q2 = all[1]
-q3 = all[2]
-```
-
-### Named datasets
-
-Name every source with `.as_dataset()` and `.parse()` returns a single hashmap keyed by those names.
-
-```kiwi
-import "csv"
-
 data = csv::pipeline()
-  .with_schema(["string", "integer", "float"])
+  .with_schema(["string", "integer"])
+  .from_string("product,qty\nkiwi,3").as_dataset("orders")
+  .with_schema(["string", "float"])
+  .from_string("product,price\nkiwi,0.5").as_dataset("prices")
+  .parse()
+
+println data["orders"]   # [{"product": "kiwi", "qty": 3}]
+println data["prices"]   # [{"product": "kiwi", "price": 0.5}]
+```
+
+For filtering, joining and grouping parsed rows, see [`table`](table.md).
+
+## Functions
+
+### `csv::parse_file`
+
+```kiwi
+csv::parse_file(file_path: string, delimiter: string = ","): list
+```
+
+Parses a CSV file into a list of rows.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `file_path` | `string` |  | The path to the CSV file. |
+| `delimiter` | `string` | `","` | The field delimiter (default `","`). |
+
+**Returns** `list` — A list of rows, each row being a list of string fields.
+
+**Throws** `string` — If the file does not exist.
+
+### `csv::parse`
+
+```kiwi
+csv::parse(input: string, delimiter: string = ","): list
+```
+
+Parses a CSV string into a list of rows.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | The CSV-formatted string to parse. |
+| `delimiter` | `string` | `","` | The field delimiter (default `","`). |
+
+**Returns** `list` — A list of rows, each row being a list of string fields.
+
+### `csv::to_maps`
+
+```kiwi
+csv::to_maps(input: string, delimiter: string = ","): list
+```
+
+Parses a CSV string into a list of hashmaps using the first row as headers.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | The CSV-formatted string to parse. |
+| `delimiter` | `string` | `","` | The field delimiter (default `","`). |
+
+**Returns** `list` — A list of hashmaps, each mapping header names to field values.
+
+### `csv::file_to_maps`
+
+```kiwi
+csv::file_to_maps(file_path: string, delimiter: string = ","): list
+```
+
+Parses a CSV file into a list of hashmaps using the first row as headers.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `file_path` | `string` |  | The path to the CSV file. |
+| `delimiter` | `string` | `","` | The field delimiter (default `","`). |
+
+**Returns** `list` — A list of hashmaps, each mapping header names to field values.
+
+**Throws** `string` — If the file does not exist.
+
+### `csv::pipeline`
+
+```kiwi
+csv::pipeline(): CsvPipeline
+```
+
+Creates a new CsvPipeline builder for fluent CSV parsing.
+
+**Returns** `CsvPipeline` — A new pipeline builder instance.
+
+```kiwi
+# Single file — returns a list of hashmaps
+rows = csv::pipeline()
+  .with_headers(["name", "id", "active", "created"])
+  .with_schema(["string", "integer", "boolean", "date"])
+  .from_file("users.csv")
+  .parse()
+
+# Multiple named datasets — returns a hashmap keyed by dataset name
+data = csv::pipeline()
+  .with_schema(["string", "integer"])
   .from_file("orders.csv").as_dataset("orders")
   .with_schema(["string", "float"])
   .from_file("products.csv").as_dataset("products")
@@ -384,22 +183,116 @@ data = csv::pipeline()
 
 orders   = data["orders"]
 products = data["products"]
-
-for o in orders do
-  println "Order: ${o["product"]}, qty=${o["qty"]}"
-end
 ```
 
-### Error: mixing named and unnamed sources
+## `CsvPipeline` struct
 
-If at least one source is named, all must be named — otherwise `.parse()` throws.
+A fluent builder for parsing one or more CSV files into structured data.
+
+### `CsvPipeline.new`
 
 ```kiwi
-import "csv"
-
-# This will throw a pipeline error
-csv::pipeline()
-  .from_file("a.csv").as_dataset("a")
-  .from_file("b.csv")   # missing as_dataset()
-  .parse()
+CsvPipeline.new()
 ```
+
+Initialises an empty pipeline builder.
+
+### `.with_headers`
+
+```kiwi
+with_headers(headers: list): CsvPipeline
+```
+
+Sets custom column headers for the next `from_file()` call.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `headers` | `list` |  | List of column header name strings. |
+
+**Returns** `CsvPipeline` — self, for chaining.
+
+### `.with_schema`
+
+```kiwi
+with_schema(schema: list): CsvPipeline
+```
+
+Sets a type-coercion schema for the next `from_file()` call.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `schema` | `list` |  | List of type-name strings. |
+
+**Returns** `CsvPipeline` — self, for chaining.
+
+### `.with_delimiter`
+
+```kiwi
+with_delimiter(delimiter: string): CsvPipeline
+```
+
+Sets the field delimiter for the next `from_file()` call.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `delimiter` | `string` |  | The delimiter character (default `","`). |
+
+**Returns** `CsvPipeline` — self, for chaining.
+
+### `.from_file`
+
+```kiwi
+from_file(path: string): CsvPipeline
+```
+
+Registers a CSV file as a source using the current pending settings.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path` | `string` |  | Path to the CSV file. |
+
+**Returns** `CsvPipeline` — self, for chaining.
+
+**Throws** `string` — If the file does not exist at parse time.
+
+### `.from_string`
+
+```kiwi
+from_string(data: string): CsvPipeline
+```
+
+Registers an in-memory CSV string as a source using the current pending settings.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `data` | `string` |  | The CSV-formatted string to parse. |
+
+**Returns** `CsvPipeline` — self, for chaining.
+
+### `.as_dataset`
+
+```kiwi
+as_dataset(name: string): CsvPipeline
+```
+
+Names the most recently registered file as a dataset.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The dataset key name. |
+
+**Returns** `CsvPipeline` — self, for chaining.
+
+**Throws** `string` — If called before any `from_file()`.
+
+### `.parse`
+
+```kiwi
+parse()
+```
+
+Executes the pipeline and returns the parsed results.
+
+**Returns** `list|hashmap` — Parsed CSV data.
+
+**Throws** `string` — On file-not-found or mixed dataset/non-dataset sources.

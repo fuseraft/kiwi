@@ -1,366 +1,498 @@
-# `table`
+# table
 
-The `table` package provides an in-memory tabular data pipeline for filtering, projecting, joining, grouping, and aggregating lists of hashmaps. It is automatically loaded by the Kiwi runtime — no explicit import is needed.
+> Filter, join, group and display lists of hashmaps.
 
-Every transform method returns `self`, so operations can be chained freely. Call a terminal method to retrieve results.
-
----
-
-## Package Functions
-
-### `table::from(rows)`
-
-Creates a new `Table` wrapping a list of hashmaps.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `rows` | A list of hashmaps — typically the output of a `csv::pipeline()` or `json::pipeline()` call. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `Table` | A new Table instance. |
-
----
-
-## `Table`
-
-### Transform methods
-
-All transform methods return `self` for chaining.
-
-#### `.where(predicate)`
-
-Keeps only rows for which `predicate(row)` is truthy.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `lambda` | `predicate` | A lambda accepting a row hashmap. |
-
-#### `.select(keys)`
-
-Projects each row to only the specified fields.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `keys` | The field names to retain. |
-
-#### `.rename(old_name, new_name)`
-
-Renames a field in every row.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `old_name` | The existing field name. |
-| `string` | `new_name` | The replacement field name. |
-
-#### `.add_field(name, compute)`
-
-Adds a computed field to every row.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `name` | The new field name. |
-| `lambda` | `compute` | A lambda accepting a row and returning the new field's value. |
-
-#### `.drop(keys)`
-
-Removes the specified fields from every row.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `keys` | The field names to remove. |
-
-#### `.map(transform)`
-
-Applies a custom transform to every row. The lambda receives a row hashmap and must return the new row.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `lambda` | `transform` | A lambda accepting a row hashmap and returning a hashmap. |
-
-#### `.order_by(field, asc?)`
-
-Sorts rows by a field value.
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `field` | The field name to sort by. | |
-| `boolean` | `asc` | `true` for ascending, `false` for descending. | `true` |
-
-#### `.limit(n)`
-
-Keeps only the first `n` rows.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `n` | Maximum number of rows to keep. |
-
-#### `.offset(n)`
-
-Skips the first `n` rows.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `integer` | `n` | Number of rows to skip. |
-
-#### `.distinct()`
-
-Removes duplicate rows by comparing all fields.
-
----
-
-### Join methods
-
-All join methods return `self`. When a left and right row are merged, right-side fields overwrite left-side fields on name collision. Use `.rename()` or `.select()` before joining to avoid unwanted overwrites.
-
-All four join methods use a hash index on the right-side table, giving **O(n+m)** performance regardless of table size.
-
-#### `.inner_join(other, left_key, right_key)`
-
-Keeps only rows that have at least one matching row in `other`.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `other` | The right-side list of hashmaps. |
-| `string` | `left_key` | The join field on this table. |
-| `string` | `right_key` | The join field on `other`. |
-
-#### `.left_join(other, left_key, right_key)`
-
-Keeps all rows from this table. Rows with no match in `other` are included without any right-side fields.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `other` | The right-side list of hashmaps. |
-| `string` | `left_key` | The join field on this table. |
-| `string` | `right_key` | The join field on `other`. |
-
-#### `.right_join(other, left_key, right_key)`
-
-Keeps all rows from `other`. Rows with no match in this table are included without any left-side fields.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `other` | The right-side list of hashmaps. |
-| `string` | `left_key` | The join field on this table. |
-| `string` | `right_key` | The join field on `other`. |
-
-#### `.full_join(other, left_key, right_key)`
-
-Keeps all rows from both sides. Unmatched rows carry only their own side's fields.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `other` | The right-side list of hashmaps. |
-| `string` | `left_key` | The join field on this table. |
-| `string` | `right_key` | The join field on `other`. |
-
-#### Anti-join pattern
-
-To find rows in this table with **no** match in another table (equivalent to `LEFT JOIN … WHERE right.col IS NULL`), use `.left_join()` followed by `.where()` checking for the absence of a right-side field:
+The `table` package queries lists of hashmaps (rows) the way you would a database table. Wrap rows with `table::from`, chain operations, and finish with a method that returns a result. Rows from [`csv`](csv.md), [`json`](json.md) and [`sqlite`](sqlite.md) all work.
 
 ```kiwi
-# Users who have placed no orders
-table::from(users)
-  .left_join(orders, "id", "user_id")
-  .where(do (r) => !r.keys().contains("user_id") end)
+users = [
+  {id: 1, name: "Ada", active: true, score: 91},
+  {id: 2, name: "Grace", active: true, score: 87},
+  {id: 3, name: "Linus", active: false, score: 75}
+]
+
+top = table::from(users)
+  .where(do (r) => r["active"] end)
+  .select(["name", "score"])
+  .order_by("score", false)      # descending
   .to_list()
+
+println top   # [{"name": "Ada", "score": 91}, {"name": "Grace", "score": 87}]
 ```
 
-After a left join, unmatched rows retain only their original fields — so any field that only exists on the right side will be absent.
+Each step returns a new table; the source rows are not modified.
 
----
+## Transforming
 
-### Grouping & Aggregation
-
-#### `.group_by(field)`
-
-Groups rows by the unique values of `field`. Must be followed by `.agg()`.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `field` | The field to group by. |
-
-#### `.agg(specs)`
-
-Collapses groups into one row per group. `specs` is a hashmap mapping output field names to aggregate lambdas. Each lambda receives the list of rows in its group and returns a value. The group-by field is automatically included in the output.
-
-**Throws** — if called without a preceding `.group_by()`.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `hashmap` | `specs` | `{ "out_field": do (rows) => … end, … }` |
+| Method | Does |
+| :-- | :-- |
+| `where(predicate)` | Keeps rows for which the predicate is truthy. |
+| `select(fields)`, `drop(fields)` | Keeps or removes fields. |
+| `rename(old, new)` | Renames a field. |
+| `add_field(name, compute)` | Adds a field computed from each row. |
+| `map(transform)` | Replaces each row with the transform's result. |
+| `order_by(field, ascending)` | Sorts by a field; ascending by default. |
+| `limit(n)`, `offset(n)` | Keeps the first `n` rows, or skips them. |
+| `distinct()` | Removes duplicate rows. |
 
 ```kiwi
-table::from(orders)
-  .group_by("product")
+graded = table::from([{name: "Ada", score: 91}, {name: "Linus", score: 75}])
+  .add_field("grade", do (r) => r["score"] >= 90 ? "A" : "B" end)
+  .pluck("grade")
+
+println graded   # ["A", "B"]
+```
+
+## Joining
+
+`inner_join`, `left_join`, `right_join` and `full_join` take the other rows, the key field on this side, and the key field on the other side. Joined rows merge the fields of both; if both sides have a field with the same name, `rename` one first.
+
+```kiwi
+users = [{id: 1, name: "Ada"}, {id: 2, name: "Grace"}, {id: 3, name: "Linus"}]
+orders = [
+  {user_id: 1, product: "kiwi", qty: 3},
+  {user_id: 2, product: "mango", qty: 1}
+]
+
+println table::from(users)
+  .inner_join(orders, "id", "user_id")
+  .select(["name", "product"])
+  .to_list()
+# [{"name": "Ada", "product": "kiwi"}, {"name": "Grace", "product": "mango"}]
+
+# Users without orders: left join, then keep rows that gained no order fields.
+println table::from(users)
+  .left_join(orders, "id", "user_id")
+  .where(do (r) => !r.keys().contains("product") end)
+  .pluck("name")
+# ["Linus"]
+```
+
+## Grouping
+
+`group_by(field)` followed by `agg(specs)` produces one row per group. Each spec is a lambda that receives the group's rows:
+
+```kiwi
+orders = [
+  {region: "west", qty: 3},
+  {region: "east", qty: 1},
+  {region: "west", qty: 2}
+]
+
+println table::from(orders)
+  .group_by("region")
   .agg({
-    "count":   do (rows) => rows.size() end,
-    "total":   do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
-    "avg_qty": do (rows) => rows.map(do (r) => r["qty"] end).sum() / rows.size() end
+    "orders": do (rows) => rows.size() end,
+    "units": do (rows) => rows.map(do (r) => r["qty"] end).sum() end
   })
   .to_list()
+# [{"region": "west", "orders": 2, "units": 5}, {"region": "east", "orders": 1, "units": 1}]
 ```
 
----
+## Results
 
-### Terminal methods
-
-#### `.to_list()`
-
-Returns the current rows as a plain list of hashmaps.
-
-#### `.to_hashmap(key_field)`
-
-Returns a hashmap keyed by the values of `key_field`. If multiple rows share the same key value, the last one wins.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `key_field` | The field whose value becomes each hashmap key. |
-
-**Returns** `hashmap`
-
-#### `.pluck(field)`
-
-Extracts a single field's values as a flat list.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `field` | The field name to extract. |
-
-**Returns** `list`
-
-#### `.first()`
-
-Returns the first row, or `null` if the table is empty.
-
-**Returns** `hashmap | null`
-
-#### `.count()`
-
-Returns the number of rows.
-
-**Returns** `integer`
-
-#### `.display(max_width?)`
-
-Prints the table as a formatted ASCII grid and returns `self` for continued chaining.
-
-Columns are derived from the first row's keys. Each column is wide enough to fit its header and all its values. When `max_width` is set, any value longer than that many characters is truncated and suffixed with `…`.
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `integer` | `max_width` | Maximum column width in characters. `0` means unlimited. | `0` |
-
-**Returns** `Table` (self)
+| Method | Returns |
+| :-- | :-- |
+| `to_list()` | The rows. |
+| `pluck(field)` | One field's values. |
+| `first()` | The first row, or `null`. |
+| `count()` | The number of rows. |
+| `to_hashmap(field)` | A hashmap from each row's `field` value, as a string, to the row. |
+| `display(max_width)` | Prints the rows as a table and returns the table, so it can sit mid-chain while debugging. |
 
 ```kiwi
-table::from(rows)
-  .order_by("score", false)
-  .display()
-# +----+-------+-------+
-# | id | name  | score |
-# +----+-------+-------+
-# |  1 | Alice |     9 |
-# …
-# (4 row(s))
-
-# Cap every column at 25 characters
-table::from(rows).display(25)
-# +----+---------------------------+-------+
-# | id | name                      | score |
-# +----+---------------------------+-------+
-# |  1 | A very long name that g…  |     9 |
+table::from([{id: 1, name: "Ada"}, {id: 2, name: "Grace"}]).display()
 ```
 
----
+```text
++----+-------+
+| id | name  |
++----+-------+
+| 1  | Ada   |
+| 2  | Grace |
++----+-------+
+(2 row(s))
+```
 
-## Examples
+## Functions
 
-### Filter, project, sort
+### `table::from`
 
 ```kiwi
-result = table::from(users)
+table::from(rows: list): Table
+```
+
+Creates a new Table from a list of hashmaps.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `rows` | `list` |  | The source data. |
+
+**Returns** `Table` — A new Table instance.
+
+## `Table` struct
+
+An in-memory table of rows (list of hashmaps) with a fluent transform API.
+
+```kiwi
+# Filter, project, sort
+result = table::from(rows)
   .where(do (r) => r["active"] == true end)
   .select(["id", "name", "score"])
   .order_by("score", false)
   .limit(10)
   .to_list()
-```
 
-### Computed field
-
-```kiwi
-table::from(products)
-  .add_field("discounted", do (r) => r["price"] * 0.9 end)
-  .display()
-```
-
-### Inner join
-
-```kiwi
+# Join two datasets
 result = table::from(users)
   .inner_join(orders, "id", "user_id")
   .select(["name", "product", "qty"])
   .to_list()
-```
 
-### Rename before join to avoid field collision
-
-```kiwi
-# Both users and products have a "name" field.
-# Rename one before joining to keep both.
-product_lookup = table::from(products)
-  .rename("name", "product_name")
-  .to_list()
-
+# Group and aggregate
 result = table::from(orders)
-  .inner_join(product_lookup, "product_id", "id")
-  .select(["order_id", "product_name", "qty"])
+  .group_by("product")
+  .agg({
+    "total": do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+    "n":     do (rows) => rows.size() end
+  })
+  .order_by("total", false)
   .to_list()
 ```
 
-### Group and aggregate
+### `Table.new`
 
 ```kiwi
-stats = table::from(orders)
-  .group_by("region")
+Table.new(rows: list)
+```
+
+Creates a new Table wrapping a list of hashmaps.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `rows` | `list` |  | The source data — a list of hashmaps. |
+
+### `.where`
+
+```kiwi
+where(predicate: lambda): Table
+```
+
+Keeps only rows for which `predicate(row)` is truthy.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `predicate` | `lambda` |  | A lambda accepting a row hashmap. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.select`
+
+```kiwi
+select(keys: list): Table
+```
+
+Projects each row to only the specified keys.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `keys` | `list` |  | The field names to retain. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.rename`
+
+```kiwi
+rename(old_name: string, new_name: string): Table
+```
+
+Renames a field in every row.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `old_name` | `string` |  | The existing field name. |
+| `new_name` | `string` |  | The replacement field name. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.add_field`
+
+```kiwi
+add_field(name: string, compute: lambda): Table
+```
+
+Adds a computed field to every row.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The new field name. |
+| `compute` | `lambda` |  | A lambda accepting a row and returning the field value. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.drop`
+
+```kiwi
+drop(keys: list): Table
+```
+
+Removes the specified fields from every row.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `keys` | `list` |  | The field names to drop. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.map`
+
+```kiwi
+map(transform: lambda): Table
+```
+
+Applies a custom transform lambda to every row.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `transform` | `lambda` |  | A lambda accepting a row hashmap and returning a hashmap. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.order_by`
+
+```kiwi
+order_by(field: string, asc: boolean = true): Table
+```
+
+Sorts rows by a field value.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `field` | `string` |  | The field name to sort by. |
+| `asc` | `boolean` | `true` | `true` for ascending (default), `false` for descending. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.limit`
+
+```kiwi
+limit(n: integer): Table
+```
+
+Keeps only the first `n` rows.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `integer` |  | Maximum number of rows to keep. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.offset`
+
+```kiwi
+offset(n: integer): Table
+```
+
+Skips the first `n` rows.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `integer` |  | Number of rows to skip. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.distinct`
+
+```kiwi
+distinct(): Table
+```
+
+Removes duplicate rows (compares all fields).
+
+**Returns** `Table` — self, for chaining.
+
+### `.inner_join`
+
+```kiwi
+inner_join(other: list, left_key: string, right_key: string): Table
+```
+
+Keeps only rows that have a matching row in `other`.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `other` | `list` |  | The right-side list of hashmaps. |
+| `left_key` | `string` |  | The join field on the left (this table). |
+| `right_key` | `string` |  | The join field on the right (`other`). |
+
+**Returns** `Table` — self, for chaining.
+
+### `.left_join`
+
+```kiwi
+left_join(other: list, left_key: string, right_key: string): Table
+```
+
+Keeps all left rows; right-side fields are absent when there is no match.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `other` | `list` |  | The right-side list of hashmaps. |
+| `left_key` | `string` |  | The join field on the left (this table). |
+| `right_key` | `string` |  | The join field on the right (`other`). |
+
+**Returns** `Table` — self, for chaining.
+
+### `.right_join`
+
+```kiwi
+right_join(other: list, left_key: string, right_key: string): Table
+```
+
+Keeps all right rows; left-side fields are absent when there is no match.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `other` | `list` |  | The right-side list of hashmaps. |
+| `left_key` | `string` |  | The join field on the left (this table). |
+| `right_key` | `string` |  | The join field on the right (`other`). |
+
+**Returns** `Table` — self, for chaining.
+
+### `.full_join`
+
+```kiwi
+full_join(other: list, left_key: string, right_key: string): Table
+```
+
+Keeps all rows from both sides; unmatched rows have fields only from their side.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `other` | `list` |  | The right-side list of hashmaps. |
+| `left_key` | `string` |  | The join field on the left (this table). |
+| `right_key` | `string` |  | The join field on the right (`other`). |
+
+**Returns** `Table` — self, for chaining.
+
+### `.group_by`
+
+```kiwi
+group_by(field: string): Table
+```
+
+Groups rows by the unique values of `field`.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `field` | `string` |  | The field to group by. |
+
+**Returns** `Table` — self, for chaining.
+
+### `.agg`
+
+```kiwi
+agg(specs: hashmap): Table
+```
+
+Collapses groups into one row per group using aggregate functions.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `specs` | `hashmap` |  | `{ "out_field": do (rows) => ... end, ... }` |
+
+**Returns** `Table` — self, for chaining.
+
+**Throws** `string` — If called without a preceding `group_by()`.
+
+```kiwi
+table::from(orders)
+  .group_by("product")
   .agg({
-    "orders":     do (rows) => rows.size() end,
-    "total_qty":  do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
-    "total_rev":  do (rows) => rows.map(do (r) => r["revenue"] end).sum() end
+    "total": do (rows) => rows.map(do (r) => r["qty"] end).sum() end,
+    "n":     do (rows) => rows.size() end
   })
-  .order_by("total_rev", false)
-  .display()
+  .to_list()
 ```
 
-### Anti-join: rows with no match
+### `.to_list`
 
 ```kiwi
-# Find users who have never placed an order
-no_orders = table::from(users)
-  .left_join(orders, "id", "user_id")
-  .where(do (r) => !r.keys().contains("user_id") end)
-  .pluck("name")
+to_list(): list
 ```
 
-### Fast lookup with `to_hashmap`
+Returns the current rows as a plain list.
+
+**Returns** `list` — List of row hashmaps.
+
+### `.to_hashmap`
 
 ```kiwi
-user_map = table::from(users).to_hashmap("id")
-u = user_map["42"]
-println u["name"]
+to_hashmap(key_field: string): hashmap
 ```
 
-### Debugging mid-chain with `display`
+Returns a hashmap keyed by the values of `key_field`.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `key_field` | `string` |  | The field whose value becomes each hashmap key. |
+
+**Returns** `hashmap` — A hashmap mapping key values to row hashmaps.
+
+### `.pluck`
+
+```kiwi
+pluck(field: string): list
+```
+
+Extracts a single field's values as a flat list.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `field` | `string` |  | The field name to extract. |
+
+**Returns** `list` — A list of the field values.
+
+### `.first`
+
+```kiwi
+first()
+```
+
+Returns the first row, or `null` if the table is empty.
+
+**Returns** `hashmap|null` — The first row, or null.
+
+### `.count`
+
+```kiwi
+count(): integer
+```
+
+Returns the number of rows.
+
+**Returns** `integer` — Row count.
+
+### `.display`
+
+```kiwi
+display(max_width: integer = 0): Table
+```
+
+Prints the table as a formatted ASCII grid and returns self.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `max_width` | `integer` | `0` | Maximum column width in characters (0 = unlimited). Values longer than `max_width` are truncated with `…`. |
+
+**Returns** `Table` — self, for chaining.
 
 ```kiwi
 table::from(rows)
   .where(do (r) => r["active"] end)
-  .display()        # inspect here without breaking the chain
-  .pluck("id")
+  .order_by("name")
+  .display()
+
+# Cap every column at 30 characters
+table::from(rows).display(30)
 ```

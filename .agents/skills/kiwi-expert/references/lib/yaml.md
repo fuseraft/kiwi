@@ -1,209 +1,128 @@
-# `yaml`
+# yaml
 
-The `yaml` package provides a pure-Kiwi YAML 1.2 parser and serializer.
+> Parse and produce YAML.
 
-**Supported features:**
-- Block mappings and sequences (any indentation)
-- Flow collections: `{}` and `[]`
-- Scalars: `null`, boolean, integer, float, plain and quoted strings
-- Single- and double-quoted strings with escape sequences
-- Block scalars: `|` (literal) and `>` (folded)
-- Inline comments
-- Anchors (`&name`) and aliases (`*name`)
-- Document markers (`---` and `...`)
-- Multi-document streams via `parse_all()`
-- Serialization via `stringify()`
-
----
-
-## Package Functions
-
-### `parse(input)`
-
-Parses a YAML string and returns the first document as a Kiwi value.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | The YAML-formatted string to parse. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | A Kiwi value: `hashmap`, `list`, `string`, `integer`, `float`, `boolean`, or `null`. |
-
-**Example**
+The `yaml` package converts between YAML text and Kiwi values: mappings become hashmaps, sequences become lists, and scalars become strings, numbers, booleans or `null`.
 
 ```kiwi
-doc = yaml::parse("name: Kiwi\nversion: 2\nactive: true")
-println doc["name"]    # Kiwi
-println doc["version"] # 2
-println doc["active"]  # true
-```
-
----
-
-### `parse_file(file_path)`
-
-Parses a YAML file and returns the first document.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `file_path` | Path to the YAML file. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | The parsed document. |
-
-**Throws**
-
-`string` — if the file does not exist.
-
-**Example**
-
-```kiwi
-doc = yaml::parse_file("/etc/myapp/config.yaml")
-println doc["database"]["host"]
-```
-
----
-
-### `parse_all(input)`
-
-Parses a YAML string containing multiple `---`-separated documents and returns all of them as a list.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | A YAML string with one or more documents. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | One parsed document per `---` section. |
-
-**Example**
-
-```kiwi
-src = "---\nname: first\n---\nname: second"
-docs = yaml::parse_all(src)
-println docs.size()       # 2
-println docs[0]["name"]   # first
-println docs[1]["name"]   # second
-```
-
----
-
-### `stringify(value)`
-
-Serializes a Kiwi value to a YAML-formatted string.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `value` | The value to serialize (`hashmap`, `list`, scalar, or `null`). |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | YAML-formatted string. |
-
-**Example**
-
-```kiwi
-data = {name: "Alice", scores: [95, 87, 100], active: true}
-println yaml::stringify(data)
-# name: Alice
-# scores:
-#   - 95
-#   - 87
-#   - 100
-# active: true
-```
-
----
-
-## Examples
-
-### Nested mapping
-
-```kiwi
-src = "
+config = yaml::parse("
+name: kiwi
+version: 2
+tags:
+  - fast
+  - fun
 server:
   host: localhost
   port: 8080
-  tls: false
-"
-cfg = yaml::parse(src)
-host = cfg["server"]["host"]
-port = cfg["server"]["port"]
-println "${host}:${port}"  # localhost:8080
+debug: false
+")
+
+println config["server"]["port"]   # 8080
+println config["tags"]             # ["fast", "fun"]
+
+println yaml::stringify({name: "kiwi", ports: [80, 443]})
 ```
 
-### Sequence of mappings
+`parse_file(path)` reads a file, and `parse_all(text)` reads a stream of several documents separated by `---`, returning a list:
 
 ```kiwi
-src = "
-- name: Alice
-  age: 30
-- name: Bob
-  age: 25
-"
-people = yaml::parse(src)
-for p in people do
-  n = p["name"]
-  a = p["age"]
-  println "${n} is ${a}"
-end
-# Alice is 30
-# Bob is 25
+println yaml::parse_all("a: 1\n---\na: 2")   # [{"a": 1}, {"a": 2}]
 ```
 
-### Anchors and aliases
+## Supported YAML
+
+- Block mappings and sequences, and inline `{...}` and `[...]` collections.
+- Plain, single-quoted and double-quoted scalars, and `|` and `>` block scalars.
+- Comments.
+- Anchors (`&name`) and aliases (`*name`). The `<<` merge key is not expanded; it is kept as an ordinary key.
+
+Scalars follow the YAML 1.2 core schema: `true`/`false` are booleans, numbers are integers or floats, `null` and `~` are null, and everything else, including `yes`, `no` and dates, is a string. Quote a value to keep it a string.
 
 ```kiwi
-src = "
-defaults: &defaults
-  timeout: 30
-  retries: 3
-
-production:
-  <<: *defaults
-  host: prod.example.com
-"
-doc = yaml::parse(src)
-println doc["defaults"]["timeout"]  # 30
+values = yaml::parse("count: 010\nratio: 1.5e2\nanswer: yes\nid: '42'")
+println values   # {"count": 10, "ratio": 150, "answer": "yes", "id": "42"}
 ```
 
-### Round-trip (parse → stringify → parse)
+## Functions
+
+### `yaml::parse`
 
 ```kiwi
-original = {project: "Kiwi", version: 2, tags: ["scripting", "aot"]}
-serialized = yaml::stringify(original)
-restored = yaml::parse(serialized)
-tags = restored["tags"]
-println tags[0]  # scripting
+yaml::parse(input: string): any
 ```
 
-### Scalar type coercion
+Parses a YAML string and returns the first document as a Kiwi value.
 
-YAML scalars are automatically coerced to Kiwi types:
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | The YAML-formatted string to parse. |
 
-| YAML literal | Kiwi type | Value |
-| :--- | :--- | :--- |
-| `42` | `integer` | `42` |
-| `3.14` | `float` | `3.14` |
-| `true` / `True` / `TRUE` | `boolean` | `true` |
-| `false` / `False` / `FALSE` | `boolean` | `false` |
-| `null` / `~` / `Null` | `null` | `null` |
-| `"hello"` | `string` | `"hello"` |
+**Returns** `any` — A Kiwi value (hashmap, list, string, integer, float, boolean, or null).
+
+### `yaml::parse_file`
+
+```kiwi
+yaml::parse_file(file_path: string): any
+```
+
+Parses a YAML file and returns the first document.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `file_path` | `string` |  | Path to the YAML file. |
+
+**Returns** `any` — Parsed value.
+
+### `yaml::parse_all`
+
+```kiwi
+yaml::parse_all(input: string): list
+```
+
+Parses a YAML string and returns all documents as a list.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | The YAML-formatted string. |
+
+**Returns** `list` — List of parsed documents, one per --- section.
+
+### `yaml::stringify`
+
+```kiwi
+yaml::stringify(value: any): string
+```
+
+Serializes a Kiwi value to a YAML-formatted string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `value` | `any` |  | The value to serialize. |
+
+**Returns** `string` — YAML-formatted string.
+
+## `YamlParser` struct
+
+A YAML 1.2 parser and serializer written in pure Kiwi. Supports: - Block mappings and sequences (any indentation) - Flow collections: {} and [] - Scalars: null, boolean, integer, float, plain and quoted strings - Single- and double-quoted strings with escape sequences - Block scalars: | (literal) and > (folded) - Inline comments - Anchors (&name) and aliases (*name) - Document markers (--- and ...) - Multi-document streams via parse_all() - Serialization via stringify() Usage: import "yaml_parser/yaml" doc = yaml::parse("name: Kiwi\nversion: 1") println doc["name"]  # => Kiwi
+
+### `YamlParser.new`
+
+```kiwi
+YamlParser.new(text)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `text` | `any` |  |  |
+
+### `.parse`
+
+```kiwi
+parse()
+```
+
+### `.parse_all`
+
+```kiwi
+parse_all()
+```

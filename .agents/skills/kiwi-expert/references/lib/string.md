@@ -1,655 +1,562 @@
-# `string`
+# string
 
-The `string` package contains specialized functions for strings.
+> String formatting and inspection helpers, available as string methods.
 
----
+The `string` package adds formatting and inspection helpers to strings. Because the package [extends the `string` type](../language/packages.md#extending-built-in-types), every function can be called either way:
 
-## Package Functions
-
-### `base64decode(_input)`
-
-Decodes a base64 string to plaintext.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The plaintext string. |
-
-**Example**
 ```kiwi
-import "string"
-
-encoded = string::base64encode("Hello, Kiwi!")
-println encoded                         # prints: SGVsbG8sIEtpd2kh
-println string::base64decode(encoded)   # prints: Hello, Kiwi!
+println string::titleize("the quick fox")   # The Quick Fox
+println "the quick fox".titleize()           # The Quick Fox
 ```
 
-### `base64encode(_input)`
+The core string methods, such as `.split`, `.trim` and `.replace`, are [built in](../reference/builtin-methods.md#strings); this package covers the rest.
+
+## Formatting
+
+```kiwi
+println "hELLO wORLD".capitalize()        # Hello world
+println "hELLO wORLD".titleize()          # Hello World
+println "  too   much   space ".squish()  # too much space
+println "42".padstart(6, "0")             # 000042
+println "ab".padend(5, ".")               # ab...
+println "hi".center(8, "*")               # ***hi***
+println "Hello, World!".slug()            # hello-world
+```
+
+`dedent` removes the indentation shared by every line, which tidies multi-line string literals:
+
+```kiwi
+fn usage()
+  "
+    Usage: tool [options]
+      -h  show help
+  ".dedent().trim()
+end
+
+println usage()
+```
+
+## Inspecting
+
+```kiwi
+println "12345".is_numeric()        # true
+println "abc".is_alpha()            # true
+println "abc123".is_alphanumeric()  # true
+println "ABC".is_upper()            # true
+println "abc".is_lower()            # true
+println "hello world".contains_any(["xyz", "wor"])   # true
+```
+
+## Encoding
+
+```kiwi
+println "kiwi".base64encode()       # a2l3aQ==
+println "a2l3aQ==".base64decode()   # kiwi
+println "a b&c".urlencode()         # a+b%26c
+println "a+b%26c".urldecode()       # a b&c
+```
+
+## Odds and ends
+
+```kiwi
+println "ab".echo(3)            # aaabbb
+println "abc".interweave("123") # a1b2c3
+println "kiwi".mirror()         # kiwiiwik
+println "report.txt".to_path().ext()   # .txt (see the path package)
+```
+
+`shuffle` returns the characters in random order.
+
+## Functions
+
+### `string::contains_any`
+
+```kiwi
+string::contains_any(str, matches = [])
+```
+
+Returns `true` if `str` contains any values in `matches`.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `str` | `String` |  | The input string.  |
+| `matches` | `List` | `[]` | The strings to match against.  |
+
+**Returns** `Boolean` — True if found.
+
+### `string::base64encode`
+
+```kiwi
+string::base64encode(_input: string|list|bytes): string
+```
 
 Encodes data as a base64 string.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `string\|list\|bytes` |  | The input string. |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string`\|`list`\|`bytes` | `_input` | The input data. |
+**Returns** `string` — The base64 encoded string.
 
-**Returns**
+### `string::base64decode`
 
-| Type | Description |
-| :--- | :---|
-| `string` | The base64 encoded string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::base64encode("Hello, Kiwi!")        # prints: SGVsbG8sIEtpd2kh
-println string::base64encode("Hello".to_bytes())    # encode from bytes
+string::base64decode(_input: string): string
 ```
 
-### `center(_input, _size, _padding = " ")`
+Decodes a base64 string.
 
-Pads both sides of a string, centering it within a field of `_size` characters.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `string` |  | The input string.  |
 
-**Parameters**
+**Returns** `string` — The decoded string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-| `integer` | `_size` | The total width of the output string. |
-| `string` | `_padding` | The padding character. Defaults to a single space ` `. |
+### `string::urlencode`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The centered string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::center("hi", 10)        # prints: "    hi    "
-println string::center("hi", 10, "-")   # prints: "----hi----"
-println string::center("kiwi", 10, "*") # prints: "***kiwi***"
+string::urlencode(_input)
 ```
 
-### `contains_any(str, matches = [])`
+Encodes a string as a URL encoded string.
 
-Returns `true` if `str` contains any of the substrings in `matches`.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
 
-**Parameters**
+**Returns** `String` — The URL encoded string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `str` | The input string. |
-| `list` | `matches` | The substrings to search for. |
+### `string::urldecode`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `boolean` | `true` if any match is found. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::contains_any("hello world", ["world", "earth"])  # prints: true
-println string::contains_any("hello world", ["mars", "venus"])   # prints: false
-println string::contains_any("foo@bar.com", ["@", "#"])          # prints: true
+string::urldecode(_input)
 ```
 
-### `echo(_input, _count)`
+Decodes a URL encoded string to plaintext.
 
-Repeats each character in the string `_count` times.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string.  |
 
-**Parameters**
+**Returns** `String` — The plaintext string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-| `integer` | `_count` | The number of times to repeat each character. |
+### `string::padstart`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The string with each character repeated. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::echo("abc", 3)   # prints: aaabbbccc
-println string::echo("hi", 2)    # prints: hhii
+string::padstart(_input, _size, _padding = " ")
 ```
 
-### `interweave(_input1, _input2)`
+Pads the left side of a string.
 
-Interweaves two strings character by character, alternating one from each. If one string is shorter, the remaining characters of the longer string are appended.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string.  |
+| `_size` | `Integer` |  | The max length of the output string. |
+| `_padding` | `String` | `" "` | The padding content. |
 
-**Parameters**
+**Returns** `String` — The padded string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input1` | The first input string. |
-| `string` | `_input2` | The second input string. |
+### `string::padend`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The interwoven string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::interweave("abc", "123")    # prints: a1b2c3
-println string::interweave("hi", "!!!")     # prints: h!i!!!
+string::padend(_input, _size, _padding = " ")
 ```
 
-### `isalpha(_input)`
+Pads the right side of a string.
 
-Checks if the string consists only of alphabetic characters (A–Z, a–z).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string.  |
+| `_size` | `Integer` |  | The max length of the output string. |
+| `_padding` | `String` | `" "` | The padding content. |
 
-**Parameters**
+**Returns** `String` — The padded string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::center`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `boolean` | `true` if the string contains only letters. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::isalpha("hello")    # prints: true
-println string::isalpha("hello1")   # prints: false
-println string::isalpha("héllo")    # prints: false
+string::center(_input, _width, _padding = " ")
 ```
 
-### `isalphanumeric(_input)`
+Centers a string within a given width.
 
-Checks if the string consists only of alphanumeric characters (A–Z, a–z, 0–9).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
+| `_width` | `Integer` |  | The width of the resulting string. |
+| `_padding` | `String` | `" "` | The padding character (default is space). |
 
-**Parameters**
+**Returns** `String` — The centered string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::echo`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `boolean` | `true` if the string contains only letters and digits. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::isalphanumeric("hello123")   # prints: true
-println string::isalphanumeric("hello!")     # prints: false
+string::echo(_input, _count)
 ```
 
-### `islower(_input)`
+Repeats each character in the string a specified number of times.
 
-Checks if the string is entirely lowercase (no uppercase letters present).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
+| `_count` | `Integer` |  | The number of times each character is repeated. |
 
-**Parameters**
+**Returns** `String` — The string with characters echoed.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::interweave`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `boolean` | `true` if the string has no uppercase letters. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::islower("hello")    # prints: true
-println string::islower("Hello")    # prints: false
-println string::islower("hello 1")  # prints: true
+string::interweave(_input1, _input2)
 ```
 
-### `isnumeric(_input)`
+Interweaves characters from two strings.
 
-Checks if the string consists only of digit characters (0–9).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input1` | `String` |  | The first input string. |
+| `_input2` | `String` |  | The second input string. |
 
-**Parameters**
+**Returns** `String` — The interwoven string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::mirror`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `boolean` | `true` if the string contains only digits. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::isnumeric("12345")   # prints: true
-println string::isnumeric("123.4")   # prints: false
-println string::isnumeric("12 34")   # prints: false
+string::mirror(_input, _delimiter = "")
 ```
 
-### `isupper(_input)`
+Creates a mirrored version of the input string.
 
-Checks if the string is entirely uppercase (no lowercase letters present).
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
+| `_delimiter` | `String` | `""` | The delimiter to separate the original string from its mirror. |
 
-**Parameters**
+**Returns** `String` — The mirrored string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::shuffle`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `boolean` | `true` if the string has no lowercase letters. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::isupper("HELLO")    # prints: true
-println string::isupper("Hello")    # prints: false
-println string::isupper("HELLO 1")  # prints: true
+string::shuffle(_input)
 ```
 
-### `mirror(_input, _delimiter = "")`
+Randomly shuffles the characters in a string.
 
-Appends the reverse of the string to itself, optionally separated by a delimiter.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
 
-**Parameters**
+**Returns** `String` — The shuffled string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-| `string` | `_delimiter` | Separator between the original and its reverse. Defaults to `""`. |
+### `string::slug`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The mirrored string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::mirror("hello")         # prints: helloolleh
-println string::mirror("kiwi", "|")     # prints: kiwi|iwik
-println string::mirror("abc", " - ")    # prints: abc - cba
+string::slug(_input)
 ```
 
-### `padstart(_input, _size, _padding = " ")`
+Generates a URL-friendly slug from a string.
 
-Left-pads a string to `_size` characters.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
 
-**Parameters**
+**Returns** `String` — The generated slug.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-| `integer` | `_size` | The total width of the output string. |
-| `string` | `_padding` | The padding character. Defaults to a single space ` `. |
+### `string::capitalize`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The left-padded string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::padstart("42", 6)        # prints: "    42"
-println string::padstart("42", 6, "0")   # prints: "000042"
-println string::padstart("hi", 6, "-")   # prints: "----hi"
+string::capitalize(_input: string): string
 ```
 
-### `padend(_input, _size, _padding = " ")`
+Returns a copy of the string with the first character uppercased and the rest lowercased.
 
-Right-pads a string to `_size` characters.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `string` |  | The input string. |
 
-**Parameters**
+**Returns** `String` — The capitalized string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-| `integer` | `_size` | The total width of the output string. |
-| `string` | `_padding` | The padding character. Defaults to a single space ` `. |
+### `string::titleize`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The right-padded string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::padend("hi", 6)        # prints: "hi    "
-println string::padend("hi", 6, ".")   # prints: "hi...."
+string::titleize(_input: string): string
 ```
 
-### `shuffle(_input)`
+Returns a copy of the string with the first character of every word uppercased and the rest lowercased.
 
-Returns a new string with the characters in a random order.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `string` |  | The input string. |
 
-**Parameters**
+**Returns** `String` — The capitalized string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::smart_titleize`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The shuffled string. |
-
-**Example**
 ```kiwi
-import "string"
-
-s = string::shuffle("hello")
-println s.size()           # prints: 5  (same length)
-println s.chars().sort()   # prints: ["e", "h", "l", "l", "o"]  (same chars)
+string::smart_titleize(s: string, keep_lowercase: list = ["a", "an", "and", "but", "by", "for", "in", "nor", "of", "on", "or", "the", "to", "with"]): string
 ```
 
-### `slug(_input)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `string` |  |  |
+| `keep_lowercase` | `list` | `["a", "an", "and", "but", "by", "for", "in", "nor", "of", "on", "or", "the", "to", "with"]` |  |
 
-Generates a URL-friendly slug: lowercases, replaces spaces and special characters with hyphens, and strips leading/trailing hyphens.
+**Returns** `string`
 
-**Parameters**
+### `string::is_numeric`
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The generated slug. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::slug("Hello, World!")           # prints: hello-world
-println string::slug("The Quick Brown Fox")     # prints: the-quick-brown-fox
-println string::slug("  leading & trailing  ")  # prints: leading-trailing
+string::is_numeric(_input): boolean
 ```
 
-### `squish(_input)`
+Checks if the string consists only of numeric characters.
 
-Strips leading and trailing whitespace, then collapses every internal run of whitespace into a single space. Useful for normalising strings from external sources such as CSV fields or scraped text.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
 
-**Parameters**
+**Returns** `Boolean` — True if the string is numeric, otherwise false.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::is_alpha`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The normalised string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::squish("  hello   world  ")         # prints: hello world
-println string::squish("  7800    BEEMAN   AV  ")   # prints: 7800 BEEMAN AV
-println string::squish("already clean")             # prints: already clean
+string::is_alpha(_input)
 ```
 
----
+Checks if the string consists only of alphabetic characters.
 
-### `tolower(_input)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
 
-Converts all characters in the string to lowercase.
+**Returns** `Boolean` — True if the string is alphabetic, otherwise false.
 
-**Parameters**
+### `string::is_alphanumeric`
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The string converted to lowercase. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::tolower("HELLO World")   # prints: hello world
+string::is_alphanumeric(_input)
 ```
 
-### `toupper(_input)`
+Checks if the string consists only of alphanumeric characters.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
+
+**Returns** `Boolean` — True if the string is alphanumeric, otherwise false.
+
+### `string::is_upper`
+
+```kiwi
+string::is_upper(_input)
+```
+
+Checks if the string is entirely in uppercase.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
+
+**Returns** `Boolean` — True if the string is all uppercase, false otherwise.
+
+### `string::is_lower`
+
+```kiwi
+string::is_lower(_input)
+```
+
+Checks if the string is entirely in lowercase.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
+
+**Returns** `Boolean` — True if the string is all lowercase, false otherwise.
+
+### `string::to_upper`
+
+```kiwi
+string::to_upper(_input)
+```
 
 Converts all characters in the string to uppercase.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+**Returns** `String` — The string converted to uppercase.
 
-**Returns**
+### `string::to_lower`
 
-| Type | Description |
-| :--- | :---|
-| `string` | The string converted to uppercase. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::toupper("hello World")   # prints: HELLO WORLD
+string::to_lower(_input)
 ```
 
-### `urldecode(_input)`
+Converts all characters in the string to lowercase.
 
-Decodes a percent-encoded URL string to plaintext.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `String` |  | The input string. |
 
-**Parameters**
+**Returns** `String` — The string converted to lowercase.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The URL-encoded string. |
+### `string::dedent`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The decoded plaintext string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::urldecode("hello%20world")   # prints: hello world
-println string::urldecode("foo%3Dbar")       # prints: foo=bar
+string::dedent(text: string): string
 ```
 
-### `urlencode(_input)`
+Remove common leading whitespace from multi-line strings
 
-Percent-encodes a string for safe use in a URL.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `text` | `string` |  | The input string |
 
-**Parameters**
+**Returns** `String` — The dedented string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The string to encode. |
+### `string::to_path`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The URL-encoded string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::urlencode("hello world")   # prints: hello+world
-println string::urlencode("foo=bar&x=1")   # prints: foo%3Dbar%26x%3D1
+string::to_path(path: string): Path
 ```
 
-### `capitalize(_input)`
+Gives the string type a function that returns itself as an instance of Path.
 
-Returns the string with the first character uppercased and the rest lowercased. Also available as `capitalise(_input)`.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path` | `string` |  | The path. |
 
-**Parameters**
+**Returns** `Path` — The path as a Path.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
+### `string::squish`
 
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The capitalized string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::capitalize("hello world")   # prints: Hello world
-println string::capitalize("HELLO")         # prints: Hello
-println string::capitalise("kiwi")          # prints: Kiwi
+string::squish(_input: string): string
 ```
 
-### `titleize(_input)`
+Strips leading/trailing whitespace and collapses internal whitespace runs to a single space.
 
-Returns the string with the first character of every word uppercased and the rest lowercased. Also available as `title(_input)`.
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_input` | `string` |  | The string to normalize. |
 
-**Parameters**
+**Returns** `string` — The normalized string.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `_input` | The input string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The title-cased string. |
-
-**Example**
 ```kiwi
-import "string"
-
-println string::titleize("the quick brown fox")   # prints: The Quick Brown Fox
-println string::title("hello world")              # prints: Hello World
+string::squish("  hello   world  ")    # "hello world"
+string::squish("  7800    BEEMAN   AV") # "7800 BEEMAN AV"
 ```
 
-### `smart_titleize(s, keep_lowercase?)`
+## `StringIterator` struct
 
-Title-cases a string while keeping common short words (articles, prepositions, conjunctions) lowercase — unless they are the first word.
+### `StringIterator.new`
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `s` | The input string. |
-| `list` | `keep_lowercase` | A list of words to keep lowercase (e.g. `["a", "an", "the", "of"]`). Defaults to a standard English set. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The smart title-cased string. |
-
-**Example**
 ```kiwi
-println string::smart_titleize("the lord of the rings")
-# prints: The Lord of the Rings
+StringIterator.new(s)
 ```
 
-### `dedent(text)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `any` |  |  |
 
-Removes common leading whitespace from every line in a multi-line string. Useful for cleaning up indented heredoc-style strings. A blank first line is dropped, and blank lines don't count toward the common indent; a non-blank line with no indentation means nothing is common, so nothing is removed.
+### `.consume`
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `text` | The input string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `string` | The dedented string. |
-
-**Example**
 ```kiwi
-s = "
-  hello
-  world
-"
-println string::dedent(s)
-# prints:
-# hello
-# world
+consume()
 ```
 
-### `to_path(path)`
+### `.skip`
 
-Converts a string to a `Path` instance from the `path` package.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `path` | The path string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :---|
-| `Path` | A new `Path` instance. |
-
-**Example**
 ```kiwi
-p = string::to_path("/home/user/docs")
-println p.is_dir()  # prints: true (if directory exists)
+skip(n)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  |  |
+
+### `.can_read`
+
+```kiwi
+can_read()
+```
+
+### `.eof`
+
+```kiwi
+eof(): boolean
+```
+
+**Returns** `boolean`
+
+### `.current`
+
+```kiwi
+current()
+```
+
+### `.peek`
+
+```kiwi
+peek()
+```
+
+### `.position`
+
+```kiwi
+position()
+```
+
+### `.length`
+
+```kiwi
+length()
+```
+
+### `.rewind`
+
+```kiwi
+rewind(n)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  |  |
+
+### `.grab`
+
+```kiwi
+grab(n)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  |  |
+
+### `.reach`
+
+```kiwi
+reach(n)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `n` | `any` |  |  |
+
+### `.look_ahead`
+
+```kiwi
+look_ahead()
+```
+
+### `.count_ahead`
+
+```kiwi
+count_ahead()
+```
+
+### `.skip_whitespace`
+
+```kiwi
+skip_whitespace()
 ```

@@ -1,61 +1,107 @@
-# `error`
+# error
 
-The `error` package provides helpers for constructing, throwing, and inspecting structured errors. It is automatically loaded by the Kiwi runtime — no explicit import is needed.
+> Construct, inspect and check structured errors.
+
+The `error` package builds the structured errors that Kiwi's `try`/`catch` understands, inspects caught errors, and provides guard helpers that throw when a check fails. [Error Handling](../language/errors.md) explains how errors are thrown and caught; this page is the package reference.
+
+A structured error is a hashmap with an `error` key (the type name) and a `message` key:
 
 ```kiwi
-# error is pre-loaded; no import required.
-# To import explicitly:
-import "error"
+e = error::NotFoundError("user 42")
+println e                       # {"error": "NotFoundError", "message": "user 42"}
+
+try
+  throw e
+catch caught
+  println error::type_of(caught)              # NotFoundError
+  println error::message_of(caught)           # user 42
+  println error::is_type(caught, "KeyError")  # false
+end
 ```
 
-Errors in Kiwi can be thrown as any value. This package uses hashmaps with `error` and `message` keys as a convention for structured error handling.
+`type_of`, `message_of` and `is_type` also accept the plain strings that a two-variable `catch type, message` gives you.
 
----
+## Constructors
+
+`error::new(type, message)` makes an error with any type name. The named constructors take an optional message:
+
+| Constructor | Default message |
+| :-- | :-- |
+| `ArgumentError` | Invalid argument. |
+| `AssertionError` | Assertion failed. |
+| `IndexError` | Index out of bounds. |
+| `IOError` | I/O error. |
+| `InvalidOperation` | Invalid operation. |
+| `InvalidRange` | Invalid range. |
+| `KeyError` | Key not found. |
+| `NetworkError` | Network error. |
+| `NotFoundError` | Not found. |
+| `NotImplementedError` | Not implemented. |
+| `OverflowError` | Overflow. |
+| `ParseError` | Parse error. |
+| `PermissionError` | Permission denied. |
+| `TimeoutError` | Operation timed out. |
+| `TypeError` | Type error. |
+| `ValueError` | Invalid value. |
+
+## Guards
+
+```kiwi
+fn set_volume(level)
+  error::expect_type(level, "integer", "level")
+  error::assert(level.between(0, 10), "level must be 0..10")
+  level
+end
+
+println set_volume(7)   # 7
+
+try
+  set_volume("loud")
+catch e
+  println e["message"]  # Expected level to be integer, got string.
+end
+```
+
+| Function | Throws when |
+| :-- | :-- |
+| `assert(condition, message)` | `condition` is false (`AssertionError`) |
+| `expect_type(value, type, name)` | `value` is not of type `type` (`TypeError`) |
+| `expect_not_null(value, name)` | `value` is `null` (`ValueError`) |
 
 ## Functions
 
-### `error::new(error_type?, error_message?)`
+### `error::new`
+
+```kiwi
+error::new(error_type: string = "Error", error_message: string = "An error occurred."): hashmap
+```
 
 Creates a structured error hashmap.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `error_type` | `string` | `"Error"` | The error type name (default `"Error"`). |
+| `error_message` | `string` | `"An error occurred."` | The error message (default `"An error occurred."`). |
 
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `error_type` | The error type name. | `"Error"` |
-| `string` | `error_message` | The error message. | `"An error occurred."` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `hashmap` | A hashmap with `error` and `message` keys. |
-
-**Example**
+**Returns** `hashmap` — A hashmap with `error` and `message` keys.
 
 ```kiwi
 throw error::new("NotFound", "record 42 does not exist")
 ```
 
----
+### `error::type_of`
 
-### `error::type_of(err)`
+```kiwi
+error::type_of(err): string
+```
 
 Returns the type string of a caught error.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `err` | `any` |  | A caught error hashmap (from single-param `catch e`) or a plain string. |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `err` | A caught error hashmap or a plain string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The `error` key if `err` is a structured hashmap, otherwise `err` as a string. |
-
-**Example**
+**Returns** `string` — The `error` key if `err` is a structured hashmap, otherwise `err` as a string.
 
 ```kiwi
 try
@@ -66,44 +112,34 @@ catch e
 end
 ```
 
----
+### `error::message_of`
 
-### `error::message_of(err)`
+```kiwi
+error::message_of(err): string
+```
 
 Returns the message of a caught error.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `err` | `any` |  | A caught error hashmap (from single-param `catch e`) or a plain string. |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `err` | A caught error hashmap or a plain string. |
+**Returns** `string` — The `message` key if `err` is a structured hashmap, otherwise `err` as a string.
 
-**Returns**
+### `error::is_type`
 
-| Type | Description |
-| :--- | :--- |
-| `string` | The `message` key if `err` is a structured hashmap, otherwise `err` as a string. |
+```kiwi
+error::is_type(err, error_type: string): boolean
+```
 
----
+Returns true if the caught error matches a specific type name.
 
-### `error::is_type(err, error_type)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `err` | `any` |  | A caught error hashmap (from single-param `catch e`) or a plain string. |
+| `error_type` | `string` |  | The type name to match against. |
 
-Returns `true` if the caught error matches a specific type name.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `any` | `err` | A caught error hashmap or a plain string. |
-| `string` | `error_type` | The type name to match against. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if the error type matches. |
-
-**Example**
+**Returns** `boolean` — `true` if the error type matches.
 
 ```kiwi
 # single-param catch — e is a hashmap
@@ -125,48 +161,40 @@ catch type, msg
 end
 ```
 
----
+### `error::assert`
 
-### `error::assert(condition, msg?)`
+```kiwi
+error::assert(condition: boolean, msg: string = "Assertion failed.")
+```
 
 Throws an `AssertionError` if `condition` is false.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `condition` | `boolean` |  | The condition to check. |
+| `msg` | `string` | `"Assertion failed."` | The error message (default `"Assertion failed."`). |
 
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `boolean` | `condition` | The condition to check. | |
-| `string` | `msg` | The error message. | `"Assertion failed."` |
-
-**Throws**
-
-`AssertionError` if `condition` is `false`.
-
-**Example**
+**Throws** `AssertionError` — If `condition` is `false`.
 
 ```kiwi
 error::assert(x > 0, "x must be positive")
 ```
 
----
+### `error::expect_type`
 
-### `error::expect_type(val, expected_type, name?)`
+```kiwi
+error::expect_type(val, expected_type: string, name: string = "value")
+```
 
 Throws a `TypeError` if `val` is not of the expected type.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `val` | `any` |  | The value to check. |
+| `expected_type` | `string` |  | The expected type name (e.g., `"integer"`, `"string"`). |
+| `name` | `string` | `"value"` | An optional label for the value, used in the error message. |
 
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `any` | `val` | The value to check. | |
-| `string` | `expected_type` | The expected type name (e.g., `"integer"`, `"string"`). | |
-| `string` | `name` | A label for the value, used in the error message. | `"value"` |
-
-**Throws**
-
-`TypeError` if `val.type()` does not match `expected_type`.
-
-**Example**
+**Throws** `TypeError` — If `val.type()` does not match `expected_type`.
 
 ```kiwi
 fn add(a, b)
@@ -176,24 +204,20 @@ fn add(a, b)
 end
 ```
 
----
+### `error::expect_not_null`
 
-### `error::expect_not_null(val, name?)`
+```kiwi
+error::expect_not_null(val, name: string = "value")
+```
 
 Throws a `ValueError` if `val` is null.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `val` | `any` |  | The value to check. |
+| `name` | `string` | `"value"` | An optional label for the value, used in the error message. |
 
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `any` | `val` | The value to check. | |
-| `string` | `name` | A label for the value, used in the error message. | `"value"` |
-
-**Throws**
-
-`ValueError` if `val == null`.
-
-**Example**
+**Throws** `ValueError` — If `val == null`.
 
 ```kiwi
 fn process(record)
@@ -202,57 +226,226 @@ fn process(record)
 end
 ```
 
----
-
-## Named Error Constructors
-
-Each constructor creates a structured error hashmap with a specific type name. All accept an optional `msg` string parameter.
-
-| Function | Default message |
-| :--- | :--- |
-| `error::ArgumentError(msg?)` | `"Invalid argument."` |
-| `error::AssertionError(msg?)` | `"Assertion failed."` |
-| `error::IndexError(msg?)` | `"Index out of bounds."` |
-| `error::IOError(msg?)` | `"I/O error."` |
-| `error::KeyError(msg?)` | `"Key not found."` |
-| `error::NetworkError(msg?)` | `"Network error."` |
-| `error::NotFoundError(msg?)` | `"Not found."` |
-| `error::NotImplementedError(msg?)` | `"Not implemented."` |
-| `error::OverflowError(msg?)` | `"Overflow."` |
-| `error::ParseError(msg?)` | `"Parse error."` |
-| `error::PermissionError(msg?)` | `"Permission denied."` |
-| `error::TimeoutError(msg?)` | `"Operation timed out."` |
-| `error::TypeError(msg?)` | `"Type error."` |
-| `error::ValueError(msg?)` | `"Invalid value."` |
-| `error::InvalidRange(msg?)` | `"Invalid range."` |
-| `error::InvalidOperation(msg?)` | `"Invalid operation."` |
-
-**Example**
+### `error::ArgumentError`
 
 ```kiwi
-throw error::ValueError("count must be positive")
-throw error::NotFoundError("user ${id} does not exist")
-throw error::NotImplementedError()
+error::ArgumentError(msg: string = "Invalid argument."): hashmap
 ```
 
----
+Creates an `ArgumentError` hashmap.
 
-## Structured Error Handling Example
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Invalid argument."` | The error message (default `"Invalid argument."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::AssertionError`
 
 ```kiwi
-fn divide(a, b)
-  error::expect_type(a, "integer", "a")
-  error::expect_type(b, "integer", "b")
-  throw error::ArgumentError("Cannot divide by zero.") when b == 0
-  return a / b
-end
-
-try
-  result = divide(10, 0)
-catch e
-  if error::is_type(e, "ArgumentError")
-    println "caught: ${error::message_of(e)}"
-  end
-end
-# prints: caught: Cannot divide by zero.
+error::AssertionError(msg: string = "Assertion failed."): hashmap
 ```
+
+Creates an `AssertionError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Assertion failed."` | The error message (default `"Assertion failed."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::IndexError`
+
+```kiwi
+error::IndexError(msg: string = "Index out of bounds."): hashmap
+```
+
+Creates an `IndexError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Index out of bounds."` | The error message (default `"Index out of bounds."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::IOError`
+
+```kiwi
+error::IOError(msg: string = "I/O error."): hashmap
+```
+
+Creates an `IOError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"I/O error."` | The error message (default `"I/O error."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::KeyError`
+
+```kiwi
+error::KeyError(msg: string = "Key not found."): hashmap
+```
+
+Creates a `KeyError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Key not found."` | The error message (default `"Key not found."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::NetworkError`
+
+```kiwi
+error::NetworkError(msg: string = "Network error."): hashmap
+```
+
+Creates a `NetworkError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Network error."` | The error message (default `"Network error."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::NotFoundError`
+
+```kiwi
+error::NotFoundError(msg: string = "Not found."): hashmap
+```
+
+Creates a `NotFoundError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Not found."` | The error message (default `"Not found."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::NotImplementedError`
+
+```kiwi
+error::NotImplementedError(msg: string = "Not implemented."): hashmap
+```
+
+Creates a `NotImplementedError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Not implemented."` | The error message (default `"Not implemented."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::OverflowError`
+
+```kiwi
+error::OverflowError(msg: string = "Overflow."): hashmap
+```
+
+Creates an `OverflowError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Overflow."` | The error message (default `"Overflow."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::ParseError`
+
+```kiwi
+error::ParseError(msg: string = "Parse error."): hashmap
+```
+
+Creates a `ParseError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Parse error."` | The error message (default `"Parse error."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::PermissionError`
+
+```kiwi
+error::PermissionError(msg: string = "Permission denied."): hashmap
+```
+
+Creates a `PermissionError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Permission denied."` | The error message (default `"Permission denied."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::TimeoutError`
+
+```kiwi
+error::TimeoutError(msg: string = "Operation timed out."): hashmap
+```
+
+Creates a `TimeoutError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Operation timed out."` | The error message (default `"Operation timed out."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::TypeError`
+
+```kiwi
+error::TypeError(msg: string = "Type error."): hashmap
+```
+
+Creates a `TypeError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Type error."` | The error message (default `"Type error."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::ValueError`
+
+```kiwi
+error::ValueError(msg: string = "Invalid value."): hashmap
+```
+
+Creates a `ValueError` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Invalid value."` | The error message (default `"Invalid value."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::InvalidRange`
+
+```kiwi
+error::InvalidRange(msg: string = "Invalid range."): hashmap
+```
+
+Creates an `InvalidRange` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Invalid range."` | The error message (default `"Invalid range."`). |
+
+**Returns** `hashmap` — A structured error hashmap.
+
+### `error::InvalidOperation`
+
+```kiwi
+error::InvalidOperation(msg: string = "Invalid operation."): hashmap
+```
+
+Creates an `InvalidOperation` hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `msg` | `string` | `"Invalid operation."` | The error message (default `"Invalid operation."`). |
+
+**Returns** `hashmap` — A structured error hashmap.

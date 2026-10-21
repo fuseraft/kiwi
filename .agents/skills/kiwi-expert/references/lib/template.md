@@ -1,154 +1,100 @@
-# `template`
+# template
 
-The `template` package provides a lightweight string template engine. Templates use `{{key}}` placeholders that are replaced with values from a hashmap.
+> Fill {{placeholder}} templates from a hashmap.
 
----
-
-## Package Functions
-
-### `render(tmpl, vars)`
-
-Renders a template string, replacing every `{{key}}` occurrence with the corresponding value from `vars`.
-
-**Parameters**
-
-| Type      | Name   | Description                                   |
-|-----------|--------|-----------------------------------------------|
-| `string`  | `tmpl` | Template string with `{{key}}` placeholders   |
-| `hashmap` | `vars` | Map of variable names to replacement values   |
-
-**Returns**
-
-| Type     | Description          |
-|----------|----------------------|
-| `string` | The rendered string  |
-
-Values are converted to strings via `.to_string()` automatically.
-
----
-
-### `render_file(path, vars)`
-
-Reads a template from a file and renders it with the given variables.
-
-**Parameters**
-
-| Type      | Name   | Description                       |
-|-----------|--------|-----------------------------------|
-| `string`  | `path` | Path to the template file         |
-| `hashmap` | `vars` | Map of variable names to values   |
-
-**Returns**
-
-| Type     | Description         |
-|----------|---------------------|
-| `string` | The rendered string |
-
----
-
-### `render_each(tmpl, rows)`
-
-Renders a template once per row in a list, returning a list of rendered strings.
-
-**Parameters**
-
-| Type     | Name   | Description                                      |
-|----------|--------|--------------------------------------------------|
-| `string` | `tmpl` | Template string with `{{key}}` placeholders      |
-| `list`   | `rows` | List of hashmaps — one hashmap per output line   |
-
-**Returns**
-
-| Type   | Description                             |
-|--------|-----------------------------------------|
-| `list` | List of rendered strings, one per row   |
-
----
-
-## Examples
-
-### Basic substitution
+The `template` package replaces `{{name}}` placeholders in a string with values from a hashmap.
 
 ```kiwi
-import "template"
+message = template::render(
+  "Hello, {{name}}! You have {{count}} new messages.",
+  {name: "Ada", count: 3}
+)
+println message   # Hello, Ada! You have 3 new messages.
+```
 
+`render_each` renders one template per row and returns the results as a list:
+
+```kiwi
+rows = [{name: "Ada", email: "ada@example.com"}, {name: "Grace", email: "grace@example.com"}]
+println template::render_each("{{name}} <{{email}}>", rows)
+# ["Ada <ada@example.com>", "Grace <grace@example.com>"]
+```
+
+`render_file(path, values)` reads the template from a file:
+
+```kiwi
+email = template::render_file("templates/welcome.txt", {name: "Ada", plan: "Pro"})
+```
+
+Notes:
+
+- Placeholders are written without spaces: `{{name}}`, not `{{ name }}`.
+- A placeholder with no matching key is left as it is.
+- Values are inserted as they are, with no HTML escaping. Escape user-supplied text yourself before putting it into HTML.
+
+For `printf`-style formatting, see [`fmt`](fmt.md); for most one-off strings, interpolation (`"Hello, ${name}"`) is simplest.
+
+## Functions
+
+### `template::render`
+
+```kiwi
+template::render(tmpl, vars)
+```
+
+Renders a template string, replacing {{key}} with values from a hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tmpl` | `string` |  | Template string containing {{key}} placeholders. |
+| `vars` | `hashmap` |  | Map of variable names to replacement values. |
+
+**Returns** `string` — The rendered string.
+
+```kiwi
+import template
 result = template::render("Hello, {{name}}! You are {{age}} years old.", {
   "name": "Alice",
   "age": 30
 })
-
-println result   # Hello, Alice! You are 30 years old.
+println result  # Hello, Alice! You are 30 years old.
 ```
 
-### HTML template
+### `template::render_file`
 
 ```kiwi
-import "template"
-
-html = template::render("<h1>{{title}}</h1><p>{{body}}</p>", {
-  "title": "Welcome",
-  "body":  "Thanks for visiting."
-})
-
-println html
+template::render_file(path, vars)
 ```
 
-### Render from file
+Renders a template file.
 
-Given `email.txt`:
-```
-Subject: {{subject}}
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path` | `string` |  | Path to the template file. |
+| `vars` | `hashmap` |  | Map of variable names to replacement values. |
 
-Hello {{name}},
+**Returns** `string` — The rendered string.
 
-{{message}}
-
-Regards,
-{{sender}}
-```
+### `template::render_each`
 
 ```kiwi
-import "template"
-
-text = template::render_file("email.txt", {
-  "subject": "Your order shipped",
-  "name":    "Bob",
-  "message": "Your order #4521 is on its way.",
-  "sender":  "Support Team"
-})
-
-println text
+template::render_each(tmpl, rows)
 ```
 
-### Batch rendering
+Renders a template string with a list of hashmaps (repeated section).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `tmpl` | `string` |  | Template string with {{key}} placeholders. |
+| `rows` | `list` |  | A list of hashmaps, one per output row. |
+
+**Returns** `list` — A list of rendered strings, one per row.
 
 ```kiwi
-import "template"
-
-rows = template::render_each("{{id}}: {{name}} <{{email}}>", [
-  { "id": 1, "name": "Alice", "email": "alice@example.com" },
-  { "id": 2, "name": "Bob",   "email": "bob@example.com"   },
-  { "id": 3, "name": "Carol", "email": "carol@example.com" }
+import template
+rows = template::render_each("{{id}}: {{name}}", [
+  { "id": 1, "name": "Alice" },
+  { "id": 2, "name": "Bob" }
 ])
-
 println rows.join("\n")
-# 1: Alice <alice@example.com>
-# 2: Bob <bob@example.com>
-# 3: Carol <carol@example.com>
-```
-
-### Combining with fio for report generation
-
-```kiwi
-import "template"
-import "fio"
-
-data = fio::read_text("report_template.html")
-output = template::render(data, {
-  "title":   "Monthly Summary",
-  "month":   "March",
-  "revenue": "42,000"
-})
-
-fio::write_text("report_march.html", output)
 ```

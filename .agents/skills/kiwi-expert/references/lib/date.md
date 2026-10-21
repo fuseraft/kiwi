@@ -1,216 +1,309 @@
-# `date`
+# date
 
-The `date` package extends the built-in `date` type with method-style arithmetic and component accessors.
+> Date arithmetic and component methods for the date type.
 
-After this package is loaded (it is part of the standard library and auto-imported), every `date` value gains these methods directly — no package prefix needed.
+The `date` package adds methods to every `date` value: arithmetic such as `.add_days(n)` and accessors such as `.weekday()`. Because the package [extends the built-in type](../language/packages.md#extending-built-in-types), you call these as methods; each is also available as `date::name(value, ...)`.
 
 ```kiwi
-today = time::now()
-println today.add_days(7)    # instead of time::add_days(today, 7)
-println today.year()         # instead of time::year(today)
+release = d(2024, 3, 15, 10, 30, 45)
+
+println release.add_days(30).to_string("yyyy-MM-dd")    # 2024-04-14
+println release.add_months(-6).to_string("yyyy-MM-dd")  # 2023-09-15
+println release.weekday()                               # 5 (Friday)
+println release.yearday()                               # 75
+println release.ampm()                                  # AM
 ```
-
-All arithmetic methods return a **new** `date` — the original is never mutated. Use a negative `n` to subtract.
-
----
 
 ## Arithmetic
 
-### `add_days(n)`
+`add_years`, `add_months`, `add_days`, `add_hours`, `add_minutes`, `add_seconds` and `add_milliseconds` each return a new date; the original is unchanged. Pass a negative number to go back in time. Calls chain:
 
-**Parameters**
-
-| Type      | Name | Description                     | Default |
-|-----------|------|---------------------------------|---------|
-| `integer` | `n`  | Days to add (negative subtracts) | —      |
-
-**Returns** `date`
-
-**Example**
 ```kiwi
-today     = time::now()
-next_week = today.add_days(7)
-last_week = today.add_days(-7)
+due = d(2024, 1, 31).add_months(1).add_days(-1)
+println due.to_string("yyyy-MM-dd")   # 2024-02-28
 ```
 
----
+Adding months clamps to the end of shorter months, so January 31 plus one month is February 29 in a leap year.
 
-### `add_months(n)`
+## Components
 
-Preserves day-of-month where possible (e.g. Jan 31 + 1 month -> Feb 28/29).
-
-**Parameters**
-
-| Type      | Name | Description                       | Default |
-|-----------|------|-----------------------------------|---------|
-| `integer` | `n`  | Months to add (negative subtracts) | —      |
-
-**Returns** `date`
-
-**Example**
-```kiwi
-today       = time::now()
-next_quarter = today.add_months(3)
-last_month   = today.add_months(-1)
-```
-
----
-
-### `add_years(n)`
-
-**Parameters**
-
-| Type      | Name | Description                      | Default |
-|-----------|------|----------------------------------|---------|
-| `integer` | `n`  | Years to add (negative subtracts) | —      |
-
-**Returns** `date`
-
-**Example**
-```kiwi
-today     = time::now()
-next_year = today.add_years(1)
-last_year = today.add_years(-1)
-```
-
----
-
-### `add_hours(n)`
-
-May cross day boundaries.
-
-**Parameters**
-
-| Type      | Name | Description                      | Default |
-|-----------|------|----------------------------------|---------|
-| `integer` | `n`  | Hours to add (negative subtracts) | —      |
-
-**Returns** `date`
-
----
-
-### `add_minutes(n)`
-
-**Parameters**
-
-| Type      | Name | Description                        | Default |
-|-----------|------|------------------------------------|---------|
-| `integer` | `n`  | Minutes to add (negative subtracts) | —      |
-
-**Returns** `date`
-
----
-
-### `add_seconds(n)`
-
-**Parameters**
-
-| Type      | Name | Description                        | Default |
-|-----------|------|------------------------------------|---------|
-| `integer` | `n`  | Seconds to add (negative subtracts) | —      |
-
-**Returns** `date`
-
----
-
-### `add_milliseconds(n)`
-
-**Parameters**
-
-| Type      | Name | Description                              | Default |
-|-----------|------|------------------------------------------|---------|
-| `integer` | `n`  | Milliseconds to add (negative subtracts) | —      |
-
-**Returns** `date`
-
----
-
-## Component accessors
-
-All of these extract a single field from the date value.
-
-| Method            | Returns   | Description                              |
-|-------------------|-----------|------------------------------------------|
-| `year()`          | `integer` | Calendar year (e.g. `2024`)              |
-| `month()`         | `integer` | Month of year, 1–12                      |
-| `day()`           | `integer` | Day of month, 1–31                       |
-| `hour()`          | `integer` | Hour of day, 0–23                        |
-| `minute()`        | `integer` | Minute of hour, 0–59                     |
-| `second()`        | `integer` | Second of minute, 0–60                   |
-| `millisecond()`   | `integer` | Millisecond of second, 0–999             |
-| `weekday()`       | `integer` | Day of week: 0 = Sunday … 6 = Saturday   |
-| `yearday()`       | `integer` | Day of year, 1–366                       |
-| `ampm()`          | `string`  | `"AM"` or `"PM"`                         |
-| `isdst()`         | `boolean` | `true` if Daylight Saving Time is active |
-
-**Example**
-```kiwi
-dt = d(2024, 3, 15, 10, 30, 45)
-
-println dt.year()       # 2024
-println dt.month()      # 3
-println dt.day()        # 15
-println dt.hour()       # 10
-println dt.minute()     # 30
-println dt.second()     # 45
-println dt.weekday()    # 5  (Friday)
-println dt.yearday()    # 75
-println dt.ampm()       # "AM"
-```
-
----
+| Method | Returns |
+| :-- | :-- |
+| `year()`, `month()`, `day()` | Calendar parts; months run 1 to 12 |
+| `hour()`, `minute()`, `second()`, `millisecond()` | Time-of-day parts |
+| `weekday()` | Day of the week, 0 (Sunday) to 6 (Saturday) |
+| `yearday()` | Day of the year, 1 to 366 |
+| `ampm()` | `"AM"` or `"PM"` |
+| `isdst()` | Whether daylight saving time is in effect |
 
 ## Examples
 
-### Arithmetic and formatting
+A week of day names starting from a date:
 
 ```kiwi
-today = time::now()
-
-println today.to_string("yyyy-MM-dd")
-println today.add_days(30).to_string("yyyy-MM-dd")
-println today.add_months(-6).to_string("yyyy-MM-dd")
+week = [0 to 6].map(do (i) => d(2024, 1, 1).add_days(i).to_string("ddd"))
+println week   # ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 ```
 
-### Chaining
+Formatting uses the patterns listed under [Date formats](../reference/builtin-methods.md#date-formats). For the current time, timestamps and calendar helpers, see [`time`](time.md).
 
-Methods chain naturally since each returns a new `date`:
+## Functions
+
+### `date::add_days`
 
 ```kiwi
-result = time::now()
-           .add_years(1)
-           .add_months(-3)
-           .add_days(10)
-
-println result.to_string("yyyy-MM-dd")
+date::add_days(_dt: date, n: integer): date
 ```
 
-### Building a date range
+Adds `n` days to the date. Use a negative value to subtract.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+| `n` | `integer` |  | Number of days to add (negative to subtract). |
+
+**Returns** `date` — The new date.
+
+### `date::add_months`
 
 ```kiwi
-start = d(2024, 1, 1)
-dates = []
-
-for i in [0..6] do
-  dates.push(start.add_days(i).to_string("yyyy-MM-dd"))
-end
-
-println dates
-# ["2024-01-01", "2024-01-02", ..., "2024-01-07"]
+date::add_months(_dt: date, n: integer): date
 ```
 
-### Days until an event
+Adds `n` months to the date. Use a negative value to subtract.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+| `n` | `integer` |  | Number of months to add (negative to subtract). |
+
+**Returns** `date` — The new date.
+
+### `date::add_years`
 
 ```kiwi
-today  = time::now()
-event  = d(2024, 12, 31)
-
-days = 0
-cur  = today
-while cur.year() < event.year() || cur.month() < event.month() || cur.day() < event.day() do
-  cur  = cur.add_days(1)
-  days += 1
-end
-
-println "Days until event: ${days}"
+date::add_years(_dt: date, n: integer): date
 ```
+
+Adds `n` years to the date. Use a negative value to subtract.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+| `n` | `integer` |  | Number of years to add (negative to subtract). |
+
+**Returns** `date` — The new date.
+
+### `date::add_hours`
+
+```kiwi
+date::add_hours(_dt: date, n: integer): date
+```
+
+Adds `n` hours to the date. Use a negative value to subtract.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+| `n` | `integer` |  | Number of hours to add (negative to subtract). |
+
+**Returns** `date` — The new date.
+
+### `date::add_minutes`
+
+```kiwi
+date::add_minutes(_dt: date, n: integer): date
+```
+
+Adds `n` minutes to the date. Use a negative value to subtract.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+| `n` | `integer` |  | Number of minutes to add (negative to subtract). |
+
+**Returns** `date` — The new date.
+
+### `date::add_seconds`
+
+```kiwi
+date::add_seconds(_dt: date, n: integer): date
+```
+
+Adds `n` seconds to the date. Use a negative value to subtract.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+| `n` | `integer` |  | Number of seconds to add (negative to subtract). |
+
+**Returns** `date` — The new date.
+
+### `date::add_milliseconds`
+
+```kiwi
+date::add_milliseconds(_dt: date, n: integer): date
+```
+
+Adds `n` milliseconds to the date. Use a negative value to subtract.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+| `n` | `integer` |  | Number of milliseconds to add (negative to subtract). |
+
+**Returns** `date` — The new date.
+
+### `date::year`
+
+```kiwi
+date::year(_dt: date): integer
+```
+
+Returns the year component of the date.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The year.
+
+### `date::month`
+
+```kiwi
+date::month(_dt: date): integer
+```
+
+Returns the month component of the date (1–12).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The month.
+
+### `date::day`
+
+```kiwi
+date::day(_dt: date): integer
+```
+
+Returns the day-of-month component of the date (1–31).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The day.
+
+### `date::hour`
+
+```kiwi
+date::hour(_dt: date): integer
+```
+
+Returns the hour component of the date (0–23).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The hour.
+
+### `date::minute`
+
+```kiwi
+date::minute(_dt: date): integer
+```
+
+Returns the minute component of the date (0–59).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The minute.
+
+### `date::second`
+
+```kiwi
+date::second(_dt: date): integer
+```
+
+Returns the second component of the date (0–60).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The second.
+
+### `date::millisecond`
+
+```kiwi
+date::millisecond(_dt: date): integer
+```
+
+Returns the millisecond component of the date (0–999).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The millisecond.
+
+### `date::weekday`
+
+```kiwi
+date::weekday(_dt: date): integer
+```
+
+Returns the day of the week (0 = Sunday … 6 = Saturday).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The weekday index.
+
+### `date::yearday`
+
+```kiwi
+date::yearday(_dt: date): integer
+```
+
+Returns the day of the year (1–366).
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `integer` — The day of the year.
+
+### `date::isdst`
+
+```kiwi
+date::isdst(_dt: date): boolean
+```
+
+Returns `true` if the date falls within Daylight Saving Time.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `boolean` — `true` if DST is in effect.
+
+### `date::ampm`
+
+```kiwi
+date::ampm(_dt: date): string
+```
+
+Returns `"AM"` or `"PM"` for the date's time.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_dt` | `date` |  | The date. |
+
+**Returns** `string` — `"AM"` or `"PM"`.

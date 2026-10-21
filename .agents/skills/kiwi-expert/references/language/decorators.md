@@ -1,269 +1,153 @@
 # Decorators
 
-Decorators let you wrap a function with additional behaviour using `@name` syntax placed above a `fn` definition. They are a clean alternative to manually writing `f = wrapper(f)`.
+> Wrapping functions with @decorator syntax.
 
----
-
-## Basic decorator
-
-A decorator is any callable that accepts a function as its first argument and returns a new function. The `@name` syntax calls it automatically.
+A decorator wraps a function with extra behavior: logging, timing, caching, retries, registration. Write `@name` on the line above a `fn`.
 
 ```kiwi
 fn shout(f)
-  return with (*args) do
-    result = f(*args)
-    return result.to_string().uppercase()
+  with (*args) do
+    f(*args).uppercase()
   end
 end
 
 @shout
 fn greet(name)
-  return "hello, ${name}"
+  "hello, ${name}"
 end
 
-println greet("world")  # HELLO, WORLD
+println greet("world")   # HELLO, WORLD
 ```
 
-> The decorator receives the original function as a lambda and must return the replacement callable.
+A decorator is an ordinary function. It receives the decorated function and returns the function that should replace it. `@shout` above `fn greet` means the same as writing `greet = shout(greet)` after the definition.
 
----
+Most decorators return a variadic lambda, `with (*args) do ... end`, that calls the original with `f(*args)`, so they work with functions of any arity.
 
-## How it works
+## Stacking
 
-`@decorator` before `fn f` is equivalent to:
-
-```kiwi
-fn f(...)
-  ...
-end
-f = decorator(f)
-```
-
----
-
-## Stacking decorators
-
-Multiple decorators can be stacked — they are applied **bottom-to-top** (the one closest to `fn` is applied first).
+Several decorators can be stacked. The one closest to `fn` is applied first:
 
 ```kiwi
 fn double_result(f)
-  return with (*args) do f(*args) * 2 end
+  with (*args) do f(*args) * 2 end
 end
 
 fn add_one(f)
-  return with (*args) do f(*args) + 1 end
+  with (*args) do f(*args) + 1 end
 end
 
 @add_one
 @double_result
-fn mul(a, b)
-  return a * b
+fn multiply(a, b)
+  a * b
 end
 
-# mul(3, 4) = 12  →  double_result: 24  →  add_one: 25
-println mul(3, 4)  # 25
+println multiply(3, 4)   # 25, that is (3 * 4) * 2 + 1
 ```
 
----
+## Decorator arguments
 
-## Decorators with arguments
-
-Pass extra arguments after the decorator name. They are forwarded after the wrapped function.
+Arguments after the decorator name are passed to the decorator after the function. Positional and named arguments both work.
 
 ```kiwi
-fn ntimes(f, n)
-  return with (*args) do
+fn repeat_call(f, times)
+  with (*args) do
     result = null
-    for i in [1..n] do
+    repeat times do
       result = f(*args)
     end
-    return result
+    result
   end
 end
 
-count = 0
-
-@ntimes(3)
-fn tick()
-  count += 1
+fn label(f, prefix = "LOG")
+  with (*args) do
+    "[${prefix}] ${f(*args)}"
+  end
 end
 
-tick()
-println count  # 3
+clicks = 0
+
+@repeat_call(3)
+fn click()
+  clicks += 1
+end
+
+@label(prefix: "INFO")
+fn status(code)
+  "status ${code}"
+end
+
+click()
+println clicks        # 3
+println status(200)   # [INFO] status 200
 ```
 
-Arguments can also be passed by name using `name: value` or `name = value` syntax.
+## Decorators from packages
+
+Decorators defined in a package are referenced with `::`. The standard library provides several:
 
 ```kiwi
-fn tag(f, value: string): lambda
-  return with (*args) do
-    println "${value}: ${f(*args)}"
-  end
-end
-
-@tag(value: "INFO")
-fn compute(x)
-  return x * 2
-end
-
-compute(5)  # INFO: 10
-```
-
-Positional and keyword arguments can be mixed — positional args are filled left-to-right into unfilled parameter slots.
-
-```kiwi
-fn ntimes_labeled(f, n, label: string): lambda
-  return with (*args) do
-    for i in [1..n] do f(*args) end
-    println "ran ${label} ${n} times"
-  end
-end
-
-@ntimes_labeled(3, label: "benchmark")
-fn work()
-  # ...
-end
-
-work()  # ran benchmark 3 times
-```
-
----
-
-## Timing decorator
-
-```kiwi
-fn timer(f)
-  return with (*args) do
-    t1 = time::ticks()
-    result = f(*args)
-    elapsed = time::ticks() - t1
-    println "Elapsed: ${elapsed}ms"
-    return result
-  end
-end
-
-@timer
-fn slow_add(a, b)
-  return a + b
-end
-
-println slow_add(10, 32)
-# Elapsed: ...ms
-# 42
-```
-
----
-
-## Logging decorator
-
-```kiwi
-fn logger(f)
-  return with (*args) do
-    println "Calling with ${args.size()} arg(s)"
-    return f(*args)
-  end
-end
-
-@logger
-@timer
-fn multiply(a, b)
-  return a * b
-end
-
-println multiply(6, 7)
-# Calling with 2 arg(s)
-# Elapsed: ...ms
-# 42
-```
-
----
-
-## Decorator on a struct method
-
-Decorators work inside `struct` bodies too.
-
-```kiwi
-struct Counter
-  fn new()
-    @value = 0
-  end
-
-  fn logged(f)
-    return with (*args) do
-      println "calling method"
-      return f(*args)
-    end
-  end
-
-  @logged
-  fn increment()
-    @value += 1
-  end
-end
-
-c = Counter.new()
-c.increment()  # calling method
-```
-
----
-
-## Package-qualified decorators
-
-Decorators from packages are referenced with `::` notation.
-
-```kiwi
-import "bench"
-import "math"
-
-@bench::mark("sort 500 items")
-fn sort_bench()
-  math::random_set(0, 5000, 500).sort()
-end
-
-@bench::timed
-fn slow_sum(n)
-  total = 0
-  for i in [1..n] do total += i end
-  return total
-end
-
-bench::run_all()
-slow_sum(50000)
-```
-
-See [`bench` library](lib/bench.md) for `@bench::mark`, `@bench::profile`, and `@bench::timed`.
-
----
-
----
-
-## Unit test registration
-
-`@tester::test` is a built-in decorator that registers a function as a named unit test and returns it unchanged. It is the idiomatic way to write test suites in Kiwi.
-
-```kiwi
-import "tester"
-
 @tester::test("addition works")
 fn test_addition()
   tester::assert_eq(1 + 1, 2, "basic addition")
 end
 
-@tester::test("string concat")
-fn test_strings()
-  tester::assert("hello" + " world" == "hello world", "concat")
-end
-
-results = tester::run_tests()
+tester::run_tests()
 ```
 
-The functions remain directly callable (`test_addition()`, `test_strings()`) in addition to being registered in the test runner.
+| Decorator | Purpose |
+| :-- | :-- |
+| `@tester::test(name)` | Registers a [unit test](../tools/testing.md) |
+| `@bench::mark(name)` | Registers a [benchmark](../lib/bench.md) |
+| `@bench::timed` | Prints the elapsed time of every call |
+| `@bench::profile(name, iterations, warmup)` | Benchmarks the function once, when it is defined |
 
-See [`tester` library](lib/tester.md) for `assert`, `assert_eq`, and `run_tests`.
+## Examples
 
----
+### Timing
 
-## See also
+```kiwi
+fn timed(f)
+  with (*args) do
+    started = time::ticks()
+    result = f(*args)
+    elapsed = time::ticksms(time::ticks() - started)
+    println "took ${elapsed.to_string("f2")} ms"
+    result
+  end
+end
 
-- [Functions](functions.md) — variadic parameters, splat
-- [Lambdas](lambdas.md) — `with`/`do` block syntax
+@timed
+fn slow_sum(n)
+  [1 to n].sum()
+end
+
+println slow_sum(100000)
+```
+
+### Memoizing
+
+```kiwi
+fn memoize(f)
+  cache = {}
+  with (n) do
+    cache[n] = f(n) when !cache.has_key(n)
+    cache[n]
+  end
+end
+
+@memoize
+fn fib(n)
+  return n when n < 2
+  fib(n - 1) + fib(n - 2)
+end
+
+println fib(60)   # 1548008755920
+```
+
+Because the decorated function replaces the original name, the recursive calls inside `fib` also go through the cache.
+
+:::note
+Decorators currently apply only to functions, not to struct methods. A decorator above a method inside a `struct` is ignored.
+:::

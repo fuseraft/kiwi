@@ -1,87 +1,512 @@
-# `crypto`
+# crypto
 
-The `crypto` package contains functionality for generating hash strings.
+> Hash strings with MD5 and the SHA family, and compute HMACs.
 
----
-
-## Package Functions
-
-### `md5_hash(input = "")`
-Generates an MD5 hash string.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | The input string.|
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | An MD5 hash. |
-
-**Example**
+The `crypto` package computes message digests and HMACs. Each function returns a lowercase hexadecimal string.
 
 ```kiwi
-import "crypto"
+println crypto::sha256_hash("kiwi")
+# 1a5afeda973d776e31d1d7266f184468f84d99bed311d88d3dcb67015934f9f9
 
-var hash = crypto::md5_hash("hello")
-println hash
-# 5d41402abc4b2a76b9719d911017c592
+println crypto::md5_hash("kiwi")
+# de5949721e6352f01dfef317c3e898a8
+
+println crypto::hmac_sha256("secret-key", "message to sign")
 ```
 
-### `sha224_hash(input = "")`
-Generates a SHA-224 hash string.
+| Function | Algorithm |
+| :-- | :-- |
+| `md5_hash` | MD5 |
+| `sha1_hash` | SHA-1 |
+| `sha224_hash`, `sha256_hash`, `sha384_hash`, `sha512_hash` | SHA-2 |
+| `hmac_md5`, `hmac_sha256`, `hmac_sha512` | HMAC with that hash |
+| `hmac(algorithm, key, input)` | HMAC with a named algorithm |
 
-**Parameters**
+MD5 and SHA-1 are fine for checksums and cache keys but are no longer safe against deliberate tampering; use SHA-256 or better for anything security-related. These functions hash data; they are not suitable for storing passwords, which need a slow, salted algorithm.
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | The input string.|
+For Base64 and hex encoding, see [`encode`](encode.md).
 
-**Returns**
+## Functions
 
-| Type | Description |
-| :--- | :--- |
-| `string` | A SHA-224 hash. |
-
-**Example**
+### `crypto::md5_hash`
 
 ```kiwi
-import "crypto"
-
-var hash = crypto::sha224_hash("hello")
-println hash
-# ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193
+crypto::md5_hash(input = "")
 ```
 
-### `sha256_hash(input = "")`
-Generates a SHA-256 hash string.
+Computes the MD5 hex digest of a string.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` | `""` | The input string to hash (default `""`). |
 
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | The input string.|
+**Returns** `string` — A 32-character lowercase hexadecimal MD5 digest.
 
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A SHA-256 hash. |
-
-**Example**
+### `crypto::sha224_hash`
 
 ```kiwi
-import "crypto"
-
-var hash = crypto::sha256_hash("hello")
-println hash
-# 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
-
-# Hashing user input or file content
-var password = "s3cr3t!"
-var digest = crypto::sha256_hash(password)
-println "SHA-256: " + digest
+crypto::sha224_hash(input = "")
 ```
+
+Computes the SHA-224 hex digest of a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` | `""` | The input string to hash (default `""`). |
+
+**Returns** `string` — A 56-character lowercase hexadecimal SHA-224 digest.
+
+### `crypto::sha256_hash`
+
+```kiwi
+crypto::sha256_hash(input = "")
+```
+
+Computes the SHA-256 hex digest of a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` | `""` | The input string to hash (default `""`). |
+
+**Returns** `string` — A 64-character lowercase hexadecimal SHA-256 digest.
+
+### `crypto::sha1_hash`
+
+```kiwi
+crypto::sha1_hash(input = "")
+```
+
+Computes the SHA-1 hex digest of a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` | `""` | The input string to hash (default `""`). |
+
+**Returns** `string` — A 40-character lowercase hexadecimal SHA-1 digest.
+
+### `crypto::sha384_hash`
+
+```kiwi
+crypto::sha384_hash(input = "")
+```
+
+Computes the SHA-384 hex digest of a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` | `""` | The input string to hash (default `""`). |
+
+**Returns** `string` — A 96-character lowercase hexadecimal SHA-384 digest.
+
+### `crypto::sha512_hash`
+
+```kiwi
+crypto::sha512_hash(input = "")
+```
+
+Computes the SHA-512 hex digest of a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` | `""` | The input string to hash (default `""`). |
+
+**Returns** `string` — A 128-character lowercase hexadecimal SHA-512 digest.
+
+### `crypto::hmac`
+
+```kiwi
+crypto::hmac(algorithm, key, input)
+```
+
+Computes an HMAC hex digest.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `algorithm` | `string` |  | One of "MD5", "SHA256", "SHA512". |
+| `key` | `string` |  | The HMAC key. |
+| `input` | `string` |  | The input string. |
+
+**Returns** `string` — Lowercase hexadecimal HMAC digest.
+
+### `crypto::hmac_sha256`
+
+```kiwi
+crypto::hmac_sha256(key, input)
+```
+
+Computes HMAC-SHA256.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `key` | `string` |  | The HMAC key. |
+| `input` | `string` |  | The input string. |
+
+**Returns** `string` — Lowercase hexadecimal digest.
+
+### `crypto::hmac_sha512`
+
+```kiwi
+crypto::hmac_sha512(key, input)
+```
+
+Computes HMAC-SHA512.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `key` | `string` |  | The HMAC key. |
+| `input` | `string` |  | The input string. |
+
+**Returns** `string` — Lowercase hexadecimal digest.
+
+### `crypto::hmac_md5`
+
+```kiwi
+crypto::hmac_md5(key, input)
+```
+
+Computes HMAC-MD5.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `key` | `string` |  | The HMAC key. |
+| `input` | `string` |  | The input string. |
+
+**Returns** `string` — Lowercase hexadecimal digest.
+
+## `MD5` struct
+
+A pure-Kiwi implementation of the MD5 message-digest algorithm.
+
+### `MD5.hexdigest`
+
+```kiwi
+static MD5.hexdigest(input)
+```
+
+Computes the MD5 hex digest of a string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | The input string to hash. |
+
+**Returns** `string` — A 32-character lowercase hexadecimal MD5 digest.
+
+### `MD5.left_rotate`
+
+```kiwi
+static MD5.left_rotate(value, count)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `value` | `any` |  |  |
+| `count` | `any` |  |  |
+
+### `MD5.int_to_bytes`
+
+```kiwi
+static MD5.int_to_bytes(num)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `num` | `any` |  |  |
+
+## `SHA` struct
+
+A SHA-2 implementation based on the implementation in PyPy https://foss.heptapod.net/pypy/pypy/-/blob/branch/default/lib_pypy/_sha256.py
+
+### `SHA.BLOCKSIZE`
+
+```kiwi
+static SHA.BLOCKSIZE()
+```
+
+### `SHA.DIGESTSIZE`
+
+```kiwi
+static SHA.DIGESTSIZE()
+```
+
+### `SHA.new_shaobject`
+
+```kiwi
+static SHA.new_shaobject()
+```
+
+### `SHA.Ch`
+
+```kiwi
+static SHA.Ch(x, y, z)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+| `y` | `any` |  |  |
+| `z` | `any` |  |  |
+
+### `SHA.Maj`
+
+```kiwi
+static SHA.Maj(x, y, z)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+| `y` | `any` |  |  |
+| `z` | `any` |  |  |
+
+### `SHA.S`
+
+```kiwi
+static SHA.S(x, n)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+| `n` | `any` |  |  |
+
+### `SHA.R`
+
+```kiwi
+static SHA.R(x, n)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+| `n` | `any` |  |  |
+
+### `SHA.Sigma0`
+
+```kiwi
+static SHA.Sigma0(x)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+
+### `SHA.Sigma1`
+
+```kiwi
+static SHA.Sigma1(x)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+
+### `SHA.Gamma0`
+
+```kiwi
+static SHA.Gamma0(x)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+
+### `SHA.Gamma1`
+
+```kiwi
+static SHA.Gamma1(x)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `x` | `any` |  |  |
+
+### `SHA.RND`
+
+```kiwi
+static SHA.RND(a, b, c, d, e, f, g, h, i, ki, W)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `a` | `any` |  |  |
+| `b` | `any` |  |  |
+| `c` | `any` |  |  |
+| `d` | `any` |  |  |
+| `e` | `any` |  |  |
+| `f` | `any` |  |  |
+| `g` | `any` |  |  |
+| `h` | `any` |  |  |
+| `i` | `any` |  |  |
+| `ki` | `any` |  |  |
+| `W` | `any` |  |  |
+
+### `SHA.transform`
+
+```kiwi
+static SHA.transform(sha_info)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sha_info` | `any` |  |  |
+
+### `SHA.sha_init`
+
+```kiwi
+static SHA.sha_init()
+```
+
+### `SHA.sha224_init`
+
+```kiwi
+static SHA.sha224_init()
+```
+
+### `SHA.getbuf`
+
+```kiwi
+static SHA.getbuf(s)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `any` |  |  |
+
+### `SHA.sha_update`
+
+```kiwi
+static SHA.sha_update(sha_info, buffer)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sha_info` | `any` |  |  |
+| `buffer` | `any` |  |  |
+
+### `SHA.sha_final`
+
+```kiwi
+static SHA.sha_final(sha_info)
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `sha_info` | `any` |  |  |
+
+## `SHA256` struct
+
+A pure-Kiwi SHA-256 hasher supporting incremental updates.
+
+### `SHA256.new`
+
+```kiwi
+SHA256.new(s = null)
+```
+
+Creates a new SHA-256 hasher, optionally hashing an initial string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `string\|none` | `null` | An optional initial input string (default `null`). |
+
+### `.update`
+
+```kiwi
+update(s)
+```
+
+Feeds additional data into the hasher.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `string` |  | The data to hash. |
+
+### `.digest`
+
+```kiwi
+digest()
+```
+
+Returns the raw digest as a list of bytes.
+
+**Returns** `list` — A list of integers representing the digest bytes.
+
+### `.hexdigest`
+
+```kiwi
+hexdigest()
+```
+
+Returns the hex-encoded digest string.
+
+**Returns** `string` — A 64-character lowercase hexadecimal SHA-256 digest.
+
+### `.copy`
+
+```kiwi
+copy()
+```
+
+Returns a copy of this hasher with the same internal state.
+
+**Returns** `SHA256` — A new independent SHA256 instance.
+
+## `SHA224` struct
+
+Inherits from `SHA256`.
+
+A pure-Kiwi SHA-224 hasher. Inherits from `SHA256` with a 224-bit digest.
+
+### `SHA224.new`
+
+```kiwi
+SHA224.new(s = null)
+```
+
+Creates a new SHA-224 hasher, optionally hashing an initial string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `string\|none` | `null` | An optional initial input string (default `null`). |
+
+### `.update`
+
+```kiwi
+update(s)
+```
+
+Feeds additional data into the hasher.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `string` |  | The data to hash. |
+
+### `.digest`
+
+```kiwi
+digest()
+```
+
+Returns the raw digest as a list of bytes.
+
+**Returns** `list` — A list of integers representing the digest bytes.
+
+### `.hexdigest`
+
+```kiwi
+hexdigest()
+```
+
+Returns the hex-encoded digest string.
+
+**Returns** `string` — A 56-character lowercase hexadecimal SHA-224 digest.
+
+### `.copy`
+
+```kiwi
+copy()
+```
+
+Returns a copy of this hasher with the same internal state.
+
+**Returns** `SHA224` — A new independent SHA224 instance.

@@ -1,203 +1,132 @@
-# Loops in Kiwi
+# Loops
 
-Kiwi provides three main looping constructs: `repeat`, `while`, and `for`.
-All loops support `break` (exit early) and `next` (skip to next iteration).
+> for, while and repeat loops, plus break and next.
 
-## Quick Reference
+Kiwi has three loops. Each opens its body with `do` and closes it with `end`.
 
-| Construct     | Use case                              | Iterator var? | Index available? | Infinite possible? |
-|---------------|---------------------------------------|---------------|------------------|--------------------|
-| `repeat n`    | Known number of repetitions           | Yes (via `as`) | Yes              | No                 |
-| `while`       | Condition-based (including infinite)  | No            | Manual           | Yes                |
-| `for … in …`  | Collection / range / generator        | Yes           | Yes (optional)   | Yes (generators)   |
+| Loop | Use it for |
+| :-- | :-- |
+| `for ... in ... do` | Walking a list, range, string, hashmap or generator |
+| `while condition do` | Repeating until a condition becomes false |
+| `repeat n do` | Running a block a fixed number of times |
 
-## 1. `repeat` – Fixed number of iterations
+## `for`
 
-Simplest loop: run a block exactly `n` times (n must be a positive integer). 
-
-### Basic syntax
+`for` iterates over a collection. Add a second variable to get the index (or, for hashmaps, the value).
 
 ```kiwi
-repeat 5 do
-  println "Hello"
-end
-# prints "Hello" five times
-```
-
-### With iterator variable (`as`)
-
-The iterator starts at **1** and goes up to `n`.
-
-```kiwi
-sum = 0
-
-repeat 10 as i do
-  sum += i
-end
-
-println sum          # 55   (1+2+...+10)
-```
-
-**Note:** `repeat 0` is a no-op (does nothing).
-
-## 2. `while` – Condition-based loop
-
-Runs as long as the condition is `true`.
-
-### Basic syntax
-
-```kiwi
-count = 1
-
-while count <= 5 do
-  println count
-  count += 1
-end
-# 1 2 3 4 5
-```
-
-### Infinite loop
-
-```kiwi
-while true do
-  print "\rWaiting... (Ctrl+C to exit)"
-  task::sleep(400)
-end
-```
-
-### Early exit with `break`
-
-```kiwi
-i = 0
-while true do
-  i += 1
-  println i
-
-  break when i >= 7   # clean guard style
-end
-# prints 1 through 7
-```
-
-### Skip iteration with `next`
-
-```kiwi
-i = 0
-while i < 10 do
-  i += 1
-
-  next when i % 2 == 0   # skip even numbers
-
-  println i              # only odd numbers
-end
-# 1 3 5 7 9
-```
-
-## 3. `for` – Iteration over collections, ranges & generators
-
-Most common loop in Kiwi — used for lists, hashmaps, ranges, and generators.
-
-### Syntax
-
-```kiwi
-for item in collection do
-  # ...
-end
-
-# With index
-for item, idx in collection do
-  # idx starts at 0
-end
-
-# With key-value (hashmaps)
-for key, value in hashmap do
-  # ...
-end
-```
-
-### Examples
-
-#### Lists
-
-```kiwi
-fruits = ["apple", "banana", "cherry"]
+fruits = ["kiwi", "mango", "lime"]
 
 for fruit in fruits do
   println fruit
 end
-# apple
-# banana
-# cherry
 
-# With index
 for fruit, i in fruits do
-  println "${i + 1}. ${fruit}"
+  println "${i}: ${fruit}"   # 0: kiwi, 1: mango, 2: lime
 end
-# 1. apple
-# 2. banana
-# 3. cherry
 ```
 
-#### Ranges
+It works on every iterable type:
 
 ```kiwi
-for i in [1 to 5] do         # 1,2,3,4,5
-  println i
-end
-
-for i in [10 to 1] do        # countdown
+# Ranges count without building a list.
+for i in [1 to 3] do
   print "${i} "
 end
-# 10 9 8 7 6 5 4 3 2 1
-```
+println ""                 # 1 2 3
 
-Looping over a range literal never builds the list: the loop counts from start to end, so
-`for i in [1 to 100000000]` uses constant memory and is faster than the equivalent `while` or
-`repeat` loop. The bounds are evaluated once, before the first iteration.
+# Strings yield one character at a time.
+for ch in "abc" do
+  print ch.uppercase()
+end
+println ""                 # ABC
 
-#### Hashmaps
-
-```kiwi
-scores = { alice: 95, bob: 82, carol: 100 }
-
-# key-value pairs
+# Hashmaps yield keys, or key-value pairs.
+scores = {alice: 95, bob: 82}
 for name, score in scores do
-  println "${name}: ${score}"
-end
-
-# only keys
-for name in scores.keys() do
-  println name
-end
-
-# only values
-for score in scores.values() do
-  println score
+  println "${name} scored ${score}"
 end
 ```
 
-### Early exit & skipping in `for`
+[Generators](generators.md) are consumed one value at a time, so a `for` loop can walk an infinite sequence as long as it breaks out.
+
+## `while`
+
+`while` repeats as long as its condition is truthy.
 
 ```kiwi
-for num in [1 to 20] do
-  next when num % 3 == 0     # skip multiples of 3
-  break when num > 15        # stop early
-
-  println num
+count = 1
+while count <= 3 do
+  println count
+  count += 1
 end
-# 1 2 4 5 7 8 10 11 13 14
 ```
 
-## Best practices & tips
+`while true do` with a `break when` inside is the idiom for a loop whose exit is in the middle:
 
-- Prefer `for` when iterating collections or known ranges — it's the most idiomatic.
-- Use `while true` + `break when …` for clean infinite/event loops.
-- `repeat` is great for simple fixed-count tasks or generating sequences.
-- Guard clauses (`break when`, `next when`) reduce nesting and improve readability.
-- Avoid mutating the collection inside a `for` loop over it (use indices or `.clone()` if needed).
+```kiwi
+attempts = 0
+while true do
+  attempts += 1
+  break when attempts >= 3
+end
+println attempts   # 3
+```
 
-See also:
-- [Ranges](ranges.md)
-- [Lists](lists.md)
-- [Hashmaps](hashmaps.md)
-- [Generators](generators.md)
-- [Control Flow – `when` guards](control_structures.md#3-when--guard-clauses--conditional-modifiers)
+## `repeat`
+
+`repeat n do` runs the body `n` times. `as` names a counter that runs from 1 to `n`. A count of zero or less runs nothing.
+
+```kiwi
+repeat 2 do
+  println "Hello"
+end
+
+total = 0
+repeat 10 as i do
+  total += i
+end
+println total   # 55
+```
+
+## `break` and `next`
+
+`break` leaves the innermost loop. `next` skips to the next iteration. Both take an optional `when` guard, which usually reads better than wrapping them in `if`.
+
+```kiwi
+for n in [1 to 20] do
+  next when n % 3 == 0    # skip multiples of 3
+  break when n > 10       # stop after 10
+  print "${n} "
+end
+println ""                # 1 2 4 5 7 8 10
+```
+
+In nested loops, `break` and `next` affect only the loop they're in:
+
+```kiwi
+for row in [1, 2] do
+  for col in [1, 2, 3] do
+    break when col == 2
+    print "${row}${col} "
+  end
+end
+println ""   # 11 21
+```
+
+## Loop variables
+
+The loop variable keeps its last value after the loop ends, and variables first assigned in the body stay visible too. See [Scoping](scoping.md).
+
+```kiwi
+for n in [1, 2, 3] do
+  last = n
+end
+println last   # 3
+```
+
+## Tips
+
+- Prefer `for` over index arithmetic with `while`.
+- Don't add or remove elements of the list you are iterating; loop over a `.clone()` instead.
+- For transformations, a list method such as `.map`, `.filter` or `.reduce` is often clearer than a loop. See [Lists](lists.md#transforming).

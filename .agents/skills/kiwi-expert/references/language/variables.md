@@ -1,190 +1,133 @@
 # Variables
 
-Variables are by default dynamically typed, meaning they do not require explicit type declarations. The type of a variable is inferred from the value assigned to it. For more information on types, please see [Types](types.md).
+> Assignment, unpacking, var declarations with type hints, and constants.
 
---- 
+## Assignment
 
-## `var` Keyword
-
-The `var` keyword in Kiwi simplifies variable declaration, supporting multiple styles of initialization with optional type hints.
-
-### Syntax
-
-**Single variable:**
+Assigning to a name creates the variable. Kiwi is dynamically typed, so the same variable can hold a different type later.
 
 ```kiwi
-var var_name
-var var_name = value
-var var_name: type
-var var_name: type = value
+count = 10
+price = 20.5
+greeting = "Hello"
+items = [1, 2, 3]
+
+count = "ten"    # now a string
+println count    # ten
 ```
 
-**Multiple variables (grouped with parentheses):**
+Reading a variable that was never assigned is an error:
 
 ```kiwi
-var (<declaration_1>, <declaration_2>, ..., <declaration_n>)
+println missing   # VariableUndefinedError: The variable has not been declared: 'missing'
 ```
 
-### Declaration Options
-
-Each declaration can take one of the following forms:
-
-1. **Regular declaration with initialization:**
-
-   ```kiwi
-   var greeting = "Hello"
-   ```
-   - Infers the variable type from the assigned value.
-
-2. **Type-hinted declaration with initialization:**
-
-   ```kiwi
-   var count: integer = 0
-   ```
-   - Specifies the variable type explicitly with an initializer.
-   - Union types are supported: `var name: type1|type2 = value`.
-
-3. **Type-hinted declaration without initialization:**
-
-   ```kiwi
-   var label: string
-   ```
-   - Defaults to the type’s default value (e.g., `0` for integers, `false` for booleans, `""` for strings, `null` for others).
-
-4. **Uninitialized declaration:**
-
-   ```kiwi
-   var name
-   ```
-
-   - Defaults to `null`.
-
-### Multiple Declarations
-
-You can group multiple declarations within parentheses `()` separated by commas `,`:
+Assignment is an expression, so it can be chained:
 
 ```kiwi
-var (x = 10, y: float = 3.14, z: string, w)
+a = b = c = 0
+println [a, b, c]   # [0, 0, 0]
 ```
 
----
+Compound assignment operators (`+=`, `-=`, `*=`, `||=` and so on) are listed under [Operators](operators.md#assignment).
 
-## Examples
+## Multiple assignment
 
-### Single Declaration
-```kiwi
-var x = 42              # `x` is an integer with the value 42
-var name: string        # `name` is a string, defaults to ""
-var flag: boolean = true  # `flag` is a boolean with the value true
-```
-
-### Multiple Declarations
-```kiwi
-var (
-  age: integer = 25,    # `age` is an integer with value 25
-  name = "Kiwi",        # `name` is a string with value "Kiwi"
-  is_active: boolean,   # `is_active` is a boolean, defaults to false
-  count                 # `count` is uninitialized, defaults to null
-)
-```
-
-### Practical Example
-```kiwi
-fn initialize_variables()
-  var counter: integer = 0
-  var name: string = "Test"
-  var active: boolean = true
-  var data: list = [1, 2, 3]
-  var metadata: hashmap = {"key": "value"}
-
-  return [counter, name, active, data, metadata]
-end
-```
-
----
-
-## Key Features
-1. **Type Hints:** Declare variables with explicit types for clarity and error prevention.
-2. **Initialization Flexibility:** Mix initialized and uninitialized variables.
-3. **Compact Syntax:** Group related variable declarations with `var (...)` for cleaner, more maintainable code.
-
----
-
-## Use Cases
-- **Convenient Debugging:** Quickly declare multiple variables for experimentation or testing.
-- **Readable Code:** Clearly communicate intent through grouped declarations and type hints.
-- **Efficient Initialization:** Avoid repetitive `null` initializations or redundant type declarations.
-
-## Assigning Variables
-
-You can assign a variable in Kiwi using the `=` operator. 
-
-For example:
+Separate names with commas to assign several at once. The right-hand side can be a list of expressions or a single list value, which is unpacked.
 
 ```kiwi
-a = 10        # Integer assignment
-b = 20.5      # Float assignment
-c = "Hello"   # String assignment
-d = [1, 2, 3] # List assignment
-```
+a, b, c = 10, 20, 30
+println "${a} ${b} ${c}"   # 10 20 30
 
-In these cases:
-- `a` holds an integer value.
-- `b` holds a floating-point number.
-- `c` holds a string.
-- `d` holds a list of integers.
-
-### Variable Reassignment
-You can reassign variables at any point, and the type can change based on the new value:
-
-```kiwi
-x = 5         # `x` is initially an integer
-x = "Kiwi"    # `x` is now a string
-```
-
-### Multiple Assignments
-Kiwi supports unpacking multiple values into multiple variables in a single line:
-
-```kiwi
-a, b, c = true, {"a": false}, [1, 2, 3]
-```
-
-Here:
-- `a` is assigned the boolean value `true`.
-- `b` is assigned a hashmap with a single key-value pair.
-- `c` is assigned a list containing three integers.
-
-You can also unpack the elements of a list returned by a function:
-
-```kiwi
-fn get_zero_and_one()
-  return [0, 1]
+fn bounds()
+  [0, 100]
 end
 
-zero, one = get_zero_and_one()
+low, high = bounds()
+println high               # 100
+
+x, y = 1, 2
+x, y = y, x                # swap
+println [x, y]             # [2, 1]
 ```
 
-Now, `zero` is `0` and `one` is `1`.
-
-
-## Variable Scope
-Kiwi uses lexical scoping. Variables created inside a function are local to that call. Variables created inside a control-flow block (`if`, `while`, `for`, `repeat`, `do`) are local to that block. See [Scoping](scoping.md) for the full rules.
+Names without a matching value are set to `null`:
 
 ```kiwi
-fn example_scope()
-  x = 100  # local to this function call
-end
-
-println x  # null
+first, second, third = [1, 2]
+println third   # null
 ```
 
-#### String Interpolation with Variables
-Kiwi supports string interpolation, allowing you to embed variable values directly into strings using `${}` syntax:
+## `var` declarations
+
+`var` declares a variable explicitly, optionally with a type hint. It is never required, but it documents intent and gives typed variables a starting value.
 
 ```kiwi
-name = "Kiwi"
-greeting = "Hello, ${name}!"
-println(greeting)  # Hello, Kiwi!
+var greeting = "Hello"
+var count: integer = 0
+var ratio: float = 0.5
+var maybe: string? = null
 ```
 
-This interpolation works with any valid expression inside `${}`.
+With a type hint and no initializer, the variable starts at that type's zero value:
+
+| Hint | Starts as |
+| :-- | :-- |
+| `integer` | `0` |
+| `float` | `0.0` |
+| `string` | `""` |
+| `boolean` | `false` |
+| `list` | `[]` |
+| `hashmap` | `{}` |
+
+```kiwi
+var total: integer
+var names: list
+
+total += 5
+names.push("kiwi")
+println [total, names]   # [5, ["kiwi"]]
+```
+
+:::caution
+`var name` with neither an initializer nor one of the hints above does not create the variable; reading it later raises `VariableUndefinedError`. Initialize it instead: `var name = null`.
+:::
+
+Group several declarations in parentheses:
+
+```kiwi
+var (count: integer = 0, label = "items", scale: float)
+println [count, label, scale]   # [0, "items", 0]
+```
+
+Type hints on variables are documentation only; Kiwi does not check them at runtime. See [Type Hints](type-hints.md).
+
+## Constants
+
+`const` declares a value that can't be reassigned. Constant names must use only upper-case letters and underscores.
+
+```kiwi
+const MAX_RETRIES = 3
+const API_URL = "https://example.com"
+
+println MAX_RETRIES   # 3
+```
+
+Reassigning a constant is an error:
+
+```kiwi
+const LIMIT = 10
+LIMIT = 20   # InvalidOperationError: Cannot reassign constant 'LIMIT'.
+```
+
+`const` protects the binding, not the value. A constant list or hashmap can still be modified in place:
+
+```kiwi
+const NAMES = ["kiwi"]
+NAMES.push("mango")
+println NAMES   # ["kiwi", "mango"]
+```
+
+## Where variables live
+
+Variables assigned at the top level of a script are global. Variables first assigned inside a function belong to that call. See [Scoping](scoping.md) for the full rules, including closures and struct instance variables.

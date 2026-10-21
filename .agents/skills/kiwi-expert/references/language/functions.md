@@ -1,234 +1,194 @@
-# Functions and Methods
+# Functions
 
-Use the `fn` keyword to define a function or a method (a function of a [`struct`](structs.md)). 
+> Defining functions, parameters, defaults, named and variadic arguments, return values and recursion.
 
-```kiwi
-fn greet(name = "Kiwi")
-  println("Hello, ${name}!")
-end
+## Defining a function
 
-greet("world") # prints: Hello, world!
-greet()        # prints: Hello, Kiwi!
-```
-
-A parameter name can't be one of Kiwi's built-in type names (`list`, `hashmap`, `string`, `integer`, `float`, `boolean`, `date`, `any`, `generator`, `lambda`, `object`, `pointer`, `bytes`, `none`) — these are reserved as type keywords, and using one produces a parse error (``` `list` is a type name and can't be used as a parameter name. ```). This applies to variable names generally, not just parameters. See [Types](types.md).
+`fn` defines a function. (`def` is an alias.) The body runs until `end`.
 
 ```kiwi
-fn foo(list)     # error: `list` is a type name and can't be used as a parameter name.
-  ...
+fn greet(name)
+  println "Hello, ${name}!"
 end
 
-fn foo(items)    # ok
-  ...
-end
+greet("Kiwi")   # Hello, Kiwi!
 ```
 
-### Return Value
+## Return values
 
-A function returns the value of its **last evaluated expression** — `return` is optional. Use `return` when you need to return early or when the expression isn't naturally last.
+A function returns the value of the last expression it evaluates, so most functions don't need `return`. Use `return` to leave early. A bare `return` returns `null`.
 
 ```kiwi
 fn add(a, b)
-  a + b          # implicitly returned
+  a + b
 end
 
-fn abs(n)
+fn absolute(n)
   return -n when n < 0
-  n              # implicitly returned
+  n
 end
 
-println add(3, 4)  # 7
-println abs(-5)    # 5
+println add(3, 4)      # 7
+println absolute(-5)   # 5
 ```
 
-`return` with no value (or `return null`) exits the function and returns `null`.
+To return several values, return a list and unpack it:
 
 ```kiwi
-fn early_exit(x)
-  return when x < 0   # returns null
-  x * 2
+fn min_max(values)
+  [values.min(), values.max()]
 end
+
+low, high = min_max([4, 1, 9])
+println "${low}..${high}"   # 1..9
 ```
 
-### Optional Parameters
+## Default values
+
+A parameter can have a default, used when the argument is left out. Defaults are evaluated on each call, so a default list or hashmap is fresh every time, and a default can refer to earlier parameters.
 
 ```kiwi
-fn say(msg = "Hello, World!")
-  println(msg)
+fn greet(name = "stranger", greeting = "Hello")
+  "${greeting}, ${name}!"
 end
 
-say()       # prints: Hello, World!
-say("Hey!") # prints: Hey!
+println greet()               # Hello, stranger!
+println greet("Ada")          # Hello, Ada!
 
-fn configure(data, config = {})
-  for key in config.keys() do
-    data[key] = config[key]
-  end
-
-  return data
+fn box(width, height = width)
+  "${width}x${height}"
 end
 
-data = configure({ "name": "Scott" })
-println(data) # prints: {"name": "Scott"}
-
-data = configure({ "name": "Scott" }, { "favorite_os": "Fedora" })
-println(data) # prints: {"name": "Scott", "favorite_os": "Fedora"}
+println box(3)                # 3x3
 ```
 
-### Named Parameters
+## Named arguments
 
-Arguments can be passed by name, in any order. Named and positional arguments can be mixed — positional arguments fill the first available unfilled slot from left to right.
+Any argument can be passed by name, as `name: value` or `name = value`. Positional arguments fill the remaining parameters from left to right, so the two styles mix freely.
 
 ```kiwi
-fn greet(name: string, greeting: string = "Hello")
-  println "${greeting}, ${name}!"
+fn connect(host, port = 80, secure = false)
+  "${secure ? "https" : "http"}://${host}:${port}"
 end
 
-greet("Scotty")                     # Hello, Scotty!
-greet(name="Scotty")                # Hello, Scotty!
-greet(greeting="Hi", name="Scotty") # Hi, Scotty!
-greet("Scotty", greeting="Hey")     # Hey, Scotty!
-greet(greeting: "Hola", name: "Scotty") # Hola, Scotty!
+println connect("example.com")                         # http://example.com:80
+println connect("example.com", secure: true, port: 443) # https://example.com:443
+println connect(port = 8080, host = "localhost")       # http://localhost:8080
 ```
 
-Passing an unknown parameter name or specifying the same parameter more than once is an error.
+Passing a name that isn't a parameter is an error.
+
+:::caution
+Kiwi doesn't check the number of arguments. A missing argument without a default is `null`, and extra positional arguments are ignored. Give optional parameters explicit defaults so the intent is clear.
+:::
+
+## Variadic parameters
+
+Prefix the last parameter with `*` to collect any remaining positional arguments into a list:
 
 ```kiwi
-fn add(a: integer, b: integer): integer
-  return a + b
-end
-
-println add(b=3, a=7) # 10
-```
-
-### Variadic Parameters
-
-Prefix the last parameter with `*` to make it variadic. It collects any extra positional arguments into a list.
-
-```kiwi
-fn sum(*args)
+fn sum(*numbers)
   total = 0
-  for x in args do
-    total += x
+  for n in numbers do
+    total += n
   end
-  return total
+  total
 end
 
-println sum()           # 0
-println sum(1, 2, 3)    # 6
-println sum(10, 20, 30) # 60
-```
+println sum()            # 0
+println sum(1, 2, 3)     # 6
 
-Variadic parameters can follow regular parameters:
-
-```kiwi
-fn describe(label, *values)
-  println "${label}: ${values}"
+fn tag(label, *values)
+  "${label}: ${values}"
 end
 
-describe("nums", 1, 2, 3) # nums: [1, 2, 3]
-describe("empty")          # empty: []
+println tag("nums", 1, 2)   # nums: [1, 2]
 ```
 
-#### Splat operator
-
-Use `*expr` at the call site to expand a list into individual arguments:
+At the call site, `*list` spreads a list into separate arguments:
 
 ```kiwi
-nums = [1, 2, 3]
-println sum(*nums)  # 6
-
-fn add(a, b, c)
-  return a + b + c
+fn add3(a, b, c)
+  a + b + c
 end
 
-println add(*nums)  # 6
+args = [1, 2, 3]
+println add3(*args)   # 6
 ```
 
-### Hoisting
+## Hoisting
 
-Top-level functions are **hoisted**. They are registered before any code in the script runs, so you can call a function that is defined further down in the file.
-
-```kiwi
-println greet("Kiwi")  # Hello, Kiwi!
-
-fn greet(name)
-  return "Hello, ${name}!"
-end
-```
-
-Mutual recursion works for the same reason. In the example below, both functions are available before either is called:
+Top-level functions are registered before the script starts running, so a function can be called above the line that defines it. Mutual recursion works the same way.
 
 ```kiwi
-println is_even(4)  # true
-println is_odd(3)   # true
+println is_even(10)   # true
 
 fn is_even(n)
   return true when n == 0
-  return is_odd(n - 1)
+  is_odd(n - 1)
 end
 
 fn is_odd(n)
   return false when n == 0
-  return is_even(n - 1)
+  is_even(n - 1)
 end
 ```
 
-Hoisting applies only to **top-level** function definitions. Functions defined inside other functions, loops, or conditional blocks are not hoisted.
+Functions defined inside other functions or blocks are created when that code runs.
 
-### Scope
-
-Functions use lexical scoping — each call gets its own local scope, and outer (global) variables are readable and writable from inside. See [Scoping](scoping.md) for the complete rules.
+## Recursion
 
 ```kiwi
-counter = 0
-
-fn uptick()
-  counter += 1
+fn factorial(n)
+  return 1 when n <= 1
+  n * factorial(n - 1)
 end
 
-i = 1
-while i <= 5 do
-  uptick()
-  i += 1
-end
-
-# 5
-println(counter)
+println factorial(10)   # 3628800
 ```
 
-### Nested Functions
+Recursion is limited to roughly 500 nested calls; deeper recursion raises a `Stack overflow` error. Rewrite very deep recursion as a loop.
 
-A `fn` declaration inside another function is local to that function — it is callable anywhere in the enclosing body but does not leak into outer scope after the function returns.
+## Functions as values
+
+A named function is a value. Pass it to another function, store it in a variable or collection, or return it. Call it like any [lambda](lambdas.md).
 
 ```kiwi
-fn make_adder(n)
-  fn add(x)
-    return x + n
+fn shout(text)
+  text.uppercase() + "!"
+end
+
+fn apply_twice(f, value)
+  f(f(value))
+end
+
+println apply_twice(shout, "hi")       # HI!!
+println ["a", "b"].map(shout)          # ["A!", "B!"]
+
+handlers = {loud: shout}
+println handlers["loud"]("hey")        # HEY!
+```
+
+## Nested functions
+
+A `fn` inside another function is a helper for that function:
+
+```kiwi
+fn summarize(values)
+  fn average(xs)
+    xs.sum() / xs.size()
   end
-  return add(10)  # 10 + n
+
+  "n=${values.size()} mean=${average(values)}"
 end
 
-println make_adder(5)  # 15
-add(1)                 # error — add is not defined here
+println summarize([2, 4, 6])   # n=3 mean=4
 ```
 
-This is useful for encapsulating helper logic without polluting the global namespace.
+## Related pages
 
-### Generator Functions
-
-A function that contains `yield` is a **generator function**. Calling it returns a lazy generator object instead of executing the body. See [Generators](generators.md) for full details.
-
-```kiwi
-fn countdown(n)
-  while n >= 0 do
-    yield n
-    n -= 1
-  end
-end
-
-for x in countdown(5) do
-  print "${x} "
-end
-# 5 4 3 2 1 0
-```
+- [Lambdas](lambdas.md) for anonymous functions and closures.
+- [Type Hints](type-hints.md) for annotating parameters and return values.
+- [Generators](generators.md) for functions that `yield` a sequence.
+- [Decorators](decorators.md) for wrapping functions with `@name`.
+- [Scoping](scoping.md) for how functions see variables.

@@ -1,222 +1,115 @@
-# `curl`
+# curl
 
-The `curl` package provides a thin wrapper around the system `curl` command for making HTTP requests from Kiwi programs. It requires `curl` to be installed and available on the system `PATH`.
+> Make HTTP requests by running the system curl command.
 
-```kiwi
-import "curl"
-```
-
-All functions return the response body as a `string` when `capture_output` is `true` (the default), or the `curl` process exit code as an `integer` when `capture_output` is `false`.
-
----
-
-## Package Functions
-
-### `curl::request(url, method?, headers?, data?, capture_output?)`
-
-Executes a `curl` command to perform an arbitrary HTTP request. This is the underlying function used by all other helpers in this package.
-
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `url` | The URL to request. | — |
-| `string` | `method` | The HTTP method (`"GET"`, `"POST"`, `"PUT"`, `"DELETE"`, etc.). | `"GET"` |
-| `hashmap` | `headers` | Request headers as a hashmap of name -> value pairs. | `{}` |
-| `string` | `data` | Request body. Only sent for `POST` and `PUT` requests. | `""` |
-| `boolean` | `capture_output` | If `true`, return the response body. If `false`, return the exit code. | `true` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The response body when `capture_output` is `true`. |
-| `integer` | The `curl` process exit code when `capture_output` is `false`. |
-
-**Example**
+The `curl` package makes HTTP requests by running the `curl` program, which must be installed and on your `PATH`. It is a simple, synchronous alternative to the [`http`](http.md) package, convenient for quick scripts.
 
 ```kiwi
-import "curl"
-
-response = curl::request("https://httpbin.org/get", "GET", {"Accept": "application/json"})
-println response
-```
-
----
-
-### `curl::get(url, headers?, capture_output?)`
-
-Sends an HTTP `GET` request to the specified URL.
-
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `url` | The URL to request. | — |
-| `hashmap` | `headers` | Optional request headers. | `{}` |
-| `boolean` | `capture_output` | If `true`, return the response body. If `false`, return the exit code. | `true` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The response body when `capture_output` is `true`. |
-| `integer` | The `curl` process exit code when `capture_output` is `false`. |
-
-**Example**
-
-```kiwi
-import "curl"
-
-# Simple GET request
 body = curl::get("https://httpbin.org/get")
 println body
 
-# GET with custom headers
-body = curl::get("https://api.example.com/data", {"Authorization": "Bearer token123"})
-println body
+headers = {"Content-Type": "application/json"}
+println curl::post("https://httpbin.org/post", headers, '{"lang": "kiwi"}')
+println curl::put("https://httpbin.org/put", headers, '{"status": "ok"}')
+println curl::delete("https://httpbin.org/delete")
+```
 
-# Check only that the request succeeded (exit code 0 = success)
+Each function returns the response body as a string. Pass `false` as the last argument (`capture_output`) to get `curl`'s exit code instead:
+
+```kiwi
 code = curl::get("https://example.com", {}, false)
-println code  # prints: 0
+println code == 0 ? "reachable" : "failed"
 ```
 
----
+Notes:
 
-### `curl::post(url, headers?, data?, capture_output?)`
+- Requests run with `curl -s`, so progress output is suppressed.
+- A request body is only sent for `POST` and `PUT`.
+- For form data, set `Content-Type` to `application/x-www-form-urlencoded` and pass `key=value&key2=value2` as the body.
+- For response status codes and headers, or concurrent requests, use [`http`](http.md).
 
-Sends an HTTP `POST` request with an optional body.
+## Functions
 
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `url` | The URL to request. | — |
-| `hashmap` | `headers` | Optional request headers. | `{}` |
-| `string` | `data` | The request body to send. | `""` |
-| `boolean` | `capture_output` | If `true`, return the response body. If `false`, return the exit code. | `true` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The response body when `capture_output` is `true`. |
-| `integer` | The `curl` process exit code when `capture_output` is `false`. |
-
-**Example**
+### `curl::request`
 
 ```kiwi
-import "curl"
-
-headers = {"Content-Type": "application/json"}
-payload = '{"name": "kiwi", "version": "1.0"}'
-
-response = curl::post("https://httpbin.org/post", headers, payload)
-println response
+curl::request(url: string, method: string = "GET", headers: hashmap = {}, data: string = "", capture_output: boolean = true)
 ```
 
----
+Executes a curl command to perform an HTTP request.
 
-### `curl::put(url, headers?, data?, capture_output?)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to which the request will be sent. |
+| `method` | `string` | `"GET"` | The HTTP method (e.g., `"GET"`, `"POST"`) (default `"GET"`). |
+| `headers` | `hashmap` | `{}` | A hashmap of headers to include in the request (default `{}`). |
+| `data` | `string` | `""` | Optional data to send with the request, used for POST and PUT (default `""`). |
+| `capture_output` | `boolean` | `true` | If `true`, returns the response body as a string; otherwise returns the exit code (default `true`). |
 
-Sends an HTTP `PUT` request with an optional body.
+**Returns** `string|integer` — The response body if `capture_output` is `true`, or the exit code otherwise.
 
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `url` | The URL to request. | — |
-| `hashmap` | `headers` | Optional request headers. | `{}` |
-| `string` | `data` | The request body to send. | `""` |
-| `boolean` | `capture_output` | If `true`, return the response body. If `false`, return the exit code. | `true` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The response body when `capture_output` is `true`. |
-| `integer` | The `curl` process exit code when `capture_output` is `false`. |
-
-**Example**
+### `curl::get`
 
 ```kiwi
-import "curl"
-
-headers = {"Content-Type": "application/json", "Authorization": "Bearer mytoken"}
-payload = '{"status": "active"}'
-
-response = curl::put("https://api.example.com/resource/42", headers, payload)
-println response
+curl::get(url: string, headers: hashmap = {}, capture_output: boolean = true)
 ```
 
----
+Sends a GET request to the specified URL.
 
-### `curl::delete(url, headers?, capture_output?)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional headers (default `{}`). |
+| `capture_output` | `boolean` | `true` | If `true`, returns the response body (default `true`). |
 
-Sends an HTTP `DELETE` request to the specified URL.
+**Returns** `string|integer` — The response body or exit code.
 
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `string` | `url` | The URL to request. | — |
-| `hashmap` | `headers` | Optional request headers. | `{}` |
-| `boolean` | `capture_output` | If `true`, return the response body. If `false`, return the exit code. | `true` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | The response body when `capture_output` is `true`. |
-| `integer` | The `curl` process exit code when `capture_output` is `false`. |
-
-**Example**
+### `curl::post`
 
 ```kiwi
-import "curl"
-
-headers = {"Authorization": "Bearer mytoken"}
-response = curl::delete("https://api.example.com/resource/42", headers)
-println response
+curl::post(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
 ```
 
----
+Sends a POST request to the specified URL.
 
-## Complete Example
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional headers (default `{}`). |
+| `data` | `string` | `""` | The request body (default `""`). |
+| `capture_output` | `boolean` | `true` | If `true`, returns the response body (default `true`). |
+
+**Returns** `string|integer` — The response body or exit code.
+
+### `curl::put`
 
 ```kiwi
-import "curl"
-
-base = "https://httpbin.org"
-
-# GET request
-println "-- GET --"
-println curl::get(base + "/get")
-
-# POST JSON
-println "-- POST --"
-headers = {"Content-Type": "application/json"}
-body = '{"lang": "kiwi"}'
-println curl::post(base + "/post", headers, body)
-
-# PUT
-println "-- PUT --"
-println curl::put(base + "/put", headers, '{"status": "ok"}')
-
-# DELETE
-println "-- DELETE --"
-println curl::delete(base + "/delete")
-
-# Check exit code only (no output capture)
-code = curl::get(base + "/status/200", {}, false)
-println "Exit code: " + code  # prints: Exit code: 0
+curl::put(url: string, headers: hashmap = {}, data: string = "", capture_output: boolean = true)
 ```
 
----
+Sends a PUT request to the specified URL.
 
-## Notes
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional headers (default `{}`). |
+| `data` | `string` | `""` | The request body (default `""`). |
+| `capture_output` | `boolean` | `true` | If `true`, returns the response body (default `true`). |
 
-- All requests are made silently (`-s` flag) — `curl`'s progress meter and error output are suppressed.
-- The `data` parameter is only sent when the method is `POST` or `PUT`. For `GET` and `DELETE` requests, any `data` argument is ignored.
-- To send form-encoded data, set the `Content-Type` header to `"application/x-www-form-urlencoded"` and format `data` accordingly (e.g., `"key1=val1&key2=val2"`).
-- For non-blocking or async HTTP, see the [`http`](http.md) package.
+**Returns** `string|integer` — The response body or exit code.
+
+### `curl::delete`
+
+```kiwi
+curl::delete(url: string, headers: hashmap = {}, capture_output: boolean = true)
+```
+
+Sends a DELETE request to the specified URL.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional headers (default `{}`). |
+| `capture_output` | `boolean` | `true` | If `true`, returns the response body (default `true`). |
+
+**Returns** `string|integer` — The response body or exit code.

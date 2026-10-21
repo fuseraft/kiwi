@@ -1,486 +1,457 @@
-# `http`
+# http
 
-The `http` package provides a high-level, idiomatic HTTP client for Kiwi.  
+> An HTTP client, plus helpers for parsing requests and building responses.
 
-It builds on the low-level `__http_get__`, `__http_post__`, and `__http_download__` builtins, adding conveniences such as automatic JSON handling, response wrapping, and utility functions for common use cases.
+The `http` package is an HTTP client. Requests run asynchronously on background tasks; the `get` and `await_*` functions wait for the result and wrap it in an `HttpResponse`. The package also parses raw HTTP requests and builds raw responses for servers written on top of [`socket`](socket.md). For a full web server, see [`httpserver`](httpserver.md).
 
----
+## Making requests
 
-## Package Functions
-
-### `get(url, headers?, opts?)`
-Performs an HTTP GET request. Returns a task ID that can be awaited.
-
-**Parameters**
-
-| Type      | Name      | Description                                      | Default |
-|-----------|-----------|--------------------------------------------------|---------|
-| `string`  | `url`     | The target URL                                   | —       |
-| `hashmap` | `headers` | Optional request headers                         | `{}`    |
-| `hashmap` | `opts`    | Optional settings (not yet used)                 | `{}`    |
-
-**Returns**
-
-| Type      | Description                  |
-|-----------|------------------------------|
-| `integer` | Task ID (await with `task.await()`) |
-
----
-
-### `post(url, body?, headers?, opts?)`
-Performs an HTTP POST request. If `body` is a hashmap, it is automatically JSON-encoded and the `Content-Type` header is set accordingly.
-
-**Parameters**
-
-| Type      | Name      | Description                                      | Default |
-|-----------|-----------|--------------------------------------------------|---------|
-| `string`  | `url`     | The target URL                                   | —       |
-| `any`     | `body`    | Request body (string, bytes, or hashmap)         | `null`  |
-| `hashmap` | `headers` | Optional request headers                         | `{}`    |
-| `hashmap` | `opts`    | Optional settings (not yet used)                 | `{}`    |
-
-**Returns**
-
-| Type      | Description                  |
-|-----------|------------------------------|
-| `integer` | Task ID (await with `task.await()`) |
-
----
-
-### `put(url, body?, headers?, opts?)`
-Performs an HTTP PUT request.
-
-**Parameters**  
-Same as `post`.
-
-**Returns**  
-Task ID.
-
----
-
-### `delete(url, headers?, opts?)`
-Performs an HTTP DELETE request (currently uses `__http_delete__`).
-
-**Parameters**  
-Same as `get` (no body).
-
-**Returns**  
-Task ID.
-
----
-
-### `await_get(url, headers?, opts?)`
-Convenience: performs GET and awaits the result, wrapped in `HttpResponse`.
-
-**Parameters**  
-Same as `get`.
-
-**Returns**
-
-| Type           | Description                     |
-|----------------|---------------------------------|
-| `HttpResponse` | The response object             |
-
----
-
-### `await_post(url, body?, headers?, opts?)`
-Convenience: performs POST, awaits, and wraps in `HttpResponse`.
-
-**Parameters**  
-Same as `post`.
-
-**Returns**  
-`HttpResponse`
-
----
-
-### `await_json_get(url, headers?, opts?)`
-Performs GET, awaits, and returns the parsed JSON body (calls `.json()` on response).
-
-**Parameters**  
-Same as `get`.
-
-**Returns**
-
-| Type      | Description              |
-|-----------|--------------------------|
-| `hashmap` | Decoded JSON object      |
-
----
-
-### `await_json_post(url, data, headers?, opts?)`
-Performs POST with JSON body, awaits, and returns parsed JSON response.
-
-**Parameters**
-
-| Type      | Name      | Description                     |
-|-----------|-----------|---------------------------------|
-| `string`  | `url`     | Target URL                      |
-| `hashmap` | `data`    | Data to encode as JSON          |
-| `hashmap` | `headers` | Optional headers                |
-| `hashmap` | `opts`    | Optional settings               |
-
-**Returns**  
-`hashmap` (decoded JSON)
-
----
-
-### `await_download(url, filename, headers?, opts?)`
-Downloads the response body to a file and returns whether it succeeded.
-
-**Parameters**
-
-| Type      | Name       | Description                     |
-|-----------|------------|---------------------------------|
-| `string`  | `url`      | Source URL                      |
-| `string`  | `filename` | Destination path                |
-| `hashmap` | `headers`  | Optional headers                |
-| `hashmap` | `opts`     | Optional settings               |
-
-**Returns**
-
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if download succeeded         |
-
----
-
-### `response(raw)`
-Constructs an `HttpResponse` from a raw response hashmap.
-
-**Parameters**
-
-| Type      | Name   | Description                     |
-|-----------|--------|---------------------------------|
-| `hashmap` | `raw`  | Raw response from `__http_*__`  |
-
-**Returns**
-
-| Type           | Description             |
-|----------------|-------------------------|
-| `HttpResponse` | Wrapped response object |
-
----
-
-### `set_timeout(timeout_ms)`
-Sets the global HTTP client timeout for all subsequent requests.
-
-**Parameters**
-
-| Type      | Name         | Description                    |
-|-----------|--------------|--------------------------------|
-| `integer` | `timeout_ms` | Timeout in milliseconds        |
-
----
-
-### `url_decode(s, decode_plus?)`
-Decodes a percent-encoded URL string (e.g. from a query string or form body).
-
-**Parameters**
-
-| Type      | Name           | Description                                          | Default |
-|-----------|----------------|------------------------------------------------------|---------|
-| `string`  | `s`            | The URL-encoded string to decode                     | —       |
-| `boolean` | `decode_plus`  | If `true`, decodes `+` as a space                    | `true`  |
-
-**Returns**
-
-| Type     | Description          |
-|----------|----------------------|
-| `string` | The decoded string   |
-
-**Example**
 ```kiwi
-import "http"
+resp = http::get("https://httpbin.org/get")
+println resp.status   # 200
+println resp.ok       # true
+println resp.text()
 
-println http::url_decode("hello%20world")     # hello world
-println http::url_decode("a+b", true)         # a b
-println http::url_decode("name%3DKiwi")       # name=Kiwi
+data = http::await_json_get("https://httpbin.org/json")   # parsed JSON body
+println data.pretty()
+
+created = http::await_post("https://httpbin.org/post", {name: "Kiwi"})
+println created.json()["json"] when created.ok
 ```
 
----
+Request bodies that are hashmaps or lists are sent as JSON. Pass headers as a hashmap:
 
-### `parse(raw)`
-Parses raw TCP socket bytes into a structured HTTP request hashmap. Useful for writing HTTP servers on top of the `socket` package.
+```kiwi
+resp = http::get("https://api.github.com/repos/fuseraft/kiwi", {"User-Agent": "kiwi"})
+println resp.json()["stargazers_count"]
+```
 
-**Parameters**
+`http::set_timeout(ms)` sets the timeout for later requests, and `await_download(url, path)` saves a response to a file.
 
-| Type    | Name  | Description                              |
-|---------|-------|------------------------------------------|
-| `bytes` | `raw` | Raw bytes received from a socket client  |
+### Responses
 
-**Returns**
+An `HttpResponse` has these fields and methods:
 
-| Type              | Description                                                                                 |
-|-------------------|---------------------------------------------------------------------------------------------|
-| `hashmap` or `null` | A hashmap with keys `method`, `path`, `query`, `version`, `headers`, `body`, `form`, `raw`; or `null` if malformed/incomplete |
+| Member | Description |
+| :-- | :-- |
+| `status` | The status code. |
+| `ok` | `true` for a 2xx status. |
+| `headers` | The response headers. |
+| `body` | The response body. |
+| `url` | The final URL after redirects. |
+| `text()` | The body as a string. |
+| `json()` | The body parsed as JSON. |
+| `pretty()` | The JSON body, indented. |
+| `save(path)` | Writes the body to a file. |
 
----
+### Concurrent requests
 
-### `response_bytes(status, body?, headers?)`
-Builds a complete raw HTTP/1.1 response as bytes, including auto-generated headers. Suitable for sending directly over a `socket`.
+`__get__`, `post`, `put` and `delete` start a request and return a task id immediately. Start several, then await them with [`task::await`](task.md) and wrap each result with `http::response`:
 
-**Parameters**
+```kiwi
+first = http::__get__("https://httpbin.org/get")
+second = http::__get__("https://httpbin.org/ip")
 
-| Type      | Name      | Description                                        | Default |
-|-----------|-----------|----------------------------------------------------|---------|
-| `integer` | `status`  | HTTP status code (e.g. `200`, `404`)               | —       |
-| `any`     | `body`    | Response body — string or bytes                    | `""`    |
-| `hashmap` | `headers` | Additional or override headers                     | `{}`    |
+r1 = http::response(task::await(first))
+r2 = http::response(task::await(second))
+println [r1.status, r2.status]
+```
 
-**Returns**
+## Parsing requests and building responses
 
-| Type    | Description                              |
-|---------|------------------------------------------|
-| `bytes` | Fully-formed HTTP response bytes         |
+These helpers work on raw bytes, for servers that handle sockets themselves:
 
----
+```kiwi
+raw = "GET /api/users?page=2 HTTP/1.1\r\nHost: example.com\r\n\r\n".to_bytes()
+req = http::parse(raw)
 
-### `html_response(status?, body, headers?)`
+println req["method"]          # GET
+println req["path"]            # /api/users
+println req["query"]["page"]   # 2
+println req["headers"]["host"] # example.com
+
+reply = http::json_response(200, {ok: true})
+println reply.to_string().lines()[0]   # HTTP/1.1 200 OK
+```
+
+`html_response(status, html)` and `response_bytes(status, body, headers)` build other responses.
+
+## Functions
+
+### `http::parse_hex`
+
+```kiwi
+http::parse_hex(s: string): integer
+```
+
+Parses a hexadecimal string to an integer.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `string` |  | A lowercase hexadecimal string (e.g., `"1f"`). |
+
+**Returns** `integer` — The integer value.
+
+**Throws** `string` — If an invalid hex character is encountered.
+
+### `http::url_decode`
+
+```kiwi
+http::url_decode(s: string, decode_plus: boolean = true): string
+```
+
+Decodes a percent-encoded URL string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `s` | `string` |  | The URL-encoded string to decode. |
+| `decode_plus` | `boolean` | `true` | If `true`, decodes `+` as a space (default `true`). |
+
+**Returns** `string` — The decoded string.
+
+### `http::read_crlf_line`
+
+```kiwi
+http::read_crlf_line(iter): string
+```
+
+Reads a CRLF-terminated line from a byte iterator.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `iter` | `object` |  | A `ListIterator` over the raw bytes. |
+
+**Returns** `string` — The line contents, without the trailing CRLF.
+
+**Throws** `string` — If no CRLF terminator is found before the iterator is exhausted.
+
+### `http::dechunk`
+
+```kiwi
+http::dechunk(data: bytes): bytes
+```
+
+Decodes a chunked transfer-encoded byte sequence.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `data` | `bytes` |  | The raw chunked-encoded bytes. |
+
+**Returns** `bytes` — The decoded body bytes.
+
+**Throws** `string` — If a chunk size or terminator is malformed or the data is incomplete.
+
+### `http::parse`
+
+```kiwi
+http::parse(raw: bytes)
+```
+
+Parses raw socket bytes into a request hashmap.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `raw` | `bytes` |  | The raw bytes received from a socket. |
+
+**Returns** `hashmap|none` — A hashmap with `method`, `path`, `query`, `version`, `headers`, `body`, `form`, and `raw` keys, or `null` if the request is malformed or incomplete.
+
+### `http::response_bytes`
+
+```kiwi
+http::response_bytes(status: integer, body: any = "", headers: hashmap = {}): bytes
+```
+
+Builds a raw HTTP/1.1 response as bytes.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `status` | `integer` |  | The HTTP status code (e.g., `200`, `404`). |
+| `body` | `any` | `""` | The response body — a string or bytes (default `""`). |
+| `headers` | `hashmap` | `{}` | Additional headers to include or override defaults (default `{}`). |
+
+**Returns** `bytes` — The fully-formed HTTP response bytes, including headers and body.
+
+### `http::html_response`
+
+```kiwi
+http::html_response(status: integer = 200, body: string, headers: hashmap = {}): bytes
+```
+
 Builds an HTTP response with `Content-Type: text/html`.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `status` | `integer` | `200` | The HTTP status code (default `200`). |
+| `body` | `string` |  | The HTML body string. |
+| `headers` | `hashmap` | `{}` | Additional headers (default `{}`). |
 
-| Type      | Name      | Description                    | Default |
-|-----------|-----------|--------------------------------|---------|
-| `integer` | `status`  | HTTP status code               | `200`   |
-| `string`  | `body`    | HTML body                      | —       |
-| `hashmap` | `headers` | Additional headers             | `{}`    |
+**Returns** `bytes` — The fully-formed HTTP response bytes.
 
-**Returns** `bytes`
+### `http::json_response`
 
----
-
-### `json_response(status?, data, headers?)`
-Builds an HTTP response with `Content-Type: application/json`, serializing `data` automatically.
-
-**Parameters**
-
-| Type      | Name      | Description                    | Default |
-|-----------|-----------|--------------------------------|---------|
-| `integer` | `status`  | HTTP status code               | `200`   |
-| `any`     | `data`    | Data to serialize as JSON      | —       |
-| `hashmap` | `headers` | Additional headers             | `{}`    |
-
-**Returns** `bytes`
-
-**Example**
 ```kiwi
-import "http"
-import "socket"
-import "task"
-
-server = socket::tcpserver("127.0.0.1", 8080)
-
-while true do
-  client = task::await(socket::accept(server))
-  raw    = task::await(socket::recv(client))
-  req    = http::parse(raw)
-
-  if req != null && req["path"] == "/api"
-    resp = http::json_response(200, { ok: true, path: req["path"] })
-  else
-    resp = http::html_response(404, "<h1>Not Found</h1>")
-  end
-
-  task::await(socket::send(client, resp))
-  socket::close(client)
-end
+http::json_response(status: integer = 200, data: any, headers: hashmap = {}): bytes
 ```
 
----
+Builds an HTTP response with `Content-Type: application/json`.
 
-## `HttpResponse`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `status` | `integer` | `200` | The HTTP status code (default `200`). |
+| `data` | `any` |  | The data to serialize as JSON. |
+| `headers` | `hashmap` | `{}` | Additional headers (default `{}`). |
 
-A structured wrapper around HTTP responses from the low-level builtins.
+**Returns** `bytes` — The fully-formed HTTP response bytes.
 
-### Constructor
+### `http::set_timeout`
+
+```kiwi
+http::set_timeout(timeout_ms: integer)
+```
+
+Sets the global HTTP client timeout.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `timeout_ms` | `integer` |  | The timeout in milliseconds. |
+
+### `http::__get__`
+
+```kiwi
+http::__get__(url: string, headers: hashmap = {})
+```
+
+Enqueues an async GET request and returns an awaitable task ID.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `integer` — An awaitable task ID that resolves to a raw response hashmap.
+
+### `http::post`
+
+```kiwi
+http::post(url: string, body: any = null, headers: hashmap = {})
+```
+
+Enqueues an async POST request and returns an awaitable task ID.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `body` | `any` | `null` | The request body — string, bytes, or hashmap (auto-serialized to JSON) (default `null`). |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `integer` — An awaitable task ID that resolves to a raw response hashmap.
+
+### `http::put`
+
+```kiwi
+http::put(url: string, body: any = null, headers: hashmap = {})
+```
+
+Enqueues an async PUT request and returns an awaitable task ID.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `body` | `any` | `null` | The request body — string, bytes, or hashmap (auto-serialized to JSON) (default `null`). |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `integer` — An awaitable task ID that resolves to a raw response hashmap.
+
+### `http::delete`
+
+```kiwi
+http::delete(url: string, headers: hashmap = {})
+```
+
+Enqueues an async DELETE request and returns an awaitable task ID.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `integer` — An awaitable task ID that resolves to a raw response hashmap.
+
+### `http::await_get`
+
+```kiwi
+http::await_get(url: string, headers: hashmap = {}): HttpResponse
+```
+
+Sends a GET request and awaits the result as an `HttpResponse`.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `HttpResponse` — The wrapped HTTP response.
+
+### `http::get`
+
+```kiwi
+http::get(url: string, headers: hashmap = {}): HttpResponse
+```
+
+Sends a GET request and awaits the result as an `HttpResponse`.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `HttpResponse` — The wrapped HTTP response.
+
+### `http::await_post`
+
+```kiwi
+http::await_post(url: string, body: any = null, headers: hashmap = {}): HttpResponse
+```
+
+Sends a POST request and awaits the result as an `HttpResponse`.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `body` | `any` | `null` | The request body (default `null`). |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `HttpResponse` — The wrapped HTTP response.
+
+### `http::await_json_get`
+
+```kiwi
+http::await_json_get(url: string, headers: hashmap = {}): hashmap
+```
+
+Sends a GET request, awaits the result, and returns the JSON body.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `hashmap` — The parsed JSON response body.
+
+### `http::await_json_post`
+
+```kiwi
+http::await_json_post(url: string, data: hashmap, headers: hashmap = {}): hashmap
+```
+
+Sends a POST request with JSON data, awaits the result, and returns the JSON body.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to request. |
+| `data` | `hashmap` |  | The data to send as JSON. |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `hashmap` — The parsed JSON response body.
+
+### `http::await_download`
+
+```kiwi
+http::await_download(url: string, filename: string, headers: hashmap = {}): boolean
+```
+
+Downloads a URL to a file and returns whether it succeeded.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `url` | `string` |  | The URL to download. |
+| `filename` | `string` |  | The local file path to save the download to. |
+| `headers` | `hashmap` | `{}` | Optional request headers (default `{}`). |
+
+**Returns** `boolean` — `true` if the download succeeded.
+
+### `http::response`
+
+```kiwi
+http::response(raw: hashmap): HttpResponse
+```
+
+Wraps a raw response hashmap in an `HttpResponse` object.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `raw` | `hashmap` |  | The raw response hashmap. |
+
+**Returns** `HttpResponse` — The wrapped response.
+
+## `HttpResponse` struct
+
+A structured HTTP response object wrapping the raw response hashmap.
+
+### `HttpResponse.new`
 
 ```kiwi
 HttpResponse.new(raw: hashmap)
 ```
 
-Creates a new response object from the raw hashmap returned by `__http_*__`.
+Creates an `HttpResponse` from a raw response hashmap.
 
-**Fields**
-| Field     | Type      | Description                              |
-|-----------|-----------|------------------------------------------|
-| `status`  | `integer` | HTTP status code                         |
-| `ok`      | `boolean` | `true` if status is 2xx                  |
-| `headers` | `hashmap` | Response headers                         |
-| `body`    | `any`     | Response body (string or bytes)          |
-| `url`     | `string`  | Final URL (after redirects, if any)      |
-| `raw`     | `hashmap` | Original raw response hashmap            |
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `raw` | `hashmap` |  | A hashmap with `status`, `ok`, `headers`, `body`, and `url` keys. |
 
-### `get_raw()`
-Returns the original raw response hashmap.
+### `.get_raw`
 
-**Returns**
+```kiwi
+get_raw(): hashmap
+```
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `hashmap` | The raw response data        |
+Returns the underlying raw response hashmap.
 
----
+**Returns** `hashmap` — The raw response data.
 
-### `json()`
-Parses the body as JSON if possible.
+### `.json`
 
-**Returns**
+```kiwi
+json()
+```
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `hashmap` | Decoded JSON object          |
+Parses and returns the response body as a hashmap (JSON).
 
-**Throws**  
-If body is not JSON-compatible.
+**Returns** `hashmap` — The parsed JSON body.
 
----
+**Throws** `string` — If the body cannot be interpreted as JSON.
 
-### `text()`
-Returns the body as a string.
+### `.text`
 
-**Returns**
+```kiwi
+text()
+```
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `string`  | Body as text                 |
+Returns the response body as a string.
 
-**Throws**  
-If body cannot be converted to text.
+**Returns** `string` — The body as text.
 
----
+**Throws** `string` — If the body cannot be converted to a string.
 
-### `pretty()`
-Returns a pretty-printed JSON string of the parsed body.
+### `.pretty`
 
-**Returns**
+```kiwi
+pretty()
+```
 
-| Type      | Description                  |
-|-----------|------------------------------|
-| `string`  | Pretty-printed JSON          |
+Pretty-prints the response body as formatted JSON.
 
----
+### `.save`
 
-### `save(filename)`
+```kiwi
+save(filename: string)
+```
+
 Saves the response body to a file.
 
-**Parameters**
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `filename` | `string` |  | The path to write the body to. |
 
-| Type     | Name       | Description             |
-|----------|------------|-------------------------|
-| `string` | `filename` | Path to save to         |
-
-**Returns**
-
-| Type      | Description                          |
-|-----------|--------------------------------------|
-| `boolean` | `true` if save succeeded, `false` otherwise |
-
----
-
-## Examples
-
-### Simple GET request
-
-```kiwi
-import "http"
-
-resp = http::get("https://httpbin.org/get")
-println resp.status    # 200
-println resp.ok        # true
-println resp.text()
-```
-
-### Fetch JSON directly
-
-```kiwi
-import "http"
-
-data = http::await_json_get("https://httpbin.org/json")
-println data.pretty()
-```
-
-### POST with a JSON body
-
-```kiwi
-import "http"
-
-payload = { name: "Kiwi", version: 1 }
-resp = http::await_post("https://httpbin.org/post", payload)
-
-if resp.ok
-  result = resp.json()
-  println result["json"]
-end
-```
-
-### Download a file
-
-```kiwi
-import "http"
-
-ok = http::await_download("https://example.com/archive.zip", "/tmp/archive.zip")
-println ok   # true on success
-```
-
-### Parallel async requests
-
-```kiwi
-import "http"
-import "task"
-
-# Fire both requests without waiting
-t1 = http::__get__("https://httpbin.org/get")
-t2 = http::__get__("https://httpbin.org/ip")
-
-# Await each and wrap in HttpResponse
-r1 = http::response(task::await(t1))
-r2 = http::response(task::await(t2))
-
-println r1.status   # 200
-println r2.json()
-```
-
-### Build a response for a socket server
-
-```kiwi
-import "http"
-import "socket"
-
-# Construct a JSON response to send back over a raw TCP socket
-bytes = http::json_response(200, { message: "Hello from Kiwi" })
-socket::send(client, bytes)
-
-# Or an HTML response
-page = http::html_response(200, "<h1>Hello</h1>")
-socket::send(client, page)
-```
-
-### Parse a raw HTTP request
-
-```kiwi
-import "http"
-import "socket"
-
-# Inside a TCP server handler, after receiving bytes from the client:
-req = http::parse(raw_bytes)
-
-if req != null
-  println req["method"]           # "GET"
-  println req["path"]             # "/api/users"
-  println req["query"]["page"]    # query string param
-  println req["headers"]["host"]  # request header
-end
-```
-
-### Set a request timeout
-
-```kiwi
-import "http"
-
-http::set_timeout(5000)   # 5-second timeout
-
-resp = http::get("https://httpbin.org/delay/1")
-println resp.ok
-```
+**Returns** `boolean` — `true` if the body was written successfully, `false` otherwise.

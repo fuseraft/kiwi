@@ -1,147 +1,117 @@
 # Events
 
-Kiwi has a built-in event bus with wildcard routing, handler priority, and error isolation.
+> The built-in event bus: on, once, emit and off, with wildcards and priorities.
 
-## Event Keywords
+Kiwi has a built-in event bus. Code registers handlers for named events with `on`, and other code triggers them with `emit`. The two sides don't need to know about each other, which makes events a good way to decouple parts of a program.
 
-### `on`
-
-Registers a handler that runs **every time** the event is emitted.
+## Handling and emitting
 
 ```kiwi
-on "app.start" do
-  println "Application is starting..."
-end
-
 on "user.login" with (user) do
-  println "Welcome back, ${user.name}!"
+  println "Welcome back, ${user["name"]}!"
 end
+
+emit "user.login" ({name: "Ada"})   # Welcome back, Ada!
 ```
 
-Multiple handlers can listen to the same event and fire in priority order (highest first),
-then registration order within the same priority.
+- `on "event" do ... end` registers a handler with no parameters.
+- `on "event" with (a, b) do ... end` registers a handler that receives arguments.
+- `emit "event" (arg1, arg2)` runs every matching handler with those arguments. Leave the arguments off to emit without any.
 
-#### Priority
-
-An optional integer after the event name controls dispatch order. Higher values run first.
-The default priority is `0`.
+Any number of handlers can listen for the same event. `emit` returns a list of their return values:
 
 ```kiwi
-on "request", 10 do   # runs first
-  println "auth check"
+on "price" with (amount) do
+  amount * 1.2
 end
 
-on "request" do       # runs second (priority 0)
-  println "handle request"
+on "price" with (amount) do
+  amount * 0.9
 end
+
+println emit "price" (100)   # [120, 90]
 ```
 
-#### Wildcard patterns
+## One-time handlers
 
-`*` matches any sequence of non-`.` characters within a single segment.
+`once` registers a handler that runs on the first matching `emit` only:
+
+```kiwi
+once "ready" do
+  println "initialized"
+end
+
+emit "ready"   # initialized
+emit "ready"   # (nothing)
+```
+
+## Priorities
+
+An integer after the event name sets a handler's priority. Higher priorities run first; the default is `0`. Handlers with equal priority run in the order they were registered.
+
+```kiwi
+on "request" do
+  println "handle"
+end
+
+on "request", 10 do
+  println "authenticate"
+end
+
+emit "request"
+# authenticate
+# handle
+```
+
+## Wildcards
+
+`*` in an event name matches any text within one dot-separated segment.
 
 ```kiwi
 on "user.*" with (name) do
-  println "user event for ${name}"
+  println "user event: ${name}"
 end
 
-on "*.error" with (msg) do
-  println "error: ${msg}"
+on "*.error" with (message) do
+  println "error: ${message}"
 end
 
-emit "user.login"  ("alice")   # matches "user.*"
-emit "db.error"    ("timeout") # matches "*.error"
-emit "user.x.y"    ("bob")     # no match — "*" doesn't cross "."
+emit "user.login" ("ada")      # user event: ada
+emit "db.error" ("timeout")    # error: timeout
+emit "user.profile.updated" ("ada")   # (no match: * doesn't span dots)
 ```
 
-### `once`
+## Removing handlers
 
-Registers a handler that runs **only the first time** the event is emitted.
-The handler is removed before it executes, so it will not fire again even if it throws.
+`off "event"` removes every handler registered under that name. To remove one handler, register it as a variable and pass it to `off`:
 
 ```kiwi
-once "db.connected" do
-  println "connected to the database"
-end
+log_it = do (x) => println "got ${x}"
+
+on "data" (log_it)
+emit "data" (1)        # got 1
+
+off "data" (log_it)
+emit "data" (2)        # (nothing)
 ```
 
-Accepts the same priority and wildcard syntax as `on`.
+## Errors in handlers
 
-### `emit`
-
-Triggers an event and returns a list of all handler return values.
-
-```kiwi
-emit "app.start"
-
-# pass arguments
-emit "user.login" ({ "name": "alice", "role": "admin" })
-
-# capture return values
-on "calc" with (x) do
-  return x * 2
-end
-
-results = emit "calc" (21)   # results == [42]
-```
-
-#### Error isolation
-
-If a handler throws, the remaining handlers still run. All errors are collected and
-re-thrown as a single error after the full dispatch round completes.
+If a handler throws, the remaining handlers still run. Afterwards, `emit` throws a single `EventError` describing what failed.
 
 ```kiwi
 on "tick" do
-  throw "oops"
+  throw "broken handler"
 end
 
 on "tick" do
-  println "I still run"
+  println "still runs"
 end
 
 try
   emit "tick"
-catch (err)
-  println err   # reports the collected error
+catch e
+  println e["error"]     # EventError
+  println e["message"]   # Event handler error (tick): broken handler
 end
-```
-
-### `off`
-
-Removes event handlers.
-
-| Syntax | Effect |
-|---|---|
-| `off "event.name"` | Removes **all** handlers for that pattern |
-| `off "event.name" (handler)` | Removes a specific handler |
-
-```kiwi
-my_handler = do (x) => println "Got ${x}"
-
-on "data" (my_handler)
-emit "data" (42)          # prints: Got 42
-
-off "data" (my_handler)
-emit "data" (99)          # silent
-```
-
-## Example
-
-```kiwi
-on "string-repeat" with (text: string, count: integer) do
-  println text * count
-end
-
-repeat 5 as i do
-  emit "string-repeat" ("kiwi", i)
-end
-```
-
-### Output
-```
-kiwi
-kiwikiwi
-kiwikiwikiwi
-kiwikiwikiwikiwi
-kiwikiwikiwikiwikiwi
 ```

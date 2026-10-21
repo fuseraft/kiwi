@@ -20,32 +20,33 @@ Kiwi is a dynamically-typed scripting language (interpreter in C#/.NET 10, stack
 
 ### Step 1: Orient with the cheat sheet below
 
-The [Core Cheat Sheet](#core-cheat-sheet) covers the syntax you need for almost any task. Most one-off questions are answered by it directly — don't load a reference file unless you need more than it gives you.
+The [Core Cheat Sheet](#core-cheat-sheet) covers the syntax you need for almost any task, and [Known Interpreter Issues](#known-interpreter-issues) lists the places where Kiwi currently behaves differently from what you'd expect. Most one-off questions are answered here directly; don't load a reference file unless you need more.
 
 ### Step 2: Load the specific reference for depth
 
-Use the [Language Reference Index](#language-reference-index) and [Standard Library Index](#standard-library-index) below to pick the *one* file that covers the topic, then:
+Use the [Reference Index](#reference-index) and [Standard Library Index](#standard-library-index) below to pick the *one* file that covers the topic, then:
 
 ```
 read_skill_resource("kiwi-expert", "references/language/<file>.md")
 read_skill_resource("kiwi-expert", "references/lib/<package>.md")
 ```
 
-Load only what the task needs — these are full docs, not summaries.
+Load only what the task needs: these are full pages, not summaries. Each `references/lib/<package>.md` ends with the package's complete API (every public function and struct method with its signature, parameters and return type).
 
 ### Step 3: Verify anything you're not certain of
 
-The reference files are copied from the project's own docs (`docs/*.md`, `docs/lib/*.md` in the kiwi repo) and are generally reliable, but docs can drift from the interpreter. Before asserting a behavioral claim that a change depends on (not just prose explanation), check it against the real thing rather than trusting prose alone:
+The reference files are generated from the documentation site (`docs/src/content/docs/` in the kiwi repo) by `cd docs && npm run sync:skill`. Every Kiwi example in those pages is executed against the interpreter in CI, and each package's API section is generated from the docstrings in `lib/*.kiwi`, so they are reliable as of the last sync. Still, before asserting a behavioral claim that a change depends on, check it against the real thing:
 
-- **Fastest**: grep the interpreter source (`src/Parsing/Lexer.cs`, `src/Parsing/Parser.cs`, `src/Parsing/Keyword/`, `lib/*.kiwi`) for the construct in question.
-- **Most conclusive**: write a throwaway one-liner and run it — `./bin/kiwi` is a real built binary at the repo root's `bin/kiwi` (rebuild with `./build.sh` if source changed). A script that runs without error is *not* proof a construct does what you think — check its actual output/effect, not just its exit code (see the docstring pitfall below, where invalid-looking syntax silently ran but did nothing).
+- **Fastest**: grep the interpreter source (`src/Parsing/Lexer.cs`, `src/Parsing/Parser.cs`, `src/Runtime/Builtin/Handler/`, `lib/*.kiwi`) for the construct in question.
+- **Most conclusive**: write a throwaway script and run it with `./bin/kiwi` (rebuild with `./build.sh` if the source changed). A script that runs without error is *not* proof a construct does what you think: check its actual output, not just its exit code. Some uncaught errors currently end the program silently with exit code 0 (for example `require "missing"`).
 
 ### Step 4: Apply project conventions
 
 - Functions and struct methods: `snake_case`. Not camelCase.
 - Internal/private helpers: prefix with `_`.
-- New stdlib module: `lib/mymodule.kiwi` with `package mymodule`, tests in `tests/lib/stdlib/`.
-- After any change to `lib/`, `tests/`, or `src/`: rebuild (`./build.sh`) and run `./bin/kiwi tests/test` (exit `0` = pass).
+- New stdlib module: `lib/mymodule.kiwi` with `package mymodule`, tests in `tests/lib/stdlib/`, and a docs page `docs/src/content/docs/stdlib/mymodule.md` ending in `<!-- api: mymodule -->`.
+- Public stdlib functions need `/# @summary ... @param type name : desc ... @return type : desc #/` docstrings: they *are* the API documentation.
+- After any change to `lib/`, `tests/`, or `src/`: rebuild (`./build.sh`) and run `./bin/kiwi tests/test` (exit `0` = pass). After changing documented behavior, update the docs page and run `npm run check:examples` in `docs/`.
 
 ---
 
@@ -56,132 +57,144 @@ The reference files are copied from the project's own docs (`docs/*.md`, `docs/l
 ```kiwi
 name = "Kiwi"              # no declaration keyword needed
 var count: integer = 0     # optional explicit `var` + type hint
-a, b, c = 10, 20, 30       # multiple assignment
+const MAX = 3              # constants: UPPER_SNAKE_CASE only
+a, b, c = 10, 20, 30       # multiple assignment; x, y = [1, 2] unpacks a list
 ```
 
-Built-in types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `null`, `date`, `bytes`, `generator`, `lambda`, `object` (struct instance), `pointer`. There is no separate `function` type — named functions and anonymous lambdas both report `typeof()` as `lambda`.
+Built-in types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `null`, `date`, `bytes`, `generator`, `lambda`, and struct instances (`typeof` returns the struct name). Named functions and lambdas both report `typeof()` as `lambda`.
 
-`typeof(x)` (global function) or `x.type()` (method) both return the type name string.
+`typeof(x)` (global) and `x.type()` (method) both return the type name. Wrap number literals in parentheses to call methods: `(42).to_string()`.
+
+Lists and hashmaps are **shared by reference**: `b = a` or `row = grid[0]` aliases the same collection. Use `.clone()` for a deep copy.
 
 ### Strings
 
 ```kiwi
-"Hello, ${name}!"    # double-quoted: supports ${} interpolation
-'\b[A-Z][a-z]+\b'     # single-quoted: raw, no interpolation (regex/paths)
+"Hello, ${name}!\n"   # double-quoted: escapes and ${} interpolation
+'\b[A-Z][a-z]+\b'     # single-quoted: raw (backslashes kept); still interpolates ${}
 ```
+
+`.replace` and `.split` are literal; `.rreplace`, `.rsplit`, `.scan`, `.find`, `.match`, `.matches` take regexes. Slicing: `s[1:3]`, `s[::-1]`; no negative indexes.
 
 ### Control Flow
 
 ```kiwi
-if cond ... elsif other ... else ... end
+if cond ... elsif other ... else ... end      # no `do`; `if` is a statement, not an expression
 status = age >= 18 ? "adult" : "minor"        # ternary
 
-case value
-when 1..9:   "single"
-when 10, 20: "special"
-else:        "other"
+label = case value                            # case is an expression
+  when 1..9   "single digit"                  # inclusive range, no list built
+  when 10, 20 "special"                       # several values
+  else        "other"
 end
 
 for item in collection do ... end
 for item, idx in list do ... end     # idx starts at 0
-for k, v in hashmap do ... end
-for x in [1 to 10] do ... end        # inclusive range
+for k, v in hashmap do ... end       # one variable = keys
+for x in [1 to 10] do ... end        # inclusive; [10 to 1] counts down
 while cond do ... end
-repeat 5 do ... end
 repeat 5 as i do ... end             # i = 1..5
 
-break when guard    # break/next/return/throw all take an optional `when` guard
-next when guard
+break when guard    # break/next/return/throw/exit and assignments take a `when` guard
+next when guard     # `next`, not `continue`
+exit 1 when failed  # always pass a code: bare `exit` exits with 1
 ```
 
-Truthy: non-zero numbers, non-empty strings/lists/hashmaps, `true`. Falsy: `0`, `""`, `[]`, `{}`, `false`, `null`.
+Falsy: `false`, `null`, `0`, `0.0`, `""`, `[]`, `{}`. Everything else is truthy, including `"0"` and `[0]`.
 
-### Conditionals vs. Loops (critical syntax difference)
-
-**Conditionals (`if` / `case`) — NO `do` keyword:**
-
-```kiwi
-if cond ... elsif other ... else ... end
-status = age >= 18 ? "adult" : "minor"
-case value
-when 1..9:   "single"
-when 10, 20: "special"
-else:        "other"
-end
-```
-
-**Loops (`for` / `while` / `repeat`) — require `do`:**
-
-```kiwi
-for item in collection do ... end
-while cond do ... end
-repeat 5 do ... end
-repeat 5 as i do ... end
-```
-
-**Common mistake to avoid:** `if cond do ... end` is invalid.  
-Only loops use the `do ... end` form.
+A binary operator must end a line to continue an expression onto the next line; a line *starting* with `&&` or `+` is a syntax error. Method chains may start a line with `.`.
 
 ### Functions & Lambdas
 
 ```kiwi
-fn add(a: integer, b: integer): integer
+fn add(a, b = 0)
   a + b                    # last expression is the implicit return value
 end
 
-add(b = 3, a = 7)          # named arguments, order-independent
+add(b: 3, a: 7)            # named arguments (also `b = 3`)
+fn sum(*nums) nums.sum() end
+sum(*[1, 2, 3])            # splat
 
-square = do (n) => n * n           # lambda, arrow form
-double = with (x) do x * 2 end     # lambda, `with` form
-[1,2,3].map(do (n) => n * 2)
+square = do (n) => n * n           # arrow form
+double = with (x) do x * 2 end     # `with` form
+shout = do (s)                     # block form
+  s.uppercase()
+end
+[1, 2, 3].map(do (n) => n * 2)
+
+fn make_adder(n)
+  do (x) => x + n end      # an arrow lambda ending a block needs its own `end`
+end
 ```
+
+Top-level functions are hoisted. Argument counts are not checked: missing arguments are `null`, extras are dropped.
 
 ### Structs
 
 ```kiwi
 struct Animal
-  fn new(name)              # constructor
-    @name = name            # @field = instance variable
+  fn new(name)               # constructor: Animal.new("Rex")
+    @name = name             # instance variable; also readable/writable as obj.name
   end
-  fn speak() println "${@name} makes a sound." end
+  fn speak() "..." end
   static fn kind() "animal" end
+  fn to_string() "Animal(${@name})" end   # call explicitly; println does not use it
 end
 
-struct Dog < Animal          # inheritance
+struct Dog < Animal          # single inheritance
   fn speak()
-    super.speak()
-    println "${@name} barks!"
+    super.speak() + " Woof"  # super.method() calls the parent version
   end
 end
 
-abstract struct Shape        # cannot be instantiated directly
-  abstract fn area() end     # abstract method — subclasses must implement with `override`
+abstract struct Shape        # cannot be instantiated
+  abstract fn area() end     # children must define area(); `override` is optional
 end
 ```
+
+```kiwi
+struct Counter
+  static @count = 0          # static variable: @@count inside, Counter.count outside
+  fn new() @@count += 1 end  # (not inherited by child structs, see Known Issues)
+end
+```
+
+Operators `+ - * / // % ** == != < <= > >=` can be overloaded with `fn +(other) ... end`.
 
 ### Error Handling
 
 ```kiwi
 try
   risky()
-catch e                 # e = { "error": "TypeName", "message": "..." }; parens optional
-catch t, m               # t = type string, m = message string (destructured form)
+catch e                  # e = {"error": "TypeName", "message": "..."}; parens optional
+  println e["message"]
 finally
-  cleanup()
+  cleanup()              # NOTE: skipped if the try body returns or breaks
+end
+
+try
+  risky()
+catch kind, message      # destructured form
 end
 
 throw error::ValueError("bad value")
-throw "plain string"     # becomes a generic error
+throw "plain string"     # becomes {"error": "KiwiError", "message": "plain string"}
 ```
 
-### Packages / Imports
+### Packages & Files
 
 ```kiwi
-math = import "math"     # bound to a local name
-math.sqrt(16.0)          # note: sqrt requires a float argument, not an integer
-import "http"            # or unbound — most stdlib packages are also directly qualified
-http::get(url)           # `pkg::func()` qualified form works once imported
+package geometry
+  const PI = 3.14159
+  fn area(r) PI * r * r end     # siblings call each other unqualified
+end
+geometry::area(2.0)             # usable as soon as declared; `export` is not needed
+
+import "lib/helpers"            # load a file (relative to this file, .kiwi optional), once
+m = import "math"               # package reference: m.sqrt(16.0)
 ```
+
+The whole standard library is preloaded; call it directly (`json::parse(...)`, `fio::read(...)`). A package named after a built-in type (`string`, `list`, `date`, ...) adds every function as a method on that type.
 
 ### Generators
 
@@ -192,28 +205,20 @@ fn countdown(n)
     n -= 1
   end
 end
-for x in countdown(5) do ... end   # lazy — pulls one value per iteration
+for x in countdown(5) do ... end   # lazy; a generator is exhausted after one pass
 ```
 
 ### CLI Arguments
 
-Two builtins, two different jobs — **use the right one, they're not interchangeable:**
+- `env::args()` — raw, ordered `list` of arguments, duplicates kept. **Use this for positional lists.**
+- `env::argv()` — `hashmap`: `-key=value` → `"key": "value"`, `--flag` → `"flag": "true"`, a positional maps to itself. Duplicate positionals collapse.
+- `cli::CliParser` — flags and typed options plus an ordered `"_args"` list of positionals. See `references/lib/cli.md`.
 
-- `env::args()` — raw, ordered `list` of arguments exactly as passed, duplicates and all. **Use this for `script.kiwi item1 item2 ...` style positional-list programs.**
-- `env::argv()` — `hashmap` of key-value args. `-key=value`/`--key=value` → `argv["key"]=="value"`; a bare positional (no `=`) is self-mapped, `argv["5"]=="5"`. On Linux/macOS an absolute path like `/tmp` is a positional too (`/` is a switch prefix only on Windows). Since it's a hashmap, **duplicate positional values silently collapse to one entry** — `kiwi script.kiwi 5 3 8 3 1` → only 4 keys, the repeated `3` is gone. Use `argv()` for actual key-value options, not for a plain arg list.
-
-```kiwi
-# kiwi script.kiwi apple banana apple -name=world
-env::args()    # ["apple", "banana", "apple", "-name=world"]  (raw, nothing dropped)
-env::argv()    # {"apple": "apple", "banana": "banana", "name": "world"}  (deduped, parsed)
-```
-
-If you need real flags/options *and* positionals together, use `CliParser` (`import "cli"`) — it gives you a `"_args"` list of positionals separated from parsed flags/options. It reads `env::args()`, so `"_args"` keeps order, duplicates and absolute paths. See `references/lib/cli.md`.
-
-### Comments & Docstrings — pitfall
+### Comments & Docstrings
 
 ```kiwi
 # single-line comment
+/# block comment / docstring #/
 
 /#
 @summary Adds two integers.
@@ -223,116 +228,131 @@ If you need real flags/options *and* positionals together, use `CliParser` (`imp
 fn add(a, b) a + b end
 ```
 
-`/# ... #/` is Kiwi's **only** block-comment / docstring syntax (see `references/language/docstrings.md` and `references/language/comments.md`). **There is no `"""..."""` triple-quote docstring construct.** A `"""..."""` block *parses without error* — each `"` sequence is just adjacent string-literal expression statements — but it does nothing: it is not attached to the following declaration and carries no metadata. If you see `"""`-style "docstrings" in older code or notes in this repo, they are a documentation convention error, not real Kiwi syntax — verified live against `./bin/kiwi` (a script using it runs and produces the same output whether the `"""` block is present or removed).
+`/# ... #/` is the only block comment and docstring syntax. There is no `"""..."""` docstring: such a block parses as adjacent string expressions and does nothing.
 
 ### Common Pitfalls
 
-- `.length()` and `.size()` are equivalent for strings, lists, hashmaps, and bytes — use whichever reads better (added in `c7324d07`, mirrors `.size()`'s dispatch).
-- No `nil` — the only absence value is `null`.
-- Loop skip is `next` (not `continue`), with optional `when` guard.
-- Identifiers (functions, methods) must be `snake_case`; camelCase is not idiomatic and may not match dispatch conventions in stdlib packages.
-- `typeof(x)` is a global function; `.type()` is the equivalent method — both exist, use whichever reads better at the call site.
-- Built-in type names (`list`, `hashmap`, `string`, `integer`, `float`, `boolean`, `date`, `any`, `generator`, `lambda`, `object`, `pointer`, `bytes`, `none`) can't be used as a variable, function, or parameter name — `fn foo(list)` is a parse error naming the type and suggesting a rename. Use `items`/`data`/`values` etc. instead. Bare hashmap keys and `.member` access hit the same rule: write `{ "bytes": 1 }` and `h["bytes"]`, not `{ bytes: 1 }` / `h.bytes`.
-- No `?`-suffixed predicate methods (no `.empty?()`/`.has_key?()` like Ruby) — use `.empty()`/`.has_key()`. A stray trailing `?` is parsed as the ternary operator, not flagged as an unknown method — it produces a confusing cascade of `Expected ':' in ternary operation` / `Expected if-statement or case-statement` errors on unrelated-looking lines. See `references/language/operators.md#ternary--`.
-- For a `script.kiwi item1 item2 ...` style positional-arg list, use `env::args()` — **not** `env::argv().keys()`. `argv()` is a hashmap, so it silently drops duplicate positional values; `env::args()` is the raw ordered list and doesn't have that problem. See [CLI Arguments](#cli-arguments) above.
+- Type names (`list`, `hashmap`, `string`, `integer`, `float`, `boolean`, `date`, `any`, `none`, `generator`, `lambda`, `object`, `pointer`, `bytes`) can't be used as variable, parameter or function names, bare hashmap keys, or `.member` names. Use `items`/`data`, and quote keys: `{"list": 1}`, `h["bytes"]`.
+- No `?`-suffixed predicates (`.empty?()`); a stray `?` parses as a ternary and produces confusing errors on later lines.
+- No `nil`; the absence value is `null`. `x ?? default` only falls back on `null`.
+- `/` always returns a float; use `//` for floor division. `**` is left-associative at the same precedence as `*`. Comparisons bind tighter than `&`, `|` and `^`.
+- Reading a variable that was never assigned raises `VariableUndefinedError` (it is not `null`).
+- Inside a function, assigning to a name that exists as a global updates the global; use `var name = ...` to declare a local instead.
+
+### Known Interpreter Issues
+
+Current behavior that is easy to trip over (documented on the relevant pages; may be fixed later):
+
+- **Type hints are not enforced** at runtime, for parameters, returns or `var`.
+- **Blocks don't create scope**: variables assigned in `if`/`for`/`while` stay visible afterwards.
+- **`@` is not visible inside lambdas** created in struct methods (`@x` reads `null`); copy to a local first. This also breaks `Hashable.to_hash()`.
+- **`finally` doesn't run** when the `try` body leaves via `return` or `break`.
+- **`println obj` doesn't call `to_string()`**; call it explicitly.
+- Static variables aren't inherited: a parent method using `@@count` fails when called through a child struct.
+- `private fn` is not enforced; decorators on struct methods are ignored; `yield` only works in plain `fn` functions (not methods or lambdas).
+- Lambdas passed to `.each()` inside a function can't update that function's locals.
+- Slice assignment `xs[a:b] = ys` overwrites element by element instead of splicing; keep lengths equal.
+- `list.none(...)` is a syntax error (`none` is a type keyword); use `list::none(xs, fn)`.
+- Most `math` functions require float arguments (`math::sqrt(16.0)`, not `16`); there is no `math::pi`.
+- `Enum.get("missing")` without a default crashes the interpreter; always pass a default.
+- `stdin::lines()` never returns; use `stdin::read().rtrim().lines()`.
+- `tls::tcpconnect` returns a task id; `task::await` it to get the socket.
+- `fmt::sprintf("%e", ...)` fails; `string::smart_titleize` fails.
 
 ---
 
-## Language Reference Index
+## Reference Index
 
-`references/language/<file>.md` — load the one that matches the topic.
+Files under `references/`, one per documentation page.
 
 | Topic | File |
 |---|---|
-| Gentle intro / walkthrough | `introduction.md` |
-| Reserved keywords (full list) | `keywords.md` |
-| Built-in types | `types.md` |
-| Dot-notation builtins (all types) | `builtins.md` |
-| Operators | `operators.md` |
-| Operator overloading | `operator_overloading.md` |
-| Variables | `variables.md` |
-| Type hints | `type_hints.md` |
-| Functions | `functions.md` |
-| Lambdas | `lambdas.md` |
-| Generators (`yield`) | `generators.md` |
-| Control structures (overview) | `control_structures.md` |
-| Conditionals (`if`/`case`) | `conditionals.md` |
-| Loops (`for`/`while`/`repeat`) | `loops.md` |
-| Ranges (`[a to b]`, `[a..b]`) | `ranges.md` |
-| Strings | `strings.md` |
-| Lists | `lists.md` |
-| Hashmaps | `hashmaps.md` |
-| Structs | `structs.md` |
-| Abstract structs | `abstract_structs.md` |
-| Enums | `enums.md` |
-| Decorators | `decorators.md` |
-| Error handling (`try`/`catch`/`throw`) | `error_handling.md` |
-| Events (event bus) | `events.md` |
-| Scoping rules | `scoping.md` |
-| Packages (`package`/`import`/`export`) | `packages.md` |
-| Comments | `comments.md` |
-| Docstrings (`/# #/` convention) | `docstrings.md` |
-| Dates | `dates.md` |
-| Console I/O | `console_io.md` |
-| REPL | `repl.md` |
-| Debugger (`kdb`) | `kdb.md` |
-| Script runners / entry points | `runners.md` |
-| CLI flags | `cli.md` |
-| VM internals (bytecode, stack) | `vm.md` |
+| What Kiwi is | `guide/introduction.md` |
+| Install / build from source / Docker | `guide/installation.md` |
+| The whole language on one page | `guide/tour.md` |
+| Statements, comments, identifiers, literals, reserved words, docstrings | `language/syntax.md` |
+| Variables, `var`, `const`, unpacking | `language/variables.md` |
+| Types, truthiness, equality, conversions, bytes, dates | `language/types.md` |
+| Operators and precedence | `language/operators.md` |
+| Strings, escapes, interpolation, slicing, regex methods | `language/strings.md` |
+| Lists and ranges | `language/lists.md` |
+| Hashmaps | `language/hashmaps.md` |
+| `if`, `case`, `when` guards, ternary, `exit` | `language/control-flow.md` |
+| `for`, `while`, `repeat`, `break`, `next` | `language/loops.md` |
+| Functions, defaults, named/variadic args, hoisting | `language/functions.md` |
+| Lambdas and closures | `language/lambdas.md` |
+| Scoping rules | `language/scoping.md` |
+| Type hints | `language/type-hints.md` |
+| Errors (`try`/`catch`/`finally`/`throw`) | `language/errors.md` |
+| Structs, inheritance, `super`, static, abstract | `language/structs.md` |
+| Operator overloading | `language/operator-overloading.md` |
+| Enums | `language/enums.md` |
+| Packages, `import`/`include`/`require`, type extension | `language/packages.md` |
+| Generators (`yield`) | `language/generators.md` |
+| Decorators | `language/decorators.md` |
+| Events (`on`/`once`/`emit`/`off`) | `language/events.md` |
+| `kiwi` command, flags, args, safe mode | `tools/cli.md` |
+| REPL | `tools/repl.md` |
+| Debugger (`kdb`) | `tools/debugger.md` |
+| Writing tests with `tester` | `tools/testing.md` |
+| All keywords | `reference/keywords.md` |
+| Every built-in method, by type | `reference/builtin-methods.md` |
+| Global functions (`println`, `input`, `typeof`, `serialize`, `d()`, ...) | `reference/global-functions.md` |
+| Bytecode VM and opcodes | `internals/vm.md` |
 
 ## Standard Library Index
 
-`references/lib/<package>.md` — one file per package, imported with `import "name"`.
+`references/lib/<package>.md`: a guide followed by the full generated API. `references/lib/README.md` groups the packages by purpose. Everything is preloaded; no `import` needed.
 
 | Package | Description | File |
 |---|---|---|
-| `bench` | Benchmarking framework for measuring/reporting performance | `bench.md` |
-| `cli` | Output helpers, tables, progress bars, prompts, arg parsing | `cli.md` |
-| `collections` | `Heap`, `Set` and other specialized collections | `collections.md` |
-| `compress` | Compression/decompression | `compress.md` |
-| `console` | Core I/O interface wrapper | `console.md` |
-| `crypto` | MD5, SHA-2, HMAC | `crypto.md` |
-| `csv` | CSV parsing/writing | `csv.md` |
-| `curl` | Wrapper around system `curl` | `curl.md` |
-| `date` | `date` type arithmetic and accessors | `date.md` |
-| `dotenv` | Load `.env` files into the environment | `dotenv.md` |
-| `encode` | Base64, hex, URL encode/decode | `encode.md` |
-| `env` | Environment variables | `env.md` |
-| `error` | Construct/throw/inspect structured errors | `error.md` |
-| `faker` | Fake data: names, addresses, emails, lorem | `faker.md` |
-| `fio` | File system operations | `fio.md` |
-| `fmt` | `sprintf`-style formatting | `fmt.md` |
-| `hashable` | `Hashable` mixin for hashmap serialization | `hashable.md` |
-| `http` | HTTP client (GET/POST/etc.), `HttpResponse` | `http.md` |
+| `bench` | Benchmarks with timing statistics | `bench.md` |
+| `cli` | Labeled output, tables, progress bars, prompts, `CliParser` | `cli.md` |
+| `collections` | `Heap` (priority queue) and `Set` | `collections.md` |
+| `compress` | DEFLATE, GZip, Brotli, Zstandard, ZIP | `compress.md` |
+| `console` | Terminal colors, cursor, key input | `console.md` |
+| `crypto` | MD5, SHA-1/2, HMAC | `crypto.md` |
+| `csv` | Parse CSV, typed pipelines | `csv.md` |
+| `curl` | HTTP via the system `curl` | `curl.md` |
+| `date` | Date arithmetic and components as date methods | `date.md` |
+| `dotenv` | Load `.env` files | `dotenv.md` |
+| `encode` | Base64, hex, URL encoding | `encode.md` |
+| `env` | Environment variables and CLI arguments | `env.md` |
+| `error` | Structured errors and guards | `error.md` |
+| `faker` | Fake data | `faker.md` |
+| `fio` | Files and directories | `fio.md` |
+| `fmt` | `printf`-style formatting | `fmt.md` |
+| `hashable` | `Hashable` base struct | `hashable.md` |
+| `http` | HTTP client, request parsing, response building | `http.md` |
 | `httpserver` | HTTP server: routing, middleware, static files, CORS | `httpserver.md` |
-| `ipc` | Named-pipe interprocess communication | `ipc.md` |
-| `iter` | Explicit list iterator pattern | `iter.md` |
-| `json` | JSON parse/serialize | `json.md` |
-| `list` | Higher-order list utilities | `list.md` |
-| `log` | Structured logging | `log.md` |
-| `math` | Math functions and constants | `math.md` |
-| `path` | `Path` struct for filesystem paths | `path.md` |
-| `pipeline` | Named, step-based data pipelines | `pipeline.md` |
-| `protobuf` | Protocol Buffers (proto3) encode/decode | `protobuf.md` |
-| `reflector` | Reflection, `Callable` | `reflector.md` |
-| `regex` | Regex match/search/split/replace | `regex.md` |
-| `signal` | OS signal handling (`SIGINT`, etc.) | `signal.md` |
-| `smtp` | Send email via SMTP | `smtp.md` |
-| `socket` / `tls` | Low-level async TCP/TLS networking | `socket.md` |
+| `ipc` | Named-pipe messaging | `ipc.md` |
+| `iter` | `ListIterator` cursor | `iter.md` |
+| `json` | JSON parse/stringify, typed pipelines | `json.md` |
+| `list` | List predicates, as list methods | `list.md` |
+| `log` | Leveled logging to stderr/file | `log.md` |
+| `math` | Math functions, random numbers | `math.md` |
+| `path` | `Path` struct | `path.md` |
+| `pipeline` | Named step pipelines | `pipeline.md` |
+| `protobuf` | Protocol Buffers (proto3) | `protobuf.md` |
+| `reflector` | Runtime introspection, `Callable` | `reflector.md` |
+| `regex` | Regular expressions (pattern first) | `regex.md` |
+| `signal` | `SIGINT`/`SIGTERM`/`SIGHUP` handlers | `signal.md` |
+| `smtp` | Send email | `smtp.md` |
+| `socket` / `tls` | Async TCP and TLS sockets | `socket.md` |
 | `sqlite` | SQLite via `SqliteDb` | `sqlite.md` |
 | `stat` | Descriptive statistics | `stat.md` |
-| `std` | General introspection/utility functions | `std.md` |
-| `stdin` | Read from standard input | `stdin.md` |
-| `stopwatch` | Elapsed-time stopwatch | `stopwatch.md` |
-| `string` | String manipulation utilities | `string.md` |
-| `sys` | Execute shell commands | `sys.md` |
-| `table` | In-memory tabular data pipeline | `table.md` |
-| `task` | Async tasks, `Channel` | `task.md` |
-| `template` | `{{key}}` string templates | `template.md` |
-| `tester` | Unit testing framework | `tester.md` |
-| `text` | Line-oriented text processing pipeline | `text.md` |
-| `time` | Time/date utilities | `time.md` |
-| `udp` | UDP socket communication | `udp.md` |
-| `watch` | Poll a path on a background task for created/modified/deleted entries | `watch.md` |
-| `xml` | XML parse/serialize (`XmlNode`) | `xml.md` |
-| `yaml` | YAML parse/serialize | `yaml.md` |
+| `std` | Small type-check and range helpers | `std.md` |
+| `stdin` | Read standard input | `stdin.md` |
+| `stopwatch` | `Stopwatch` with laps | `stopwatch.md` |
+| `string` | String helpers, as string methods | `string.md` |
+| `sys` | Run programs, manage processes | `sys.md` |
+| `table` | Query lists of hashmaps: filter, join, group | `table.md` |
+| `task` | Tasks, channels, mutexes, timers | `task.md` |
+| `template` | `{{key}}` templates | `template.md` |
+| `tester` | Unit tests | `tester.md` |
+| `text` | Line-oriented text pipelines | `text.md` |
+| `time` | Clock, timestamps, calendar helpers | `time.md` |
+| `udp` | UDP datagrams | `udp.md` |
+| `watch` | Watch files/directories for changes | `watch.md` |
+| `xml` | XML parse/query/build, pipelines | `xml.md` |
+| `yaml` | YAML parse/stringify | `yaml.md` |

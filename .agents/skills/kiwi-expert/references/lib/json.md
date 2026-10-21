@@ -1,256 +1,209 @@
-# `json`
+# json
 
-The `json` package provides functions for parsing and serializing JSON data. It is automatically loaded by the Kiwi runtime — no explicit import is needed.
+> Parse and produce JSON, and load JSON records with typed fields.
 
-```kiwi
-# json is pre-loaded; no import required.
-# To import explicitly:
-import "json"
-```
-
----
-
-## Functions
-
-### `json::parse(input)`
-
-Parses a JSON string into a Kiwi value.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | A JSON-formatted string. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | A Kiwi value: `hashmap`, `list`, `string`, `integer`, `float`, `boolean`, or `null`. |
-
-**Example**
+The `json` package converts between JSON text and Kiwi values. JSON objects become hashmaps, arrays become lists, and `null`, booleans and numbers map to their Kiwi equivalents.
 
 ```kiwi
-data = json::parse('{"name": "Alice", "age": 30}')
-println data["name"]  # Alice
-println data["age"]   # 30
+text = json::stringify({id: 1, tags: ["kiwi", "json"], active: true})
+println text                  # {"id":1,"tags":["kiwi","json"],"active":true}
 
-items = json::parse('[1, 2, 3]')
-println items.first()  # 1
+data = json::parse(text)
+println data["tags"][0]       # kiwi
+
+println json::stringify({name: "kiwi", size: 3}, true)
 ```
 
----
-
-### `json::stringify(value, pretty?)`
-
-Serializes a Kiwi value to a JSON string.
-
-**Parameters**
-
-| Type | Name | Description | Default |
-| :--- | :--- | :--- | :--- |
-| `any` | `value` | The value to serialize. | |
-| `boolean` | `pretty` | Whether to pretty-print the output. | `false` |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `string` | A JSON-formatted string. |
-
-**Example**
+Pass `true` as the second argument to `stringify` for indented output. Reading and writing files is a matter of combining `json` with [`fio`](fio.md):
 
 ```kiwi
-data = {name: "Alice", scores: [95, 87, 92]}
-println json::stringify(data)
-# {"name":"Alice","scores":[95,87,92]}
-
-println json::stringify(data, true)
-# {
-#   "name": "Alice",
-#   "scores": [
-#     95,
-#     87,
-#     92
-#   ]
-# }
+config = json::parse(fio::read("config.json"))
+fio::write("config.json", json::stringify(config, true))
 ```
 
----
+## Pipelines
 
-### `json::pipeline()`
-
-Creates a `JsonPipeline` builder for fluent, declarative JSON loading. Chain configuration methods to describe your sources, then call `.parse()` to execute.
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `JsonPipeline` | A new pipeline builder instance. |
-
-See [JsonPipeline](#jsonpipeline) below for the full builder API and examples.
-
----
-
-## `JsonPipeline`
-
-A fluent builder returned by `json::pipeline()`. Configure one or more JSON sources, then call `.parse()` to get structured data.
-
-All builder methods return `self` so calls can be chained.
-
-### `.select(keys)`
-
-Retains only the specified fields from each object in the **next** registered source.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `keys` | Field names to keep. |
-
-### `.with_schema(schema)`
-
-Sets a type-coercion schema for the **next** registered source. Keys are field names; values are type strings. Coercion is applied after any `.select()` filtering, so only retained fields need schema entries.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `hashmap` | `schema` | Map of field name → type string. |
-
-**Supported types**: `"string"`, `"integer"`, `"float"`, `"boolean"`, `"null"`. Unrecognised types leave the value as-is. Fields absent from the row are silently skipped. Coercion is idempotent — already-typed values (e.g. JSON integers) pass through unchanged.
-
-### `.from_file(path)`
-
-Registers a JSON file as a source using any pending `.select()` setting.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `path` | Path to the JSON file. |
-
-**Throws** — if the file does not exist at parse time.
-
-### `.from_string(input)`
-
-Registers a JSON string as a source.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `input` | A JSON-formatted string. |
-
-### `.as_dataset(name)`
-
-Names the most recently registered source. The name becomes the key in the hashmap returned by `.parse()`. Must be called after `.from_file()` or `.from_string()`.
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `string` | `name` | Dataset key name. |
-
-**Throws** — if called before any source is registered.
-
-### `.parse()`
-
-Executes the pipeline and returns the parsed results. JSON arrays become lists of hashmaps; a JSON object at the top level is wrapped in a one-element list automatically.
-
-| Condition | Return type |
-| :--- | :--- |
-| Single unnamed source | `list` of hashmaps |
-| Multiple unnamed sources | `list` of lists of hashmaps |
-| All sources named as datasets | `hashmap` keyed by dataset name |
-| Mixed named/unnamed | throws a pipeline error |
-
----
-
-## `JsonPipeline` Examples
-
-### Single file
-
-```kiwi
-users = json::pipeline().from_file("users.json").parse()
-
-for u in users do
-  println u["name"]
-end
-```
-
-### Field selection
+`json::pipeline()` loads JSON records (an array of objects, or a single object) with field selection and type conversion. It mirrors the [`csv`](csv.md#pipelines-with-typed-columns) pipeline.
 
 ```kiwi
 rows = json::pipeline()
-  .select(["id", "name"])
-  .from_file("users.json")
-  .parse()
-
-# Each row has only "id" and "name"
-```
-
-### Schema coercion
-
-Use `.with_schema()` when field values need type coercion — common when loading JSON that stores numbers or booleans as strings, or when you want to enforce types regardless of the source format.
-
-```kiwi
-# JSON with string-valued fields
-rows = json::pipeline()
+  .select(["id", "score", "active"])
   .with_schema({"id": "integer", "score": "float", "active": "boolean"})
-  .from_string('[{"id":"1","score":"9.5","active":"true"},{"id":"2","score":"7.0","active":"false"}]')
+  .from_string('[{"id": "1", "score": "9.5", "active": "true", "note": "x"}]')
   .parse()
 
-println rows[0]["id"]     # 1      (integer)
-println rows[0]["score"]  # 9.5    (float)
-println rows[0]["active"] # true   (boolean)
+println rows   # [{"id": 1, "score": 9.5, "active": true}]
 ```
 
-Schema works alongside `.select()`:
+| Method | Effect |
+| :-- | :-- |
+| `.from_file(path)`, `.from_string(text)` | Add a source. |
+| `.select(fields)` | Keep only these fields in the sources added after it. |
+| `.with_schema(types)` | Convert fields by name in the sources added after it; the types are the same as for [CSV](csv.md#schema-types). |
+| `.as_dataset(name)` | Name the most recent source. |
+| `.parse()` | Run the pipeline. |
 
-```kiwi
-rows = json::pipeline()
-  .select(["id", "name"])
-  .with_schema({"id": "string"})
-  .from_file("users.json")
-  .parse()
-
-# id is now a string; name is untouched
-```
-
-### Multiple named datasets
+A single top-level object is returned as a one-element list. With named datasets, `parse()` returns a hashmap of lists.
 
 ```kiwi
 data = json::pipeline()
   .from_file("users.json").as_dataset("users")
   .from_file("roles.json").as_dataset("roles")
   .parse()
-
-users = data["users"]
-roles = data["roles"]
 ```
 
-### From string
+## Functions
+
+### `json::parse`
 
 ```kiwi
+json::parse(input: string): any
+```
+
+Parses a JSON string into a Kiwi value.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | The JSON-formatted string to parse. |
+
+**Returns** `any` — A Kiwi value (hashmap, list, string, integer, float, boolean, or null).
+
+### `json::stringify`
+
+```kiwi
+json::stringify(value: any, pretty: boolean = false): string
+```
+
+Serializes a Kiwi value to a JSON string.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `value` | `any` |  | The value to serialize. |
+| `pretty` | `boolean` | `false` | Whether to pretty-print the output (default `false`). |
+
+**Returns** `string` — A JSON-formatted string.
+
+### `json::pipeline`
+
+```kiwi
+json::pipeline(): JsonPipeline
+```
+
+Creates a new JsonPipeline builder for fluent JSON loading.
+
+**Returns** `JsonPipeline` — A new pipeline builder instance.
+
+## `JsonPipeline` struct
+
+A fluent builder for loading and selecting fields from one or more JSON sources.
+
+```kiwi
+# Single file
+users = json::pipeline().from_file("users.json").parse()
+
+# Select specific fields
 rows = json::pipeline()
-  .from_string('[{"x": 1}, {"x": 2}]')
+  .select(["id", "name"])
+  .from_file("users.json")
   .parse()
 
-println rows[0]["x"]  # 1
+# Multiple named datasets
+data = json::pipeline()
+  .from_file("users.json").as_dataset("users")
+  .from_file("roles.json").as_dataset("roles")
+  .parse()
 ```
 
-### Single JSON object (auto-wrapped)
-
-A top-level JSON object is automatically wrapped in a one-element list so the return type is always a `list` when no datasets are named.
+### `JsonPipeline.new`
 
 ```kiwi
-rows = json::pipeline().from_file("config.json").parse()
-cfg = rows[0]
-println cfg["version"]
+JsonPipeline.new()
 ```
 
----
+Initialises an empty pipeline builder.
 
-## Round-Trip Example
+### `.select`
 
 ```kiwi
-original = {id: 1, tags: ["kiwi", "json"], active: true}
-
-encoded = json::stringify(original)
-decoded = json::parse(encoded)
-
-println decoded["id"]          # 1
-println decoded["tags"].first() # kiwi
-println decoded["active"]      # true
+select(keys: list): JsonPipeline
 ```
+
+Specifies which keys to retain from each object in the next source.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `keys` | `list` |  | List of key name strings to keep. |
+
+**Returns** `JsonPipeline` — self, for chaining.
+
+### `.with_schema`
+
+```kiwi
+with_schema(schema: hashmap): JsonPipeline
+```
+
+Sets a type-coercion schema for the next source.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `schema` | `hashmap` |  | Map of field name to type string. |
+
+**Returns** `JsonPipeline` — self, for chaining.
+
+### `.from_file`
+
+```kiwi
+from_file(path: string): JsonPipeline
+```
+
+Registers a JSON file as a source using the current pending settings.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path` | `string` |  | Path to the JSON file. |
+
+**Returns** `JsonPipeline` — self, for chaining.
+
+**Throws** `string` — If the file does not exist at parse time.
+
+### `.from_string`
+
+```kiwi
+from_string(input: string): JsonPipeline
+```
+
+Registers a JSON string as a source using the current pending settings.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `input` | `string` |  | A JSON-formatted string. |
+
+**Returns** `JsonPipeline` — self, for chaining.
+
+### `.as_dataset`
+
+```kiwi
+as_dataset(name: string): JsonPipeline
+```
+
+Names the most recently registered source as a dataset.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | The dataset key name. |
+
+**Returns** `JsonPipeline` — self, for chaining.
+
+**Throws** `string` — If called before any source is registered.
+
+### `.parse`
+
+```kiwi
+parse()
+```
+
+Executes the pipeline and returns parsed results.
+
+**Returns** `list|hashmap` — Parsed JSON data.
+
+**Throws** `string` — On missing file or mixed dataset/non-dataset sources.

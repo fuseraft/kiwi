@@ -1,371 +1,214 @@
 # Operators
 
-Kiwi provides a full set of operators for arithmetic, comparison, logic, bitwise manipulation, and assignment. Most operators work on the types you'd expect; a few have extra behavior for strings and lists worth knowing about.
-
----
+> Arithmetic, comparison, logical, bitwise and assignment operators, and their precedence.
 
 ## Arithmetic
 
-| Operator | Name | Example | Result |
-| :--- | :--- | :--- | :--- |
+| Operator | Meaning | Example | Result |
+| :-- | :-- | :-- | :-- |
 | `+` | Add | `3 + 4` | `7` |
-| `-` | Subtract | `10 - 3` | `7` |
+| `-` | Subtract, or negate | `10 - 3` | `7` |
 | `*` | Multiply | `3 * 4` | `12` |
-| `/` | Divide | `10 / 4` | `2.5` |
-| `//` | Integer divide | `7 // 2` | `3` |
-| `%` | Modulo | `10 % 3` | `1` |
-| `**` | Exponent | `2 ** 8` | `256` |
+| `/` | Divide (always a float) | `10 / 4` | `2.5` |
+| `//` | Floor divide (always an integer) | `7 // 2` | `3` |
+| `%` | Remainder | `10 % 3` | `1` |
+| `**` | Power | `2 ** 8` | `256` |
 
-**`/` always returns a float:** Division always produces a `float`, even when both operands are integers. Use `//` when you need an integer result.
-
-```kiwi
-println 10 / 4    # 2.5   (always float)
-println 10 / 4.0  # 2.5
-println 10 // 4   # 2     (integer division — use // for whole-number results)
-```
-
-**`//` always returns an integer (floor division):** Floors both operands to integers before dividing, and the result always rounds toward negative infinity regardless of sign.
+`/` always returns a float, even for two integers. `//` floors both operands and rounds the result toward negative infinity:
 
 ```kiwi
-println 7 // 2      # 3
-println -7 // 2     # -4  (floors toward -∞, not toward 0)
-println 7.9 // 2    # 3   (float operand is floored first)
+println 10 / 4     # 2.5
+println 10 // 4    # 2
+println -7 // 2    # -4
+println 7.9 // 2   # 3
 ```
 
-**String and list `+` and `*`:** `+` concatenates strings and lists; `*` repeats them.
+`+` and `*` also work on strings and lists. `+` concatenates and `*` repeats. If either side of `+` is a string, the other side is converted to a string.
 
 ```kiwi
 println "hello" + " world"   # hello world
 println [1, 2] + [3, 4]      # [1, 2, 3, 4]
-
 println "ha" * 3             # hahaha
 println [0] * 4              # [0, 0, 0, 0]
+println "count: " + 5        # count: 5
 ```
-
----
 
 ## Comparison
 
-| Operator | Name | Example |
-| :--- | :--- | :--- |
-| `==` | Equal | `a == b` |
-| `!=` | Not equal | `a != b` |
-| `<` | Less than | `a < b` |
-| `<=` | Less than or equal | `a <= b` |
-| `>` | Greater than | `a > b` |
-| `>=` | Greater than or equal | `a >= b` |
+| Operator | Meaning |
+| :-- | :-- |
+| `==`, `!=` | Equal, not equal |
+| `<`, `<=`, `>`, `>=` | Ordering |
+| `in` | Membership |
 
-Comparison works across `integer` and `float` without casting. Strings are compared lexicographically.
+Integers and floats compare numerically. Strings compare lexicographically. `==` compares lists and hashmaps by value. See [Equality](types.md#equality).
 
 ```kiwi
-println 3 < 3.14      # true
-println "apple" < "banana"  # true
-println 1 == 1.0      # true
+println 3 < 3.14              # true
+println 1 == 1.0              # true
+println "apple" < "banana"    # true
+println [1, 2] == [1, 2]      # true
 ```
 
----
+`in` tests whether a list contains a value, a hashmap contains a key, or a string contains a substring:
+
+```kiwi
+println 2 in [1, 2, 3]        # true
+println "name" in {name: 1}   # true
+println "ell" in "hello"      # true
+println !(4 in [1, 2, 3])     # true
+```
 
 ## Logical
 
-Kiwi accepts both symbol and keyword forms — they are identical in behavior.
+Each logical operator has a symbol and a keyword form. They behave identically.
 
-| Symbol | Keyword | Description |
-| :--- | :--- | :--- |
-| `&&` | `and` | True when both operands are truthy |
-| `||` | `or` | True when at least one operand is truthy |
-| `!` | `not` | Inverts a boolean |
+| Symbol | Keyword | Meaning |
+| :-- | :-- | :-- |
+| `&&` | `and` | True when both sides are truthy |
+| `\|\|` | `or` | True when either side is truthy |
+| `!` | `not` | Negation |
 
-Both forms short-circuit: `&&`/`and` stops at the first falsy value; `||`/`or` stops at the first truthy value.
-
-```kiwi
-println true && false    # false
-println true and false   # false (same)
-
-println false || true    # true
-println false or true    # true  (same)
-
-println !true            # false
-println not true         # false (same)
-```
-
----
-
-## Null-coalescing (`??`)
-
-Returns the left operand if it is not `null`, otherwise evaluates and returns the right operand. Chains left-to-right and short-circuits at the first non-null value.
+`&&` and `||` short-circuit: the right side is only evaluated when it is needed.
 
 ```kiwi
-x = null
-println x ?? "default"    # default
-
-# Chains resolve to the first non-null value
-println null ?? null ?? "found" ?? "other"   # found
-
-# Useful for optional function results
-fn maybe(): any
-  null
-end
-
-result = maybe() ?? "fallback"
-println result   # fallback
+println true && false     # false
+println true and false    # false
+println false || true     # true
+println not true          # false
 ```
 
----
+## Null coalescing
 
-## Ternary (`? :`)
-
-Inline conditional expression.
+`a ?? b` is `a` unless `a` is `null`, in which case it is `b`. Only `null` triggers the fallback; `false`, `0` and `""` don't.
 
 ```kiwi
-x = 10
-label = x > 5 ? "big" : "small"
-println label    # big
+name = null
+println name ?? "anonymous"           # anonymous
+println false ?? "fallback"           # false
+println null ?? null ?? "found"       # found
 ```
 
-The `when` postfix guard is a clean alternative for single-expression returns and early exits:
+## Ternary
+
+`condition ? a : b` picks one of two values:
 
 ```kiwi
-fn clamp(n, lo, hi)
-  return lo when n < lo
-  return hi when n > hi
-  n
-end
+age = 20
+println age >= 18 ? "adult" : "minor"   # adult
 ```
-
-> **Pitfall — no `?`-suffixed predicate methods:** Unlike Ruby/Elixir, Kiwi has no naming convention where a boolean-returning method ends in `?` (there is no `.empty?()` or `.has_key?()` — use the plain names `.empty()` / `.has_key()`, see [Builtins](builtins.md)). `?` is *only* the ternary/null-coalescing operator, and the lexer treats it that way wherever it appears. Writing `if x.has_key?(y) ... end` does not fail with a clear "undefined method" error — the parser consumes the `?` as the start of a ternary expression, then fails looking for its `:`, producing a cascade of confusing errors (`Expected ':' in ternary operation`, `Expected if-statement or case-statement`) anchored on the lines *after* the real mistake, not on it. If you see that error shape, check for a stray `?` on a method call first.
-
----
 
 ## Bitwise
 
-| Operator | Name | Example | Notes |
-| :--- | :--- | :--- | :--- |
-| `&` | AND | `5 & 9` → `1` | Bit-by-bit AND |
-| `|` | OR | `5 | 9` → `13` | Bit-by-bit OR |
-| `^` | XOR | `5 ^ 9` → `12` | Bit-by-bit XOR |
-| `~` | NOT | `~5` → `-6` | Bitwise complement |
-| `<<` | Left shift | `5 << 1` → `10` | Shift bits left |
-| `>>` | Right shift | `5 >> 1` → `2` | Arithmetic right shift |
-| `>>>` | Unsigned right shift | `a >>> b` | Logical right shift (no sign fill) |
-
-```kiwi
-a = 5   # 0101
-b = 9   # 1001
-
-println a & b   # 1   (0001)
-println a | b   # 13  (1101)
-println a ^ b   # 12  (1100)
-println a << 1  # 10  (1010)
-println a >> 1  # 2   (0010)
-println ~a      # -6
-```
-
-**XOR swap** — swap two variables without a temporary:
-
-```kiwi
-a = a ^ b
-b = a ^ b
-a = a ^ b
-# a and b are now swapped
-```
-
----
-
-## Assignment
-
-### Basic and chained assignment
-
-```kiwi
-x = 42
-a = b = c = 0    # chained — all receive the same value
-```
-
-### Compound assignment
-
-Each compound operator reads the current value, applies the operation, and writes the result back.
-
-| Operator | Equivalent to |
-| :--- | :--- |
-| `+=` | `a = a + b` |
-| `-=` | `a = a - b` |
-| `*=` | `a = a * b` |
-| `/=` | `a = a / b` |
-| `//=` | `a = a // b` |
-| `%=` | `a = a % b` |
-| `**=` | `a = a ** b` |
-
-```kiwi
-n = 20
-n += 5    # 25
-n -= 10   # 15
-n *= 4    # 60
-n /= 3    # 20.0  (float — /= follows / semantics)
-n //= 3   # 6
-n %= 5    # 1
-n **= 3   # 1
-```
-
-Compound assignment also works on list indices and hashmap keys:
-
-```kiwi
-lst = [10, 20, 30]
-lst[1] += 5         # lst is now [10, 25, 30]
-
-h = { score: 100 }
-h["score"] -= 10    # h["score"] is now 90
-```
-
-### Unpack assignment
-
-Assigns multiple variables at once from a comma-separated list or a list value.
-
-```kiwi
-a, b, c = 1, 2, 3
-println a   # 1
-println b   # 2
-println c   # 3
-
-# Unpack a list
-coords = [10, 20]
-x, y = coords
-println x   # 10
-println y   # 20
-
-# Swap without a temp variable
-p, q = 7, 13
-p, q = q, p
-println p   # 13
-println q   # 7
-
-# Destructure a function's return value
-fn bounds(): list
-  [0, 100]
-end
-
-lo, hi = bounds()
-```
-
----
-
-## Logical assignment
-
-Short-circuit assignment using the logical operators.
-
-| Operator | Meaning |
-| :--- | :--- |
-| `&&=` | Assign right side only if left side is truthy |
-| `||=` | Assign right side only if left side is falsy |
-
-```kiwi
-x = true
-x &&= false    # x becomes false (was truthy, so rhs was evaluated)
-
-y = false
-y ||= "default"   # y becomes "default" (was falsy, so rhs was evaluated)
-
-z = "existing"
-z ||= "fallback"  # z stays "existing" (was truthy, short-circuits)
-```
-
----
-
-## Bitwise assignment
-
-| Operator | Equivalent to |
-| :--- | :--- |
-| `&=` | `a = a & b` |
-| `|=` | `a = a | b` |
-| `^=` | `a = a ^ b` |
-| `~=` | `a = ~b` |
-| `<<=` | `a = a << b` |
-| `>>=` | `a = a >> b` |
+| Operator | Meaning | Example | Result |
+| :-- | :-- | :-- | :-- |
+| `&` | AND | `5 & 9` | `1` |
+| `\|` | OR | `5 \| 9` | `13` |
+| `^` | XOR | `5 ^ 9` | `12` |
+| `~` | NOT | `~5` | `-6` |
+| `<<` | Shift left | `5 << 1` | `10` |
+| `>>` | Arithmetic shift right | `-16 >> 2` | `-4` |
+| `>>>` | Logical shift right | `-16 >>> 28` | `15` |
 
 ```kiwi
 flags = 0b1010
-flags |= 0b0001   # set bit 0   → 0b1011
-flags &= 0b1110   # clear bit 0 → 0b1010
-flags ^= 0b1111   # toggle all  → 0b0101
-flags <<= 1       # shift left  → 0b1010
-flags >>= 2       # shift right → 0b0010
+println flags & 0b0010    # 2
+println flags | 0b0001    # 11
+println flags ^ 0b1111    # 5
+println -16 >> 2          # -4
 ```
 
----
+## Assignment
+
+| Operator | Equivalent to |
+| :-- | :-- |
+| `a = b` | Assign |
+| `a += b` | `a = a + b` |
+| `a -= b` | `a = a - b` |
+| `a *= b` | `a = a * b` |
+| `a /= b` | `a = a / b` |
+| `a //= b` | `a = a // b` |
+| `a %= b` | `a = a % b` |
+| `a **= b` | `a = a ** b` |
+| `a &= b`, `a \|= b`, `a ^= b` | Bitwise AND, OR, XOR |
+| `a <<= b`, `a >>= b`, `a >>>= b` | Shifts |
+| `a &&= b` | Assign `b` only if `a` is truthy |
+| `a \|\|= b` | Assign `b` only if `a` is falsy |
+
+```kiwi
+n = 20
+n += 5     # 25
+n -= 10    # 15
+n *= 4     # 60
+n //= 7    # 8
+n **= 2    # 64
+println n  # 64
+
+port = 0
+port ||= 8080
+println port   # 8080
+```
+
+Compound assignment works on list elements, hashmap keys and instance variables too:
+
+```kiwi
+scores = [10, 20, 30]
+scores[1] += 5
+println scores   # [10, 25, 30]
+
+totals = {apples: 3}
+totals["apples"] *= 2
+println totals   # {"apples": 6}
+```
+
+Assigning to several names at once is covered in [Variables](variables.md#multiple-assignment).
 
 ## Precedence
 
-Operators are evaluated in the following order (highest to lowest). Operators on the same row have equal precedence and associate left-to-right unless noted.
+From highest to lowest. Operators on the same row are evaluated left to right.
 
-| Precedence | Operators | Notes |
-| :---: | :--- | :--- |
-| 1 (highest) | `**` | Right-associative |
-| 2 | unary `-`, `!`, `not`, `~` | |
-| 3 | `*`, `/`, `//`, `%` | |
-| 4 | `+`, `-` | |
-| 5 | `<<`, `>>`, `>>>` | |
-| 6 | `&` | |
-| 7 | `^` | |
-| 8 | `|` | |
-| 9 | `==`, `!=`, `<`, `<=`, `>`, `>=` | |
-| 10 | `&&`, `and` | |
-| 11 | `||`, `or` | |
-| 12 | `??` | |
-| 13 | `? :` | Right-associative |
-| 14 (lowest) | `=`, `+=`, `-=`, `*=`, `//=`, etc. | Right-associative |
+| Level | Operators |
+| :--: | :-- |
+| 1 | Unary `-`, `!`, `not`, `~` |
+| 2 | `*`, `/`, `//`, `%`, `**` |
+| 3 | `+`, `-` |
+| 4 | `<<`, `>>`, `>>>` |
+| 5 | `<`, `<=`, `>`, `>=`, `in` |
+| 6 | `==`, `!=` |
+| 7 | `&` |
+| 8 | `^` |
+| 9 | `\|` |
+| 10 | `&&`, `and` |
+| 11 | `\|\|`, `or`, `??` |
+| 12 | `? :` |
+| 13 | Assignment |
 
-When in doubt, use parentheses:
+Two consequences are worth knowing:
 
-```kiwi
-# Without parens — may not read as intended
-println 2 + 3 * 4      # 14 (not 20)
-
-# With parens — unambiguous
-println (2 + 3) * 4    # 20
-```
-
----
-
-## Multi-line expressions
-
-Kiwi treats newlines as whitespace, so expressions can continue freely across lines. Place the operator at the end of a line or the start of the next — both work.
+- `**` has the same precedence as `*` and groups left to right, so `2 ** 3 ** 2` is `(2 ** 3) ** 2`, which is `64`. Unary minus binds tighter, so `-2 ** 2` is `4`.
+- Comparisons bind tighter than the bitwise operators, so `x & 1 == 0` means `x & (1 == 0)`. Parenthesize bit tests: `(x & 1) == 0`.
 
 ```kiwi
-ok = a > 0
-  && b > 0
-  && c > 0
-
-total = price
-  * quantity
-  + tax
+println 2 + 3 * 4       # 14
+println (2 + 3) * 4     # 20
+println 2 ** 3 ** 2     # 64
+println (6 & 1) == 0    # true
 ```
 
----
+## Line breaks in expressions
+
+A binary operator must be on the same line as its left operand. To split a long expression, end the line with the operator:
+
+```kiwi
+a, b, c = 1, 2, 3
+
+ok = a > 0 &&
+  b > 0 &&
+  c > 0
+
+println ok   # true
+```
 
 ## Operator overloading
 
-Structs can define custom behavior for binary operators by declaring a method named after the operator symbol. See [Operator Overloading](operator_overloading.md) for the full reference.
-
-```kiwi
-struct Vec2
-  fn new(x, y)
-    @x = x
-    @y = y
-  end
-
-  fn +(other: Vec2): Vec2
-    Vec2.new(@x + other.x, @y + other.y)
-  end
-
-  fn ==(other: Vec2): boolean
-    @x == other.x && @y == other.y
-  end
-
-  fn to_string(): string
-    "(${@x}, ${@y})"
-  end
-end
-
-a = Vec2.new(1, 2)
-b = Vec2.new(3, 4)
-println a + b    # (4, 6)
-println a == b   # false
-```
+Structs can define their own behavior for binary operators. See [Operator Overloading](operator-overloading.md).

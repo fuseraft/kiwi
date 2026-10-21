@@ -1,427 +1,253 @@
-# `list`
+# list
 
-The `list` package provides higher-order utility functions for working with lists. All functions take a list as their first argument and are called via the `list::` namespace.
+> Predicates and helpers for lists, also callable as list methods.
 
-```kiwi
-import "list"
-```
-
----
-
-## Package Functions
-
-### `iterator(_list)`
-
-Creates a `ListIterator` instance wrapping the given list. See the [`iter`](iter.md) documentation for the full `ListIterator` API.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to iterate over. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `ListIterator` | An iterator over the list. |
-
-**Example**
+The `list` package adds predicate helpers and searches to lists. Because the package [extends the `list` type](../language/packages.md#extending-built-in-types), most functions can also be called as methods:
 
 ```kiwi
-import "list"
+nums = [3, 8, 1, 8, 5]
 
-it = list::iterator([10, 20, 30])
-while it.can_read() do
-  println it.consume()
-end
-# prints: 10, 20, 30
+println nums.reject(do (n) => n > 4)          # [3, 1]
+println nums.first_where(do (n) => n > 4)     # 8
+println nums.last_where(do (n) => n > 4)      # 5
+println nums.one(do (n) => n == 1)            # true
+println nums.is_unique()                      # false
+println nums.index_of(8)                      # 1
+println nums.last_index_of(8)                 # 3
+println [1, 2.5, "x", 3].sum_integer()        # 4
 ```
 
----
-
-### `all(_list, _predicate)`
-
-Returns `true` if every element in the list satisfies the predicate. Short-circuits on the first failure.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to test. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if all elements satisfy the predicate, `false` otherwise. |
-
-**Example**
+A few functions share their names with [built-in methods](../reference/builtin-methods.md#lists) or type keywords. The built-in wins when called as a method, so call these with the package prefix:
 
 ```kiwi
-import "list"
+nums = [3, 8, 1, 8, 5]
 
-println list::all([2, 4, 6], do (n) => n % 2 == 0)  # prints: true
-println list::all([2, 3, 6], do (n) => n % 2 == 0)  # prints: false
+println list::any(nums, do (n) => n > 7)      # true
+println list::none(nums, do (n) => n > 9)     # true
+println list::all(nums, do (n) => n > 0)      # true
+println list::count(nums, do (n) => n == 8)   # 2
+println list::find(nums, do (n) => n == 8)    # 1 (the index)
 ```
 
----
+`list::iterator(xs)`, or `xs.iterator()`, returns a [`ListIterator`](iter.md).
 
-### `any(_list, _predicate)`
+## Functions
 
-Returns `true` if at least one element in the list satisfies the predicate. Short-circuits on the first match.
-
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to test. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if at least one element satisfies the predicate. |
-
-**Example**
+### `list::iterator`
 
 ```kiwi
-import "list"
-
-println list::any([1, 3, 4], do (n) => n % 2 == 0)  # prints: true
-println list::any([1, 3, 5], do (n) => n % 2 == 0)  # prints: false
+list::iterator(_list: list)
 ```
 
----
+Creates an iterator over a list.
 
-### `count(_list, _predicate)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to iterate over. |
 
-Returns the number of elements in the list that satisfy the predicate.
+**Returns** `object` — A `ListIterator` instance.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to test. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `integer` | The number of elements for which the predicate returns `true`. |
-
-**Example**
+### `list::all`
 
 ```kiwi
-import "list"
-
-println list::count([1, 2, 3, 4, 5], do (n) => n > 2)  # prints: 3
+list::all(_list: list, _predicate: lambda): boolean
 ```
 
----
+Returns true if every element in the list satisfies the predicate.
 
-### `find(_list, _predicate)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to test. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Returns the index of the first element that satisfies the predicate, or `-1` if no match is found.
+**Returns** `boolean` — `true` if all elements satisfy the predicate, `false` otherwise.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to search. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `integer` | The zero-based index of the first matching element, or `-1`. |
-
-**Example**
+### `list::any`
 
 ```kiwi
-import "list"
-
-println list::find(["a", "bb", "ccc"], do (s) => s.size() > 1)  # prints: 1
-println list::find(["a", "b"], do (s) => s.size() > 5)          # prints: -1
+list::any(_list: list, _predicate: lambda): boolean
 ```
 
----
+Returns true if any element in the list satisfies the predicate.
 
-### `first_where(_list, _predicate)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to test. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Returns the first element that satisfies the predicate, or `null` if none is found.
+**Returns** `boolean` — `true` if at least one element satisfies the predicate.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to search. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | The first matching element, or `null`. |
-
-**Example**
+### `list::count`
 
 ```kiwi
-import "list"
-
-result = list::first_where([1, 2, 3, 4], do (n) => n > 2)
-println result  # prints: 3
+list::count(_list: list, _predicate: lambda): integer
 ```
 
----
+Returns the count of elements satisfying the predicate.
 
-### `index_of(_list, _value)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to test. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Returns the index of the first occurrence of `_value` in the list, or `-1` if not found.
+**Returns** `integer` — The number of matching elements.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to search. |
-| `any` | `_value` | The value to look for. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `integer` | The zero-based index of the first occurrence, or `-1`. |
-
-**Example**
+### `list::find`
 
 ```kiwi
-import "list"
-
-println list::index_of(["x", "y", "z"], "y")  # prints: 1
-println list::index_of(["x", "y", "z"], "w")  # prints: -1
+list::find(_list: list, _predicate: lambda): integer
 ```
 
----
+Finds the index of the first element satisfying the predicate.
 
-### `last_index_of(_list, _value)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to search. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Returns the index of the last occurrence of `_value` in the list, or `-1` if not found.
+**Returns** `integer` — The index of the first matching element, or `-1` if not found.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to search. |
-| `any` | `_value` | The value to look for. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `integer` | The zero-based index of the last occurrence, or `-1`. |
-
-**Example**
+### `list::first_where`
 
 ```kiwi
-import "list"
-
-println list::last_index_of([1, 2, 1, 3, 1], 1)  # prints: 4
+list::first_where(_list: list, _predicate: lambda): any
 ```
 
----
+Returns the first element satisfying the predicate, or null.
 
-### `is_unique(_list)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to search. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Returns `true` if every element in the list is distinct (no duplicates).
+**Returns** `any` — The first matching element, or `null` if none found.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to check. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if all elements are unique. |
-
-**Example**
+### `list::index_of`
 
 ```kiwi
-import "list"
-
-println list::is_unique([1, 2, 3])     # prints: true
-println list::is_unique([1, 2, 2, 3])  # prints: false
+list::index_of(_list: list, _value: any): integer
 ```
 
----
+Returns the first index of a given value in the list.
 
-### `last_where(_list, _predicate)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to search. |
+| `_value` | `any` |  | The value to find. |
 
-Returns the last element that satisfies the predicate, or `null` if none is found. Searches the list in reverse order.
+**Returns** `integer` — The index of the first occurrence, or `-1` if not found.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to search. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `any` | The last matching element, or `null`. |
-
-**Example**
+### `list::last_index_of`
 
 ```kiwi
-import "list"
-
-result = list::last_where([1, 2, 3, 4], do (n) => n % 2 == 0)
-println result  # prints: 4
+list::last_index_of(_list: list, _value: any): integer
 ```
 
----
+Returns the last index of a given value in the list.
 
-### `none(_list, _predicate)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to search. |
+| `_value` | `any` |  | The value to find. |
 
-Returns `true` if no element in the list satisfies the predicate.
+**Returns** `integer` — The index of the last occurrence, or `-1` if not found.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to test. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if no elements satisfy the predicate. |
-
-**Example**
+### `list::is_unique`
 
 ```kiwi
-import "list"
-
-println list::none([1, 3, 5], do (n) => n % 2 == 0)  # prints: true
-println list::none([1, 2, 5], do (n) => n % 2 == 0)  # prints: false
+list::is_unique(_list: list): boolean
 ```
 
----
+Returns true if every element in the list is unique.
 
-### `one(_list, _predicate)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to check. |
 
-Returns `true` if exactly one element in the list satisfies the predicate.
+**Returns** `boolean` — `true` if all elements are distinct.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The list to test. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `boolean` | `true` if exactly one element matches. |
-
-**Example**
+### `list::last_where`
 
 ```kiwi
-import "list"
-
-println list::one([1, 2, 3], do (n) => n % 2 == 0)  # prints: true  (only 2)
-println list::one([1, 2, 4], do (n) => n % 2 == 0)  # prints: false (two matches)
+list::last_where(_list: list, _predicate: lambda): any
 ```
 
----
+Returns the last element satisfying the predicate, or null.
 
-### `reject(_list, _predicate)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to search. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Returns a new list containing only the elements for which the predicate returns `false`. This is the inverse of the built-in `.filter()` method.
+**Returns** `any` — The last matching element, or `null` if none found.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | The source list. |
-| `lambda` | `_predicate` | A single-argument lambda returning a boolean. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `list` | A new list of elements that did not match the predicate. |
-
-**Example**
+### `list::none`
 
 ```kiwi
-import "list"
-
-result = list::reject([1, 2, 3, 4, 5], do (n) => n % 2 == 0)
-println result  # prints: [1, 3, 5]
+list::none(_list: list, _predicate: lambda): boolean
 ```
 
----
+Returns true if no element satisfies the predicate.
 
-### `sum_integer(_list)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to test. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Computes the sum of all elements in the list that are of type `integer`. Non-integer values are silently ignored.
+**Returns** `boolean` — `true` if no elements satisfy the predicate.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | A list of mixed values. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `integer` | The sum of all integer elements. |
-
-**Example**
+### `list::one`
 
 ```kiwi
-import "list"
-
-println list::sum_integer([1, 2.5, 3, "x", 4])  # prints: 8
+list::one(_list: list, _predicate: lambda): boolean
 ```
 
----
+Returns true if exactly one element satisfies the predicate.
 
-### `sum_float(_list)`
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The list to test. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
 
-Computes the sum of all elements in the list that are of type `float`. Non-float values are silently ignored.
+**Returns** `boolean` — `true` if exactly one element matches.
 
-**Parameters**
-
-| Type | Name | Description |
-| :--- | :--- | :--- |
-| `list` | `_list` | A list of mixed values. |
-
-**Returns**
-
-| Type | Description |
-| :--- | :--- |
-| `float` | The sum of all float elements. |
-
-**Example**
+### `list::reject`
 
 ```kiwi
-import "list"
-
-println list::sum_float([1, 1.5, 2.5, "x", 3])  # prints: 4.0
+list::reject(_list: list, _predicate: lambda): list
 ```
 
----
+Returns a list of elements that do not satisfy the predicate.
 
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | The source list. |
+| `_predicate` | `lambda` |  | A single-argument lambda returning a boolean. |
+
+**Returns** `list` — A new list of elements for which the predicate returned `false`.
+
+### `list::sum_integer`
+
+```kiwi
+list::sum_integer(_list: list): integer
+```
+
+Computes the integer sum of all integer elements in the list.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  | A list of mixed values (non-integer values are discarded). |
+
+**Returns** `integer` — The sum of all integer elements.
+
+### `list::sum_float`
+
+```kiwi
+list::sum_float(_list: list): float
+```
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `_list` | `list` |  |  |
+
+**Returns** `float`
