@@ -96,6 +96,16 @@ for name in HttpStatus.keys() do
 end
 ```
 
-:::caution
-Always pass a default to `.get()`. Looking up a missing name without one currently crashes the interpreter instead of raising a catchable error.
-:::
+Without a default, looking up a missing name raises a `ValueError`:
+
+```kiwi
+enum HttpStatus
+  OK = 200
+end
+
+try
+  HttpStatus.get("Teapot")
+catch e
+  println e["message"]   # Enum member 'Teapot' not found.
+end
+```

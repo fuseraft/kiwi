@@ -30,9 +30,19 @@ println adder.parameters().map(do (p) => p["name"])  # ["a", "b"]
 
 Every function value also has `.call(arguments)` and `.parameters()` directly; see [Built-in Methods](../reference/builtin-methods.md#functions-and-lambdas).
 
-:::note
-`reflector::callstack()` currently returns an empty list.
-:::
+`callstack()` returns the names of the active calls, outermost first:
+
+```kiwi
+fn inner()
+  reflector::callstack()
+end
+
+fn outer()
+  inner()
+end
+
+println outer()   # ["<main>", "outer", "inner"]
+```
 
 ## Functions
 

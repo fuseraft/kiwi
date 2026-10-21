@@ -1,0 +1,32 @@
+@tester::test("runtime: reflection and paths")
+fn test_runtime_reflection()
+  stack = reflector::callstack()
+  tester::assert_eq(stack[0], "<main>")
+  tester::assert(stack.contains("test_runtime_reflection"), "callstack includes the caller")
+
+  tester::assert(__execpath__().ends_with("runtime.kiwi"), "__execpath__ is the file with the call")
+  tester::assert(!__main__(), "a test file is not the script that was run")
+  tester::assert(env::lib().ends_with("lib"))
+  struct RuntimePlain end
+  tester::assert_eq(typeof(RuntimePlain), "struct")
+end
+
+@tester::test("runtime: package names win over globals")
+fn test_runtime_package_names()
+  # A global sharing a name with a package helper doesn't break the package.
+  person = faker::person()
+  tester::assert_eq(faker::people(2).size(), 2)
+  tester::assert_eq(xml::create("host", {}, "localhost").to_string(), "<host>localhost</host>")
+end
+
+@tester::test("runtime: a failed package reports its error")
+fn test_runtime_failed_package()
+  message = ""
+  try
+    eval("package rt_broken\n  x = rt_missing_thing\n  fn hi() 1 end\nend\nrt_broken::hi()")
+  catch (e)
+    message = e.message
+  end
+  tester::assert(message.contains("Package `rt_broken` failed to load"), message)
+  tester::assert(message.contains("rt_missing_thing"), message)
+end

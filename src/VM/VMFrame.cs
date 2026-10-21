@@ -1,4 +1,5 @@
 using kiwi.Parsing;
+using kiwi.Runtime;
 using kiwi.Typing;
 
 namespace kiwi.VM;
@@ -80,19 +81,20 @@ public sealed class VMFrame(string name, Chunk chunk, int stackBase, Upvalue[] u
     }
 
     /// <summary>
-    /// Names of functions defined inside this frame that must be removed from
-    /// the global function table when the frame returns (prevents leaking).
+    /// Functions defined inside this frame, mapped to the definition each one replaced
+    /// (null when the name was free). On return the VM restores those definitions, so a
+    /// nested function never outlives the call that defined it.
     /// Null until first inner function is defined (avoids alloc for most frames).
     /// </summary>
-    private HashSet<string>? _localFunctions;
+    private Dictionary<string, KFunction?>? _localFunctions;
 
-    public void TrackLocalFunction(string name)
+    public void TrackLocalFunction(string name, KFunction? previous)
     {
         _localFunctions ??= [];
-        _localFunctions.Add(name);
+        _localFunctions.TryAdd(name, previous);
     }
 
-    public HashSet<string>? LocalFunctions => _localFunctions;
+    public Dictionary<string, KFunction?>? LocalFunctions => _localFunctions;
 
     /// <summary>
     /// When true, this frame runs at global scope (top-level or an included

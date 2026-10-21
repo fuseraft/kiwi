@@ -134,6 +134,7 @@ println -16 >> 2          # -4
 | `a <<= b`, `a >>= b`, `a >>>= b` | Shifts |
 | `a &&= b` | Assign `b` only if `a` is truthy |
 | `a \|\|= b` | Assign `b` only if `a` is falsy |
+| `a ~= b` | `a = ~b` (bitwise NOT of `b`) |
 
 ```kiwi
 n = 20

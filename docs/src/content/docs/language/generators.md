@@ -134,6 +134,33 @@ end
 println values   # [0, 5, 10, 15]
 ```
 
-:::note
-`yield` currently works only in functions declared with `fn` at the top level or inside a package. A struct method or lambda that uses `yield` fails at runtime.
-:::
+Struct methods and lambdas can be generators too:
+
+```kiwi
+struct Countdown
+  fn new(from)
+    @from = from
+  end
+
+  fn ticks()
+    n = @from
+    while n > 0 do
+      yield n
+      n -= 1
+    end
+  end
+end
+
+for t in Countdown.new(3).ticks() do
+  println t
+end
+
+squares = do (n)
+  for i in [1 to n] do
+    yield i * i
+  end
+end
+for s in squares(3) do
+  println s
+end
+```

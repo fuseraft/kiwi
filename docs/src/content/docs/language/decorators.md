@@ -149,6 +149,34 @@ println fib(60)   # 1548008755920
 
 Because the decorated function replaces the original name, the recursive calls inside `fib` also go through the cache.
 
-:::note
-Decorators currently apply only to functions, not to struct methods. A decorator above a method inside a `struct` is ignored.
-:::
+## Decorating methods
+
+Decorators work on struct methods too. The decorated method still runs with `@` as the instance it was called on. Modifiers such as `static` and `private` go between the decorators and `fn`. A bare `@name` line whose name the struct assigns as an instance variable (`@name = ...`) is not a decorator.
+
+```kiwi
+fn logged(f)
+  do (*args)
+    println "calling with ${args}"
+    f(*args)
+  end
+end
+
+struct Account
+  fn new(balance)
+    @balance = balance
+  end
+
+  @logged
+  fn deposit(amount)
+    @balance += amount
+  end
+end
+
+acct = Account.new(10)
+println acct.deposit(5)
+```
+
+```
+calling with [5]
+15
+```

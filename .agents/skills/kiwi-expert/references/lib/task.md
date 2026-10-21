@@ -89,7 +89,7 @@ Other points:
 
 ## Timers
 
-`task::sleep(ms)` pauses the current task. `task::timer(ms, lambda)` runs a lambda once after a delay, and `task::interval(ms, lambda)` runs it repeatedly:
+`task::sleep(ms)` pauses the current task. `task::timer(ms, lambda)` runs a lambda once after a delay and waits for it, and `task::interval(ms, lambda)` runs it repeatedly in the background:
 
 ```kiwi
 fired = [0]
@@ -98,9 +98,23 @@ task::sleep(100)
 println fired[0]   # 1
 ```
 
-:::caution
-An interval runs forever and can't be cancelled, so a program that starts one never exits on its own. Prefer a loop in a spawned task that checks a flag.
-:::
+`interval` returns an `Interval`. Call `stop()` on it to end it, or return `false` from the lambda. A program waits for its running intervals before it exits, so stop one when it is no longer needed:
+
+```kiwi
+ticks = [0]
+heartbeat = task::interval(10, do () => ticks[0] += 1)
+task::sleep(55)
+heartbeat.stop()
+task::await(heartbeat.id())
+println ticks[0] > 0   # true
+
+countdown = [3]
+task::await(task::interval(5, do ()
+  countdown[0] -= 1
+  countdown[0] > 0
+end).id())
+println countdown[0]   # 0
+```
 
 ## Inspecting tasks
 
@@ -114,13 +128,13 @@ An interval runs forever and can't be cancelled, so a program that starts one ne
 task::await(task_id: integer)
 ```
 
-Await a specified task.
+Waits for a task to finish. An error thrown inside the task is rethrown here.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `task_id` | `integer` |  |  |
+| `task_id` | `integer` |  | The task identifier. |
 
-**Returns** The result of the task.
+**Returns** `any` — The result of the task.
 
 ### `task::busy`
 
@@ -128,9 +142,9 @@ Await a specified task.
 task::busy()
 ```
 
-Returns true if there are active tasks.
+Checks whether any tasks are running.
 
-**Returns** Boolean indicating business.
+**Returns** `boolean` — `true` if there are active tasks.
 
 ### `task::channel`
 
@@ -138,24 +152,28 @@ Returns true if there are active tasks.
 task::channel(cap: integer = 0): Channel
 ```
 
+Creates a channel.
+
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `cap` | `integer` | `0` |  |
+| `cap` | `integer` | `0` | The buffer capacity (default `0`, unbuffered). |
 
-**Returns** `Channel`
+**Returns** `Channel` — The channel.
 
 ### `task::interval`
 
 ```kiwi
-task::interval(ms: integer, callback: lambda)
+task::interval(ms: integer, callback: lambda): Interval
 ```
 
-Execute a callback on an interval.
+Calls a lambda repeatedly, waiting `ms` milliseconds between calls. A program waits for running intervals before it exits, so stop one when it is no longer needed.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `ms` | `integer` |  | An integer representing milliseconds to sleep. |
-| `callback` | `lambda` |  | A lambda to invoke after sleeping. |
+| `ms` | `integer` |  | The milliseconds to wait between calls. |
+| `callback` | `lambda` |  | The lambda to call. Returning `false` stops the interval. |
+
+**Returns** `Interval` — The interval; call `stop()` to end it.
 
 ### `task::spawn`
 
@@ -163,14 +181,14 @@ Execute a callback on an interval.
 task::spawn(callback: lambda, args: list = [])
 ```
 
-Spawn a new task.
+Runs a lambda on a background task.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `callback` | `lambda` |  | A lambda to invoke as a task. |
-| `args` | `list` | `[]` |  |
+| `callback` | `lambda` |  | The lambda to run. |
+| `args` | `list` | `[]` | The arguments to pass to the lambda. |
 
-**Returns** integer containing the task identifier.
+**Returns** `integer` — The task identifier.
 
 ### `task::list`
 
@@ -178,9 +196,9 @@ Spawn a new task.
 task::list(): list
 ```
 
-Returns a list of task identifiers.
+Gets the identifiers of the running tasks.
 
-**Returns** `list` — List of integers.
+**Returns** `list` — The task identifiers.
 
 ### `task::result`
 
@@ -188,13 +206,13 @@ Returns a list of task identifiers.
 task::result(task_identifier: integer)
 ```
 
-Returns a result or a status hashmap.
+Gets a task's result without waiting.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `task_identifier` | `integer` |  | An integer task identifier. |
+| `task_identifier` | `integer` |  | The task identifier. |
 
-**Returns** Result of a task, or its status in a hashmap.
+**Returns** `any` — The task's result if it has finished, otherwise a hashmap with its status.
 
 ### `task::sleep`
 
@@ -202,11 +220,11 @@ Returns a result or a status hashmap.
 task::sleep(ms: integer)
 ```
 
-Sleeps for a number of milliseconds.
+Pauses the current task.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `ms` | `integer` |  | An integer representing milliseconds to sleep. |
+| `ms` | `integer` |  | The milliseconds to sleep. |
 
 ### `task::status`
 
@@ -214,13 +232,13 @@ Sleeps for a number of milliseconds.
 task::status(task_identifier: integer)
 ```
 
-Get a status hashmap for a given task.
+Gets a task's status.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `task_identifier` | `integer` |  | An integer task identifier. |
+| `task_identifier` | `integer` |  | The task identifier. |
 
-**Returns** Hashmap containing status.
+**Returns** `hashmap` — The task's status.
 
 ### `task::timer`
 
@@ -228,12 +246,12 @@ Get a status hashmap for a given task.
 task::timer(ms: integer, callback: lambda)
 ```
 
-Execute a callback after a specified amount of milliseconds.
+Calls a lambda once after a delay, and waits for it.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `ms` | `integer` |  | An integer representing milliseconds to sleep. |
-| `callback` | `lambda` |  | A lambda to invoke after sleeping. |
+| `ms` | `integer` |  | The milliseconds to wait first. |
+| `callback` | `lambda` |  | The lambda to call. |
 
 ### `task::wait`
 
@@ -249,13 +267,13 @@ Waits for all tasks to complete.
 task::mutex()
 ```
 
-Creates a new Mutex.
+Creates a mutex.
 
-**Returns** Mutex
+**Returns** `Mutex` — The mutex.
 
 ## `Channel` struct
 
-Represents a channel
+A channel for passing values between tasks.
 
 ### `Channel.new`
 
@@ -263,9 +281,11 @@ Represents a channel
 Channel.new(cap: integer = 0)
 ```
 
+Creates a channel.
+
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `cap` | `integer` | `0` |  |
+| `cap` | `integer` | `0` | The buffer capacity; `0` (the default) makes `send` wait for a receiver. |
 
 ### `.close`
 
@@ -273,13 +293,17 @@ Channel.new(cap: integer = 0)
 close()
 ```
 
+Closes the channel. After it is drained, `recv` returns `null`.
+
 ### `.recv`
 
 ```kiwi
 recv(): any
 ```
 
-**Returns** `any`
+Waits for the next value.
+
+**Returns** `any` — The value, or `null` once the channel is closed and empty.
 
 ### `.try_recv`
 
@@ -287,9 +311,9 @@ recv(): any
 try_recv(): list
 ```
 
-Attempts to receive data from the channel.
+Receives a value if one is ready, without waiting.
 
-**Returns** `list` — [boolean, any] containing whether a value was received, and if so the value
+**Returns** `list` — `[true, value]` if a value was received, otherwise `[false, null]`.
 
 ### `.closed`
 
@@ -297,7 +321,9 @@ Attempts to receive data from the channel.
 closed(): boolean
 ```
 
-**Returns** `boolean`
+Checks whether `close()` was called on this channel.
+
+**Returns** `boolean` — `true` if the channel is closed.
 
 ### `.send`
 
@@ -305,9 +331,46 @@ closed(): boolean
 send(data: any)
 ```
 
+Sends a value, waiting while a buffered channel is full.
+
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `data` | `any` |  |  |
+| `data` | `any` |  | The value to send. |
+
+## `Interval` struct
+
+A repeating task started by `task::interval`.
+
+### `Interval.new`
+
+```kiwi
+Interval.new(ms: integer, callback: lambda)
+```
+
+Starts calling `callback` every `ms` milliseconds on a background task.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `ms` | `integer` |  | The milliseconds to wait between calls. |
+| `callback` | `lambda` |  | The lambda to call. Returning `false` stops the interval. |
+
+### `.stop`
+
+```kiwi
+stop()
+```
+
+Stops the interval. A call already running finishes, and no further calls start.
+
+### `.id`
+
+```kiwi
+id(): integer
+```
+
+Gets the identifier of the interval's background task.
+
+**Returns** `integer` — The task identifier.
 
 ## `Mutex` struct
 
@@ -318,6 +381,8 @@ A mutual exclusion lock backed by a semaphore.
 ```kiwi
 Mutex.new()
 ```
+
+Creates an unlocked mutex.
 
 ### `.acquire`
 
@@ -364,6 +429,8 @@ Acquires the mutex, runs the callback, then releases it.
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
 | `callback` | `lambda` |  | Zero-argument lambda to execute in the critical section. |
+
+**Returns** `any` — The callback's result.
 
 ### `.destroy`
 

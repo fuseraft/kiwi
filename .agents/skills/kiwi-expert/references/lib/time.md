@@ -408,9 +408,9 @@ Get current timestamp in a specified format.
 time::ticks(): float
 ```
 
-Get ticks since January 1st, 1970.
+Gets a high-resolution timestamp in nanoseconds, for measuring elapsed time. It counts from an arbitrary point, not a calendar date; subtract two readings and convert the difference with `ticksms`.
 
-**Returns** `float` — Ticks.
+**Returns** `float` — The timestamp in nanoseconds.
 
 ### `time::ticksms`
 
@@ -418,7 +418,7 @@ Get ticks since January 1st, 1970.
 time::ticksms(_ticks: float): float
 ```
 
-Converts ticks to milliseconds.
+Converts a difference of `ticks()` readings (nanoseconds) to milliseconds.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |

@@ -13,22 +13,36 @@ public static class ReflectorBuiltinHandler
     {
         return op switch
         {
-            TokenName.Builtin_Reflector_CallStack     => CallStack(token, callStack, args),
+            TokenName.Builtin_Reflector_CallStack     => CallStack(vm, token, args),
             TokenName.Builtin_Reflector_FrameFlags    => FFlags(token, callStack, args),
             TokenName.Builtin_Reflector_GetFunc       => GetFunc(vm, token, context, args),
             TokenName.Builtin_Reflector_ObjectContext => ObjectContext(token, callStack, args),
             TokenName.Builtin_Reflector_RetVal        => RetVal(token, callStack, args),
-            TokenName.Builtin_Reflector_State         => State(token, context, callStack, args),
+            TokenName.Builtin_Reflector_State         => State(vm, token, context, args),
             _ => throw new InvalidOperationError(token, "Unknown reflector builtin.")
         };
     }
 
-    private static Value CallStack(Token token, Stack<StackFrame> callStack, List<Value> args)
+    private static Value CallStack(KiwiVM vm, Token token, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, ReflectorBuiltin.CallStack, 0, args.Count);
 
-        var names = callStack.Reverse().Select(f => Value.CreateString(f.Name)).ToList();
+        var names = CallerFrames(vm)
+            .Select(i => vm.GetFrame(i))
+            .Select(f => Value.CreateString(f.Chunk.PackagePrefix + f.Name))
+            .ToList();
         return Value.CreateList(names);
+    }
+
+    /// <summary>
+    /// Indexes of the VM frames from the bottom (`<main>`) up to the caller of the reflector
+    /// function, leaving out the reflector package's own frame.
+    /// </summary>
+    private static IEnumerable<int> CallerFrames(KiwiVM vm)
+    {
+        int top = vm.FrameCount;
+        if (top > 0 && vm.GetFrame(top - 1).Chunk.PackagePrefix == "reflector::") top--;
+        return Enumerable.Range(0, top);
     }
 
     private static Value FFlags(Token token, Stack<StackFrame> callStack, List<Value> args)
@@ -108,7 +122,7 @@ public static class ReflectorBuiltinHandler
         return callStack.Count > 0 ? callStack.Peek().ReturnValue ?? Value.Default : Value.Default;
     }
 
-    private static Value State(Token token, KContext ctx, Stack<StackFrame> callStack, List<Value> args)
+    private static Value State(KiwiVM vm, Token token, KContext ctx, List<Value> args)
     {
         ParameterCountMismatchError.Check(token, ReflectorBuiltin.State, 0, args.Count);
 
@@ -118,15 +132,24 @@ public static class ReflectorBuiltinHandler
         var functions = ctx.Functions.Keys.Select(Value.CreateString).OrderBy(v => v.GetString()).ToList();
 
         var stackFrames = new List<Value>();
-        foreach (var frame in callStack.Reverse()) // Bottom to Top
+        foreach (var i in CallerFrames(vm)) // Bottom to Top
         {
+            var frame = vm.GetFrame(i);
+            // A top-level frame's variables are the globals; a function's are its locals.
+            var bindings = frame.IsGlobalScope
+                ? vm.GetGlobalScope().GetAllBindings().Select(kv => (Name: kv.Key, Val: kv.Value))
+                : vm.GetFrameLocals(i);
             var frameVars = new List<Value>();
-            foreach (var kv in frame.Scope.GetAllBindings().OrderBy(kv => kv.Key))
+            foreach (var (name, val) in bindings.OrderBy(b => b.Name))
             {
-                var varMap = new Dictionary<Value, Value> { [Value.CreateString(kv.Key)] = kv.Value };
+                var varMap = new Dictionary<Value, Value> { [Value.CreateString(name)] = val };
                 frameVars.Add(Value.CreateHashmap(varMap));
             }
-            var frameMap = new Dictionary<Value, Value> { [Value.CreateString("variables")] = Value.CreateList(frameVars) };
+            var frameMap = new Dictionary<Value, Value>
+            {
+                [Value.CreateString("name")]      = Value.CreateString(frame.Chunk.PackagePrefix + frame.Name),
+                [Value.CreateString("variables")] = Value.CreateList(frameVars),
+            };
             stackFrames.Add(Value.CreateHashmap(frameMap));
         }
 

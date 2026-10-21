@@ -6,7 +6,7 @@ Built-in methods are called with a dot on any value: `"kiwi".uppercase()`, `[3, 
 
 To call a method on a number literal, wrap it in parentheses: `(42).to_string()`.
 
-Packages can add more methods to built-in types; see [Extending built-in types](../language/packages.md#extending-built-in-types). The standard library does this for [strings](#from-the-string-package), [lists](#from-the-list-package) and [dates](#from-the-date-package). A built-in method always wins over an extension with the same name.
+Packages can add more methods to built-in types; see [Extending built-in types](../language/packages.md#extending-built-in-types). The standard library does this for [strings](#from-the-string-package), [lists](#from-the-list-package) and [dates](#from-the-date-package). A built-in method wins over an extension with the same name, except when the last argument is a lambda: then the extension runs, so `xs.count(3)` is the built-in and `xs.count(do (n) => n > 1)` is `list::count`.
 
 ## All values
 
@@ -38,6 +38,7 @@ println (3.14159).to_string("f2")   # 3.14
 | `.between(low, high)` | Whether the number is in the inclusive range. |
 | `.clamp(low, high)` | The number limited to the range. |
 | `.to_date()` | A date, treating the integer as a Unix timestamp in milliseconds. |
+| `.to_hex(width?)` | An integer as lowercase hexadecimal, zero-padded to `width` digits (default 2). |
 
 ```kiwi
 println (15).clamp(0, 10)      # 10
@@ -309,7 +310,7 @@ Every `string::` function, for example `.titleize()`, `.capitalize()`, `.squish(
 
 ### From the `list` package
 
-Every `list::` function, for example `.reject(fn)`, `.first_where(fn)`, `.last_where(fn)`, `.one(fn)`, `.is_unique()`, `.index_of(value)`, `.last_index_of(value)`, `.sum_integer()`, `.sum_float()` and `.iterator()`. The package's `all`, `any`, `none`, `count` and `find` share names with built-ins or keywords, so call them as `list::count(xs, fn)`. See [`list`](../lib/list.md).
+Every `list::` function, for example `.reject(fn)`, `.first_where(fn)`, `.last_where(fn)`, `.one(fn)`, `.is_unique()`, `.index_of(value)`, `.last_index_of(value)`, `.sum_integer()`, `.sum_float()` and `.iterator()`. The predicate forms of `.count(fn)` and `.find(fn)` (the index of the first match) come from the package too, as do `.any(fn)` and `.none(fn)`. See [`list`](../lib/list.md).
 
 ### From the `date` package
 

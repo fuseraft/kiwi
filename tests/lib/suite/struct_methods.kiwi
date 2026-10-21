@@ -1,0 +1,176 @@
+/# ==============================================================================
+   Testing struct method features: private methods, to_string() in printing,
+   static variables shared with child structs, `@` inside lambdas, bitwise
+   operator overloads, decorated methods and generator methods.
+  ============================================================================== #/
+
+fn _sm_logged(f)
+  do (*args)
+    "logged:" + f(*args).to_string()
+  end
+end
+
+struct SMVault
+  static @opened = 0
+
+  fn new(secret)
+    @secret = secret
+    @@opened += 1
+  end
+
+  fn reveal()
+    hidden() + [1].map(do (x) => @.hidden())[0]
+  end
+
+  fn scaled(xs)
+    xs.map(do (x) => x * @secret.size())
+  end
+
+  fn opened()
+    [1].map(do (x) => @@opened)[0]
+  end
+
+  fn to_string()
+    "Vault(${@secret})"
+  end
+
+  @_sm_logged
+  fn size()
+    @secret.size()
+  end
+
+  @_sm_logged
+  static fn kind()
+    "vault"
+  end
+
+  fn letters()
+    for c in @secret.chars() do
+      yield c
+    end
+  end
+
+  private fn hidden()
+    @secret
+  end
+end
+
+struct SMChildVault < SMVault
+  fn peek()
+    hidden()
+  end
+end
+
+struct SMBits
+  fn new(v)
+    @v = v
+  end
+
+  fn &(o) SMBits.new(@v & o.v) end
+  fn |(o) SMBits.new(@v | o.v) end
+  fn ^(o) SMBits.new(@v ^ o.v) end
+  fn <<(n) SMBits.new(@v << n) end
+  fn >>(n) SMBits.new(@v >> n) end
+end
+
+struct SMPlain end
+
+@tester::test("struct methods: private")
+fn test_struct_methods_private()
+  v = SMVault.new("ab")
+  tester::assert_eq(v.reveal(), "abab", "callable from the struct and its lambdas")
+  tester::assert_eq(SMChildVault.new("cd").peek(), "cd", "callable from a child struct")
+
+  error_type = null
+  try
+    v.hidden()
+  catch (e)
+    error_type = e.error
+  end
+  tester::assert_eq(error_type, "InvalidContextError", "not callable from outside")
+end
+
+@tester::test("struct methods: to_string and printing")
+fn test_struct_methods_to_string()
+  v = SMVault.new("ab")
+  tester::assert_eq("${v}", "Vault(ab)")
+  tester::assert_eq([v].to_string(), "[Vault(ab)]")
+  tester::assert_eq("${SMPlain.new()}", "<struct(name=SMPlain, identifier=SMPlain)>")
+end
+
+@tester::test("struct methods: lambdas and statics")
+fn test_struct_methods_lambdas()
+  start = SMVault.opened
+  SMChildVault.new("x")
+  c = SMChildVault.new("xyz")
+  tester::assert_eq(c.scaled([1, 2]), [3, 6], "`@` inside a lambda")
+  tester::assert_eq(SMVault.opened, start + 2, "a child's constructor updates the parent's static")
+  tester::assert_eq(SMChildVault.opened, SMVault.opened, "a child reads the parent's static")
+  tester::assert_eq(c.opened(), SMVault.opened, "`@@` inside a lambda")
+end
+
+@tester::test("struct methods: bitwise overloads")
+fn test_struct_methods_bitwise()
+  a = SMBits.new(12)
+  b = SMBits.new(10)
+  tester::assert_eq((a & b).v, 8)
+  tester::assert_eq((a | b).v, 14)
+  tester::assert_eq((a ^ b).v, 6)
+  tester::assert_eq((a << 1).v, 24)
+  tester::assert_eq((a >> 2).v, 3)
+end
+
+@tester::test("struct methods: decorators and generators")
+fn test_struct_methods_decorators()
+  v = SMVault.new("abc")
+  tester::assert_eq(v.size(), "logged:3", "a decorated method keeps `@`")
+  tester::assert_eq(SMVault.kind(), "logged:vault", "a decorated static method")
+
+  out = []
+  for c in v.letters() do
+    out.push(c)
+  end
+  tester::assert_eq(out, ["a", "b", "c"], "a generator method")
+
+  squares = do (n)
+    for i in [1 to n] do
+      yield i * i
+    end
+  end
+  got = []
+  for s in squares(3) do
+    got.push(s)
+  end
+  tester::assert_eq(got, [1, 4, 9], "a generator lambda")
+end
+
+struct SMFields
+  @value
+  @count
+  static @made = 0
+
+  fn new(v)
+    @value = v
+    @count = 0
+  end
+
+  @_sm_logged
+  fn get()
+    @value
+  end
+
+  fn serialize(n)
+    "own:${n}"
+  end
+
+  fn describe()
+    serialize(1)
+  end
+end
+
+@tester::test("struct methods: field lines and builtin-named methods")
+fn test_struct_methods_fields()
+  f = SMFields.new(7)
+  tester::assert_eq(f.get(), "logged:7", "a bare @field line is not a decorator")
+  tester::assert_eq(f.describe(), "own:1", "a bare call reaches the struct's own method")
+end

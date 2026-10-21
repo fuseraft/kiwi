@@ -1,0 +1,93 @@
+/# ==============================================================================
+   Testing syntax and operator details: continuation lines, string and byte
+   escapes, raw strings, `var` without a value, compound assignment, slices,
+   methods named like types, and predicate list methods.
+  ============================================================================== #/
+@tester::test("syntax: continuation lines")
+fn test_syntax_continuation()
+  ok = true
+    && !false
+  tester::assert_eq(ok, true)
+
+  total = 1
+    + 2
+    * 3
+  tester::assert_eq(total, 7)
+end
+
+@tester::test("syntax: escapes and raw strings")
+fn test_syntax_escapes()
+  tester::assert_eq("\x41\x42", "AB")
+  tester::assert_eq(b"hi\x41".to_list(), [104, 105, 65])
+  tester::assert_eq(b"a\nb".to_list(), [97, 10, 98])
+
+  name = "kiwi"
+  tester::assert_eq('${name}', "\${name}", "raw strings don't interpolate")
+  tester::assert_eq("${name}", "kiwi")
+
+  tester::assert_eq((0x2764).to_hex(), "2764")
+  tester::assert_eq(char(0x2764), "❤")
+end
+
+@tester::test("syntax: var and compound assignment")
+fn test_syntax_assignment()
+  var nothing
+  tester::assert_eq(nothing, null)
+
+  x = 5
+  x ~= 2
+  tester::assert_eq(x, -3)
+
+  a = 1
+  a ||= 5
+  tester::assert_eq(a, 1)
+  b = null
+  b ||= 5
+  tester::assert_eq(b, 5)
+  c = 0
+  c &&= 7
+  tester::assert_eq(c, 0)
+
+  h = {"a": null, "b": 4}
+  h["a"] ||= 3
+  h["b"] //= 3
+  tester::assert_eq(h, {"a": 3, "b": 1})
+end
+
+@tester::test("syntax: slice assignment")
+fn test_syntax_slices()
+  a = [1, 2, 3, 4, 5]
+  a[1:3] = ["x"]
+  tester::assert_eq(a, [1, "x", 4, 5])
+  a[1:2] = ["p", "q", "r"]
+  tester::assert_eq(a, [1, "p", "q", "r", 4, 5])
+  a[0:0] = [0]
+  tester::assert_eq(a, [0, 1, "p", "q", "r", 4, 5])
+end
+
+@tester::test("syntax: list predicate methods")
+fn test_syntax_list_predicates()
+  xs = [3, 1, 2]
+  tester::assert_eq(xs.none(do (n) => n > 5), true)
+  tester::assert_eq(xs.any(do (n) => n > 2), true)
+  tester::assert_eq(xs.count(do (n) => n > 1), 2)
+  tester::assert_eq(xs.count(3), 1)
+  tester::assert_eq(xs.find(do (n) => n == 2), 2)
+end
+
+@tester::test("syntax: indexed &&= and ||= short-circuit")
+fn test_syntax_index_short_circuit()
+  calls = [0]
+  bump = do ()
+    calls[0] += 1
+    "new"
+  end
+  h = {"a": "set", "b": null}
+  h["a"] ||= bump()
+  h["b"] &&= bump()
+  tester::assert_eq(h, {"a": "set", "b": null})
+  tester::assert_eq(calls[0], 0, "the right side was not evaluated")
+  h["b"] ||= bump()
+  tester::assert_eq(h["b"], "new")
+  tester::assert_eq(calls[0], 1)
+end

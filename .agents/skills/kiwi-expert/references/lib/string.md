@@ -449,37 +449,51 @@ string::squish("  7800    BEEMAN   AV") # "7800 BEEMAN AV"
 
 ## `StringIterator` struct
 
+Reads a string one character at a time, for hand-written tokenizers and parsers.
+
 ### `StringIterator.new`
 
 ```kiwi
-StringIterator.new(s)
+StringIterator.new(s: string)
 ```
+
+Creates an iterator positioned at the first character.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `s` | `any` |  |  |
+| `s` | `string` |  | The string to read. |
 
 ### `.consume`
 
 ```kiwi
-consume()
+consume(): string
 ```
+
+Advances past the current character.
+
+**Returns** `string` — The character consumed, or `""` at the end.
 
 ### `.skip`
 
 ```kiwi
-skip(n)
+skip(n: integer)
 ```
+
+Advances `n` characters, stopping at the end.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `n` | `any` |  |  |
+| `n` | `integer` |  | The number of characters to skip. |
 
 ### `.can_read`
 
 ```kiwi
-can_read()
+can_read(): boolean
 ```
+
+Checks whether a character is left to read.
+
+**Returns** `boolean` — `true` while the position is before the end.
 
 ### `.eof`
 
@@ -487,76 +501,114 @@ can_read()
 eof(): boolean
 ```
 
-**Returns** `boolean`
+Checks whether the whole string has been read.
+
+**Returns** `boolean` — `true` at the end.
 
 ### `.current`
 
 ```kiwi
-current()
+current(): string
 ```
+
+Gets the character at the current position.
+
+**Returns** `string` — The current character, or `""` at the end.
 
 ### `.peek`
 
 ```kiwi
-peek()
+peek(): string
 ```
+
+Gets the character after the current one without consuming anything.
+
+**Returns** `string` — The next character, or `""` if there is none.
 
 ### `.position`
 
 ```kiwi
-position()
+position(): integer
 ```
+
+Gets the current position.
+
+**Returns** `integer` — The index of the current character.
 
 ### `.length`
 
 ```kiwi
-length()
+length(): integer
 ```
+
+Gets the length of the string.
+
+**Returns** `integer` — The number of characters.
 
 ### `.rewind`
 
 ```kiwi
-rewind(n)
+rewind(n: integer = 1)
 ```
+
+Moves back `n` characters, stopping at the start.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `n` | `any` |  |  |
+| `n` | `integer` | `1` | The number of characters to move back (default `1`). |
 
 ### `.grab`
 
 ```kiwi
-grab(n)
+grab(n: integer): string
 ```
+
+Gets the character at an absolute index.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `n` | `any` |  |  |
+| `n` | `integer` |  | The index. |
+
+**Returns** `string` — The character, or `""` if `n` is out of range.
 
 ### `.reach`
 
 ```kiwi
-reach(n)
+reach(n: integer): string
 ```
+
+Gets a character counted from the end of the string.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `n` | `any` |  |  |
+| `n` | `integer` |  | A negative offset from the end (`-1` is the last character). |
+
+**Returns** `string` — The character, or `""` if the offset is out of range.
 
 ### `.look_ahead`
 
 ```kiwi
-look_ahead()
+look_ahead(): string
 ```
+
+Gets the next character that isn't whitespace, from the current position on, without consuming anything.
+
+**Returns** `string` — The character, or `""` if only whitespace remains.
 
 ### `.count_ahead`
 
 ```kiwi
-count_ahead()
+count_ahead(): integer
 ```
+
+Counts the whitespace characters from the current position to the next non-whitespace character.
+
+**Returns** `integer` — The number of whitespace characters ahead.
 
 ### `.skip_whitespace`
 
 ```kiwi
 skip_whitespace()
 ```
+
+Advances past any whitespace (spaces, tabs and line breaks).

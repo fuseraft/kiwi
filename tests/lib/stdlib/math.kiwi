@@ -1,0 +1,19 @@
+@tester::test("math: integer arguments")
+fn test_math_integer_arguments()
+  tester::assert_eq(math::sqrt(16), 4.0)
+  tester::assert_eq(math::pow(2, 10), 1024.0)
+  tester::assert_eq(math::sin(0), 0.0)
+  tester::assert_eq(math::fmax(1, 2), 2.0)
+  tester::assert_eq(math::floor(7), 7.0)
+end
+
+@tester::test("math: constants and primes")
+fn test_math_constants_primes()
+  tester::assert_eq(math::PI, 3.141592653589793)
+  tester::assert_eq(math::E, 2.718281828459045)
+  tester::assert_eq(math::TAU, 2 * math::PI)
+  tester::assert_eq(math::listprimes(20), [2, 3, 5, 7, 11, 13, 17, 19])
+  tester::assert_eq(math::listprimes(1), [])
+  tester::assert_eq(math::nthprime(1), 2)
+  tester::assert_eq(math::nthprime(100), 541)
+end

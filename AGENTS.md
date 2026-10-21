@@ -43,15 +43,15 @@ The script attempts an AOT (Ahead-of-Time) build first and falls back to a trimm
 ## Testing
 
 ```bash
-./bin/kiwi tests/test          # full test suite
-./bin/kiwi tests/test_stdlib   # stdlib tests only
+./bin/kiwi tests/test          # language test suite
+./bin/kiwi tests/test_stdlib   # standard library test suite
 ```
 
 Exit code `0` means all tests passed; `1` means one or more failed.
 
-Test files live under `tests/lib/suite/` (language features) and `tests/lib/stdlib/` (standard library). The runner at `tests/test.kiwi` auto-discovers them.
+Test files live under `tests/lib/suite/` (language features) and `tests/lib/stdlib/` (standard library). They are not discovered automatically: `tests/test.kiwi` runs the files listed in `tests/lib/testsuite.kiwi`, and `tests/test_stdlib.kiwi` runs those listed in `tests/lib/stdlib_suite.kiwi`. Add a new test file to the matching list.
 
-**Run the full test suite after any change to C# source, `lib/`, or `tests/`.**
+**Run both suites after any change to C# source, `lib/`, or `tests/`.**
 
 ---
 
@@ -137,25 +137,25 @@ end
 1. Add the keyword/token in `Lexer.cs` if needed.
 2. Create or update a handler in `src/Parsing/Keyword/`.
 3. Add dispatch in the relevant `Dispatcher`.
-4. Write tests in `tests/lib/suite/` or `tests/lib/stdlib/`.
-5. Rebuild and run the test suite.
+4. Write tests in `tests/lib/suite/` or `tests/lib/stdlib/`, and list new files in `tests/lib/testsuite.kiwi` or `tests/lib/stdlib_suite.kiwi`.
+5. Rebuild and run both test suites.
 
 ### Add a stdlib module
 1. Create `lib/mymodule.kiwi` with `package mymodule`.
-2. Add tests in `tests/lib/stdlib/mymodule_tests.kiwi`.
+2. Add tests in `tests/lib/stdlib/mymodule.kiwi` and list it in `tests/lib/stdlib_suite.kiwi`.
 3. Run `./bin/kiwi tests/test_stdlib` to verify.
 
 ### Modify VM behaviour
 1. Edit `Compiler.cs` (emit opcodes) and/or `KiwiVM.cs` (execute opcodes).
 2. Add/update opcodes in `Opcode.cs` if introducing a new instruction.
-3. Rebuild and run the full test suite.
+3. Rebuild and run both test suites.
 
 ---
 
 ## CI
 
 GitHub Actions runs on push to `main` and on pull requests:
-- **dotnet.yml**: `./build.sh` → `./bin/kiwi tests/test`
+- **dotnet.yml**: `./build.sh` → `./bin/kiwi tests/test` → `./bin/kiwi tests/test_stdlib`
 - **benchmarks.yml**: build → tests → benchmarks
 - **docs.yml**: builds `bin/kiwi`, runs every docs example (`npm run check:examples`), builds the docs site (validating links), and deploys it to GitHub Pages on merge to main
 

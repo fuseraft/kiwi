@@ -87,6 +87,8 @@ public static class TypeRegistry
             Typing.ValueType.Pointer => "pointer",
             Typing.ValueType.Bytes => "bytes",
             Typing.ValueType.Generator => "generator",
+            Typing.ValueType.Package => "package",
+            Typing.ValueType.Struct => "struct",
             _ => string.Empty,
         };
         

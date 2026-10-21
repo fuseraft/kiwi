@@ -436,6 +436,6 @@ end)
 
 bench::run_all(50, 3)
 
-/# -- Generators (tree-walker only) -------------------------------------------- #/
-# To benchmark generators, run without --vm:
+/# -- Generators --------------------------------------------------------------- #/
+# Generator benchmarks live in their own file:
 #   kiwi bench/generators

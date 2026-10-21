@@ -173,7 +173,7 @@ Creates a TLS server socket bound to the given host and port.
 tls::tcpconnect(host: string, port: integer = 443, sni: string = ""): integer
 ```
 
-Creates a TLS client socket connected to the given host and port.
+Connects a TLS client socket to the given host and port. The TLS handshake runs in the background; await the returned task to get the socket ID.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
@@ -181,7 +181,7 @@ Creates a TLS client socket connected to the given host and port.
 | `port` | `integer` | `443` | The port to connect to (default 443). |
 | `sni` | `string` | `""` | The Server Name Indication hostname (default empty). |
 
-**Returns** `integer` — The socket ID.
+**Returns** `integer` — An awaitable task ID that resolves to the connected socket ID.
 
 #### `tls::accept`
 

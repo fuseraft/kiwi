@@ -30,6 +30,15 @@ public struct UpvalueDescriptor
 }
 
 /// <summary>
+/// A type hint the VM checks at runtime (see <see cref="Opcode.CheckType"/>).
+/// </summary>
+/// <param name="Types">The accepted types (TypeRegistry ids); a value matching any of them passes.</param>
+/// <param name="Subject">What is being checked, for the error message (e.g. "parameter `x` of `f`").</param>
+/// <param name="IsReturn">True for a return-value check, which a generator skips.</param>
+/// <param name="IsParameter">True for a parameter check, reported at the call site.</param>
+public sealed record TypeCheck(int[] Types, string Subject, bool IsReturn = false, bool IsParameter = false);
+
+/// <summary>
 /// A compiled code unit - one Chunk per function, lambda, or top-level program.
 /// </summary>
 public class Chunk
@@ -98,6 +107,27 @@ public class Chunk
     /// </summary>
     public string PackagePrefix { get; set; } = string.Empty;
 
+    // Names[i] qualified with PackagePrefix, built on first use.
+    private string[]? _qualifiedNames;
+    private string    _qualifiedNamesPrefix = string.Empty;
+
+    /// <summary>
+    /// The name at <paramref name="nameIdx"/> qualified with <see cref="PackagePrefix"/>
+    /// (e.g. "faker::person"), cached so LoadGlobal doesn't build the string on every access.
+    /// </summary>
+    public string QualifiedName(int nameIdx)
+    {
+        var prefix = PackagePrefix;
+        var names  = _qualifiedNames;
+        if (names == null || names.Length != Names.Count || !ReferenceEquals(_qualifiedNamesPrefix, prefix))
+        {
+            names = new string[Names.Count];
+            _qualifiedNamesPrefix = prefix;
+            _qualifiedNames       = names;
+        }
+        return names[nameIdx] ??= prefix + Names[nameIdx];
+    }
+
     /// <summary>
     /// Number of explicit parameters (not counting variadic).
     /// </summary>
@@ -124,6 +154,22 @@ public class Chunk
     /// Populated by the compiler so the VM can mark them optional in KFunction/KLambda.
     /// </summary>
     public HashSet<string> DefaultParamNames { get; } = [];
+
+    /// <summary>
+    /// Number of leading parameters a call must pass: those up to the last one without a default.
+    /// </summary>
+    public int MinArity { get; set; }
+
+    /// <summary>
+    /// True for a lambda. Lambdas accept any number of arguments (missing ones are null,
+    /// extra ones ignored) so they can serve as callbacks; `fn` functions and methods don't.
+    /// </summary>
+    public bool IsLambda { get; set; }
+
+    /// <summary>
+    /// Type hints checked by CheckType instructions, indexed by their A operand.
+    /// </summary>
+    public List<TypeCheck> TypeChecks { get; } = [];
 
     // -- Emit helpers ----------------------------------------------------------
 

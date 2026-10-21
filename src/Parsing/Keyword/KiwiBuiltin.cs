@@ -4,6 +4,7 @@ public static class KiwiBuiltin
 {
     public const string ExecPath  = "__execpath__";
     public const string Main      = "__entrypath__";
+    public const string IsMain    = "__main__";
     public const string MemUsage  = "__memusage__";
     public const string Tokenize  = "__tokenize__";
     public const string TypeOf    = "typeof";
@@ -13,6 +14,7 @@ public static class KiwiBuiltin
         {
             { ExecPath, TokenName.Builtin_Kiwi_ExecPath  },
             { Main,     TokenName.Builtin_Kiwi_Main      },
+            { IsMain,   TokenName.Builtin_Kiwi_IsMain    },
             { MemUsage, TokenName.Builtin_Kiwi_MemUsage  },
             { Tokenize, TokenName.Builtin_Kiwi_Tokenize  },
             { TypeOf,   TokenName.Builtin_Kiwi_TypeOf    },

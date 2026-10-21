@@ -22,7 +22,7 @@ Kiwi is dynamically typed: values have types, variables don't. These are the bui
 
 ## Checking types
 
-`typeof(value)` returns a value's type name as a string. For a struct instance it returns the struct's name. The `.type()` method does the same thing.
+`typeof(value)` returns a value's type name as a string. For a struct instance it returns the struct's name; a struct itself is `struct`, and a package value (as returned by `include`) is `package`. The `.type()` method does the same thing.
 
 ```kiwi
 struct Point
@@ -39,6 +39,7 @@ println typeof(null)               # null
 println typeof(do (x) => x)        # lambda
 println typeof(time::now())        # date
 println typeof(Point.new(1, 2))    # Point
+println typeof(Point)              # struct
 println [1, 2].type()              # list
 ```
 
@@ -167,7 +168,7 @@ For JSON specifically, use the [`json`](/kiwi/stdlib/json/) package.
 
 ## Bytes
 
-`bytes` values hold raw binary data. Create them with a `b"..."` literal (ASCII only), `.to_bytes()`, or `.hex_bytes()` on a hex string.
+`bytes` values hold raw binary data. Create them with a `b"..."` literal, `.to_bytes()`, or `.hex_bytes()` on a hex string. A `b"..."` literal takes ASCII characters and the escapes `\n`, `\r`, `\t`, `\\`, `\"` and `\xHH` for any byte: `b"hi\x00"` is `[104, 105, 0]`.
 
 ```kiwi
 data = "kiwi".to_bytes()

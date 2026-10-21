@@ -69,6 +69,12 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     /// </summary>
     public string OwnerStruct { get; set; } = string.Empty;
 
+    /// <summary>
+    /// For a decorated struct method: the value its decorators returned. Calling the method
+    /// calls this instead, with the instance as <c>@</c>.
+    /// </summary>
+    public Value? DecoratedTarget { get; set; }
+
     // -- VM bytecode fields ----------------------------------------------------
     /// <summary>
     /// Compiled bytecode chunk, or null if interpreted via tree-walker.
@@ -123,6 +129,20 @@ public class KLambda(ASTNode node) : Callable(CallableType.Lambda)
     /// LambdaRef used to identify this lambda in the VM.
     /// </summary>
     public LambdaRef Ref { get; set; } = new LambdaRef();
+
+    /// <summary>
+    /// The struct method context the lambda was created in, so `@`, `@@` and `super`
+    /// inside its body refer to the same instance and struct as in that method.
+    /// </summary>
+    public InstanceRef? CapturedSelf        { get; set; }
+    public string       CapturedStructName  { get; set; } = string.Empty;
+    public string       CapturedOwnerStruct { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True for the undecorated body of a decorated struct method, handed to its decorators.
+    /// It takes <c>@</c> from the decorated method call in progress.
+    /// </summary>
+    public bool IsMethodOriginal { get; set; }
 
     public KLambda Clone()
     {

@@ -119,11 +119,3 @@ fn input(msg: string = ""): string
 
   __console_readline__()
 end
-
-/#
-@summary Used to check if the script is the entrypoint.
-@return boolean : Returns `true` when the code is executed as a script.
-#/
-fn __main__(): boolean
-  __entrypath__() == __execpath__()
-end

@@ -121,22 +121,41 @@ end
 
 ## `finally`
 
-`finally` runs after the `try` block, and after `catch` if an error was caught. A `try` with `finally` and no `catch` still swallows the error:
+`finally` runs however the `try` statement ends: after the `try` block completes, after `catch` handles an error, and when the block leaves early through `return`, `break` or `next`:
+
+```kiwi
+fn read_config()
+  try
+    return "loaded"
+  finally
+    println "closing the file"
+  end
+end
+
+println read_config()
+```
+
+```
+closing the file
+loaded
+```
+
+Without a `catch`, `finally` runs and the error keeps propagating to the caller. The same happens when a `catch` block throws:
 
 ```kiwi
 attempts = 0
 try
-  attempts += 1
-  throw "failed"
-finally
-  attempts += 100
+  try
+    attempts += 1
+    throw "failed"
+  finally
+    attempts += 100
+  end
+catch e
+  println "caught: ${e["message"]}"
 end
 println attempts   # 101
 ```
-
-:::caution
-`finally` does not run when the `try` block leaves through `return` or `break`. Put cleanup that must always happen after the `try` statement, or avoid returning from inside `try`.
-:::
 
 ## Custom errors
 

@@ -240,7 +240,7 @@ package httpserver
       res.server_error() when !res.sent()
     end
 
-    elapsed = (time::ticks() - t0) * 1000
+    elapsed = time::ticksms(time::ticks() - t0).to_string("f2")
     _log(server.cfg(), req, res, elapsed)
   end
 

@@ -1,0 +1,79 @@
+/# ==============================================================================
+   Testing function calls: argument checks, named arguments, nested functions,
+   closures over locals and loop variables, and returning lambdas.
+  ============================================================================== #/
+
+fn _fn_error_type(f)
+  try
+    f()
+  catch (e)
+    return e.error
+  end
+  null
+end
+
+fn _fn_pair(a, b = 2)
+  [a, b]
+end
+
+fn _fn_apply(g, x, y)
+  g(x, y)
+end
+
+fn _fn_make_adder(n)
+  do (x) => x + n
+end
+
+fn _fn_outer()
+  fn _fn_inner()
+    "inner"
+  end
+  _fn_inner()
+end
+
+@tester::test("functions: argument count")
+fn test_functions_arity()
+  tester::assert_eq(_fn_pair(1), [1, 2])
+  tester::assert_eq(_fn_pair(1, 3), [1, 3])
+  tester::assert_eq(_fn_error_type(do () => _fn_pair()), "ParameterCountMismatchError")
+  tester::assert_eq(_fn_error_type(do () => _fn_pair(1, 2, 3)), "ParameterCountMismatchError")
+  tester::assert_eq(_fn_error_type(do () => _fn_pair(1, a = 2)), "RuntimeError", "same parameter by position and name")
+
+  # Lambdas stay lenient so they can be used as callbacks.
+  lam = do (a, b) => [a, b]
+  tester::assert_eq(lam(1), [1, null])
+  tester::assert_eq(lam(1, 2, 3), [1, 2])
+end
+
+@tester::test("functions: named arguments")
+fn test_functions_named()
+  add = with (a, b) do a + b end
+  tester::assert_eq(_fn_apply(g = add, x = 3, y = 4), 7, "a named lambda argument")
+  tester::assert_eq(_fn_apply(add, y = 4, x = 3), 7)
+  tester::assert_eq(_fn_pair(b = 5, a = 1), [1, 5])
+  z = 1
+  tester::assert_eq(_fn_pair(z, b = 5), [1, 5], "a positional identifier before a named argument")
+end
+
+@tester::test("functions: nested functions")
+fn test_functions_nested()
+  tester::assert_eq(_fn_outer(), "inner")
+  tester::assert_eq(_fn_error_type(do () => _fn_inner()), "VariableUndefinedError", "a nested fn does not leak")
+end
+
+@tester::test("functions: closures")
+fn test_functions_closures()
+  # A lambda passed to a builtin can update the enclosing function's locals.
+  acc = 0
+  [1, 2, 3].each(do (n) => acc += n)
+  tester::assert_eq(acc, 6)
+
+  # Each loop iteration's closures keep that iteration's value.
+  fs = []
+  for v, i in ["a", "b", "c"] do
+    fs.push(do () => "${v}${i}")
+  end
+  tester::assert_eq(fs.map(do (f) => f()), ["a0", "b1", "c2"])
+
+  tester::assert_eq(_fn_make_adder(2)(3), 5, "an arrow lambda returned from a function")
+end

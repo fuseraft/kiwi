@@ -217,31 +217,16 @@ public struct SliceUtil
 
         if (step == 1)
         {
-            // simple case: step is 1
-            if (start >= stop)
+            // simple case: step is 1. The slice is replaced by the right side, which may be
+            // shorter or longer, so the list shrinks or grows (an empty slice inserts).
+            start = Math.Min(start, listSize);
+            int removeCount = Math.Max(0, stop - start);
+            if (removeCount > 0)
             {
-                int removeCount = Math.Max(0, stop - start); // ensure non-negative
-                if (removeCount > 0)
-                {
-                    targetList.RemoveRange(start, removeCount);
-                }
+                targetList.RemoveRange(start, removeCount);
+            }
 
-                targetList.InsertRange(start, rhsValues);
-            }
-            else
-            {
-                for (int i = 0; i < rhsSize; i++)
-                {
-                    if (start + i >= 0 && start + i < targetList.Count)
-                    {
-                        targetList[start + i] = rhsValues[i];
-                    }
-                    else
-                    {
-                        break; // avoid going out of bounds
-                    }
-                }
-            }
+            targetList.InsertRange(start, rhsValues);
         }
         else
         {

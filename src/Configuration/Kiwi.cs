@@ -95,6 +95,19 @@ public class StandardLibraryPath
 
     [JsonPropertyName("is_override")]
     public bool IsOverride { get; set; } = false;
+
+    /// <summary>
+    /// The absolute location of the library: an override path as given (with `~` and
+    /// environment variables expanded), otherwise relative to the kiwi executable.
+    /// </summary>
+    public string ResolvePath()
+    {
+        var exePath = Environment.ProcessPath ?? string.Empty;
+        var path = IsOverride
+            ? kiwi.Runtime.Builtin.Util.FileUtil.ExpandPath(Path)
+            : System.IO.Path.Combine(System.IO.Path.GetDirectoryName(exePath) ?? string.Empty, Path);
+        return System.IO.Path.GetFullPath(path);
+    }
 }
 
 public class FileExtensions

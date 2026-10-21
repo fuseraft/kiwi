@@ -162,11 +162,16 @@ package fmt
     neg  = val < 0
     val  = neg ? -val : val
     exp  = math::floor(math::log10(val)).to_integer()
-    mant = val / math::pow(10.0, exp.to_float())
+    mant = _format_float(val / math::pow(10.0, exp.to_float()), precision)
+    # Rounding can carry the mantissa up to 10 (9.9999999 -> 10.000000).
+    if mant.begins_with("10")
+      exp += 1
+      mant = _format_float(val / math::pow(10.0, exp.to_float()), precision)
+    end
     sign = neg ? "-" : ""
     e_sign = exp >= 0 ? "+" : "-"
-    e_abs  = exp.abs()
-    "${sign}${_format_float(mant, precision)}e${e_sign}${e_abs.to_string().padstart(2, "0")}"
+    e_abs  = exp >= 0 ? exp : -exp
+    "${sign}${mant}e${e_sign}${e_abs.to_string().padstart(2, "0")}"
   end
 
   fn _to_base(n, base)

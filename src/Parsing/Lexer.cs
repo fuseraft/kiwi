@@ -12,6 +12,8 @@ public class Lexer : IDisposable
     private readonly bool CloseOnDispose;
     private int LineNumber = 1;
     private int Position = 1;
+    // Set while tokenizing a single-quoted string, which is never interpolated.
+    private bool lastStringWasRaw = false;
 
     public Lexer(string path)
     {
@@ -81,7 +83,8 @@ public class Lexer : IDisposable
                 token.SetSpan(new TokenSpan(token.Span.File, token.Span.Line, token.Span.Pos, LineNumber));
             }
 
-            if(token.Type == TokenType.String && token.Text.Contains("${"))
+            // Single-quoted (raw) strings are taken literally, `${` included.
+            if (token.Type == TokenType.String && !lastStringWasRaw && token.Text.Contains("${"))
             {
                 tokens.Add(new Token(TokenType.Interpolation, TokenName.Default, token.Span, token.Text, token.Value));
             }
@@ -96,6 +99,7 @@ public class Lexer : IDisposable
 
     private Token GetToken()
     {
+        lastStringWasRaw = false;
         SkipWhitespace();
         var span = CreateSpan();
 
@@ -540,8 +544,7 @@ public class Lexer : IDisposable
                         string hex = "";
                         for (int i = 0; i < 2; i++)
                         {
-                            char? h = chars[pos + 1];
-                            if (h == null || !IsHexDigit(h.Value))
+                            if (pos + 1 >= chars.Length || !IsHexDigit(chars[pos + 1]))
                             {
                                 return CreateToken(TokenType.Error, span, "Invalid \\x escape in byte string");
                             }
@@ -556,6 +559,7 @@ public class Lexer : IDisposable
                         bytes.Add((byte)c); // literal char after \
                         break;
                 }
+                pos++; // past the escaped char (or the last hex digit)
             }
             else if (c == '\\')
             {
@@ -602,6 +606,32 @@ public class Lexer : IDisposable
                     case '"':  text += '"';  break;
                     case 'b':  text += '\b'; break;
                     case 'f':  text += '\f'; break;
+                    case 'x':  // \xHH
+                    {
+                        string hex = string.Empty;
+
+                        for (int i = 0; i < 2; i++)
+                        {
+                            char? h = PeekChar();
+                            if (h == null || !IsHexDigit(h.Value))
+                            {
+                                break;
+                            }
+                            hex += GetChar();
+                        }
+
+                        if (hex.Length == 2)
+                        {
+                            text += (char)Convert.ToInt32(hex, 16);
+                        }
+                        else
+                        {
+                            // fallback: keep literal \xH...
+                            text += "\\x" + hex;
+                        }
+                        break;
+                    }
+
                     case 'u':  // \uXXXX
                     {
                         string hex = string.Empty;
@@ -786,6 +816,7 @@ public class Lexer : IDisposable
 
     private Token TokenizeRawString(TokenSpan span)
     {
+        lastStringWasRaw = true;
         var text = string.Empty;
         char? c;
 

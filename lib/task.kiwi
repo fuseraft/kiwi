@@ -3,160 +3,183 @@
 #/
 package task
   /#
-  Represents a mutex (binary semaphore backed by a buffered channel).
-  #/
-  struct Mutex
-    fn new()
-      @chan = Channel.new(1)
-      @chan.send(true)
-    end
-
-    /#
-    @summary Runs fn_ref while holding the mutex.
-    #/
-    fn synchronize(fn_ref)
-      @chan.recv()
-      err = null
-      try
-        fn_ref()
-      catch e
-        err = e
-      end
-      @chan.send(true)
-      throw err when err != null
-    end
-
-    fn destroy()
-      @chan.close()
-    end
-  end
-
-  /#
-  Represents a channel
+  @summary A channel for passing values between tasks.
   #/
   struct Channel
+    /#
+    @summary Creates a channel.
+    @param integer cap : The buffer capacity; `0` (the default) makes `send` wait for a receiver.
+    #/
     fn new(cap: integer = 0)
       @chan = __chan_create__(cap)
       @is_closed = false
     end
 
+    /#
+    @summary Closes the channel. After it is drained, `recv` returns `null`.
+    #/
     fn close()
       __chan_close__(@chan)
       @is_closed = true
     end
 
+    /#
+    @summary Waits for the next value.
+    @return any : The value, or `null` once the channel is closed and empty.
+    #/
     fn recv(): any
       __chan_recv__(@chan)
     end
 
     /#
-    @summary Attempts to receive data from the channel.
-    @returns [boolean, any] containing whether a value was received, and if so the value
+    @summary Receives a value if one is ready, without waiting.
+    @return list : `[true, value]` if a value was received, otherwise `[false, null]`.
     #/
     fn try_recv(): list # [boolean, any]
       __chan_tryrecv__(@chan)
     end
 
+    /#
+    @summary Checks whether `close()` was called on this channel.
+    @return boolean : `true` if the channel is closed.
+    #/
     fn closed(): boolean
       @is_closed
     end
 
+    /#
+    @summary Sends a value, waiting while a buffered channel is full.
+    @param any data : The value to send.
+    #/
     fn send(data: any)
       __chan_send__(@chan, data)
     end
   end
 
   /#
-  @summary Await a specified task.
-  @returns The result of the task.
+  @summary Waits for a task to finish. An error thrown inside the task is rethrown here.
+  @param integer task_id : The task identifier.
+  @return any : The result of the task.
   #/
   fn await(task_id: integer)
     __task_await__(task_id)
   end
 
   /#
-  @summary Returns true if there are active tasks.
-  @returns Boolean indicating business.
+  @summary Checks whether any tasks are running.
+  @return boolean : `true` if there are active tasks.
   #/
   fn busy()
     __task_busy__()
   end
 
+  /#
+  @summary Creates a channel.
+  @param integer cap : The buffer capacity (default `0`, unbuffered).
+  @return Channel : The channel.
+  #/
   fn channel(cap: integer = 0): Channel
     Channel.new(cap)
   end
 
   /#
-  @summary Creates a new mutex.
-  @returns A Mutex instance.
+  @summary A repeating task started by `task::interval`.
   #/
-  fn mutex(): Mutex
-    Mutex.new()
+  struct Interval
+    /#
+    @summary Starts calling `callback` every `ms` milliseconds on a background task.
+    @param integer ms : The milliseconds to wait between calls.
+    @param lambda callback : The lambda to call. Returning `false` stops the interval.
+    #/
+    fn new(ms: integer, callback: lambda)
+      @stopped = false
+      @stop_signal = Channel.new(1)
+      @task_id = __task_spawn__(
+        with (_ms: integer, _stop: Channel) do
+          while !_stop.try_recv()[0] do
+            break when callback() == false
+            __task_sleep__(_ms)
+          end
+        end, [ms, @stop_signal]
+      )
+    end
+
+    /#
+    @summary Stops the interval. A call already running finishes, and no further calls start.
+    #/
+    fn stop()
+      return when @stopped
+      @stopped = true
+      @stop_signal.send(true)
+    end
+
+    /#
+    @summary Gets the identifier of the interval's background task.
+    @return integer : The task identifier.
+    #/
+    fn id(): integer
+      @task_id
+    end
   end
 
   /#
-  @summary Execute a callback on an interval.
-  @param ms An integer representing milliseconds to sleep.
-  @param callback A lambda to invoke after sleeping.
+  @summary Calls a lambda repeatedly, waiting `ms` milliseconds between calls. A program waits for running intervals before it exits, so stop one when it is no longer needed.
+  @param integer ms : The milliseconds to wait between calls.
+  @param lambda callback : The lambda to call. Returning `false` stops the interval.
+  @return Interval : The interval; call `stop()` to end it.
   #/
-  fn interval(ms: integer, callback: lambda)
-    __task_spawn__(
-      with (_ms: integer) do
-        while true do
-          callback()
-          __task_sleep__(_ms)
-        end
-      end, [ms]
-    )
+  fn interval(ms: integer, callback: lambda): Interval
+    Interval.new(ms, callback)
   end
 
   /#
-  @@summary Spawn a new task.
-  @param callback A lambda to invoke as a task.
-  @returns integer containing the task identifier.
+  @summary Runs a lambda on a background task.
+  @param lambda callback : The lambda to run.
+  @param list args : The arguments to pass to the lambda.
+  @return integer : The task identifier.
   #/
   fn spawn(callback: lambda, args: list = [])
     __task_spawn__(callback, args)
   end
 
   /#
-  @summary Returns a list of task identifiers.
-  @returns List of integers.
+  @summary Gets the identifiers of the running tasks.
+  @return list : The task identifiers.
   #/
   fn list(): list
     __task_list__()
   end
 
   /#
-  @summary Returns a result or a status hashmap.
-  @param task_identifier An integer task identifier.
-  @returns Result of a task, or its status in a hashmap.
+  @summary Gets a task's result without waiting.
+  @param integer task_identifier : The task identifier.
+  @return any : The task's result if it has finished, otherwise a hashmap with its status.
   #/
   fn result(task_identifier: integer)
     __task_result__(task_identifier)
   end
 
   /#
-  @summary Sleeps for a number of milliseconds.
-  @param ms An integer representing milliseconds to sleep.
+  @summary Pauses the current task.
+  @param integer ms : The milliseconds to sleep.
   #/
   fn sleep(ms: integer)
     __task_sleep__(ms)
   end
 
   /#
-  @summary Get a status hashmap for a given task.
-  @param task_identifier An integer task identifier.
-  @returns Hashmap containing status.
+  @summary Gets a task's status.
+  @param integer task_identifier : The task identifier.
+  @return hashmap : The task's status.
   #/
   fn status(task_identifier: integer)
     __task_status__(task_identifier)
   end
 
   /#
-  @summary Execute a callback after a specified amount of milliseconds.
-  @param ms An integer representing milliseconds to sleep.
-  @param callback A lambda to invoke after sleeping.
+  @summary Calls a lambda once after a delay, and waits for it.
+  @param integer ms : The milliseconds to wait first.
+  @param lambda callback : The lambda to call.
   #/
   fn timer(ms: integer, callback: lambda)
     __task_await__(
@@ -179,9 +202,12 @@ package task
   end
 
   /#
-  A mutual exclusion lock backed by a semaphore.
+  @summary A mutual exclusion lock backed by a semaphore.
   #/
   struct Mutex
+    /#
+    @summary Creates an unlocked mutex.
+    #/
     fn new()
       @id = __mutex_create__()
     end
@@ -216,14 +242,17 @@ package task
     /#
     @summary Acquires the mutex, runs the callback, then releases it.
     @param lambda callback : Zero-argument lambda to execute in the critical section.
+    @return any : The callback's result.
     #/
     fn synchronize(callback)
       @.acquire()
+      result = null
       try
-        callback()
+        result = callback()
       finally
         @.release()
       end
+      result
     end
 
     /#
@@ -235,8 +264,8 @@ package task
   end
 
   /#
-  @summary Creates a new Mutex.
-  @return Mutex
+  @summary Creates a mutex.
+  @return Mutex : The mutex.
   #/
   fn mutex()
     Mutex.new()

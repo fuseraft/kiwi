@@ -1,0 +1,85 @@
+/# ==============================================================================
+   Testing runtime type-hint checks on parameters, return values and `var`.
+  ============================================================================== #/
+
+fn _th_error_type(f)
+  try
+    f()
+  catch (e)
+    return e.error
+  end
+  null
+end
+
+fn _th_area(width: float, height: float): float
+  width * height
+end
+
+fn _th_bad_return(): integer
+  "not an integer"
+end
+
+fn _th_bare_return(): string
+  return
+end
+
+fn _th_nullable(name: string? = null)
+  name
+end
+
+fn _th_union(v: integer|string)
+  v
+end
+
+struct THShape end
+struct THSquare < THShape end
+
+fn _th_shape(s: THShape)
+  "shape"
+end
+
+@tester::test("type hints: parameters")
+fn test_type_hints_parameters()
+  tester::assert_eq(_th_area(2.0, 3.5), 7.0)
+  tester::assert_eq(_th_area(2, 4), 8, "a float hint accepts integers")
+  tester::assert_eq(_th_error_type(do () => _th_area("a", 1.0)), "TypeError")
+  tester::assert_eq(_th_nullable(), null)
+  tester::assert_eq(_th_nullable("Ada"), "Ada")
+  tester::assert_eq(_th_error_type(do () => _th_nullable(1)), "TypeError")
+  tester::assert_eq(_th_union(1), 1)
+  tester::assert_eq(_th_union("x"), "x")
+  tester::assert_eq(_th_error_type(do () => _th_union(1.5)), "TypeError")
+  tester::assert_eq(_th_shape(THSquare.new()), "shape", "a struct hint accepts subclasses")
+  tester::assert_eq(_th_error_type(do () => _th_shape(1)), "TypeError")
+end
+
+@tester::test("type hints: return values and var")
+fn test_type_hints_returns()
+  tester::assert_eq(_th_error_type(do () => _th_bad_return()), "TypeError")
+  tester::assert_eq(_th_error_type(do () => _th_bare_return()), "TypeError")
+  tester::assert_eq(_th_error_type(do ()
+    var x: integer = "s"
+  end), "TypeError")
+
+  var n: integer = 3
+  tester::assert_eq(n, 3)
+
+  typed = do (x: integer): string => "${x}"
+  tester::assert_eq(typed(4), "4")
+  tester::assert_eq(_th_error_type(do () => typed("4")), "TypeError")
+end
+
+enum THColor
+  Red
+  Green
+end
+
+fn _th_paint(c: THColor)
+  c
+end
+
+@tester::test("type hints: enums")
+fn test_type_hints_enums()
+  tester::assert_eq(_th_paint(THColor.Green), 1)
+  tester::assert_eq(_th_error_type(do () => _th_paint(99)), "TypeError")
+end

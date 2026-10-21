@@ -146,7 +146,7 @@ Ternaries nest, but a `case` usually reads better once there are more than two o
 
 ## `exit`
 
-`exit code` ends the program immediately with that exit code. Always pass a code: a bare `exit` currently exits with status `1`.
+`exit code` ends the program immediately with that exit code. A bare `exit` exits with status `0`.
 
 ```kiwi
 config_ok = false

@@ -1,0 +1,27 @@
+@tester::test("task: interval stops")
+fn test_task_interval()
+  n = [0]
+  counting = task::interval(1, do ()
+    n[0] += 1
+    n[0] < 3
+  end)
+  task::await(counting.id())
+  tester::assert_eq(n[0], 3, "returning false stops an interval")
+
+  ticks = [0]
+  heartbeat = task::interval(1, do () => ticks[0] += 1)
+  task::sleep(20)
+  heartbeat.stop()
+  task::await(heartbeat.id())
+  stopped_at = ticks[0]
+  task::sleep(10)
+  tester::assert_eq(ticks[0], stopped_at, "stop() ends an interval")
+end
+
+@tester::test("task: mutex")
+fn test_task_mutex()
+  m = task::mutex()
+  tester::assert_eq(m.synchronize(do () => 42), 42)
+  tester::assert(m.try_acquire())
+  m.release()
+end

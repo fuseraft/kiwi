@@ -14,11 +14,13 @@ var (unit_tests: list = [
   "truthiness",
   "null_coalesce",
   "unpacking",
+  "syntax_fixes",
 
   # Type system
   "nulls",
   "type_checking",
   "typename_identifiers",
+  "type_hints",
   "bytestrings",
 
   # Collections & data types
@@ -35,6 +37,7 @@ var (unit_tests: list = [
   "chained_access",
 
   # Functions & callables
+  "functions",
   "lambdas",
   "splat",
   "decorators",
@@ -49,6 +52,7 @@ var (unit_tests: list = [
 
   # Object-oriented programming
   "structs",
+  "struct_methods",
   "static_vars",
   "abstract_structs",
   "polymorphism",

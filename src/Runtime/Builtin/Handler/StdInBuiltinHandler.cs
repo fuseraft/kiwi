@@ -64,13 +64,16 @@ public static class StdinBuiltinHandler
         ParameterCountMismatchError.Check(token, StdInBuiltin.Lines, 0, args.Count);
 
         List<Value> list = [];
-        Value line;
-        while ((line = ReadLine(token, [])) is { } l && l.Type != Typing.ValueType.None)
+        if (!_fullyConsumed)
         {
-            list.Add(l);
+            string? line;
+            while ((line = TextReader.ReadLine()) != null)
+            {
+                list.Add(Value.CreateString(line));
+            }
         }
         _fullyConsumed = true;
-        return Value.CreateList();
+        return Value.CreateList(list);
     }
 
     private static Value Empty(Token token, List<Value> args)

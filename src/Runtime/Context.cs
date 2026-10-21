@@ -21,6 +21,11 @@ public class KContext
     public ConcurrentDictionary<string, string> LambdaTable { get; set; } = new();
     public ConcurrentDictionary<string, Value> Constants { get; set; } = new();
     public ConcurrentDictionary<string, Value> PackageVariables { get; set; } = new();
+    /// <summary>
+    /// The error that stopped each package whose body failed to run, kept so that importing
+    /// or using the package reports it instead of an unrelated "undefined" error.
+    /// </summary>
+    public ConcurrentDictionary<string, Tracing.Error.KiwiError> PackageErrors { get; } = new();
     public EventBus Events { get; } = new();
 
     /// <summary>

@@ -66,15 +66,21 @@ println nums[::2]    # [0, 2, 4]
 println nums[::-1]   # [5, 4, 3, 2, 1, 0]
 ```
 
-Assigning a list to a slice overwrites those positions in place:
+Assigning a list to a slice replaces those elements. The replacement can be shorter or longer than the slice, so the list shrinks or grows, and assigning to an empty slice inserts:
 
 ```kiwi
 letters = ["a", "b", "c", "d"]
 letters[1:3] = ["X", "Y"]
 println letters   # ["a", "X", "Y", "d"]
+
+letters[1:3] = ["Z"]
+println letters   # ["a", "Z", "d"]
+
+letters[1:1] = ["new"]
+println letters   # ["a", "new", "Z", "d"]
 ```
 
-Keep the replacement the same length as the slice. Kiwi writes the new elements one by one from `start` rather than splicing, so a longer list overwrites elements past the slice and a shorter one leaves the rest of the slice unchanged.
+A slice with a step (`xs[::2] = [...]`) overwrites the selected elements one by one instead.
 
 ## Adding and removing
 

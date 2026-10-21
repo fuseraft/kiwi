@@ -10,7 +10,6 @@
 package ast
 
   struct NumLit
-    @value
     fn new(v)
       @value = v
     end
@@ -20,7 +19,6 @@ package ast
   end
 
   struct BoolLit
-    @value
     fn new(v)
       @value = v
     end
@@ -30,7 +28,6 @@ package ast
   end
 
   struct StrLit
-    @value
     fn new(v)
       @value = v
     end
@@ -40,7 +37,6 @@ package ast
   end
 
   struct VarRef
-    @name
     fn new(n)
       @name = n
     end
@@ -50,9 +46,6 @@ package ast
   end
 
   struct BinOp
-    @op
-    @left
-    @right
     fn new(op, l, r)
       @op    = op
       @left  = l
@@ -94,8 +87,6 @@ package ast
   end
 
   struct LambdaExpr
-    @param
-    @body
     fn new(p, b)
       @param = p
       @body  = b
@@ -112,8 +103,6 @@ package ast
   end
 
   struct ApplyExpr
-    @func
-    @arg
     fn new(f, a)
       @func = f
       @arg  = a
@@ -126,7 +115,6 @@ package ast
   end
 
   struct ListExpr
-    @items
     fn new(items)
       @items = items
     end
@@ -140,7 +128,6 @@ package ast
   end
 
   struct SeqExpr
-    @nodes
     fn new(nodes)
       @nodes = nodes
     end

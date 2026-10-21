@@ -266,11 +266,12 @@ package xml
   @summary Creates a new element node.
   @param string  tag     : The element tag name.
   @param hashmap attrs   : Attribute map (default `{}`).
-  @param string  content : Text content (default `""`).
+  @param string  content : Text content (default `""`), added as a `#text` child.
   @return XmlNode
   #/
   fn create(tag: string, attrs: hashmap = {}, content: string = ""): any
-    XmlNode.new(tag, attrs, [], content)
+    children = content.empty() ? [] : [text_node(content)]
+    XmlNode.new(tag, attrs, children, "")
   end
 
   /#

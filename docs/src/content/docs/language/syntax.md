@@ -27,7 +27,7 @@ Loops (`for`, `while`, `repeat`) and lambdas open their body with `do`. Conditio
 
 ## Line breaks
 
-A newline ends a statement unless the expression is clearly unfinished: an open bracket, parenthesis or brace, or a trailing binary operator.
+A newline ends a statement unless the expression is clearly unfinished: an open bracket, parenthesis or brace, or a binary operator at the end of the line or the start of the next one.
 
 ```kiwi
 total = 1 +
@@ -43,9 +43,18 @@ println total   # 6
 println items   # ["kiwi", "mango"]
 ```
 
-:::caution
-Put the operator at the **end** of the line, not the start of the next one. A line that starts with `&&`, `+` or another binary operator is a syntax error.
-:::
+A binary operator can also start the continuation line:
+
+```kiwi
+ready = true
+loaded = true
+ok = ready
+  && loaded
+  && !false
+println ok   # true
+```
+
+The exception is `-`: a line that starts with `-` is a new statement (a negative number), so put a subtraction's `-` at the end of the line.
 
 Method chains can continue on the next line by starting it with `.`:
 

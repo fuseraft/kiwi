@@ -38,7 +38,6 @@ public class ScriptRunner : IRunner
         }
 
         List<string> paths = [];
-        var exePath = Environment.ProcessPath ?? string.Empty;
 
         foreach (var library in Kiwi.Settings.StandardLibrary)
         {
@@ -47,8 +46,7 @@ public class ScriptRunner : IRunner
                 continue;
             }
 
-            var libraryPath = library.IsOverride ? FileUtil.ExpandPath(library.Path) : Path.Combine(Path.GetDirectoryName(exePath) ?? string.Empty, library.Path);
-            libraryPath = Path.GetFullPath(libraryPath);
+            var libraryPath = library.ResolvePath();
 
             if (Directory.Exists(libraryPath) && library.IncludeSubdirectories)
             {
