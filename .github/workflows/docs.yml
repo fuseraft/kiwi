@@ -1,4 +1,4 @@
-name: Deploy Docs
+name: Docs
 
 on:
   push:
@@ -6,27 +6,59 @@ on:
       - main
     paths:
       - 'docs/**'
-      - 'mkdocs.yml'
-
+      - 'lib/**'
+      - 'src/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'lib/**'
+      - 'src/**'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  deploy:
+  docs:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-dotnet@v4
         with:
-          python-version: '3.x'
+          dotnet-version: 10.0.x
+
+      - name: Build Kiwi
+        working-directory: .
+        run: ./build.sh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
 
       - name: Install dependencies
-        run: pip install mkdocs mkdocs-material
+        run: npm ci
+
+      # Runs every ```kiwi example in the docs against the freshly built interpreter.
+      - name: Check examples
+        run: npm run check:examples
+
+      # Also validates every internal link.
+      - name: Build site
+        run: npm run build
 
       - name: Deploy to GitHub Pages
-        run: mkdocs gh-deploy --force
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/dist

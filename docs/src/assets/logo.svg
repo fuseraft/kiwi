@@ -1,0 +1,51 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- the plate -->
+  <!--   
+  <defs>
+    <linearGradient id="plate" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#plate)" />
+  -->
+
+  <!-- juice maker -->
+  <circle cx="200" cy="200" r="120" fill="#4ACB22" stroke="#763b2a" stroke-width="8" />
+  
+  <!-- core -->
+  <circle cx="200" cy="200" r="40" fill="#b6eaa6" />
+
+  <!-- top left -->
+  <line x1="150" y1="150" x2="180" y2="180" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="170" cy="170" r="10" fill="#000" />
+
+  <!-- top center -->
+  <line x1="200" y1="130" x2="200" y2="170" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="200" cy="155" r="10" fill="#000" />
+
+  <!-- top right -->
+  <line x1="220" y1="180" x2="250" y2="150" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="230" cy="170" r="10" fill="#000" />
+
+  <!-- center left -->
+  <line x1="130" y1="200" x2="170" y2="200" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="155" cy="200" r="10" fill="#000" />
+
+  <!-- center right -->
+  <line x1="230" y1="200" x2="270" y2="200" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="240" cy="200" r="10" fill="#000" />
+
+  <!-- bottom left -->
+  <line x1="150" y1="250" x2="180" y2="220" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="170" cy="230" r="10" fill="#000" />
+
+  <!-- bottom center -->
+  <line x1="200" y1="230" x2="200" y2="270" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="200" cy="241" r="10" fill="#000" />
+
+  <!-- bottom right -->
+  <line x1="220" y1="220" x2="250" y2="250" stroke="#000" stroke-width="10" stroke-linecap="round" />
+  <circle cx="230" cy="230" r="10" fill="#000" />
+</svg>

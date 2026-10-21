@@ -1,0 +1,57 @@
+---
+title: Kiwi
+description: A dynamically typed scripting language with a concise, readable syntax and a batteries-included standard library.
+template: splash
+hero:
+  tagline: A scripting language with a small, readable syntax and a standard library that covers files, data formats, HTTP, databases and concurrency out of the box.
+  image:
+    file: ../../assets/logo.svg
+  actions:
+    - text: Get started
+      link: /kiwi/getting-started/installation/
+      icon: right-arrow
+    - text: Take the tour
+      link: /kiwi/getting-started/tour/
+      variant: minimal
+    - text: View on GitHub
+      link: https://github.com/fuseraft/kiwi
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+```kiwi nocheck
+# Count words in a file and print the top five.
+counts = {}
+for word in fio::read("README.md").lowercase().scan('[a-z]+') do
+  counts[word] = counts.get(word, 0) + 1
+end
+
+top = counts.keys().sort(do (a, b) => counts[a] > counts[b]).take(5)
+cli::table(["word", "count"], top.map(do (w) => [w, counts[w]]))
+```
+
+<CardGrid>
+  <Card title="Readable by default" icon="pencil">
+    Blocks close with `end`, strings interpolate with `${...}`, and guards like `return x when done` keep control flow flat.
+  </Card>
+  <Card title="Batteries included" icon="puzzle">
+    CSV, JSON, YAML, XML, SQLite, HTTP client and server, sockets, compression and more, with nothing to install.
+  </Card>
+  <Card title="Data friendly" icon="list-format">
+    Lists and hashmaps with `map`, `filter` and `reduce`, plus a `table` package for joins and grouping.
+  </Card>
+  <Card title="Concurrency built in" icon="rocket">
+    Spawn tasks, pass values over channels, and guard shared state with mutexes.
+  </Card>
+</CardGrid>
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Installation" href="/kiwi/getting-started/installation/" description="Install Kiwi or build it from source." />
+  <LinkCard title="A Tour of Kiwi" href="/kiwi/getting-started/tour/" description="The whole language on one page." />
+  <LinkCard title="Language" href="/kiwi/language/syntax/" description="Syntax, types, functions, structs and more, in depth." />
+  <LinkCard title="Standard Library" href="/kiwi/stdlib/" description="Every package, with guides and a generated API reference." />
+</CardGrid>
