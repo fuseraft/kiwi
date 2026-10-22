@@ -353,6 +353,8 @@ public enum TokenName
   Builtin_Udp_Recv,
   Builtin_Udp_Send,
   Builtin_Udp_SetTimeout,
+  Builtin_Native_Load,
+  Builtin_Native_Rid,
   KW_Abstract,
   KW_As,
   KW_Break,

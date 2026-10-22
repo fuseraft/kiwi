@@ -6,6 +6,7 @@
     <Version>1.6.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseSystemTextJsonSourceGeneration>true</UseSystemTextJsonSourceGeneration>
     <JsonSerializerIsReflectionEnabled>false</JsonSerializerIsReflectionEnabled>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>

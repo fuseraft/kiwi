@@ -63,6 +63,11 @@ public class KFunction(ASTNode node) : Callable(CallableType.Function)
     public Delegate? Delegate { get; set; }
 
     /// <summary>
+    /// For a function defined by a native extension: the host-side trampoline that calls it.
+    /// </summary>
+    public Func<IReadOnlyList<Value>, Token, Value>? NativeBody { get; set; }
+
+    /// <summary>
     /// The name of the struct that declared this method (empty for free functions).
     /// Used to resolve <c>super.method()</c> calls: starts searching from the base
     /// of <c>OwnerStruct</c> rather than from the concrete instance type.
