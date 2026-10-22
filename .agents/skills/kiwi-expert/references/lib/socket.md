@@ -40,7 +40,7 @@ To serve many clients, loop on `accept` and spawn a task per client. For HTTP, [
 
 ## TLS
 
-The `tls` functions mirror the `socket` ones, with one difference: `tls::tcpconnect(host, port, sni)` performs the TLS handshake in the background and returns a task id. Await it to get the socket id. The port defaults to 443, and `sni` sets the server name sent during the handshake.
+The `tls` functions mirror the `socket` ones, with one difference: `tls::tcpconnect(host, port, sni)` performs the TLS handshake in the background and returns a task id. Await it to get the socket id. The port defaults to 443, and `sni` sets the server name sent during the handshake. A handshake that doesn't finish within 30 seconds fails, and so does `await`ing it.
 
 ```kiwi
 conn = task::await(tls::tcpconnect("example.com", 443))

@@ -57,7 +57,7 @@ fn test_tls_socket()
   srv = tls::tcpserver("127.0.0.1", TLS_PORT)
   ready_ch = task::channel()
 
-  task::spawn(with (s, ch) do
+  server_tid = task::spawn(with (s, ch) do
     ch.send(true)
 
     # tls::accept returns a task ID; await resolves it to the client socket ID
@@ -81,7 +81,14 @@ fn test_tls_socket()
   # Await it to get the socket ID once the handshake finishes.
   # SNI host must match the server cert SAN ("kiwi.local").
   connect_tid = tls::tcpconnect("127.0.0.1", TLS_PORT, "kiwi.local")
-  conn = await(connect_tid)
+  try
+    conn = await(connect_tid)
+  catch (kind, message)
+    # A failed server handshake only shows up here as a reset connection; awaiting the
+    # server task rethrows the server's own error, which says why.
+    task::await(server_tid)
+    throw "${kind}: ${message}"
+  end
 
   send_tid = tls::send(conn, b"hello tls")
   await(send_tid)

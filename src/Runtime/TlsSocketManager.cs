@@ -21,12 +21,11 @@ public sealed class TlsSocketManager
     private readonly ConcurrentDictionary<long, TlsConn> _conns = new();
     private long _nextId = 1;
 
-    private readonly X509Certificate2 _serverCert;
+    // A handshake that stalls (a silent peer, or one that never answers) fails instead of hanging.
+    private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(30);
 
-    private TlsSocketManager()
-    {
-        _serverCert = GenerateSelfSignedCertificate();
-    }
+    // Generated on first use: creating an RSA key on every interpreter start is costly.
+    private Lazy<X509Certificate2> _serverCert = new(GenerateSelfSignedCertificate);
 
     public void Start() { }
     public void Stop()
@@ -34,6 +33,11 @@ public sealed class TlsSocketManager
         foreach (var conn in _conns.Values)
             conn.Dispose();
         _conns.Clear();
+
+        // Disposing the certificate deletes the key container it was imported into on Windows.
+        var cert = Interlocked.Exchange(ref _serverCert, new(GenerateSelfSignedCertificate));
+        if (cert.IsValueCreated)
+            cert.Value.Dispose();
     }
 
     // ── listener ─────────────────────────────────────────────────────────────
@@ -68,13 +72,22 @@ public sealed class TlsSocketManager
         try
         {
             Socket raw = await listenerSocket.AcceptAsync().ConfigureAwait(false);
-            var netStream = new NetworkStream(raw, ownsSocket: true);
-            var ssl = new SslStream(netStream, leaveInnerStreamOpen: false);
-            await ssl.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+            var ssl = new SslStream(new NetworkStream(raw, ownsSocket: true), leaveInnerStreamOpen: false);
+            try
             {
-                ServerCertificate = _serverCert,
-                EnabledSslProtocols = SslProtocols.Tls12
-            }).ConfigureAwait(false);
+                using var timeout = new CancellationTokenSource(HandshakeTimeout);
+                await ssl.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+                {
+                    ServerCertificate = _serverCert.Value,
+                    EnabledSslProtocols = SslProtocols.Tls12
+                }, timeout.Token).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Close the connection so the peer sees the failure instead of waiting on it.
+                ssl.Dispose();
+                throw;
+            }
 
             long clientId = Interlocked.Increment(ref _nextId);
             _conns[clientId] = new TlsConn { Id = clientId, RawSocket = raw, Ssl = ssl, Ready = true };
@@ -98,18 +111,32 @@ public sealed class TlsSocketManager
         try
         {
             var raw = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            await raw.ConnectAsync(host, port).ConfigureAwait(false);
-
-            var netStream = new NetworkStream(raw, ownsSocket: true);
-            var ssl = new SslStream(netStream, leaveInnerStreamOpen: false);
-
-            string target = sniHost ?? host;
-            await ssl.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+            try
             {
-                TargetHost = target,
-                RemoteCertificateValidationCallback = ValidateServerCertificate,
-                EnabledSslProtocols = SslProtocols.Tls12
-            }).ConfigureAwait(false);
+                await raw.ConnectAsync(host, port).ConfigureAwait(false);
+            }
+            catch
+            {
+                raw.Dispose();
+                throw;
+            }
+
+            var ssl = new SslStream(new NetworkStream(raw, ownsSocket: true), leaveInnerStreamOpen: false);
+            try
+            {
+                using var timeout = new CancellationTokenSource(HandshakeTimeout);
+                await ssl.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                {
+                    TargetHost = sniHost ?? host,
+                    RemoteCertificateValidationCallback = ValidateServerCertificate,
+                    EnabledSslProtocols = SslProtocols.Tls12
+                }, timeout.Token).ConfigureAwait(false);
+            }
+            catch
+            {
+                ssl.Dispose();
+                throw;
+            }
 
             long clientId = Interlocked.Increment(ref _nextId);
             _conns[clientId] = new TlsConn { Id = clientId, RawSocket = raw, Ssl = ssl, Ready = true };
@@ -212,15 +239,15 @@ public sealed class TlsSocketManager
 
         using var ephemeral = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
 
-        // On Windows, Schannel (the platform TLS provider) requires the server certificate's
-        // private key to be accessible via a CNG key storage provider. An in-memory key from
-        // CreateSelfSigned is not registered with CNG, so AuthenticateAsServerAsync hangs
-        // indefinitely while Schannel tries to locate the key. Exporting to PFX and reimporting
-        // with EphemeralKeySet registers the key with CNG without persisting anything to disk,
-        // and works correctly on both Windows (Schannel) and Linux (OpenSSL).
-        var pfx = ephemeral.Export(X509ContentType.Pfx);
-        return new X509Certificate2(pfx, (string?)null,
-            X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet);
+        // Schannel (Windows) runs in LSASS and can only use a private key held in a key
+        // container, so neither CreateSelfSigned's in-memory key nor an EphemeralKeySet import
+        // works there: the server handshake fails with "the platform does not support ephemeral
+        // keys". Re-importing the PFX without EphemeralKeySet puts the key in a container, which
+        // is deleted again when the certificate is disposed (see Stop). macOS rejects
+        // EphemeralKeySet outright. OpenSSL (Linux) uses the key from memory.
+        var pfx   = ephemeral.Export(X509ContentType.Pfx);
+        var flags = OperatingSystem.IsLinux() ? X509KeyStorageFlags.EphemeralKeySet : X509KeyStorageFlags.DefaultKeySet;
+        return X509CertificateLoader.LoadPkcs12(pfx, null, flags);
     }
 }
 
