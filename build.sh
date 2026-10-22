@@ -94,6 +94,7 @@ if ! BUILD_OUTPUT=$(dotnet publish "$SOLUTION_PATH" -c Release -r "$RUNTIME_ID" 
   echo "$BUILD_OUTPUT"
   echo "Falling back to non-AOT build..."
   if ! BUILD_OUTPUT=$(dotnet publish "$SOLUTION_PATH" -c Release -r "$RUNTIME_ID" --self-contained true \
+    -p:PublishAot=false \
     -p:PublishTrimmed=true \
     -p:PublishReadyToRun=true \
     -p:StripSymbols=true \

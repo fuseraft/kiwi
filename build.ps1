@@ -103,6 +103,7 @@ if ($proc.ExitCode -ne 0) {
     '-c', 'Release',
     '-r', $RuntimeId,
     '--self-contained', 'true',
+    '-p:PublishAot=false',
     '-p:PublishTrimmed=true',
     '-p:PublishReadyToRun=true',
     '-p:StripSymbols=true',
