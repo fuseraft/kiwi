@@ -145,6 +145,39 @@ total = 0
 println total   # 6
 ```
 
+### Which variables a lambda shares
+
+A lambda shares a variable it assigns with the code around it only if that code assigned the variable first, before the lambda in the source. A variable the lambda assigns that the code around it hasn't assigned yet belongs to the lambda, even if the same name is used later:
+
+```kiwi
+fn run()
+  record = do ()
+    status = "recorded"   # run() hasn't assigned status yet: this is the lambda's own
+  end
+  status = "running"
+  record()
+  status
+end
+
+println run()   # running
+```
+
+Reading a variable is different: a lambda can read a variable assigned after it, which is how a lambda calls itself or another lambda defined later.
+
+To give a lambda its own variable even when the code around it already has one of that name, declare it with `var`:
+
+```kiwi
+name = "outer"
+rename = do ()
+  var name = "inner"
+  name
+end
+println rename()   # inner
+println name       # outer
+```
+
+This matters most for lambdas passed to [`task::spawn`](../lib/task.md), which run on another thread: a variable the task shares with the code that started it is updated by both at once.
+
 ### Closures in loops
 
 Each iteration of a `for` loop gives its closures their own copy of the loop variable, so a lambda created in the loop keeps the value from its iteration:

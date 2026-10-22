@@ -112,6 +112,8 @@ tick()
 println tick()   # 2
 ```
 
+A lambda shares a variable it assigns only if the code around it assigned that variable first; otherwise the variable is the lambda's own, and `var` always declares the lambda's own. At the top level this applies to globals too: a lambda written at the top level shares a global only if the script assigned it before the lambda. See [Which variables a lambda shares](lambdas.md#which-variables-a-lambda-shares).
+
 ## Struct instances
 
 Inside a struct method, `@name` refers to an instance variable. Instance variables belong to the object, not to any lexical scope, and each instance has its own. `@@name` refers to a static variable shared by every instance of the struct. See [Structs](structs.md).

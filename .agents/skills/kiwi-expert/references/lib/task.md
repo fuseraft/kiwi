@@ -61,6 +61,8 @@ task::await(producer)
 
 ## Sharing state
 
+A task's lambda shares variables with the code that started it the way any [closure](../language/lambdas.md#which-variables-a-lambda-shares) does: a variable assigned before the lambda is shared, and both sides see each other's assignments. A variable the lambda assigns that the code around it only assigns later is the task's own, so a task can reuse names such as `result` or `id` without touching the spawner's. Use `var` for a task variable whose name the spawner has already used.
+
 Tasks can share lists, hashmaps and objects with the code that started them. Each single operation on a shared value, such as `push`, `xs[i] = v` or `m[k] = v`, is atomic, so concurrent tasks never corrupt it.
 
 An update that reads and then writes, such as `count += 1`, is two operations, and two tasks can lose each other's updates. Guard it with a mutex:
