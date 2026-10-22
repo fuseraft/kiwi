@@ -1,7 +1,7 @@
 @tester::test("log: calling log functions does not raise")
 fn test_log_no_raise()
   # Redirect to file to avoid polluting test output
-  log::set_file("/tmp/kiwi_log_test.log")
+  log::set_file(fio::combine([fio::tmpdir(), "kiwi_log_test.log"]))
   log::set_level("DEBUG")
 
   log::debug("debug message")
@@ -15,8 +15,8 @@ end
 
 @tester::test("log: set_level suppresses lower levels")
 fn test_log_set_level_suppression()
-  fio::write("/tmp/kiwi_log_level_test.log", "")  # clear any prior content
-  log::set_file("/tmp/kiwi_log_level_test.log")
+  fio::write(fio::combine([fio::tmpdir(), "kiwi_log_level_test.log"]), "")  # clear any prior content
+  log::set_file(fio::combine([fio::tmpdir(), "kiwi_log_level_test.log"]))
   log::timestamps(false)
   log::set_level("ERROR")
 
@@ -25,7 +25,7 @@ fn test_log_set_level_suppression()
   log::warn("should be suppressed")
   log::error("this one appears")
 
-  content = fio::read("/tmp/kiwi_log_level_test.log")
+  content = fio::read(fio::combine([fio::tmpdir(), "kiwi_log_level_test.log"]))
   tester::assert(!content.contains("[DEBUG]"), "DEBUG should be suppressed at ERROR level")
   tester::assert(!content.contains("[INFO]"),  "INFO should be suppressed at ERROR level")
   tester::assert(!content.contains("[WARN]"),  "WARN should be suppressed at ERROR level")
@@ -38,8 +38,8 @@ end
 
 @tester::test("log: timestamps toggle")
 fn test_log_timestamps_toggle()
-  fio::write("/tmp/kiwi_log_ts_test.log", "")  # clear any prior content
-  log::set_file("/tmp/kiwi_log_ts_test.log")
+  fio::write(fio::combine([fio::tmpdir(), "kiwi_log_ts_test.log"]), "")  # clear any prior content
+  log::set_file(fio::combine([fio::tmpdir(), "kiwi_log_ts_test.log"]))
   log::set_level("INFO")
 
   log::timestamps(false)
@@ -48,7 +48,7 @@ fn test_log_timestamps_toggle()
   log::timestamps(true)
   log::info("with timestamp")
 
-  content = fio::read("/tmp/kiwi_log_ts_test.log")
+  content = fio::read(fio::combine([fio::tmpdir(), "kiwi_log_ts_test.log"]))
   lines = content.split("\n").filter(with (l) do !l.empty() end)
 
   tester::assert_eq(lines.size(), 2)

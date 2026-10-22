@@ -3,11 +3,11 @@
   ============================================================================== #/
 @tester::test("xml pipeline")
 fn test_xml_pipeline()
-  catalog_xml = "/tmp/kiwi_test_catalog.xml"
-  users_xml   = "/tmp/kiwi_test_users.xml"
-  roles_xml   = "/tmp/kiwi_test_roles.xml"
-  multi1_xml  = "/tmp/kiwi_test_xml1.xml"
-  multi2_xml  = "/tmp/kiwi_test_xml2.xml"
+  catalog_xml = fio::combine([fio::tmpdir(), "kiwi_test_catalog.xml"])
+  users_xml   = fio::combine([fio::tmpdir(), "kiwi_test_users.xml"])
+  roles_xml   = fio::combine([fio::tmpdir(), "kiwi_test_roles.xml"])
+  multi1_xml  = fio::combine([fio::tmpdir(), "kiwi_test_xml1.xml"])
+  multi2_xml  = fio::combine([fio::tmpdir(), "kiwi_test_xml2.xml"])
 
   fio::write(catalog_xml, '<catalog><item id="1" active="true"><name>Widget</name><price>9.99</price></item><item id="2" active="false"><name>Gadget</name><price>14.50</price></item></catalog>')
   fio::write(users_xml,   '<users><user id="10"><name>Alice</name><role>admin</role></user><user id="20"><name>Bob</name><role>user</role></user></users>')
@@ -117,7 +117,7 @@ fn test_xml_pipeline()
   # -----------------------------------------------------------------------
   missing_ok = false
   try
-    xml::pipeline().from_file("/tmp/kiwi_no_such_file.xml").parse()
+    xml::pipeline().from_file(fio::combine([fio::tmpdir(), "kiwi_no_such_file.xml"])).parse()
   catch err
     missing_ok = true
   end

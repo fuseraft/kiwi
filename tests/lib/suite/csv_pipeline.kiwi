@@ -6,11 +6,11 @@ fn test_csv_pipeline()
   # -----------------------------------------------------------------------
   # Write temporary CSV fixtures
   # -----------------------------------------------------------------------
-  users_csv  = "/tmp/kiwi_test_users.csv"
-  orders_csv = "/tmp/kiwi_test_orders.csv"
-  nohead_csv = "/tmp/kiwi_test_nohead.csv"
-  multi1_csv = "/tmp/kiwi_test_multi1.csv"
-  multi2_csv = "/tmp/kiwi_test_multi2.csv"
+  users_csv  = fio::combine([fio::tmpdir(), "kiwi_test_users.csv"])
+  orders_csv = fio::combine([fio::tmpdir(), "kiwi_test_orders.csv"])
+  nohead_csv = fio::combine([fio::tmpdir(), "kiwi_test_nohead.csv"])
+  multi1_csv = fio::combine([fio::tmpdir(), "kiwi_test_multi1.csv"])
+  multi2_csv = fio::combine([fio::tmpdir(), "kiwi_test_multi2.csv"])
 
   fio::write(users_csv,  "name,id,active,score\nAlice,1,true,9.5\nBob,2,false,7.0\nCarol,3,true,8.25\n")
   fio::write(orders_csv, "product,qty\nWidget,10\nGadget,5\n")
@@ -117,7 +117,7 @@ fn test_csv_pipeline()
   # -----------------------------------------------------------------------
   missing_ok = false
   try
-    csv::pipeline().from_file("/tmp/kiwi_no_such_file.csv").parse()
+    csv::pipeline().from_file(fio::combine([fio::tmpdir(), "kiwi_no_such_file.csv"])).parse()
   catch err
     missing_ok = true
   end
@@ -126,7 +126,7 @@ fn test_csv_pipeline()
   # -----------------------------------------------------------------------
   # A10: Custom delimiter
   # -----------------------------------------------------------------------
-  tsv_path = "/tmp/kiwi_test_tab.csv"
+  tsv_path = fio::combine([fio::tmpdir(), "kiwi_test_tab.csv"])
   fio::write(tsv_path, "name\tvalue\nalpha\t1\nbeta\t2\n")
   tsv = csv::pipeline().with_delimiter("\t").from_file(tsv_path).parse()
   tester::assert(tsv.size() == 2,             "A10a: two tsv rows")

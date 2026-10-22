@@ -6,7 +6,7 @@ fn test_text_pipeline()
   # -----------------------------------------------------------------------
   # Write a temporary text fixture
   # -----------------------------------------------------------------------
-  log_path = "/tmp/kiwi_test_app.log"
+  log_path = fio::combine([fio::tmpdir(), "kiwi_test_app.log"])
   fio::write(log_path, "timestamp,level,message\n2025-01-01,INFO,started\n2025-01-02,ERROR,crash\n2025-01-03,INFO,recovered\n2025-01-04,ERROR,timeout")
 
   # -----------------------------------------------------------------------
@@ -120,7 +120,7 @@ fn test_text_pipeline()
   # -----------------------------------------------------------------------
   missing_ok = false
   try
-    text::pipeline().from_file("/tmp/kiwi_no_such_file.txt").run()
+    text::pipeline().from_file(fio::combine([fio::tmpdir(), "kiwi_no_such_file.txt"])).run()
   catch err
     missing_ok = true
   end
