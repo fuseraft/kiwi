@@ -117,6 +117,6 @@ Returns an integer range `[x, y)` as a list.
 | `x` | `integer` |  | The inclusive start of the range. |
 | `y` | `integer` |  | The exclusive end of the range. |
 
-**Returns** `list` — A list of integers from `x` to `y - 1`.
+**Returns** `list` — A list of integers from `x` to `y - 1`, or an empty list when `y <= x`.
 
 **Throws** `InvalidRange` — If either argument is not an integer.

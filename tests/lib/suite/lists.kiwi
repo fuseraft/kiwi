@@ -90,3 +90,19 @@ fn test_lists()
   tester::assert(list::sum_float(fruits.map(with (fruit) do fruit.price end)) == 2.75, "sum_float() -> 2.75")
   tester::assert(list::sum_integer(fruits.map(with (fruit) do fruit.qty end)) == 300, "sum_integer() -> 300")
 end
+
+@tester::test("lists: repeating zero or fewer times gives an empty list")
+fn test_list_multiply_empty()
+  tester::assert_eq([0] * 0, [])
+  tester::assert_eq([1, 2] * -1, [])
+  tester::assert_eq([] * 3, [])
+  tester::assert_eq([1, 2] * 2, [1, 2, 1, 2])
+end
+
+@tester::test("lists: std::range is empty when the end isn't past the start")
+fn test_std_range_empty()
+  tester::assert_eq(std::range(3, 3), [])
+  tester::assert_eq(std::range(5, 2), [])
+  tester::assert_eq(std::range(0, 3), [0, 1, 2])
+  tester::assert_eq(std::range(-2, 0), [-2, -1])
+end

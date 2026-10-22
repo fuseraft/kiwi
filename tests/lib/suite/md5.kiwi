@@ -9,3 +9,12 @@ fn test_md5()
   tester::assert("c105456108ab41026a95d4f0cc66fe78" == crypto::md5_hash(a_str), "A2")
   tester::assert("e8754b080e52f959766d9d40f5e406ee" == crypto::md5_hash(a_str * 7), "A3")
 end
+
+@tester::test("md5: the native and pure-Kiwi digests agree, and bytes work")
+fn test_md5_native_and_struct()
+  for n in [0, 1, 55, 56, 63, 64, 65, 128] do
+    s = "x" * n
+    tester::assert_eq(crypto::md5_hash(s), MD5.hexdigest(s), "${n} bytes")
+  end
+  tester::assert_eq(crypto::md5_hash(b"\xff\x00"), "e0e8bfafbb0689563b2fba789c97b3cc", "bytes that aren't UTF-8")
+end

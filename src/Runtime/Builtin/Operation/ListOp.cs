@@ -11,14 +11,10 @@ public struct ListOp
         var list = left.GetList();
         var multiplier = right.GetInteger();
 
-        if (multiplier < 1)
+        // Like a string, a list repeated zero or fewer times is empty.
+        if (multiplier <= 0 || list.Count == 0)
         {
-            throw new SyntaxError(token, "List multiplier must be a positive non-zero integer.");
-        }
-
-        if (list.Count == 0)
-        {
-            throw new SyntaxError(token, "Cannot multiply an empty list.");
+            return [];
         }
 
         List<Value> newList = [];

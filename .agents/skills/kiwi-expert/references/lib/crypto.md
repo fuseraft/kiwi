@@ -1,8 +1,8 @@
 # crypto
 
-> Hash strings with MD5 and the SHA family, and compute HMACs.
+> Hash strings, bytes and files with MD5 and the SHA family, and compute HMACs.
 
-The `crypto` package computes message digests and HMACs. Each function returns a lowercase hexadecimal string.
+The `crypto` package computes message digests and HMACs. Each function takes a string, which it hashes as UTF-8, or bytes, which it hashes as they are, and returns a lowercase hexadecimal string.
 
 ```kiwi
 println crypto::sha256_hash("kiwi")
@@ -21,6 +21,16 @@ println crypto::hmac_sha256("secret-key", "message to sign")
 | `sha224_hash`, `sha256_hash`, `sha384_hash`, `sha512_hash` | SHA-2 |
 | `hmac_md5`, `hmac_sha256`, `hmac_sha512` | HMAC with that hash |
 | `hmac(algorithm, key, input)` | HMAC with a named algorithm |
+| `file_hash(path, algorithm)` | A file's contents, with MD5, SHA-1, SHA-256 (the default), SHA-384 or SHA-512 |
+
+`file_hash` reads the file in chunks, so it can hash files larger than memory, such as a download you want to check against a published checksum:
+
+```kiwi
+println crypto::file_hash("kiwi-linux-x64.tar.gz")             # SHA-256
+println crypto::file_hash("kiwi-linux-x64.tar.gz", "SHA512")
+```
+
+`file_hash` is unavailable in [safe mode](../tools/cli.md#safe-mode).
 
 MD5 and SHA-1 are fine for checksums and cache keys but are no longer safe against deliberate tampering; use SHA-256 or better for anything security-related. These functions hash data; they are not suitable for storing passwords, which need a slow, salted algorithm.
 
@@ -34,11 +44,11 @@ For Base64 and hex encoding, see [`encode`](encode.md).
 crypto::md5_hash(input = "")
 ```
 
-Computes the MD5 hex digest of a string.
+Computes the MD5 hex digest of a string or bytes. A string is hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `input` | `string` | `""` | The input string to hash (default `""`). |
+| `input` | `string\|bytes` | `""` | The input to hash (default `""`). |
 
 **Returns** `string` — A 32-character lowercase hexadecimal MD5 digest.
 
@@ -48,11 +58,11 @@ Computes the MD5 hex digest of a string.
 crypto::sha224_hash(input = "")
 ```
 
-Computes the SHA-224 hex digest of a string.
+Computes the SHA-224 hex digest of a string or bytes. A string is hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `input` | `string` | `""` | The input string to hash (default `""`). |
+| `input` | `string\|bytes` | `""` | The input to hash (default `""`). |
 
 **Returns** `string` — A 56-character lowercase hexadecimal SHA-224 digest.
 
@@ -62,11 +72,11 @@ Computes the SHA-224 hex digest of a string.
 crypto::sha256_hash(input = "")
 ```
 
-Computes the SHA-256 hex digest of a string.
+Computes the SHA-256 hex digest of a string or bytes. A string is hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `input` | `string` | `""` | The input string to hash (default `""`). |
+| `input` | `string\|bytes` | `""` | The input to hash (default `""`). |
 
 **Returns** `string` — A 64-character lowercase hexadecimal SHA-256 digest.
 
@@ -76,11 +86,11 @@ Computes the SHA-256 hex digest of a string.
 crypto::sha1_hash(input = "")
 ```
 
-Computes the SHA-1 hex digest of a string.
+Computes the SHA-1 hex digest of a string or bytes. A string is hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `input` | `string` | `""` | The input string to hash (default `""`). |
+| `input` | `string\|bytes` | `""` | The input to hash (default `""`). |
 
 **Returns** `string` — A 40-character lowercase hexadecimal SHA-1 digest.
 
@@ -90,11 +100,11 @@ Computes the SHA-1 hex digest of a string.
 crypto::sha384_hash(input = "")
 ```
 
-Computes the SHA-384 hex digest of a string.
+Computes the SHA-384 hex digest of a string or bytes. A string is hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `input` | `string` | `""` | The input string to hash (default `""`). |
+| `input` | `string\|bytes` | `""` | The input to hash (default `""`). |
 
 **Returns** `string` — A 96-character lowercase hexadecimal SHA-384 digest.
 
@@ -104,13 +114,30 @@ Computes the SHA-384 hex digest of a string.
 crypto::sha512_hash(input = "")
 ```
 
-Computes the SHA-512 hex digest of a string.
+Computes the SHA-512 hex digest of a string or bytes. A string is hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `input` | `string` | `""` | The input string to hash (default `""`). |
+| `input` | `string\|bytes` | `""` | The input to hash (default `""`). |
 
 **Returns** `string` — A 128-character lowercase hexadecimal SHA-512 digest.
+
+### `crypto::file_hash`
+
+```kiwi
+crypto::file_hash(path, algorithm = "SHA256")
+```
+
+Computes the hex digest of a file's contents. The file is read in chunks, so it can be larger than memory. Unavailable in safe mode.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `path` | `string` |  | The file to hash. |
+| `algorithm` | `string` | `"SHA256"` | One of "MD5", "SHA1", "SHA256", "SHA384" or "SHA512" (default "SHA256"). |
+
+**Returns** `string` — Lowercase hexadecimal digest.
+
+**Throws** `FileReadError` — If the file can't be read.
 
 ### `crypto::hmac`
 
@@ -118,13 +145,13 @@ Computes the SHA-512 hex digest of a string.
 crypto::hmac(algorithm, key, input)
 ```
 
-Computes an HMAC hex digest.
+Computes an HMAC hex digest. Strings are hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
 | `algorithm` | `string` |  | One of "MD5", "SHA256", "SHA512". |
-| `key` | `string` |  | The HMAC key. |
-| `input` | `string` |  | The input string. |
+| `key` | `string\|bytes` |  | The HMAC key. |
+| `input` | `string\|bytes` |  | The input. |
 
 **Returns** `string` — Lowercase hexadecimal HMAC digest.
 
@@ -134,12 +161,12 @@ Computes an HMAC hex digest.
 crypto::hmac_sha256(key, input)
 ```
 
-Computes HMAC-SHA256.
+Computes HMAC-SHA256. Strings are hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `key` | `string` |  | The HMAC key. |
-| `input` | `string` |  | The input string. |
+| `key` | `string\|bytes` |  | The HMAC key. |
+| `input` | `string\|bytes` |  | The input. |
 
 **Returns** `string` — Lowercase hexadecimal digest.
 
@@ -149,12 +176,12 @@ Computes HMAC-SHA256.
 crypto::hmac_sha512(key, input)
 ```
 
-Computes HMAC-SHA512.
+Computes HMAC-SHA512. Strings are hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `key` | `string` |  | The HMAC key. |
-| `input` | `string` |  | The input string. |
+| `key` | `string\|bytes` |  | The HMAC key. |
+| `input` | `string\|bytes` |  | The input. |
 
 **Returns** `string` — Lowercase hexadecimal digest.
 
@@ -164,12 +191,12 @@ Computes HMAC-SHA512.
 crypto::hmac_md5(key, input)
 ```
 
-Computes HMAC-MD5.
+Computes HMAC-MD5. Strings are hashed as UTF-8.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `key` | `string` |  | The HMAC key. |
-| `input` | `string` |  | The input string. |
+| `key` | `string\|bytes` |  | The HMAC key. |
+| `input` | `string\|bytes` |  | The input. |
 
 **Returns** `string` — Lowercase hexadecimal digest.
 

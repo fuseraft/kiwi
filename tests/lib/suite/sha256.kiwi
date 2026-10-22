@@ -13,3 +13,34 @@ fn test_sha256()
   s.update(a_str)
   tester::assert("03d9963e05a094593190b6fc794cb1a3e1ac7d7883f0b5855268afeccc70d461" == s.hexdigest(), "A4")
 end
+
+# Lengths around the 64-byte block and the 56-byte padding boundary. The pure-Kiwi SHA256
+# struct used to crash at 63 bytes and at multiples of 64.
+@tester::test("sha256: block boundaries")
+fn test_sha256_block_boundaries()
+  for n in [0, 1, 55, 56, 57, 63, 64, 65, 119, 120, 127, 128, 129, 255, 256] do
+    s = "x" * n
+    expected = __crypto_sha256__(s)
+    tester::assert_eq(crypto::sha256_hash(s), expected, "sha256_hash, ${n} bytes")
+    tester::assert_eq(SHA256.new(s).hexdigest(), expected, "SHA256 struct, ${n} bytes")
+  end
+end
+
+@tester::test("sha256: incremental updates across blocks")
+fn test_sha256_incremental()
+  for split in [[63, 1], [64, 64], [1, 63, 64], [55, 1, 8]] do
+    h = SHA256.new()
+    total = 0
+    for n in split do
+      h.update("x" * n)
+      total += n
+    end
+    tester::assert_eq(h.hexdigest(), crypto::sha256_hash("x" * total), "updates of ${split}")
+  end
+end
+
+@tester::test("sha256: bytes are hashed as they are")
+fn test_sha256_bytes()
+  tester::assert_eq(crypto::sha256_hash(b"\xff\x00"), "ea5dbf9596d187e9500f23e9a680109475341cf4e81f7e043f7d97152c10772f", "bytes that aren't UTF-8")
+  tester::assert_eq(crypto::sha256_hash("abc".to_bytes()), crypto::sha256_hash("abc"), "bytes and the same UTF-8 string")
+end
