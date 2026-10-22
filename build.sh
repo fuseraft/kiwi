@@ -26,10 +26,14 @@ fi
 
 SOLUTION_PATH="src/kiwi.csproj"
 OUTPUT_DIR="bin"
-# Detect OS for default RID
+# Detect OS and CPU architecture for default RID
+case "$(uname -m)" in
+  arm64|aarch64) ARCH="arm64" ;;
+  *)             ARCH="x64" ;;
+esac
 case "$(uname -s)" in
-  Linux*)   DEFAULT_RID="linux-x64" ;;
-  Darwin*)  DEFAULT_RID="osx-x64" ;;
+  Linux*)   DEFAULT_RID="linux-$ARCH" ;;
+  Darwin*)  DEFAULT_RID="osx-$ARCH" ;;
   CYGWIN*|MINGW*|MSYS*) DEFAULT_RID="win-x64" ;;
   *)        DEFAULT_RID="win-x64" ;; # Fallback to win-x64 for Windows
 esac
