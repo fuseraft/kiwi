@@ -70,8 +70,11 @@ New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 Write-Host "Building Kiwi for $RuntimeId..."
 
+# --disable-build-servers: Start-Process -Wait waits for the whole process tree on Windows,
+# and the MSBuild and compiler servers a build leaves running would hold it for minutes.
 $AotArgs = @(
   'publish', $SolutionPath,
+  '--disable-build-servers',
   '-c', 'Release',
   '-r', $RuntimeId,
   '--self-contained', 'true',
@@ -100,6 +103,7 @@ if ($proc.ExitCode -ne 0) {
 
   $FallbackArgs = @(
     'publish', $SolutionPath,
+    '--disable-build-servers',
     '-c', 'Release',
     '-r', $RuntimeId,
     '--self-contained', 'true',
