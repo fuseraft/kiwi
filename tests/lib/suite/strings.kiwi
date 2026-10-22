@@ -79,3 +79,26 @@ fn test_dedent_zero_indent()
   tester::assert_eq(string::dedent("first\n    second"), "first\n    second")
   tester::assert_eq(string::dedent("\n    a\n      b\n"), "a\n  b\n")
 end
+
+@tester::test("strings: split always returns at least one part")
+fn test_split_empty_string()
+  tester::assert_eq("".split(","), [""])
+  tester::assert_eq("".split(" ")[0], "", "the first part of an empty line")
+  tester::assert_eq("a".split(","), ["a"])
+  tester::assert_eq(",".split(","), ["", ""])
+  tester::assert_eq("".split(""), [], "an empty string has no characters")
+  tester::assert_eq("ab".split(""), ["a", "b"])
+end
+
+@tester::test("strings: split checks its separator's type")
+fn test_split_separator_type()
+  for s in ["", "a b"] do
+    kind = ""
+    try
+      s.split(5)
+    catch (k, m)
+      kind = k
+    end
+    tester::assert_eq(kind, "ParameterTypeMismatchError", "splitting \"${s}\"")
+  end
+end

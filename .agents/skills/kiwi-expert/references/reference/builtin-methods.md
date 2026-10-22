@@ -81,7 +81,7 @@ For rounding, absolute values, powers and so on, see the [`math`](../lib/math.md
 
 | Method | Returns |
 | :-- | :-- |
-| `.split(separator)` | A list of the parts between occurrences of `separator`. An empty separator splits into characters. |
+| `.split(separator)` | A list of the parts between occurrences of `separator`. A string without the separator, including `""`, gives a list holding that string. An empty separator splits into characters. |
 | `.lines()` | A list of lines. |
 | `.chars()`, `.to_list()` | A list of characters. |
 | `.to_integer()`, `.to_float()` | The parsed number. Throws `ConversionError` if the string isn't numeric. |
@@ -96,6 +96,7 @@ println s.substring(0, 5)         # Hello
 println s.lastindex("o")          # 8
 println s.count("l")              # 3
 println "a,b,,c".split(",")       # ["a", "b", "", "c"]
+println "".split(",")             # [""]
 println "line 1\nline 2".lines()  # ["line 1", "line 2"]
 ```
 
