@@ -1,0 +1,42 @@
+/#
+@summary A package for loading native extensions: shared libraries written against the C ABI in `sdk/c/kiwi_ext.h`.
+#/
+package native
+  /#
+  @summary Loads a native extension and registers its functions as a package.
+  @param string path : Path to the shared library. A relative path is resolved against the running script's directory first.
+  @param string name : The package name for the extension's functions. Defaults to the file name without its `lib` prefix and extension.
+  @throws NativeError : When the library cannot be loaded, has no `kiwi_ext_init`, or its initialization fails.
+  @return package : A reference to the extension's package.
+  @example
+    m = native::load("libmymath.so")
+    println m.add(2, 3)
+    println mymath::add(2, 3)
+  #/
+  fn load(path: string, name: string = "")
+    __native_load__(path, name)
+  end
+
+  /#
+  @summary Gets the runtime identifier of the running interpreter, used to pick a prebuilt native library.
+  @return string : One of `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`, `win-x64`, and so on.
+  #/
+  fn rid(): string
+    __native_rid__()
+  end
+
+  /#
+  @summary Gets the platform's file name for a shared library.
+  @param string base : The library's base name, such as `mymath`.
+  @return string : `libmymath.so` on Linux, `libmymath.dylib` on macOS, `mymath.dll` on Windows.
+  #/
+  fn library_name(base: string): string
+    os = native::rid().split("-")[0]
+    if os == "win"
+      return "${base}.dll"
+    elsif os == "osx"
+      return "lib${base}.dylib"
+    end
+    "lib${base}.so"
+  end
+end

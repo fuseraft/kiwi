@@ -48,7 +48,10 @@ var (stdlib_tests: list = [
   "httpserver",
 
   # Filesystem watching
-  "watch"
+  "watch",
+
+  # Native extensions
+  "native"
 ])
 
 for stdlib_test in stdlib_tests do

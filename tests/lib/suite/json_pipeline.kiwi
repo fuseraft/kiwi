@@ -6,9 +6,9 @@ fn test_json_pipeline()
   # -----------------------------------------------------------------------
   # Write temporary JSON fixtures
   # -----------------------------------------------------------------------
-  users_json  = "/tmp/kiwi_test_users.json"
-  roles_json  = "/tmp/kiwi_test_roles.json"
-  obj_json    = "/tmp/kiwi_test_obj.json"
+  users_json  = fio::combine([fio::tmpdir(), "kiwi_test_users.json"])
+  roles_json  = fio::combine([fio::tmpdir(), "kiwi_test_roles.json"])
+  obj_json    = fio::combine([fio::tmpdir(), "kiwi_test_obj.json"])
 
   fio::write(users_json, '[{"id":1,"name":"Alice","active":true},{"id":2,"name":"Bob","active":false}]')
   fio::write(roles_json, '[{"role":"admin","level":1},{"role":"user","level":2}]')
@@ -112,7 +112,7 @@ fn test_json_pipeline()
   # -----------------------------------------------------------------------
   missing_ok = false
   try
-    json::pipeline().from_file("/tmp/kiwi_no_such_file.json").parse()
+    json::pipeline().from_file(fio::combine([fio::tmpdir(), "kiwi_no_such_file.json"])).parse()
   catch err
     missing_ok = true
   end
@@ -121,7 +121,7 @@ fn test_json_pipeline()
   # -----------------------------------------------------------------------
   # B11: with_schema — coerce string-valued JSON fields
   # -----------------------------------------------------------------------
-  str_json = "/tmp/kiwi_test_strvals.json"
+  str_json = fio::combine([fio::tmpdir(), "kiwi_test_strvals.json"])
   fio::write(str_json, '[{"id":"1","score":"9.5","active":"true"},{"id":"2","score":"7.0","active":"false"}]')
   coerced = json::pipeline()
     .with_schema({"id": "integer", "score": "float", "active": "boolean"})

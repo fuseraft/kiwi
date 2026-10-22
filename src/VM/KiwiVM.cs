@@ -2890,6 +2890,8 @@ public sealed class KiwiVM
         }
         if (callable is KFunction kf)
         {
+            if (kf.NativeBody != null)
+                return kf.NativeBody(args, token);
             if (kf.Delegate != null)
             {
                 var a = args.ToArray();
@@ -3070,6 +3072,8 @@ public sealed class KiwiVM
             return SocketBuiltinHandler.Execute(token, op, args);
         if (TlsSocketBuiltin.IsBuiltin(op))
             return TlsSocketBuiltinHandler.Execute(token, op, args);
+        if (NativeBuiltin.IsBuiltin(op))
+            return NativeBuiltinHandler.Execute(this, token, op, args);
         return BuiltinDispatch.Execute(token, op, args, CliArgs, RawArgs);
     }
 
@@ -3395,22 +3399,33 @@ public sealed class KiwiVM
         return InvokeCallable(fn, args, token, methodName, structSelf);
     }
 
-    private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, IReadOnlyList<Value> args)
+    /// <summary>
+    /// Resolves a lambda value to the function or lambda it refers to.
+    /// <paramref name="callableName"/> is set for any lambda value, even when no target is found.
+    /// </summary>
+    internal bool TryResolveCallable(Value obj, out Callable? callable, out string? callableName)
     {
-        if (!CallableBuiltin.Map.TryGetValue(methodName, out var op))
-            throw new FunctionUndefinedError(token, methodName);
-
-        Callable? callable  = null;
-        string? callableName = null;
+        callable     = null;
+        callableName = null;
 
         if (obj.IsLambda())
         {
             var lr = obj.GetLambda();
             callableName = lr.Identifier;
-            if (TryGetLambda(lr, out var kl))            callable = kl;
+            if (TryGetLambda(lr, out var kl))                callable = kl;
             else if (_context.HasMappedLambda(callableName)) callable = _context.Lambdas[_context.LambdaTable[callableName]];
-            else if (_context.HasFunction(callableName)) callable = _context.Functions[callableName];
+            else if (_context.HasFunction(callableName))     callable = _context.Functions[callableName];
         }
+
+        return callable != null;
+    }
+
+    private Value HandleCallableBuiltinDirect(Token token, Value obj, string methodName, IReadOnlyList<Value> args)
+    {
+        if (!CallableBuiltin.Map.TryGetValue(methodName, out var op))
+            throw new FunctionUndefinedError(token, methodName);
+
+        TryResolveCallable(obj, out var callable, out var callableName);
 
         if (callableName == null)
             throw new InvalidOperationError(token, $"Expected a callable for function `{CallableBuiltin.MapName(op)}`.");

@@ -1,0 +1,4 @@
+# Kiwi multi-line string literals take their line endings from the source file, so check
+# scripts out with LF everywhere; otherwise a Windows checkout changes what they produce.
+*.kiwi text eol=lf
+*.sh   text eol=lf

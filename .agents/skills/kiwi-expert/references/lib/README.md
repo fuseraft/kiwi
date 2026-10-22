@@ -65,6 +65,7 @@ Each package page starts with a guide and examples, followed by an API reference
 | [`sys`](sys.md) | Run programs and manage processes. |
 | [`signal`](signal.md) | Handle OS signals. |
 | [`ipc`](ipc.md) | Named-pipe messaging between processes. |
+| [`native`](native.md) | Load native extensions written in C, Rust, Zig or C#. |
 
 ## Networking
 

@@ -72,6 +72,7 @@ Write-Host "Building Kiwi for $RuntimeId..."
 
 $AotArgs = @(
   'publish', $SolutionPath,
+  '--disable-build-servers',
   '-c', 'Release',
   '-r', $RuntimeId,
   '--self-contained', 'true',
@@ -86,43 +87,53 @@ $AotArgs = @(
   '-o', $OutputDir
 )
 
-$LogOut = Join-Path $env:TEMP 'kiwi_build.log'
-$LogErr = Join-Path $env:TEMP 'kiwi_build_err.log'
+$FallbackArgs = @(
+  'publish', $SolutionPath,
+  '--disable-build-servers',
+  '-c', 'Release',
+  '-r', $RuntimeId,
+  '--self-contained', 'true',
+  '-p:PublishAot=false',
+  '-p:PublishTrimmed=true',
+  '-p:PublishReadyToRun=true',
+  '-p:StripSymbols=true',
+  '-p:DebugType=none',
+  '-p:IncludeNativeLibrariesForSelfExtract=true',
+  '-o', $OutputDir
+)
 
-$proc = Start-Process dotnet -ArgumentList $AotArgs -Wait -PassThru -NoNewWindow `
-  -RedirectStandardOutput $LogOut `
-  -RedirectStandardError  $LogErr
+# Runs dotnet and returns its exit code. The output is kept in $script:BuildOutput and shown
+# only on failure, except in GitHub Actions, where it streams so the job log timestamps it.
+# dotnet is called directly rather than through Start-Process -Wait, which on Windows waits
+# for every process the build started, including long-lived build servers.
+function Invoke-Dotnet([string[]]$DotnetArgs) {
+  $ErrorActionPreference = 'Continue'
+  if ($env:GITHUB_ACTIONS -eq 'true') {
+    & dotnet @DotnetArgs 2>&1 | Out-Host
+    $script:BuildOutput = @()
+  } else {
+    $script:BuildOutput = & dotnet @DotnetArgs 2>&1
+  }
+  return $LASTEXITCODE
+}
 
-if ($proc.ExitCode -ne 0) {
+$Stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+if ((Invoke-Dotnet $AotArgs) -ne 0) {
   Write-Host 'AOT build failed. Output:'
-  Get-Content $LogOut, $LogErr -ErrorAction SilentlyContinue | Write-Host
+  $script:BuildOutput | Write-Host
   Write-Host 'Falling back to non-AOT build...'
 
-  $FallbackArgs = @(
-    'publish', $SolutionPath,
-    '-c', 'Release',
-    '-r', $RuntimeId,
-    '--self-contained', 'true',
-    '-p:PublishTrimmed=true',
-    '-p:PublishReadyToRun=true',
-    '-p:StripSymbols=true',
-    '-p:DebugType=none',
-    '-p:IncludeNativeLibrariesForSelfExtract=true',
-    '-o', $OutputDir
-  )
-
-  $proc2 = Start-Process dotnet -ArgumentList $FallbackArgs -Wait -PassThru -NoNewWindow `
-    -RedirectStandardOutput $LogOut `
-    -RedirectStandardError  $LogErr
-
-  if ($proc2.ExitCode -ne 0) {
+  if ((Invoke-Dotnet $FallbackArgs) -ne 0) {
     Write-Host 'Fallback build failed. Output:'
-    Get-Content $LogOut, $LogErr -ErrorAction SilentlyContinue | Write-Host
+    $script:BuildOutput | Write-Host
     exit 1
   }
 
   Write-Host 'Fallback build succeeded (non-AOT). Consider fixing AOT issues for optimal performance.'
 }
+
+Write-Host ("Built in {0:N0}s." -f $Stopwatch.Elapsed.TotalSeconds)
 
 # -------------------------------------------------------------------------
 # Cleanup intermediate directories
