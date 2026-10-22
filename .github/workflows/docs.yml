@@ -25,6 +25,7 @@ permissions:
 jobs:
   docs:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: docs

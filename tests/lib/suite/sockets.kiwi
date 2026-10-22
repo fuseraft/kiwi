@@ -6,6 +6,11 @@
 
    TCP  — port 17891
    TLS  — port 17892  (self-signed cert, SAN = kiwi.local / 127.0.0.1)
+
+   A lambda shares its enclosing function's local variables, so the server
+   lambdas use names the test function doesn't. When both used recv_tid, the
+   client's assignment could replace the server's between its recv and its
+   await, and the server waited on the client's task forever.
   ============================================================================== #/
 require "task"
 
@@ -23,16 +28,11 @@ fn test_tcp_socket()
     # listening, so the client can connect as soon as this fires.
     ch.send(true)
 
-    accept_tid = socket::accept(s)
-    client = await(accept_tid)
+    server_conn = await(socket::accept(s))
+    server_data = await(socket::recv(server_conn))
+    await(socket::send(server_conn, server_data))
 
-    recv_tid = socket::recv(client)
-    data = await(recv_tid)
-
-    send_tid = socket::send(client, data)
-    await(send_tid)
-
-    socket::close(client)
+    socket::close(server_conn)
     socket::close(s)
   end, [srv, ready_ch])
 
@@ -62,16 +62,11 @@ fn test_tls_socket()
 
     # tls::accept returns a task ID; await resolves it to the client socket ID
     # after the TLS handshake completes on the server side.
-    accept_tid = tls::accept(s)
-    client = await(accept_tid)
+    server_conn = await(tls::accept(s))
+    server_data = await(tls::recv(server_conn))
+    await(tls::send(server_conn, server_data))
 
-    recv_tid = tls::recv(client)
-    data = await(recv_tid)
-
-    send_tid = tls::send(client, data)
-    await(send_tid)
-
-    tls::close(client)
+    tls::close(server_conn)
     tls::close(s)
   end, [srv, ready_ch])
 
