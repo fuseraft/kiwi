@@ -1527,11 +1527,6 @@ public static class CoreBuiltinHandler
 
         var s = value.GetString();
 
-        if (string.IsNullOrEmpty(s))
-        {
-            return Value.CreateList([]);
-        }
-
         ParameterTypeMismatchError.ExpectString(token, CoreBuiltin.Split, 0, args[0]);
 
         var delim = args[0].GetString();
