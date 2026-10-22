@@ -33,6 +33,8 @@ println [0] * 4              # [0, 0, 0, 0]
 println "count: " + 5        # count: 5
 ```
 
+Repeating zero times, or a negative number of times, gives an empty string or list: `[0] * 0` is `[]`.
+
 ## Comparison
 
 | Operator | Meaning |

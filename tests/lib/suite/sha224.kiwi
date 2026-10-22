@@ -8,3 +8,29 @@ fn test_sha224()
   tester::assert("bba476fc42a4327019c6239a15d662f327c646ad3d8b4c0ca32e33e5" == crypto::sha224_hash(a_str), "A2")
   tester::assert("7d70521535e7b865c1572daff05a3fd022df567f4b6d74d556477f0a" == crypto::sha224_hash(a_str*7), "A3")
 end
+
+# Lengths around the 64-byte block and the 56-byte padding boundary. SHA-224 used to crash at
+# 63 bytes and at multiples of 64.
+@tester::test("sha224: block boundaries")
+fn test_sha224_block_boundaries()
+  expected = {
+    0: "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f",
+    1: "54a2f7f92a5f975d8096af77a126edda7da60c5aa872ef1b871701ae",
+    55: "2791c7d25712eb5be75c30b2d45f6fce96e5a50ee64cf373056704a3",
+    56: "82199913c2712c46707ad08c8bfa2a69f68e9092dc5cdfaaaf07d77f",
+    57: "b775289f809e2e1921a2c092ca091f72f4b0a63d62865e073c243e56",
+    63: "57176f335e39202a5454db924c660af77ec98a91f35706d9f57d7398",
+    64: "08c3050e95fe11eacb9dc7824bf6a92bcf2d59c21701321fba0e62c5",
+    65: "b14ef0fefbdb3c42af0d9b42709410c66506d0ed003cd65463a8f96b",
+    119: "d75fd32c9a5ddf823b9f5b99b5170d51f8d9103d1436b5996c62b504",
+    120: "39d41dac408a2db1463e7077b115776faa2a395bdec3293f6ec98cc9",
+    127: "a5ffb9e121706a2be6dbf15016a927bae8c40aec062589112213b6e4",
+    128: "4328cf4d227d10ab6dab5f02c7905cd583b2fcaf0be9a7ab9da5c692",
+    129: "9290ef1b38c2e3cdffad69ab99e6142e4a7d10f10f2b40604cc2f77c",
+    255: "27b1e4505ad986c9f6a2b0976585c02721117d1f73b08ec54d716b1c",
+    256: "d758f39cdd7c448126e943e7c5d54c62d2abb334e0e2435b1eb72e95"
+  }
+  for n, digest in expected do
+    tester::assert_eq(crypto::sha224_hash("x" * n), digest, "${n} bytes")
+  end
+end

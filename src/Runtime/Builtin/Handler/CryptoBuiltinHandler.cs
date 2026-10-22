@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using kiwi.Parsing;
 using kiwi.Parsing.Keyword;
+using kiwi.Settings;
 using kiwi.Tracing.Error;
 using kiwi.Typing;
 
@@ -13,9 +14,12 @@ public static class CryptoBuiltinHandler
     {
         return builtin switch
         {
-            TokenName.Builtin_Crypto_Sha1       => HashString(token, args, "SHA1"),
-            TokenName.Builtin_Crypto_Sha384     => HashString(token, args, "SHA384"),
-            TokenName.Builtin_Crypto_Sha512     => HashString(token, args, "SHA512"),
+            TokenName.Builtin_Crypto_Md5        => Hash(token, args, "MD5"),
+            TokenName.Builtin_Crypto_Sha1       => Hash(token, args, "SHA1"),
+            TokenName.Builtin_Crypto_Sha256     => Hash(token, args, "SHA256"),
+            TokenName.Builtin_Crypto_Sha384     => Hash(token, args, "SHA384"),
+            TokenName.Builtin_Crypto_Sha512     => Hash(token, args, "SHA512"),
+            TokenName.Builtin_Crypto_FileHash   => FileHash(token, args),
             TokenName.Builtin_Crypto_HmacMd5    => HmacHash(token, args, "HMACMD5"),
             TokenName.Builtin_Crypto_HmacSha256 => HmacHash(token, args, "HMACSHA256"),
             TokenName.Builtin_Crypto_HmacSha512 => HmacHash(token, args, "HMACSHA512"),
@@ -23,31 +27,68 @@ public static class CryptoBuiltinHandler
         };
     }
 
-    private static Value HashString(Token token, List<Value> args, string algorithm)
+    private static Value Hash(Token token, List<Value> args, string algorithm)
     {
         ParameterCountMismatchError.Check(token, algorithm, 1, args.Count);
-        ParameterTypeMismatchError.ExpectString(token, algorithm, 0, args[0]);
 
-        var input = Encoding.UTF8.GetBytes(args[0].GetString());
+        var input = GetData(token, algorithm, 0, args[0]);
         byte[] hash = algorithm switch
         {
+            "MD5"    => MD5.HashData(input),
             "SHA1"   => SHA1.HashData(input),
+            "SHA256" => SHA256.HashData(input),
             "SHA384" => SHA384.HashData(input),
             "SHA512" => SHA512.HashData(input),
             _ => throw new InvalidOperationException($"Unknown hash algorithm: {algorithm}")
         };
 
-        return Value.CreateString(Convert.ToHexString(hash).ToLowerInvariant());
+        return Hex(hash);
+    }
+
+    // Streams the file through the hash, so a large file isn't read into memory.
+    private static Value FileHash(Token token, List<Value> args)
+    {
+        const string name = "file_hash";
+        if (Kiwi.Settings.SafeMode) throw new SafeModeError(token, "crypto::file_hash");
+
+        ParameterCountMismatchError.Check(token, name, 2, args.Count);
+        ParameterTypeMismatchError.ExpectString(token, name, 0, args[0]);
+        ParameterTypeMismatchError.ExpectString(token, name, 1, args[1]);
+
+        var path = args[0].GetString();
+        var algorithm = args[1].GetString().ToUpperInvariant().Replace("-", "");
+        HashAlgorithmName hashName = algorithm switch
+        {
+            "MD5"    => HashAlgorithmName.MD5,
+            "SHA1"   => HashAlgorithmName.SHA1,
+            "SHA256" => HashAlgorithmName.SHA256,
+            "SHA384" => HashAlgorithmName.SHA384,
+            "SHA512" => HashAlgorithmName.SHA512,
+            _ => throw new InvalidOperationError(token, $"Unsupported hash algorithm '{args[1].GetString()}'. Use MD5, SHA1, SHA256, SHA384 or SHA512.")
+        };
+
+        try
+        {
+            using var hash = IncrementalHash.CreateHash(hashName);
+            using var stream = File.OpenRead(path);
+            var buffer = new byte[81920];
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                hash.AppendData(buffer, 0, read);
+            return Hex(hash.GetHashAndReset());
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new FileReadError(token, path);
+        }
     }
 
     private static Value HmacHash(Token token, List<Value> args, string algorithm)
     {
         ParameterCountMismatchError.Check(token, algorithm, 2, args.Count);
-        ParameterTypeMismatchError.ExpectString(token, algorithm, 0, args[0]);
-        ParameterTypeMismatchError.ExpectString(token, algorithm, 1, args[1]);
 
-        var key   = Encoding.UTF8.GetBytes(args[0].GetString());
-        var input = Encoding.UTF8.GetBytes(args[1].GetString());
+        var key   = GetData(token, algorithm, 0, args[0]);
+        var input = GetData(token, algorithm, 1, args[1]);
 
         byte[] hash = algorithm switch
         {
@@ -57,6 +98,16 @@ public static class CryptoBuiltinHandler
             _ => throw new InvalidOperationException($"Unknown HMAC algorithm: {algorithm}")
         };
 
-        return Value.CreateString(Convert.ToHexString(hash).ToLowerInvariant());
+        return Hex(hash);
     }
+
+    // Strings are hashed as UTF-8, and bytes as they are.
+    private static byte[] GetData(Token token, string name, int position, Value value)
+    {
+        if (value.IsBytes()) return value.GetBytes();
+        if (value.IsString()) return Encoding.UTF8.GetBytes(value.GetString());
+        throw new ParameterTypeMismatchError(token, name, position, value.Type, [Typing.ValueType.String, Typing.ValueType.Bytes]);
+    }
+
+    private static Value Hex(byte[] hash) => Value.CreateString(Convert.ToHexString(hash).ToLowerInvariant());
 }

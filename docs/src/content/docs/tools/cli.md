@@ -93,7 +93,7 @@ No syntax errors found in: hello.kiwi
 
 ### Safe mode
 
-`--safemode` runs untrusted code without access to the outside world. These packages throw a `SafeModeError` when used: `fio`, `http`, `httpserver`, `socket`, `tls`, `udp`, `ipc`, `smtp`, `signal`, `sys` and `native::load`, and `env::set` is blocked.
+`--safemode` runs untrusted code without access to the outside world. These packages throw a `SafeModeError` when used: `fio`, `http`, `httpserver`, `socket`, `tls`, `udp`, `ipc`, `smtp`, `signal`, `sys`, `native::load` and `crypto::file_hash`, and `env::set` is blocked.
 
 ```text
 $ kiwi -sm -e 'fio::read("secrets.txt")'

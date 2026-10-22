@@ -11,6 +11,9 @@ var (stdlib_tests: list = [
   # Encoding utilities
   "encode",
 
+  # Hashing
+  "crypto",
+
   # String formatting
   "fmt",
 

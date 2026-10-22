@@ -1,0 +1,69 @@
+# Native hashing of bytes and files. The digests come from Python's hashlib.
+fn _crypto_temp_file(content: string): string
+  path = fio::combine([fio::tmpdir(), "kiwi_crypto_test_${sys::pid()}.txt"])
+  fio::write(path, content)
+  path
+end
+
+fn _crypto_error_kind(f: lambda): string
+  try
+    f()
+  catch (kind, message)
+    return kind
+  end
+  ""
+end
+
+@tester::test("crypto: hash functions take bytes")
+fn test_crypto_bytes()
+  data = b"\xff\x00"
+  tester::assert_eq(crypto::sha1_hash(data), "da33e41954997c24ad31f6c1845e18510b384f67")
+  tester::assert_eq(crypto::sha384_hash(data), "fe04b87a07900ccb8933b84db6cdc4b0ab0a8d0020576e169653c8b74ab9387ab4a6e8c40cdac8308fc17e204f455897")
+  tester::assert_eq(crypto::sha512_hash(data), "823ff44c829aa3b7ca7926fb0f864f86b2a8e4ea4b4b3f2da6e25e7df5985a1eaa6bbb40460de1e6703b9405f7c0a0f3ceb20ede771d4241d55bd4b6f459f464")
+  tester::assert_eq(crypto::hmac_sha256(b"\x01\x02", data), "0832992e8bcd99d99613cd5df8da785014ac741d4ccfaf02bf144b66e3394b7a")
+end
+
+@tester::test("crypto: hash functions reject other types")
+fn test_crypto_bad_type()
+  tester::assert_eq(_crypto_error_kind(with () do crypto::sha256_hash(42) end), "ParameterTypeMismatchError")
+end
+
+@tester::test("crypto: file_hash hashes a file with each algorithm")
+fn test_crypto_file_hash()
+  path = _crypto_temp_file("kiwi\n" * 1000)
+  try
+    expected = {
+      "MD5": "68d683cf35e4477e970eaf8d87edda7e",
+      "SHA1": "ee008c316e78b36ca2514ddfb5648dd885c6dfac",
+      "SHA256": "4eede3156256e080af0dfaf68c2e8bffaca82412b3dca9e65dbe48588f350876",
+      "SHA384": "45377e3ee1dbbc70df552e3321f9c52f2d8476f4206886df666bc56e39c6886446e24072331a0afb3dc6d22b1fbf41fa",
+      "SHA512": "2d64f0cc84729ece35bb92906130001d8366c5ab51182fee60fb565e65453e2a8310ea18173156667019d63b75d048e5a8fcffb9522a3cbfef033455c6df78e1"
+    }
+    for algorithm, digest in expected do
+      tester::assert_eq(crypto::file_hash(path, algorithm), digest, algorithm)
+    end
+    tester::assert_eq(crypto::file_hash(path), expected["SHA256"], "SHA-256 is the default")
+    tester::assert_eq(crypto::file_hash(path, "sha-256"), expected["SHA256"], "names ignore case and hyphens")
+  finally
+    fio::remove(path)
+  end
+end
+
+@tester::test("crypto: file_hash reports a missing file and an unknown algorithm")
+fn test_crypto_file_hash_errors()
+  missing = fio::combine([fio::tmpdir(), "kiwi_crypto_missing_${sys::pid()}.txt"])
+  tester::assert_eq(_crypto_error_kind(with () do crypto::file_hash(missing) end), "FileReadError")
+
+  path = _crypto_temp_file("x")
+  try
+    tester::assert_eq(_crypto_error_kind(with () do crypto::file_hash(path, "CRC32") end), "InvalidOperationError")
+  finally
+    fio::remove(path)
+  end
+end
+
+@tester::test("crypto: file_hash is unavailable in safe mode")
+fn test_crypto_file_hash_safe_mode()
+  r = sys::execout(env::bin(), ["-sm", "-e", "crypto::file_hash(\"x\")"])
+  tester::assert((r["stdout"] + r["stderr"]).contains("'crypto::file_hash' is not available in safe mode"), r["stdout"] + r["stderr"])
+end

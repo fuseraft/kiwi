@@ -60,11 +60,13 @@ package std
   @summary Returns an integer range `[x, y)` as a list.
   @param integer x : The inclusive start of the range.
   @param integer y : The exclusive end of the range.
-  @return list : A list of integers from `x` to `y - 1`.
+  @return list : A list of integers from `x` to `y - 1`, or an empty list when `y <= x`.
   @throws InvalidRange : If either argument is not an integer.
   #/
   fn range(x, y)
     throw error::InvalidRange() when ![x, y].all(with (n) do is_int(n) end)
+    # [x to y - 1] counts down when y - 1 < x.
+    return [] when y <= x
     return [x to y - 1]
   end
 end

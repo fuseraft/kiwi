@@ -6,17 +6,17 @@
 #/
 package crypto
   /#
-  @summary Computes the MD5 hex digest of a string.
-  @param string input : The input string to hash (default `""`).
+  @summary Computes the MD5 hex digest of a string or bytes. A string is hashed as UTF-8.
+  @param string|bytes input : The input to hash (default `""`).
   @return string : A 32-character lowercase hexadecimal MD5 digest.
   #/
   fn md5_hash(input = "")
-    return MD5.hexdigest(input)
+    return __crypto_md5__(input)
   end
 
   /#
-  @summary Computes the SHA-224 hex digest of a string.
-  @param string input : The input string to hash (default `""`).
+  @summary Computes the SHA-224 hex digest of a string or bytes. A string is hashed as UTF-8.
+  @param string|bytes input : The input to hash (default `""`).
   @return string : A 56-character lowercase hexadecimal SHA-224 digest.
   #/
   fn sha224_hash(input = "")
@@ -24,17 +24,17 @@ package crypto
   end
 
   /#
-  @summary Computes the SHA-256 hex digest of a string.
-  @param string input : The input string to hash (default `""`).
+  @summary Computes the SHA-256 hex digest of a string or bytes. A string is hashed as UTF-8.
+  @param string|bytes input : The input to hash (default `""`).
   @return string : A 64-character lowercase hexadecimal SHA-256 digest.
   #/
   fn sha256_hash(input = "")
-    return SHA256.new(input).hexdigest()
+    return __crypto_sha256__(input)
   end
 
   /#
-  @summary Computes the SHA-1 hex digest of a string.
-  @param string input : The input string to hash (default `""`).
+  @summary Computes the SHA-1 hex digest of a string or bytes. A string is hashed as UTF-8.
+  @param string|bytes input : The input to hash (default `""`).
   @return string : A 40-character lowercase hexadecimal SHA-1 digest.
   #/
   fn sha1_hash(input = "")
@@ -42,8 +42,8 @@ package crypto
   end
 
   /#
-  @summary Computes the SHA-384 hex digest of a string.
-  @param string input : The input string to hash (default `""`).
+  @summary Computes the SHA-384 hex digest of a string or bytes. A string is hashed as UTF-8.
+  @param string|bytes input : The input to hash (default `""`).
   @return string : A 96-character lowercase hexadecimal SHA-384 digest.
   #/
   fn sha384_hash(input = "")
@@ -51,8 +51,8 @@ package crypto
   end
 
   /#
-  @summary Computes the SHA-512 hex digest of a string.
-  @param string input : The input string to hash (default `""`).
+  @summary Computes the SHA-512 hex digest of a string or bytes. A string is hashed as UTF-8.
+  @param string|bytes input : The input to hash (default `""`).
   @return string : A 128-character lowercase hexadecimal SHA-512 digest.
   #/
   fn sha512_hash(input = "")
@@ -60,10 +60,22 @@ package crypto
   end
 
   /#
-  @summary Computes an HMAC hex digest.
+  @summary Computes the hex digest of a file's contents. The file is read in chunks, so it
+  can be larger than memory. Unavailable in safe mode.
+  @param string path : The file to hash.
+  @param string algorithm : One of "MD5", "SHA1", "SHA256", "SHA384" or "SHA512" (default "SHA256").
+  @return string : Lowercase hexadecimal digest.
+  @throws FileReadError : If the file can't be read.
+  #/
+  fn file_hash(path, algorithm = "SHA256")
+    return __crypto_file_hash__(path, algorithm)
+  end
+
+  /#
+  @summary Computes an HMAC hex digest. Strings are hashed as UTF-8.
   @param string algorithm : One of "MD5", "SHA256", "SHA512".
-  @param string key : The HMAC key.
-  @param string input : The input string.
+  @param string|bytes key : The HMAC key.
+  @param string|bytes input : The input.
   @return string : Lowercase hexadecimal HMAC digest.
   #/
   fn hmac(algorithm, key, input)
@@ -75,9 +87,9 @@ package crypto
   end
 
   /#
-  @summary Computes HMAC-SHA256.
-  @param string key : The HMAC key.
-  @param string input : The input string.
+  @summary Computes HMAC-SHA256. Strings are hashed as UTF-8.
+  @param string|bytes key : The HMAC key.
+  @param string|bytes input : The input.
   @return string : Lowercase hexadecimal digest.
   #/
   fn hmac_sha256(key, input)
@@ -85,9 +97,9 @@ package crypto
   end
 
   /#
-  @summary Computes HMAC-SHA512.
-  @param string key : The HMAC key.
-  @param string input : The input string.
+  @summary Computes HMAC-SHA512. Strings are hashed as UTF-8.
+  @param string|bytes key : The HMAC key.
+  @param string|bytes input : The input.
   @return string : Lowercase hexadecimal digest.
   #/
   fn hmac_sha512(key, input)
@@ -95,9 +107,9 @@ package crypto
   end
 
   /#
-  @summary Computes HMAC-MD5.
-  @param string key : The HMAC key.
-  @param string input : The input string.
+  @summary Computes HMAC-MD5. Strings are hashed as UTF-8.
+  @param string|bytes key : The HMAC key.
+  @param string|bytes input : The input.
   @return string : Lowercase hexadecimal digest.
   #/
   fn hmac_md5(key, input)
