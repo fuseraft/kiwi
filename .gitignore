@@ -25,3 +25,9 @@ tmp/
 .fuseraft/sessions/
 .fuseraft/knowledge/repository/
 .fuseraft/memory/
+
+# C# extension SDK and the C# test extension
+sdk/csharp/**/bin/
+sdk/csharp/**/obj/
+tests/native/csharp/**/bin/
+tests/native/csharp/**/obj/

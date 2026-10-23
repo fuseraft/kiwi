@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The C# counterpart of kiwi_test_ext.c, built with the SDK in sdk/csharp. A project that
+       uses the Kiwi.Native package gets the props and targets from it. -->
+  <Import Project="../../../sdk/csharp/Kiwi.Native/build/Kiwi.Native.props" />
+  <Import Project="../../../sdk/csharp/Kiwi.Native/build/Kiwi.Native.targets" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PublishAot>true</PublishAot>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>kiwi_test_ext_cs</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../sdk/csharp/Kiwi.Native/Kiwi.Native.csproj" />
+    <ProjectReference Include="../../../sdk/csharp/Kiwi.Native.Generator/Kiwi.Native.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

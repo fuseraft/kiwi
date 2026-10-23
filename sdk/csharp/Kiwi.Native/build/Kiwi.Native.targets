@@ -1,0 +1,6 @@
+<Project>
+  <!-- Without native AOT, publishing gives a .NET app that Kiwi can't load. -->
+  <Target Name="KiwiNativeRequireAot" BeforeTargets="Publish;PrepareForPublish" Condition="'$(PublishAot)' != 'true'">
+    <Error Code="KIWI100" Text="A Kiwi extension must be published with native AOT. Add &lt;PublishAot&gt;true&lt;/PublishAot&gt; to $(MSBuildProjectFile)." />
+  </Target>
+</Project>

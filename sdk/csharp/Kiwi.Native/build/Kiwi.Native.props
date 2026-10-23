@@ -1,0 +1,9 @@
+<Project>
+  <!-- A Kiwi extension is a shared library. The generated kiwi_ext_init export and its
+       wrappers use function pointers, so they need unsafe code. PublishAot has to be set in
+       the project itself: the SDK doesn't see it when a package sets it. -->
+  <PropertyGroup>
+    <NativeLib Condition="'$(NativeLib)' == ''">Shared</NativeLib>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+</Project>

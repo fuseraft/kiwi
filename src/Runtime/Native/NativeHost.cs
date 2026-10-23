@@ -253,7 +253,8 @@ public static unsafe class NativeHost
     private static ulong NewString(nint c, byte* utf8, nuint len)
     {
         var ctx = NativeCallContext.FromHandle(c);
-        try { return ctx.Add(Value.CreateString(Encoding.UTF8.GetString(utf8, checked((int)len)))); }
+        // An empty string may come with a null pointer.
+        try { return ctx.Add(Value.CreateString(len == 0 ? string.Empty : Encoding.UTF8.GetString(utf8, checked((int)len)))); }
         catch (Exception e) { ctx.Fail(e); return 0; }
     }
 

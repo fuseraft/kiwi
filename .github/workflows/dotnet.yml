@@ -20,6 +20,10 @@ jobs:
       run: ./bin/kiwi tests/test
     - name: Run standard library test suite
       run: ./bin/kiwi tests/test_stdlib
+    - name: Test the C# extension SDK
+      run: dotnet test sdk/csharp/Kiwi.Native.Tests
+    - name: Test an extension written in C#
+      run: ./bin/kiwi tests/native/csharp_ext.kiwi
   build-windows:
     runs-on: windows-latest
     timeout-minutes: 10
@@ -38,6 +42,12 @@ jobs:
     - name: Run standard library test suite
       shell: pwsh
       run: ./bin/kiwi.exe tests/test_stdlib
+    - name: Test the C# extension SDK
+      shell: pwsh
+      run: dotnet test sdk/csharp/Kiwi.Native.Tests
+    - name: Test an extension written in C#
+      shell: pwsh
+      run: ./bin/kiwi.exe tests/native/csharp_ext.kiwi
   build-macos:
     runs-on: macos-latest
     timeout-minutes: 10
@@ -53,3 +63,7 @@ jobs:
       run: ./bin/kiwi tests/test
     - name: Run standard library test suite
       run: ./bin/kiwi tests/test_stdlib
+    - name: Test the C# extension SDK
+      run: dotnet test sdk/csharp/Kiwi.Native.Tests
+    - name: Test an extension written in C#
+      run: ./bin/kiwi tests/native/csharp_ext.kiwi
