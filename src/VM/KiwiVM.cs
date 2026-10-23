@@ -3074,6 +3074,8 @@ public sealed class KiwiVM
             return TlsSocketBuiltinHandler.Execute(token, op, args);
         if (NativeBuiltin.IsBuiltin(op))
             return NativeBuiltinHandler.Execute(this, token, op, args);
+        if (FfiBuiltin.IsBuiltin(op))
+            return FfiBuiltinHandler.Execute(this, token, op, args);
         return BuiltinDispatch.Execute(token, op, args, CliArgs, RawArgs);
     }
 

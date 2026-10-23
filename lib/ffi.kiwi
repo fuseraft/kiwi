@@ -1,0 +1,194 @@
+/#
+@summary A package for calling C functions in shared libraries, and for reading and writing native memory.
+#/
+package ffi
+  /#
+  @summary Opens a shared library.
+  @param string path : The library's path or name, such as `libm.so.6`. A relative path is resolved against the running script's directory first, then by the platform's library search.
+  @throws FfiError : When the library can't be loaded.
+  @return pointer : The library, for `ffi::func`, `ffi::symbol` and `ffi::close`.
+  #/
+  fn open(path: string): pointer
+    __ffi_open__(path)
+  end
+
+  /#
+  @summary Closes a library opened with `ffi::open`. Its functions must not be called afterwards.
+  @param pointer library : The library.
+  #/
+  fn close(library)
+    __ffi_close__(library)
+  end
+
+  /#
+  @summary Gets the address of a function or variable exported by a library.
+  @param pointer library : A library opened with `ffi::open`.
+  @param string name : The symbol's name.
+  @throws FfiError : When the library has no such symbol.
+  @return pointer : The symbol's address.
+  #/
+  fn symbol(library, name: string): pointer
+    __ffi_symbol__(library, name)
+  end
+
+  /#
+  @summary Wraps a C function in a library as a lambda.
+  @param pointer library : A library opened with `ffi::open`.
+  @param string name : The function's name.
+  @param list params : The parameter types, such as `["int32", "double"]`. See the type table for the names.
+  @param string returns : The return type. Defaults to `void`.
+  @throws FfiError : When the library has no such function, or a type isn't known.
+  @return lambda : A lambda that converts its arguments, calls the function, and converts the result.
+  @example
+    libm = ffi::open("libm.so.6")
+    cbrt = ffi::func(libm, "cbrt", ["double"], "double")
+    println cbrt(27.0)   # 3.0
+  #/
+  fn func(library, name: string, params: list = [], returns: string = "void"): lambda
+    ffi::wrap(ffi::symbol(library, name), params, returns, name)
+  end
+
+  /#
+  @summary Wraps a C function pointer, such as one returned by a C function, as a lambda.
+  @param pointer function : The function's address.
+  @param list params : The parameter types.
+  @param string returns : The return type. Defaults to `void`.
+  @param string name : A name for error messages. Defaults to `function`.
+  @return lambda : A lambda that calls the function.
+  #/
+  fn wrap(function, params: list = [], returns: string = "void", name: string = "function"): lambda
+    signature = __ffi_signature__(name, params, returns)
+    with (*args) do
+      return __ffi_call__(function, signature, args)
+    end
+  end
+
+  /#
+  @summary Allocates zeroed native memory. Free it with `ffi::free`.
+  @param integer size : The number of bytes.
+  @return pointer : The memory.
+  #/
+  fn alloc(size: integer): pointer
+    __ffi_alloc__(size)
+  end
+
+  /#
+  @summary Frees memory from `ffi::alloc` or `ffi::cstring`. Freeing anything else, or freeing twice, crashes the interpreter.
+  @param pointer p : The memory. `null` is ignored.
+  #/
+  fn free(p)
+    __ffi_free__(p)
+  end
+
+  /#
+  @summary Reads a value from native memory.
+  @param pointer p : The memory.
+  @param integer offset : The byte offset from `p`.
+  @param string type : The type to read. For `string`, reads the `char*` stored there and decodes it; null gives `null`.
+  @return any : The value.
+  @example
+    buf = ffi::alloc(8)
+    ffi::write(buf, 4, "int32", -7)
+    println ffi::read(buf, 4, "int32")   # -7
+    ffi::free(buf)
+  #/
+  fn read(p, offset: integer, type: string): any
+    __ffi_read__(p, offset, type)
+  end
+
+  /#
+  @summary Writes a value to native memory.
+  @param pointer p : The memory.
+  @param integer offset : The byte offset from `p`.
+  @param string type : The type to write. To store a string, write the `pointer` from `ffi::cstring`.
+  @param any value : The value.
+  #/
+  fn write(p, offset: integer, type: string, value)
+    __ffi_write__(p, offset, type, value)
+  end
+
+  /#
+  @summary Decodes a UTF-8 C string.
+  @param pointer p : The string's first byte.
+  @param integer length : The number of bytes to decode. Defaults to reading up to the terminating NUL.
+  @return string : The string, or `null` for a null pointer.
+  #/
+  fn string(p, length = null)
+    __ffi_string__(p, length)
+  end
+
+  /#
+  @summary Copies bytes out of native memory.
+  @param pointer p : The memory.
+  @param integer length : The number of bytes.
+  @return bytes : A copy of the bytes.
+  #/
+  fn bytes(p, length: integer): bytes
+    __ffi_bytes__(p, length)
+  end
+
+  /#
+  @summary Copies bytes into native memory.
+  @param pointer p : The memory.
+  @param integer offset : The byte offset from `p`.
+  @param bytes data : The bytes.
+  #/
+  fn write_bytes(p, offset: integer, data: bytes)
+    __ffi_write_bytes__(p, offset, data)
+  end
+
+  /#
+  @summary Copies a string into native memory as a NUL-terminated UTF-8 C string. Free it with `ffi::free`.
+  @param string s : The string.
+  @return pointer : The C string.
+  #/
+  fn cstring(s: string): pointer
+    __ffi_cstring__(s)
+  end
+
+  /#
+  @summary Gets the size of a type in bytes.
+  @param string type : The type, such as `int32` or `pointer`.
+  @return integer : The size. `string` and `bytes` are pointers.
+  #/
+  fn sizeof(type: string): integer
+    __ffi_sizeof__(type)
+  end
+
+  /#
+  @summary Gets the pointer a number of bytes past another.
+  @param pointer p : The pointer.
+  @param integer count : The number of bytes, which can be negative.
+  @return pointer : The new pointer.
+  #/
+  fn offset(p, count: integer): pointer
+    __ffi_offset__(p, count)
+  end
+
+  /#
+  @summary Gets a pointer's address as an integer.
+  @param pointer p : The pointer. `null` gives 0.
+  @return integer : The address.
+  #/
+  fn address(p): integer
+    __ffi_address__(p)
+  end
+
+  /#
+  @summary Makes a pointer from an address.
+  @param integer address : The address.
+  @return pointer : The pointer.
+  #/
+  fn pointer(address: integer): pointer
+    __ffi_pointer__(address)
+  end
+
+  /#
+  @summary Checks whether a pointer is null.
+  @param pointer p : The pointer, or `null`.
+  @return boolean : `true` for `null` or address 0.
+  #/
+  fn is_null(p): boolean
+    p == null || __ffi_address__(p) == 0
+  end
+end

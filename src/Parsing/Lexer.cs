@@ -1104,6 +1104,7 @@ public class Lexer : IDisposable
         else if (SmtpBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (UdpBuiltin.Map.TryGetValue(builtin, out name)) { }
         else if (NativeBuiltin.Map.TryGetValue(builtin, out name)) { }
+        else if (FfiBuiltin.Map.TryGetValue(builtin, out name)) { }
 
         return CreateToken(TokenType.Identifier, span, builtin, name);
     }

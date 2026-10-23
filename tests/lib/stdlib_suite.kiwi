@@ -54,7 +54,10 @@ var (stdlib_tests: list = [
   "watch",
 
   # Native extensions
-  "native"
+  "native",
+
+  # Calling C functions
+  "ffi"
 ])
 
 for stdlib_test in stdlib_tests do

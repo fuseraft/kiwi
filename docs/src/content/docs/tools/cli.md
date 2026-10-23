@@ -106,7 +106,7 @@ To add your own scripts and keep the standard library, include its directory in 
 
 ### Safe mode
 
-`--safemode` runs untrusted code without access to the outside world. These packages throw a `SafeModeError` when used: `fio`, `http`, `httpserver`, `socket`, `tls`, `udp`, `ipc`, `smtp`, `signal`, `sys`, `native::load` and `crypto::file_hash`, and `env::set` is blocked.
+`--safemode` runs untrusted code without access to the outside world. These packages throw a `SafeModeError` when used: `fio`, `http`, `httpserver`, `socket`, `tls`, `udp`, `ipc`, `smtp`, `signal`, `sys`, `ffi`, `native::load` and `crypto::file_hash`, and `env::set` is blocked.
 
 ```text
 $ kiwi -sm -e 'fio::read("secrets.txt")'
