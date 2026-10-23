@@ -1,0 +1,697 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-g5ptsecz"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>ffi | Kiwi</title><link rel="canonical" href="https://fuseraft.ai/kiwi/stdlib/ffi/"/><link rel="sitemap" href="/kiwi/sitemap-index.xml"/><link rel="shortcut icon" href="/kiwi/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.4.1"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="ffi"/><meta property="og:type" content="article"/><meta property="og:url" content="https://fuseraft.ai/kiwi/stdlib/ffi/"/><meta property="og:locale" content="en"/><meta property="og:description" content="Call C functions in shared libraries, and read and write native memory."/><meta property="og:site_name" content="Kiwi"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="Call C functions in shared libraries, and read and write native memory."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/kiwi/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/kiwi/_astro/common.Dzj9lC13.css"><style>@layer starlight.components{svg:where(.astro-hkc32dio){color:var(--sl-icon-color);font-size:var(--sl-icon-size,1em);width:1em;height:1em;overflow:visible}}
+</style><script type="module" src="/kiwi/_astro/page.cNngjUgL.js"></script></head><body class="astro-g5ptsecz"><a class="sl-skip-link astro-qb7clj6f" href="#_top">Skip to content</a><div class="page sl-flex astro-yntsjkba"><header class="header astro-yntsjkba"><div class="header astro-by6fddyj"><div class="title-wrapper sl-flex astro-by6fddyj"><a href="/kiwi/" class="site-title sl-flex astro-6rvad3va"><img class="astro-6rvad3va" alt src="/kiwi/_astro/logo.DJfiJ099.svg" width="400" height="400"><span class="astro-6rvad3va" translate="no">Kiwi</span></a></div><div class="sl-flex print:hidden astro-by6fddyj"><site-search class="astro-by6fddyj astro-b5kgnn7o" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-b5kgnn7o"><svg aria-hidden="true" class="astro-b5kgnn7o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-b5kgnn7o" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-b5kgnn7o" style="display: none;"><kbd class="astro-b5kgnn7o">Ctrl</kbd><kbd class="astro-b5kgnn7o">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-b5kgnn7o"><div class="dialog-frame sl-flex astro-b5kgnn7o"><button data-close-modal class="sl-flex md:sl-hidden astro-b5kgnn7o">Cancel</button><div class="search-container astro-b5kgnn7o"><div id="starlight__search" class="astro-b5kgnn7o"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/kiwi/_astro/Search.astro_astro_type_script_index_0_lang.Dpg5QQYx.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-by6fddyj"><div class="sl-flex social-icons astro-by6fddyj"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-yntsjkba" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-r2osgdlg"><svg aria-hidden="true" class="open-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-r2osgdlg astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-r2osgdlg">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-yntsjkba"><div class="sidebar-content sl-flex astro-yntsjkba"><sl-sidebar-state-persist data-hash="0evy3nk" class="astro-ipdry5cl"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-rmhv4bp6"><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Getting Started</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/introduction/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Introduction</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/installation/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Installation</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/getting-started/tour/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">A Tour of Kiwi</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Language</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/language/syntax/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Syntax Basics</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/variables/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Variables</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/types/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Types</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/strings/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Strings</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lists/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lists and Ranges</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/hashmaps/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Hashmaps</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/control-flow/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Control Flow</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/loops/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Loops</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Functions</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/lambdas/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Lambdas and Closures</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/scoping/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Scoping</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/type-hints/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Type Hints</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/errors/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Error Handling</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/structs/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Structs</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/operator-overloading/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Operator Overloading</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/enums/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Enums</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/packages/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Packages and Modules</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/generators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Generators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/decorators/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Decorators</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/language/events/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Events</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Tools</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/tools/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">The kiwi Command</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/repl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">REPL</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/debugger/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Debugger (kdb)</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/tools/testing/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Testing</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Reference</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/reference/keywords/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Keywords</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/builtin-methods/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Built-in Methods</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/reference/global-functions/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Global Functions</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details open class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Standard Library</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="4"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Overview</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/bench/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">bench</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/cli/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">cli</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/collections/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">collections</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/compress/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">compress</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/console/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">console</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/crypto/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">crypto</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/csv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">csv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/curl/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">curl</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/date/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">date</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/dotenv/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">dotenv</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/encode/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">encode</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/env/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">env</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/error/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">error</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/faker/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">faker</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ffi/" aria-current="page" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ffi</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fio/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fio</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/fmt/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">fmt</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/hashable/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">hashable</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/http/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">http</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/httpserver/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">httpserver</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/ipc/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">ipc</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/iter/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">iter</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/json/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">json</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/list/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">list</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/log/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">log</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/math/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">math</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/native/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">native</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/path/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">path</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/pipeline/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">pipeline</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/protobuf/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">protobuf</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/reflector/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">reflector</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/regex/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">regex</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/signal/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">signal</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/smtp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">smtp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/socket/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">socket</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sqlite/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sqlite</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stat/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stat</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/std/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">std</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stdin/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stdin</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/stopwatch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">stopwatch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/string/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">string</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/sys/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">sys</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/table/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">table</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/task/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">task</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/template/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">template</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/tester/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">tester</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/text/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">text</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/time/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">time</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/udp/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">udp</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/watch/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">watch</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/xml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">xml</span></a></li><li class="astro-rmhv4bp6"><a href="/kiwi/stdlib/yaml/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">yaml</span></a></li></ul></details></li><li class="astro-rmhv4bp6"><details class="astro-rmhv4bp6"><summary class="astro-rmhv4bp6"><span class="group-label astro-rmhv4bp6"><span class="large astro-rmhv4bp6">Internals</span></span><svg aria-hidden="true" class="caret astro-rmhv4bp6 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="5"></sl-sidebar-restore><ul class="astro-rmhv4bp6"><li class="astro-rmhv4bp6"><a href="/kiwi/internals/vm/" class="astro-rmhv4bp6"><span class="astro-rmhv4bp6">Bytecode VM</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-p4azlveh"><div class="social-icons astro-p4azlveh"><a href="https://github.com/fuseraft/kiwi" rel="me" class="sl-flex astro-n2mnl6yq"><span class="sr-only astro-n2mnl6yq">GitHub</span><svg aria-hidden="true" class="astro-n2mnl6yq astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-2z5xp7gb"><span class="sr-only astro-2z5xp7gb">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-2z5xp7gb"><option value="dark" class="astro-2z5xp7gb">Dark</option><option value="light" class="astro-2z5xp7gb">Light</option><option value="auto" selected class="astro-2z5xp7gb">Auto</option></select><svg aria-hidden="true" class="icon caret astro-2z5xp7gb astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-yntsjkba"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-lrzkfocr"><aside class="right-sidebar-container print:hidden astro-lrzkfocr"><div class="right-sidebar astro-lrzkfocr"><div class="lg:sl-hidden astro-qok35upx"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-66cqc7ze"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-66cqc7ze"><details id="starlight__mobile-toc" class="astro-66cqc7ze"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-66cqc7ze"><span class="toggle sl-flex astro-66cqc7ze">On this page<svg aria-hidden="true" class="caret astro-66cqc7ze astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-66cqc7ze"></span></summary><div class="dropdown astro-66cqc7ze"><ul class="isMobile astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#types" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Types</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#calling-functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Calling functions</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#limits" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Limits</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#memory" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Memory</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="isMobile astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiopen" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::open</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fficlose" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::close</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffisymbol" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::symbol</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffifunc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::func</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiwrap" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::wrap</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffialloc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::alloc</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffifree" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::free</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiread" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::read</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiwrite" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::write</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffistring" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::string</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffibytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::bytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiwrite_bytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::write_bytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fficstring" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::cstring</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffisizeof" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::sizeof</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffioffset" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::offset</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiaddress" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::address</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffipointer" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::pointer</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiis_null" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::is_null</span></a></li></ul></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/kiwi/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-qok35upx"><div class="sl-container astro-qok35upx"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-jugkfwgx" style="--depth: 0;"><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#_top" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Overview</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#types" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Types</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#calling-functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Calling functions</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#limits" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">Limits</span></a></li></ul></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#memory" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Memory</span></a></li><li style="--depth: 0;" class="astro-jugkfwgx"><a href="#functions" style="--depth: 0;" class="astro-jugkfwgx"><span style="--depth: 0;" class="astro-jugkfwgx">Functions</span></a><ul class="astro-jugkfwgx" style="--depth: 1;"><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiopen" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::open</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fficlose" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::close</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffisymbol" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::symbol</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffifunc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::func</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiwrap" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::wrap</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffialloc" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::alloc</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffifree" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::free</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiread" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::read</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiwrite" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::write</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffistring" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::string</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffibytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::bytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiwrite_bytes" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::write_bytes</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#fficstring" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::cstring</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffisizeof" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::sizeof</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffioffset" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::offset</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiaddress" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::address</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffipointer" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::pointer</span></a></li><li style="--depth: 1;" class="astro-jugkfwgx"><a href="#ffiis_null" style="--depth: 1;" class="astro-jugkfwgx"><span style="--depth: 1;" class="astro-jugkfwgx">ffi::is_null</span></a></li></ul></li></ul></nav></starlight-toc><script type="module" src="/kiwi/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-lrzkfocr"><main data-pagefind-body class="astro-g5ptsecz" lang="en" dir="ltr"><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><h1 id="_top" class="astro-bebwqqxs">ffi</h1></div></div><div class="content-panel astro-a7po4psb"><div class="sl-container astro-a7po4psb"><div class="sl-markdown-content"><p>The <code dir="auto">ffi</code> package calls functions in C libraries directly, without writing a <a href="/kiwi/stdlib/native/">native extension</a>. You describe a function’s parameter and return types, and <code dir="auto">ffi</code> converts Kiwi values to C and back:</p>
+<div class="expressive-code"><link rel="stylesheet" href="/kiwi/_astro/ec.8nqtp.css"><script type="module" src="/kiwi/_astro/ec.0vx5m.js"></script><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">libm </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">open</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"libm.so.6"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">pow </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">func</span><span style="--0:#E6EDF3;--1:#1F2328">(libm, </span><span style="--0:#A5D6FF;--1:#0A3069">"pow"</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#A5D6FF;--1:#0A3069">"double"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"double"</span><span style="--0:#E6EDF3;--1:#1F2328">], </span><span style="--0:#A5D6FF;--1:#0A3069">"double"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">pow</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">2</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">10</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 1024</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">libc </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">open</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"libc.so.6"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">strlen </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">func</span><span style="--0:#E6EDF3;--1:#1F2328">(libc, </span><span style="--0:#A5D6FF;--1:#0A3069">"strlen"</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#A5D6FF;--1:#0A3069">"string"</span><span style="--0:#E6EDF3;--1:#1F2328">], </span><span style="--0:#A5D6FF;--1:#0A3069">"size_t"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">strlen</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"kiwi"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 4</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="libm = ffi::open(&#x22;libm.so.6&#x22;)pow = ffi::func(libm, &#x22;pow&#x22;, [&#x22;double&#x22;, &#x22;double&#x22;], &#x22;double&#x22;)println pow(2, 10)   # 1024libc = ffi::open(&#x22;libc.so.6&#x22;)strlen = ffi::func(libc, &#x22;strlen&#x22;, [&#x22;string&#x22;], &#x22;size_t&#x22;)println strlen(&#x22;kiwi&#x22;)   # 4"><div></div></button></div></figure></div>
+<p><code dir="auto">ffi::open</code> takes a path or a library name and searches the way the platform does. A relative path is looked up next to the running script first. Library names differ between systems:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Library</th><th align="left">Linux</th><th align="left">macOS</th><th align="left">Windows</th></tr></thead><tbody><tr><td align="left">C standard library</td><td align="left"><code dir="auto">libc.so.6</code></td><td align="left"><code dir="auto">libSystem.B.dylib</code></td><td align="left"><code dir="auto">ucrtbase.dll</code></td></tr><tr><td align="left">Math</td><td align="left"><code dir="auto">libm.so.6</code></td><td align="left"><code dir="auto">libSystem.B.dylib</code></td><td align="left"><code dir="auto">ucrtbase.dll</code></td></tr><tr><td align="left">Your own <code dir="auto">mylib</code></td><td align="left"><code dir="auto">libmylib.so</code></td><td align="left"><code dir="auto">libmylib.dylib</code></td><td align="left"><code dir="auto">mylib.dll</code></td></tr></tbody></table>
+<p><code dir="auto">native::library_name("mylib")</code> gives the file name for the current platform.</p>
+<p><code dir="auto">ffi</code> is unavailable in <a href="/kiwi/tools/cli/#safe-mode">safe mode</a>. A C function runs with the interpreter’s permissions, and a wrong type or a bad pointer can crash the interpreter instead of throwing an error. Check function signatures against the library’s header.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="types">Types</h2><a class="sl-anchor-link" href="#types"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Types”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Type</th><th align="left">C type</th><th align="left">Kiwi value</th></tr></thead><tbody><tr><td align="left"><code dir="auto">int8</code>, <code dir="auto">int16</code>, <code dir="auto">int32</code>, <code dir="auto">int64</code></td><td align="left"><code dir="auto">int8_t</code> … <code dir="auto">int64_t</code></td><td align="left"><code dir="auto">integer</code></td></tr><tr><td align="left"><code dir="auto">uint8</code>, <code dir="auto">uint16</code>, <code dir="auto">uint32</code>, <code dir="auto">uint64</code></td><td align="left"><code dir="auto">uint8_t</code> … <code dir="auto">uint64_t</code></td><td align="left"><code dir="auto">integer</code></td></tr><tr><td align="left"><code dir="auto">float</code>, <code dir="auto">double</code></td><td align="left"><code dir="auto">float</code>, <code dir="auto">double</code></td><td align="left"><code dir="auto">float</code>. An argument accepts an integer too.</td></tr><tr><td align="left"><code dir="auto">bool</code></td><td align="left"><code dir="auto">bool</code> (C99)</td><td align="left"><code dir="auto">boolean</code></td></tr><tr><td align="left"><code dir="auto">pointer</code></td><td align="left">any pointer</td><td align="left"><code dir="auto">pointer</code>, or <code dir="auto">null</code> for a null pointer</td></tr><tr><td align="left"><code dir="auto">string</code></td><td align="left"><code dir="auto">const char*</code></td><td align="left"><code dir="auto">string</code>, or <code dir="auto">null</code>. Arguments are copied as UTF-8 for the call; results are decoded, and a null result is <code dir="auto">null</code>.</td></tr><tr><td align="left"><code dir="auto">bytes</code></td><td align="left"><code dir="auto">const uint8_t*</code></td><td align="left"><code dir="auto">bytes</code>, copied for the call (arguments only)</td></tr><tr><td align="left"><code dir="auto">void</code></td><td align="left"><code dir="auto">void</code></td><td align="left"><code dir="auto">null</code> (return type only)</td></tr></tbody></table>
+<p>There are aliases for C’s names:</p>
+<ul>
+<li><code dir="auto">char</code>, <code dir="auto">uchar</code>, <code dir="auto">short</code>, <code dir="auto">ushort</code>, <code dir="auto">int</code> and <code dir="auto">uint</code> are the 8-, 16- and 32-bit types.</li>
+<li><code dir="auto">longlong</code>, <code dir="auto">ulonglong</code>, <code dir="auto">ssize_t</code> and <code dir="auto">size_t</code> are 64-bit.</li>
+<li><code dir="auto">long</code> and <code dir="auto">ulong</code> are 64-bit, except on Windows, where they are 32-bit as in C.</li>
+</ul>
+<p>Kiwi integers are signed 64-bit, so a <code dir="auto">uint64</code> result above <code dir="auto">9223372036854775807</code> reads as a negative number. An argument outside its type’s range is an error, not a silent truncation.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="calling-functions">Calling functions</h2><a class="sl-anchor-link" href="#calling-functions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Calling functions”</span></a></div>
+<p><code dir="auto">ffi::func(library, name, params, returns)</code> returns a lambda. Call it like any other:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">libc </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">open</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"libc.so.6"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">getenv </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">func</span><span style="--0:#E6EDF3;--1:#1F2328">(libc, </span><span style="--0:#A5D6FF;--1:#0A3069">"getenv"</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#A5D6FF;--1:#0A3069">"string"</span><span style="--0:#E6EDF3;--1:#1F2328">], </span><span style="--0:#A5D6FF;--1:#0A3069">"string"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">getenv</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"HOME"</span><span style="--0:#E6EDF3;--1:#1F2328">)          </span><span style="--0:#8B949E;--1:#616972"># /home/kiwi</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">getenv</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"NOT_SET"</span><span style="--0:#E6EDF3;--1:#1F2328">)       </span><span style="--0:#8B949E;--1:#616972"># null</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">abs </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">func</span><span style="--0:#E6EDF3;--1:#1F2328">(libc, </span><span style="--0:#A5D6FF;--1:#0A3069">"labs"</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#A5D6FF;--1:#0A3069">"long"</span><span style="--0:#E6EDF3;--1:#1F2328">], </span><span style="--0:#A5D6FF;--1:#0A3069">"long"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">abs</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">9000000000</span><span style="--0:#E6EDF3;--1:#1F2328">)        </span><span style="--0:#8B949E;--1:#616972"># 9000000000</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="libc = ffi::open(&#x22;libc.so.6&#x22;)getenv = ffi::func(libc, &#x22;getenv&#x22;, [&#x22;string&#x22;], &#x22;string&#x22;)println getenv(&#x22;HOME&#x22;)          # /home/kiwiprintln getenv(&#x22;NOT_SET&#x22;)       # nullabs = ffi::func(libc, &#x22;labs&#x22;, [&#x22;long&#x22;], &#x22;long&#x22;)println abs(-9000000000)        # 9000000000"><div></div></button></div></figure></div>
+<p><code dir="auto">ffi::wrap(pointer, params, returns)</code> does the same for a function pointer, such as one a C function returns. <code dir="auto">ffi::symbol(library, name)</code> gives the address of any exported symbol, including variables.</p>
+<p>Errors are <code dir="auto">FfiError</code>s:</p>
+<ul>
+<li>the wrong number of arguments: <code dir="auto">add expects 2 arguments, got 1.</code></li>
+<li>a value of the wrong type or out of range: <code dir="auto">add: argument 1: 2147483648 is out of range for int32.</code></li>
+<li>an unknown type, a missing symbol, or a library that won’t load</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="limits">Limits</h3><a class="sl-anchor-link" href="#limits"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Limits”</span></a></div>
+<p><code dir="auto">ffi</code> works on Linux, macOS and Windows on x64 and arm64, without libffi or any other dependency. It passes arguments the way each platform’s C calling convention does, which sets these limits:</p>
+<ul>
+<li><strong>Structs by value:</strong> a function that takes or returns a struct by value can’t be called. Most C APIs pass structs by pointer, which works; see below.</li>
+<li><strong>Variadic functions:</strong> functions such as <code dir="auto">printf</code> aren’t supported.</li>
+<li><strong>Argument count:</strong> up to 12 arguments on Windows, and more elsewhere: up to 6 integer and 8 floating-point arguments in registers on x64 Linux and macOS (8 and 8 on arm64), plus 8 more on the stack. On macOS arm64, only 8-byte types (<code dir="auto">int64</code>, <code dir="auto">uint64</code>, <code dir="auto">double</code>, <code dir="auto">pointer</code>, <code dir="auto">string</code>) can go on the stack.</li>
+<li><strong>Callbacks:</strong> C code can’t call Kiwi lambdas. For that, write a <a href="/kiwi/stdlib/native/">native extension</a>.</li>
+</ul>
+<div class="sl-heading-wrapper level-h2"><h2 id="memory">Memory</h2><a class="sl-anchor-link" href="#memory"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Memory”</span></a></div>
+<p>C functions often fill in memory you give them. <code dir="auto">ffi::alloc(size)</code> allocates zeroed memory, and <code dir="auto">ffi::read</code> and <code dir="auto">ffi::write</code> access it by byte offset and type:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">buf </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">alloc</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">4</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">*</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">sizeof</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"int32"</span><span style="--0:#E6EDF3;--1:#1F2328">))</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FF7B72;--1:#CA212D">for</span><span style="--0:#E6EDF3;--1:#1F2328"> i </span><span style="--0:#FF7B72;--1:#CA212D">in</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">to</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">] </span><span style="--0:#FF7B72;--1:#CA212D">do</span></div></div><div class="ec-line"><div class="code"><span class="indent">  </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(buf, i </span><span style="--0:#FF7B72;--1:#CA212D">*</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">4</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"int32"</span><span style="--0:#E6EDF3;--1:#1F2328">, i </span><span style="--0:#FF7B72;--1:#CA212D">*</span><span style="--0:#E6EDF3;--1:#1F2328"> i)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FF7B72;--1:#CA212D">end</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">to</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">].</span><span style="--0:#D2A8FF;--1:#7A4BD1">map</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#FF7B72;--1:#CA212D">with</span><span style="--0:#E6EDF3;--1:#1F2328"> (i) </span><span style="--0:#FF7B72;--1:#CA212D">do</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">return</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read</span><span style="--0:#E6EDF3;--1:#1F2328">(buf, i </span><span style="--0:#FF7B72;--1:#CA212D">*</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">4</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"int32"</span><span style="--0:#E6EDF3;--1:#1F2328">) </span><span style="--0:#FF7B72;--1:#CA212D">end</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># [0, 1, 4, 9]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">free</span><span style="--0:#E6EDF3;--1:#1F2328">(buf)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="buf = ffi::alloc(4 * ffi::sizeof(&#x22;int32&#x22;))for i in [0 to 3] do  ffi::write(buf, i * 4, &#x22;int32&#x22;, i * i)endprintln [0 to 3].map(with (i) do return ffi::read(buf, i * 4, &#x22;int32&#x22;) end)   # [0, 1, 4, 9]ffi::free(buf)"><div></div></button></div></figure></div>
+<p>A struct is memory with fields at fixed offsets. For <code dir="auto">struct { int32_t x; double y; }</code>, <code dir="auto">y</code> is at offset 8, because C aligns a <code dir="auto">double</code> to 8 bytes:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">point </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">alloc</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">16</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(point, </span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"int32"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(point, </span><span style="--0:#79C0FF;--1:#0550AE">8</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"double"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#79C0FF;--1:#0550AE">0.5</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> [</span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read</span><span style="--0:#E6EDF3;--1:#1F2328">(point, </span><span style="--0:#79C0FF;--1:#0550AE">0</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"int32"</span><span style="--0:#E6EDF3;--1:#1F2328">), </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read</span><span style="--0:#E6EDF3;--1:#1F2328">(point, </span><span style="--0:#79C0FF;--1:#0550AE">8</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"double"</span><span style="--0:#E6EDF3;--1:#1F2328">)]   </span><span style="--0:#8B949E;--1:#616972"># [3, 0.5]</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">free</span><span style="--0:#E6EDF3;--1:#1F2328">(point)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="point = ffi::alloc(16)ffi::write(point, 0, &#x22;int32&#x22;, 3)ffi::write(point, 8, &#x22;double&#x22;, 0.5)println [ffi::read(point, 0, &#x22;int32&#x22;), ffi::read(point, 8, &#x22;double&#x22;)]   # [3, 0.5]ffi::free(point)"><div></div></button></div></figure></div>
+<p>Strings and bytes:</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">s </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">cstring</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"héllo"</span><span style="--0:#E6EDF3;--1:#1F2328">)        </span><span style="--0:#8B949E;--1:#616972"># a NUL-terminated UTF-8 copy</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">(s)           </span><span style="--0:#8B949E;--1:#616972"># héllo</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">(s, </span><span style="--0:#79C0FF;--1:#0550AE">1</span><span style="--0:#E6EDF3;--1:#1F2328">)        </span><span style="--0:#8B949E;--1:#616972"># h</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#79C0FF;--1:#0550AE">bytes</span><span style="--0:#E6EDF3;--1:#1F2328">(s, </span><span style="--0:#79C0FF;--1:#0550AE">3</span><span style="--0:#E6EDF3;--1:#1F2328">)         </span><span style="--0:#8B949E;--1:#616972"># the first 3 bytes</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">free</span><span style="--0:#E6EDF3;--1:#1F2328">(s)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="s = ffi::cstring(&#x22;héllo&#x22;)        # a NUL-terminated UTF-8 copyprintln ffi::string(s)           # hélloprintln ffi::string(s, 1)        # hprintln ffi::bytes(s, 3)         # the first 3 bytesffi::free(s)"><div></div></button></div></figure></div>
+<p>Reading a <code dir="auto">string</code> at an offset follows the <code dir="auto">char*</code> stored there, which is how you read a <code dir="auto">const char**</code> array or a string field in a struct.</p>
+<p>Memory from <code dir="auto">ffi::alloc</code> and <code dir="auto">ffi::cstring</code> stays allocated until <code dir="auto">ffi::free</code>. Freeing other memory, or freeing twice, crashes the interpreter. Memory a C function returns usually has to be freed by a function from the same library, as its documentation says.</p>
+<p><code dir="auto">ffi::offset(p, n)</code> gives the pointer <code dir="auto">n</code> bytes past <code dir="auto">p</code>. <code dir="auto">ffi::address(p)</code> and <code dir="auto">ffi::pointer(address)</code> convert between pointers and integers, and <code dir="auto">ffi::is_null(p)</code> checks for <code dir="auto">null</code> or address 0.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="functions">Functions</h2><a class="sl-anchor-link" href="#functions"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Functions”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffiopen"><code dir="auto">ffi::open</code></h3><a class="sl-anchor-link" href="#ffiopen"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::open”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">open</span><span style="--0:#E6EDF3;--1:#1F2328">(path</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">pointer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::open(path: string): pointer"><div></div></button></div></figure></div>
+<p>Opens a shared library.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">path</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The library's path or name, such as <code dir="auto">libm.so.6</code>. A relative path is resolved against the running script's directory first, then by the platform's library search.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">pointer</code> — The library, for <code dir="auto">ffi::func</code>, <code dir="auto">ffi::symbol</code> and <code dir="auto">ffi::close</code>.</p>
+<p><strong>Throws</strong> <code dir="auto">FfiError</code> — When the library can't be loaded.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="fficlose"><code dir="auto">ffi::close</code></h3><a class="sl-anchor-link" href="#fficlose"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::close”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">close</span><span style="--0:#E6EDF3;--1:#1F2328">(library)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::close(library)"><div></div></button></div></figure></div>
+<p>Closes a library opened with <code dir="auto">ffi::open</code>. Its functions must not be called afterwards.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">library</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The library.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffisymbol"><code dir="auto">ffi::symbol</code></h3><a class="sl-anchor-link" href="#ffisymbol"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::symbol”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">symbol</span><span style="--0:#E6EDF3;--1:#1F2328">(library, name</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">pointer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::symbol(library, name: string): pointer"><div></div></button></div></figure></div>
+<p>Gets the address of a function or variable exported by a library.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">library</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">A library opened with <code dir="auto">ffi::open</code>.</td></tr><tr><td align="left"><code dir="auto">name</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The symbol's name.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">pointer</code> — The symbol's address.</p>
+<p><strong>Throws</strong> <code dir="auto">FfiError</code> — When the library has no such symbol.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffifunc"><code dir="auto">ffi::func</code></h3><a class="sl-anchor-link" href="#ffifunc"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::func”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">func</span><span style="--0:#E6EDF3;--1:#1F2328">(library, name</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, params</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> [], returns</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"void"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">lambda</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::func(library, name: string, params: list = [], returns: string = &#x22;void&#x22;): lambda"><div></div></button></div></figure></div>
+<p>Wraps a C function in a library as a lambda.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">library</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">A library opened with <code dir="auto">ffi::open</code>.</td></tr><tr><td align="left"><code dir="auto">name</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The function's name.</td></tr><tr><td align="left"><code dir="auto">params</code></td><td align="left"><code dir="auto">list</code></td><td align="left"><code dir="auto">[]</code></td><td align="left">The parameter types, such as <code dir="auto">["int32", "double"]</code>. See the type table for the names.</td></tr><tr><td align="left"><code dir="auto">returns</code></td><td align="left"><code dir="auto">string</code></td><td align="left"><code dir="auto">"void"</code></td><td align="left">The return type. Defaults to <code dir="auto">void</code>.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">lambda</code> — A lambda that converts its arguments, calls the function, and converts the result.</p>
+<p><strong>Throws</strong> <code dir="auto">FfiError</code> — When the library has no such function, or a type isn't known.</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">libm </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">open</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#A5D6FF;--1:#0A3069">"libm.so.6"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">cbrt </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">func</span><span style="--0:#E6EDF3;--1:#1F2328">(libm, </span><span style="--0:#A5D6FF;--1:#0A3069">"cbrt"</span><span style="--0:#E6EDF3;--1:#1F2328">, [</span><span style="--0:#A5D6FF;--1:#0A3069">"double"</span><span style="--0:#E6EDF3;--1:#1F2328">], </span><span style="--0:#A5D6FF;--1:#0A3069">"double"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#D2A8FF;--1:#7A4BD1">cbrt</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">27.0</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># 3.0</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="libm = ffi::open(&#x22;libm.so.6&#x22;)cbrt = ffi::func(libm, &#x22;cbrt&#x22;, [&#x22;double&#x22;], &#x22;double&#x22;)println cbrt(27.0)   # 3.0"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffiwrap"><code dir="auto">ffi::wrap</code></h3><a class="sl-anchor-link" href="#ffiwrap"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::wrap”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">wrap</span><span style="--0:#E6EDF3;--1:#1F2328">(function, params</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">list</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> [], returns</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"void"</span><span style="--0:#E6EDF3;--1:#1F2328">, name</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#A5D6FF;--1:#0A3069">"function"</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">lambda</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::wrap(function, params: list = [], returns: string = &#x22;void&#x22;, name: string = &#x22;function&#x22;): lambda"><div></div></button></div></figure></div>
+<p>Wraps a C function pointer, such as one returned by a C function, as a lambda.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">function</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The function's address.</td></tr><tr><td align="left"><code dir="auto">params</code></td><td align="left"><code dir="auto">list</code></td><td align="left"><code dir="auto">[]</code></td><td align="left">The parameter types.</td></tr><tr><td align="left"><code dir="auto">returns</code></td><td align="left"><code dir="auto">string</code></td><td align="left"><code dir="auto">"void"</code></td><td align="left">The return type. Defaults to <code dir="auto">void</code>.</td></tr><tr><td align="left"><code dir="auto">name</code></td><td align="left"><code dir="auto">string</code></td><td align="left"><code dir="auto">"function"</code></td><td align="left">A name for error messages. Defaults to <code dir="auto">function</code>.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">lambda</code> — A lambda that calls the function.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffialloc"><code dir="auto">ffi::alloc</code></h3><a class="sl-anchor-link" href="#ffialloc"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::alloc”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">alloc</span><span style="--0:#E6EDF3;--1:#1F2328">(size</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">pointer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::alloc(size: integer): pointer"><div></div></button></div></figure></div>
+<p>Allocates zeroed native memory. Free it with <code dir="auto">ffi::free</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">size</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The number of bytes.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">pointer</code> — The memory.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffifree"><code dir="auto">ffi::free</code></h3><a class="sl-anchor-link" href="#ffifree"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::free”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">free</span><span style="--0:#E6EDF3;--1:#1F2328">(p)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::free(p)"><div></div></button></div></figure></div>
+<p>Frees memory from <code dir="auto">ffi::alloc</code> or <code dir="auto">ffi::cstring</code>. Freeing anything else, or freeing twice, crashes the interpreter.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The memory. <code dir="auto">null</code> is ignored.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffiread"><code dir="auto">ffi::read</code></h3><a class="sl-anchor-link" href="#ffiread"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::read”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read</span><span style="--0:#E6EDF3;--1:#1F2328">(p, offset</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">, type</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">any</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::read(p, offset: integer, type: string): any"><div></div></button></div></figure></div>
+<p>Reads a value from native memory.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The memory.</td></tr><tr><td align="left"><code dir="auto">offset</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The byte offset from <code dir="auto">p</code>.</td></tr><tr><td align="left"><code dir="auto">type</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The type to read. For <code dir="auto">string</code>, reads the <code dir="auto">char*</code> stored there and decodes it; null gives <code dir="auto">null</code>.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">any</code> — The value.</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#E6EDF3;--1:#1F2328">buf </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">alloc</span><span style="--0:#E6EDF3;--1:#1F2328">(</span><span style="--0:#79C0FF;--1:#0550AE">8</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(buf, </span><span style="--0:#79C0FF;--1:#0550AE">4</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"int32"</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#FF7B72;--1:#CA212D">-</span><span style="--0:#79C0FF;--1:#0550AE">7</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#79C0FF;--1:#0550AE">println</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">read</span><span style="--0:#E6EDF3;--1:#1F2328">(buf, </span><span style="--0:#79C0FF;--1:#0550AE">4</span><span style="--0:#E6EDF3;--1:#1F2328">, </span><span style="--0:#A5D6FF;--1:#0A3069">"int32"</span><span style="--0:#E6EDF3;--1:#1F2328">)   </span><span style="--0:#8B949E;--1:#616972"># -7</span></div></div><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">free</span><span style="--0:#E6EDF3;--1:#1F2328">(buf)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="buf = ffi::alloc(8)ffi::write(buf, 4, &#x22;int32&#x22;, -7)println ffi::read(buf, 4, &#x22;int32&#x22;)   # -7ffi::free(buf)"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffiwrite"><code dir="auto">ffi::write</code></h3><a class="sl-anchor-link" href="#ffiwrite"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::write”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write</span><span style="--0:#E6EDF3;--1:#1F2328">(p, offset</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">, type</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">, value)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::write(p, offset: integer, type: string, value)"><div></div></button></div></figure></div>
+<p>Writes a value to native memory.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The memory.</td></tr><tr><td align="left"><code dir="auto">offset</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The byte offset from <code dir="auto">p</code>.</td></tr><tr><td align="left"><code dir="auto">type</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The type to write. To store a string, write the <code dir="auto">pointer</code> from <code dir="auto">ffi::cstring</code>.</td></tr><tr><td align="left"><code dir="auto">value</code></td><td align="left"><code dir="auto">any</code></td><td align="left"></td><td align="left">The value.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffistring"><code dir="auto">ffi::string</code></h3><a class="sl-anchor-link" href="#ffistring"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::string”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">(p, length </span><span style="--0:#FF7B72;--1:#CA212D">=</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">null</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::string(p, length = null)"><div></div></button></div></figure></div>
+<p>Decodes a UTF-8 C string.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The string's first byte.</td></tr><tr><td align="left"><code dir="auto">length</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"><code dir="auto">null</code></td><td align="left">The number of bytes to decode. Defaults to reading up to the terminating NUL.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">string</code> — The string, or <code dir="auto">null</code> for a null pointer.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffibytes"><code dir="auto">ffi::bytes</code></h3><a class="sl-anchor-link" href="#ffibytes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::bytes”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#79C0FF;--1:#0550AE">bytes</span><span style="--0:#E6EDF3;--1:#1F2328">(p, length</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::bytes(p, length: integer): bytes"><div></div></button></div></figure></div>
+<p>Copies bytes out of native memory.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The memory.</td></tr><tr><td align="left"><code dir="auto">length</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The number of bytes.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">bytes</code> — A copy of the bytes.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffiwrite_bytes"><code dir="auto">ffi::write_bytes</code></h3><a class="sl-anchor-link" href="#ffiwrite_bytes"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::write_bytes”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">write_bytes</span><span style="--0:#E6EDF3;--1:#1F2328">(p, offset</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">, data</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">bytes</span><span style="--0:#E6EDF3;--1:#1F2328">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::write_bytes(p, offset: integer, data: bytes)"><div></div></button></div></figure></div>
+<p>Copies bytes into native memory.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The memory.</td></tr><tr><td align="left"><code dir="auto">offset</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The byte offset from <code dir="auto">p</code>.</td></tr><tr><td align="left"><code dir="auto">data</code></td><td align="left"><code dir="auto">bytes</code></td><td align="left"></td><td align="left">The bytes.</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h3"><h3 id="fficstring"><code dir="auto">ffi::cstring</code></h3><a class="sl-anchor-link" href="#fficstring"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::cstring”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">cstring</span><span style="--0:#E6EDF3;--1:#1F2328">(s</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">pointer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::cstring(s: string): pointer"><div></div></button></div></figure></div>
+<p>Copies a string into native memory as a NUL-terminated UTF-8 C string. Free it with <code dir="auto">ffi::free</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">s</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The string.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">pointer</code> — The C string.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffisizeof"><code dir="auto">ffi::sizeof</code></h3><a class="sl-anchor-link" href="#ffisizeof"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::sizeof”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">sizeof</span><span style="--0:#E6EDF3;--1:#1F2328">(type</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">string</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::sizeof(type: string): integer"><div></div></button></div></figure></div>
+<p>Gets the size of a type in bytes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">type</code></td><td align="left"><code dir="auto">string</code></td><td align="left"></td><td align="left">The type, such as <code dir="auto">int32</code> or <code dir="auto">pointer</code>.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The size. <code dir="auto">string</code> and <code dir="auto">bytes</code> are pointers.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffioffset"><code dir="auto">ffi::offset</code></h3><a class="sl-anchor-link" href="#ffioffset"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::offset”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">offset</span><span style="--0:#E6EDF3;--1:#1F2328">(p, count</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">pointer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::offset(p, count: integer): pointer"><div></div></button></div></figure></div>
+<p>Gets the pointer a number of bytes past another.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The pointer.</td></tr><tr><td align="left"><code dir="auto">count</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The number of bytes, which can be negative.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">pointer</code> — The new pointer.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffiaddress"><code dir="auto">ffi::address</code></h3><a class="sl-anchor-link" href="#ffiaddress"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::address”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">address</span><span style="--0:#E6EDF3;--1:#1F2328">(p)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::address(p): integer"><div></div></button></div></figure></div>
+<p>Gets a pointer's address as an integer.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The pointer. <code dir="auto">null</code> gives 0.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">integer</code> — The address.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffipointer"><code dir="auto">ffi::pointer</code></h3><a class="sl-anchor-link" href="#ffipointer"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::pointer”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#79C0FF;--1:#0550AE">pointer</span><span style="--0:#E6EDF3;--1:#1F2328">(address</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">integer</span><span style="--0:#E6EDF3;--1:#1F2328">)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">pointer</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::pointer(address: integer): pointer"><div></div></button></div></figure></div>
+<p>Makes a pointer from an address.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">address</code></td><td align="left"><code dir="auto">integer</code></td><td align="left"></td><td align="left">The address.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">pointer</code> — The pointer.</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="ffiis_null"><code dir="auto">ffi::is_null</code></h3><a class="sl-anchor-link" href="#ffiis_null"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ffi::is_null”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="kiwi"><code><div class="ec-line"><div class="code"><span style="--0:#FFA657;--1:#953800">ffi</span><span style="--0:#E6EDF3;--1:#1F2328">::</span><span style="--0:#D2A8FF;--1:#7A4BD1">is_null</span><span style="--0:#E6EDF3;--1:#1F2328">(p)</span><span style="--0:#FF7B72;--1:#CA212D">:</span><span style="--0:#E6EDF3;--1:#1F2328"> </span><span style="--0:#79C0FF;--1:#0550AE">boolean</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="ffi::is_null(p): boolean"><div></div></button></div></figure></div>
+<p>Checks whether a pointer is null.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">Parameter</th><th align="left">Type</th><th align="left">Default</th><th align="left">Description</th></tr></thead><tbody><tr><td align="left"><code dir="auto">p</code></td><td align="left"><code dir="auto">pointer</code></td><td align="left"></td><td align="left">The pointer, or <code dir="auto">null</code>.</td></tr></tbody></table>
+<p><strong>Returns</strong> <code dir="auto">boolean</code> — <code dir="auto">true</code> for <code dir="auto">null</code> or address 0.</p></div><footer class="sl-flex astro-ddtxxk7k"><div class="meta sl-flex astro-ddtxxk7k"><a href="https://github.com/fuseraft/kiwi/edit/main/docs/src/content/docs/stdlib/ffi.md" class="sl-flex print:hidden astro-qlekgd3o"><svg aria-hidden="true" class="astro-qlekgd3o astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>Edit page</a><p>Last updated: <time datetime="2026-10-23T06:04:28.000Z">Oct 23, 2026</time></p></div><div class="pagination-links print:hidden astro-b5raizh3" dir="ltr"><a href="/kiwi/stdlib/faker/" rel="prev" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-b5raizh3">Previous<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">faker</span></span></a><a href="/kiwi/stdlib/fio/" rel="next" class="astro-b5raizh3"><svg aria-hidden="true" class="astro-b5raizh3 astro-hkc32dio" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-b5raizh3">Next<br class="astro-b5raizh3"><span class="link-title astro-b5raizh3">fio</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>
