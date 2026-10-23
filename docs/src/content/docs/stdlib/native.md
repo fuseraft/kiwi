@@ -5,6 +5,8 @@ description: Load native extensions written in C, C#, Rust or Zig.
 
 The `native` package loads native extensions: shared libraries (`.so`, `.dylib`, `.dll`) that add functions to Kiwi. Use one when you need a C library, an operating system API, or code that runs faster than Kiwi can.
 
+To call functions in an existing C library without writing an extension, use [`ffi`](/kiwi/stdlib/ffi/). An extension can do what `ffi` can't, such as passing structs by value or having C code call Kiwi lambdas.
+
 ```kiwi nocheck
 m = native::load("libmymath.so")
 println m.add(2, 3)         # 5

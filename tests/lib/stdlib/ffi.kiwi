@@ -1,0 +1,330 @@
+# Builds tests/native/ffi_test_lib.c with the first C compiler found and opens it. Without a
+# compiler, the tests that need it pass without running.
+fn _ffi_build_lib(): string
+  root = fio::parentdir(env::lib())
+  out  = fio::combine([fio::tmpdir(), "kiwi_ffi_test_${sys::pid()}", native::library_name("ffi_test")])
+  fio::mkdirp(fio::parentdir(out))
+  src  = fio::combine([root, "tests", "native", "ffi_test_lib.c"])
+  # clang targeting MSVC rejects -fPIC, and Windows DLLs don't need it.
+  flags = native::rid().begins_with("win") ? ["-shared"] : ["-shared", "-fPIC"]
+
+  for compiler in ["cc", "clang", "gcc"] do
+    try
+      r = sys::execout(compiler, flags + [src, "-o", out])
+      return out when r["exit_code"] == 0
+    catch
+    end
+  end
+  fio::rmdirf(fio::parentdir(out))
+  ""
+end
+
+var (_ffi_lib_path: string = _ffi_build_lib())
+var (_ffi_lib = _ffi_lib_path.empty() ? null : ffi::open(_ffi_lib_path))
+
+fn _ffi_ready(): boolean
+  _ffi_lib != null
+end
+
+fn _ffi(name: string, params: list, returns: string): lambda
+  ffi::func(_ffi_lib, name, params, returns)
+end
+
+fn _ffi_error(f: lambda): list
+  try
+    f()
+  catch (kind, message)
+    return [kind, message]
+  end
+  ["none", ""]
+end
+
+# The C library for the platform, which every system has.
+fn _ffi_libc(): string
+  os = native::rid().split("-")[0]
+  return "ucrtbase.dll" when os == "win"
+  return "libSystem.B.dylib" when os == "osx"
+  "libc.so.6"
+end
+
+# CI runners have a C compiler, so a skipped build there means lost coverage, not a missing tool.
+@tester::test("ffi: the test library builds in CI")
+fn test_ffi_builds_in_ci()
+  return when env::get("CI") != "true"
+  tester::assert(_ffi_ready(), "no C compiler (cc, clang or gcc) could build tests/native/ffi_test_lib.c")
+end
+
+@tester::test("ffi: calls the system C library")
+fn test_ffi_libc()
+  libc = ffi::open(_ffi_libc())
+  strlen = ffi::func(libc, "strlen", ["string"], "size_t")
+  tester::assert_eq(strlen("héllo"), 6)
+  tester::assert_eq(strlen(""), 0)
+  ffi::close(libc)
+end
+
+@tester::test("ffi: integers of every width, at their edges")
+fn test_ffi_integers()
+  return when !_ffi_ready()
+  tester::assert_eq(_ffi("neg_i8", ["int8"], "int8")(-128), -128)
+  tester::assert_eq(_ffi("neg_i8", ["int8"], "int8")(5), -5)
+  tester::assert_eq(_ffi("inc_u8", ["uint8"], "uint8")(255), 0)
+  tester::assert_eq(_ffi("neg_i16", ["int16"], "int16")(-32768), -32768)
+  tester::assert_eq(_ffi("inc_u16", ["uint16"], "uint16")(65535), 0)
+  tester::assert_eq(_ffi("add_i32", ["int32", "int32"], "int32")(-5, 3), -2)
+  tester::assert_eq(_ffi("add_i32", ["int", "int"], "int")(2147483647, -1), 2147483646)
+  tester::assert_eq(_ffi("inc_u32", ["uint32"], "uint32")(4294967295), 0)
+  tester::assert_eq(_ffi("inc_u32", ["uint32"], "uint32")(4294967294), 4294967295)
+  tester::assert_eq(_ffi("add_i64", ["int64", "int64"], "int64")(9000000000, -1), 8999999999)
+  # Kiwi integers are signed 64-bit, so the largest uint64 reads as -1.
+  tester::assert_eq(_ffi("max_u64", [], "uint64")(), -1)
+end
+
+@tester::test("ffi: booleans")
+fn test_ffi_bools()
+  return when !_ffi_ready()
+  is_even = _ffi("is_even", ["int32"], "bool")
+  tester::assert_eq(is_even(4), true)
+  tester::assert_eq(is_even(7), false)
+  tester::assert_eq(_ffi("not_bool", ["bool"], "int32")(false), 1)
+end
+
+@tester::test("ffi: floats and doubles")
+fn test_ffi_floats()
+  return when !_ffi_ready()
+  tester::assert_eq(_ffi("scale_f", ["float", "float"], "float")(1.5, 2), 3.0)
+  tester::assert_eq(_ffi("scale_d", ["double", "double"], "double")(1.25, 4), 5.0)
+  # 0.1 rounded to a float and back.
+  tester::assert_eq(_ffi("widen", ["float"], "double")(0.1), 0.10000000149011612)
+  tester::assert_eq(_ffi("narrow", ["double"], "float")(0.1), 0.10000000149011612)
+end
+
+@tester::test("ffi: interleaved integer and floating-point arguments")
+fn test_ffi_mixed()
+  return when !_ffi_ready()
+  mixed = _ffi("mixed", ["int32", "double", "int64", "float", "uint8", "double"], "double")
+  tester::assert_eq(mixed(1, 2.5, 3, 0.5, 4, 0.25), 65826.0)
+end
+
+@tester::test("ffi: every mix of integers and doubles in the first four arguments")
+fn test_ffi_combos()
+  return when !_ffi_ready()
+  for mask in [0 to 15] do
+    params = []
+    args = []
+    expected = 0.0
+    for k in [0 to 3] do
+      is_double = ((mask >> k) & 1) == 1
+      v = is_double ? (k + 1) + 0.5 : k + 1
+      params.push(is_double ? "double" : "int64")
+      args.push(v)
+      expected += v * (10 ** k)
+    end
+    tester::assert_eq(_ffi("combo_${mask}", params, "double")(*args), expected, "combo_${mask}")
+  end
+end
+
+@tester::test("ffi: arguments past the registers go on the stack")
+fn test_ffi_stack()
+  return when !_ffi_ready()
+  ints = [1 to 10]
+  tester::assert_eq(_ffi("ints10", ["int64"] * 10, "int64")(*ints), 385)
+
+  doubles = ints.map(with (i) do return i + 0.5 end)
+  expected = 0.0
+  for i in [0 to 9] do
+    expected += doubles[i] * (i + 1)
+  end
+  tester::assert_eq(_ffi("doubles10", ["double"] * 10, "double")(*doubles), expected)
+
+  params = []
+  args = []
+  expected = 0.0
+  for i in [0 to 11] do
+    is_double = i % 2 == 1
+    v = is_double ? i + 0.25 : i + 1
+    params.push(is_double ? "double" : "int64")
+    args.push(v)
+    expected += v * (i + 1)
+  end
+  tester::assert_eq(_ffi("mixed12", params, "double")(*args), expected)
+end
+
+@tester::test("ffi: a small argument on the stack, which macOS arm64 can't pass")
+fn test_ffi_small_on_stack()
+  return when !_ffi_ready()
+  f = _ffi("small_on_stack", ["int64"] * 11 + ["int32"], "int64")
+  if native::rid() == "osx-arm64"
+    tester::assert_eq(_ffi_error(with () do f(*[1 to 12]) end)[0], "FfiError")
+  else
+    tester::assert_eq(f(*[1 to 12]), 78)
+  end
+end
+
+@tester::test("ffi: strings")
+fn test_ffi_strings()
+  return when !_ffi_ready()
+  greet = _ffi("greet", ["string"], "string")
+  tester::assert_eq(greet("kiwi"), "hello, kiwi")
+  tester::assert_eq(greet(null), "hello, nobody")
+  tester::assert_eq(_ffi("no_string", [], "string")(), null)
+  length = _ffi("length", ["string"], "int64")
+  tester::assert_eq(length("héllo"), 6)
+  tester::assert_eq(length(null), -1)
+end
+
+@tester::test("ffi: buffers, bytes and out-parameters")
+fn test_ffi_buffers()
+  return when !_ffi_ready()
+  buf = ffi::alloc(4 * ffi::sizeof("int32"))
+  _ffi("fill_squares", ["pointer", "int32"], "void")(buf, 4)
+  tester::assert_eq([0 to 3].map(with (i) do return ffi::read(buf, i * 4, "int32") end), [0, 1, 4, 9])
+  ffi::free(buf)
+
+  sum_bytes = _ffi("sum_bytes", ["bytes", "size_t"], "int64")
+  data = "abc".to_bytes()
+  tester::assert_eq(sum_bytes(data, data.size()), 97 + 98 + 99)
+end
+
+@tester::test("ffi: pointers and function pointers")
+fn test_ffi_pointers()
+  return when !_ffi_ready()
+  identity = _ffi("identity", ["pointer"], "pointer")
+  p = ffi::alloc(1)
+  tester::assert_eq(ffi::address(identity(p)), ffi::address(p))
+  tester::assert(ffi::is_null(identity(null)))
+  ffi::free(p)
+
+  adder = _ffi("get_adder", [], "pointer")()
+  add = ffi::wrap(adder, ["int32", "int32"], "int32", "adder")
+  tester::assert_eq(add(3, 4), 7)
+end
+
+@tester::test("ffi: a struct passed by pointer")
+fn test_ffi_struct()
+  return when !_ffi_ready()
+  point = ffi::alloc(16)
+  ffi::write(point, 0, "int32", 3)
+  ffi::write(point, 8, "double", 0.5)
+  tester::assert_eq(_ffi("point_sum", ["pointer"], "double")(point), 3.5)
+  _ffi("point_scale", ["pointer", "int32"], "void")(point, 2)
+  tester::assert_eq([ffi::read(point, 0, "int32"), ffi::read(point, 8, "double")], [6, 1.0])
+  ffi::free(point)
+end
+
+@tester::test("ffi: exported variables")
+fn test_ffi_variables()
+  return when !_ffi_ready()
+  counter = ffi::symbol(_ffi_lib, "counter")
+  tester::assert_eq(ffi::read(counter, 0, "int32"), 41)
+  ffi::write(counter, 0, "int32", 42)
+  tester::assert_eq(ffi::read(counter, 0, "int32"), 42)
+
+  words = ffi::symbol(_ffi_lib, "words")
+  size = ffi::sizeof("pointer")
+  tester::assert_eq([0 to 2].map(with (i) do return ffi::read(words, i * size, "string") end), ["kiwi", "ffi", null])
+end
+
+@tester::test("ffi: native memory")
+fn test_ffi_memory()
+  s = ffi::cstring("héllo")
+  tester::assert_eq(ffi::string(s), "héllo")
+  tester::assert_eq(ffi::string(s, 1), "h")
+  tester::assert_eq(ffi::bytes(s, 3), "hé".to_bytes())
+  tester::assert_eq(ffi::read(s, 0, "uint8"), 104)
+  ffi::write_bytes(s, 0, "j".to_bytes())
+  tester::assert_eq(ffi::string(s), "jéllo")
+  tester::assert_eq(ffi::string(ffi::offset(s, 3)), "llo")
+  tester::assert_eq(ffi::address(ffi::pointer(ffi::address(s))), ffi::address(s))
+  ffi::free(s)
+
+  buf = ffi::alloc(32)
+  tester::assert_eq(ffi::read(buf, 0, "int64"), 0)
+  for t in ["int8", "uint8", "int16", "uint16", "int32", "uint32", "int64", "uint64"] do
+    ffi::write(buf, 1, t, 100)
+    tester::assert_eq(ffi::read(buf, 1, t), 100, t)
+  end
+  ffi::write(buf, 0, "int16", -2)
+  tester::assert_eq(ffi::read(buf, 0, "uint16"), 65534)
+  ffi::write(buf, 0, "float", 0.5)
+  tester::assert_eq(ffi::read(buf, 0, "float"), 0.5)
+  ffi::write(buf, 0, "bool", true)
+  tester::assert_eq(ffi::read(buf, 0, "bool"), true)
+  ffi::write(buf, 8, "pointer", buf)
+  tester::assert_eq(ffi::address(ffi::read(buf, 8, "pointer")), ffi::address(buf))
+  ffi::free(buf)
+
+  tester::assert_eq(ffi::sizeof("double"), 8)
+  tester::assert_eq(ffi::sizeof("int16"), 2)
+  tester::assert_eq(ffi::sizeof("pointer"), 8)
+  tester::assert_eq(ffi::sizeof("long"), native::rid().begins_with("win") ? 4 : 8)
+  tester::assert(ffi::is_null(null))
+  tester::assert(ffi::is_null(ffi::pointer(0)))
+  ffi::free(null)
+end
+
+@tester::test("ffi: mistakes are FfiErrors that say what's wrong")
+fn test_ffi_errors()
+  return when !_ffi_ready()
+  add = _ffi("add_i32", ["int32", "int32"], "int32")
+  cases = [
+    [with () do add(1) end, "add_i32 expects 2 arguments, got 1."],
+    [with () do add("x", 1) end, "add_i32: argument 1: expected an integer, got string."],
+    [with () do add(2147483648, 1) end, "add_i32: argument 1: 2147483648 is out of range for int32."],
+    [with () do _ffi("inc_u8", ["uint8"], "uint8")(-1) end, "inc_u8: argument 1: -1 is out of range for uint8."],
+    [with () do _ffi("greet", ["string"], "string")(5) end, "greet: argument 1: expected a string, got integer."],
+    [with () do _ffi("add_i32", ["int33"], "int32") end, "Unknown ffi type `int33`."],
+    [with () do _ffi("add_i32", ["void"], "int32") end, "add_i32: void isn't a parameter type."],
+    [with () do _ffi("identity", ["pointer"], "bytes") end, "identity: bytes isn't a return type; return a pointer and read it with ffi::bytes."],
+    [with () do ffi::read(null, 0, "int32") end, "The pointer is null."],
+    [with () do ffi::write(ffi::alloc(8), 0, "string", "x") end, "Can't write string; use ffi::cstring for a string and ffi::write_bytes for bytes."],
+    [with () do ffi::symbol(ffi::alloc(8), "x") end, "Expected a library opened with ffi::open."],
+    [with () do ffi::wrap(null, [], "void")() end, "Can't call a null function pointer."],
+  ]
+  for c in cases do
+    tester::assert_eq(_ffi_error(c[0]), ["FfiError", c[1]])
+  end
+
+  kind = _ffi_error(with () do ffi::symbol(_ffi_lib, "no_such_function") end)[0]
+  tester::assert_eq(kind, "FfiError")
+  kind = _ffi_error(with () do ffi::open("kiwi_no_such_library.so") end)[0]
+  tester::assert_eq(kind, "FfiError")
+end
+
+@tester::test("ffi: a library stays open until it is closed as often as it was opened")
+fn test_ffi_close()
+  # Opening a library again returns the same handle.
+  if _ffi_ready()
+    lib = ffi::open(_ffi_lib_path)
+    tester::assert_eq(ffi::address(lib), ffi::address(_ffi_lib))
+    ffi::close(lib)
+    tester::assert_eq(_ffi("add_i32", ["int32", "int32"], "int32")(1, 2), 3)
+  end
+
+  libc = ffi::open(_ffi_libc())
+  ffi::close(libc)
+  tester::assert_eq(_ffi_error(with () do ffi::symbol(libc, "strlen") end), ["FfiError", "Expected a library opened with ffi::open."])
+  tester::assert_eq(_ffi_error(with () do ffi::close(libc) end), ["FfiError", "Expected a library opened with ffi::open."])
+end
+
+@tester::test("ffi: calls from tasks")
+fn test_ffi_tasks()
+  return when !_ffi_ready()
+  tids = [1 to 8].map(with (n) do
+    return task::spawn(with (x) do
+      add = ffi::func(_ffi_lib, "add_i64", ["int64", "int64"], "int64")
+      total = 0
+      for i in [1 to 100] do
+        total = add(total, x)
+      end
+      return total
+    end, [n])
+  end)
+  tester::assert_eq(tids.map(with (t) do return task::await(t) end), [1 to 8].map(with (n) do return n * 100 end))
+end
+
+@tester::test("ffi: unavailable in safe mode")
+fn test_ffi_safe_mode()
+  r = sys::execout(env::bin(), ["-sm", "-e", "try ffi::alloc(1) catch (k, m) println k end"])
+  tester::assert_eq(r["stdout"].trim(), "SafeModeError", r["stderr"])
+end

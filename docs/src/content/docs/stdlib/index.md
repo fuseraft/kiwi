@@ -69,7 +69,8 @@ Each package page starts with a guide and examples, followed by an API reference
 | [`sys`](/kiwi/stdlib/sys/) | Run programs and manage processes. |
 | [`signal`](/kiwi/stdlib/signal/) | Handle OS signals. |
 | [`ipc`](/kiwi/stdlib/ipc/) | Named-pipe messaging between processes. |
-| [`native`](/kiwi/stdlib/native/) | Load native extensions written in C, Rust, Zig or C#. |
+| [`native`](/kiwi/stdlib/native/) | Load native extensions written in C, C#, Rust or Zig. |
+| [`ffi`](/kiwi/stdlib/ffi/) | Call C functions in shared libraries, and read and write native memory. |
 
 ## Networking
 

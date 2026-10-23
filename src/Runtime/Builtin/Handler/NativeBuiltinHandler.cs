@@ -59,7 +59,7 @@ public static class NativeBuiltinHandler
     /// A relative path that exists next to the running script is resolved against it;
     /// anything else is passed through for the platform's library search.
     /// </summary>
-    private static string ResolvePath(KiwiVM vm, string path)
+    internal static string ResolvePath(KiwiVM vm, string path)
     {
         if (Path.IsPathRooted(path))
             return path;

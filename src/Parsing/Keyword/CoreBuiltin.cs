@@ -228,6 +228,7 @@ public static class CoreBuiltin
         if (SmtpBuiltin.Map.ContainsKey(arg))        return true;
         if (UdpBuiltin.Map.ContainsKey(arg))         return true;
         if (NativeBuiltin.Map.ContainsKey(arg))      return true;
+        if (FfiBuiltin.Map.ContainsKey(arg))         return true;
 
         // not a builtin method
         return false;
