@@ -6,7 +6,7 @@ The REPL (read-eval-print loop) runs Kiwi code as you type it. Start it by runni
 
 ```text
 $ kiwi
-kiwi 1.7.0 - type 'exit' or press Ctrl+C to quit.
+kiwi 1.8.0 - type 'exit' or press Ctrl+C to quit.
 >>
 ```
 
