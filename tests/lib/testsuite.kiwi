@@ -62,6 +62,7 @@ var (unit_tests: list = [
   # Standard library & builtins
   "builtins",
   "standard_library",
+  "cli",
 
   # Module system
   "case_when",

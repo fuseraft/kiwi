@@ -210,11 +210,25 @@ public struct FileUtil
         return Environment.CurrentDirectory;
     }
 
-    public static string ExpandPath(string expand)
+    public static string ExpandPath(string expand) => Path.GetFullPath(ExpandHome(expand));
+
+    /// <summary>
+    /// Replaces a leading <c>~</c> (alone, or before a separator) with the home directory. A
+    /// <c>~</c> anywhere else is part of a name.
+    /// </summary>
+    public static string ExpandHome(string path)
     {
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var path = expand.Replace("~", home).Replace("//", "/");
-        return Path.GetFullPath(path);
+        if (path == "~")
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+
+        if (path.StartsWith("~/") || path.StartsWith("~\\"))
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), path[2..]);
+        }
+
+        return path;
     }
 
     public static string GetAbsolutePath(Token token, string path)
