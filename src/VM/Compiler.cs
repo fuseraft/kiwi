@@ -69,6 +69,16 @@ public sealed class Compiler
     // Top-level assigned names per source file (see _globalNames); root compiler only.
     private Dictionary<int, HashSet<string>>? _fileGlobalNames;
 
+    // Names this compiler has stored to so far, in source order: locals in a function or lambda,
+    // globals at the top level. A lambda shares a variable it assigns with the code around it only
+    // if that code assigned the variable first (see SetupLocals).
+    private readonly HashSet<string> _assigned = new(StringComparer.Ordinal);
+
+    // True for a lambda written at the top level (directly, or inside other such lambdas). Its
+    // _globalNames holds only the globals assigned before it, so assigning a global the script
+    // only assigns later gives the lambda a local of its own.
+    private bool _globalsInSourceOrder;
+
     private readonly List<LocalVar>          _locals   = [];
     private readonly List<UpvalueDescriptor> _upvalues = [];
     private readonly List<LoopCtx>           _loops    = []; // last = innermost
@@ -190,6 +200,15 @@ public sealed class Compiler
     {
         var c = new Compiler("<lambda>", enclosing, isGlobal: false);
         c._chunk.IsLambda = true;
+        if (enclosing is { _isGlobal: true })
+        {
+            c._globalsInSourceOrder = true;
+            c._globalNames = new HashSet<string>(enclosing._globalNames.Where(enclosing._assigned.Contains), StringComparer.Ordinal);
+        }
+        else if (enclosing is { _globalsInSourceOrder: true })
+        {
+            c._globalsInSourceOrder = true;
+        }
         c.SetupLocals(fn.Parameters, fn.VariadicParamName, fn.Body);
         c.EmitDefaultInits(fn.Parameters);
         c.EmitTypeHintChecks(fn.Parameters, fn.TypeHints, fn.ReturnTypeHint, "the lambda");
@@ -289,17 +308,24 @@ public sealed class Compiler
         {
             _chunk.ParamNames.Add(name);
             DeclareLocal(name);
+            _assigned.Add(name);
         }
         if (!string.IsNullOrEmpty(variadicParam))
         {
             _chunk.ParamNames.Add(variadicParam);
             DeclareLocal(variadicParam);
+            _assigned.Add(variadicParam);
         }
 
+        // A variable the body assigns is the enclosing function's only if that function assigned
+        // it before this lambda or nested function, so a name the code around reuses afterwards
+        // doesn't silently tie the two together (with task::spawn, across threads). `var` always
+        // declares a local of its own.
         foreach (var name in CollectAssigned(body))
         {
-            if (!_locals.Any(l => l.Name == name) && ResolveUpvalue(name) < 0)
-                DeclareLocal(name);
+            if (_locals.Any(l => l.Name == name)) continue;
+            if (!_scanVars.Contains(name) && EnclosingAssignedBefore(name) && ResolveUpvalue(name) >= 0) continue;
+            DeclareLocal(name);
         }
 
         _chunk.LocalCount = _slotCount;
@@ -313,6 +339,7 @@ public sealed class Compiler
     {
         var out_ = new HashSet<string>(StringComparer.Ordinal);
         _scanConsts = new HashSet<string>(StringComparer.Ordinal);
+        _scanVars = new HashSet<string>(StringComparer.Ordinal);
         foreach (var s in stmts)
             if (s != null) ScanNode(s, out_);
         // A constant is stored as a global: an assignment to it elsewhere in the scope
@@ -322,6 +349,7 @@ public sealed class Compiler
     }
 
     private HashSet<string> _scanConsts = [];
+    private HashSet<string> _scanVars = []; // names declared with `var` in the scanned body
 
     private void ScanNode(ASTNode node, HashSet<string> out_)
     {
@@ -352,7 +380,11 @@ public sealed class Compiler
                 break;
             }
             case ASTNodeType.Variable:
-                foreach (var (n, _) in ((VariableNode)node).Variables) out_.Add(n);
+                foreach (var (n, _) in ((VariableNode)node).Variables)
+                {
+                    out_.Add(n);
+                    _scanVars.Add(n);
+                }
                 break;
             case ASTNodeType.ForLoop:
             {
@@ -443,6 +475,17 @@ public sealed class Compiler
         return -1;
     }
 
+    // Whether the nearest enclosing function or lambda with a local of this name has assigned
+    // it by now, which is the position of the lambda being compiled.
+    private bool EnclosingAssignedBefore(string name)
+    {
+        for (var c = _enclosing; c != null && !c._isGlobal; c = c._enclosing)
+        {
+            if (c.ResolveLocal(name) >= 0) return c._assigned.Contains(name);
+        }
+        return false;
+    }
+
     private int ResolveUpvalue(string name)
     {
         if (_enclosing == null) return -1;
@@ -492,6 +535,7 @@ public sealed class Compiler
 
     private void EmitStore(string name, int line = 0)
     {
+        _assigned.Add(name);
         if (!_isGlobal)
         {
             int s = ResolveLocal(name);

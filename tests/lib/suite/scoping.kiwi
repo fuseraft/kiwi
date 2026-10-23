@@ -148,3 +148,102 @@ fn test_scoping_block_locals()
 
   tester::assert_eq(_scope_const_in_block(), 3, "an assignment in a block still hits the constant")
 end
+
+# A lambda shares a variable it assigns with the enclosing function only if the function
+# assigned it before the lambda. Reads are unchanged.
+@tester::test("scoping: a lambda's assignment shares only variables assigned before it")
+fn test_lambda_capture_order()
+  lam = do ()
+    later = "lambda"
+    later
+  end
+  tester::assert_eq(lam(), "lambda")
+  later = "function"
+  lam()
+  tester::assert_eq(later, "function", "the lambda's `later` is its own")
+
+  count = 0
+  [1 to 3].each(do (n) => count += n)
+  tester::assert_eq(count, 6, "a variable assigned first is shared")
+
+  flag = false
+  set_flag = do () => flag = true
+  set_flag()
+  tester::assert_eq(flag, true, "plain assignment to an earlier variable is shared")
+end
+
+@tester::test("scoping: reads still see variables assigned after the lambda")
+fn test_lambda_forward_reads()
+  fact = do (n) => n <= 1 ? 1 : n * fact(n - 1)
+  is_even = do (n) => n == 0 ? true : is_odd(n - 1)
+  is_odd = do (n) => n == 0 ? false : is_even(n - 1)
+  tester::assert_eq(fact(5), 120)
+  tester::assert_eq(is_even(10), true)
+
+  show = do () => "value=${value}"
+  value = 42
+  tester::assert_eq(show(), "value=42")
+end
+
+@tester::test("scoping: var in a lambda declares the lambda's own variable")
+fn test_lambda_var_local()
+  x = "outer"
+  lam = do ()
+    var x = "lambda"
+    x
+  end
+  tester::assert_eq(lam(), "lambda")
+  tester::assert_eq(x, "outer")
+end
+
+@tester::test("scoping: nested lambdas follow the same order")
+fn test_nested_lambda_capture_order()
+  outer = do ()
+    inner = do () => shared = "inner"
+    inner()
+    shared
+  end
+  tester::assert_eq(outer(), null, "inner's `shared` is its own")
+  shared = "function"
+  outer()
+  tester::assert_eq(shared, "function")
+
+  total = 0
+  add = do (n)
+    bump = do () => total += n
+    bump()
+  end
+  add(2)
+  add(3)
+  tester::assert_eq(total, 5, "a variable assigned before both lambdas is shared")
+end
+
+@tester::test("scoping: a task's variables don't collide with the spawner's")
+fn test_task_capture_order()
+  ready = task::channel()
+  go = task::channel()
+  worker = task::spawn(do (r, g)
+    tid = "worker"
+    r.send(true)
+    g.recv()        # the spawner assigns its own `tid` meanwhile
+    tid
+  end, [ready, go])
+
+  ready.recv()
+  tid = "spawner"
+  go.send(true)
+  tester::assert_eq(task::await(worker), "worker")
+  tester::assert_eq(tid, "spawner")
+end
+
+@tester::test("scoping: a top-level lambda shares only globals assigned before it")
+fn test_top_level_lambda_capture_order()
+  script = fio::combine([fio::tmpdir(), "kiwi_scoping_${sys::pid()}.kiwi"])
+  fio::write(script, "earlier = \"script\"\nset_earlier = do () => earlier = \"lambda\"\nset_later = do () => later = \"lambda\"\nlater = \"script\"\nset_earlier()\nset_later()\nprintln [earlier, later]\n")
+  try
+    r = sys::execout(env::bin(), [script])
+    tester::assert_eq(r["stdout"].trim(), "[\"lambda\", \"script\"]", r["stderr"])
+  finally
+    fio::remove(script)
+  end
+end
