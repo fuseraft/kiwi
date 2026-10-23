@@ -1,9 +1,9 @@
 ---
 title: Installation
-description: Install Kiwi with the installer script, build it from source, or run it in Docker.
+description: Install Kiwi with the installer script, download a release, build it from source, or run it in Docker.
 ---
 
-Kiwi runs on Linux, macOS and Windows. The installers build it from source, so you need the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) first.
+Kiwi runs on Linux, macOS and Windows, on x64 and arm64. Each release has a prebuilt, self-contained binary for every platform, so you don't need .NET to run it.
 
 ## Install script
 
@@ -19,7 +19,7 @@ curl -sSL https://raw.githubusercontent.com/fuseraft/kiwi/main/install.sh | bash
 irm https://raw.githubusercontent.com/fuseraft/kiwi/main/install.ps1 | iex
 ```
 
-The installer builds Kiwi, copies the binary and the standard library into place, and adds `kiwi` to your `PATH`. Open a new terminal and check that it worked:
+The installer downloads the latest release for your platform, checks it against the release's SHA-256 checksums, installs the binary and the standard library, and adds `kiwi` to your `PATH`. Open a new terminal and check that it worked:
 
 ```sh
 kiwi --version
@@ -27,23 +27,55 @@ kiwi --version
 
 ### Installer options
 
-Download `install.sh` (or `install.ps1`) and pass options to change where and how Kiwi is installed:
+Pass options to change where and how Kiwi is installed. With the one-line install, put them after `bash -s --`:
+
+```sh
+curl -sSL https://raw.githubusercontent.com/fuseraft/kiwi/main/install.sh | bash -s -- --version=1.8.0
+```
 
 | Option | Effect |
 | :-- | :-- |
 | `--user` | Install for the current user in `~/.kiwi` (the default). |
 | `--system` | Install system-wide in `/opt/kiwi` and link `/usr/local/bin/kiwi`. Needs `sudo`. |
 | `--prefix=PATH` | Install into a directory of your choice. |
-| `--url=URL` | Download a pre-built binary instead of building from source. |
+| `--version=X.Y.Z` | Install that release instead of the latest. |
+| `--source` | Build from source instead of downloading a release. Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). |
+| `--url=URL` | Download a binary from a URL, with the standard library from the `main` branch. |
 | `--use-existing` | Install the binary already in `./bin/` instead of building. |
 | `--update` | Remove the current install and install the latest version. |
 | `--uninstall` | Remove Kiwi. |
+
+`install.ps1` takes the same options in PowerShell form: `-System`, `-Prefix PATH`, `-Version X.Y.Z`, `-Source`, `-Update`, `-Uninstall`.
 
 ```sh
 ./install.sh --system
 ./install.sh --prefix=/usr/local
 ./install.sh --uninstall
 ```
+
+If the latest release has no binary for your platform, the installer builds Kiwi from source when the .NET 10 SDK is installed. For an older release without one, pass `--source` with `--version`. A download that doesn't match its checksum, or a binary that can't start on your system, is never installed, and an existing install is left as it was.
+
+## Download a release
+
+Each [release](https://github.com/fuseraft/kiwi/releases) has an archive for each platform, and a `SHA256SUMS` file to check them against:
+
+| Platform | Archive |
+| :-- | :-- |
+| Linux x64 | `kiwi-linux-x64.tar.gz` |
+| Linux arm64 | `kiwi-linux-arm64.tar.gz` |
+| macOS Apple silicon | `kiwi-osx-arm64.tar.gz` |
+| macOS Intel | `kiwi-osx-x64.tar.gz` |
+| Windows x64 | `kiwi-win-x64.zip` |
+
+Each archive holds a `kiwi` directory with `bin/` and `lib/`. Unpack it anywhere and run `kiwi/bin/kiwi`:
+
+```sh
+curl -sSLO https://github.com/fuseraft/kiwi/releases/latest/download/kiwi-linux-x64.tar.gz
+tar -xzf kiwi-linux-x64.tar.gz
+./kiwi/bin/kiwi --version
+```
+
+The Linux binaries need glibc 2.34 or later, as on Ubuntu 22.04, Debian 12 and RHEL 9 or newer, and the ICU library (`libicu`), which most distributions install by default. Alpine and other musl-based distributions aren't supported.
 
 ## Build from source
 

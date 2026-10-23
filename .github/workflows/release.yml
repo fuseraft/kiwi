@@ -1,0 +1,215 @@
+name: Release binaries
+
+# Builds Kiwi for every supported platform, tests the archives and the installers, and attaches
+# the archives to the release. On a pull request that changes the release files, it builds and
+# tests without uploading.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release to build binaries for, such as v1.8.0
+        required: true
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - .github/workflows/release.yml
+      - install.sh
+      - install.ps1
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  build:
+    name: build (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux builds run on Ubuntu 22.04 so the binaries need only glibc 2.34.
+          - rid: linux-x64
+            os: ubuntu-latest
+            container: ubuntu:22.04
+          - rid: linux-arm64
+            os: ubuntu-24.04-arm
+            container: ubuntu:22.04
+          - rid: osx-arm64
+            os: macos-latest
+          - rid: osx-x64
+            os: macos-15-intel
+          - rid: win-x64
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 15
+    env:
+      KIWI_RID: ${{ matrix.rid }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Install build tools
+      if: matrix.container
+      run: |
+        apt-get update -qq
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
+          ca-certificates curl git clang zlib1g-dev libicu70 binutils
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ env.RELEASE_TAG || github.sha }}
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+    - name: Build
+      run: |
+        dotnet publish src/kiwi.csproj -c Release -r "$KIWI_RID" --self-contained true \
+          -p:PublishAot=true -p:StripSymbols=true -p:DebugType=none -o out
+    - name: Package
+      run: |
+        mkdir -p stage/kiwi/bin
+        cp out/* stage/kiwi/bin/
+        cp -r lib stage/kiwi/lib
+        cp LICENSE README.md stage/kiwi/
+        ls -la stage/kiwi/bin
+    - name: Check the version
+      run: |
+        exe=stage/kiwi/bin/kiwi
+        [[ "$KIWI_RID" == win-* ]] && exe=$exe.exe
+        version="$("$exe" -v)"
+        echo "$version"
+        if [[ -n "$RELEASE_TAG" && "$version" != "kiwi ${RELEASE_TAG#v}" ]]; then
+          echo "::error::The release is $RELEASE_TAG, but the binary reports '$version'."
+          exit 1
+        fi
+        if [[ "$KIWI_RID" == linux-* ]]; then
+          glibc="$(objdump -T "$exe" stage/kiwi/bin/*.so | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1)"
+          echo "Needs $glibc"
+          [[ "$glibc" == "GLIBC_2.34" ]] || { echo "::error::The binaries need $glibc, not GLIBC_2.34."; exit 1; }
+        fi
+    # The tests run the packaged binary, so they check what users download.
+    - name: Run test suite
+      run: stage/kiwi/bin/kiwi tests/test
+    - name: Run standard library test suite
+      run: stage/kiwi/bin/kiwi tests/test_stdlib
+    - name: Archive
+      run: |
+        if [[ "$KIWI_RID" == win-* ]]; then
+          pwsh -NoProfile -Command "Compress-Archive -Path stage/kiwi -DestinationPath kiwi-$KIWI_RID.zip"
+        else
+          tar -czf "kiwi-$KIWI_RID.tar.gz" -C stage kiwi
+        fi
+    - uses: actions/upload-artifact@v4
+      with:
+        name: kiwi-${{ matrix.rid }}
+        path: kiwi-${{ matrix.rid }}.*
+        if-no-files-found: error
+
+  # Installs from the archives with the installers in this commit, through a local copy of the
+  # release download URLs.
+  install:
+    name: install (${{ matrix.os }})
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
+      with:
+        path: dist
+        merge-multiple: true
+    - name: Lay out the release downloads
+      run: |
+        cd dist
+        sha256sum kiwi-* > SHA256SUMS 2>/dev/null || shasum -a 256 kiwi-* > SHA256SUMS
+        cat SHA256SUMS
+        version="$(grep -o '<Version>[^<]*' ../src/kiwi.csproj | cut -d'>' -f2)"
+        echo "VERSION=$version" >> "$GITHUB_ENV"
+        mkdir -p ../releases/latest/download "../releases/download/v$version"
+        cp kiwi-* SHA256SUMS ../releases/latest/download/
+        cp kiwi-* SHA256SUMS "../releases/download/v$version/"
+        # A release whose checksum doesn't match its archive.
+        mkdir -p ../releases/download/v0.0.1
+        cp kiwi-* ../releases/download/v0.0.1/
+        awk '{ print "0000000000000000000000000000000000000000000000000000000000000000  " $2 }' SHA256SUMS \
+          > ../releases/download/v0.0.1/SHA256SUMS
+    - name: Install with install.sh
+      if: runner.os != 'Windows'
+      env:
+        KIWI_RELEASES_URL: file://${{ github.workspace }}/releases
+      run: |
+        set -x
+        check() { "$1/bin/kiwi" -e 'println KIWI_STDLIB_VERSION' | tee /dev/stderr | grep -qx "$VERSION"; }
+        # The one-line install pipes the script into bash.
+        bash -s -- --prefix="$RUNNER_TEMP/latest" < install.sh
+        check "$RUNNER_TEMP/latest"
+        ./install.sh --prefix="$RUNNER_TEMP/pinned" --version="$VERSION"
+        check "$RUNNER_TEMP/pinned"
+        ./install.sh --prefix="$RUNNER_TEMP/pinned" --update
+        check "$RUNNER_TEMP/pinned"
+        if ./install.sh --prefix="$RUNNER_TEMP/bad" --version=0.0.1; then
+          echo "::error::A checksum mismatch didn't stop the install."; exit 1
+        fi
+        [[ ! -e "$RUNNER_TEMP/bad/bin/kiwi" ]]
+        ./install.sh --prefix="$RUNNER_TEMP/pinned" --uninstall
+        [[ ! -e "$RUNNER_TEMP/pinned" ]]
+    - name: Install with install.ps1
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $env:KIWI_RELEASES_URL = ([Uri](Join-Path $PWD 'releases')).AbsoluteUri
+        function Check($prefix) {
+          $v = & "$prefix\bin\kiwi.exe" -e 'println KIWI_STDLIB_VERSION'
+          Write-Host $v
+          if ($v -ne $env:VERSION) { throw "Installed $v, expected $env:VERSION" }
+        }
+        # The one-line install runs the script with Invoke-Expression, so it takes no options.
+        Get-Content -Raw install.ps1 | Invoke-Expression
+        Check "$env:LOCALAPPDATA\kiwi"
+        # Windows PowerShell 5.1 as well as PowerShell 7.
+        powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Prefix "$env:RUNNER_TEMP\pinned" -Version $env:VERSION
+        if ($LASTEXITCODE -ne 0) { throw "install.ps1 failed under Windows PowerShell" }
+        Check "$env:RUNNER_TEMP\pinned"
+        ./install.ps1 -Prefix "$env:RUNNER_TEMP\pinned" -Update
+        Check "$env:RUNNER_TEMP\pinned"
+        pwsh -NoProfile -File install.ps1 -Prefix "$env:RUNNER_TEMP\bad" -Version 0.0.1
+        if ($LASTEXITCODE -eq 0) { throw "A checksum mismatch didn't stop the install." }
+        if (Test-Path "$env:RUNNER_TEMP\bad\bin\kiwi.exe") { throw "A mismatched archive was installed." }
+        ./install.ps1 -Prefix "$env:RUNNER_TEMP\pinned" -Uninstall
+        if (Test-Path "$env:RUNNER_TEMP\pinned") { throw "Uninstall left files behind." }
+
+  upload:
+    needs: [build, install]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        path: dist
+        merge-multiple: true
+    - name: Attach the archives to the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        cd dist
+        sha256sum kiwi-* > SHA256SUMS
+        cat SHA256SUMS
+        gh release upload "$RELEASE_TAG" kiwi-* SHA256SUMS --clobber --repo "$GITHUB_REPOSITORY"

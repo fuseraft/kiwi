@@ -5,7 +5,8 @@
 
 .DESCRIPTION
   Installs the Kiwi programming language on Windows.
-  Builds from source (requires .NET 9 SDK) or downloads a pre-built binary.
+  Downloads a prebuilt release. With -Source, or when there's no prebuilt release,
+  builds from source with the .NET 10 SDK.
 
 .PARAMETER User
   Install for the current user only (default: $env:LOCALAPPDATA\kiwi)
@@ -16,8 +17,14 @@
 .PARAMETER Prefix
   Install to a custom directory path
 
+.PARAMETER Version
+  Install this release, such as 1.8.0, instead of the latest
+
+.PARAMETER Source
+  Build from source instead of downloading a release
+
 .PARAMETER Url
-  Download a pre-built binary from this URL instead of building from source
+  Download a binary from this URL, with the standard library from main
 
 .PARAMETER UseExisting
   Use the binary already present in .\bin\ instead of building from source
@@ -32,6 +39,8 @@
   .\install.ps1
   .\install.ps1 -System
   .\install.ps1 -Prefix "C:\tools\kiwi"
+  .\install.ps1 -Version 1.8.0
+  .\install.ps1 -Source
   .\install.ps1 -Url "https://example.com/kiwi.exe"
   .\install.ps1 -UseExisting
   .\install.ps1 -Update
@@ -53,6 +62,8 @@ param (
   [Parameter(ParameterSetName = 'Custom')]
   [string]$Prefix,
 
+  [string]$Version,
+  [switch]$Source,
   [string]$Url,
   [switch]$UseExisting,
   [switch]$Uninstall,
@@ -68,6 +79,11 @@ $ErrorActionPreference = 'Stop'
 $RepoUrl  = 'https://github.com/fuseraft/kiwi'
 $RepoRaw  = 'https://raw.githubusercontent.com/fuseraft/kiwi/main'
 $RuntimeId = 'win-x64'
+# Where release archives are downloaded from. CI points this at a local copy.
+$ReleasesUrl = if ($env:KIWI_RELEASES_URL) { $env:KIWI_RELEASES_URL } else { "$RepoUrl/releases" }
+
+# Windows PowerShell 5.1 may not offer TLS 1.2, which GitHub requires.
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 # -------------------------------------------------------------------------
 # Colors / Logging
@@ -146,6 +162,13 @@ function Get-File {
   $wc.DownloadFile($Uri, $Dest)
 }
 
+if ($Version) {
+  $Version = $Version.TrimStart('v')
+  if ($Version -notmatch '^\d+\.\d+\.\d+$') {
+    Write-Fatal "-Version takes a release number such as 1.8.0, not '$Version'."
+  }
+}
+
 # -------------------------------------------------------------------------
 # Resolve install prefix
 # -------------------------------------------------------------------------
@@ -197,121 +220,125 @@ Write-Info "Prefix    : $InstallPrefix"
 # -------------------------------------------------------------------------
 if ($System -and -not (Test-IsAdmin)) {
   $passArgs = @('-System')
-  if ($Url)    { $passArgs += "-Url `"$Url`"" }
-  if ($Update) { $passArgs += '-Update' }
+  if ($Url)     { $passArgs += "-Url `"$Url`"" }
+  if ($Version) { $passArgs += "-Version $Version" }
+  if ($Source)  { $passArgs += '-Source' }
+  if ($Update)  { $passArgs += '-Update' }
   Request-Elevation $passArgs
 }
 
-# -------------------------------------------------------------------------
-# Update: remove old binary + lib
-# -------------------------------------------------------------------------
-if ($Update -and (Test-Path $InstallPrefix)) {
-  Write-Info 'Removing previous installation...'
-  if (Test-Path $BinDir) { Remove-Item -Recurse -Force $BinDir }
-  if (Test-Path $LibDir) { Remove-Item -Recurse -Force $LibDir }
-  Write-Success 'Previous installation removed'
+# Each way of getting Kiwi fills $Stage with bin\ and lib\, which are installed only once they're
+# complete, so a failed download or build leaves an existing install as it was.
+$Stage = Join-Path $env:TEMP "kiwi_stage_$(Get-Random)"
+$StageBin = Join-Path $Stage 'bin'
+$StageLib = Join-Path $Stage 'lib'
+New-Item -ItemType Directory -Force -Path $StageBin | Out-Null
+New-Item -ItemType Directory -Force -Path $StageLib | Out-Null
+$Cleanup = @($Stage)
+
+$ScriptDir = if ($PSCommandPath) { Split-Path -Parent $PSCommandPath } else { (Get-Location).Path }
+
+function Remove-Temp {
+  foreach ($dir in $script:Cleanup) {
+    if (Test-Path $dir) { Remove-Item -Recurse -Force $dir -ErrorAction SilentlyContinue }
+  }
 }
 
-New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
-New-Item -ItemType Directory -Force -Path $LibDir | Out-Null
-
+function Stop-Install {
+  param([string]$Msg)
+  Remove-Temp
+  Write-Fatal $Msg
+}
 
 # -------------------------------------------------------------------------
-# Build or Download
+# Download a release. Returns $false when the archive isn't available.
 # -------------------------------------------------------------------------
-if ($UseExisting) {
-  # -------------------------------------------------------------------------
-  # Use the binary already present in .\bin\
-  # -------------------------------------------------------------------------
-  Write-Header 'Using existing binary'
+function Get-Release {
+  $asset = "kiwi-$RuntimeId.zip"
+  $base = if ($Version) { "$ReleasesUrl/download/v$Version" } else { "$ReleasesUrl/latest/download" }
 
-  $ScriptDir  = if ($PSCommandPath) { Split-Path -Parent $PSCommandPath } else { (Get-Location).Path }
-  $LocalBin   = Join-Path $ScriptDir 'bin\kiwi.exe'
+  $tmp = Join-Path $env:TEMP "kiwi_download_$(Get-Random)"
+  New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+  $script:Cleanup += $tmp
+  $archive = Join-Path $tmp $asset
+  $sums = Join-Path $tmp 'SHA256SUMS'
 
-  if (-not (Test-Path $LocalBin)) {
-    Write-Fatal "No existing binary found at $LocalBin. Build first with .\build.sh or omit -UseExisting."
+  try { Get-File -Uri "$base/$asset" -Dest $archive } catch { return $false }
+  try { Get-File -Uri "$base/SHA256SUMS" -Dest $sums } catch {
+    Stop-Install "Couldn't download $base/SHA256SUMS to verify the archive."
   }
 
-  Copy-Item -Force $LocalBin $BinDir
-  Write-Success "Binary copied from $LocalBin"
-
-  # Copy settings file if present
-  $LocalSettings = Join-Path $ScriptDir 'bin\kiwi-settings.json'
-  if (Test-Path $LocalSettings) { Copy-Item -Force $LocalSettings $BinDir }
-
-  # Copy any native DLLs produced alongside the binary
-  Get-ChildItem -Path (Join-Path $ScriptDir 'bin') -Filter '*.dll' | ForEach-Object {
-    Copy-Item -Force $_.FullName $BinDir
+  $expected = $null
+  foreach ($line in Get-Content $sums) {
+    $fields = $line -split '\s+', 2
+    if ($fields.Count -eq 2 -and $fields[1].TrimStart('*') -eq $asset) { $expected = $fields[0] }
   }
-
-  # Install stdlib from the local repo
-  Copy-Item -Recurse -Force (Join-Path $ScriptDir 'lib\*') $LibDir
-  Write-Success 'Standard library installed'
-
-} elseif ($Url) {
-  # -------------------------------------------------------------------------
-  # Download pre-built binary
-  # -------------------------------------------------------------------------
-  Write-Header 'Downloading Kiwi binary'
-
-  $BinaryDest = Join-Path $BinDir 'kiwi.exe'
-  Get-File -Uri $Url -Dest $BinaryDest
-  Write-Success 'Binary downloaded'
-
-  # Clone repo just for stdlib and settings
-  Write-Header 'Fetching standard library'
-  $GitExe = Get-Command git -ErrorAction SilentlyContinue
-  if (-not $GitExe) {
-    Write-Fatal 'git is required to fetch the standard library. Install Git for Windows and retry.'
+  if (-not $expected) { Stop-Install "SHA256SUMS has no checksum for $asset." }
+  $actual = (Get-FileHash -Algorithm SHA256 -Path $archive).Hash.ToLowerInvariant()
+  if ($actual -ne $expected.ToLowerInvariant()) {
+    Stop-Install "The download doesn't match its checksum (expected $expected, got $actual). Nothing was installed."
   }
+  Write-Success 'Checksum verified'
 
-  $StdlibTmp = Join-Path $env:TEMP "kiwi_stdlib_$(Get-Random)"
-  git clone --depth=1 $RepoUrl $StdlibTmp 2>&1 | Out-Null
-  Copy-Item -Recurse -Force (Join-Path $StdlibTmp 'lib\*') $LibDir
-  Copy-Item -Force (Join-Path $StdlibTmp 'src\kiwi-settings.json') $BinDir
-  Remove-Item -Recurse -Force $StdlibTmp
-  Write-Success 'Standard library installed'
+  Expand-Archive -Path $archive -DestinationPath $tmp -Force
+  $root = Join-Path $tmp 'kiwi'
+  if (-not (Test-Path (Join-Path $root 'bin\kiwi.exe')) -or -not (Test-Path (Join-Path $root 'lib'))) {
+    Stop-Install "$asset doesn't contain kiwi\bin\kiwi.exe and kiwi\lib."
+  }
+  Copy-Item -Recurse -Force (Join-Path $root 'bin\*') $StageBin
+  Copy-Item -Recurse -Force (Join-Path $root 'lib\*') $StageLib
+  Write-Success 'Archive downloaded'
+  return $true
+}
 
-} else {
-  # -------------------------------------------------------------------------
-  # Build from source
-  # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# Build from source
+# -------------------------------------------------------------------------
+function Build-FromSource {
   Write-Header 'Building Kiwi from source'
 
   # Check .NET SDK
   $DotnetExe = Get-Command dotnet -ErrorAction SilentlyContinue
   if (-not $DotnetExe) {
-    Write-Fatal ".NET 9 SDK not found.`nInstall from: https://dotnet.microsoft.com/download/dotnet/9.0"
+    Stop-Install ".NET 10 SDK not found.`nInstall from: https://dotnet.microsoft.com/download/dotnet/10.0"
   }
 
   $DotnetVer = (dotnet --version 2>$null) -replace '\s',''
   $DotnetMajor = [int]($DotnetVer -split '\.')[0]
-  if ($DotnetMajor -lt 9) {
-    Write-Fatal "Kiwi requires .NET 9 or higher. Found: $DotnetVer"
+  if ($DotnetMajor -lt 10) {
+    Stop-Install "Kiwi requires .NET 10 or higher. Found: $DotnetVer"
   }
   Write-Info ".NET SDK $DotnetVer"
 
   # Locate or clone the repository
-  $CleanupRepo = $false
-  $ScriptDir   = if ($PSCommandPath) { Split-Path -Parent $PSCommandPath } else { (Get-Location).Path }
-
-  if (Test-Path (Join-Path $ScriptDir 'src\kiwi.csproj')) {
+  if ((Test-Path (Join-Path $ScriptDir 'src\kiwi.csproj')) -and -not $Version) {
     $RepoDir = $ScriptDir
     Write-Info "Using local repository at $RepoDir"
   } else {
     $GitExe = Get-Command git -ErrorAction SilentlyContinue
     if (-not $GitExe) {
-      Write-Fatal 'git is required to clone the Kiwi repository. Install Git for Windows and retry.'
+      Stop-Install 'git is required to clone the Kiwi repository. Install Git for Windows and retry.'
     }
     $RepoDir = Join-Path $env:TEMP "kiwi_src_$(Get-Random)"
-    Write-Info 'Cloning Kiwi repository...'
-    git clone --depth=1 $RepoUrl $RepoDir 2>&1 | Out-Null
+    $script:Cleanup += $RepoDir
+    $cloneArgs = @('clone', '--depth=1')
+    if ($Version) {
+      $cloneArgs += @('--branch', "v$Version")
+      Write-Info "Cloning Kiwi repository at v$Version..."
+    } else {
+      Write-Info 'Cloning Kiwi repository...'
+    }
+    # Windows PowerShell 5.1 turns git's progress output on stderr into errors.
+    $ErrorActionPreference = 'Continue'
+    git @cloneArgs $RepoUrl $RepoDir 2>&1 | Out-Null
+    $ErrorActionPreference = 'Stop'
+    if ($LASTEXITCODE -ne 0) { Stop-Install "Couldn't clone $RepoUrl." }
     Write-Success 'Repository cloned'
-    $CleanupRepo = $true
   }
 
   $BuildTmp = Join-Path $env:TEMP "kiwi_build_$(Get-Random)"
   New-Item -ItemType Directory -Force -Path $BuildTmp | Out-Null
+  $script:Cleanup += $BuildTmp
   $ProjPath = Join-Path $RepoDir 'src\kiwi.csproj'
 
   Write-Info 'Compiling... (this may take a minute)'
@@ -337,7 +364,7 @@ if ($UseExisting) {
     -RedirectStandardError  (Join-Path $env:TEMP 'kiwi_build_err.log')
 
   if ($proc.ExitCode -ne 0) {
-    Write-Warn 'AOT build failed — falling back to non-AOT build'
+    Write-Warn 'AOT build failed - falling back to non-AOT build'
 
     $FallbackArgs = @(
       'publish', $ProjPath,
@@ -357,35 +384,112 @@ if ($UseExisting) {
       -RedirectStandardError  (Join-Path $env:TEMP 'kiwi_build_err.log')
 
     if ($proc2.ExitCode -ne 0) {
-      Write-Fatal "Build failed. See $env:TEMP\kiwi_build_err.log for details."
+      Stop-Install "Build failed. See $env:TEMP\kiwi_build_err.log for details."
     }
     Write-Success 'Non-AOT build succeeded'
   } else {
     Write-Success 'AOT build succeeded'
   }
 
-  # Install binary
-  Copy-Item -Force (Join-Path $BuildTmp 'kiwi.exe') $BinDir
-
-  # Install settings
+  Copy-Item -Force (Join-Path $BuildTmp 'kiwi.exe') $StageBin
   $SettingsSrc = Join-Path $BuildTmp 'kiwi-settings.json'
-  if (Test-Path $SettingsSrc) {
-    Copy-Item -Force $SettingsSrc $BinDir
-  }
-
-  # Install native DLLs produced by build
+  if (Test-Path $SettingsSrc) { Copy-Item -Force $SettingsSrc $StageBin }
+  # Native DLLs produced by the build
   Get-ChildItem -Path $BuildTmp -Filter '*.dll' | ForEach-Object {
-    Copy-Item -Force $_.FullName $BinDir
+    Copy-Item -Force $_.FullName $StageBin
+  }
+  Copy-Item -Recurse -Force (Join-Path $RepoDir 'lib\*') $StageLib
+}
+
+# -------------------------------------------------------------------------
+# Download, Build or Copy
+# -------------------------------------------------------------------------
+if ($UseExisting) {
+  Write-Header 'Using existing binary'
+
+  $LocalBin = Join-Path $ScriptDir 'bin\kiwi.exe'
+  if (-not (Test-Path $LocalBin)) {
+    Stop-Install "No existing binary found at $LocalBin. Build first with .\build.ps1 or omit -UseExisting."
   }
 
-  # Install stdlib
-  Copy-Item -Recurse -Force (Join-Path $RepoDir 'lib\*') $LibDir
-  Write-Success 'Standard library installed'
+  Copy-Item -Force $LocalBin $StageBin
+  $LocalSettings = Join-Path $ScriptDir 'bin\kiwi-settings.json'
+  if (Test-Path $LocalSettings) { Copy-Item -Force $LocalSettings $StageBin }
+  # Native DLLs produced alongside the binary
+  Get-ChildItem -Path (Join-Path $ScriptDir 'bin') -Filter '*.dll' | ForEach-Object {
+    Copy-Item -Force $_.FullName $StageBin
+  }
+  Copy-Item -Recurse -Force (Join-Path $ScriptDir 'lib\*') $StageLib
+  Write-Success "Binary copied from $LocalBin"
 
-  # Cleanup
-  Remove-Item -Recurse -Force $BuildTmp
-  if ($CleanupRepo) { Remove-Item -Recurse -Force $RepoDir }
+} elseif ($Url) {
+  Write-Header 'Downloading Kiwi binary'
+  Get-File -Uri $Url -Dest (Join-Path $StageBin 'kiwi.exe')
+  Write-Success 'Binary downloaded'
+
+  # Clone repo just for stdlib and settings
+  Write-Header 'Fetching standard library'
+  $GitExe = Get-Command git -ErrorAction SilentlyContinue
+  if (-not $GitExe) {
+    Stop-Install 'git is required to fetch the standard library. Install Git for Windows and retry.'
+  }
+
+  $StdlibTmp = Join-Path $env:TEMP "kiwi_stdlib_$(Get-Random)"
+  $Cleanup += $StdlibTmp
+  $ErrorActionPreference = 'Continue'
+  git clone --depth=1 $RepoUrl $StdlibTmp 2>&1 | Out-Null
+  $ErrorActionPreference = 'Stop'
+  if ($LASTEXITCODE -ne 0) { Stop-Install "Couldn't clone $RepoUrl." }
+  Copy-Item -Recurse -Force (Join-Path $StdlibTmp 'lib\*') $StageLib
+  Copy-Item -Force (Join-Path $StdlibTmp 'src\kiwi-settings.json') $StageBin
+
+} elseif ($Source) {
+  Build-FromSource
+
+} else {
+  Write-Header $(if ($Version) { "Downloading Kiwi $Version" } else { 'Downloading Kiwi' })
+  if (-not (Get-Release)) {
+    if ($Version) {
+      Stop-Install "Kiwi $Version has no prebuilt release for $RuntimeId. Pass -Source to build it."
+    }
+    if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+      Write-Warn "The latest release has no prebuilt binary for $RuntimeId. Building from source instead."
+      Build-FromSource
+    } else {
+      Stop-Install "Couldn't download a prebuilt Kiwi for $RuntimeId, and the .NET 10 SDK isn't installed to build it from source."
+    }
+  }
 }
+
+# -------------------------------------------------------------------------
+# Install
+# -------------------------------------------------------------------------
+# A binary that can't start on this system isn't installed.
+$RunOutput = $null
+$RunOk = $false
+try {
+  $RunOutput = & (Join-Path $StageBin 'kiwi.exe') -v 2>&1
+  $RunOk = $LASTEXITCODE -eq 0 -and "$RunOutput".StartsWith('kiwi ')
+} catch { $RunOutput = $_ }
+if (-not $RunOk) {
+  Write-Host "$RunOutput"
+  Stop-Install "Kiwi can't run on this system, so nothing was installed."
+}
+
+# Update: remove old binary + lib
+if ($Update -and (Test-Path $InstallPrefix)) {
+  Write-Info 'Removing previous installation...'
+  if (Test-Path $BinDir) { Remove-Item -Recurse -Force $BinDir }
+  if (Test-Path $LibDir) { Remove-Item -Recurse -Force $LibDir }
+  Write-Success 'Previous installation removed'
+}
+
+New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
+New-Item -ItemType Directory -Force -Path $LibDir | Out-Null
+Copy-Item -Recurse -Force (Join-Path $StageBin '*') $BinDir
+Copy-Item -Recurse -Force (Join-Path $StageLib '*') $LibDir
+Remove-Temp
+Write-Success "Installed $RunOutput to $InstallPrefix"
 
 # -------------------------------------------------------------------------
 # PATH Registration

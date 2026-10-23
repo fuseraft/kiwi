@@ -158,6 +158,7 @@ GitHub Actions runs on push to `main` and on pull requests:
 - **dotnet.yml**: `./build.sh` → `./bin/kiwi tests/test` → `./bin/kiwi tests/test_stdlib`
 - **benchmarks.yml**: build → tests → benchmarks
 - **docs.yml**: builds `bin/kiwi`, runs every docs example (`npm run check:examples`), builds the docs site (validating links), and deploys it to GitHub Pages on merge to main
+- **release.yml**: when a release is published, builds and tests a native AOT binary for each platform, tests `install.sh` and `install.ps1` against the archives, and attaches the archives and `SHA256SUMS` to the release. It also runs on pull requests that change it or the installers, without uploading. Run it by hand with a tag to add binaries to an existing release.
 
 Pull requests must pass all CI checks before merging.
 
