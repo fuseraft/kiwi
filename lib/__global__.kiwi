@@ -2,7 +2,7 @@
 @summary The __global__ file contains global definitions.
 #/
 
-const KIWI_STDLIB_VERSION = "1.6.2"
+const KIWI_STDLIB_VERSION = "1.7.0"
 
 const STDLIB_PACKAGES = [
   "bench", "cli", "hashable", "compress", "console", "crypto", "csv",
