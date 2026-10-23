@@ -1,255 +1,276 @@
 using System.Text.Json;
+using kiwi.Runtime.Builtin.Util;
 using kiwi.Tracing.Error;
 
 namespace kiwi.Settings;
 
+/// <summary>
+/// What the command line asks <c>kiwi</c> to do.
+/// </summary>
+public enum CliMode
+{
+    /// <summary>Run a script, or piped code, or start the REPL when stdin is a terminal.</summary>
+    Run,
+    Repl,
+    Execute,
+    Check,
+    Ast,
+    Tokens,
+    Debug,
+    Help,
+    Version,
+    Settings,
+    New
+}
+
+/// <summary>
+/// The parsed command line: <c>kiwi [options] [script] [arguments]</c>.
+/// <para>
+/// Options are read until the first positional argument or <c>--</c>. In the default mode that
+/// argument is the script, if it names a file; everything after it is passed to the script
+/// unchanged. <c>-key=value</c> arguments before the script are passed to it too.
+/// </para>
+/// </summary>
 public class Config
 {
-    public bool PrintTokens { get; set; } = false;
-    public bool PrintAST { get; set; } = false;
-    public bool CheckSyntax { get; set; } = false;
-    public bool UseREPL { get; set; } = false;
-    public bool UseDebugger { get; set; } = false;
-    public string? ExecuteCode { get; set; } = null;
-    public List<string> Args { get; set; } = [];
-    public List<string> Scripts { get; set; } = [];
-    public bool HasScripts => Scripts.Count > 0;
+    public CliMode Mode { get; private set; } = CliMode.Run;
 
-    public static Config Configure(IEnumerable<string> cliArgs)
+    /// <summary>The script to run, check or print; for <c>--new</c>, the file to create.</summary>
+    public string Script { get; private set; } = string.Empty;
+
+    public string? ExecuteCode { get; private set; }
+
+    public List<string> Args { get; } = [];
+
+    public bool HasScript => !string.IsNullOrEmpty(Script);
+
+    // The option that chose the mode, for error messages.
+    private string? _modeOption;
+    private string? _stdlibOption;
+    private string? _noStdlibOption;
+    private readonly List<string> _stdlibPaths = [];
+
+    public static Config Configure(IReadOnlyList<string> cliArgs)
     {
         Config config = new();
+        var readingOptions = true;
+        var i = 0;
 
-        var iter = cliArgs.GetEnumerator();
-        while (iter.MoveNext())
+        while (i < cliArgs.Count)
         {
-            if (config.UseREPL)
+            var arg = cliArgs[i++];
+
+            if (readingOptions && arg == "--")
             {
+                readingOptions = false;
+            }
+            else if (readingOptions && IsKeyValue(arg))
+            {
+                config.Args.Add(arg);
+            }
+            else if (readingOptions && arg.Length > 1 && arg.StartsWith('-'))
+            {
+                config.ReadOption(arg, cliArgs, ref i);
+            }
+            else
+            {
+                // The first positional argument ends the options.
+                readingOptions = false;
+                config.AddPositional(arg);
+            }
+        }
+
+        config.Finish();
+        return config;
+    }
+
+    /// <summary>
+    /// Runs a command that finishes without running code (help, version, settings, new).
+    /// </summary>
+    /// <returns><c>true</c> if the mode was one of these.</returns>
+    public bool RunCommand()
+    {
+        switch (Mode)
+        {
+            case CliMode.Help:
+                PrintHelp();
+                return true;
+            case CliMode.Version:
+                PrintVersion();
+                return true;
+            case CliMode.Settings:
+                Console.WriteLine(JsonSerializer.Serialize(Kiwi.Settings, KiwiJsonContext.Default.KiwiSettings));
+                return true;
+            case CliMode.New:
+                CreateNewFile(Script);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void ReadOption(string option, IReadOnlyList<string> cliArgs, ref int i)
+    {
+        switch (option.ToLowerInvariant())
+        {
+            case "-h":
+            case "--help":
+                SetMode(CliMode.Help, option);
                 break;
-            }
 
-            var current = iter.Current;
+            case "-v":
+            case "--version":
+                SetMode(CliMode.Version, option);
+                break;
 
-            switch (current.ToLower())
+            case "-s":
+            case "--settings":
+                SetMode(CliMode.Settings, option);
+                break;
+
+            case "-n":
+            case "--new":
+                SetMode(CliMode.New, option);
+                Script = ReadValue(option, "a filename", cliArgs, ref i);
+                break;
+
+            case "-i":
+            case "--interactive":
+                SetMode(CliMode.Repl, option);
+                break;
+
+            case "-e":
+            case "--execute":
+                SetMode(CliMode.Execute, option);
+                ExecuteCode = ReadValue(option, "a code string", cliArgs, ref i);
+                break;
+
+            case "-c":
+            case "--check":
+                SetMode(CliMode.Check, option);
+                Script = ReadScript(option, cliArgs, ref i);
+                break;
+
+            case "-a":
+            case "--ast":
+                SetMode(CliMode.Ast, option);
+                Script = ReadScript(option, cliArgs, ref i);
+                break;
+
+            case "-t":
+            case "--tokens":
+                SetMode(CliMode.Tokens, option);
+                Script = ReadScript(option, cliArgs, ref i);
+                break;
+
+            case "-d":
+            case "--debug":
+                SetMode(CliMode.Debug, option);
+                Script = ReadScript(option, cliArgs, ref i);
+                break;
+
+            case "-p":
+            case "--stdlib-path":
+                {
+                    // Several locations are separated by `;`, which, unlike `:`, can't be part
+                    // of a Windows path such as C:\kiwi\lib.
+                    var value = ReadValue(option, "a path", cliArgs, ref i);
+                    var paths = value.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                    if (paths.Length == 0)
+                    {
+                        throw new CliError($"Expected a path after `{option}`.");
+                    }
+
+                    _stdlibPaths.AddRange(paths);
+                    _stdlibOption = option;
+                }
+                break;
+
+            case "-ns":
+            case "--no-stdlib":
+                _noStdlibOption = option;
+                break;
+
+            case "-sm":
+            case "--safemode":
+                Kiwi.Settings.SafeMode = true;
+                break;
+
+            case "-cd":
+            case "--crash-dump":
+                if (string.IsNullOrEmpty(Kiwi.Settings.CrashDumpPath))
+                {
+                    Kiwi.Settings.CrashDumpPath = "./kiwi_crash.log";
+                }
+                break;
+
+            default:
+                throw new CliError($"Unknown option: {option}");
+        }
+    }
+
+    private void AddPositional(string arg)
+    {
+        // Only the default mode takes its script as a positional argument, and only the first.
+        if (Mode != CliMode.Run || HasScript || Args.Any(a => !IsKeyValue(a)))
+        {
+            Args.Add(arg);
+        }
+        else if (IsScript(ref arg))
+        {
+            Script = arg;
+        }
+        else if (IsScriptName(arg))
+        {
+            // Otherwise a mistyped script name would become an argument to the REPL or to piped
+            // code, and nothing would say the file wasn't found.
+            throw new CliError($"The file does not exist: {arg}");
+        }
+        else
+        {
+            Args.Add(arg);
+        }
+    }
+
+    private void SetMode(CliMode mode, string option)
+    {
+        // `--help` wins over anything else on the line.
+        if (Mode == CliMode.Help)
+        {
+            return;
+        }
+
+        if (_modeOption != null && mode != CliMode.Help)
+        {
+            throw new CliError(_modeOption.Equals(option, StringComparison.OrdinalIgnoreCase)
+                ? $"`{option}` can only be given once."
+                : $"`{option}` can't be used with `{_modeOption}`.");
+        }
+
+        Mode = mode;
+        _modeOption = option;
+    }
+
+    private void Finish()
+    {
+        if (_noStdlibOption != null && _stdlibOption != null)
+        {
+            throw new CliError($"`{_noStdlibOption}` can't be used with `{_stdlibOption}`.");
+        }
+
+        if (_noStdlibOption != null)
+        {
+            Kiwi.Settings.StandardLibrary.Clear();
+        }
+        else if (_stdlibPaths.Count > 0)
+        {
+            Kiwi.Settings.StandardLibrary = [.. _stdlibPaths.Select(path => new StandardLibraryPath
             {
-                case "-i":
-                case "--interactive":
-                    if (!config.HasScripts)
-                    {
-                        config.UseREPL = true;
-                        config.Scripts.Add(string.Empty);
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-s":
-                case "--settings":
-                    if (!config.HasScripts)
-                    {
-                        PrintSettings();
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-n":
-                case "--new":
-                    if (!config.HasScripts)
-                    {
-                        if (!iter.MoveNext())
-                        {
-                            throw new CliError($"Expected a filename after `{current}`.");
-                        }
-
-                        CreateNewFile(iter.Current);
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-p":
-                case "--stdlib-path":
-                    if (!config.HasScripts)
-                    {
-                        if (!iter.MoveNext())
-                        {
-                            throw new CliError($"Expected a path after `{current}`.");
-                        }
-
-                        // Several locations are separated by `;`, which, unlike `:`, can't be
-                        // part of a Windows path such as C:\kiwi\lib.
-                        var libraryPaths = iter.Current.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-                        if (libraryPaths.Length == 0)
-                        {
-                            throw new CliError($"Expected a path after `{current}`.");
-                        }
-
-                        Kiwi.Settings.StandardLibrary = [.. libraryPaths.Select(path => new StandardLibraryPath
-                        {
-                            AutoLoad = true,
-                            IncludeSubdirectories = true,
-                            IsOverride = true,
-                            Path = path
-                        })];
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-t":
-                case "--tokens":
-                    if (!config.HasScripts)
-                    {
-                        var filename = GetFilename(ref iter);
-                        config.Scripts.Add(filename);
-                        config.PrintTokens = true;
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-c":
-                case "--check":
-                    if (!config.HasScripts)
-                    {
-                        var filename = GetFilename(ref iter);
-                        config.Scripts.Add(filename);
-                        config.CheckSyntax = true;
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-a":
-                case "--ast":
-                    if (!config.HasScripts)
-                    {
-                        var filename = GetFilename(ref iter);
-                        config.Scripts.Add(filename);
-                        config.PrintAST = true;
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-sm":
-                case "--safemode":
-                    if (!config.HasScripts)
-                    {
-                        Kiwi.Settings.SafeMode = true;
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-ns":
-                case "--no-stdlib":
-                    if (!config.HasScripts)
-                    {
-                        Kiwi.Settings.StandardLibrary.Clear();
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-v":
-                case "--version":
-                    if (!config.HasScripts)
-                    {
-                        PrintVersion();
-                        Environment.Exit(0);
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-h":
-                case "--help":
-                    if (!config.HasScripts)
-                    {
-                        PrintHelp();
-                        Environment.Exit(0);
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-d":
-                case "--debug":
-                    if (!config.HasScripts)
-                    {
-                        var filename = GetFilename(ref iter);
-                        config.Scripts.Add(filename);
-                        config.UseDebugger = true;
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                case "-cd":
-                case "--crash-dump":
-                    if (string.IsNullOrEmpty(Kiwi.Settings.CrashDumpPath))
-                    {
-                        Kiwi.Settings.CrashDumpPath = "./kiwi_crash.log";
-                    }
-                    break;
-
-                case "-e":
-                case "--execute":
-                    if (!config.HasScripts && config.ExecuteCode == null)
-                    {
-                        if (!iter.MoveNext())
-                        {
-                            throw new CliError($"Expected code string after `{current}`.");
-                        }
-
-                        config.ExecuteCode = iter.Current;
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-
-                default:
-                    if (!config.HasScripts && IsScript(ref current))
-                    {
-                        config.Scripts.Add(current);
-                    }
-                    else if (!config.HasScripts && current.StartsWith('-') && !current.Contains('='))
-                    {
-                        throw new CliError($"Unknown option: {current}");
-                    }
-                    else
-                    {
-                        config.Args.Add(current);
-                    }
-                    break;
-            }
+                AutoLoad = true,
+                IncludeSubdirectories = true,
+                IsOverride = true,
+                Path = path
+            })];
         }
 
         foreach (var env in Kiwi.Settings.EnvironmentVariables)
@@ -261,15 +282,31 @@ public class Config
 
             Environment.SetEnvironmentVariable(env.Key, env.Value);
         }
-
-        return config;
     }
 
-    private static void PrintSettings()
+    private static string ReadValue(string option, string what, IReadOnlyList<string> cliArgs, ref int i)
     {
-        Console.WriteLine(JsonSerializer.Serialize(Kiwi.Settings, KiwiJsonContext.Default.KiwiSettings));
-        Environment.Exit(0);
+        if (i >= cliArgs.Count)
+        {
+            throw new CliError($"Expected {what} after `{option}`.");
+        }
+
+        return cliArgs[i++];
     }
+
+    private static string ReadScript(string option, IReadOnlyList<string> cliArgs, ref int i)
+    {
+        var filename = ReadValue(option, "a filename", cliArgs, ref i);
+        if (!IsScript(ref filename))
+        {
+            throw new CliError($"The file does not exist: {filename}");
+        }
+
+        return filename;
+    }
+
+    // `-key=value`, which is passed to the script rather than read as an option.
+    private static bool IsKeyValue(string arg) => arg.Length > 1 && arg.StartsWith('-') && arg.Contains('=');
 
     private static void CreateNewFile(string filename)
     {
@@ -286,23 +323,6 @@ public class Config
         using var fio = File.Create(filename);
 
         Console.WriteLine($"Created {filename}");
-        Environment.Exit(0);
-    }
-
-    private static string GetFilename(ref IEnumerator<string> iter)
-    {
-        if (!iter.MoveNext())
-        {
-            throw new CliError("Expected a filename.");
-        }
-
-        var filename = iter.Current;
-        if (!IsScript(ref filename))
-        {
-            throw new CliError($"The file does not exist: {filename}");
-        }
-
-        return filename;
     }
 
     private static void PrintVersion()
@@ -325,15 +345,16 @@ public class Config
             ("-t, --tokens <input_path>", $"print tokens of `{Kiwi.Settings.Extensions.Primary}` file"),
             ("-ns, --no-stdlib", "run without standard library"),
             ("-sm, --safemode", "run in safemode"),
-            ("-p, --stdlib-path", "specify alternate stdlib paths, separated by `;`"),
+            ("-p, --stdlib-path <paths>", "specify alternate stdlib paths, separated by `;`"),
             ("-d, --debug <input_path>", "run script in the kdb debugger"),
             ("-cd, --crash-dump", $"write errors to kiwi_crash.log"),
-            ("-<key>=<value>", "pass an argument as a key-value pair")
+            ("-<key>=<value>", "pass an argument as a key-value pair"),
+            ("--", "end the options; the rest are the script and its arguments")
         ];
 
         PrintVersion();
 
-        Console.WriteLine($"Usage: {Kiwi.Settings.Name} [--flags] <script|args>");
+        Console.WriteLine($"Usage: {Kiwi.Settings.Name} [options] [script] [arguments]");
         Console.WriteLine("Options:");
 
         foreach (var (flag, description) in commands)
@@ -342,32 +363,24 @@ public class Config
         }
     }
 
+    private static bool IsScriptName(string filename) =>
+        Kiwi.Settings.Extensions.Recognized.Any(ext => filename.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
+
     private static bool IsScript(ref string filename)
     {
-        var original = filename;
+        var path = FileUtil.ExpandHome(filename);
 
-        if (filename.StartsWith("~/"))
+        if (!Path.HasExtension(path))
         {
-            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var path = filename.Replace("~", home).Replace("//", "/");
-            var dir = Path.GetDirectoryName(path) ?? throw new CliError($"Unable to retrieve parent path for: {path}");
-            filename = Path.Combine([dir, Path.GetFileName(filename)]);
+            path += Kiwi.Settings.Extensions.Primary;
         }
 
-        if (!Path.HasExtension(filename))
+        if (!File.Exists(path))
         {
-            filename += Kiwi.Settings.Extensions.Primary;
+            return false;
         }
 
-        if (File.Exists(filename))
-        {
-            return true;
-        }
-        else
-        {
-            filename = original;
-        }
-
-        return false;
+        filename = path;
+        return true;
     }
 }

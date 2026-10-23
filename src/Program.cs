@@ -23,24 +23,17 @@ public class Program
             }
 
             var config = Config.Configure(args);
-            var runner = GetRunner(config);
+            if (config.RunCommand())
+            {
+                return 0;
+            }
 
-            if (config.HasScripts)
-            {
-                foreach (var script in config.Scripts)
-                {
-                    var result = runner.Run(script, config.Args);
-                    if (result != 0) exitCode = result;
-                }
-            }
-            else
-            {
-                exitCode = runner.Run(string.Empty, config.Args);
-            }
+            exitCode = GetRunner(config).Run(config.Script, config.Args);
         }
         catch (CliError e)
         {
-            Console.WriteLine(e.Message);
+            Console.Error.WriteLine(e.Message);
+            exitCode = 1;
         }
         catch (Exception e)
         {
@@ -52,41 +45,20 @@ public class Program
 
     private static IRunner GetRunner(Config config)
     {
-        if (config.PrintAST)
-        {
-            return new ASTPrinter();
-        }
-        else if (config.PrintTokens)
-        {
-            return new TokenPrinter();
-        }
-        else if (config.CheckSyntax)
-        {
-            return new SyntaxChecker();
-        }
-        else if (config.UseREPL)
-        {
-            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
-        }
-        else if (config.ExecuteCode != null)
-        {
-            return new CodeRunner(config.ExecuteCode) { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
-        }
-        else if (config.UseDebugger)
-        {
-            return new DebugRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
-        }
-        else if (config.HasScripts)
-        {
-            return new VMScriptRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
-        }
+        var cliArgs = ParseKeyValueArgs(config.Args);
 
-        if (!Console.IsInputRedirected)
+        return config.Mode switch
         {
-            return new REPLRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
-        }
-
-        return new StdInRunner { CliArgs = ParseKeyValueArgs(config.Args), RawArgs = config.Args };
+            CliMode.Ast => new ASTPrinter(),
+            CliMode.Tokens => new TokenPrinter(),
+            CliMode.Check => new SyntaxChecker(),
+            CliMode.Repl => new REPLRunner { CliArgs = cliArgs, RawArgs = config.Args },
+            CliMode.Execute => new CodeRunner(config.ExecuteCode!) { CliArgs = cliArgs, RawArgs = config.Args },
+            CliMode.Debug => new DebugRunner { CliArgs = cliArgs, RawArgs = config.Args },
+            _ when config.HasScript => new VMScriptRunner { CliArgs = cliArgs, RawArgs = config.Args },
+            _ when !Console.IsInputRedirected => new REPLRunner { CliArgs = cliArgs, RawArgs = config.Args },
+            _ => new StdInRunner { CliArgs = cliArgs, RawArgs = config.Args },
+        };
     }
 
     /// <summary>

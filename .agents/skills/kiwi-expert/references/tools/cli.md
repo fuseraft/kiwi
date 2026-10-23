@@ -53,6 +53,8 @@ To process piped *data* instead of code, run a script and read stdin with the [`
 
 ## Options
 
+Options go before the script; the first argument that isn't an option is the script, and everything after it belongs to the script. Only one of `-e`, `-c`, `-d`, `-a`, `-t`, `-i`, `-n`, `-s` and `-v` can be used at a time, except that `-h` overrides the rest. A mistake, such as an unknown option or a script that doesn't exist, is reported on stderr with exit code `1`.
+
 | Option | Description |
 | :-- | :-- |
 | `-h`, `--help` | Print usage and the list of options. |
@@ -70,6 +72,7 @@ To process piped *data* instead of code, run a script and read stdin with the [`
 | `-cd`, `--crash-dump` | Append errors to `kiwi_crash.log` in the current directory. |
 | `-s`, `--settings` | Print the interpreter settings. |
 | `-<key>=<value>` | Pass a named argument to the script. |
+| `--` | End the options. What follows is the script and its arguments, even if they start with `-`. |
 
 ### Checking syntax
 
@@ -92,7 +95,7 @@ No syntax errors found in: hello.kiwi
 
 ### Library locations
 
-`--stdlib-path` replaces the standard library with the locations you give it. Separate several with `;` (it isn't valid in a path, unlike `:` in `C:\kiwi\lib`). Each one can be a directory, whose scripts are all loaded, or a single script. Quote the value so the shell doesn't treat `;` as the end of the command:
+`--stdlib-path` replaces the standard library with the locations you give it. Separate several with `;`, or repeat the option (it isn't valid in a path, unlike `:` in `C:\kiwi\lib`). Each one can be a directory, whose scripts are all loaded, or a single script. Quote the value so the shell doesn't treat `;` as the end of the command:
 
 ```text
 $ kiwi -p "/opt/kiwi/lib;~/kiwi/mylibs" app.kiwi
@@ -124,7 +127,7 @@ Program:
 
 ## Passing arguments to scripts
 
-Everything after the script path is passed to the script. Read arguments with the [`env`](../lib/env.md) package:
+Everything after the script path is passed to the script, including arguments that look like `kiwi` options. A `-key=value` argument before the script is passed to it too. With `-e`, the arguments after the code are passed to it. Read arguments with the [`env`](../lib/env.md) package:
 
 - `env::args()` returns the raw arguments as a list, in order.
 - `env::argv()` returns them parsed into a hashmap. `-key=value` becomes `key: "value"`, a bare `--flag` becomes `flag: "true"`, and a positional argument maps to itself.
@@ -150,7 +153,7 @@ For anything beyond a couple of options, use `cli::CliParser` from the [`cli`](.
 | Code | Meaning |
 | :-- | :-- |
 | `0` | The script finished normally. |
-| `1` | An uncaught error, or a failed `--check`. |
+| `1` | An uncaught error, a failed `--check`, or a bad command-line option, such as an unknown flag or a missing value. |
 | `n` | The script called `exit n`. |
 
 ## Settings

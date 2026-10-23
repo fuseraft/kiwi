@@ -1,0 +1,116 @@
+/# ==============================================================================
+   Testing the kiwi command line: kiwi [options] [script] [arguments]. Each test runs
+   kiwi as a child process.
+  ============================================================================== #/
+
+fn _cli_dir(): string
+  dir = fio::combine([fio::tmpdir(), "kiwi_cli_${sys::pid()}"])
+  fio::mkdirp(dir)
+  fio::write(fio::combine([dir, "args.kiwi"]), "println env::args()\n")
+  dir
+end
+
+fn _kiwi(args: list): hashmap
+  r = sys::execout(env::bin(), args)
+  r["stdout"] = r["stdout"].trim()
+  r["stderr"] = r["stderr"].trim()
+  r
+end
+
+@tester::test("cli: everything after the script is passed to it, options included")
+fn test_cli_script_args()
+  dir = _cli_dir()
+  try
+    script = fio::combine([dir, "args.kiwi"])
+    r = _kiwi([script, "a", "-sm", "-h", "--x", "-e=1"])
+    tester::assert_eq(r["stdout"], "[\"a\", \"-sm\", \"-h\", \"--x\", \"-e=1\"]", r["stderr"])
+
+    # A `-key=value` before the script is passed to it too.
+    r = _kiwi(["-env=prod", script, "x"])
+    tester::assert_eq(r["stdout"], "[\"-env=prod\", \"x\"]", r["stderr"])
+
+    # `--` ends the options.
+    r = _kiwi(["-sm", "--", script, "-v"])
+    tester::assert_eq(r["stdout"], "[\"-v\"]", r["stderr"])
+
+    # The `.kiwi` extension is optional.
+    r = _kiwi([fio::combine([dir, "args"]), "y"])
+    tester::assert_eq(r["stdout"], "[\"y\"]", r["stderr"])
+  finally
+    fio::rmdirf(dir)
+  end
+end
+
+@tester::test("cli: arguments after -e are passed to the code, even ones that name a file")
+fn test_cli_execute_args()
+  dir = _cli_dir()
+  try
+    script = fio::combine([dir, "args.kiwi"])
+    r = _kiwi(["-e", "a = env::args()\nprintln [a.size(), fio::filename(a[0]), a[1]]", script, "-v"])
+    tester::assert_eq(r["stdout"], "[2, \"args.kiwi\", \"-v\"]", r["stderr"])
+    tester::assert_eq(r["exit_code"], 0)
+  finally
+    fio::rmdirf(dir)
+  end
+end
+
+@tester::test("cli: mistakes exit with 1 and say what's wrong on stderr")
+fn test_cli_errors()
+  cases = [
+    [["--bogus"],                          "Unknown option: --bogus"],
+    [["-p"],                               "Expected a path after `-p`."],
+    [["-p", ";"],                          "Expected a path after `-p`."],
+    [["-e"],                               "Expected a code string after `-e`."],
+    [["-e", "1", "-e", "2"],               "`-e` can only be given once."],
+    [["-e", "1", "-c", "x.kiwi"],          "`-c` can't be used with `-e`."],
+    [["-ns", "-p", "lib"],                 "`-ns` can't be used with `-p`."],
+    [["kiwi_cli_missing.kiwi"],            "The file does not exist: kiwi_cli_missing.kiwi"],
+    [["-c", "kiwi_cli_missing.kiwi"],      "The file does not exist: kiwi_cli_missing.kiwi"]
+  ]
+  for c in cases do
+    r = _kiwi(c[0])
+    tester::assert_eq(r["exit_code"], 1, "exit code for ${c[0]}")
+    tester::assert_eq(r["stderr"], c[1])
+    tester::assert_eq(r["stdout"], "", "stdout for ${c[0]}")
+  end
+end
+
+@tester::test("cli: commands run after every option is read")
+fn test_cli_commands()
+  # --help wins over the rest of the line.
+  r = _kiwi(["-e", "println 1", "-h"])
+  tester::assert_eq(r["exit_code"], 0)
+  tester::assert(r["stdout"].contains("Usage: kiwi [options] [script] [arguments]"), r["stdout"])
+
+  # --settings shows the effect of options that come after it.
+  r = _kiwi(["-s", "-sm"])
+  tester::assert_eq(r["exit_code"], 0)
+  tester::assert_eq(json::parse(r["stdout"])["safemode"], true)
+end
+
+@tester::test("cli: --stdlib-path takes several locations separated by `;`")
+fn test_cli_stdlib_path_list()
+  extra = fio::combine([fio::tmpdir(), "kiwi_stdlib_path_${sys::pid()}"])
+  fio::mkdirp(extra)
+  fio::write(fio::combine([extra, "extra_lib.kiwi"]), "package extra_lib\n  fn hello() return \"hello\" end\nend\nexport \"extra_lib\"\n")
+  code = "println [extra_lib::hello(), std::range(1, 3)]"
+  try
+    # Both directories load: the first provides `std`, the second `extra_lib`.
+    r = _kiwi(["-p", "${env::lib()};${extra}", "-e", code])
+    tester::assert_eq(r["stdout"], "[\"hello\", [1, 2]]", r["stderr"])
+
+    # Spaces around a path and empty entries are ignored.
+    r = _kiwi(["-p", " ${env::lib()} ;; ${extra}; ", "-e", code])
+    tester::assert_eq(r["stdout"], "[\"hello\", [1, 2]]", r["stderr"])
+
+    # Repeating -p adds locations.
+    r = _kiwi(["-p", env::lib(), "-p", extra, "-e", code])
+    tester::assert_eq(r["stdout"], "[\"hello\", [1, 2]]", r["stderr"])
+
+    # One path still works on its own.
+    r = _kiwi(["-p", env::lib(), "-e", "println std::range(1, 3)"])
+    tester::assert_eq(r["stdout"], "[1, 2]", r["stderr"])
+  finally
+    fio::rmdirf(extra)
+  end
+end
