@@ -1,0 +1,69 @@
+name: NuGet
+
+# Publishes the C# extension SDK (sdk/csharp) to nuget.org when a tag such as
+# Kiwi.Native-v0.1.0 is pushed. A manual run tests and packs without publishing.
+#
+# Publishing uses nuget.org trusted publishing: NuGet/login exchanges this workflow's OIDC
+# token for a short-lived API key. It needs a trusted publishing policy on nuget.org for
+# fuseraft/kiwi and this file, and the NUGET_USER repository variable set to the nuget.org
+# account that owns the policy.
+
+on:
+  push:
+    tags: [ "Kiwi.Native-v*" ]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Check the tag matches the package version
+      if: github.event_name == 'push'
+      env:
+        TAG: ${{ github.ref_name }}
+      run: |
+        version="$(dotnet msbuild sdk/csharp/Kiwi.Native/Kiwi.Native.csproj -getProperty:Version)"
+        if [ "$TAG" != "Kiwi.Native-v$version" ]; then
+          echo "::error::Tag $TAG doesn't match Kiwi.Native version $version in Kiwi.Native.csproj."
+          exit 1
+        fi
+
+    - name: Test the generator
+      run: dotnet test sdk/csharp/Kiwi.Native.Tests -c Release
+
+    - name: Build Kiwi
+      run: ./build.sh
+
+    - name: Test an extension written in C#
+      run: ./bin/kiwi tests/native/csharp_ext.kiwi
+
+    - name: Pack
+      run: dotnet pack sdk/csharp/Kiwi.Native -c Release -o nupkgs
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Kiwi.Native
+        path: nupkgs/*.nupkg
+
+    - name: Log in to nuget.org
+      if: github.event_name == 'push'
+      id: login
+      uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+      with:
+        user: ${{ vars.NUGET_USER }}
+
+    - name: Publish
+      if: github.event_name == 'push'
+      env:
+        NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+      run: dotnet nuget push "nupkgs/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json

@@ -150,11 +150,13 @@ Kiwi tasks can call an extension's functions from several threads at once, so sh
 
 ## Building the SDK
 
-The package isn't on NuGet yet. Build it from this directory:
+The SDK lives in [`sdk/csharp`](https://github.com/fuseraft/kiwi/tree/main/sdk/csharp) in the Kiwi repository. To try changes to it, pack it and add the folder as a package source:
 
 ```sh
 dotnet pack Kiwi.Native -c Release -o ./nupkgs
 dotnet nuget add source "$(pwd)/nupkgs" --name kiwi-local
 ```
 
-The generator's tests are in `Kiwi.Native.Tests` (`dotnet test Kiwi.Native.Tests`). End-to-end tests for an extension built with the SDK are in `tests/native/csharp_ext.kiwi` in the Kiwi repository.
+The generator's tests are in `Kiwi.Native.Tests` (`dotnet test Kiwi.Native.Tests`). End-to-end tests for an extension built with the SDK are in `tests/native/csharp_ext.kiwi`.
+
+To release a version, set `<Version>` in `Kiwi.Native/Kiwi.Native.csproj` and push a tag named `Kiwi.Native-v<version>`, such as `Kiwi.Native-v0.1.0`. The NuGet workflow tests the SDK, packs it, and publishes it to nuget.org.
