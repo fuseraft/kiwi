@@ -82,13 +82,21 @@ public class Config
                             throw new CliError($"Expected a path after `{current}`.");
                         }
 
-                        Kiwi.Settings.StandardLibrary = [new StandardLibraryPath
+                        // Several locations are separated by `;`, which, unlike `:`, can't be
+                        // part of a Windows path such as C:\kiwi\lib.
+                        var libraryPaths = iter.Current.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                        if (libraryPaths.Length == 0)
+                        {
+                            throw new CliError($"Expected a path after `{current}`.");
+                        }
+
+                        Kiwi.Settings.StandardLibrary = [.. libraryPaths.Select(path => new StandardLibraryPath
                         {
                             AutoLoad = true,
                             IncludeSubdirectories = true,
                             IsOverride = true,
-                            Path = iter.Current
-                        }];
+                            Path = path
+                        })];
                     }
                     else
                     {
@@ -317,7 +325,7 @@ public class Config
             ("-t, --tokens <input_path>", $"print tokens of `{Kiwi.Settings.Extensions.Primary}` file"),
             ("-ns, --no-stdlib", "run without standard library"),
             ("-sm, --safemode", "run in safemode"),
-            ("-p, --stdlib-path", "specify alternate stdlib path"),
+            ("-p, --stdlib-path", "specify alternate stdlib paths, separated by `;`"),
             ("-d, --debug <input_path>", "run script in the kdb debugger"),
             ("-cd, --crash-dump", $"write errors to kiwi_crash.log"),
             ("-<key>=<value>", "pass an argument as a key-value pair")

@@ -55,3 +55,26 @@ fn test_standard_library()
   # --- math::log10 ---
   tester::assert(math::log10(1000.0) == 3.0,   "A27: log10(1000) == 3")
 end
+
+@tester::test("standard library: --stdlib-path takes several locations separated by `;`")
+fn test_stdlib_path_list()
+  extra = fio::combine([fio::tmpdir(), "kiwi_stdlib_path_${sys::pid()}"])
+  fio::mkdirp(extra)
+  fio::write(fio::combine([extra, "extra_lib.kiwi"]), "package extra_lib\n  fn hello() return \"hello\" end\nend\nexport \"extra_lib\"\n")
+  code = "println [extra_lib::hello(), std::range(1, 3)]"
+  try
+    # Both directories load: the first provides `std`, the second `extra_lib`.
+    r = sys::execout(env::bin(), ["-p", "${env::lib()};${extra}", "-e", code])
+    tester::assert_eq(r["stdout"].trim(), "[\"hello\", [1, 2]]", r["stderr"])
+
+    # Spaces around a path and empty entries are ignored.
+    r = sys::execout(env::bin(), ["-p", " ${env::lib()} ;; ${extra}; ", "-e", code])
+    tester::assert_eq(r["stdout"].trim(), "[\"hello\", [1, 2]]", r["stderr"])
+
+    # One path still works on its own.
+    r = sys::execout(env::bin(), ["-p", env::lib(), "-e", "println std::range(1, 3)"])
+    tester::assert_eq(r["stdout"].trim(), "[1, 2]", r["stderr"])
+  finally
+    fio::rmdirf(extra)
+  end
+end

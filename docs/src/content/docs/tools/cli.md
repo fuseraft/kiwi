@@ -67,7 +67,7 @@ To process piped *data* instead of code, run a script and read stdin with the [`
 | `-n`, `--new <name>` | Create an empty script, adding `.kiwi` if needed. Refuses to overwrite an existing file. |
 | `-sm`, `--safemode` | Disable file, network, process and system access (see below). |
 | `-ns`, `--no-stdlib` | Don't load the standard library. |
-| `-p`, `--stdlib-path <dir>` | Load the standard library from another directory. |
+| `-p`, `--stdlib-path <dirs>` | Load the standard library from other locations instead, separated by `;` (see below). |
 | `-cd`, `--crash-dump` | Append errors to `kiwi_crash.log` in the current directory. |
 | `-s`, `--settings` | Print the interpreter settings. |
 | `-<key>=<value>` | Pass a named argument to the script. |
@@ -90,6 +90,16 @@ File: broken.kiwi:2:7
 $ kiwi -c hello.kiwi
 No syntax errors found in: hello.kiwi
 ```
+
+### Library locations
+
+`--stdlib-path` replaces the standard library with the locations you give it. Separate several with `;` (it isn't valid in a path, unlike `:` in `C:\kiwi\lib`). Each one can be a directory, whose scripts are all loaded, or a single script. Quote the value so the shell doesn't treat `;` as the end of the command:
+
+```text
+$ kiwi -p "/opt/kiwi/lib;~/kiwi/mylibs" app.kiwi
+```
+
+To add your own scripts and keep the standard library, include its directory in the list. `env::lib()` returns the first location that is a directory, so put the standard library first if scripts rely on it.
 
 ### Safe mode
 
