@@ -66,6 +66,15 @@ static KiwiValue nothing(KiwiCtx* ctx, int argc, const KiwiValue* argv) {
     return 0;
 }
 
+/* Empty strings and bytes, passed with null pointers. */
+static KiwiValue empty(KiwiCtx* ctx, int argc, const KiwiValue* argv) {
+    (void)argc; (void)argv;
+    KiwiValue list = api->new_list(ctx);
+    api->list_push(ctx, list, api->new_string(ctx, NULL, 0));
+    api->list_push(ctx, list, api->new_bytes(ctx, NULL, 0));
+    return list;
+}
+
 static KiwiValue bytes_xor(KiwiCtx* ctx, int argc, const KiwiValue* argv) {
     (void)argc;
     size_t len;
@@ -104,6 +113,7 @@ KIWI_EXPORT int kiwi_ext_init(const KiwiApi* host, KiwiCtx* ctx) {
     api->define(ctx, "apply", apply, KIWI_VARIADIC);
     api->define(ctx, "fail", fail, 1);
     api->define(ctx, "nothing", nothing, 0);
+    api->define(ctx, "empty", empty, 0);
     api->define(ctx, "bytes_xor", bytes_xor, 2);
     api->define(ctx, "counter_ptr", counter_ptr, 0);
     api->define(ctx, "counter_bump", counter_bump, 1);

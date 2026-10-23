@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsAotCompatible>true</IsAotCompatible>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <RootNamespace>Kiwi.Native</RootNamespace>
+
+    <PackageId>Kiwi.Native</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>fuseraft</Authors>
+    <Description>Write Kiwi native extensions in C#. Mark static methods with [KiwiFunction] and publish with native AOT; a source generator exports kiwi_ext_init and converts arguments and results.</Description>
+    <PackageTags>kiwi;native;extension;aot</PackageTags>
+    <PackageProjectUrl>https://fuseraft.ai/kiwi/stdlib/native/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/fuseraft/kiwi</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The generator runs in the compiler, so it ships as an analyzer rather than a reference. -->
+    <ProjectReference Include="../Kiwi.Native.Generator/Kiwi.Native.Generator.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="../Kiwi.Native.Generator/bin/$(Configuration)/netstandard2.0/Kiwi.Native.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="build/Kiwi.Native.props" Pack="true" PackagePath="build/Kiwi.Native.props" />
+    <None Include="build/Kiwi.Native.targets" Pack="true" PackagePath="build/Kiwi.Native.targets" />
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>

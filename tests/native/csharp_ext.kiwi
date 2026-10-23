@@ -1,0 +1,176 @@
+/#
+@summary Tests a native extension written in C# with the SDK in sdk/csharp.
+
+  Usage:
+    kiwi tests/native/csharp_ext.kiwi [path/to/kiwi_test_ext_cs.so]
+
+  Without a path, it publishes tests/native/csharp/KiwiTestExtCs.csproj with native AOT
+  first, which needs the .NET SDK. Exits 1 if a test fails.
+#/
+
+fn _build_ext(): string
+  root = fio::parentdir(env::lib())
+  out  = fio::combine([fio::tmpdir(), "kiwi_csharp_ext_${sys::pid()}"])
+  proj = fio::combine([root, "tests", "native", "csharp", "KiwiTestExtCs.csproj"])
+  println "Publishing ${proj} for ${native::rid()}..."
+  r = sys::execout("dotnet", ["publish", proj, "-c", "Release", "-r", native::rid(), "-o", out])
+  if r["exit_code"] != 0
+    println r["stdout"]
+    println r["stderr"]
+    throw "dotnet publish failed."
+  end
+  # NativeAOT names the library after the assembly, without a `lib` prefix.
+  ext = native::rid().begins_with("win") ? ".dll" : native::rid().begins_with("osx") ? ".dylib" : ".so"
+  fio::combine([out, "kiwi_test_ext_cs${ext}"])
+end
+
+args = env::args()
+path = args.empty() ? _build_ext() : args[0]
+native::load(path, "cs")
+
+fn _error(f: lambda): list
+  try
+    f()
+  catch (kind, message)
+    return [kind, message]
+  end
+  ["none", ""]
+end
+
+@tester::test("csharp: scalars")
+fn test_scalars()
+  tester::assert_eq(cs::add(2, 3), 5)
+  tester::assert_eq(cs::half(9), 4)
+  tester::assert_eq(cs::negate(true), false)
+  tester::assert_eq(cs::tenth(5), 0.5)
+  tester::assert_eq(cs::reverse("kiwi"), "iwik")
+  tester::assert_eq(cs::nothing(), null)
+  tester::assert_eq(cs::maybe(null), null)
+  tester::assert_eq(cs::maybe(4), 40)
+end
+
+@tester::test("csharp: an integer is accepted where a float is expected")
+fn test_int_as_float()
+  tester::assert_eq(cs::scale(3), 6.0)
+  tester::assert_eq(cs::scale(3, 0.5), 1.5)
+end
+
+@tester::test("csharp: default and nullable parameters")
+fn test_defaults()
+  tester::assert_eq(cs::greet(), "Hello, stranger!")
+  tester::assert_eq(cs::greet(null), "Hello, stranger!")
+  tester::assert_eq(cs::greet("kiwi"), "Hello, kiwi!")
+  tester::assert_eq(cs::greet("kiwi", "Hi"), "Hi, kiwi!")
+end
+
+@tester::test("csharp: function names")
+fn test_names()
+  tester::assert_eq(cs::parse_http_header(), "snake")
+  tester::assert_eq(cs::explicit_name(), "renamed")
+end
+
+@tester::test("csharp: params arrays take any number of arguments")
+fn test_variadic()
+  tester::assert_eq(cs::sum(), 0)
+  tester::assert_eq(cs::sum(1, 2, 3, 4), 10)
+  tester::assert_eq(cs::join("-"), "")
+  tester::assert_eq(cs::join("-", "a", "b", "c"), "a-b-c")
+end
+
+@tester::test("csharp: lists, arrays and sequences")
+fn test_lists()
+  tester::assert_eq(cs::squares([1, 2, 3]), [1, 4, 9])
+  tester::assert_eq(cs::squares([]), [])
+  tester::assert_eq(cs::upper(["a", "b"]), ["A", "B"])
+  tester::assert_eq(cs::range(3), [0, 1, 2])
+  tester::assert_eq(cs::grid(2, 3), [[0, 1, 2], [3, 4, 5]])
+  tester::assert_eq(cs::grid_sum([[1, 2], [3]]), 6)
+  tester::assert_eq(cs::compact(["a", null, "b"]), ["a", "b"])
+end
+
+@tester::test("csharp: hashmaps and dictionaries")
+fn test_hashmaps()
+  tester::assert_eq(cs::word_lengths(["kiwi", "go", "kiwi"]), {"kiwi": 4, "go": 2})
+  d = cs::describe({"name": "kiwi", "age": 3})
+  tester::assert_eq(d["has_name"], true)
+  tester::assert_eq(d["keys"], ["name", "age"])
+  tester::assert_eq(cs::pairs({"x": 1, "y": [2]}), [["x", 1], ["y", [2]]])
+end
+
+@tester::test("csharp: object values round-trip at any depth")
+fn test_echo()
+  v = {"a": [1, 2.5, true, null, "s", {"n": 1}], "b": "x".to_bytes()}
+  tester::assert_eq(cs::echo(v), v)
+  tester::assert_eq(cs::echo(null), null)
+end
+
+@tester::test("csharp: bytes")
+fn test_bytes()
+  tester::assert_eq(cs::bytes_xor(cs::bytes_xor("abc".to_bytes(), 7), 7).to_string(), "abc")
+  tester::assert_eq(cs::utf8("é"), "é".to_bytes())
+  tester::assert_eq(cs::utf8(""), "".to_bytes())
+  tester::assert_eq(cs::reverse(""), "")
+end
+
+@tester::test("csharp: .NET objects behind pointers")
+fn test_handles()
+  c = cs::counter_new(10)
+  tester::assert_eq(typeof(c), pointer)
+  tester::assert_eq(cs::counter_bump(c), 11)
+  tester::assert_eq(cs::counter_bump(c), 12)
+  cs::counter_free(c)
+  tester::assert_eq(_error(with () do cs::counter_bump(c) end)[0], "NativeError")
+end
+
+@tester::test("csharp: KiwiContext and raw values")
+fn test_raw()
+  tester::assert_eq(cs::type_name(with () do end), "Lambda")
+  tester::assert_eq(cs::type_name({}), "Hashmap")
+end
+
+@tester::test("csharp: native code calls Kiwi lambdas")
+fn test_callbacks()
+  tester::assert_eq(cs::apply(with (a, b) do return a * b end, 6, 7), 42)
+  tester::assert_eq(cs::map_each(with (x) do return x * 2 end, [1, 2, 3]), [2, 4, 6])
+end
+
+@tester::test("csharp: a lambda's error reaches Kiwi, even if C# catches it")
+fn test_callback_errors()
+  tester::assert_eq(_error(with () do cs::apply(with () do throw "from kiwi" end) end), ["KiwiError", "from kiwi"])
+  tester::assert_eq(_error(with () do cs::callback_survives(with () do throw "still thrown" end) end), ["KiwiError", "still thrown"])
+end
+
+@tester::test("csharp: exceptions become NativeErrors")
+fn test_exceptions()
+  tester::assert_eq(_error(with () do cs::fail("boom") end), ["NativeError", "boom"])
+  tester::assert_eq(_error(with () do cs::divide(1, 0) end), ["NativeError", "division by zero"])
+end
+
+@tester::test("csharp: wrong arguments name the argument")
+fn test_argument_errors()
+  tester::assert_eq(_error(with () do cs::add("x", 1) end), ["NativeError", "add: argument 1 (a): expected an integer, got string."])
+  tester::assert_eq(_error(with () do cs::add(1) end)[0], "ParameterCountMismatchError")
+  tester::assert_eq(_error(with () do cs::scale() end), ["NativeError", "scale expects 1 to 2 arguments, got 0."])
+  tester::assert_eq(_error(with () do cs::join() end), ["NativeError", "join expects at least 1 argument, got 0."])
+  tester::assert_eq(_error(with () do cs::half(2 ** 40) end), ["NativeError", "half: argument 1 (x): 1099511627776 is out of range for a 32-bit integer."])
+  tester::assert_eq(_error(with () do cs::squares([1, "x"]) end), ["NativeError", "squares: argument 1 (xs): item 1: expected an integer, got string."])
+  tester::assert_eq(_error(with () do cs::sum(1, "x") end), ["NativeError", "sum: argument 2 (xs): expected an integer, got string."])
+  tester::assert_eq(_error(with () do cs::greet(5) end), ["NativeError", "greet: argument 1 (name): expected a string, got integer."])
+end
+
+@tester::test("csharp: functions can be called from tasks")
+fn test_tasks()
+  tids = [1 to 8].map(with (n) do
+    return task::spawn(with (x) do
+      return cs::sum(x, x, x) + cs::squares([x])[0]
+    end, [n])
+  end)
+  tester::assert_eq(tids.map(with (t) do return task::await(t) end), [1 to 8].map(with (n) do return 3 * n + n * n end))
+end
+
+failed = 0
+for r in tester::run_tests() do
+  failed += 1 when !r.result
+end
+println failed == 0 ? "\nAll C# extension tests passed." : "\n${failed} C# extension test(s) failed."
+exit(failed == 0 ? 0 : 1)

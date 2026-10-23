@@ -1,6 +1,6 @@
 # native
 
-> Load native extensions written in C, Rust, Zig or C#.
+> Load native extensions written in C, C#, Rust or Zig.
 
 The `native` package loads native extensions: shared libraries (`.so`, `.dylib`, `.dll`) that add functions to Kiwi. Use one when you need a C library, an operating system API, or code that runs faster than Kiwi can.
 
@@ -48,7 +48,52 @@ Build it as a shared library:
 cc -shared -fPIC -I sdk/c mymath.c -o libmymath.so
 ```
 
-Any language that can export a C function works. That includes C#: a class library published with native AOT and `<NativeLib>Shared</NativeLib>` exports `kiwi_ext_init` through `[UnmanagedCallersOnly(EntryPoint = "kiwi_ext_init")]`.
+Any language that can export a C function works, such as Rust or Zig. C# has an SDK that writes the C part for you.
+
+### Writing an extension in C#
+
+The [C# SDK](https://github.com/fuseraft/kiwi/tree/main/sdk/csharp) turns static methods marked `[KiwiFunction]` into Kiwi functions. A source generator writes `kiwi_ext_init` and the code that converts each function's arguments and result, and the library is published with native AOT:
+
+```csharp
+using Kiwi.Native;
+
+public static class MyMath
+{
+    [KiwiFunction]
+    public static long Add(long a, long b) => a + b;
+
+    [KiwiFunction]
+    public static double Mean(params double[] xs) => xs.Length == 0 ? 0 : xs.Average();
+
+    [KiwiFunction]
+    public static long Divide(long a, long b) => b == 0 ? throw new KiwiException("division by zero") : a / b;
+}
+```
+
+The project references the `Kiwi.Native` package and sets `<PublishAot>true</PublishAot>`. Publish it for each platform; native AOT builds only for the operating system it runs on:
+
+```sh
+dotnet publish -c Release -r linux-x64 -o out
+```
+
+The library is named after the assembly, without a `lib` prefix, so give `native::load` the package name:
+
+```kiwi
+native::load("out/mymath.so", "mymath")
+println mymath::add(2, 3)          # 5
+println mymath::mean(1, 2, 4.5)    # 2.5
+```
+
+How the SDK maps types and arguments:
+- **Types:** parameters and results can be `long`, `int`, `double`, `float`, `bool`, `string`, `byte[]` and `nint`. Collections can be arrays, lists and dictionaries of those types, nested to any depth. `object` accepts any value.
+- **Nullable types:** a nullable type such as `string?` or `long?` accepts `null`.
+- **Defaults and `params`:** default parameter values and `params` arrays work as they do in C#.
+- **Names:** a method's Kiwi name is its name in snake_case, so `SumSquares` becomes `sum_squares`.
+- **Errors:** an exception becomes a `NativeError` with the exception's message. An argument of the wrong type names the argument: `add: argument 1 (a): expected an integer, got string.`
+- **Raw values:** to read raw values or call a Kiwi lambda, make the first parameter a `KiwiContext`.
+- **Unsupported methods:** a method the generator can't export, such as one with an unsupported parameter type, is a compile error.
+
+The SDK's [README](https://github.com/fuseraft/kiwi/blob/main/sdk/csharp/README.md) covers the full type table, `KiwiContext`, keeping .NET objects between calls with `KiwiHandle`, and building the package. Each extension carries its own copy of the .NET runtime, so a library starts at about 1.5 MB.
 
 ### Values and handles
 
