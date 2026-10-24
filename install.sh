@@ -16,6 +16,8 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 REPO_URL="https://github.com/fuseraft/kiwi"
+# Where release archives are downloaded from. CI points this at a local copy.
+RELEASES_URL="${KIWI_RELEASES_URL:-$REPO_URL/releases}"
 
 # -------------------------------------------------------------------------
 # Logging
@@ -50,6 +52,30 @@ detect_rid() {
       echo "win-x64" ;;
     *) die "Unsupported OS: $os. Use install.ps1 on Windows." ;;
   esac
+}
+
+# -------------------------------------------------------------------------
+# Download helpers
+# -------------------------------------------------------------------------
+fetch() {
+  local url="$1" dest="$2"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$url" -o "$dest"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "$url" -O "$dest"
+  else
+    die "curl or wget is required to download Kiwi. Install one and retry."
+  fi
+}
+
+sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | cut -d' ' -f1
+  else
+    die "sha256sum or shasum is required to verify the download."
+  fi
 }
 
 # -------------------------------------------------------------------------
@@ -98,6 +124,9 @@ usage() {
   cat <<EOF
 ${BOLD}Kiwi Installer${NC} — Linux / macOS
 
+Downloads a prebuilt release of Kiwi. With --source, or when there's no
+prebuilt release for your platform, builds from source with the .NET 10 SDK.
+
 USAGE:
   install.sh [OPTIONS]
 
@@ -105,23 +134,29 @@ OPTIONS:
   --user              Install for current user only in ~/.kiwi  (default)
   --system            Install system-wide to /opt/kiwi          (requires sudo)
   --prefix=PATH       Install to a custom directory
-  --url=URL           Download a pre-built binary instead of building from source
+  --version=X.Y.Z     Install this release instead of the latest
+  --source            Build from source instead of downloading a release
+  --url=URL           Download a binary from URL, with the standard library from main
   --use-existing      Use the binary already in ./bin/ instead of building
   --uninstall         Remove Kiwi
   --update            Remove the old install and reinstall the latest
   -h, --help          Show this help
 
 EXAMPLES:
-  ./install.sh                          # User install, build from source
+  ./install.sh                          # User install of the latest release
+  ./install.sh --version=1.8.0          # A specific release
   ./install.sh --system                 # System-wide install  (sudo)
   ./install.sh --prefix=/usr/local      # Custom prefix
-  ./install.sh --url=https://...        # Install a pre-built binary
+  ./install.sh --source                 # Build from source
   ./install.sh --use-existing           # Install the binary already in ./bin/
   ./install.sh --update                 # Update to latest
   ./install.sh --uninstall              # Remove Kiwi
 
   # One-liner install from the web:
   curl -sSL https://raw.githubusercontent.com/fuseraft/kiwi/main/install.sh | bash
+
+  # With options:
+  curl -sSL https://raw.githubusercontent.com/fuseraft/kiwi/main/install.sh | bash -s -- --version=1.8.0
 
 EOF
 }
@@ -132,6 +167,8 @@ EOF
 INSTALL_MODE="user"  # user | system | custom
 PREFIX=""
 BINARY_URL=""
+VERSION=""
+FROM_SOURCE=false
 UNINSTALL=false
 UPDATE=false
 USE_EXISTING=false
@@ -141,6 +178,8 @@ for arg in "$@"; do
     --user)         INSTALL_MODE="user" ;;
     --system)       INSTALL_MODE="system" ;;
     --prefix=*)     INSTALL_MODE="custom"; PREFIX="${arg#--prefix=}" ;;
+    --version=*)    VERSION="${arg#--version=}"; VERSION="${VERSION#v}" ;;
+    --source)       FROM_SOURCE=true ;;
     --url=*)        BINARY_URL="${arg#--url=}" ;;
     --use-existing) USE_EXISTING=true ;;
     --uninstall)    UNINSTALL=true ;;
@@ -149,6 +188,10 @@ for arg in "$@"; do
     *) die "Unknown argument: $arg  (run with --help for usage)" ;;
   esac
 done
+
+if [[ -n "$VERSION" ]] && ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  die "--version takes a release number such as 1.8.0, not '$VERSION'."
+fi
 
 # Resolve prefix
 if [[ -z "$PREFIX" ]]; then
@@ -184,11 +227,11 @@ fi
 printf "${BOLD}${GREEN}"
 cat <<'LOGO'
 
-  '||       ||               ||  
-   ||  ..  ...  ... ... ... ...  
-   || .'    ||   ||  ||  |   ||  
-   ||'|.    ||    ||| |||    ||  
-  .||. ||. .||.    |   |    .||. 
+  '||       ||               ||
+   ||  ..  ...  ... ... ... ...
+   || .'    ||   ||  ||  |   ||
+   ||'|.    ||    ||| |||    ||
+  .||. ||. .||.    |   |    .||.
 
 LOGO
 printf "${NC}"
@@ -197,7 +240,6 @@ header "Kiwi Installer"
 RID="$(detect_rid)"
 info "Platform  : $RID"
 info "Prefix    : $PREFIX"
-[[ -n "$BINARY_URL" ]] && info "Source    : pre-built binary"
 
 # -------------------------------------------------------------------------
 # Sudo Check for System Install
@@ -207,113 +249,85 @@ if [[ "$INSTALL_MODE" == "system" && "${EUID:-$(id -u)}" -ne 0 ]]; then
   exec sudo bash "$0" "$@"
 fi
 
-# -------------------------------------------------------------------------
-# Update: wipe binary + lib before reinstalling
-# -------------------------------------------------------------------------
-if $UPDATE && [[ -d "$PREFIX" ]]; then
-  info "Removing previous installation..."
-  rm -rf "$BIN_DIR" "$LIB_DIR"
-  success "Old installation removed"
-fi
+# Each way of getting Kiwi fills STAGE with bin/ and lib/, which are installed only once they're
+# complete, so a failed download or build leaves an existing install as it was.
+STAGE="$(mktemp -d)"
+CLEANUP=("$STAGE")
+trap 'rm -rf "${CLEANUP[@]}"' EXIT
+mkdir -p "$STAGE/bin" "$STAGE/lib"
 
-mkdir -p "$BIN_DIR" "$LIB_DIR"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-./install.sh}")" 2>/dev/null && pwd || pwd)"
 
 # -------------------------------------------------------------------------
-# Build or Download
+# Download a release. Returns 1 when the archive isn't available.
 # -------------------------------------------------------------------------
-if $USE_EXISTING; then
-  # -------------------------------------------------------------------------
-  # Use the binary already present in ./bin/
-  # -------------------------------------------------------------------------
-  header "Using existing binary"
-
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-./install.sh}")" 2>/dev/null && pwd || pwd)"
-  LOCAL_BIN="$SCRIPT_DIR/bin/kiwi"
-
-  [[ -f "$LOCAL_BIN" ]] || die "No existing binary found at $LOCAL_BIN. Build first with ./build.sh or omit --use-existing."
-
-  cp "$LOCAL_BIN" "$BIN_DIR/"
-  chmod +x "$BIN_DIR/kiwi"
-  success "Binary copied from $LOCAL_BIN"
-
-  # Copy settings file if present
-  [[ -f "$SCRIPT_DIR/bin/kiwi-settings.json" ]] && cp "$SCRIPT_DIR/bin/kiwi-settings.json" "$BIN_DIR/"
-
-  # Copy any native libraries produced alongside the binary
-  find "$SCRIPT_DIR/bin" -maxdepth 1 \( -name "*.so" -o -name "*.dylib" \) \
-    -exec cp {} "$BIN_DIR/" \; 2>/dev/null || true
-
-  # Install stdlib from the local repo
-  cp -r "$SCRIPT_DIR/lib/." "$LIB_DIR/"
-  success "Standard library installed"
-
-elif [[ -n "$BINARY_URL" ]]; then
-  # -------------------------------------------------------------------------
-  # Download pre-built binary
-  # -------------------------------------------------------------------------
-  header "Downloading Kiwi binary"
-
-  if command -v curl >/dev/null 2>&1; then
-    curl -fL --progress-bar "$BINARY_URL" -o "$BIN_DIR/kiwi"
-  elif command -v wget >/dev/null 2>&1; then
-    wget -q --show-progress "$BINARY_URL" -O "$BIN_DIR/kiwi"
+download_release() {
+  local asset="kiwi-$RID.tar.gz" base tmp expected actual
+  if [[ -n "$VERSION" ]]; then
+    base="$RELEASES_URL/download/v$VERSION"
   else
-    die "curl or wget is required to download Kiwi. Install one and retry."
+    base="$RELEASES_URL/latest/download"
   fi
 
-  chmod +x "$BIN_DIR/kiwi"
-  success "Binary downloaded"
+  tmp="$(mktemp -d)"
+  CLEANUP+=("$tmp")
+  info "Downloading $base/$asset"
+  fetch "$base/$asset" "$tmp/$asset" 2>/dev/null || return 1
+  fetch "$base/SHA256SUMS" "$tmp/SHA256SUMS" 2>/dev/null \
+    || die "Couldn't download $base/SHA256SUMS to verify the archive."
 
-  # Fetch stdlib from the repo (still needed even with a pre-built binary)
-  header "Fetching standard library"
-  command -v git >/dev/null 2>&1 || die "git is required to fetch the standard library."
+  expected="$(awk -v f="$asset" '$2 == f || $2 == "*" f { print $1 }' "$tmp/SHA256SUMS")"
+  [[ -n "$expected" ]] || die "SHA256SUMS has no checksum for $asset."
+  actual="$(sha256 "$tmp/$asset")"
+  [[ "$actual" == "$expected" ]] \
+    || die "The download doesn't match its checksum (expected $expected, got $actual). Nothing was installed."
+  success "Checksum verified"
 
-  STDLIB_TMP="$(mktemp -d)"
-  trap 'rm -rf "$STDLIB_TMP"' EXIT
-  git clone --depth=1 "$REPO_URL" "$STDLIB_TMP" > /dev/null 2>&1
-  cp -r "$STDLIB_TMP/lib/." "$LIB_DIR/"
-  cp "$STDLIB_TMP/src/kiwi-settings.json" "$BIN_DIR/"
-  success "Standard library installed"
+  tar -xzf "$tmp/$asset" -C "$tmp"
+  [[ -x "$tmp/kiwi/bin/kiwi" && -d "$tmp/kiwi/lib" ]] || die "$asset doesn't contain kiwi/bin/kiwi and kiwi/lib."
+  cp -R "$tmp/kiwi/bin/." "$STAGE/bin/"
+  cp -R "$tmp/kiwi/lib/." "$STAGE/lib/"
+  success "Archive downloaded"
+}
 
-else
-  # -------------------------------------------------------------------------
-  # Build from source
-  # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# Build from source
+# -------------------------------------------------------------------------
+build_from_source() {
   header "Building Kiwi from source"
 
   # .NET SDK check
   command -v dotnet >/dev/null 2>&1 \
     || die ".NET 10 SDK not found. Install from: https://dotnet.microsoft.com/download/dotnet/10.0"
 
-  DOTNET_VER="$(dotnet --version 2>/dev/null || echo "0.0.0")"
-  DOTNET_MAJOR="${DOTNET_VER%%.*}"
-  [[ "$DOTNET_MAJOR" -ge 10 ]] || die "Kiwi requires .NET 10 or higher. Found: $DOTNET_VER"
-  info ".NET SDK $DOTNET_VER"
+  local dotnet_ver dotnet_major repo_dir build_tmp
+  dotnet_ver="$(dotnet --version 2>/dev/null || echo "0.0.0")"
+  dotnet_major="${dotnet_ver%%.*}"
+  [[ "$dotnet_major" -ge 10 ]] || die "Kiwi requires .NET 10 or higher. Found: $dotnet_ver"
+  info ".NET SDK $dotnet_ver"
 
   # Locate repo — running from a clone, or need to clone fresh
-  CLEANUP_REPO=false
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-./install.sh}")" 2>/dev/null && pwd || pwd)"
-
-  if [[ -f "$SCRIPT_DIR/src/kiwi.csproj" ]]; then
-    REPO_DIR="$SCRIPT_DIR"
-    info "Using local repository at $REPO_DIR"
+  if [[ -f "$SCRIPT_DIR/src/kiwi.csproj" && -z "$VERSION" ]]; then
+    repo_dir="$SCRIPT_DIR"
+    info "Using local repository at $repo_dir"
   else
     command -v git >/dev/null 2>&1 \
       || die "git is required to clone the Kiwi repository."
-    REPO_DIR="$(mktemp -d)"
-    CLEANUP_REPO=true
-    info "Cloning Kiwi repository..."
-    git clone --depth=1 "$REPO_URL" "$REPO_DIR" > /dev/null 2>&1
+    repo_dir="$(mktemp -d)"
+    CLEANUP+=("$repo_dir")
+    info "Cloning Kiwi repository${VERSION:+ at v$VERSION}..."
+    git clone --depth=1 ${VERSION:+--branch "v$VERSION"} "$REPO_URL" "$repo_dir" > /dev/null 2>&1 \
+      || die "Couldn't clone $REPO_URL${VERSION:+ at v$VERSION}."
     success "Repository cloned"
   fi
 
-  BUILD_TMP="$(mktemp -d)"
-  trap '[[ "$CLEANUP_REPO" == "true" ]] && rm -rf "$REPO_DIR"; rm -rf "$BUILD_TMP"' EXIT
+  build_tmp="$(mktemp -d)"
+  CLEANUP+=("$build_tmp")
 
   info "Compiling... (this may take a minute)"
 
-  BUILD_ARGS=(
-    "$REPO_DIR/src/kiwi.csproj"
+  local build_args=(
+    "$repo_dir/src/kiwi.csproj"
     -c Release -r "$RID" --self-contained true
     -p:PublishAot=true
     -p:PublishTrimmed=true
@@ -323,43 +337,106 @@ else
     -p:IncludeNativeLibrariesForSelfExtract=true
     -p:UseSystemTextJsonSourceGeneration=true
     -p:JsonSerializerIsReflectionEnabled=false
-    -o "$BUILD_TMP"
+    -o "$build_tmp"
   )
 
-  if dotnet publish "${BUILD_ARGS[@]}" > /dev/null 2>&1; then
+  if dotnet publish "${build_args[@]}" > /dev/null 2>&1; then
     success "AOT build succeeded"
   else
     warn "AOT build failed — falling back to non-AOT build"
-    FALLBACK_ARGS=(
-      "$REPO_DIR/src/kiwi.csproj"
+    local fallback_args=(
+      "$repo_dir/src/kiwi.csproj"
       -c Release -r "$RID" --self-contained true
       -p:PublishTrimmed=true
       -p:PublishReadyToRun=true
       -p:StripSymbols=true
       -p:DebugType=none
       -p:IncludeNativeLibrariesForSelfExtract=true
-      -o "$BUILD_TMP"
+      -o "$build_tmp"
     )
-    dotnet publish "${FALLBACK_ARGS[@]}" > /dev/null 2>&1 \
+    dotnet publish "${fallback_args[@]}" > /dev/null 2>&1 \
       || die "Build failed. Run './build.sh' directly to see detailed output."
     success "Non-AOT build succeeded"
   fi
 
-  # Install binary
-  cp "$BUILD_TMP/kiwi" "$BIN_DIR/"
-  chmod +x "$BIN_DIR/kiwi"
+  cp "$build_tmp/kiwi" "$STAGE/bin/"
+  [[ -f "$build_tmp/kiwi-settings.json" ]] && cp "$build_tmp/kiwi-settings.json" "$STAGE/bin/"
+  # Native shared libraries produced by the build
+  find "$build_tmp" -maxdepth 1 \( -name "*.so" -o -name "*.dylib" \) \
+    -exec cp {} "$STAGE/bin/" \; 2>/dev/null || true
+  cp -R "$repo_dir/lib/." "$STAGE/lib/"
+}
 
-  # Install settings file
-  [[ -f "$BUILD_TMP/kiwi-settings.json" ]] && cp "$BUILD_TMP/kiwi-settings.json" "$BIN_DIR/"
+# -------------------------------------------------------------------------
+# Download, Build or Copy
+# -------------------------------------------------------------------------
+if $USE_EXISTING; then
+  header "Using existing binary"
 
-  # Install any native shared libraries produced by the build
-  find "$BUILD_TMP" -maxdepth 1 \( -name "*.so" -o -name "*.dylib" \) \
-    -exec cp {} "$BIN_DIR/" \; 2>/dev/null || true
+  LOCAL_BIN="$SCRIPT_DIR/bin/kiwi"
+  [[ -f "$LOCAL_BIN" ]] || die "No existing binary found at $LOCAL_BIN. Build first with ./build.sh or omit --use-existing."
 
-  # Install stdlib
-  cp -r "$REPO_DIR/lib/." "$LIB_DIR/"
-  success "Standard library installed"
+  cp "$LOCAL_BIN" "$STAGE/bin/"
+  [[ -f "$SCRIPT_DIR/bin/kiwi-settings.json" ]] && cp "$SCRIPT_DIR/bin/kiwi-settings.json" "$STAGE/bin/"
+  find "$SCRIPT_DIR/bin" -maxdepth 1 \( -name "*.so" -o -name "*.dylib" \) \
+    -exec cp {} "$STAGE/bin/" \; 2>/dev/null || true
+  cp -R "$SCRIPT_DIR/lib/." "$STAGE/lib/"
+  success "Binary copied from $LOCAL_BIN"
+
+elif [[ -n "$BINARY_URL" ]]; then
+  header "Downloading Kiwi binary"
+  fetch "$BINARY_URL" "$STAGE/bin/kiwi" || die "Couldn't download $BINARY_URL."
+  success "Binary downloaded"
+
+  # Fetch stdlib from the repo (still needed even with a pre-built binary)
+  header "Fetching standard library"
+  command -v git >/dev/null 2>&1 || die "git is required to fetch the standard library."
+
+  STDLIB_TMP="$(mktemp -d)"
+  CLEANUP+=("$STDLIB_TMP")
+  git clone --depth=1 "$REPO_URL" "$STDLIB_TMP" > /dev/null 2>&1
+  cp -R "$STDLIB_TMP/lib/." "$STAGE/lib/"
+  cp "$STDLIB_TMP/src/kiwi-settings.json" "$STAGE/bin/"
+
+elif $FROM_SOURCE; then
+  build_from_source
+
+else
+  [[ "$RID" == win-* ]] && die "Use install.ps1 to install a release on Windows, or pass --source."
+  header "Downloading Kiwi${VERSION:+ $VERSION}"
+  if ! download_release; then
+    [[ -n "$VERSION" ]] && die "Kiwi $VERSION has no prebuilt release for $RID. Pass --source to build it."
+    if command -v dotnet >/dev/null 2>&1; then
+      warn "The latest release has no prebuilt binary for $RID. Building from source instead."
+      build_from_source
+    else
+      die "Couldn't download a prebuilt Kiwi for $RID, and the .NET 10 SDK isn't installed to build it from source."
+    fi
+  fi
 fi
+
+# -------------------------------------------------------------------------
+# Install
+# -------------------------------------------------------------------------
+chmod +x "$STAGE/bin/kiwi"
+
+# A binary that can't start on this system (a missing libicu, an older glibc) isn't installed.
+if ! RUN_OUTPUT="$("$STAGE/bin/kiwi" -v 2>&1)"; then
+  printf '%s\n' "$RUN_OUTPUT" | head -3 >&2
+  die "Kiwi can't run on this system, so nothing was installed. Prebuilt Linux releases need glibc 2.34 or later and libicu."
+fi
+
+# Update: wipe binary + lib before reinstalling
+if $UPDATE && [[ -d "$PREFIX" ]]; then
+  info "Removing previous installation..."
+  rm -rf "$BIN_DIR" "$LIB_DIR"
+  success "Old installation removed"
+fi
+
+mkdir -p "$BIN_DIR" "$LIB_DIR"
+cp -R "$STAGE/bin/." "$BIN_DIR/"
+cp -R "$STAGE/lib/." "$LIB_DIR/"
+success "Installed $RUN_OUTPUT to $PREFIX"
 
 # -------------------------------------------------------------------------
 # PATH / Symlink
