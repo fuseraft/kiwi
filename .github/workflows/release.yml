@@ -71,17 +71,12 @@ jobs:
     - name: Build
       run: |
         dotnet publish src/kiwi.csproj -c Release -r "$KIWI_RID" --self-contained true \
-          -p:PublishAot=true -p:StripSymbols=true -p:DebugType=none -o out
-    - name: Package
+          -p:PublishAot=true -p:StripSymbols=true -p:DebugType=none -o bin
+    # bin/ and lib/ in the checkout are laid out as in the archive, which the tests rely on to
+    # find the repository.
+    - name: Check the binary
       run: |
-        mkdir -p stage/kiwi/bin
-        cp out/* stage/kiwi/bin/
-        cp -r lib stage/kiwi/lib
-        cp LICENSE README.md stage/kiwi/
-        ls -la stage/kiwi/bin
-    - name: Check the version
-      run: |
-        exe=stage/kiwi/bin/kiwi
+        exe=bin/kiwi
         [[ "$KIWI_RID" == win-* ]] && exe=$exe.exe
         version="$("$exe" -v)"
         echo "$version"
@@ -90,22 +85,28 @@ jobs:
           exit 1
         fi
         if [[ "$KIWI_RID" == linux-* ]]; then
-          glibc="$(objdump -T "$exe" stage/kiwi/bin/*.so | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1)"
+          glibc="$(objdump -T "$exe" bin/*.so | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1)"
           echo "Needs $glibc"
           [[ "$glibc" == "GLIBC_2.34" ]] || { echo "::error::The binaries need $glibc, not GLIBC_2.34."; exit 1; }
         fi
-    # The tests run the packaged binary, so they check what users download.
-    - name: Run test suite
-      run: stage/kiwi/bin/kiwi tests/test
-    - name: Run standard library test suite
-      run: stage/kiwi/bin/kiwi tests/test_stdlib
+    # Archived before the tests run, so nothing they write is included.
     - name: Archive
       run: |
+        # Only files: macOS also writes a kiwi.dSYM directory of debug symbols.
+        mkdir -p stage/kiwi/bin
+        find bin -maxdepth 1 -type f -exec cp {} stage/kiwi/bin/ \;
+        cp -R lib stage/kiwi/lib
+        cp LICENSE README.md stage/kiwi/
+        ls -la stage/kiwi/bin
         if [[ "$KIWI_RID" == win-* ]]; then
           pwsh -NoProfile -Command "Compress-Archive -Path stage/kiwi -DestinationPath kiwi-$KIWI_RID.zip"
         else
           tar -czf "kiwi-$KIWI_RID.tar.gz" -C stage kiwi
         fi
+    - name: Run test suite
+      run: bin/kiwi tests/test
+    - name: Run standard library test suite
+      run: bin/kiwi tests/test_stdlib
     - uses: actions/upload-artifact@v4
       with:
         name: kiwi-${{ matrix.rid }}
