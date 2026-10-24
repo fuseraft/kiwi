@@ -61,11 +61,11 @@ jobs:
         apt-get update -qq
         DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
           ca-certificates curl git clang zlib1g-dev libicu70 binutils
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         ref: ${{ env.RELEASE_TAG || github.sha }}
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 10.0.x
     - name: Build
@@ -107,7 +107,7 @@ jobs:
       run: bin/kiwi tests/test
     - name: Run standard library test suite
       run: bin/kiwi tests/test_stdlib
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: kiwi-${{ matrix.rid }}
         path: kiwi-${{ matrix.rid }}.*
@@ -128,8 +128,8 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v4
+    - uses: actions/checkout@v7
+    - uses: actions/download-artifact@v8
       with:
         path: dist
         merge-multiple: true
@@ -206,7 +206,7 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       with:
         path: dist
         merge-multiple: true
