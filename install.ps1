@@ -496,7 +496,7 @@ Write-Success "Installed $RunOutput to $InstallPrefix"
 # -------------------------------------------------------------------------
 Write-Header 'Configuring PATH'
 
-if ($System -or (Test-IsAdmin -and -not $Prefix)) {
+if ($System -or ((Test-IsAdmin) -and -not $Prefix)) {
   Add-ToSystemPath $BinDir
 } else {
   Add-ToUserPath $BinDir

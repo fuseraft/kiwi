@@ -186,6 +186,10 @@ jobs:
         powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1 -Prefix "$env:RUNNER_TEMP\pinned" -Version $env:VERSION
         if ($LASTEXITCODE -ne 0) { throw "install.ps1 failed under Windows PowerShell" }
         Check "$env:RUNNER_TEMP\pinned"
+        # The runner is an Administrator, but -Prefix installs for the current user.
+        $pinnedBin = "$env:RUNNER_TEMP\pinned\bin"
+        if ([Environment]::GetEnvironmentVariable('PATH', 'Machine') -like "*$pinnedBin*") { throw "-Prefix changed the system PATH." }
+        if ([Environment]::GetEnvironmentVariable('PATH', 'User') -notlike "*$pinnedBin*") { throw "-Prefix didn't add to the user PATH." }
         ./install.ps1 -Prefix "$env:RUNNER_TEMP\pinned" -Update
         Check "$env:RUNNER_TEMP\pinned"
         pwsh -NoProfile -File install.ps1 -Prefix "$env:RUNNER_TEMP\bad" -Version 0.0.1
