@@ -78,7 +78,7 @@ const SDL_EVENT_QUIT          = 0x100
 const SDL_EVENT_KEY_DOWN      = 0x300
 const SDL_EVENT_SIZE          = 128   # sizeof(SDL_Event)
 const SDL_DEBUG_TEXT_SIZE     = 8     # the debug font is 8x8 pixels
-const SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = 4294967295   # 0xFFFFFFFF
+const SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = 0xFFFFFFFF
 const SDL_AUDIO_S16LE         = 0x8010
 
 # Offsets into SDL_KeyboardEvent
