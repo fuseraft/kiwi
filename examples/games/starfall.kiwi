@@ -1,0 +1,1070 @@
+#!/usr/bin/env kiwi
+
+#
+# Starfall: an arcade game drawn with SDL3 through `ffi`.
+#
+# Catch the falling stars, dodge the meteors. Every star you catch in a row
+# raises your combo; a star that hits the ground resets it. Dashing makes you
+# briefly untouchable, and a cyan shield absorbs one hit.
+#
+#   Move    Left/Right or A/D
+#   Dash    Space (while moving)
+#   Pause   P
+#   Mute    M
+#   Quit    Esc
+#
+# Every sound is synthesized at startup into native memory and played through
+# SDL3 audio streams. Effects share a pool of streams that SDL mixes together;
+# the music is sequenced live, one step at a time, on a stream per voice.
+#
+# Needs SDL 3.2 or later: `dnf install SDL3`, `apt install libsdl3-0`,
+# `brew install sdl3`, or SDL3.dll next to this script on Windows.
+#
+
+# ---------------------------------------------------------------------------
+# SDL3 bindings
+# ---------------------------------------------------------------------------
+
+fn sdl_library_name(): string
+  os = native::rid().split("-")[0]
+  if os == "win"
+    return "SDL3.dll"
+  elsif os == "osx"
+    return "libSDL3.0.dylib"
+  end
+  "libSDL3.so.0"
+end
+
+sdl = ffi::open(sdl_library_name())
+
+SDL_Init               = ffi::func(sdl, "SDL_Init", ["uint32"], "bool")
+SDL_Quit               = ffi::func(sdl, "SDL_Quit")
+SDL_GetError           = ffi::func(sdl, "SDL_GetError", [], "string")
+SDL_CreateWindow       = ffi::func(sdl, "SDL_CreateWindow", ["string", "int", "int", "uint64"], "pointer")
+SDL_DestroyWindow      = ffi::func(sdl, "SDL_DestroyWindow", ["pointer"])
+SDL_CreateRenderer     = ffi::func(sdl, "SDL_CreateRenderer", ["pointer", "string"], "pointer")
+SDL_DestroyRenderer    = ffi::func(sdl, "SDL_DestroyRenderer", ["pointer"])
+SDL_SetRenderVSync     = ffi::func(sdl, "SDL_SetRenderVSync", ["pointer", "int"], "bool")
+SDL_SetRenderLogicalPresentation = ffi::func(sdl, "SDL_SetRenderLogicalPresentation", ["pointer", "int", "int", "int"], "bool")
+SDL_SetRenderDrawBlendMode = ffi::func(sdl, "SDL_SetRenderDrawBlendMode", ["pointer", "uint32"], "bool")
+SDL_SetRenderDrawColor = ffi::func(sdl, "SDL_SetRenderDrawColor", ["pointer", "uint8", "uint8", "uint8", "uint8"], "bool")
+SDL_SetRenderScale     = ffi::func(sdl, "SDL_SetRenderScale", ["pointer", "float", "float"], "bool")
+SDL_RenderClear        = ffi::func(sdl, "SDL_RenderClear", ["pointer"], "bool")
+SDL_RenderFillRect     = ffi::func(sdl, "SDL_RenderFillRect", ["pointer", "pointer"], "bool")
+SDL_RenderDebugText    = ffi::func(sdl, "SDL_RenderDebugText", ["pointer", "float", "float", "string"], "bool")
+SDL_RenderPresent      = ffi::func(sdl, "SDL_RenderPresent", ["pointer"], "bool")
+SDL_PollEvent          = ffi::func(sdl, "SDL_PollEvent", ["pointer"], "bool")
+SDL_GetKeyboardState   = ffi::func(sdl, "SDL_GetKeyboardState", ["pointer"], "pointer")
+
+SDL_InitSubSystem      = ffi::func(sdl, "SDL_InitSubSystem", ["uint32"], "bool")
+SDL_OpenAudioDevice    = ffi::func(sdl, "SDL_OpenAudioDevice", ["uint32", "pointer"], "uint32")
+SDL_CloseAudioDevice   = ffi::func(sdl, "SDL_CloseAudioDevice", ["uint32"])
+SDL_PauseAudioDevice   = ffi::func(sdl, "SDL_PauseAudioDevice", ["uint32"], "bool")
+SDL_ResumeAudioDevice  = ffi::func(sdl, "SDL_ResumeAudioDevice", ["uint32"], "bool")
+SDL_SetAudioDeviceGain = ffi::func(sdl, "SDL_SetAudioDeviceGain", ["uint32", "float"], "bool")
+SDL_CreateAudioStream  = ffi::func(sdl, "SDL_CreateAudioStream", ["pointer", "pointer"], "pointer")
+SDL_DestroyAudioStream = ffi::func(sdl, "SDL_DestroyAudioStream", ["pointer"])
+SDL_BindAudioStream    = ffi::func(sdl, "SDL_BindAudioStream", ["uint32", "pointer"], "bool")
+SDL_PutAudioStreamData = ffi::func(sdl, "SDL_PutAudioStreamData", ["pointer", "pointer", "int"], "bool")
+SDL_GetAudioStreamQueued = ffi::func(sdl, "SDL_GetAudioStreamQueued", ["pointer"], "int")
+SDL_ClearAudioStream   = ffi::func(sdl, "SDL_ClearAudioStream", ["pointer"], "bool")
+
+const SDL_INIT_AUDIO          = 0x10
+const SDL_INIT_VIDEO          = 0x20
+const SDL_WINDOW_RESIZABLE    = 0x20
+const SDL_LOGICAL_LETTERBOX   = 2
+const SDL_BLENDMODE_BLEND     = 1
+const SDL_EVENT_QUIT          = 0x100
+const SDL_EVENT_KEY_DOWN      = 0x300
+const SDL_EVENT_SIZE          = 128   # sizeof(SDL_Event)
+const SDL_DEBUG_TEXT_SIZE     = 8     # the debug font is 8x8 pixels
+const SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = 4294967295   # 0xFFFFFFFF
+const SDL_AUDIO_S16LE         = 0x8010
+
+# Offsets into SDL_KeyboardEvent
+const KEY_EVENT_SCANCODE = 24
+const KEY_EVENT_REPEAT   = 37
+
+# Scancodes
+const SC_A      = 4
+const SC_D      = 7
+const SC_M      = 16
+const SC_P      = 19
+const SC_RETURN = 40
+const SC_ESCAPE = 41
+const SC_SPACE  = 44
+const SC_RIGHT  = 79
+const SC_LEFT   = 80
+
+# ---------------------------------------------------------------------------
+# Tuning
+# ---------------------------------------------------------------------------
+
+const WIDTH  = 800
+const HEIGHT = 600
+const GROUND = 560.0
+
+const SHIP_W      = 44.0
+const SHIP_H      = 22.0
+const SHIP_ACCEL  = 3200.0
+const SHIP_MAX    = 420.0
+const SHIP_DRAG   = 7.0
+const DASH_SPEED  = 1100.0
+const DASH_TIME   = 0.16
+const DASH_COOL   = 0.9
+const HURT_TIME   = 1.4
+const START_LIVES = 3
+
+# ---------------------------------------------------------------------------
+# Drawing
+# ---------------------------------------------------------------------------
+
+struct Painter
+  fn new(renderer)
+    @renderer = renderer
+    @rect = ffi::alloc(16)   # one SDL_FRect, reused for every fill
+    @shake_x = 0.0
+    @shake_y = 0.0
+  end
+
+  fn color(r, g, b, a = 255)
+    SDL_SetRenderDrawColor(@renderer, r, g, b, a)
+  end
+
+  fn fill(x, y, w, h)
+    ffi::write(@rect, 0, "float", x + @shake_x)
+    ffi::write(@rect, 4, "float", y + @shake_y)
+    ffi::write(@rect, 8, "float", w)
+    ffi::write(@rect, 12, "float", h)
+    SDL_RenderFillRect(@renderer, @rect)
+  end
+
+  fn text(s: string, x, y, scale = 2.0, centered = false)
+    if centered
+      x -= s.size() * SDL_DEBUG_TEXT_SIZE * scale / 2.0
+    end
+    SDL_SetRenderScale(@renderer, scale, scale)
+    SDL_RenderDebugText(@renderer, x / scale, y / scale, s)
+    SDL_SetRenderScale(@renderer, 1.0, 1.0)
+  end
+
+  fn dispose()
+    ffi::free(@rect)
+  end
+end
+
+# ---------------------------------------------------------------------------
+# Sound
+# ---------------------------------------------------------------------------
+
+const AUDIO_RATE   = 22050.0   # mono, 16-bit
+const SFX_CHANNELS = 6
+const STEP_TIME    = 0.125     # one sixteenth note at 120 bpm
+
+# A sound in native memory, ready for SDL_PutAudioStreamData.
+struct Sound
+  fn new(ptr, size)
+    @ptr = ptr
+    @size = size
+  end
+end
+
+# A mono buffer that tones are mixed into before it's copied to native memory.
+struct Sample
+  fn new(seconds)
+    @count = (seconds * AUDIO_RATE).to_integer()
+    @data = []
+    repeat @count do
+      @data.push(0.0)
+    end
+  end
+
+  # Mixes in a tone that sweeps from f0 to f1 Hz and decays exponentially.
+  # For "noise", the frequency is how often a new random value is picked.
+  fn add(start, seconds, f0, f1, wave, volume, decay = 0.0, duty = 0.5)
+    data = @data
+    first = (start * AUDIO_RATE).to_integer()
+    n = math::fmin((seconds * AUDIO_RATE).to_integer(), @count - first).to_integer()
+    attack = AUDIO_RATE * 0.003
+    release = AUDIO_RATE * 0.006
+    sweep = (f1 - f0) / (2.0 * seconds)
+    falloff = math::exp(-decay / AUDIO_RATE)
+    level = volume   # volume times the decay so far
+    shape = ["square", "triangle", "sine", "noise"].index(wave)
+    held = 0.0
+    last_cycle = -1.0
+
+    for i in [0 to n - 1] do
+      t = i / AUDIO_RATE
+      phase = (f0 + sweep * t) * t
+      cycle = math::floor(phase)
+      frac = phase - cycle
+
+      v = held
+      if shape == 0
+        v = frac < duty ? 1.0 : -1.0
+      elsif shape == 1
+        v = 4.0 * math::abs(frac - 0.5) - 1.0
+      elsif shape == 2
+        v = math::sin(phase * 6.2831853)
+      elsif cycle != last_cycle
+        held = math::random(-1.0, 1.0)
+        last_cycle = cycle
+        v = held
+      end
+
+      env = level
+      if i < attack
+        env *= i / attack
+      elsif n - i < release
+        env *= (n - i) / release
+      end
+      level *= falloff
+
+      data[first + i] += v * env
+    end
+    @
+  end
+
+  fn build(): Sound
+    ptr = ffi::alloc(@count * 2)
+    for i in [0 to @count - 1] do
+      v = math::fmax(math::fmin(@data[i], 1.0), -1.0)
+      ffi::write(ptr, i * 2, "int16", (v * 32767.0).to_integer())
+    end
+    Sound.new(ptr, @count * 2)
+  end
+end
+
+struct Audio
+  fn new()
+    @sounds = {}
+    @catches = []
+    @muted = false
+    @step = 0
+    @enabled = open()
+    if !@enabled
+      println "Starfall: no sound (${SDL_GetError()})"
+    end
+  end
+
+  fn open(): boolean
+    if !SDL_InitSubSystem(SDL_INIT_AUDIO)
+      return false
+    end
+
+    # SDL_AudioSpec { SDL_AudioFormat format; int channels; int freq; }
+    spec = ffi::alloc(12)
+    ffi::write(spec, 0, "uint32", SDL_AUDIO_S16LE)
+    ffi::write(spec, 4, "int32", 1)
+    ffi::write(spec, 8, "int32", AUDIO_RATE.to_integer())
+
+    @device = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, spec)
+    if @device == 0
+      ffi::free(spec)
+      return false
+    end
+
+    # Every stream bound to the device is mixed into it by SDL.
+    @sfx = []
+    repeat SFX_CHANNELS do
+      @sfx.push(open_stream(spec))
+    end
+    @next_sfx = 0
+    @bass = open_stream(spec)
+    @lead = open_stream(spec)
+    @drums = open_stream(spec)
+    @streams = @sfx.concat([@bass, @lead, @drums])
+    ffi::free(spec)
+
+    make_effects()
+    make_music()
+    true
+  end
+
+  fn open_stream(spec)
+    stream = SDL_CreateAudioStream(spec, spec)
+    SDL_BindAudioStream(@device, stream)
+    stream
+  end
+
+  fn make_effects()
+    # The catch chime climbs a major scale as the combo grows.
+    for semitone in [0, 2, 4, 5, 7, 9, 11, 12, 14] do
+      f = 660.0 * math::pow(2.0, semitone / 12.0)
+      @catches.push(Sample.new(0.15)
+        .add(0.0, 0.06, f, f, "square", 0.16, 20.0, 0.25)
+        .add(0.05, 0.1, f * 1.5, f * 1.5, "square", 0.14, 25.0, 0.25)
+        .build())
+    end
+
+    @sounds["miss"] = Sample.new(0.18)
+      .add(0.0, 0.18, 320.0, 140.0, "triangle", 0.3, 10.0)
+      .build()
+
+    @sounds["hit"] = Sample.new(0.45)
+      .add(0.0, 0.45, 2000.0, 500.0, "noise", 0.25, 9.0)
+      .add(0.0, 0.4, 140.0, 40.0, "sine", 0.4, 6.0)
+      .build()
+
+    @sounds["dash"] = Sample.new(0.22)
+      .add(0.0, 0.22, 1500.0, 7000.0, "noise", 0.16, 8.0)
+      .build()
+
+    shield_up = Sample.new(0.3)
+    for note in [[0.0, 523.25], [0.07, 659.25], [0.14, 783.99]] do
+      shield_up.add(note[0], 0.14, note[1], note[1], "triangle", 0.3, 12.0)
+    end
+    @sounds["shield_up"] = shield_up.build()
+
+    @sounds["shield_break"] = Sample.new(0.35)
+      .add(0.0, 0.3, 1200.0, 300.0, "square", 0.15, 8.0)
+      .add(0.0, 0.2, 4000.0, 1000.0, "noise", 0.2, 15.0)
+      .build()
+
+    start = Sample.new(0.45)
+    for note in [[0.0, 440.0], [0.07, 523.25], [0.14, 659.25], [0.21, 880.0]] do
+      start.add(note[0], 0.14, note[1], note[1], "square", 0.18, 10.0, 0.25)
+    end
+    @sounds["start"] = start.build()
+
+    @sounds["over"] = Sample.new(1.3)
+      .add(0.0, 0.3, 659.25, 659.25, "square", 0.18, 3.0)
+      .add(0.3, 0.3, 523.25, 523.25, "square", 0.18, 3.0)
+      .add(0.6, 0.7, 440.0, 415.3, "square", 0.18, 3.0)
+      .add(0.6, 0.7, 110.0, 110.0, "triangle", 0.35, 3.0)
+      .build()
+  end
+
+  # The music loops Am, F, C, G, one bar each. Each voice plays one cell per
+  # step, and every cell is exactly STEP_TIME long, so the voices stay in time.
+  fn make_music()
+    chords = [
+      [110.0, [440.0, 523.25, 659.25, 880.0]],
+      [87.31, [349.23, 440.0, 523.25, 698.46]],
+      [130.81, [523.25, 659.25, 783.99, 1046.5]],
+      [98.0, [392.0, 493.88, 587.33, 783.99]]
+    ]
+
+    @rest = Sample.new(STEP_TIME).build()
+    @bass_cells = []
+    @lead_cells = []
+    for chord in chords do
+      root = chord[0]
+      @bass_cells.push(Sample.new(STEP_TIME).add(0.0, STEP_TIME, root, root, "triangle", 0.22, 6.0).build())
+      cells = []
+      for f in chord[1] do
+        cells.push(Sample.new(STEP_TIME).add(0.0, STEP_TIME, f, f, "square", 0.06, 14.0, 0.25).build())
+      end
+      @lead_cells.push(cells)
+    end
+
+    @kick = Sample.new(STEP_TIME).add(0.0, STEP_TIME, 150.0, 40.0, "sine", 0.34, 14.0).build()
+    @snare = Sample.new(STEP_TIME).add(0.0, STEP_TIME, 5000.0, 3000.0, "noise", 0.14, 22.0).build()
+    @hat = Sample.new(STEP_TIME).add(0.0, STEP_TIME, 11000.0, 11000.0, "noise", 0.07, 60.0).build()
+
+    @bass_steps = [0, 3, 6, 8, 11, 14]
+    @arp = [0, 1, 2, 3, 2, 1, 2, 3, 0, 1, 2, 3, 2, 3, 2, 1]
+  end
+
+  # Keeps about two steps of music queued. Call it every frame.
+  fn pump(drums: boolean, intense: boolean)
+    if !@enabled
+      return
+    end
+
+    while SDL_GetAudioStreamQueued(@bass) < @rest.size * 2 do
+      beat = @step % 16
+      chord = (@step / 16).to_integer() % 4
+
+      put(@bass, @bass_steps.contains(beat) ? @bass_cells[chord] : @rest)
+      put(@lead, @lead_cells[chord][@arp[beat]])
+
+      drum = @rest
+      if drums
+        if beat % 8 == 0
+          drum = @kick
+        elsif beat % 8 == 4
+          drum = @snare
+        elsif intense && beat % 2 == 1
+          drum = @hat
+        end
+      end
+      put(@drums, drum)
+
+      @step += 1
+    end
+  end
+
+  fn put(stream, sound)
+    SDL_PutAudioStreamData(stream, sound.ptr, sound.size)
+  end
+
+  fn play(name)
+    if @enabled
+      put(free_channel(), @sounds[name])
+    end
+  end
+
+  fn play_catch(combo)
+    if @enabled
+      put(free_channel(), @catches[combo - 1])
+    end
+  end
+
+  # An idle effect stream, or else the oldest one, cut short.
+  fn free_channel()
+    for stream in @sfx do
+      if SDL_GetAudioStreamQueued(stream) == 0
+        return stream
+      end
+    end
+    stream = @sfx[@next_sfx]
+    @next_sfx = (@next_sfx + 1) % SFX_CHANNELS
+    SDL_ClearAudioStream(stream)
+    stream
+  end
+
+  fn restart_music()
+    stop_music()
+    @step = 0
+  end
+
+  fn stop_music()
+    if @enabled
+      SDL_ClearAudioStream(@bass)
+      SDL_ClearAudioStream(@lead)
+      SDL_ClearAudioStream(@drums)
+    end
+  end
+
+  fn pause()
+    if @enabled
+      SDL_PauseAudioDevice(@device)
+    end
+  end
+
+  fn resume()
+    if @enabled
+      SDL_ResumeAudioDevice(@device)
+    end
+  end
+
+  fn toggle_mute()
+    @muted = !@muted
+    if @enabled
+      SDL_SetAudioDeviceGain(@device, @muted ? 0.0 : 1.0)
+    end
+  end
+
+  fn dispose()
+    if !@enabled
+      return
+    end
+    for stream in @streams do
+      SDL_DestroyAudioStream(stream)
+    end
+    SDL_CloseAudioDevice(@device)
+
+    sounds = @sounds.values().concat(@catches).concat(@bass_cells)
+    sounds = sounds.concat([@rest, @kick, @snare, @hat])
+    for cells in @lead_cells do
+      sounds = sounds.concat(cells)
+    end
+    for sound in sounds do
+      ffi::free(sound.ptr)
+    end
+  end
+end
+
+# ---------------------------------------------------------------------------
+# Entities
+# ---------------------------------------------------------------------------
+
+struct Faller
+  fn new(kind, x, y, size, vx, vy)
+    @kind = kind   # "star", "meteor" or "shield"
+    @x = x
+    @y = y
+    @size = size
+    @vx = vx
+    @vy = vy
+    @spin = math::random(0.0, 6.28)
+  end
+
+  fn hits(px, py, pw, ph): boolean
+    @x < px + pw && @x + @size > px && @y < py + ph && @y + @size > py
+  end
+end
+
+struct Particle
+  fn new(x, y, vx, vy, life, r, g, b)
+    @x = x
+    @y = y
+    @vx = vx
+    @vy = vy
+    @life = life
+    @max_life = life
+    @r = r
+    @g = g
+    @b = b
+  end
+end
+
+struct BackgroundStar
+  fn new()
+    @x = math::random(0.0, WIDTH * 1.0)
+    @y = math::random(0.0, HEIGHT * 1.0)
+    @depth = math::random(0.2, 1.0)
+  end
+end
+
+# ---------------------------------------------------------------------------
+# Game
+# ---------------------------------------------------------------------------
+
+struct Starfall
+  fn new()
+    if !SDL_Init(SDL_INIT_VIDEO)
+      throw "SDL_Init failed: ${SDL_GetError()}"
+    end
+
+    @window = SDL_CreateWindow("Starfall", WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE)
+    if ffi::is_null(@window)
+      throw "SDL_CreateWindow failed: ${SDL_GetError()}"
+    end
+
+    @renderer = SDL_CreateRenderer(@window, null)
+    if ffi::is_null(@renderer)
+      throw "SDL_CreateRenderer failed: ${SDL_GetError()}"
+    end
+
+    SDL_SetRenderVSync(@renderer, 1)
+    SDL_SetRenderLogicalPresentation(@renderer, WIDTH, HEIGHT, SDL_LOGICAL_LETTERBOX)
+    SDL_SetRenderDrawBlendMode(@renderer, SDL_BLENDMODE_BLEND)
+
+    @paint = Painter.new(@renderer)
+
+    # Synthesizing the sounds takes a moment, so say so first.
+    @paint.color(8, 8, 22)
+    SDL_RenderClear(@renderer)
+    @paint.color(200, 200, 230)
+    @paint.text("Loading...", WIDTH / 2.0, HEIGHT / 2.0, 2.0, true)
+    SDL_RenderPresent(@renderer)
+    @audio = Audio.new()
+    @event = ffi::alloc(SDL_EVENT_SIZE)
+    @keys = SDL_GetKeyboardState(null)
+
+    @sky = []
+    repeat 90 do
+      @sky.push(BackgroundStar.new())
+    end
+
+    @state = "title"
+    @best = 0
+    @running = true
+    @clock = 0.0
+    reset()
+  end
+
+  fn reset()
+    @ship_x = WIDTH / 2.0 - SHIP_W / 2.0
+    @ship_vx = 0.0
+    @dash_timer = 0.0
+    @dash_cool = 0.0
+    @hurt_timer = 0.0
+    @shielded = false
+    @lives = START_LIVES
+    @score = 0
+    @combo = 1
+    @elapsed = 0.0
+    @spawn_star = 0.6
+    @spawn_meteor = 1.5
+    @spawn_shield = 14.0
+    @shake = 0.0
+    @fallers = []
+    @particles = []
+  end
+
+  fn key_held(scancode): boolean
+    ffi::read(@keys, scancode, "uint8") != 0
+  end
+
+  # Difficulty rises from 0 toward 1 over about three minutes.
+  fn difficulty()
+    math::fmin(@elapsed / 180.0, 1.0)
+  end
+
+  # -- input ----------------------------------------------------------------
+
+  fn handle_events()
+    while SDL_PollEvent(@event) do
+      type = ffi::read(@event, 0, "uint32")
+      if type == SDL_EVENT_QUIT
+        @running = false
+      elsif type == SDL_EVENT_KEY_DOWN && ffi::read(@event, KEY_EVENT_REPEAT, "uint8") == 0
+        on_key(ffi::read(@event, KEY_EVENT_SCANCODE, "uint32"))
+      end
+    end
+  end
+
+  fn on_key(scancode)
+    if scancode == SC_ESCAPE
+      @running = false
+    elsif scancode == SC_M
+      @audio.toggle_mute()
+    elsif @state == "title" || @state == "over"
+      if scancode == SC_SPACE || scancode == SC_RETURN
+        reset()
+        @state = "playing"
+        @audio.restart_music()
+        @audio.play("start")
+      end
+    elsif @state == "playing"
+      if scancode == SC_P
+        @state = "paused"
+        @audio.pause()
+      elsif scancode == SC_SPACE
+        try_dash()
+      end
+    elsif @state == "paused" && scancode == SC_P
+      @state = "playing"
+      @audio.resume()
+    end
+  end
+
+  fn steer(): integer
+    dir = 0
+    if key_held(SC_LEFT) || key_held(SC_A)
+      dir -= 1
+    end
+    if key_held(SC_RIGHT) || key_held(SC_D)
+      dir += 1
+    end
+    dir
+  end
+
+  fn try_dash()
+    dir = steer()
+    if @dash_cool > 0.0 || dir == 0
+      return
+    end
+    @ship_vx = DASH_SPEED * dir
+    @dash_timer = DASH_TIME
+    @dash_cool = DASH_COOL
+    @audio.play("dash")
+    burst(@ship_x + SHIP_W / 2.0, GROUND - SHIP_H / 2.0, 14, 120.0, 160, 200, 255)
+  end
+
+  # -- simulation -----------------------------------------------------------
+
+  fn update(dt)
+    @clock += dt
+    update_sky(dt)
+    update_particles(dt)
+    @shake = math::fmax(@shake - dt * 30.0, 0.0)
+
+    # The title screen gets bass and arpeggio; drums join in play, and
+    # hi-hats once the meteors pick up.
+    if @state == "title"
+      @audio.pump(false, false)
+    elsif @state == "playing"
+      @audio.pump(true, difficulty() > 0.4)
+    end
+
+    if @state != "playing"
+      return
+    end
+
+    @elapsed += dt
+    update_ship(dt)
+    spawn_fallers(dt)
+    update_fallers(dt)
+  end
+
+  fn update_sky(dt)
+    speed = 40.0
+    if @state == "playing"
+      speed += difficulty() * 120.0
+    end
+    for s in @sky do
+      s.y += s.depth * speed * dt
+      if s.y > HEIGHT
+        s.y -= HEIGHT
+        s.x = math::random(0.0, WIDTH * 1.0)
+      end
+    end
+  end
+
+  fn update_ship(dt)
+    @dash_timer = math::fmax(@dash_timer - dt, 0.0)
+    @dash_cool = math::fmax(@dash_cool - dt, 0.0)
+    @hurt_timer = math::fmax(@hurt_timer - dt, 0.0)
+
+    if @dash_timer == 0.0
+      @ship_vx += steer() * SHIP_ACCEL * dt
+      @ship_vx -= @ship_vx * SHIP_DRAG * dt
+      @ship_vx = math::fmax(math::fmin(@ship_vx, SHIP_MAX), -SHIP_MAX)
+    else
+      # Leave a trail while dashing
+      @particles.push(Particle.new(@ship_x + math::random(0.0, SHIP_W), GROUND - math::random(0.0, SHIP_H),
+        0.0, 0.0, 0.25, 120, 170, 255))
+    end
+
+    @ship_x += @ship_vx * dt
+    if @ship_x < 0.0
+      @ship_x = 0.0
+      @ship_vx = 0.0
+    elsif @ship_x > WIDTH - SHIP_W
+      @ship_x = WIDTH - SHIP_W
+      @ship_vx = 0.0
+    end
+  end
+
+  fn spawn_fallers(dt)
+    d = difficulty()
+
+    @spawn_star -= dt
+    if @spawn_star <= 0.0
+      @spawn_star = math::random(0.5, 1.1) - d * 0.3
+      size = math::random(12.0, 18.0)
+      @fallers.push(Faller.new("star", math::random(10.0, WIDTH - 30.0), -20.0, size,
+        math::random(-30.0, 30.0), math::random(140.0, 190.0) + d * 120.0))
+    end
+
+    @spawn_meteor -= dt
+    if @spawn_meteor <= 0.0
+      @spawn_meteor = math::random(0.7, 1.4) - d * 0.55
+      size = math::random(22.0, 46.0)
+      @fallers.push(Faller.new("meteor", math::random(0.0, WIDTH - size), -size, size,
+        math::random(-60.0, 60.0), math::random(170.0, 240.0) + d * 220.0))
+    end
+
+    @spawn_shield -= dt
+    if @spawn_shield <= 0.0
+      @spawn_shield = math::random(16.0, 26.0)
+      if !@shielded
+        @fallers.push(Faller.new("shield", math::random(20.0, WIDTH - 40.0), -20.0, 18.0, 0.0, 150.0))
+      end
+    end
+  end
+
+  fn update_fallers(dt)
+    sy = GROUND - SHIP_H
+    untouchable = @dash_timer > 0.0 || @hurt_timer > 0.0
+    kept = []
+
+    for f in @fallers do
+      f.x += f.vx * dt
+      f.y += f.vy * dt
+      f.spin += dt * 4.0
+      if f.x < 0.0 || f.x + f.size > WIDTH
+        f.vx = -f.vx
+      end
+
+      cx = f.x + f.size / 2.0
+      cy = f.y + f.size / 2.0
+
+      if f.hits(@ship_x, sy, SHIP_W, SHIP_H)
+        if f.kind == "star"
+          @score += 10 * @combo
+          @audio.play_catch(@combo)
+          @combo = math::fmin(@combo + 1, 9).to_integer()
+          burst(cx, cy, 12, 160.0, 255, 220, 90)
+          next
+        elsif f.kind == "shield"
+          @shielded = true
+          @audio.play("shield_up")
+          burst(cx, cy, 16, 160.0, 90, 230, 255)
+          next
+        elsif !untouchable
+          take_hit(cx, cy)
+          next
+        end
+      end
+
+      if f.y > GROUND
+        if f.kind == "star"
+          if @combo > 1
+            @audio.play("miss")
+          end
+          @combo = 1
+          burst(cx, GROUND, 6, 60.0, 120, 110, 60)
+        elsif f.kind == "meteor"
+          burst(cx, GROUND, 10, 140.0, 200, 90, 40)
+        end
+        next
+      end
+
+      kept.push(f)
+    end
+
+    @fallers = kept
+  end
+
+  fn take_hit(x, y)
+    burst(x, y, 30, 260.0, 255, 110, 50)
+    @shake = 10.0
+    @hurt_timer = HURT_TIME
+
+    if @shielded
+      @shielded = false
+      @audio.play("shield_break")
+      return
+    end
+
+    @audio.play("hit")
+    @lives -= 1
+    @combo = 1
+    if @lives <= 0
+      @state = "over"
+      @audio.stop_music()
+      @audio.play("over")
+      @best = math::fmax(@best, @score).to_integer()
+      burst(@ship_x + SHIP_W / 2.0, GROUND - SHIP_H / 2.0, 60, 320.0, 255, 200, 120)
+    end
+  end
+
+  fn burst(x, y, count, speed, r, g, b)
+    repeat count do
+      angle = math::random(0.0, 6.2832)
+      v = math::random(speed * 0.3, speed)
+      @particles.push(Particle.new(x, y, math::cos(angle) * v, math::sin(angle) * v,
+        math::random(0.3, 0.8), r, g, b))
+    end
+  end
+
+  fn update_particles(dt)
+    kept = []
+    for p in @particles do
+      p.life -= dt
+      if p.life > 0.0
+        p.x += p.vx * dt
+        p.y += p.vy * dt
+        p.vy += 300.0 * dt
+        kept.push(p)
+      end
+    end
+    @particles = kept
+  end
+
+  # -- rendering ------------------------------------------------------------
+
+  fn render()
+    if @shake > 0.0
+      @paint.shake_x = math::random(-@shake, @shake)
+      @paint.shake_y = math::random(-@shake, @shake)
+    else
+      @paint.shake_x = 0.0
+      @paint.shake_y = 0.0
+    end
+
+    @paint.color(8, 8, 22)
+    SDL_RenderClear(@renderer)
+
+    draw_sky()
+    draw_ground()
+    for f in @fallers do
+      draw_faller(f)
+    end
+    if @state != "over"
+      draw_ship()
+    end
+    draw_particles()
+    draw_hud()
+
+    SDL_RenderPresent(@renderer)
+  end
+
+  fn draw_sky()
+    for s in @sky do
+      shade = (60 + s.depth * 140).to_integer()
+      @paint.color(shade, shade, (shade + 30).to_integer())
+      size = 1.0 + s.depth * 2.0
+      @paint.fill(s.x, s.y, size, size)
+    end
+  end
+
+  fn draw_ground()
+    @paint.color(30, 26, 52)
+    @paint.fill(0.0, GROUND, WIDTH, HEIGHT - GROUND)
+    @paint.color(70, 60, 120)
+    @paint.fill(0.0, GROUND, WIDTH, 2.0)
+  end
+
+  fn draw_faller(f)
+    s = f.size
+    if f.kind == "star"
+      # A twinkling cross: the arms stretch and shrink as it spins
+      twinkle = (math::sin(f.spin) + 1.0) / 2.0
+      arm = s * (0.7 + twinkle * 0.5)
+      cx = f.x + s / 2.0
+      cy = f.y + s / 2.0
+      @paint.color(255, 200, 60, 90)
+      @paint.fill(cx - s * 0.4, cy - s * 0.4, s * 0.8, s * 0.8)
+      @paint.color(255, 220, 90)
+      @paint.fill(cx - s * 0.12, cy - arm, s * 0.24, arm * 2.0)
+      @paint.fill(cx - arm, cy - s * 0.12, arm * 2.0, s * 0.24)
+      @paint.color(255, 250, 220)
+      @paint.fill(cx - s * 0.2, cy - s * 0.2, s * 0.4, s * 0.4)
+    elsif f.kind == "shield"
+      pulse = (math::sin(@clock * 6.0) + 1.0) / 2.0
+      @paint.color(90, 230, 255, (60 + pulse * 80).to_integer())
+      @paint.fill(f.x - 5.0, f.y - 5.0, s + 10.0, s + 10.0)
+      @paint.color(90, 230, 255)
+      @paint.fill(f.x, f.y, s, s)
+      @paint.color(220, 250, 255)
+      @paint.fill(f.x + s * 0.3, f.y + s * 0.2, s * 0.4, s * 0.6)
+    else
+      # A fiery tail that narrows and fades behind the rock
+      for k in [1 to 4] do
+        w = s * (0.8 - k * 0.15)
+        @paint.color(255, (150 - k * 20).to_integer(), 40, (170 - k * 38).to_integer())
+        @paint.fill(f.x + (s - w) / 2.0 - f.vx * 0.02 * k, f.y - s * 0.3 * k, w, s * 0.3)
+      end
+      @paint.color(130, 70, 50)
+      @paint.fill(f.x, f.y, s, s)
+      @paint.color(170, 95, 60)
+      @paint.fill(f.x + s * 0.1, f.y + s * 0.1, s * 0.5, s * 0.4)
+      @paint.color(90, 45, 35)
+      @paint.fill(f.x + s * 0.55, f.y + s * 0.55, s * 0.3, s * 0.3)
+    end
+  end
+
+  fn draw_ship()
+    # Blink while recovering from a hit
+    if @hurt_timer > 0.0 && (@hurt_timer * 12.0).to_integer() % 2 == 0
+      return
+    end
+
+    x = @ship_x
+    y = GROUND - SHIP_H
+
+    if @shielded
+      pulse = (math::sin(@clock * 5.0) + 1.0) / 2.0
+      @paint.color(90, 230, 255, (50 + pulse * 60).to_integer())
+      @paint.fill(x - 8.0, y - 10.0, SHIP_W + 16.0, SHIP_H + 12.0)
+    end
+
+    if @dash_timer > 0.0
+      @paint.color(170, 200, 255)
+    else
+      @paint.color(120, 200, 140)
+    end
+    @paint.fill(x, y + 10.0, SHIP_W, 12.0)
+    @paint.fill(x + 8.0, y + 4.0, SHIP_W - 16.0, 8.0)
+    @paint.color(220, 255, 230)
+    @paint.fill(x + SHIP_W / 2.0 - 5.0, y, 10.0, 8.0)
+    @paint.color(60, 120, 80)
+    @paint.fill(x + 4.0, y + 18.0, 8.0, 4.0)
+    @paint.fill(x + SHIP_W - 12.0, y + 18.0, 8.0, 4.0)
+  end
+
+  fn draw_particles()
+    for p in @particles do
+      alpha = (255 * p.life / p.max_life).to_integer()
+      @paint.color(p.r, p.g, p.b, alpha)
+      @paint.fill(p.x, p.y, 3.0, 3.0)
+    end
+  end
+
+  fn draw_hud()
+    @paint.shake_x = 0.0
+    @paint.shake_y = 0.0
+    if @audio.muted
+      @paint.color(140, 130, 190)
+      @paint.text("MUTED", WIDTH - 16.0 - 5 * SDL_DEBUG_TEXT_SIZE * 1.5, GROUND + 16.0, 1.5)
+    end
+    @paint.color(255, 255, 255)
+
+    if @state == "title"
+      @paint.color(255, 220, 90)
+      @paint.text("STARFALL", WIDTH / 2.0, 170.0, 6.0, true)
+      @paint.color(200, 200, 230)
+      @paint.text("Catch the stars. Dodge the meteors.", WIDTH / 2.0, 270.0, 2.0, true)
+      @paint.text("Arrows/A D move   Space dash", WIDTH / 2.0, 310.0, 2.0, true)
+      @paint.text("P pause   M mute   Esc quit", WIDTH / 2.0, 340.0, 2.0, true)
+      if (@clock * 2.0).to_integer() % 2 == 0
+        @paint.color(255, 255, 255)
+        @paint.text("Press Space to start", WIDTH / 2.0, 390.0, 2.5, true)
+      end
+      return
+    end
+
+    @paint.text("SCORE ${@score}", 16.0, 14.0, 2.0)
+    @paint.text("BEST ${@best}", 16.0, 38.0, 1.5)
+    if @combo > 1
+      @paint.color(255, 220, 90)
+      @paint.text("x${@combo}", WIDTH / 2.0, 14.0, 3.0, true)
+    end
+
+    # Lives as small ships
+    for i in [0 to START_LIVES - 1] do
+      if i < @lives
+        @paint.color(120, 200, 140)
+      else
+        @paint.color(50, 60, 60)
+      end
+      @paint.fill(WIDTH - 40.0 - i * 30.0, 18.0, 22.0, 10.0)
+    end
+
+    # Dash meter
+    @paint.color(50, 50, 80)
+    @paint.fill(WIDTH - 100.0, 36.0, 82.0, 6.0)
+    ready = 1.0 - @dash_cool / DASH_COOL
+    if ready >= 1.0
+      @paint.color(170, 200, 255)
+    else
+      @paint.color(90, 110, 160)
+    end
+    @paint.fill(WIDTH - 100.0, 36.0, 82.0 * ready, 6.0)
+
+    if @state == "paused"
+      @paint.color(0, 0, 0, 140)
+      @paint.fill(0.0, 0.0, WIDTH, HEIGHT)
+      @paint.color(255, 255, 255)
+      @paint.text("PAUSED", WIDTH / 2.0, 260.0, 4.0, true)
+      @paint.text("P to resume", WIDTH / 2.0, 320.0, 2.0, true)
+    elsif @state == "over"
+      @paint.color(0, 0, 0, 140)
+      @paint.fill(0.0, 0.0, WIDTH, HEIGHT)
+      @paint.color(255, 110, 70)
+      @paint.text("GAME OVER", WIDTH / 2.0, 220.0, 5.0, true)
+      @paint.color(255, 255, 255)
+      @paint.text("Score ${@score}", WIDTH / 2.0, 300.0, 2.5, true)
+      if @score > 0 && @score == @best
+        @paint.color(255, 220, 90)
+        @paint.text("New best!", WIDTH / 2.0, 336.0, 2.0, true)
+      end
+      @paint.color(200, 200, 230)
+      @paint.text("Space to play again   Esc to quit", WIDTH / 2.0, 400.0, 2.0, true)
+    end
+  end
+
+  # -- main loop ------------------------------------------------------------
+
+  fn run()
+    last = time::ticks()
+    while @running do
+      now = time::ticks()
+      dt = math::fmin(time::ticksms(now - last) / 1000.0, 0.05)
+      last = now
+
+      handle_events()
+      update(dt)
+      render()
+    end
+    shutdown()
+  end
+
+  fn shutdown()
+    @paint.dispose()
+    ffi::free(@event)
+    @audio.dispose()
+    SDL_DestroyRenderer(@renderer)
+    SDL_DestroyWindow(@window)
+    SDL_Quit()
+  end
+end
+
+Starfall.new().run()
