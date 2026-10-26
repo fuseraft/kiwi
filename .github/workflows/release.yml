@@ -2,7 +2,7 @@ name: Release binaries
 
 # Builds Kiwi for every supported platform, tests the archives and the installers, and attaches
 # the archives to the release. On a pull request that changes the release files, it builds and
-# tests without uploading.
+# tests without uploading (the way to check release builds of main before a release).
 on:
   release:
     types: [published]
