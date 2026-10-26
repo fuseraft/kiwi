@@ -94,9 +94,11 @@ public sealed class TaskManager
 
     /// <summary>
     /// Spawns a new task by queuing the lambda on the thread pool.
-    /// Returns the task ID.
+    /// Returns the task ID. A <paramref name="detached"/> task can't be awaited: it counts as
+    /// running until it finishes, then releases its state, and an error it throws is reported
+    /// on stderr because nothing else will see it.
     /// </summary>
-    public long Spawn(KContext context, LambdaRef lambda, List<Value> args, Token token)
+    public long Spawn(KContext context, LambdaRef lambda, List<Value> args, Token token, bool detached = false)
     {
         var state = Rent();
         state.Id = Interlocked.Increment(ref _nextId);
@@ -134,7 +136,14 @@ public sealed class TaskManager
             finally
             {
                 state.Completion.Set();
-                // Do NOT return to pool here, Await will do it after result delivery
+                if (detached)
+                {
+                    if (state.Exception is { } ex)
+                        Console.Error.WriteLine($"[task] a detached task failed: {ex.Message}");
+                    _tasks.TryRemove(state.Id, out var _removed);
+                    Return(state);
+                }
+                // Otherwise Await returns the state to the pool after delivering the result
             }
         }, null);
 

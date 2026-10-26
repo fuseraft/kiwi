@@ -4,6 +4,7 @@ public static class TaskBuiltin
 {
     public const string TaskAwait = "__task_await__";
     public const string TaskBusy = "__task_busy__";
+    public const string TaskDetach = "__task_detach__";
     public const string TaskList = "__task_list__";
     public const string TaskResult = "__task_result__";
     public const string TaskSleep = "__task_sleep__";
@@ -15,6 +16,7 @@ public static class TaskBuiltin
         {
             { TaskAwait,  TokenName.Builtin_Task_Await },
             { TaskBusy,   TokenName.Builtin_Task_Busy },
+            { TaskDetach, TokenName.Builtin_Task_Detach },
             { TaskList,   TokenName.Builtin_Task_List },
             { TaskResult, TokenName.Builtin_Task_Result },
             { TaskSleep,  TokenName.Builtin_Task_Sleep },
