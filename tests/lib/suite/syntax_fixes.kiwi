@@ -58,6 +58,9 @@ fn test_syntax_integer_literals()
   tester::assert_eq(literal_error("x = 9223372036854775808"),
     "Integer literal 9223372036854775808 doesn't fit in a 64-bit integer.")
   tester::assert_eq(literal_error("x = 0x"), "Hexadecimal literal 0x has no digits.")
+  tester::assert_eq(literal_error("x = 0b"), "Binary literal 0b has no digits.")
+  tester::assert_eq(literal_error("x = 0o"), "Octal literal 0o has no digits.")
+  tester::assert_eq(literal_error("x = 0b2"), "Binary literal 0b has no digits.")
 end
 
 @tester::test("syntax: var and compound assignment")

@@ -944,7 +944,7 @@ public class Lexer : IDisposable
 
         if (string.IsNullOrEmpty(binaryLiteral))
         {
-            return CreateLiteralToken(span, binaryLiteral, Value.Default);
+            return CreateToken(TokenType.Error, span, "Binary literal 0b has no digits.");
         }
 
         return CreateIntegerLiteralToken(span, binaryLiteral, $"0b{binaryLiteral}",
@@ -964,7 +964,7 @@ public class Lexer : IDisposable
 
         if (string.IsNullOrEmpty(octalLiteral))
         {
-            return CreateLiteralToken(span, octalLiteral, Value.Default);
+            return CreateToken(TokenType.Error, span, "Octal literal 0o has no digits.");
         }
 
         return CreateIntegerLiteralToken(span, octalLiteral, $"0o{octalLiteral}", () => Convert.ToInt64(octalLiteral, 8));
