@@ -17,7 +17,7 @@ Each package page starts with a guide and examples, followed by an API reference
 | [`protobuf`](protobuf.md) | Encode and decode Protocol Buffers. |
 | [`encode`](encode.md) | Base64, hex and URL encoding. |
 | [`compress`](compress.md) | DEFLATE, GZip, Brotli, Zstandard and ZIP. |
-| [`crypto`](crypto.md) | MD5, SHA and HMAC hashes. |
+| [`crypto`](crypto.md) | MD5, SHA and HMAC hashes; secure random bytes and UUIDs. |
 
 ## Working with data
 
@@ -74,6 +74,7 @@ Each package page starts with a guide and examples, followed by an API reference
 | :-- | :-- |
 | [`http`](http.md) | HTTP client. |
 | [`httpserver`](httpserver.md) | HTTP server with routing and middleware. |
+| [`web`](web.md) | The interface between web apps and the server: composable middleware, mounting, streaming and a test client. |
 | [`curl`](curl.md) | HTTP requests through the system `curl`. |
 | [`socket`](socket.md) | TCP and TLS sockets (`socket` and `tls`). |
 | [`udp`](udp.md) | UDP datagrams. |

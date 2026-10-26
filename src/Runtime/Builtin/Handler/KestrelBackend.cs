@@ -17,6 +17,8 @@ namespace kiwi.Runtime.Builtin.Handler;
 /// At most <see cref="Limits.MaxInFlight"/> requests wait on Kiwi code at once. A request that
 /// cannot get a slot within <see cref="Limits.QueueTimeoutMs"/> gets 503, and one Kiwi does not
 /// answer within <see cref="Limits.RequestTimeoutMs"/> gets 504.
+/// A streaming reply sends its headers at once, then each chunk Kiwi writes, until Kiwi ends
+/// it or the client goes away; the request timeout only covers the wait for the headers.
 /// </summary>
 public sealed class KestrelBackend
 {
@@ -26,7 +28,8 @@ public sealed class KestrelBackend
         int RequestTimeoutMs = 30_000,
         int QueueTimeoutMs = 5_000);
 
-    public sealed record Reply(int Status, List<KeyValuePair<string, string>> Headers, byte[] Body);
+    /// <summary>A complete response, or with <paramref name="Streaming"/> the start of one whose body follows in chunks.</summary>
+    public sealed record Reply(int Status, List<KeyValuePair<string, string>> Headers, byte[] Body, bool Streaming = false);
 
     private static readonly Reply Unavailable = new(503, [new("Retry-After", "1")], []);
 
@@ -38,7 +41,16 @@ public sealed class KestrelBackend
         public required Dictionary<string, string> Headers { get; init; }
         public required byte[] Body { get; init; }
         public required string RemoteAddr { get; init; }
+        public required string Protocol { get; init; }
+        public required string Scheme { get; init; }
         public TaskCompletionSource<Reply> Reply { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <summary>Body chunks of a streaming reply. Bounded, so a fast producer waits for a slow client.</summary>
+        public System.Threading.Channels.Channel<byte[]> Chunks { get; } =
+            Queue.CreateBounded<byte[]>(new System.Threading.Channels.BoundedChannelOptions(16) { SingleReader = true });
+
+        /// <summary>Set when Kiwi ends a stream because the app failed; the connection is reset instead of finished.</summary>
+        public volatile bool AbortRequested;
     }
 
     private readonly KestrelServer _server;
@@ -100,7 +112,10 @@ public sealed class KestrelBackend
         lock (_waitingLock)
         {
             foreach (var pending in _waiting)
+            {
                 pending.Reply.TrySetResult(Unavailable);
+                pending.Chunks.Writer.TryComplete(); // ends any stream in progress
+            }
         }
 
         using var grace = new CancellationTokenSource(graceMs);
@@ -115,6 +130,7 @@ public sealed class KestrelBackend
         var res  = features.Get<IHttpResponseFeature>()!;
         var body = features.Get<IHttpResponseBodyFeature>()!;
         var conn = features.Get<IHttpConnectionFeature>();
+        var life = features.Get<IHttpRequestLifetimeFeature>();
 
         if (!_listening || !await _inFlight.WaitAsync(_queueTimeout))
         {
@@ -149,6 +165,8 @@ public sealed class KestrelBackend
                 Headers     = headers,
                 Body        = payload,
                 RemoteAddr  = conn?.RemoteIpAddress?.ToString() ?? "",
+                Protocol    = req.Protocol,
+                Scheme      = req.Scheme,
             };
 
             lock (_waitingLock) _waiting.Add(pending);
@@ -170,10 +188,14 @@ public sealed class KestrelBackend
                     reply = new Reply(504, [], []);
                 }
 
-                await Send(res, body, reply);
+                if (reply.Streaming)
+                    await SendStream(res, body, life, pending, reply);
+                else
+                    await Send(res, body, reply);
             }
             finally
             {
+                pending.Chunks.Writer.TryComplete(); // a write after this returns false to Kiwi
                 lock (_waitingLock) _waiting.Remove(pending);
             }
         }
@@ -191,6 +213,33 @@ public sealed class KestrelBackend
         res.Headers.ContentLength = reply.Body.Length;
         if (reply.Body.Length > 0)
             await body.Writer.WriteAsync(reply.Body);
+    }
+
+    private static async Task SendStream(IHttpResponseFeature res, IHttpResponseBodyFeature body,
+        IHttpRequestLifetimeFeature? life, Pending pending, Reply reply)
+    {
+        var aborted = life?.RequestAborted ?? CancellationToken.None;
+        res.StatusCode = reply.Status;
+        foreach (var (key, value) in reply.Headers)
+        {
+            if (string.Equals(key, "Content-Length", StringComparison.OrdinalIgnoreCase)) continue;
+            res.Headers[key] = StringValues.Concat(res.Headers[key], value);
+        }
+
+        try
+        {
+            await body.StartAsync(aborted); // headers go out now; the body is chunked
+            await foreach (var chunk in pending.Chunks.Reader.ReadAllAsync(aborted))
+            {
+                var flushed = await body.Writer.WriteAsync(chunk, aborted);
+                if (flushed.IsCompleted || flushed.IsCanceled) return; // the client went away
+            }
+        }
+        catch (OperationCanceledException) { return; } // the client went away
+        catch (IOException) { return; }                // the connection was reset
+
+        if (pending.AbortRequested)
+            life?.Abort();
     }
 
     private sealed class Application(KestrelBackend owner) : IHttpApplication<IFeatureCollection>

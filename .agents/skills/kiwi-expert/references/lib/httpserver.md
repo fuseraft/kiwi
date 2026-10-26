@@ -2,7 +2,7 @@
 
 > An HTTP server with routing, middleware, route groups, static files, cookies and CORS.
 
-The `httpserver` package runs an HTTP server. Register handlers for routes, add middleware, and start it. Handlers receive a `Request` and a `Response`.
+The `httpserver` package runs an HTTP server. Register handlers for routes, add middleware, and start it. Handlers receive a `Request` and a `Response`. A server is built on the [`web`](web.md) interface, so it can be mounted beside other web apps, wrapped in web middleware and tested without a network; see [Working with `web`](#working-with-web).
 
 ```kiwi
 server = httpserver::create(18087)
@@ -48,7 +48,7 @@ api.post("/users", with (req, res) do
 end)
 ```
 
-Requests that match no route get a `404 Not Found`.
+Requests that match no route get a `404 Not Found`. A `HEAD` request is answered by the matching `GET` route, without the body.
 
 ## Requests
 
@@ -56,13 +56,16 @@ Requests that match no route get a `404 Not Found`.
 | :-- | :-- |
 | `method()`, `path()` | The HTTP method and path |
 | `param(name)`, `params()` | Route parameters |
-| `query()`, `query_param(name)` | Query string values |
+| `query()`, `query_param(name)`, `query_all(name)` | Query string values; when a key repeats, `query` keeps the last value and `query_all` returns every one |
 | `header(name)`, `headers()` | Request headers (names are case-insensitive) |
 | `body()` | The raw body as a string |
+| `body_bytes()` | The raw body as bytes, for binary uploads |
 | `json()`, `is_json()` | The body parsed as JSON |
 | `form()`, `is_form()` | Form fields from a URL-encoded body |
 | `cookie(name)`, `cookies()` | Request cookies |
 | `content_type()`, `remote_addr()` | The content type and client address |
+| `id()` | The request id from `web::request_id()`, if the server is [wrapped](#working-with-web) with it |
+| `env()` | The request's [`web` environment](web.md#the-environment) |
 
 ## Responses
 
@@ -73,10 +76,11 @@ Requests that match no route get a `404 Not Found`.
 | `json(value, status)` | JSON |
 | `file(path)` | A file, with a content type based on its extension |
 | `redirect(url, status)` | A redirect |
-| `send(body, status)` | A raw body |
+| `send(status, body)` | A raw body, as a string or bytes |
+| `stream(body, status)` | A body sent in chunks as it is produced; see [Streaming](#streaming) |
 | `not_found()`, `bad_request()`, `unauthorized()`, `forbidden()`, `server_error()` | An error status with an optional message |
 
-`status_code(code)`, `header(name, value)`, `cookie(name, value, path, max_age)`, `clear_cookie(name)` and `no_cache()` set response details before sending. Each response is sent once; check `sent()` to see whether a handler already responded.
+`header(name, value)`, `cookie(name, value, path, max_age)`, `clear_cookie(name)` and `no_cache()` set response details before sending. Header names are sent lowercase, as HTTP/2 requires and the `web` interface expects; HTTP treats names case-insensitively, so clients are unaffected unless they compare names exactly. Each response is sent once; check `sent()` to see whether a handler already responded, and `status_code()` for the status it sent.
 
 ## Middleware
 
@@ -117,11 +121,71 @@ cfg = httpserver::config()
   .host("0.0.0.0")
   .port(9000)
   .workers(8)
-  .timeout(30000)
+  .max_body_size(1024 * 1024)
+  .request_timeout(10000)
   .cors("https://myapp.example.com")
   .logging("simple")   # "combined", "simple" or "none"
 
 server = httpserver::create_with_config(cfg)
+```
+
+## Limits
+
+The server is built on [Kestrel](https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel), the HTTP server behind ASP.NET Core, which parses requests and manages connections and keep-alive. A few limits protect it from slow or oversized requests and from overload, and each answers the client with a status code instead of reaching a handler:
+
+| Limit | Default | Set with | Response |
+| :-- | :-- | :-- | :-- |
+| Handlers running at once | 64 | `workers(n)` | `503` if no slot frees up within five seconds |
+| Request body size | 8 MiB | `max_body_size(bytes)` | `413` |
+| Time for a handler to respond | 30 seconds | `request_timeout(ms)` | `504`; the handler's late response is discarded |
+| Time for a client to send its headers | 10 seconds | | `408` |
+| Malformed request | | | `400` |
+
+`server.stop()` answers requests still waiting on a handler with `503`.
+
+## Streaming
+
+`res.stream(body)` sends the headers at once and then each chunk as the body produces it, which suits large downloads and server-sent events. The body is a generator that yields chunks, or a lambda that receives a `write(chunk)` function. `write` returns `false` once the client has gone away:
+
+```kiwi
+server = httpserver::create(18088)
+
+server.get("/events", with (req, res) do
+  res.header("content-type", "text/event-stream")
+  res.stream(with (write) do
+    for i in [1 to 3] do
+      break when !write("data: ${i}\n\n")
+      task::sleep(100)
+    end
+  end)
+end)
+
+server.start()
+task::sleep(200)
+println http::get("http://localhost:18088/events").body.size()   # 27
+server.stop()
+```
+
+A streaming response keeps its worker until it ends, so raise `workers` in the [configuration](#configuration) for many long-lived streams.
+
+## Working with `web`
+
+A server is a [`web`](web.md) app. `to_app()` returns it with its logging, CORS and wrappers applied, `wrap` adds web middleware around the whole server, and `web::request` calls it without starting a listener, which makes handlers quick to test:
+
+```kiwi
+server = httpserver::create_with_config(httpserver::config().logging("none"))
+server.wrap(web::request_id())
+server.get("/users/:id", with (req, res) do
+  res.json({"id": req.param("id"), "request": req.id().size()})
+end)
+
+r = web::request(server.to_app(), "GET", "/users/7")
+println r.json()                 # {"id": "7", "request": 36}
+
+site = web::builder()
+  .map("/api", server.to_app())
+  .run(with (env) do web::text_response("home") end)
+println web::request(site, "GET", "/api/users/8").json()["id"]   # 8
 ```
 
 ## Lifecycle and errors
@@ -230,7 +294,7 @@ Sets the listening port.
 workers(v)
 ```
 
-Sets max concurrent request worker tasks.
+Sets how many requests can run handlers at once (default 64). Further requests wait up to five seconds for a free slot, then get `503 Service Unavailable`.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
@@ -249,6 +313,34 @@ Sets the accept-poll timeout in milliseconds.
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
 | `v` | `integer` |  | Milliseconds to wait per accept call. |
+
+**Returns** `Config` — self
+
+### `.max_body_size`
+
+```kiwi
+max_body_size(v)
+```
+
+Sets the largest request body accepted, in bytes (default 8 MiB). A larger body gets `413 Content Too Large` without reaching a handler.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `v` | `integer` |  | Maximum body size in bytes. |
+
+**Returns** `Config` — self
+
+### `.request_timeout`
+
+```kiwi
+request_timeout(v)
+```
+
+Sets how long a handler has to respond, in milliseconds (default 30000). Past that, the client gets `504 Gateway Timeout` and the handler's late response is discarded.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `v` | `integer` |  | Milliseconds. |
 
 **Returns** `Config` — self
 
@@ -304,6 +396,18 @@ get_workers()
 get_timeout()
 ```
 
+### `.get_max_body_size`
+
+```kiwi
+get_max_body_size()
+```
+
+### `.get_request_timeout`
+
+```kiwi
+get_request_timeout()
+```
+
 ### `.get_log`
 
 ```kiwi
@@ -324,18 +428,28 @@ get_cors_origin()
 
 ## `Request` struct
 
-Represents an incoming HTTP request.
+Represents an incoming HTTP request. It wraps a `web::Request`, adding route parameters.
 
 ### `Request.new`
 
 ```kiwi
-Request.new(raw, params)
+Request.new(env, params)
 ```
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
-| `raw` | `any` |  |  |
+| `env` | `any` |  |  |
 | `params` | `any` |  |  |
+
+### `.env`
+
+```kiwi
+env()
+```
+
+Returns the request's `web` environment.
+
+**Returns** hashmap
 
 ### `.method`
 
@@ -353,7 +467,7 @@ Returns the HTTP method (uppercase).
 path()
 ```
 
-Returns the URL path.
+Returns the URL path, percent-decoded.
 
 **Returns** string
 
@@ -363,7 +477,7 @@ Returns the URL path.
 query()
 ```
 
-Returns the query string parameters as a hashmap.
+Returns the query string parameters as a hashmap. When a key repeats, the last value wins; use `query_all` for every value.
 
 **Returns** hashmap
 
@@ -381,6 +495,20 @@ Returns a single query parameter, or default if absent.
 | `default_val` | `any` | `null` | Default value (default null). |
 
 **Returns** any
+
+### `.query_all`
+
+```kiwi
+query_all(name)
+```
+
+Returns every value of a query parameter, in order.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `name` | `string` |  | Parameter name. |
+
+**Returns** list
 
 ### `.headers`
 
@@ -416,6 +544,16 @@ Returns the raw request body string.
 
 **Returns** string
 
+### `.body_bytes`
+
+```kiwi
+body_bytes()
+```
+
+Returns the raw request body as bytes, for binary uploads that `body()` would corrupt by decoding as UTF-8.
+
+**Returns** bytes
+
 ### `.remote_addr`
 
 ```kiwi
@@ -432,9 +570,9 @@ Returns the client IP address.
 id()
 ```
 
-Returns the internal request ID (used for responding).
+Returns the request ID set by the `web::request_id()` middleware (see `Server.wrap`), or null.
 
-**Returns** integer
+**Returns** string|null
 
 ### `.param`
 
@@ -536,18 +674,13 @@ Returns all cookies as a hashmap (parsed lazily).
 
 ## `Response` struct
 
-Represents an HTTP response being built and sent.
+Collects the response a handler sends. Each response is sent once; the first `send` (or helper such as `text`) wins.
 
 ### `Response.new`
 
 ```kiwi
-Response.new(server_id, request_id)
+Response.new()
 ```
-
-| Parameter | Type | Default | Description |
-| :-- | :-- | :-- | :-- |
-| `server_id` | `any` |  |  |
-| `request_id` | `any` |  |  |
 
 ### `.sent`
 
@@ -575,12 +708,12 @@ Returns the HTTP status code that was (or will be) sent.
 header(key, value)
 ```
 
-Sets a response header.
+Sets a response header. Names are case-insensitive and sent lowercase. A non-string value is sent as its text, and a list sends one header line per element.
 
 | Parameter | Type | Default | Description |
 | :-- | :-- | :-- | :-- |
 | `key` | `string` |  | Header name. |
-| `value` | `string` |  | Header value. |
+| `value` | `any` |  | Header value. |
 
 **Returns** `Response` — self
 
@@ -596,6 +729,19 @@ Sends the response with a status code and body.
 | :-- | :-- | :-- | :-- |
 | `status` | `integer` |  | HTTP status code. |
 | `body` | `string\|bytes` |  | Response body. |
+
+### `.stream`
+
+```kiwi
+stream(body, status = 200)
+```
+
+Streams the response body: chunks reach the client as they are produced, so the response can be long-lived (such as server-sent events). The body is a generator that yields chunks, or a lambda that receives a `write(chunk)` function; `write` returns false once the client has gone away.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `body` | `generator\|lambda` |  | The chunk producer. |
+| `status` | `integer` | `200` | HTTP status code (default 200). |
 
 ### `.file`
 
@@ -767,6 +913,16 @@ Sends a 500 Internal Server Error response.
 | :-- | :-- | :-- | :-- |
 | `msg` | `string` | `"Internal Server Error"` | Response body. |
 
+### `.finish`
+
+```kiwi
+finish()
+```
+
+Returns the collected response as `[status, headers, body]`.
+
+**Returns** list
+
 ## `Router` struct
 
 A route group that delegates to a Server with a path prefix applied.
@@ -864,7 +1020,7 @@ Creates a nested sub-router under this group's prefix.
 
 ## `Server` struct
 
-Production-grade HTTP server with routing, middleware, and static serving.
+An HTTP server with routing, middleware, and static serving.
 
 ### `Server.new`
 
@@ -1040,6 +1196,30 @@ Creates a sub-router for grouping routes under a common prefix.
 | `prefix` | `string` |  | URL path prefix. |
 
 **Returns** Router
+
+### `.wrap`
+
+```kiwi
+wrap(middleware)
+```
+
+Adds a `web` middleware (a function from app to app, such as `web::request_id()`) around the whole server. Wrappers run before the server's own middleware, in the order added.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `middleware` | `lambda` |  | The `web` middleware. |
+
+**Returns** `Server` — self
+
+### `.to_app`
+
+```kiwi
+to_app()
+```
+
+Returns the server as a `web` app, with its logging, CORS and wrappers applied, for mounting in a `web::Builder` or testing with `web::request`.
+
+**Returns** `lambda` — The app.
 
 ### `.start`
 

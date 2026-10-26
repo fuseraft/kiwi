@@ -1,6 +1,6 @@
 # crypto
 
-> Hash strings, bytes and files with MD5 and the SHA family, and compute HMACs.
+> Hash strings, bytes and files with MD5 and the SHA family, compute HMACs, and generate secure random bytes and UUIDs.
 
 The `crypto` package computes message digests and HMACs. Each function takes a string, which it hashes as UTF-8, or bytes, which it hashes as they are, and returns a lowercase hexadecimal string.
 
@@ -33,6 +33,16 @@ println crypto::file_hash("kiwi-linux-x64.tar.gz", "SHA512")
 `file_hash` is unavailable in [safe mode](../tools/cli.md#safe-mode).
 
 MD5 and SHA-1 are fine for checksums and cache keys but are no longer safe against deliberate tampering; use SHA-256 or better for anything security-related. These functions hash data; they are not suitable for storing passwords, which need a slow, salted algorithm.
+
+## Random values
+
+`random_bytes(n)` returns `n` bytes from the operating system's cryptographically secure generator, and `uuid()` returns a random (version 4) UUID built from the same source. Use them for tokens, keys and session identifiers; [`math::random`](math.md) is not suitable for those.
+
+```kiwi
+token = crypto::random_bytes(16).to_hex()
+println token.size()          # 32
+println crypto::uuid().size()  # 36
+```
 
 For Base64 and hex encoding, see [`encode`](encode.md).
 
@@ -121,6 +131,30 @@ Computes the SHA-512 hex digest of a string or bytes. A string is hashed as UTF-
 | `input` | `string\|bytes` | `""` | The input to hash (default `""`). |
 
 **Returns** `string` — A 128-character lowercase hexadecimal SHA-512 digest.
+
+### `crypto::random_bytes`
+
+```kiwi
+crypto::random_bytes(count: integer): bytes
+```
+
+Generates cryptographically secure random bytes, suitable for tokens, keys and session identifiers.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `count` | `integer` |  | How many bytes to generate (0 to 1048576). |
+
+**Returns** `bytes` — The random bytes.
+
+### `crypto::uuid`
+
+```kiwi
+crypto::uuid(): string
+```
+
+Generates a random (version 4) UUID from a cryptographically secure source.
+
+**Returns** `string` — A UUID in lowercase 36-character form, such as `"3f2b8c1e-9a4d-4e7b-b1c2-5d6e7f8a9b0c"`.
 
 ### `crypto::file_hash`
 

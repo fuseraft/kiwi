@@ -3,7 +3,7 @@ title: httpserver
 description: An HTTP server with routing, middleware, route groups, static files, cookies and CORS.
 ---
 
-The `httpserver` package runs an HTTP server. Register handlers for routes, add middleware, and start it. Handlers receive a `Request` and a `Response`.
+The `httpserver` package runs an HTTP server. Register handlers for routes, add middleware, and start it. Handlers receive a `Request` and a `Response`. A server is built on the [`web`](/kiwi/stdlib/web/) interface, so it can be mounted beside other web apps, wrapped in web middleware and tested without a network; see [Working with `web`](#working-with-web).
 
 ```kiwi stderr
 server = httpserver::create(18087)
@@ -49,7 +49,7 @@ api.post("/users", with (req, res) do
 end)
 ```
 
-Requests that match no route get a `404 Not Found`.
+Requests that match no route get a `404 Not Found`. A `HEAD` request is answered by the matching `GET` route, without the body.
 
 ## Requests
 
@@ -57,7 +57,7 @@ Requests that match no route get a `404 Not Found`.
 | :-- | :-- |
 | `method()`, `path()` | The HTTP method and path |
 | `param(name)`, `params()` | Route parameters |
-| `query()`, `query_param(name)` | Query string values |
+| `query()`, `query_param(name)`, `query_all(name)` | Query string values; when a key repeats, `query` keeps the last value and `query_all` returns every one |
 | `header(name)`, `headers()` | Request headers (names are case-insensitive) |
 | `body()` | The raw body as a string |
 | `body_bytes()` | The raw body as bytes, for binary uploads |
@@ -65,6 +65,8 @@ Requests that match no route get a `404 Not Found`.
 | `form()`, `is_form()` | Form fields from a URL-encoded body |
 | `cookie(name)`, `cookies()` | Request cookies |
 | `content_type()`, `remote_addr()` | The content type and client address |
+| `id()` | The request id from `web::request_id()`, if the server is [wrapped](#working-with-web) with it |
+| `env()` | The request's [`web` environment](/kiwi/stdlib/web/#the-environment) |
 
 ## Responses
 
@@ -76,9 +78,10 @@ Requests that match no route get a `404 Not Found`.
 | `file(path)` | A file, with a content type based on its extension |
 | `redirect(url, status)` | A redirect |
 | `send(status, body)` | A raw body, as a string or bytes |
+| `stream(body, status)` | A body sent in chunks as it is produced; see [Streaming](#streaming) |
 | `not_found()`, `bad_request()`, `unauthorized()`, `forbidden()`, `server_error()` | An error status with an optional message |
 
-`header(name, value)`, `cookie(name, value, path, max_age)`, `clear_cookie(name)` and `no_cache()` set response details before sending. Each response is sent once; check `sent()` to see whether a handler already responded, and `status_code()` for the status it sent.
+`header(name, value)`, `cookie(name, value, path, max_age)`, `clear_cookie(name)` and `no_cache()` set response details before sending. Header names are sent lowercase, as HTTP/2 requires and the `web` interface expects; HTTP treats names case-insensitively, so clients are unaffected unless they compare names exactly. Each response is sent once; check `sent()` to see whether a handler already responded, and `status_code()` for the status it sent.
 
 ## Middleware
 
@@ -140,6 +143,51 @@ The server is built on [Kestrel](https://learn.microsoft.com/aspnet/core/fundame
 | Malformed request | | | `400` |
 
 `server.stop()` answers requests still waiting on a handler with `503`.
+
+## Streaming
+
+`res.stream(body)` sends the headers at once and then each chunk as the body produces it, which suits large downloads and server-sent events. The body is a generator that yields chunks, or a lambda that receives a `write(chunk)` function. `write` returns `false` once the client has gone away:
+
+```kiwi stderr
+server = httpserver::create(18088)
+
+server.get("/events", with (req, res) do
+  res.header("content-type", "text/event-stream")
+  res.stream(with (write) do
+    for i in [1 to 3] do
+      break when !write("data: ${i}\n\n")
+      task::sleep(100)
+    end
+  end)
+end)
+
+server.start()
+task::sleep(200)
+println http::get("http://localhost:18088/events").body.size()   # 27
+server.stop()
+```
+
+A streaming response keeps its worker until it ends, so raise `workers` in the [configuration](#configuration) for many long-lived streams.
+
+## Working with `web`
+
+A server is a [`web`](/kiwi/stdlib/web/) app. `to_app()` returns it with its logging, CORS and wrappers applied, `wrap` adds web middleware around the whole server, and `web::request` calls it without starting a listener, which makes handlers quick to test:
+
+```kiwi
+server = httpserver::create_with_config(httpserver::config().logging("none"))
+server.wrap(web::request_id())
+server.get("/users/:id", with (req, res) do
+  res.json({"id": req.param("id"), "request": req.id().size()})
+end)
+
+r = web::request(server.to_app(), "GET", "/users/7")
+println r.json()                 # {"id": "7", "request": 36}
+
+site = web::builder()
+  .map("/api", server.to_app())
+  .run(with (env) do web::text_response("home") end)
+println web::request(site, "GET", "/api/users/8").json()["id"]   # 8
+```
 
 ## Lifecycle and errors
 

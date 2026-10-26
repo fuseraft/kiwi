@@ -176,7 +176,10 @@ println data.to_hex()   # 6b697769
 println data.size()     # 4
 println data.to_string()           # kiwi
 println "6b 69".hex_bytes().to_string()   # ki
+println b"ki" + b"wi"                      # [107, 105, 119, 105]
 ```
+
+`+` joins two byte values into new bytes, and `+=` appends.
 
 ## Dates
 

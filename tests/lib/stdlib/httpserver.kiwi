@@ -268,7 +268,7 @@ fn test_httpserver_non_string_header()
   server.stop()
 
   tester::assert_eq(r.status, 200)
-  tester::assert_eq(r.headers["X-Count"], "5")
+  tester::assert_eq(r.headers["x-count"], "5")
 end
 
 @tester::test("httpserver: static files get a content type and stay inside their root")
@@ -310,4 +310,26 @@ fn test_http_delete()
 
   tester::assert_eq(r.status, 200)
   tester::assert_eq(r.body, "deleted 7")
+end
+
+@tester::test("httpserver: to_app runs without a network, cookies and HEAD included")
+fn test_httpserver_to_app()
+  cfg = httpserver::config().logging("none")
+  server = httpserver::create_with_config(cfg)
+  server.get("/me", with (req, res) do
+    res.cookie("seen", "yes")
+    res.text("theme=${req.cookie("theme")}")
+  end)
+  app = server.to_app()
+
+  r = web::request(app, "GET", "/me", {"headers": {"Cookie": "theme=dark; lang=en"}})
+  tester::assert_eq(r.status(), 200)
+  tester::assert_eq(r.body(), "theme=dark")
+  tester::assert(r.header("set-cookie")[0].begins_with("seen=yes"))
+
+  head = web::request(app, "HEAD", "/me")
+  tester::assert_eq(head.status(), 200)
+
+  mounted = web::builder().map("/v1", app)
+  tester::assert_eq(web::request(mounted, "GET", "/v1/me").body(), "theme=null")
 end
