@@ -125,3 +125,20 @@ fn test_syntax_index_short_circuit()
   tester::assert_eq(h["b"], "new")
   tester::assert_eq(calls[0], 1)
 end
+
+@tester::test("syntax: a bare @ at the end of a line is the instance")
+fn test_bare_self_at_line_end()
+  # The identifier on the next line used to be read as an instance variable,
+  # so `srv = @` swallowed the following statement.
+  struct Keeper
+    fn new() @n = 7 end
+    fn run()
+      srv = @
+      inner = with (x) do x + srv.n end
+      k = 5
+      inner(k)
+    end
+  end
+
+  tester::assert(Keeper.new().run() == 12, "expected locals after `srv = @` to work")
+end
