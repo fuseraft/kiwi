@@ -60,6 +60,7 @@ Requests that match no route get a `404 Not Found`.
 | `query()`, `query_param(name)` | Query string values |
 | `header(name)`, `headers()` | Request headers (names are case-insensitive) |
 | `body()` | The raw body as a string |
+| `body_bytes()` | The raw body as bytes, for binary uploads |
 | `json()`, `is_json()` | The body parsed as JSON |
 | `form()`, `is_form()` | Form fields from a URL-encoded body |
 | `cookie(name)`, `cookies()` | Request cookies |
@@ -74,10 +75,10 @@ Requests that match no route get a `404 Not Found`.
 | `json(value, status)` | JSON |
 | `file(path)` | A file, with a content type based on its extension |
 | `redirect(url, status)` | A redirect |
-| `send(body, status)` | A raw body |
+| `send(status, body)` | A raw body, as a string or bytes |
 | `not_found()`, `bad_request()`, `unauthorized()`, `forbidden()`, `server_error()` | An error status with an optional message |
 
-`status_code(code)`, `header(name, value)`, `cookie(name, value, path, max_age)`, `clear_cookie(name)` and `no_cache()` set response details before sending. Each response is sent once; check `sent()` to see whether a handler already responded.
+`header(name, value)`, `cookie(name, value, path, max_age)`, `clear_cookie(name)` and `no_cache()` set response details before sending. Each response is sent once; check `sent()` to see whether a handler already responded, and `status_code()` for the status it sent.
 
 ## Middleware
 
@@ -118,12 +119,27 @@ cfg = httpserver::config()
   .host("0.0.0.0")
   .port(9000)
   .workers(8)
-  .timeout(30000)
+  .max_body_size(1024 * 1024)
+  .request_timeout(10000)
   .cors("https://myapp.example.com")
   .logging("simple")   # "combined", "simple" or "none"
 
 server = httpserver::create_with_config(cfg)
 ```
+
+## Limits
+
+The server is built on [Kestrel](https://learn.microsoft.com/aspnet/core/fundamentals/servers/kestrel), the HTTP server behind ASP.NET Core, which parses requests and manages connections and keep-alive. A few limits protect it from slow or oversized requests and from overload, and each answers the client with a status code instead of reaching a handler:
+
+| Limit | Default | Set with | Response |
+| :-- | :-- | :-- | :-- |
+| Handlers running at once | 64 | `workers(n)` | `503` if no slot frees up within five seconds |
+| Request body size | 8 MiB | `max_body_size(bytes)` | `413` |
+| Time for a handler to respond | 30 seconds | `request_timeout(ms)` | `504`; the handler's late response is discarded |
+| Time for a client to send its headers | 10 seconds | | `408` |
+| Malformed request | | | `400` |
+
+`server.stop()` answers requests still waiting on a handler with `503`.
 
 ## Lifecycle and errors
 

@@ -497,14 +497,7 @@ package http
   @return integer : An awaitable task ID that resolves to a raw response hashmap.
   #/
   fn delete(url: string, headers: hashmap = {})
-    var (content = body)
-
-    if typeof(body) == hashmap
-      content = serialize(body)
-      headers["Content-Type"] = headers.get("Content-Type", "application/json")
-    end
-
-    __http_delete__(url, content, headers)
+    __http_delete__(url, headers)
   end
 
   /#

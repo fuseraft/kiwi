@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.11" />
     <PackageReference Include="ZstdSharp.Port" Version="0.8.8" />

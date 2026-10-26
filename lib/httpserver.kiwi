@@ -1,6 +1,6 @@
 /#
-@summary A production-grade HTTP server with routing, middleware pipeline,
-         static file serving, sessions, and Tomcat-style configuration.
+@summary An HTTP server built on Kestrel, with routing, a middleware pipeline,
+         static file serving, cookies, CORS and request limits.
 #/
 package httpserver
 
@@ -74,10 +74,12 @@ package httpserver
   # ---------------------------------------------------------------------------
 
   /#
-  @summary Returns the MIME type for a file extension (no dot).
+  @summary Returns the MIME type for a file extension, with or without its leading dot.
   #/
   fn _mime(ext)
-    _MIME.get(ext.lowercase(), "application/octet-stream")
+    e = ext.lowercase()
+    e = e[1:] when e.begins_with(".")
+    _MIME.get(e, "application/octet-stream")
   end
 
   /#
@@ -272,8 +274,10 @@ package httpserver
     fn new()
       @host       = "localhost"
       @port       = 8080
-      @workers    = 10
+      @workers    = 64
       @timeout_ms = 5000
+      @max_body   = 8 * 1024 * 1024
+      @request_timeout_ms = 30000
       @log        = "combined"
       @cors       = false
       @cors_origin = "*"
@@ -300,7 +304,7 @@ package httpserver
     end
 
     /#
-    @summary Sets max concurrent request worker tasks.
+    @summary Sets how many requests can run handlers at once (default 64). Further requests wait up to five seconds for a free slot, then get `503 Service Unavailable`.
     @param integer v : Worker count.
     @return Config : self
     #/
@@ -316,6 +320,26 @@ package httpserver
     #/
     fn timeout(v)
       @timeout_ms = v
+      @
+    end
+
+    /#
+    @summary Sets the largest request body accepted, in bytes (default 8 MiB). A larger body gets `413 Content Too Large` without reaching a handler.
+    @param integer v : Maximum body size in bytes.
+    @return Config : self
+    #/
+    fn max_body_size(v)
+      @max_body = v
+      @
+    end
+
+    /#
+    @summary Sets how long a handler has to respond, in milliseconds (default 30000). Past that, the client gets `504 Gateway Timeout` and the handler's late response is discarded.
+    @param integer v : Milliseconds.
+    @return Config : self
+    #/
+    fn request_timeout(v)
+      @request_timeout_ms = v
       @
     end
 
@@ -344,6 +368,8 @@ package httpserver
     fn get_port()       @port        end
     fn get_workers()    @workers     end
     fn get_timeout()    @timeout_ms  end
+    fn get_max_body_size()   @max_body   end
+    fn get_request_timeout() @request_timeout_ms end
     fn get_log()        @log         end
     fn get_cors()       @cors        end
     fn get_cors_origin()@cors_origin end
@@ -421,6 +447,14 @@ package httpserver
     #/
     fn body()
       @raw["body"]
+    end
+
+    /#
+    @summary Returns the raw request body as bytes, for binary uploads that `body()` would corrupt by decoding as UTF-8.
+    @return bytes
+    #/
+    fn body_bytes()
+      @raw["body_bytes"]
     end
 
     /#
@@ -573,7 +607,9 @@ package httpserver
       @_status = status
       h = @headers
       h["__set_cookies__"] = @cookies when @cookies.size() > 0
-      __httpserver_respond__(@server_id, @request_id, status, h, body.to_string())
+      payload = body
+      payload = body.to_string() when typeof(body) != bytes
+      __httpserver_respond__(@server_id, @request_id, status, h, payload)
     end
 
     /#
@@ -764,6 +800,8 @@ package httpserver
         "port":       cfg.get_port(),
         "workers":    cfg.get_workers(),
         "timeout_ms": cfg.get_timeout(),
+        "max_body_size":      cfg.get_max_body_size(),
+        "request_timeout_ms": cfg.get_request_timeout(),
         "log":        cfg.get_log(),
         "cors":       cfg.get_cors(),
         "cors_origin":cfg.get_cors_origin()
@@ -853,9 +891,16 @@ package httpserver
       root   = dir
       @.use(with (req, res, nxt) do
         p = req.path()
-        if p.begins_with(prefix)
-          rel  = p[prefix.size():]
-          rel  = "/" + rel when !rel.begins_with("/")
+        base = prefix
+        base = base[0:base.size() - 1] when base.ends_with("/")
+        if p.begins_with(base + "/")
+          rel  = p[base.size():]
+          # Kestrel removes dot segments, but a backslash is a separator on Windows,
+          # so refuse anything that could still climb out of the root.
+          if rel.contains("\\") || rel.split("/").contains("..")
+            nxt()
+            return
+          end
           fp   = root + rel
           if fio::exists(fp) && !fio::isdir(fp)
             res.file(fp)
@@ -916,7 +961,11 @@ package httpserver
     @return Server : self
     #/
     fn start(block = false)
-      @id      = __httpserver_create__(@cfg_map["host"], @cfg_map["port"])
+      @id      = __httpserver_create__(@cfg_map["host"], @cfg_map["port"], {
+        "max_in_flight":      @cfg_map["workers"],
+        "max_body_size":      @cfg_map["max_body_size"],
+        "request_timeout_ms": @cfg_map["request_timeout_ms"]
+      })
       @running = true
 
       # Auto-install CORS middleware when configured

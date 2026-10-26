@@ -178,3 +178,136 @@ fn test_httpserver_router_group()
   tester::assert_eq(r2.body, "99")
   tester::assert_eq(r3.status, 404)
 end
+
+@tester::test("httpserver: body over max_body_size gets 413")
+fn test_httpserver_max_body_size()
+  cfg = httpserver::config().port(19220).logging("none").max_body_size(16)
+  server = httpserver::create_with_config(cfg)
+  server.post("/echo", with (req, res) do res.text(req.body()) end)
+  server.start()
+  task::sleep(150)
+
+  small = http::await_post("http://localhost:19220/echo", "0123456789")
+  large = http::await_post("http://localhost:19220/echo", "0123456789abcdefXYZ")
+  server.stop()
+
+  tester::assert_eq(small.status, 200)
+  tester::assert_eq(small.body, "0123456789")
+  tester::assert_eq(large.status, 413)
+end
+
+@tester::test("httpserver: handler slower than request_timeout gets 504")
+fn test_httpserver_request_timeout()
+  cfg = httpserver::config().port(19221).logging("none").request_timeout(200)
+  server = httpserver::create_with_config(cfg)
+  server.get("/slow", with (req, res) do
+    task::sleep(600)
+    res.text("late")
+  end)
+  server.get("/fast", with (req, res) do res.text("ok") end)
+  server.start()
+  task::sleep(150)
+
+  slow = http::get("http://localhost:19221/slow")
+  task::sleep(600)   # let the late response arrive and be discarded
+  fast = http::get("http://localhost:19221/fast")
+  server.stop()
+
+  tester::assert_eq(slow.status, 504)
+  tester::assert_eq(fast.status, 200)
+  tester::assert_eq(fast.body, "ok")
+end
+
+@tester::test("httpserver: stop answers unfinished requests with 503")
+fn test_httpserver_stop_unfinished()
+  cfg = httpserver::config().port(19222).logging("none")
+  server = httpserver::create_with_config(cfg)
+  server.get("/hang", with (req, res) do
+    task::sleep(2000)
+    res.text("late")
+  end)
+  server.start()
+  task::sleep(150)
+
+  client = task::spawn(with () do http::get("http://localhost:19222/hang").status end)
+  task::sleep(200)
+  server.stop()
+
+  tester::assert_eq(task::await(client), 503)
+end
+
+@tester::test("httpserver: binary request and response bodies survive intact")
+fn test_httpserver_binary_bodies()
+  server = httpserver::create(19223)
+  server.post("/echo", with (req, res) do
+    res.header("Content-Type", "application/octet-stream")
+    res.send(200, req.body_bytes())
+  end)
+  server.start()
+  task::sleep(150)
+
+  payload = [0, 255, 1, 128, 200, 13, 10].to_bytes()
+  r = http::await_post("http://localhost:19223/echo", payload)
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  tester::assert_eq(r.body, payload)
+end
+
+@tester::test("httpserver: non-string header values are sent as text")
+fn test_httpserver_non_string_header()
+  server = httpserver::create(19224)
+  server.get("/n", with (req, res) do
+    res.header("X-Count", 5)
+    res.text("ok")
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::get("http://localhost:19224/n")
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  tester::assert_eq(r.headers["X-Count"], "5")
+end
+
+@tester::test("httpserver: static files get a content type and stay inside their root")
+fn test_httpserver_static_files()
+  root = fio::combine([fio::tmpdir(), "kiwi_httpserver_static_${sys::pid()}"])
+  fio::mkdirp(fio::combine([root, "public"]))
+  fio::write(fio::combine([root, "public", "page.html"]), "<p>hi</p>")
+  fio::write(fio::combine([root, "secret.txt"]), "secret")
+
+  server = httpserver::create(19225)
+  server.static_files("/public", fio::combine([root, "public"]))
+  server.start()
+  task::sleep(150)
+
+  page     = http::get("http://localhost:19225/public/page.html")
+  escaped  = http::get("http://localhost:19225/public/..%5Csecret.txt")
+  sibling  = http::get("http://localhost:19225/publicpage.html")
+  server.stop()
+  fio::rmdirf(root)
+
+  tester::assert_eq(page.status, 200)
+  tester::assert_eq(page.body, "<p>hi</p>")
+  tester::assert(page.headers["Content-Type"].begins_with("text/html"))
+  tester::assert_eq(escaped.status, 404)
+  tester::assert_eq(sibling.status, 404)
+end
+
+@tester::test("http: delete sends a DELETE request")
+fn test_http_delete()
+  server = httpserver::create(19226)
+  server.delete("/items/:id", with (req, res) do
+    res.text("deleted ${req.param("id")}")
+  end)
+  server.start()
+  task::sleep(150)
+
+  r = http::response(task::await(http::delete("http://localhost:19226/items/7")))
+  server.stop()
+
+  tester::assert_eq(r.status, 200)
+  tester::assert_eq(r.body, "deleted 7")
+end
