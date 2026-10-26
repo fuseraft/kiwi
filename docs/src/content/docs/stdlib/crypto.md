@@ -1,6 +1,6 @@
 ---
 title: crypto
-description: Hash strings, bytes and files with MD5 and the SHA family, and compute HMACs.
+description: Hash strings, bytes and files with MD5 and the SHA family, compute HMACs, and generate secure random bytes and UUIDs.
 ---
 
 The `crypto` package computes message digests and HMACs. Each function takes a string, which it hashes as UTF-8, or bytes, which it hashes as they are, and returns a lowercase hexadecimal string.
@@ -34,6 +34,16 @@ println crypto::file_hash("kiwi-linux-x64.tar.gz", "SHA512")
 `file_hash` is unavailable in [safe mode](/kiwi/tools/cli/#safe-mode).
 
 MD5 and SHA-1 are fine for checksums and cache keys but are no longer safe against deliberate tampering; use SHA-256 or better for anything security-related. These functions hash data; they are not suitable for storing passwords, which need a slow, salted algorithm.
+
+## Random values
+
+`random_bytes(n)` returns `n` bytes from the operating system's cryptographically secure generator, and `uuid()` returns a random (version 4) UUID built from the same source. Use them for tokens, keys and session identifiers; [`math::random`](/kiwi/stdlib/math/) is not suitable for those.
+
+```kiwi
+token = crypto::random_bytes(16).to_hex()
+println token.size()          # 32
+println crypto::uuid().size()  # 36
+```
 
 For Base64 and hex encoding, see [`encode`](/kiwi/stdlib/encode/).
 

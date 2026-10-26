@@ -32,6 +32,18 @@ end
 
 A program doesn't exit until its tasks have finished. `spawn` and `await` are also available as the global functions [`spawn` and `await`](../reference/global-functions.md#tasks).
 
+### Fire and forget
+
+Every spawned task keeps its result until it is awaited. For work started over and over that nothing waits for, such as handling one request, use `task::detach` instead: it runs the lambda the same way but has no id, and it releases everything as soon as it finishes. It still counts as running for `task::busy` and `task::wait`, and an error it throws is printed to stderr.
+
+```kiwi
+results = task::channel(3)
+for n in [1 to 3] do
+  task::detach(do (c, k) => c.send(k * k), [results, n])
+end
+println [results.recv(), results.recv(), results.recv()].sort()   # [1, 4, 9]
+```
+
 ## Channels
 
 A `Channel` passes values between tasks. `send` puts a value in, `recv` waits for the next one, and `close` signals that no more values are coming, after which `recv` returns `null`.
@@ -191,6 +203,19 @@ Runs a lambda on a background task.
 | `args` | `list` | `[]` | The arguments to pass to the lambda. |
 
 **Returns** `integer` — The task identifier.
+
+### `task::detach`
+
+```kiwi
+task::detach(callback: lambda, args: list = [])
+```
+
+Runs a lambda on a background task that nothing will wait for. Unlike `spawn`, it has no identifier to await, and it releases everything it held as soon as it finishes, so it suits work started over and over, such as one task per request. It counts as running for `busy` and `wait` until then. An error it throws is printed to stderr.
+
+| Parameter | Type | Default | Description |
+| :-- | :-- | :-- | :-- |
+| `callback` | `lambda` |  | The lambda to run. |
+| `args` | `list` | `[]` | The arguments to pass to the lambda. |
 
 ### `task::list`
 

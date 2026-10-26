@@ -67,3 +67,16 @@ fn test_crypto_file_hash_safe_mode()
   r = sys::execout(env::bin(), ["-sm", "-e", "crypto::file_hash(\"x\")"])
   tester::assert((r["stdout"] + r["stderr"]).contains("'crypto::file_hash' is not available in safe mode"), r["stdout"] + r["stderr"])
 end
+
+@tester::test("crypto: random_bytes and uuid")
+fn test_crypto_random()
+  a = crypto::random_bytes(32)
+  b = crypto::random_bytes(32)
+  tester::assert_eq(a.size(), 32)
+  tester::assert(a != b, "expected two random draws to differ")
+  tester::assert_eq(crypto::random_bytes(0).size(), 0)
+
+  id = crypto::uuid()
+  tester::assert(id.matches('^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'), id)
+  tester::assert(crypto::uuid() != id, "expected unique uuids")
+end

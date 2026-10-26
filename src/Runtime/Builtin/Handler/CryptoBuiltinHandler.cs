@@ -23,8 +23,34 @@ public static class CryptoBuiltinHandler
             TokenName.Builtin_Crypto_HmacMd5    => HmacHash(token, args, "HMACMD5"),
             TokenName.Builtin_Crypto_HmacSha256 => HmacHash(token, args, "HMACSHA256"),
             TokenName.Builtin_Crypto_HmacSha512 => HmacHash(token, args, "HMACSHA512"),
+            TokenName.Builtin_Crypto_RandomBytes => RandomBytes(token, args),
+            TokenName.Builtin_Crypto_Uuid       => Uuid(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
+    }
+
+    /// <summary>Bytes from the operating system's cryptographically secure generator.</summary>
+    private static Value RandomBytes(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CryptoBuiltin.RandomBytes, 1, args.Count);
+        ParameterTypeMismatchError.ExpectInteger(token, CryptoBuiltin.RandomBytes, 0, args[0]);
+        var count = args[0].GetInteger();
+        if (count < 0 || count > 1024 * 1024)
+            throw new InvalidOperationError(token, "crypto::random_bytes count must be between 0 and 1048576.");
+        return Value.CreateBytes(RandomNumberGenerator.GetBytes((int)count));
+    }
+
+    /// <summary>A random (version 4) UUID in its lowercase 36-character form.</summary>
+    private static Value Uuid(Token token, List<Value> args)
+    {
+        ParameterCountMismatchError.Check(token, CryptoBuiltin.Uuid, 0, args.Count);
+        // Guid.NewGuid is not documented as cryptographically strong on every platform,
+        // so set the RFC 9562 version and variant bits on secure random bytes instead.
+        var b = RandomNumberGenerator.GetBytes(16);
+        b[6] = (byte)((b[6] & 0x0F) | 0x40);
+        b[8] = (byte)((b[8] & 0x3F) | 0x80);
+        var hex = Convert.ToHexStringLower(b);
+        return Value.CreateString($"{hex[..8]}-{hex[8..12]}-{hex[12..16]}-{hex[16..20]}-{hex[20..]}");
     }
 
     private static Value Hash(Token token, List<Value> args, string algorithm)

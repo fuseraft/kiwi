@@ -23,7 +23,7 @@ println -7 // 2    # -4
 println 7.9 // 2   # 3
 ```
 
-`+` and `*` also work on strings and lists. `+` concatenates and `*` repeats. If either side of `+` is a string, the other side is converted to a string.
+`+` and `*` also work on strings and lists, and `+` on bytes. `+` concatenates and `*` repeats. If either side of `+` is a string, the other side is converted to a string.
 
 ```kiwi
 println "hello" + " world"   # hello world

@@ -1,0 +1,48 @@
+/# ==============================================================================
+   Testing callable instances: an instance whose struct defines `call` can be
+   called like a function, with positional, named and splatted arguments.
+  ============================================================================== #/
+@tester::test("callable objects")
+fn test_callable_objects()
+  struct Adder
+    fn new(n) @n = n end
+    fn call(x, y = 0) x + y + @n end
+  end
+
+  struct Child < Adder
+  end
+
+  struct Holder
+    fn new(f) @f = f end
+    fn run(x) @f(x) end
+  end
+
+  a = Adder.new(10)
+  tester::assert(a(1) == 11,                "A1: positional call")
+  tester::assert(a(1, 2) == 13,             "A2: default parameter")
+  tester::assert(a(y: 5, x: 1) == 16,       "A3: named arguments bind to call()")
+  tester::assert(a(*[3, 4]) == 17,          "A4: splatted arguments")
+  tester::assert(Child.new(100)(1) == 101,  "A5: inherited call()")
+  tester::assert(Holder.new(a).run(5) == 15, "A6: called through an instance variable")
+  tester::assert({"f": a}["f"](2) == 12,    "A7: called from a hashmap")
+  tester::assert(typeof(a) == "Adder",      "A8: typeof is unchanged")
+
+  # Lambdas and callable instances are interchangeable where something calls them.
+  wrap = with (f) do with (v) do f(v) * 10 end end
+  results = [a, with (x) do x * 2 end].map(do (f) => wrap(f)(1))
+  tester::assert(results == [110, 20],      "A9: lambdas and instances mix")
+end
+
+@tester::test("callable objects: a struct without call() is not callable")
+fn test_callable_objects_missing_call()
+  struct Plain
+  end
+
+  message = ""
+  try
+    Plain.new()(1)
+  catch e
+    message = e["message"]
+  end
+  tester::assert(message.contains("Define a `call` method"), message)
+end

@@ -92,3 +92,23 @@ fn test_packages()
   pkg = "overwritten"
   tester::assert(strutils::shout("ok") == "OK!!!", "B7: :: unaffected after var overwrite")
 end
+
+@tester::test("packages: a package's own struct wins over a same-named one")
+fn test_package_struct_resolution()
+  package first_pkg
+    struct Thing
+      fn new() @who = "first" end
+    end
+    fn make() Thing.new() end
+  end
+
+  package second_pkg
+    struct Thing
+      fn new(x) @who = "second ${x}" end
+    end
+    fn make() Thing.new(1) end
+  end
+
+  tester::assert(first_pkg::make().who == "first",    "expected first_pkg::Thing from first_pkg")
+  tester::assert(second_pkg::make().who == "second 1", "expected second_pkg::Thing from second_pkg")
+end

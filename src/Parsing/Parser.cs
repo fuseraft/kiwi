@@ -2747,7 +2747,11 @@ public partial class Parser
 
         var isTypeName = GetTokenType() == TokenType.Typename;
 
-        if (GetTokenType() != TokenType.Identifier && !isTypeName)
+        // A bare `@` ending a line (`srv = @`) is the instance itself; the identifier on
+        // the next line starts a new statement rather than naming an instance variable.
+        bool nameOnNextLine = isInstance && token.Span.Line != Previous().Span.EndLine;
+
+        if ((GetTokenType() != TokenType.Identifier && !isTypeName) || nameOnNextLine)
         {
             if (isInstance)
             {

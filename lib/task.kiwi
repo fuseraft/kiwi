@@ -143,6 +143,15 @@ package task
   end
 
   /#
+  @summary Runs a lambda on a background task that nothing will wait for. Unlike `spawn`, it has no identifier to await, and it releases everything it held as soon as it finishes, so it suits work started over and over, such as one task per request. It counts as running for `busy` and `wait` until then. An error it throws is printed to stderr.
+  @param lambda callback : The lambda to run.
+  @param list args : The arguments to pass to the lambda.
+  #/
+  fn detach(callback: lambda, args: list = [])
+    __task_detach__(callback, args)
+  end
+
+  /#
   @summary Gets the identifiers of the running tasks.
   @return list : The task identifiers.
   #/

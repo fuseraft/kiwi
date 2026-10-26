@@ -141,6 +141,11 @@ public struct MathOp
             type = Typing.ValueType.String;
             return new(ConversionOp.ToString(left) + right.GetString(), type);
         }
+        else if (left.IsBytes() && right.IsBytes())
+        {
+            type = Typing.ValueType.Bytes;
+            return new((byte[])[.. left.GetBytes(), .. right.GetBytes()], type);
+        }
 
         throw new ConversionError(token, "Conversion error in addition.");
     }

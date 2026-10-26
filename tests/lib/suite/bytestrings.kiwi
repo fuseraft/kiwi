@@ -23,3 +23,16 @@ fn test_byte_strings()
   tester::assert(hello == old_way_str, "bytestring did not match expected value")
   tester::assert(hello == old_way_list, "bytestring did not match expected value")
 end
+
+@tester::test("bytestrings: + concatenates bytes")
+fn test_bytes_concat()
+  joined = "ab".to_bytes() + [0, 255].to_bytes()
+  tester::assert(typeof(joined) == bytes, "expected bytes")
+  tester::assert(joined.to_list() == [97, 98, 0, 255], "expected the bytes in order")
+
+  acc = b""
+  for chunk in ["x".to_bytes(), "y".to_bytes()] do
+    acc += chunk
+  end
+  tester::assert(acc.to_string() == "xy", "expected += to append")
+end

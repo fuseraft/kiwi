@@ -1,0 +1,277 @@
+# -- The interface, through the test client ----------------------------------
+
+@tester::test("web: lambda and struct apps answer through the test client")
+fn test_web_app_kinds()
+  struct Hello
+    fn call(env)
+      web::text_response("hello ${web::Request.new(env).query_param("name", "you")}")
+    end
+  end
+
+  lam = with (env) do web::json_response({"path": env["path_info"]}) end
+
+  r1 = web::request(Hello.new(), "GET", "/?name=kiwi")
+  r2 = web::request(lam, "GET", "/x")
+
+  tester::assert_eq(r1.status(), 200)
+  tester::assert_eq(r1.body(), "hello kiwi")
+  tester::assert_eq(r1.header("Content-Type"), "text/plain; charset=utf-8")
+  tester::assert_eq(r2.json(), {"path": "/x"})
+end
+
+@tester::test("web: Request parses query, form, JSON, cookies and headers")
+fn test_web_request_parsing()
+  seen = {}
+  app = with (env) do
+    req = web::Request.new(env)
+    seen["query"]  = req.query()
+    seen["all"]    = req.query_all("tag")
+    seen["json"]   = req.json()
+    seen["cookie"] = req.cookie("session")
+    seen["header"] = req.header("X-Custom")
+    seen["url"]    = req.url()
+    web::text_response("ok")
+  end
+
+  web::request(app, "POST", "/p?tag=a&tag=b&q=hello+world%21", {
+    "headers": {"Cookie": "session=abc; theme=dark", "X-Custom": "yes"},
+    "body": {"n": 1}
+  })
+
+  tester::assert_eq(seen["query"], {"tag": "b", "q": "hello world!"})
+  tester::assert_eq(seen["all"], ["a", "b"])
+  tester::assert_eq(seen["json"], {"n": 1})
+  tester::assert_eq(seen["cookie"], "abc")
+  tester::assert_eq(seen["header"], "yes")
+  tester::assert_eq(seen["url"], "http://localhost/p?tag=a&tag=b&q=hello+world%21")
+
+  form = web::Request.new(web::mock_env("POST", "/", {"body": "a=1&b=two+words"})).form()
+  tester::assert_eq(form, {"a": "1", "b": "two words"})
+end
+
+@tester::test("web: builder runs middleware in order, outermost first")
+fn test_web_builder_order()
+  trace = []
+  tag = with (name) do
+    with (app) do
+      with (env) do
+        trace.push("${name}>")
+        response = app(env)
+        trace.push("<${name}")
+        response
+      end
+    end
+  end
+
+  app = web::builder()
+    .use(tag("a"))
+    .use(tag("b"))
+    .run(with (env) do
+      trace.push("app")
+      web::text_response("done")
+    end)
+
+  web::request(app, "GET", "/")
+  tester::assert_eq(trace, ["a>", "b>", "app", "<b", "<a"])
+end
+
+@tester::test("web: map mounts apps by longest whole-segment prefix")
+fn test_web_map()
+  echo = with (label) do
+    with (env) do web::text_response("${label} ${env["script_name"]} [${env["path_info"]}]") end
+  end
+
+  app = web::builder()
+    .map("/api", echo("api"))
+    .map("/api/v2", echo("v2"))
+    .run(echo("root"))
+
+  tester::assert_eq(web::request(app, "GET", "/api/users").body(), "api /api [/users]")
+  tester::assert_eq(web::request(app, "GET", "/api").body(), "api /api []")
+  tester::assert_eq(web::request(app, "GET", "/api/v2/x").body(), "v2 /api/v2 [/x]")
+  tester::assert_eq(web::request(app, "GET", "/apix").body(), "root  [/apix]")
+
+  only_maps = web::builder().map("/a", echo("a"))
+  tester::assert_eq(web::request(only_maps, "GET", "/b").status(), 404)
+end
+
+@tester::test("web: streaming bodies are collected by the test client")
+fn test_web_streaming_bodies_mock()
+  fn numbers()
+    for i in [1 to 3] do yield "${i};" end
+  end
+
+  gen_app = with (env) do [200, {}, numbers()] end
+  fn_app  = with (env) do [200, {}, with (write) do write("a") write("b") end] end
+  list_app = with (env) do [200, {}, ["x", "y".to_bytes()]] end
+
+  tester::assert_eq(web::request(gen_app, "GET", "/").body(), "1;2;3;")
+  tester::assert_eq(web::request(fn_app, "GET", "/").body(), "ab")
+  tester::assert_eq(web::request(list_app, "GET", "/").body(), "xy")
+end
+
+@tester::test("web: lint reports malformed responses and environments")
+fn test_web_lint()
+  bad_header = web::builder().use(web::lint()).run(with (env) do [200, {"Content-Type": "x"}, ""] end)
+  bad_shape  = web::builder().use(web::lint()).run(with (env) do "just a string" end)
+  bad_body   = web::builder().use(web::lint()).run(with (env) do [204, {}, "body"] end)
+
+  messages = []
+  for app in [bad_header, bad_shape, bad_body] do
+    try
+      web::request(app, "GET", "/")
+      messages.push("no error")
+    catch e
+      messages.push(e["message"])
+    end
+  end
+
+  tester::assert(messages[0].contains("header names must be lowercase"), messages[0])
+  tester::assert(messages[1].contains("must be a list"), messages[1])
+  tester::assert(messages[2].contains("204 response must not have a body"), messages[2])
+
+  env = web::mock_env("GET", "/")
+  env.remove("body")
+  problem = ""
+  try
+    web::lint()(with (e) do web::text_response("x") end)(env)
+  catch e
+    problem = e["message"]
+  end
+  tester::assert(problem.contains("missing \"body\""), problem)
+end
+
+@tester::test("web: cors, request_id and rescue middleware")
+fn test_web_stock_middleware()
+  app = web::builder()
+    .use(web::rescue(with (err, env) do web::status_response(503, "rescued") end))
+    .use(web::cors("https://app.example", {"max_age": 600}))
+    .use(web::request_id())
+    .map("/boom", with (env) do throw "nope" end)
+    .run(with (env) do web::text_response(env["web.request_id"]) end)
+
+  pre = web::request(app, "OPTIONS", "/")
+  tester::assert_eq(pre.status(), 204)
+  tester::assert_eq(pre.header("access-control-allow-origin"), "https://app.example")
+  tester::assert_eq(pre.header("access-control-max-age"), "600")
+
+  fresh = web::request(app, "GET", "/")
+  tester::assert_eq(fresh.header("x-request-id"), fresh.body())
+  tester::assert_eq(fresh.body().size(), 36)
+
+  kept = web::request(app, "GET", "/", {"headers": {"X-Request-Id": "abc-123"}})
+  tester::assert_eq(kept.header("x-request-id"), "abc-123")
+  forged = web::request(app, "GET", "/", {"headers": {"X-Request-Id": "bad id\n"}})
+  tester::assert(forged.header("x-request-id") != "bad id\n")
+
+  boom = web::request(app, "GET", "/boom")
+  tester::assert_eq(boom.status(), 503)
+  tester::assert_eq(boom.body(), "rescued")
+end
+
+@tester::test("web: static_files serves files and refuses to leave the directory")
+fn test_web_static_files()
+  root = fio::combine([fio::tmpdir(), "kiwi_web_static_${sys::pid()}"])
+  fio::mkdirp(fio::combine([root, "public", "docs"]))
+  fio::write(fio::combine([root, "public", "app.css"]), "body{}")
+  fio::write(fio::combine([root, "public", "docs", "index.html"]), "<h1>docs</h1>")
+  fio::write(fio::combine([root, "secret.txt"]), "secret")
+
+  fallback = with (env) do web::text_response("app") end
+  app = web::static_files("/assets", fio::combine([root, "public"]), {"index": "index.html", "cache_control": "max-age=60"})(fallback)
+
+  css   = web::request(app, "GET", "/assets/app.css")
+  index = web::request(app, "GET", "/assets/docs")
+  up    = web::request(app, "GET", "/assets/../secret.txt")
+  back  = web::request(app, "GET", "/assets/..\\secret.txt")
+  post  = web::request(app, "POST", "/assets/app.css")
+  fio::rmdirf(root)
+
+  tester::assert_eq(css.status(), 200)
+  tester::assert_eq(css.body(), "body{}")
+  tester::assert_eq(css.header("content-type"), "text/css; charset=utf-8")
+  tester::assert_eq(css.header("cache-control"), "max-age=60")
+  tester::assert_eq(index.body(), "<h1>docs</h1>")
+  tester::assert_eq(up.body(), "app")
+  tester::assert_eq(back.body(), "app")
+  tester::assert_eq(post.body(), "app")
+end
+
+@tester::test("web: helpers build responses and headers")
+fn test_web_helpers()
+  tester::assert_eq(web::redirect("/next"), [302, {"location": "/next"}, ""])
+  tester::assert_eq(web::status_response(404)[2], "Not Found")
+  tester::assert_eq(web::json_response([1], 201)[0], 201)
+  tester::assert_eq(web::mime_type(".PNG"), "image/png")
+  tester::assert_eq(web::status_text(418), "")
+
+  h = {}
+  web::add_header(h, "set-cookie", web::cookie_header("a", "1"))
+  web::add_header(h, "set-cookie", web::cookie_header("b", "2", {"max_age": 60, "secure": true}))
+  tester::assert_eq(h["set-cookie"], ["a=1; Path=/; HttpOnly; SameSite=Lax", "b=2; Path=/; Max-Age=60; HttpOnly; Secure; SameSite=Lax"])
+end
+
+# -- Over HTTP ---------------------------------------------------------------
+
+@tester::test("web: Server streams chunks, sends repeated headers and answers bad apps with 500")
+fn test_web_server()
+  fn chunks()
+    yield "one;"
+    yield "two;".to_bytes()
+  end
+
+  app = web::builder()
+    .map("/stream", with (env) do [200, {"content-type": "text/plain"}, chunks()] end)
+    .map("/cookies", with (env) do [200, {"set-cookie": ["a=1", "b=2"]}, "ok"] end)
+    .map("/bad", with (env) do [200, "headers", ""] end)
+    .map("/throw", with (env) do throw "boom" end)
+    .run(with (env) do web::text_response(web::Request.new(env).body()) end)
+
+  server = web::Server.new(app, {"port": 19230}).start()
+  task::sleep(150)
+
+  streamed = http::get("http://localhost:19230/stream")
+  cookies  = http::get("http://localhost:19230/cookies")
+  bad      = http::get("http://localhost:19230/bad")
+  thrown   = http::get("http://localhost:19230/throw")
+  echoed   = http::await_post("http://localhost:19230/", "payload")
+  server.stop()
+
+  tester::assert_eq(streamed.status, 200)
+  tester::assert_eq(streamed.body, "one;two;")
+  tester::assert(cookies.headers["Set-Cookie"].contains("a=1") && cookies.headers["Set-Cookie"].contains("b=2"))
+  tester::assert_eq(bad.status, 500)
+  tester::assert_eq(thrown.status, 500)
+  tester::assert_eq(echoed.body, "payload")
+end
+
+@tester::test("web: a streaming producer learns when the client is gone")
+fn test_web_server_disconnect()
+  state = {"writes": 0, "stopped": false}
+  app = with (env) do
+    [200, {"content-type": "text/plain"}, with (write) do
+      while write("tick\n") do
+        state["writes"] += 1
+        task::sleep(10)
+      end
+      state["stopped"] = true
+    end]
+  end
+
+  server = web::Server.new(app, {"port": 19231}).start()
+  task::sleep(150)
+
+  sock = socket::tcpconnect("127.0.0.1", 19231)
+  task::await(socket::send(sock, "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n".to_bytes()))
+  task::await(socket::recv(sock, 256))
+  socket::close(sock)
+
+  waited = 0
+  while !state["stopped"] && waited < 3000 do
+    task::sleep(50)
+    waited += 50
+  end
+  server.stop()
+
+  tester::assert(state["stopped"], "expected write() to return false after the client left")
+end

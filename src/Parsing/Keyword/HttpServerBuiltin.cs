@@ -6,6 +6,9 @@ public static class HttpServerBuiltin
     public const string Create  = "__httpserver_create__";
     public const string Respond = "__httpserver_respond__";
     public const string Stop    = "__httpserver_stop__";
+    public const string Stream  = "__httpserver_stream__";
+    public const string Write   = "__httpserver_write__";
+    public const string End     = "__httpserver_end__";
 
     private static readonly IReadOnlyDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
@@ -14,6 +17,9 @@ public static class HttpServerBuiltin
             { Create,  TokenName.Builtin_HttpServer_Create  },
             { Respond, TokenName.Builtin_HttpServer_Respond },
             { Stop,    TokenName.Builtin_HttpServer_Stop    },
+            { Stream,  TokenName.Builtin_HttpServer_Stream  },
+            { Write,   TokenName.Builtin_HttpServer_Write   },
+            { End,     TokenName.Builtin_HttpServer_End     },
         };
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();

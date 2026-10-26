@@ -522,6 +522,17 @@ public sealed class KiwiVM
                 ? klambda.Ref
                 : new LambdaRef { Identifier = mapped, VMChunk = klambda.VMChunk, VMUpvalues = klambda.VMUpvalues });
         }
+        else if (_context.Structs.TryGetValue(qualName, out var ownStruct))
+        {
+            // A package struct is also registered under its bare name, where a later package's
+            // struct of the same name replaces it. Keep the bare name (and so typeof) while it
+            // still means this package's struct; otherwise use the qualified one.
+            var bare = qualName[(qualName.LastIndexOf("::", StringComparison.Ordinal) + 2)..];
+            var id   = _context.Structs.TryGetValue(bare, out var bareStruct) && ReferenceEquals(bareStruct, ownStruct)
+                ? bare
+                : qualName;
+            v = Value.CreateStruct(new StructRef { Identifier = id });
+        }
         else if (!_context.Constants.TryGetValue(qualName, out v!))
         {
             _pkgMissCache.Add(qualName);
@@ -2495,6 +2506,21 @@ public sealed class KiwiVM
             return false;
         }
 
+        // A callable instance: bind the named arguments against its `call` method.
+        if (funcVal.IsObject() && TryResolveCallMethod(funcVal.GetObject(), out var callMethod))
+        {
+            int objBase  = funcSlot + 1;
+            int objArgc  = ApplyNamedArgs(objBase, argc, argNames, callMethod!.Parameters,
+                callMethod.DefaultParameters, callMethod.VariadicParamName, token, "call");
+            var objArgs  = CollectArgs(objBase, objArgc);
+            Value objResult;
+            try { objResult = CallObjectMethodDirect(token, "call", funcVal.GetObject(), objArgs); }
+            finally { ReturnArgs(objArgs); }
+            _sp = funcSlot;
+            Push(objResult);
+            return false;
+        }
+
         if (TryGetCallableParams(funcVal, out var sub, out var upvalues,
                 out var parms, out var defaults, out var variadicName))
         {
@@ -2700,6 +2726,26 @@ public sealed class KiwiVM
                 else if (funcVal.IsStruct())
                 {
                     callResult = CreateObject(funcVal.GetStruct().Identifier, args, token);
+                }
+                else if (funcVal.IsObject() && IsCallableObject(funcVal.GetObject()))
+                {
+                    // An instance whose struct defines `call` can be called like a function:
+                    // `obj(x)` is `obj.call(x)`.
+                    callResult = CallObjectMethodDirect(token, "call", funcVal.GetObject(), args);
+                }
+                else if (funcVal.IsObject())
+                {
+                    throw new Tracing.Error.InvalidOperationError(token, $"Value of type '{Typing.TypeRegistry.GetTypeName(funcVal)}' is not callable. Define a `call` method to make its instances callable.");
+                }
+                else if (funcVal.IsPackage() && _frameCount > 0
+                    && _frames[_frameCount - 1].Self is { } self
+                    && _context.HasStruct(self.StructName)
+                    && TryResolveStructMethod(_context.Structs[self.StructName], self, funcVal.GetPackage().Identifier, out _))
+                {
+                    // A bare call inside a struct method whose name is both a package and one of
+                    // the struct's methods (`path()` in a struct with `fn path()`): a package
+                    // can't be called, so this can only mean the method.
+                    callResult = CallObjectMethodDirect(token, funcVal.GetPackage().Identifier, self, args);
                 }
                 else
                 {
@@ -3301,6 +3347,20 @@ public sealed class KiwiVM
         for (var s = FindStruct(structName); s != null; s = FindStruct(s.BaseStruct))
             if (s.Name == ancestor) return true;
         return false;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="obj"/>'s struct (or an ancestor) defines `call`, which makes
+    /// the instance callable with function-call syntax.
+    /// </summary>
+    private bool IsCallableObject(InstanceRef obj) => TryResolveCallMethod(obj, out _);
+
+    private bool TryResolveCallMethod(InstanceRef obj, out KFunction? fn)
+    {
+        fn = null;
+        return _context.HasStruct(obj.StructName)
+            && TryResolveStructMethod(_context.Structs[obj.StructName], obj, "call", out fn)
+            && fn != null;
     }
 
     private bool TryResolveStructMethod(KStruct struc, InstanceRef obj, string methodName, out KFunction? fn)

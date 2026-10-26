@@ -60,6 +60,23 @@ package crypto
   end
 
   /#
+  @summary Generates cryptographically secure random bytes, suitable for tokens, keys and session identifiers.
+  @param integer count : How many bytes to generate (0 to 1048576).
+  @return bytes : The random bytes.
+  #/
+  fn random_bytes(count: integer): bytes
+    return __crypto_random_bytes__(count)
+  end
+
+  /#
+  @summary Generates a random (version 4) UUID from a cryptographically secure source.
+  @return string : A UUID in lowercase 36-character form, such as `"3f2b8c1e-9a4d-4e7b-b1c2-5d6e7f8a9b0c"`.
+  #/
+  fn uuid(): string
+    return __crypto_uuid__()
+  end
+
+  /#
   @summary Computes the hex digest of a file's contents. The file is read in chunks, so it
   can be larger than memory. Unavailable in safe mode.
   @param string path : The file to hash.

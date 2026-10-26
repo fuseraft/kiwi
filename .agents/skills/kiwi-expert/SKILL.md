@@ -1,6 +1,6 @@
 ---
 name: kiwi-expert
-description: Expert reference for the Kiwi scripting language — syntax, keywords, operators, types, control flow, structs, error handling, generators, packages, and the full standard library (50 packages). Trigger when writing, reading, reviewing, or debugging .kiwi scripts, or when a question concerns Kiwi language semantics, a stdlib package (fio, http, json, regex, table, task, sqlite, httpserver, etc.), or the VM/runtime's execution rules.
+description: Expert reference for the Kiwi scripting language — syntax, keywords, operators, types, control flow, structs, error handling, generators, packages, and the full standard library (51 packages). Trigger when writing, reading, reviewing, or debugging .kiwi scripts, or when a question concerns Kiwi language semantics, a stdlib package (fio, http, json, regex, table, task, sqlite, httpserver, etc.), or the VM/runtime's execution rules.
 ---
 
 # Kiwi Expert
@@ -64,6 +64,8 @@ a, b, c = 10, 20, 30       # multiple assignment; x, y = [1, 2] unpacks a list
 Built-in types: `integer`, `float`, `boolean`, `string`, `list`, `hashmap`, `null`, `date`, `bytes`, `generator`, `lambda`, and struct instances (`typeof` returns the struct name). Named functions and lambdas both report `typeof()` as `lambda`.
 
 `typeof(x)` (global) and `x.type()` (method) both return the type name. Wrap number literals in parentheses to call methods: `(42).to_string()`.
+
+`+` concatenates strings, lists and bytes (`b"ab" + b"cd"`).
 
 Lists and hashmaps are **shared by reference**: `b = a` or `row = grid[0]` aliases the same collection. Use `.clone()` for a deep copy.
 
@@ -152,6 +154,8 @@ abstract struct Shape        # cannot be instantiated
   abstract fn area() end     # children must define area(); `override` is optional
 end
 ```
+
+An instance whose struct defines `call` is callable: `obj(x)` is `obj.call(x)`, so lambdas and objects are interchangeable wherever something calls a value.
 
 ```kiwi
 struct Counter
@@ -303,7 +307,7 @@ Files under `references/`, one per documentation page.
 | `collections` | `Heap` (priority queue) and `Set` | `collections.md` |
 | `compress` | DEFLATE, GZip, Brotli, Zstandard, ZIP | `compress.md` |
 | `console` | Terminal colors, cursor, key input | `console.md` |
-| `crypto` | MD5, SHA-1/2, HMAC | `crypto.md` |
+| `crypto` | MD5, SHA-1/2, HMAC, secure random bytes, UUIDs | `crypto.md` |
 | `csv` | Parse CSV, typed pipelines | `csv.md` |
 | `curl` | HTTP via the system `curl` | `curl.md` |
 | `date` | Date arithmetic and components as date methods | `date.md` |
@@ -317,6 +321,7 @@ Files under `references/`, one per documentation page.
 | `hashable` | `Hashable` base struct | `hashable.md` |
 | `http` | HTTP client, request parsing, response building | `http.md` |
 | `httpserver` | HTTP server: routing, middleware, static files, CORS | `httpserver.md` |
+| `web` | Web app interface: `call(env)` apps, middleware, builder/mounting, streaming, test client | `web.md` |
 | `ipc` | Named-pipe messaging | `ipc.md` |
 | `iter` | `ListIterator` cursor | `iter.md` |
 | `json` | JSON parse/stringify, typed pipelines | `json.md` |

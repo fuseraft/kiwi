@@ -126,6 +126,30 @@ println "Total: ${price}"          # Total: $19.99
 println [price, Money.new(5)]      # [$19.99, $0.05]
 ```
 
+## Callable instances
+
+An instance whose struct defines a `call` method can be called like a function: `obj(x)` is `obj.call(x)`. Positional, named and splatted arguments all bind to `call`'s parameters. Code that calls a value doesn't need to know whether it holds a lambda or an object, which is how [`web`](../lib/web.md) treats apps.
+
+```kiwi
+struct Multiplier
+  fn new(factor)
+    @factor = factor
+  end
+
+  fn call(x)
+    x * @factor
+  end
+end
+
+triple = Multiplier.new(3)
+println triple(5)                                  # 15
+
+double = with (x) do x * 2 end
+println [triple, double].map(do (f) => f(10))      # [30, 20]
+```
+
+Calling an instance of a struct without `call` raises an `InvalidOperationError`.
+
 ## Static members
 
 `static fn` defines a method called on the struct itself. `static @name = value` defines a variable shared by every instance; methods reach it with `@@name`, and outside code with `StructName.name`.
@@ -305,6 +329,10 @@ end
 
 Password.new("hunter2").digest("x")   # InvalidContextError
 ```
+
+## Methods named like packages
+
+Inside a struct, a bare call such as `path()` reaches the struct's own `path` method even though `path` is also a standard library package, since a package can't be called. Qualified names still mean the package: `time::ticks()` works in a struct that has a `time()` method.
 
 ## Working with instances
 

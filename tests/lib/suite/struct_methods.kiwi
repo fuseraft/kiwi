@@ -174,3 +174,20 @@ fn test_struct_methods_fields()
   tester::assert_eq(f.get(), "logged:7", "a bare @field line is not a decorator")
   tester::assert_eq(f.describe(), "own:1", "a bare call reaches the struct's own method")
 end
+
+@tester::test("struct methods: a bare call to a method named like a package")
+fn test_method_named_like_package()
+  # `path` and `time` are standard library packages. A package can't be called,
+  # so inside a struct a bare `path()` means the struct's own method.
+  struct Route
+    fn new() @p = "/a" end
+    fn path() @p end
+    fn time() "noon" end
+    fn describe() "${time()} ${path()}" end
+    fn ticks_type() typeof(time::ticks()) end
+  end
+
+  r = Route.new()
+  tester::assert(r.describe() == "noon /a", "expected the struct's own methods")
+  tester::assert(r.ticks_type() == "float", "expected time::ticks() to still reach the package")
+end

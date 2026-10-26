@@ -40,6 +40,7 @@ var (unit_tests: list = [
   "functions",
   "lambdas",
   "splat",
+  "callable_objects",
   "decorators",
   "generators",
   "iterators",

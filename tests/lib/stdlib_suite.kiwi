@@ -49,6 +49,7 @@ var (stdlib_tests: list = [
 
   # HTTP server
   "httpserver",
+  "web",
 
   # Filesystem watching
   "watch",

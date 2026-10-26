@@ -21,7 +21,7 @@ Each package page starts with a guide and examples, followed by an API reference
 | [`protobuf`](/kiwi/stdlib/protobuf/) | Encode and decode Protocol Buffers. |
 | [`encode`](/kiwi/stdlib/encode/) | Base64, hex and URL encoding. |
 | [`compress`](/kiwi/stdlib/compress/) | DEFLATE, GZip, Brotli, Zstandard and ZIP. |
-| [`crypto`](/kiwi/stdlib/crypto/) | MD5, SHA and HMAC hashes. |
+| [`crypto`](/kiwi/stdlib/crypto/) | MD5, SHA and HMAC hashes; secure random bytes and UUIDs. |
 
 ## Working with data
 
@@ -78,6 +78,7 @@ Each package page starts with a guide and examples, followed by an API reference
 | :-- | :-- |
 | [`http`](/kiwi/stdlib/http/) | HTTP client. |
 | [`httpserver`](/kiwi/stdlib/httpserver/) | HTTP server with routing and middleware. |
+| [`web`](/kiwi/stdlib/web/) | The interface between web apps and the server: composable middleware, mounting, streaming and a test client. |
 | [`curl`](/kiwi/stdlib/curl/) | HTTP requests through the system `curl`. |
 | [`socket`](/kiwi/stdlib/socket/) | TCP and TLS sockets (`socket` and `tls`). |
 | [`udp`](/kiwi/stdlib/udp/) | UDP datagrams. |
