@@ -922,9 +922,13 @@ public class Lexer : IDisposable
             hexLiteral += GetChar();
         }
 
-        var result = int.Parse(hexLiteral, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+        if (string.IsNullOrEmpty(hexLiteral))
+        {
+            return CreateToken(TokenType.Error, span, "Hexadecimal literal 0x has no digits.");
+        }
 
-        return CreateLiteralToken(span, hexLiteral, Value.CreateInteger(result));
+        return CreateIntegerLiteralToken(span, hexLiteral, $"0x{hexLiteral}",
+            () => long.Parse(hexLiteral, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private Token TokenizeBinaryLiteral(TokenSpan span)
@@ -943,9 +947,8 @@ public class Lexer : IDisposable
             return CreateLiteralToken(span, binaryLiteral, Value.Default);
         }
 
-        var result = int.Parse(binaryLiteral, System.Globalization.NumberStyles.BinaryNumber, System.Globalization.CultureInfo.InvariantCulture);
-
-        return CreateLiteralToken(span, binaryLiteral, Value.CreateInteger(result));
+        return CreateIntegerLiteralToken(span, binaryLiteral, $"0b{binaryLiteral}",
+            () => long.Parse(binaryLiteral, System.Globalization.NumberStyles.BinaryNumber, System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private Token TokenizeOctalLiteral(TokenSpan span) 
@@ -964,9 +967,23 @@ public class Lexer : IDisposable
             return CreateLiteralToken(span, octalLiteral, Value.Default);
         }
 
-        var result = Convert.ToInt32(octalLiteral, 8);
+        return CreateIntegerLiteralToken(span, octalLiteral, $"0o{octalLiteral}", () => Convert.ToInt64(octalLiteral, 8));
+    }
 
-        return CreateLiteralToken(span, octalLiteral, Value.CreateInteger(result));
+    /// <summary>
+    /// Creates an integer literal token, or an error token when the literal doesn't fit in 64 bits.
+    /// Hexadecimal, binary and octal literals are 64-bit patterns, so <c>0xFFFFFFFFFFFFFFFF</c> is -1.
+    /// </summary>
+    private Token CreateIntegerLiteralToken(TokenSpan span, string text, string literal, Func<long> parse)
+    {
+        try
+        {
+            return CreateLiteralToken(span, text, Value.CreateInteger(parse()));
+        }
+        catch (OverflowException)
+        {
+            return CreateToken(TokenType.Error, span, $"Integer literal {literal} doesn't fit in a 64-bit integer.");
+        }
     }
 
     private Token TokenizeLiteral(TokenSpan span, char c)
@@ -1001,7 +1018,7 @@ public class Lexer : IDisposable
 
         if (dots == 0)
         {
-            return CreateLiteralToken(span, text, Value.CreateInteger(Convert.ToInt64(text)));
+            return CreateIntegerLiteralToken(span, text, text, () => Convert.ToInt64(text));
         }
 
         return CreateLiteralToken(span, text, Value.CreateFloat(Convert.ToDouble(text)));

@@ -137,6 +137,8 @@ println b"hi"       # bytes: [104, 105]
 
 Strings are covered in [Strings](/kiwi/language/strings/), lists in [Lists](/kiwi/language/lists/), and hashmaps in [Hashmaps](/kiwi/language/hashmaps/).
 
+Integers are 64-bit. A hexadecimal, binary or octal literal is a 64-bit pattern, so `0xFFFFFFFF` is `4294967295` and `0xFFFFFFFFFFFFFFFF` is `-1`. A literal that doesn't fit in 64 bits is an error.
+
 To call a method on a number literal, wrap the literal in parentheses: `(42).to_string()`, `(3.7).to_integer()`.
 
 ## The `...` placeholder
