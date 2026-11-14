@@ -425,6 +425,14 @@ package httpserver
     fn cookies()
       @w.cookies()
     end
+
+    /#
+    @summary Returns the session hashmap set by `web::session()`, or null when that middleware is not in use.
+    @return hashmap|null
+    #/
+    fn session()
+      @w.session()
+    end
   end
 
   # ---------------------------------------------------------------------------

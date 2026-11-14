@@ -438,6 +438,12 @@ package web
     fn cookie(name)   @.cookies().get(name) end
 
     /#
+    @summary Returns the session hashmap set by `session()` middleware, or null when that middleware is not in use.
+    @return hashmap|null
+    #/
+    fn session()      @env.get("web.session") end
+
+    /#
     @summary Returns the client's IP address.
     @return string
     #/
@@ -694,6 +700,174 @@ package web
         response
       end
     end
+  end
+
+  /#
+  @summary Loads a signed session cookie into `env["web.session"]` (a hashmap) and writes it back on the response, but only when the session changed.
+  The cookie value is `base64(json(data))` plus `.` plus `hmac_sha256(secret, payload)`, where `payload` is that base64 text. A cookie whose signature does not match, or that is truncated or unsigned, is ignored: the session is empty, and no error is raised.
+  The `Set-Cookie` header is limited to 4096 bytes; a larger session throws. Pass `store` (an object or a hashmap with `get`, `set` and `delete`) to keep the data on the server: the signed cookie then holds a random id from `crypto::random_bytes`.
+  Cookie options are passed through to `cookie_header`. The session is saved when the app returns, so a streaming body that changes it afterwards is too late.
+  @param string|bytes secret : The HMAC key. Must be non-empty.
+  @param hashmap options : `cookie` (name, default `"kiwi.session"`), `max_age`, `path`, `domain`, `secure`, `http_only` (default `true`), `same_site` (default `"Lax"`), and an optional `store`.
+  @return lambda : The middleware.
+  @throws ValueError : If the secret or options are invalid, or the session cookie would exceed 4096 bytes.
+  #/
+  fn session(secret, options = {})
+    _session_check_config(secret, options)
+    cookie_name = options.get("cookie", "kiwi.session")
+    store = options.get("store")
+    cookie_options = _session_cookie_options(options)
+
+    with (app) do
+      with (env) do
+        loaded = _session_load(secret, cookie_name, store, env)
+        sid = loaded[0]
+        data = loaded[1]
+        env["web.session"] = data
+        original = data.clone()
+        response = app(env)
+        current = env.get("web.session")
+        if current != original
+          _session_save(response, secret, cookie_name, cookie_options, store, sid, current)
+        end
+        response
+      end
+    end
+  end
+
+  fn _session_check_config(secret, options)
+    secret_ok = (typeof(secret) == string || typeof(secret) == bytes) && secret.size() > 0
+    throw error::ValueError("web::session: secret must be a non-empty string or bytes") when !secret_ok
+    throw error::ValueError("web::session: options must be a hashmap") when typeof(options) != hashmap
+    name = options.get("cookie", "kiwi.session")
+    throw error::ValueError("web::session: cookie name must be a non-empty string without ';', '=', ',' or whitespace") when _session_bad_cookie_name(name)
+    store = options.get("store")
+    return when store == null || typeof(store) != hashmap
+    for key in ["get", "set", "delete"] do
+      throw error::ValueError("web::session: store is missing \"${key}\"") when typeof(store.get(key)) != lambda
+    end
+  end
+
+  fn _session_bad_cookie_name(name)
+    return true when typeof(name) != string || name == ""
+    name.contains(";") || name.contains("=") || name.contains(",") || name.contains(" ") || name.contains("\t") || name.contains("\r") || name.contains("\n")
+  end
+
+  fn _session_cookie_options(options)
+    picked = {}
+    for key in ["path", "max_age", "domain", "http_only", "secure", "same_site"] do
+      picked[key] = options[key] when options.has_key(key)
+    end
+    picked
+  end
+
+  fn _session_load(secret, name, store, env)
+    payload = _session_unsign(secret, Request.new(env).cookie(name))
+    if store != null
+      return [null, {}] when payload == null
+      id = _session_decode_text(payload)
+      return [null, {}] when id == null || id == ""
+      found = _session_store_get(store, id)
+      data = typeof(found) == hashmap ? found.clone() : {}
+      return [id, data]
+    end
+
+    return [null, {}] when payload == null
+    text = _session_decode_text(payload)
+    return [null, {}] when text == null
+    [null, _session_parse_data(text)]
+  end
+
+  # payload + "." + hmac_sha256(secret, payload). A bad signature is ignored, not an error.
+  fn _session_unsign(secret, value)
+    return null when typeof(value) != string || !value.contains(".")
+    parts = value.split(".")
+    return null when parts.size() != 2 || parts[0] == "" || parts[1] == ""
+    expected = crypto::hmac_sha256(secret, parts[0])
+    return null when !crypto::constant_time_equals(parts[1], expected)
+    parts[0]
+  end
+
+  fn _session_sign(secret, text)
+    payload = encode::base64_encode(text)
+    payload + "." + crypto::hmac_sha256(secret, payload)
+  end
+
+  fn _session_decode_text(payload)
+    try
+      return encode::base64_decode(payload).to_string()
+    catch err
+      return null
+    end
+  end
+
+  fn _session_parse_data(text)
+    try
+      data = json::parse(text)
+      return data when typeof(data) == hashmap
+    catch err
+      return {}
+    end
+    {}
+  end
+
+  fn _session_store_get(store, id)
+    return store["get"](id) when typeof(store) == hashmap
+    store.get(id)
+  end
+
+  fn _session_store_set(store, id, data)
+    return store["set"](id, data) when typeof(store) == hashmap
+    store.set(id, data)
+  end
+
+  fn _session_store_delete(store, id)
+    return store["delete"](id) when typeof(store) == hashmap
+    store.delete(id)
+  end
+
+  fn _session_save(response, secret, name, cookie_options, store, sid, data)
+    if typeof(response) != list || response.size() != 3 || typeof(response[1]) != hashmap
+      throw error::ValueError("web::session: cannot save the session; the response must be [status, headers, body]")
+    end
+    if typeof(data) != hashmap
+      throw error::ValueError("web::session: env[\"web.session\"] must be a hashmap, got ${typeof(data)}")
+    end
+
+    if store != null
+      if data.empty()
+        return when sid == null
+        _session_store_delete(store, sid)
+        _session_write_cookie(response, name, "", _session_clear_options(cookie_options))
+        return
+      end
+      sid = crypto::random_bytes(16).to_hex() when sid == null
+      _session_store_set(store, sid, data.clone())
+      _session_write_cookie(response, name, _session_sign(secret, sid), cookie_options)
+      return
+    end
+
+    text = null
+    try
+      text = json::stringify(data)
+    catch err
+      detail = typeof(err) == hashmap ? err.get("message", "") : err.to_string()
+      throw error::ValueError("web::session: session must be JSON data (${detail})")
+    end
+    _session_write_cookie(response, name, _session_sign(secret, text), cookie_options)
+  end
+
+  fn _session_clear_options(cookie_options)
+    cleared = cookie_options.clone()
+    cleared["max_age"] = 0
+    cleared
+  end
+
+  fn _session_write_cookie(response, name, value, cookie_options)
+    header = cookie_header(name, value, cookie_options)
+    size = header.to_bytes().size()
+    throw error::ValueError("web::session: cookie is ${size} bytes, over the 4096 byte limit") when size > 4096
+    add_header(response[1], "set-cookie", header)
   end
 
   /#

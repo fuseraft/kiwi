@@ -132,6 +132,18 @@ package crypto
   fn hmac_md5(key, input)
     return __crypto_hmac_md5__(key, input)
   end
+
+  /#
+  @summary Compares two strings or byte strings without leaking, through timing, how much of a guess matched.
+  Strings are compared as UTF-8. Use this instead of `==` for HMACs, tokens and other secrets.
+  Lengths that differ compare as not equal.
+  @param string|bytes a : The first value.
+  @param string|bytes b : The second value.
+  @return boolean : `true` when the two values are equal.
+  #/
+  fn constant_time_equals(a, b)
+    return __crypto_constant_time_equals__(a, b)
+  end
 end
 
 /#

@@ -25,6 +25,7 @@ public static class CryptoBuiltinHandler
             TokenName.Builtin_Crypto_HmacSha512 => HmacHash(token, args, "HMACSHA512"),
             TokenName.Builtin_Crypto_RandomBytes => RandomBytes(token, args),
             TokenName.Builtin_Crypto_Uuid       => Uuid(token, args),
+            TokenName.Builtin_Crypto_ConstantTimeEquals => ConstantTimeEquals(token, args),
             _ => throw new FunctionUndefinedError(token, token.Text),
         };
     }
@@ -38,6 +39,19 @@ public static class CryptoBuiltinHandler
         if (count < 0 || count > 1024 * 1024)
             throw new InvalidOperationError(token, "crypto::random_bytes count must be between 0 and 1048576.");
         return Value.CreateBytes(RandomNumberGenerator.GetBytes((int)count));
+    }
+
+    /// <summary>
+    /// Constant-time equality for strings (compared as UTF-8) or bytes.
+    /// Different lengths are not equal; <see cref="CryptographicOperations.FixedTimeEquals"/> does that check.
+    /// </summary>
+    private static Value ConstantTimeEquals(Token token, List<Value> args)
+    {
+        const string name = "constant_time_equals";
+        ParameterCountMismatchError.Check(token, name, 2, args.Count);
+        var a = GetData(token, name, 0, args[0]);
+        var b = GetData(token, name, 1, args[1]);
+        return Value.CreateBoolean(CryptographicOperations.FixedTimeEquals(a, b));
     }
 
     /// <summary>A random (version 4) UUID in its lowercase 36-character form.</summary>

@@ -275,3 +275,338 @@ fn test_web_server_disconnect()
 
   tester::assert(state["stopped"], "expected write() to return false after the client left")
 end
+
+# -- Sessions ----------------------------------------------------------------
+
+fn _web_error(f)
+  try
+    f()
+  catch e
+    return e
+  end
+  null
+end
+
+fn _web_set_cookie(header, name)
+  return null when header == null
+  lines = typeof(header) == list ? header : [header]
+  for line in lines do
+    return line when line.begins_with("${name}=")
+  end
+  null
+end
+
+fn _web_cookie_pair(header, name)
+  return null when header == null
+  lines = typeof(header) == list ? header : [header]
+  for line in lines do
+    for part in line.split(";") do
+      piece = part.trim()
+      return piece when piece.begins_with("${name}=")
+    end
+  end
+  null
+end
+
+fn _web_cookie_value(pair)
+  return null when pair == null
+  pair[pair.index("=") + 1:]
+end
+
+fn _web_session_app(secret, options = {})
+  web::builder()
+    .use(web::session(secret, options))
+    .run(with (env) do
+      session = web::Request.new(env).session()
+      session["user"] = "ada" when session.get("user") == null
+      web::json_response({
+        "user": session["user"],
+        "n": session.get("n"),
+        "tags": session.get("tags"),
+        "same": web::Request.new(env).session() == session
+      })
+    end)
+end
+
+@tester::test("web: signed session round-trips, and an unchanged session is not rewritten")
+fn test_web_session_round_trip()
+  app = _web_session_app("s3cret")
+  first = web::request(app, "GET", "/")
+  pair = _web_cookie_pair(first.header("set-cookie"), "kiwi.session")
+  value = _web_cookie_value(pair)
+  parts = value.split(".")
+
+  tester::assert_eq(first.json()["user"], "ada")
+  tester::assert_eq(first.json()["same"], true)
+  tester::assert(pair.begins_with("kiwi.session="), pair)
+  set_cookie = first.header("set-cookie")
+  tester::assert(set_cookie.contains("Path=/"), set_cookie)
+  tester::assert(set_cookie.contains("HttpOnly"), set_cookie)
+  tester::assert(set_cookie.contains("SameSite=Lax"), set_cookie)
+  tester::assert_eq(parts.size(), 2)
+  tester::assert_eq(parts[1], crypto::hmac_sha256("s3cret", parts[0]))
+  tester::assert_eq(json::parse(encode::base64_decode(parts[0]).to_string())["user"], "ada")
+
+  second = web::request(app, "GET", "/", {"headers": {"Cookie": pair}})
+  tester::assert_eq(second.json()["user"], "ada")
+  tester::assert_eq(second.header("set-cookie"), null)
+
+  # A mutation is written, and the next request sees it, including nested values.
+  mutator = web::builder()
+    .use(web::session("s3cret"))
+    .run(with (env) do
+      session = env["web.session"]
+      session["n"] = session.get("n", 0) + 1
+      session["tags"] = ["a", "b"]
+      session["ok"] = true
+      web::text_response(session["n"].to_string())
+    end)
+  step = web::request(mutator, "GET", "/", {"headers": {"Cookie": pair}})
+  next_pair = _web_cookie_pair(step.header("set-cookie"), "kiwi.session")
+  seen = web::request(app, "GET", "/", {"headers": {"Cookie": next_pair}})
+  tester::assert_eq(step.body(), "1")
+  tester::assert_eq(seen.json()["n"], 1)
+  tester::assert_eq(seen.json()["tags"], ["a", "b"])
+end
+
+@tester::test("web: tampered, truncated and unsigned session cookies are ignored")
+fn test_web_session_rejects_bad_cookies()
+  app = web::builder()
+    .use(web::session("s3cret"))
+    .run(with (env) do
+      web::text_response(env["web.session"].get("user") ?? "empty")
+    end)
+  minted = web::request(_web_session_app("s3cret"), "GET", "/")
+  value = _web_cookie_value(_web_cookie_pair(minted.header("set-cookie"), "kiwi.session"))
+  parts = value.split(".")
+  payload = parts[0]
+  sig = parts[1]
+
+  bad = [
+    payload,                                  # unsigned
+    "${payload}.",                            # truncated signature
+    ".${sig}",                                # truncated payload
+    value[0:value.size() - 8],                # truncated
+    "${payload}x.${sig}",                     # tampered payload
+    "${payload}.${sig[0:sig.size() - 1]}a",   # tampered signature
+    "${payload}.${sig.uppercase()}",          # wrong case
+    "not-a-cookie",
+    "{\"user\":\"ada\"}"
+  ]
+  for cookie in bad do
+    r = web::request(app, "GET", "/", {"headers": {"Cookie": "kiwi.session=${cookie}"}})
+    tester::assert_eq(r.body(), "empty", cookie)
+  end
+
+  other = web::request(_web_session_app("other-secret"), "GET", "/")
+  foreign = _web_cookie_pair(other.header("set-cookie"), "kiwi.session")
+  rejected = web::request(app, "GET", "/", {"headers": {"Cookie": foreign}})
+  tester::assert_eq(rejected.body(), "empty")
+
+  # A valid signature over garbage is still ignored, not an error.
+  junk = encode::base64_encode("not-json")
+  signed_junk = "${junk}.${crypto::hmac_sha256("s3cret", junk)}"
+  tester::assert_eq(web::request(app, "GET", "/", {"headers": {"Cookie": "kiwi.session=${signed_junk}"}}).body(), "empty")
+end
+
+@tester::test("web: a session cookie over 4096 bytes fails loudly")
+fn test_web_session_too_large()
+  app = web::builder()
+    .use(web::session("s3cret"))
+    .run(with (env) do
+      env["web.session"]["v"] = "a" * 3500
+      web::text_response("ok")
+    end)
+  err = _web_error(with () do web::request(app, "GET", "/") end)
+  tester::assert_eq(error::type_of(err), "ValueError")
+  tester::assert(error::message_of(err).contains("4096"), error::message_of(err))
+
+  small = web::builder()
+    .use(web::session("s3cret"))
+    .run(with (env) do
+      env["web.session"]["v"] = "a" * 2000
+      web::text_response("ok")
+    end)
+  ok = web::request(small, "GET", "/")
+  tester::assert_eq(ok.body(), "ok")
+  tester::assert(ok.header("set-cookie").to_bytes().size() <= 4096)
+end
+
+@tester::test("web: session cookie options are passed through, and a bytes secret works")
+fn test_web_session_options()
+  err = _web_error(with () do web::session("") end)
+  tester::assert_eq(error::type_of(err), "ValueError")
+  tester::assert_eq(error::type_of(_web_error(with () do web::session("s3cret", {"cookie": "a=b"}) end)), "ValueError")
+
+  app = web::builder()
+    .use(web::session("s3cret".to_bytes(), {
+      "cookie": "sid",
+      "max_age": 3600,
+      "path": "/app",
+      "domain": "example.com",
+      "secure": true,
+      "http_only": false,
+      "same_site": "Strict"
+    }))
+    .run(with (env) do
+      env["web.session"]["user"] = "ada"
+      headers = {}
+      web::add_header(headers, "set-cookie", web::cookie_header("theme", "dark"))
+      [200, headers, "ok"]
+    end)
+  r = web::request(app, "GET", "/")
+  cookies = r.header("set-cookie")
+  tester::assert_eq(typeof(cookies), list)
+  session_cookie = _web_set_cookie(cookies, "sid")
+  tester::assert(session_cookie.contains("Max-Age=3600"), session_cookie)
+  tester::assert(session_cookie.contains("Path=/app"), session_cookie)
+  tester::assert(session_cookie.contains("Domain=example.com"), session_cookie)
+  tester::assert(session_cookie.contains("Secure"), session_cookie)
+  tester::assert(session_cookie.contains("SameSite=Strict"), session_cookie)
+  tester::assert(!session_cookie.contains("HttpOnly"), session_cookie)
+  tester::assert(_web_cookie_pair(cookies, "theme") != null)
+  session_cookie = _web_cookie_pair(cookies, "sid")
+
+  again = web::request(app, "GET", "/", {"headers": {"Cookie": session_cookie}})
+  tester::assert_eq(again.body(), "ok")
+  tester::assert_eq(_web_cookie_pair(again.header("set-cookie"), "sid"), null)
+end
+
+@tester::test("web: a pluggable store keeps the session server-side under a signed id")
+fn test_web_session_store()
+  calls = {"get": 0, "set": 0, "delete": 0}
+  rows = {}
+  store = {
+    "get": with (id) do
+      calls["get"] += 1
+      rows.get(id)
+    end,
+    "set": with (id, data) do
+      calls["set"] += 1
+      rows[id] = data.clone()
+    end,
+    "delete": with (id) do
+      calls["delete"] += 1
+      rows.remove(id)
+    end
+  }
+  app = web::builder()
+    .use(web::session("s3cret", {"store": store}))
+    .run(with (env) do
+      session = env["web.session"]
+      if env["path_info"] == "/clear"
+        session.clear()
+      elsif env["path_info"] == "/set"
+        session["user"] = "bea"
+      elsif env["path_info"] != "/read"
+        session["user"] = "ada" when session.get("user") == null
+      end
+      web::text_response(session.get("user") ?? "empty")
+    end)
+
+  first = web::request(app, "GET", "/")
+  pair = _web_cookie_pair(first.header("set-cookie"), "kiwi.session")
+  value = _web_cookie_value(pair)
+  parts = value.split(".")
+  id = encode::base64_decode(parts[0]).to_string()
+  tester::assert_eq(first.body(), "ada")
+  tester::assert_eq(parts[1], crypto::hmac_sha256("s3cret", parts[0]))
+  tester::assert(id.matches('^[0-9a-f]{32}$'), id)
+  tester::assert_eq(rows[id]["user"], "ada")
+  tester::assert_eq(calls["set"], 1)
+
+  second = web::request(app, "GET", "/", {"headers": {"Cookie": pair}})
+  tester::assert_eq(second.body(), "ada")
+  tester::assert_eq(second.header("set-cookie"), null)
+  tester::assert_eq(calls["set"], 1)
+
+  third = web::request(app, "GET", "/set", {"headers": {"Cookie": pair}})
+  third_id = encode::base64_decode(_web_cookie_value(_web_cookie_pair(third.header("set-cookie"), "kiwi.session")).split(".")[0]).to_string()
+  tester::assert_eq(third.body(), "bea")
+  tester::assert_eq(third_id, id)
+  tester::assert_eq(rows[id]["user"], "bea")
+
+  cleared = web::request(app, "GET", "/clear", {"headers": {"Cookie": pair}})
+  tester::assert_eq(cleared.body(), "empty")
+  tester::assert(cleared.header("set-cookie").contains("Max-Age=0"), cleared.header("set-cookie"))
+  tester::assert_eq(calls["delete"], 1)
+  tester::assert(!rows.has_key(id))
+
+  # A forged id does not load another client's session.
+  web::request(app, "GET", "/")
+  forged = web::request(app, "GET", "/read", {"headers": {"Cookie": "kiwi.session=forged.not-a-signature"}})
+  tester::assert_eq(forged.body(), "empty")
+
+  # An object with get/set/delete methods is a store too.
+  struct SessionMemStore
+    fn new()
+      @rows = {}
+    end
+    fn get(id) @rows.get(id) end
+    fn set(id, data) @rows[id] = data end
+    fn delete(id) @rows.remove(id) end
+    fn size() @rows.size() end
+  end
+  memory = SessionMemStore.new()
+  struct_app = web::builder()
+    .use(web::session("s3cret", {"store": memory}))
+    .run(with (env) do
+      env["web.session"]["user"] = "ada"
+      web::text_response("ok")
+    end)
+  minted = web::request(struct_app, "GET", "/")
+  tester::assert_eq(memory.size(), 1)
+  replay = web::request(struct_app, "GET", "/", {"headers": {"Cookie": _web_cookie_pair(minted.header("set-cookie"), "kiwi.session")}})
+  tester::assert_eq(replay.header("set-cookie"), null)
+end
+
+@tester::test("web: httpserver Request.session sees the web session")
+fn test_web_session_httpserver()
+  bare = httpserver::create_with_config(httpserver::config().logging("none"))
+  bare.get("/no", with (req, res) do
+    res.text(req.session() == null ? "none" : "set")
+  end)
+  tester::assert_eq(web::request(bare.to_app(), "GET", "/no").body(), "none")
+
+  server = httpserver::create_with_config(httpserver::config().logging("none"))
+  server.wrap(web::session("s3cret"))
+  server.get("/me", with (req, res) do
+    s = req.session()
+    s["user"] = "ada" when s.get("user") == null
+    res.text(s["user"])
+  end)
+  app = server.to_app()
+  first = web::request(app, "GET", "/me")
+  pair = _web_cookie_pair(first.header("set-cookie"), "kiwi.session")
+  second = web::request(app, "GET", "/me", {"headers": {"Cookie": pair}})
+  tester::assert_eq(first.body(), "ada")
+  tester::assert_eq(second.body(), "ada")
+  tester::assert_eq(second.header("set-cookie"), null)
+end
+
+@tester::test("web: signed session round-trips through a real Server")
+fn test_web_session_server()
+  app = web::builder()
+    .use(web::session("server-secret"))
+    .run(with (env) do
+      session = web::Request.new(env).session()
+      session["user"] = "ada+b/c=" when session.get("user") == null
+      web::text_response(session["user"])
+    end)
+
+  server = web::Server.new(app, {"port": 19240}).start()
+  task::sleep(200)
+  try
+    first = http::get("http://localhost:19240/")
+    pair = _web_cookie_pair(first.headers.get("Set-Cookie"), "kiwi.session")
+    second = http::get("http://localhost:19240/", {"Cookie": pair})
+    tester::assert_eq(first.status, 200)
+    tester::assert_eq(first.body, "ada+b/c=")
+    tester::assert(pair != null, "expected a session cookie, got ${first.headers}")
+    tester::assert_eq(second.status, 200)
+    tester::assert_eq(second.body, "ada+b/c=")
+    tester::assert(!second.headers.has_key("Set-Cookie"), "unchanged session should not set a cookie")
+  finally
+    server.stop()
+  end
+end

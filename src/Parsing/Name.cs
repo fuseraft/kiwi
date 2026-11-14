@@ -339,6 +339,7 @@ public enum TokenName
   Builtin_Crypto_Sha512,
   Builtin_Crypto_RandomBytes,
   Builtin_Crypto_Uuid,
+  Builtin_Crypto_ConstantTimeEquals,
   Builtin_HttpServer_Accept,
   Builtin_HttpServer_Create,
   Builtin_HttpServer_Respond,

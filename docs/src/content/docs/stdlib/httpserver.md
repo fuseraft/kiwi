@@ -64,6 +64,7 @@ Requests that match no route get a `404 Not Found`. A `HEAD` request is answered
 | `json()`, `is_json()` | The body parsed as JSON |
 | `form()`, `is_form()` | Form fields from a URL-encoded body |
 | `cookie(name)`, `cookies()` | Request cookies |
+| `session()` | The session hashmap from [`web::session`](/kiwi/stdlib/web/#sessions), if the server is [wrapped](#working-with-web) with it |
 | `content_type()`, `remote_addr()` | The content type and client address |
 | `id()` | The request id from `web::request_id()`, if the server is [wrapped](#working-with-web) with it |
 | `env()` | The request's [`web` environment](/kiwi/stdlib/web/#the-environment) |
@@ -171,7 +172,7 @@ A streaming response keeps its worker until it ends, so raise `workers` in the [
 
 ## Working with `web`
 
-A server is a [`web`](/kiwi/stdlib/web/) app. `to_app()` returns it with its logging, CORS and wrappers applied, `wrap` adds web middleware around the whole server, and `web::request` calls it without starting a listener, which makes handlers quick to test:
+A server is a [`web`](/kiwi/stdlib/web/) app. `to_app()` returns it with its logging, CORS and wrappers applied, `wrap` adds web middleware around the whole server, and `web::request` calls it without starting a listener, which makes handlers quick to test. `wrap(web::session(secret))` installs a signed session; handlers read it with `req.session()`:
 
 ```kiwi
 server = httpserver::create_with_config(httpserver::config().logging("none"))
@@ -187,6 +188,17 @@ site = web::builder()
   .map("/api", server.to_app())
   .run(with (env) do web::text_response("home") end)
 println web::request(site, "GET", "/api/users/8").json()["id"]   # 8
+```
+
+```kiwi
+server = httpserver::create_with_config(httpserver::config().logging("none"))
+server.wrap(web::session("s3cret"))
+server.get("/me", with (req, res) do
+  req.session()["user"] = "ada"
+  res.text(req.session()["user"])
+end)
+
+println web::request(server.to_app(), "GET", "/me").body()   # ada
 ```
 
 ## Lifecycle and errors
