@@ -13,6 +13,7 @@ public static class CryptoBuiltin
     public const string HmacSha512 = "__crypto_hmac_sha512__";
     public const string RandomBytes = "__crypto_random_bytes__";
     public const string Uuid       = "__crypto_uuid__";
+    public const string ConstantTimeEquals = "__crypto_constant_time_equals__";
 
     private static readonly IReadOnlyDictionary<string, TokenName> _map
         = new Dictionary<string, TokenName>
@@ -28,6 +29,7 @@ public static class CryptoBuiltin
             { HmacSha512, TokenName.Builtin_Crypto_HmacSha512 },
             { RandomBytes, TokenName.Builtin_Crypto_RandomBytes },
             { Uuid,       TokenName.Builtin_Crypto_Uuid },
+            { ConstantTimeEquals, TokenName.Builtin_Crypto_ConstantTimeEquals },
         };
 
     private static readonly IReadOnlySet<TokenName> _names = Map.Values.ToHashSet();

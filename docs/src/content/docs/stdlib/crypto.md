@@ -47,4 +47,15 @@ println crypto::uuid().size()  # 36
 
 For Base64 and hex encoding, see [`encode`](/kiwi/stdlib/encode/).
 
+## Comparing secrets
+
+`constant_time_equals(a, b)` compares two strings, or bytes, without leaking through timing how much of a guess matched. Strings are compared as UTF-8, and a string matches bytes of the same UTF-8. Lengths that differ compare as not equal. Use it instead of `==` for HMACs, tokens and other secrets. `web::session` uses it to check the session cookie's signature.
+
+```kiwi
+println crypto::constant_time_equals("abc", "abc")    # true
+println crypto::constant_time_equals("abc", "abd")    # false
+println crypto::constant_time_equals(b"hi", "hi")     # true
+println crypto::constant_time_equals("abc", "ab")     # false
+```
+
 <!-- api: crypto -->

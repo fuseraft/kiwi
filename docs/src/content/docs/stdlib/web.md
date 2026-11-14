@@ -38,7 +38,7 @@ Each request gets its own hashmap:
 | `remote_addr`, `scheme`, `protocol` | The client's address, `"http"` or `"https"`, and the protocol, such as `"HTTP/1.1"`. |
 | `server_name`, `server_port` | Where the server listens. |
 
-Middleware may add its own keys, prefixed with `web.` by convention: `web::request_id()` adds `web.request_id`. `web::Request` wraps an environment with parsing helpers, and caches what it parses in the environment so every layer shares it:
+Middleware may add its own keys, prefixed with `web.` by convention: `web::request_id()` adds `web.request_id`, and `web::session()` adds `web.session`. `web::Request` wraps an environment with parsing helpers, and caches what it parses in the environment so every layer shares it:
 
 ```kiwi
 app = with (env) do
@@ -166,6 +166,7 @@ println web::request(app, "GET", "/", {"headers": {"Authorization": "Bearer s3cr
 | `static_files(prefix, dir, options)` | Serves files for `GET` and `HEAD` under a prefix; `index` and `cache_control` options. Requests that would leave the directory are passed on. |
 | `cors(origin, options)` | Adds CORS headers and answers preflight requests with `204`. |
 | `request_id(header)` | Gives each request an id in `env["web.request_id"]` and a response header, keeping a well-formed one from the client. |
+| `session(secret, options)` | Loads a signed session cookie into `env["web.session"]` and writes it back when it changed. See [Sessions](#sessions). |
 | `rescue(handler)` | Turns an error thrown by the app into a response: `handler(err, env)`. |
 | `lint()` | Checks requests and responses against the contract and throws a descriptive error. Use it in development and tests. |
 
@@ -182,6 +183,66 @@ end
 ```
 
 The server itself checks every response with `web::check_response` and answers a malformed one with `500`, logging the reason, so a mistake never leaves a client waiting.
+
+## Sessions
+
+`web::session(secret, options)` keeps a hashmap of per-client state in a signed cookie. It loads the cookie into `env["web.session"]` before calling the app, and writes a `Set-Cookie` header on the way out, but only when the session changed. `web::Request.session()` is the same hashmap. An [`httpserver`](/kiwi/stdlib/httpserver/) handler sees it too, once the server is wrapped with this middleware.
+
+The cookie value is `base64(json(data))`, a `.`, and `hmac_sha256(secret, payload)`, where `payload` is that base64 text. The signature is checked with [`crypto::constant_time_equals`](/kiwi/stdlib/crypto/). A cookie that is tampered with, truncated, unsigned, or signed with a different secret is ignored: the request gets an empty session, not an error.
+
+```kiwi
+app = web::builder()
+  .use(web::session("s3cret"))
+  .run(with (env) do
+    session = web::Request.new(env).session()
+    known = session.get("user") != null
+    session["user"] = "ada" when !known
+    web::text_response(known ? "returning" : "new")
+  end)
+
+first = web::request(app, "GET", "/")
+println first.body()                                          # new
+cookie = first.header("set-cookie").split(";")[0]
+
+second = web::request(app, "GET", "/", {"headers": {"Cookie": cookie}})
+println second.body()                                         # returning
+
+tampered = web::request(app, "GET", "/", {"headers": {"Cookie": "kiwi.session=tampered"}})
+println tampered.body()                                       # new
+```
+
+| Option | Default | Meaning |
+| :-- | :-- | :-- |
+| `cookie` | `"kiwi.session"` | Cookie name. |
+| `max_age`, `path`, `domain`, `secure`, `http_only`, `same_site` | as for `cookie_header` | Passed through to `cookie_header`. `http_only` defaults to `true` and `same_site` to `"Lax"`. |
+| `store` | none | A server-side store. Without it, the session data lives in the cookie. |
+
+The `Set-Cookie` header is limited to 4096 bytes. A larger session throws `ValueError` instead of being silently dropped. The session is saved when the app returns, so a change made later, while a streaming body is producing chunks, is not saved.
+
+To keep the data on the server, pass a `store` with `get(id)`, `set(id, data)` and `delete(id)`. The cookie then carries a random id from `crypto::random_bytes`, still signed, and the store holds the hashmap. A hashmap of those functions works, and so does an object with those methods.
+
+```kiwi
+box = {"rows": {}}
+store = {
+  "get": with (id) do box["rows"].get(id) end,
+  "set": with (id, data) do box["rows"][id] = data end,
+  "delete": with (id) do box["rows"].remove(id) end
+}
+
+app = web::builder()
+  .use(web::session("s3cret", {"store": store}))
+  .run(with (env) do
+    session = env["web.session"]
+    session["user"] = "ada" when session.get("user") == null
+    web::text_response(session["user"])
+  end)
+
+first = web::request(app, "GET", "/")
+println first.body()                 # ada
+println box["rows"].size()           # 1
+cookie = first.header("set-cookie").split(";")[0]
+println web::request(app, "GET", "/", {"headers": {"Cookie": cookie}}).body()   # ada
+```
 
 ## Serving
 
